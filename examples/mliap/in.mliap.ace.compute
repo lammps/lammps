@@ -1,0 +1,25 @@
+#info all out log
+units  metal
+atom_style  atomic
+boundary    p p p
+atom_modify    map hash
+read_data  ace_compute_struct.data
+mass  1 1.00
+mass  2 14.00
+mass  3 15.999
+
+pair_style     zero 5.7
+pair_coeff     * *
+
+
+compute     ace all mliap descriptor ace H_N_O_ccs.yace model linear gradgradflag 1
+fix         ace all ave/time 1 1 1 c_ace[*] file desc_out.dat  mode vector
+
+thermo 1
+thermo_style    custom &
+        pe            pxy     c_ace[1][1] c_ace[1][2]
+thermo_modify   norm no
+run 0
+
+uncompute   ace
+unfix       ace

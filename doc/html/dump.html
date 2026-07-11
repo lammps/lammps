@@ -1,0 +1,1095 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dump command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/dump.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dump atom/adios command" href="dump_adios.html" />
+    <link rel="prev" title="Dump Styles" href="dumps.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="dumps.html">Dump Styles</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-vtk-command"><span class="xref std std-doc">dump vtk</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-h5md-command"><span class="xref std std-doc">dump h5md</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-molfile-command"><span class="xref std std-doc">dump molfile</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-netcdf-command"><span class="xref std std-doc">dump netcdf</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-image-command"><span class="xref std std-doc">dump image</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-movie-command"><span class="xref std std-doc">dump movie</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-atom-adios-command"><span class="xref std std-doc">dump atom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-custom-adios-command"><span class="xref std std-doc">dump custom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-cfg-uef-command"><span class="xref std std-doc">dump cfg/uef</span> command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html">dump atom/adios  command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html#dump-custom-adios-command">dump custom/adios command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_cfg_uef.html">dump cfg/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-movie-command">dump movie command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-modify-options-for-dump-image-movie">dump_modify options for dump image/movie</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html#dump-modify-command-for-image-movie-options"><span class="xref std std-doc">dump_modify</span> command for image/movie options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html">dump netcdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html#dump-netcdf-mpiio-command">dump netcdf/mpiio command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_vtk.html">dump vtk command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="dumps.html">Dump Styles</a></li>
+      <li class="breadcrumb-item active">dump command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="dumps.html" class="btn btn-neutral float-left" title="Dump Styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dump_adios.html" class="btn btn-neutral float-right" title="dump atom/adios command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="dump-command">
+<span id="index-21"></span><span id="index-20"></span><span id="index-19"></span><span id="index-18"></span><span id="index-17"></span><span id="index-16"></span><span id="index-15"></span><span id="index-14"></span><span id="index-13"></span><span id="index-12"></span><span id="index-11"></span><span id="index-10"></span><span id="index-9"></span><span id="index-8"></span><span id="index-7"></span><span id="index-6"></span><span id="index-5"></span><span id="index-4"></span><span id="index-3"></span><span id="index-2"></span><span id="index-1"></span><span id="index-0"></span><h1>dump command<a class="headerlink" href="#dump-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-vtk-command">
+<h1><a class="reference internal" href="dump_vtk.html"><span class="doc">dump vtk</span></a> command<a class="headerlink" href="#dump-vtk-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-h5md-command">
+<h1><a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a> command<a class="headerlink" href="#dump-h5md-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-molfile-command">
+<h1><a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a> command<a class="headerlink" href="#dump-molfile-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-netcdf-command">
+<h1><a class="reference internal" href="dump_netcdf.html"><span class="doc">dump netcdf</span></a> command<a class="headerlink" href="#dump-netcdf-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-image-command">
+<h1><a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command<a class="headerlink" href="#dump-image-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-movie-command">
+<h1><a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a> command<a class="headerlink" href="#dump-movie-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-atom-adios-command">
+<h1><a class="reference internal" href="dump_adios.html"><span class="doc">dump atom/adios</span></a> command<a class="headerlink" href="#dump-atom-adios-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-custom-adios-command">
+<h1><a class="reference internal" href="dump_adios.html"><span class="doc">dump custom/adios</span></a> command<a class="headerlink" href="#dump-custom-adios-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-cfg-uef-command">
+<h1><a class="reference internal" href="dump_cfg_uef.html"><span class="doc">dump cfg/uef</span></a> command<a class="headerlink" href="#dump-cfg-uef-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">attribute1</span><span class="w"> </span><span class="n">attribute2</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>ID = user-assigned name for the dump</p></li>
+<li><p>group-ID = ID of the group of atoms to be dumped</p></li>
+<li><p>style = <em>atom</em> or <em>atom/adios</em> or <em>atom/gz</em> or <em>atom/zstd</em> or <em>cfg</em> or <em>cfg/gz</em> or <em>cfg/zstd</em> or <em>cfg/uef</em> or <em>custom</em> or <em>custom/gz</em> or <em>custom/zstd</em> or <em>custom/adios</em> or <em>dcd</em> or <em>extxyz</em> or <em>grid</em> or <em>grid/vtk</em> or <em>h5md</em> or <em>image</em> or <em>local</em> or <em>local/gz</em> or <em>local/zstd</em> or <em>molfile</em> or <em>movie</em> or <em>netcdf</em> or <em>netcdf/mpiio</em> or <em>vtk</em> or <em>xtc</em> or <em>xyz</em> or <em>xyz/gz</em> or <em>xyz/zstd</em> or <em>yaml</em></p></li>
+<li><p>N = dump on timesteps which are multiples of N</p></li>
+<li><p>file = name of file to write dump info to</p></li>
+<li><p>attribute1,attribute2,… = list of attributes for a particular style</p>
+<pre class="literal-block"><em>atom</em> attributes = none
+<em>atom/adios</em> attributes = none,  discussed on <a class="reference internal" href="dump_adios.html"><span class="doc">dump atom/adios</span></a> page
+<em>atom/gz</em> attributes = none
+<em>atom/zstd</em> attributes = none
+<em>cfg</em> attributes = same as <em>custom</em> attributes, see below
+<em>cfg/gz</em> attributes = same as <em>custom</em> attributes, see below
+<em>cfg/zstd</em> attributes = same as <em>custom</em> attributes, see below
+<em>cfg/uef</em> attributes = same as <em>custom</em> attributes, discussed on <a class="reference internal" href="dump_cfg_uef.html"><span class="doc">dump cfg/uef</span></a> page
+<em>custom</em>, <em>custom/gz</em>, <em>custom/zstd</em> attributes = see below
+<em>custom/adios</em> attributes = same as <em>custom</em> attributes, discussed on <a class="reference internal" href="dump_adios.html"><span class="doc">dump custom/adios</span></a> page
+<em>dcd</em> attributes = none
+<em>extxyz</em> attributes = none
+<em>h5md</em> attributes = discussed on <a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a> page
+<em>grid</em> attributes = see below
+<em>grid/vtk</em> attributes = see below
+<em>image</em> attributes = discussed on <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> page
+<em>local</em>, <em>local/gz</em>, <em>local/zstd</em> attributes = see below
+<em>molfile</em> attributes = discussed on <a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a> page
+<em>movie</em> attributes = discussed on <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> page
+<em>netcdf</em> attributes = discussed on <a class="reference internal" href="dump_netcdf.html"><span class="doc">dump netcdf</span></a> page
+<em>netcdf/mpiio</em> attributes = discussed on <a class="reference internal" href="dump_netcdf.html"><span class="doc">dump netcdf</span></a> page
+<em>vtk</em> attributes = same as <em>custom</em> attributes, see below, also <a class="reference internal" href="dump_vtk.html"><span class="doc">dump vtk</span></a> page
+<em>xtc</em> attributes = none
+<em>xyz</em> attributes = none
+<em>xyz/gz</em> attributes = none
+<em>xyz/zstd</em> attributes = none
+<em>yaml</em> attributes = same as <em>custom</em> attributes, see below</pre>
+</li>
+<li><p><em>custom</em> or <em>custom/gz</em> or <em>custom/zstd</em> or <em>cfg</em> or <em>cfg/gz</em> or <em>cfg/zstd</em> or <em>cfg/uef</em> or <em>netcdf</em> or <em>netcdf/mpiio</em> or <em>yaml</em> attributes:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>possible attributes = id, mol, proc, procp1, type, element, mass,
+                      x, y, z, xs, ys, zs, xu, yu, zu,
+                      xsu, ysu, zsu, ix, iy, iz,
+                      vx, vy, vz, fx, fy, fz,
+                      q, mux, muy, muz, mu,
+                      radius, diameter, omegax, omegay, omegaz,
+                      angmomx, angmomy, angmomz, tqx, tqy, tqz,
+                      c_ID, c_ID[I], f_ID, f_ID[I], v_name,
+                      i_name, d_name, i2_name[I], d2_name[I]
+</pre></div>
+</div>
+<pre class="literal-block">id = atom ID
+mol = molecule ID
+proc = ID of processor that owns atom
+procp1 = ID+1 of processor that owns atom
+type = atom type
+typelabel = atom <a class="reference internal" href="Howto_type_labels.html"><span class="doc">type label</span></a>
+element = name of atom element, as defined by <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command
+mass = atom mass
+x,y,z = unscaled atom coordinates
+xs,ys,zs = scaled atom coordinates
+xu,yu,zu = unwrapped atom coordinates
+xsu,ysu,zsu = scaled unwrapped atom coordinates
+ix,iy,iz = box image that the atom is in
+vx,vy,vz = atom velocities
+fx,fy,fz = forces on atoms
+q = atom charge
+mux,muy,muz = orientation of dipole moment of atom
+mu = magnitude of dipole moment of atom
+radius,diameter = radius, diameter of spherical particle
+omegax,omegay,omegaz = angular velocity of spherical particle
+angmomx,angmomy,angmomz = angular momentum of aspherical particle
+tqx,tqy,tqz = torque on finite-size particles
+c_ID = per-atom vector calculated by a compute with ID
+c_ID[I] = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
+f_ID = per-atom vector calculated by a fix with ID
+f_ID[I] = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
+v_name = per-atom vector calculated by an atom-style variable with name
+i_name = custom integer vector with name
+d_name = custom floating point vector with name
+i2_name[I] = Ith column of custom integer array with name, I can include wildcard (see below)
+d2_name[I] = Ith column of custom floating point vector with name, I can include wildcard (see below)</pre>
+</li>
+<li><p><em>local</em> or <em>local/gz</em> or <em>local/zstd</em> attributes:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>possible attributes = index, c_ID, c_ID[I], f_ID, f_ID[I]
+  index = enumeration of local values
+  c_ID = local vector calculated by a compute with ID
+  c_ID[I] = Ith column of local array calculated by a compute with ID, I can include wildcard (see below)
+  f_ID = local vector calculated by a fix with ID
+  f_ID[I] = Ith column of local array calculated by a fix with ID, I can include wildcard (see below)
+</pre></div>
+</div>
+</li>
+<li><p><em>grid</em> or <em>grid/vtk</em> attributes:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>possible attributes = c_ID:gname:dname, c_ID:gname:dname[I], f_ID:gname:dname, f_ID:gname:dname[I]
+  gname = name of grid defined by compute or fix
+  dname = name of data field defined by compute or fix
+  c_ID = per-grid vector calculated by a compute with ID
+  c_ID[I] = Ith column of per-grid array calculated by a compute with ID, I can include wildcard (see below)
+  f_ID = per-grid vector calculated by a fix with ID
+  f_ID[I] = Ith column of per-grid array calculated by a fix with ID, I can include wildcard (see below)
+</pre></div>
+</div>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">myDump</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.lammpstrj</span>
+<span class="k">dump </span><span class="nv nv-Identifier">myDump</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="o">/</span><span class="n">gz</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.atom.gz</span>
+<span class="k">dump </span><span class="nv nv-Identifier">myDump</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="o">/</span><span class="n">zstd</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.atom.zst</span>
+<span class="k">dump </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">subgroup</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="n">dump.run.bin</span>
+<span class="k">dump </span><span class="nv nv-Identifier">4a</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.myforce.</span><span class="o">*</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">fx</span>
+<span class="k">dump </span><span class="nv nv-Identifier">4a</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.myvel.lammpsbin</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span>
+<span class="k">dump </span><span class="nv nv-Identifier">4b</span><span class="w"> </span><span class="nv nv-Identifier">flow</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.</span><span class="o">%</span><span class="n">.myforce</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">c_myF[3]</span><span class="w"> </span><span class="n">v_ke</span>
+<span class="k">dump </span><span class="nv nv-Identifier">4b</span><span class="w"> </span><span class="nv nv-Identifier">flow</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.</span><span class="o">%</span><span class="n">.myforce</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">c_myF[</span><span class="o">*</span><span class="n">]</span><span class="w"> </span><span class="n">v_ke</span>
+<span class="k">dump </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">inner</span><span class="w"> </span><span class="n">cfg</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">dump.snap.</span><span class="o">*</span><span class="n">.cfg</span><span class="w"> </span><span class="n">mass</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">xs</span><span class="w"> </span><span class="n">ys</span><span class="w"> </span><span class="n">zs</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span>
+<span class="k">dump </span><span class="nv nv-Identifier">snap</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">cfg</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.config.</span><span class="o">*</span><span class="n">.cfg</span><span class="w"> </span><span class="n">mass</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">xs</span><span class="w"> </span><span class="n">ys</span><span class="w"> </span><span class="n">zs</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">c_Stress[2]</span>
+<span class="k">dump </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">xtc</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">file.xtc</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Dump a snapshot of quantities to one or more files once every
+<span class="math notranslate nohighlight">\(N\)</span> timesteps in one of several styles.  The timesteps on which
+dump output is written can also be controlled by a variable.  See the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command.</p>
+<p>Almost all the styles output per-atom data, i.e. one or more values
+per atom.  The exceptions are as follows.  The <em>local</em> styles output
+one or more values per bond (angle, dihedral, improper) or per pair of
+interacting atoms (force or neighbor interactions).  The <em>grid</em> styles
+output one or more values per grid cell, which are produced by other
+commands which overlay the simulation domain with a regular grid.  See
+the <a class="reference internal" href="Howto_grid.html"><span class="doc">Howto grid</span></a> doc page for details.  The <em>image</em>
+style renders a JPG, PNG, or PPM image file of the system for each
+snapshot, while the <em>movie</em> style combines and compresses the series
+of images into a movie file; both styles are discussed in detail on
+the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> page.</p>
+<p>Only information for atoms in the specified group is dumped.  The
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify thresh and region and refresh</span></a>
+commands can also alter what atoms are included.  Not all styles
+support these options; see details on the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> doc page.</p>
+<p>As described below, the filename determines the kind of output: text
+or binary or compressed, one big file or one per timestep, one file for
+all the processors or multiple smaller files.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because periodic boundary conditions are enforced only on timesteps
+when neighbor lists are rebuilt, the coordinates of an atom written
+to a dump file may be slightly outside the simulation box.
+Re-neighbor timesteps will not typically coincide with the
+timesteps dump snapshots are written.  See the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify
+pbc</span></a> command if you wish to force coordinates to be
+strictly inside the simulation box.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unless the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify sort</span></a> option is invoked,
+the lines of atom or grid information written to dump files
+(typically one line per atom or grid cell) will be in an
+indeterminate order for each snapshot.  This is even true when
+running on a single processor, if the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify sort</span></a> option is on, which it is by default.  In this case
+atoms are re-ordered periodically during a simulation, due to
+spatial sorting.  It is also true when running in parallel, because
+data for a single snapshot is collected from multiple processors,
+each of which owns a subset of the atoms.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Without either including atom IDs or using the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify sort</span></a> option, it is impossible for visualization programs
+(e.g. OVITO or VMD) or analysis tools to assign data in different
+frames consistently to the same atom.  This can lead to incorrect
+visualizations or results.  LAMMPS will print a warning in such cases.</p>
+</div>
+<p>For the <em>atom</em>, <em>custom</em>, <em>cfg</em>, <em>grid</em>, and <em>local</em> styles, sorting is
+off by default.  For the <em>dcd</em>, <em>extxyz</em>, <em>grid/vtk</em>, <em>xtc</em>, <em>xyz</em>, and
+<em>molfile</em> styles, sorting by atom ID or grid ID is on by default. See
+the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> page for details.</p>
+<p>The <em>style</em> keyword determines what kind of data is written to the
+dump file(s) and in what format.</p>
+<p>Note that <em>atom</em>, <em>custom</em>, <em>dcd</em>, <em>extxyz</em>, <em>xtc</em>, <em>xyz</em>, and <em>yaml</em>
+style dump files can be read directly by <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a>, a popular tool for visualizing
+and analyzing trajectories from atomic and molecular systems.  For
+reading <em>netcdf</em> style dump files, the netcdf plugin needs to be
+recompiled from source using a NetCDF version compatible with the one
+used by LAMMPS.  The bundled plugin binary uses a very old version of
+NetCDF that is not compatible with LAMMPS.</p>
+<p>Likewise the <a class="reference external" href="https://www.ovito.org">OVITO visualization package</a>,
+popular for materials modeling, can read the <em>atom</em>, <em>custom</em>, <em>extxyz</em>,
+<em>local</em>, <em>xtc</em>, <em>cfg</em>, <em>netcdf</em>, and <em>xyz</em> style atom dump files
+directly.  With version 3.8 and above, OVITO can also read and visualize
+<em>grid</em> style dump files with grid cell data, including iso-surface
+images of the grid cell values.</p>
+<p>Note that settings made via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a>
+command can also alter the format of individual values and content of
+the dump file itself.  This includes the precision of values output to
+text-based dump files which is controlled by the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify
+format</span></a> command and its options.</p>
+<hr class="docutils" />
+<p>Format of native LAMMPS format dump files:</p>
+<p>The <em>atom</em>, <em>custom</em>, <em>grid</em>, and <em>local</em> styles create files in a
+simple LAMMPS-specific text format that is mostly self-explanatory
+when viewing a dump file.  Many post-processing tools either included
+with LAMMPS or third-party tools can read this format, as does the
+<a class="reference internal" href="rerun.html"><span class="doc">rerun</span></a> command.  See tools described on the <a class="reference internal" href="Tools.html"><span class="doc">Tools</span></a> doc page for examples, including <a class="reference external" href="https://lammps.github.io/pizza/">Pizza.py</a>.</p>
+<p>For all these styles, the dimensions of the simulation box are
+included in each snapshot.  The simulation box in LAMMPS can be
+defined in one of 3 ways: orthogonal, restricted triclinic, and
+general triclinic.  See the <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto triclinic</span></a>
+doc page for a detailed description of all 3 options.</p>
+<p>For an orthogonal simulation box the box information is formatted as:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ITEM: BOX BOUNDS xx yy zz
+xlo xhi
+ylo yhi
+zlo zhi
+</pre></div>
+</div>
+<p>where xlo,xhi are the maximum extents of the simulation box in the
+<span class="math notranslate nohighlight">\(x\)</span>-dimension, and similarly for <span class="math notranslate nohighlight">\(y\)</span> and <span class="math notranslate nohighlight">\(z\)</span>.  The
+“xx yy zz” terms are six characters that encode the style of boundary for each
+of the six simulation box boundaries (xlo,xhi; ylo,yhi; and zlo,zhi).  Each of
+the six characters is one of <em>p</em> (periodic), <em>f</em> (fixed), <em>s</em> (shrink wrap),
+or <em>m</em> (shrink wrapped with a minimum value).  See the
+<a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command for details.</p>
+<p>For a restricted triclinic simulation box, an orthogonal bounding box
+which encloses the restricted triclinic simulation box is output,
+along with the three tilt factors (<em>xy</em>, <em>xz</em>, <em>yz</em>) of the triclinic
+box, formatted as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ITEM: BOX BOUNDS xy xz yz xx yy zz
+xlo_bound xhi_bound xy
+ylo_bound yhi_bound xz
+zlo_bound zhi_bound yz
+</pre></div>
+</div>
+<p>The presence of the text “xy xz yz” in the ITEM line indicates that
+the three tilt factors will be included on each of the three following lines.
+This bounding box is convenient for many visualization programs.  The
+meaning of the six character flags for “xx yy zz” is the same as above.</p>
+<p>Note that the first two numbers on each line are now xlo_bound instead
+of xlo, etc. because they represent a bounding box.  See the <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto
+triclinic</span></a> page for a geometric description of
+triclinic boxes, as defined by LAMMPS, simple formulas for how the six
+bounding box extents (xlo_bound, xhi_bound, etc.) are calculated from the
+triclinic parameters, and how to transform those parameters to and
+from other commonly used triclinic representations.</p>
+<p>For a general triclinic simulation box, see the “General triclinic”
+section below for a description of the ITEM: BOX BOUNDS format as well
+as how per-atom coordinates and per-atom vector quantities are output.</p>
+<p>The <em>atom</em> and <em>custom</em> styles output a “ITEM: NUMBER OF ATOMS” line
+with the count of atoms in the snapshot.  Likewise they output an
+“ITEM: ATOMS” line which includes column descriptors for the per-atom
+lines that follow.  For example, the descriptors would be “id type xs
+ys zs” for the default <em>atom</em> style, and would be the atom attributes
+you specify in the dump command for the <em>custom</em> style.  Each
+subsequent line will list the data for a single atom.</p>
+<p>For style <em>atom</em>, atom coordinates are written to the file, along with
+the atom ID and atom type.  By default, atom coords are written in a
+scaled format (from 0 to 1).  That is, an <span class="math notranslate nohighlight">\(x\)</span> value of 0.25 means the
+atom is at a location 1/4 of the distance from <em>xlo</em> to <em>xhi</em> of the box
+boundaries.  The format can be changed to unscaled coords via the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> settings.  Image flags can also be
+added for each atom via dump_modify.</p>
+<p>Style <em>custom</em> allows you to specify a list of atom attributes to be
+written to the dump file for each atom.  Possible attributes are
+listed above and will appear in the order specified.  You cannot
+specify a quantity that is not defined for a particular
+simulation—such as <em>q</em> for atom style <em>bond</em>, since that atom style
+does not assign charges.  Dumps occur at the very end of a timestep,
+so atom attributes will include effects due to fixes that are applied
+during the timestep.  An explanation of the possible dump custom
+attributes is given below.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 22Dec2022.</span></p>
+</div>
+<p>For style <em>grid</em> the dimension of the simulation domain and size of
+the Nx by Ny by Nz grid that overlays the simulation domain are also
+output with each snapshot:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ITEM: DIMENSION
+dim
+ITEM: GRID SIZE
+nx ny nz
+</pre></div>
+</div>
+<p>The value dim will be 2 or 3 for 2d or 3d simulations.  It is included
+so that post-processing tools like <a class="reference external" href="https://www.ovito.org">OVITO</a>,
+which can visualize grid-based quantities know how to draw each grid
+cell.  The grid size will match the input script parameters for
+grid(s) created by the computes or fixes which are referenced by the
+the dump command.  For 2d simulations (and grids), nz will always
+be 1.</p>
+<p>There will also be an “ITEM: GRID DATA” line which includes column
+descriptors for the per grid cell data.  Each subsequent line (Nx *
+Ny * Nz lines) will list the data for a single grid cell.  If grid
+cell IDs are included in the output via the <a class="reference internal" href="compute_property_grid.html"><span class="doc">compute
+property/grid</span></a> command, then the IDs will
+range from 1 to N = Nx*Ny*Nz.  The ordering of IDs is with the x index
+varying fastest, then the y index, and the z index varying slowest.</p>
+<p>For style <em>local</em>, local output generated by <a class="reference internal" href="compute.html"><span class="doc">computes</span></a>
+and <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> is used to generate lines of output that is
+written to the dump file.  This local data is typically calculated by
+each processor based on the atoms it owns, but there may be zero or
+more entities per atom (e.g., a list of bond distances).  An explanation
+of the possible dump local attributes is given below.  Note that by
+using input from the <a class="reference internal" href="compute_property_local.html"><span class="doc">compute property/local</span></a> command with dump local, it is possible to
+generate information on bonds, angles, etc. that can be cut and pasted
+directly into a data file read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
+command.</p>
+<hr class="docutils" />
+<p>Dump files in other popular formats:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This section only discusses file formats relevant to this doc page.
+The top of this page has links to other dump commands (with their
+own pages) which write files in additional popular formats.</p>
+</div>
+<p>Style <em>cfg</em> has the same command syntax as style <em>custom</em> and writes
+extended CFG format files, as used by the <a class="reference external" href="http://li.mit.edu/Archive/Graphics/A/">AtomEye</a> visualization package.
+Since the extended CFG format uses a single snapshot of the system per
+file, a wildcard “*” must be included in the filename, as discussed
+below.  The list of atom attributes for style <em>cfg</em> must begin with
+either “mass type xs ys zs” or “mass type xsu ysu zsu” since these
+quantities are needed to write the CFG files in the appropriate format
+(though the “mass” and “type” fields do not appear explicitly in the
+file).  Any remaining attributes will be stored as “auxiliary
+properties” in the CFG files.  Note that you will typically want to
+use the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify element</span></a> command with
+CFG-formatted files, to associate element names with atom types, so
+that AtomEye can render atoms appropriately. When unwrapped
+coordinates <em>xsu</em>, <em>ysu</em>, and <em>zsu</em> are requested, the nominal AtomEye
+periodic cell dimensions are expanded by a large factor UNWRAPEXPAND =
+10.0, which ensures atoms that are displayed correctly for up to
+UNWRAPEXPAND/2 periodic boundary crossings in any direction.  Beyond
+this, AtomEye will rewrap the unwrapped coordinates.  The expansion
+causes the atoms to be drawn farther away from the viewer, but it is
+easy to zoom the atoms closer, and the interatomic distances are
+unaffected.</p>
+<p>The <em>dcd</em> style writes DCD files, a standard atomic trajectory format
+used by the CHARMM, NAMD, and XPlor molecular dynamics packages.  DCD
+files are binary and thus may not be portable to different machines.
+The number of atoms per snapshot cannot change with the <em>dcd</em> style.
+The <em>unwrap</em> option of the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command
+allows DCD coordinates to be written “unwrapped” by the image flags
+for each atom.  Unwrapped means that if the atom has passed through
+a periodic boundary one or more times, the value is printed for what
+the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that these coordinates may thus be far outside
+the box size stored with the snapshot.</p>
+<p>The <em>xtc</em> style writes XTC files, a compressed trajectory format used
+by the GROMACS molecular dynamics package, and described <a class="reference external" href="https://manual.gromacs.org/current/reference-manual/file-formats.html#xtc">here</a>.
+The precision used in XTC files can be adjusted via the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.  The default value of 1000
+means that coordinates are stored to 1/1000 nanometer accuracy.  XTC
+files are portable binary files written in the NFS XDR data format, so
+that any machine which supports XDR should be able to read them.  The
+number of atoms per snapshot cannot change with the <em>xtc</em> style.  The
+<em>unwrap</em> option of the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command allows
+XTC coordinates to be written “unwrapped” by the image flags for each
+atom.  Unwrapped means that if the atom has passed through a periodic
+boundary one or more times, the value is printed for what the
+coordinate would be if it had not been wrapped back into the periodic
+box.  Note that these coordinates may thus be far outside the box size
+stored with the snapshot.</p>
+<p>The <em>xyz</em> style writes XYZ files, which is a simple text-based
+coordinate format that many codes can read. Specifically it has a line
+with the number of atoms, then a comment line that is usually ignored
+followed by one line per atom with the atom type and the <span class="math notranslate nohighlight">\(x\)</span>-,
+<span class="math notranslate nohighlight">\(y\)</span>-, and <span class="math notranslate nohighlight">\(z\)</span>-coordinate of that atom.  You can use the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify element</span></a> option to change the output
+from using the (numerical) atom type to an element name (or some other
+label). This option will help many visualization programs to guess bonds
+and colors. You can use the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify types labels</span></a>
+option to replace numeric atom types with <a class="reference internal" href="Howto_type_labels.html"><span class="doc">type labels</span></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2Apr2025.</span></p>
+</div>
+<p>The <em>extxyz</em> style writes XYZ files compatible with the Extended XYZ (or
+ExtXYZ) format as defined as defined in <a class="reference external" href="https://github.com/libAtoms/extxyz">the libAtoms specification</a>. Specifically, the following
+information will be dumped:</p>
+<ul class="simple">
+<li><p>timestep</p></li>
+<li><p>time, which can be disabled with <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify time no</span></a></p></li>
+<li><p>simulation box lattice and pbc conditions</p></li>
+<li><p>atomic forces, which can be disabled with <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify forces no</span></a></p></li>
+<li><p>atomic velocities, which can be disabled with <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify vel no</span></a></p></li>
+<li><p>atomic masses, if enabled with <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify mass yes</span></a></p></li>
+</ul>
+<p>Dump style <em>extxyz</em> requires either that a <a class="reference internal" href="labelmap.html"><span class="doc">type label map for atoms types</span></a> is defined or <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify element</span></a> is used to
+set up an atom type number to atom name mapping.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 22Dec2022.</span></p>
+</div>
+<p>The <em>grid/vtk</em> style writes VTK files for grid data on a regular
+rectilinear grid.  Its content is conceptually similar to that of the
+text file produced by the <em>grid</em> style, except that it in an XML-based
+format which visualization programs which support the VTK format can
+read, e.g. the <a class="reference external" href="https://www.paraview.org">ParaView tool</a>.  For this
+style, there can only be 1 or 3 per grid cell attributes specified.
+If it is a single value, it is a scalar quantity.  If 3 values are
+specified it is encoded in the VTK file as a vector quantity (for each
+grid cell).  The filename for this style must include a “*” wildcard
+character to produce one file per snapshot; see details below.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4May2022.</span></p>
+</div>
+<p>Dump style <em>yaml</em> has the same command syntax as style <em>custom</em> and
+writes YAML format files that can be easily parsed by a variety of
+data processing tools and programming languages.  Each timestep will
+be written as a YAML “document” (i.e., starts with “—” and ends with
+“…”).  The style supports writing one file per timestep through the
+“*” wildcard but not multi-processor outputs with the “%” token in
+the filename.  In addition to per-atom data, <a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a>
+data can be included in the <em>yaml</em> style dump file using the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify thermo yes</span></a>. The data included in the
+dump file uses the “thermo” tag and is otherwise identical to data
+specified by the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command.</p>
+<p>Below is an example for a YAML format dump created by the following commands.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">out</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">yaml</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.yaml</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="n">iz</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">out</span><span class="w"> </span><span class="n">time</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">thermo</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="o">%</span><span class="m">5</span><span class="n">d</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="s">&quot;% 10.6e&quot;</span>
+</pre></div>
+</div>
+<p>The tags “time”, “units”, and “thermo” are optional and enabled by the
+dump_modify command. The list under the “box” tag has three lines for
+orthogonal boxes and four lines for triclinic boxes, where the first
+three are the box boundaries and the fourth the three tilt factors
+(<span class="math notranslate nohighlight">\(xy\)</span>, <span class="math notranslate nohighlight">\(xz\)</span>, <span class="math notranslate nohighlight">\(yz\)</span>).  The “thermo” data follows the
+format of the <em>yaml</em> thermo style.  The “keywords” tag lists the
+per-atom properties contained in the “data” columns, which contain a
+list with one line per atom.  The keywords may be renamed using the
+dump_modify command same as for the <em>custom</em> dump style.</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="nt">creator</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LAMMPS</span>
+<span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">units</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lj</span>
+<span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">natoms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4000</span>
+<span class="nt">boundary</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">p</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">p</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">p</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">p</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">p</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">p</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="nt">thermo</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">keywords</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">Step</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Temp</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E_pair</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">E_mol</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">TotEng</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">Press</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">data</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-27093.472213010766</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="nt">box</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">16.795961913825074</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">16.795961913825074</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">16.795961913825074</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="nt">keywords</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w"> </span><span class="nv">id</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">type</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">x</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">y</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">z</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">vx</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">vy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">vz</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">ix</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">iy</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">iz</span><span class="p p-Indicator">,</span><span class="w">  </span><span class="p p-Indicator">]</span>
+<span class="nt">data</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w">     </span><span class="nv">1</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">0.000000e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">0.000000e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">0.000000e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">-1.841579e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-9.710036e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-2.934617e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w">     </span><span class="nv">2</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">8.397981e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">8.397981e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">0.000000e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">-1.799591e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">2.127197e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">2.298572e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="w">     </span><span class="nv">3</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">8.397981e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">0.000000e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">8.397981e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">-1.807682e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-9.585130e-01</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w">  </span><span class="nv">1.605884e+00</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="w"> </span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+
+<span class="w">  </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+<span class="nn">...</span>
+<span class="nn">---</span>
+<span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="nt">units</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">lj</span>
+<span class="nt">time</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">[...]</span>
+
+<span class="nn">...</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Frequency of dump output:</p>
+<p>Dumps are performed on timesteps that are a multiple of <span class="math notranslate nohighlight">\(N\)</span>
+(including timestep 0) and on the last timestep of a minimization if
+the minimization converges.  Note that this means a dump will not be
+performed on the initial timestep after the dump command is invoked,
+if the current timestep is not a multiple of <span class="math notranslate nohighlight">\(N\)</span>.  This behavior
+can be changed via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command,
+which can also be useful if the dump command is invoked after a
+minimization ended on an arbitrary timestep.</p>
+<p>The value of <span class="math notranslate nohighlight">\(N\)</span> can be changed between runs by using the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command (not allowed for <em>dcd</em>
+style).  The <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command also
+allows a variable to be used to determine the sequence of timesteps on
+which dump files are written.  In this mode a dump on the first
+timestep of a run will also not be written unless the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command is used.</p>
+<p>If you instead want to dump snapshots based on simulation time (in
+time units of the <a class="reference internal" href="units.html"><span class="doc">units command</span></a> command), the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify
+every/time</span></a> command can be used.  This can be useful
+when the timestep size varies during a simulation run, e.g. by use of
+the <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a> command.</p>
+<hr class="docutils" />
+<p>Dump filenames:</p>
+<p>The specified dump filename determines how the dump file(s) is
+written.  The default is to write one large text file, which is opened
+when the dump command is invoked and closed when an <a class="reference internal" href="undump.html"><span class="doc">undump</span></a> command is used or when LAMMPS exits.  For the <em>dcd</em> and
+<em>xtc</em> styles, this is a single large binary file.</p>
+<p>Many of the styles allow dump filenames to contain either or both of
+two wildcard characters.  If a “*” character appears in the filename,
+then one file per snapshot is written and the “*” character is
+replaced with the timestep value.  For example, tmp.dump.* becomes
+tmp.dump.0, tmp.dump.10000, tmp.dump.20000, etc.  This option is not
+available for the <em>dcd</em> and <em>xtc</em> styles.  Note that the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify pad</span></a> command can be used to ensure all
+timestep numbers are the same length (e.g., 00010), which can make it
+easier to read a series of dump files in order with some
+post-processing tools.</p>
+<p>If a “%” character appears in the filename, then each of P processors
+writes a portion of the dump file, and the “%” character is replaced
+with the processor ID from <span class="math notranslate nohighlight">\(0\)</span> to <span class="math notranslate nohighlight">\(P-1\)</span>.  For example,
+tmp.dump.% becomes tmp.dump.0, tmp.dump.1, … tmp.dump.:math:<cite>P-1</cite>,
+etc.  This creates smaller files and can be a fast mode of output on
+parallel machines that support parallel I/O for output. This option is
+<strong>not</strong> available for the <em>dcd</em>, <em>extxyz</em>, <em>xtc</em>, <em>xyz</em>, <em>grid/vtk</em>, and
+<em>yaml</em> styles.</p>
+<p>By default, <span class="math notranslate nohighlight">\(P\)</span> is the the number of processors, meaning one file per
+processor, but <span class="math notranslate nohighlight">\(P\)</span> can be set to a smaller value via the <em>nfile</em> or
+<em>fileper</em> keywords of the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.
+These options can be the most efficient way of writing out dump files
+when running on large numbers of processors.</p>
+<p>Note that using the “*” and “%” characters together can produce a
+large number of small dump files!</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 21Nov2023.</span></p>
+</div>
+<p>The MPIIO package and the the corresponding “/mpiio” dump styles, except
+for the unrelated “netcdf/mpiio” style were removed from LAMMPS.</p>
+<hr class="docutils" />
+<p>Compression of dump file data:</p>
+<p>If the specified filename ends with “.bin” or “.lammpsbin”, the dump
+file (or files, if “*” or “%” is also used) is written in binary
+format.  A binary dump file will be about the same size as a text
+version, but will typically write out much faster.  Of course, when
+post-processing, you will need to convert it back to text format (see
+the <a class="reference internal" href="Tools.html#binary"><span class="std std-ref">binary2txt tool</span></a>) or write your own code to read
+the binary file.  The format of the binary file can be understood by
+looking at the <code class="file docutils literal notranslate"><span class="pre">tools/binary2txt.cpp</span></code> file.  This option is only
+available for the <em>atom</em> and <em>custom</em> styles.</p>
+<p>If LAMMPS has been compiled with the <a class="reference internal" href="Build_settings.html"><span class="doc">corresponding setting</span></a> and if the filename ends with “.gz” or some other
+<a class="reference internal" href="Build_settings.html#gzip"><span class="std std-ref">supported compression format suffix</span></a>, the dump file (or
+files, if “*” or “%” is also used) is written in compressed format.  A
+compressed dump file will be about <span class="math notranslate nohighlight">\(3\times\)</span> smaller than the text
+version, but will also take longer to write.  This option is not
+available for the <em>dcd</em> and <em>xtc</em> styles.</p>
+<p>Note that styles that end with <em>gz</em> are identical in command syntax to
+the corresponding styles without “gz”, however, they generate compressed
+files using the zlib library. Thus the filename suffix “.gz” is
+mandatory. This is an alternative approach to writing compressed files
+via a pipe (see above), as done by the regular dump styles, which may be
+required on HPC clusters where the interface to the high-speed network
+disallows using the fork() library call (which is needed for a pipe).
+For the remainder of this page, you should thus consider the <em>atom</em> and
+<em>atom/gz</em> styles (etc.) to be inter-changeable, with the exception of
+the required filename suffix.</p>
+<p>Similarly, styles that end with <em>zstd</em> are identical to the gz styles,
+but use the Zstd compression library instead and require a “.zst”
+suffix. See the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> page for details on
+how to control the compression level in both variants.</p>
+<hr class="docutils" />
+<p>General triclinic simulation box output for the <em>atom</em> and <em>custom</em> styles:</p>
+<p>As mentioned above, the simulation box can be defined as a general
+triclinic box, which means that 3 arbitrary box edge vectors <strong>A</strong>,
+<strong>B</strong>, <strong>C</strong> can be specified.  See the <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto triclinic</span></a> doc page for a detailed description of general
+triclinic boxes.</p>
+<p>This option is provided as a convenience for users who may be
+converting data from solid-state crystallographic representations or
+from DFT codes for input to LAMMPS.  However, as explained on the
+<a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto_triclinic</span></a> doc page, internally, LAMMPS
+only uses restricted triclinic simulation boxes.  This means the box
+and per-atom information (e.g. coordinates, velocities) LAMMPS stores
+are converted (rotated) from general to restricted triclinic form when
+the system is created.</p>
+<p>For dump output, if the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify triclinic/general</span></a> command is used, the box description and per-atom
+coordinates and other per-atom vectors will be converted (rotated)
+from restricted to general form when each dump file snapshots is
+output.  This option can only be used if the simulation box was
+initially created as general triclinic.  If the option is not used,
+and the simulation box is general triclinic, then the dump file
+snapshots will reflect the internal restricted triclinic geometry.</p>
+<p>The dump_modify triclinic/general option affects 3 aspects of the dump
+file output.</p>
+<p>First, the format for the BOX BOUNDS is as follows</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ITEM: BOX BOUNDS abc origin
+ax ay az originx
+bx by bz originy
+cx cy cz originz
+</pre></div>
+</div>
+<p>where the <strong>A</strong> edge vector of the box is (ax,ay,az) and similarly
+for <strong>B</strong> and <strong>C</strong>.  The origin of all 3 edge vectors is (originx,
+originy, originz).</p>
+<p>Second, the coordinates of each atom are converted (rotated) so that
+the atom is inside (or near) the general triclinic box defined by the
+<strong>A</strong>, <strong>B</strong>, <strong>C</strong> edge vectors.  For style <em>atom</em>, this only alters
+output for unscaled atom coords, via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify scaled no</span></a> setting. For style <em>custom</em>, this alters output for
+either unscaled or unwrapped output of atom coords, via the <em>x,y,z</em> or
+<em>xu,yu,zu</em> attributes.  For output of scaled atom coords by both
+styles, there is no difference between restricted and general
+triclinic values.</p>
+<p>Third, the output for any attribute of the <em>custom</em> style which
+represents a per-atom vector quantity will be converted (rotated) to
+be oriented consistent with the general triclinic box and its
+orientation relative to the standard xyz coordinate axes.</p>
+<p>This applies to the following <em>custom</em> style attributes:</p>
+<ul class="simple">
+<li><p>vx,vy,vz = atom velocities</p></li>
+<li><p>fx,fy,fz = forces on atoms</p></li>
+<li><p>mux,muy,muz = orientation of dipole moment of atom</p></li>
+<li><p>omegax,omegay,omegaz = angular velocity of spherical particle</p></li>
+<li><p>angmomx,angmomy,angmomz = angular momentum of aspherical particle</p></li>
+<li><p>tqx,tqy,tqz = torque on finite-size particles</p></li>
+</ul>
+<p>For example, if the velocity of an atom in a restricted triclinic box
+is along the x-axis, then it will be output for a general triclinic
+box as a vector along the <strong>A</strong> edge vector of the box.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For style <em>custom</em>, the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify thresh</span></a>
+command may access per-atom attributes either directly or
+indirectly through a compute or variable.  If the attribute is an
+atom coordinate or one of the vectors mentioned above, its value
+will <em>NOT</em> be a general triclinic (rotated) value.  Rather it will
+be a restricted triclinic value.</p>
+</div>
+<hr class="docutils" />
+<p>Arguments for different styles:</p>
+<p>The sections below describe per-atom, local, and per grid cell
+attributes which can be used as arguments to the various styles.</p>
+<p>Note that in the discussion below, for styles which can reference
+values from a compute or fix or custom atom property, like the
+<em>custom</em>, <em>cfg</em>, <em>grid</em> or <em>local</em> styles, the bracketed index
+<span class="math notranslate nohighlight">\(i\)</span> can be specified using a wildcard asterisk with the index to
+effectively specify multiple values.  This takes the form “*” or
+“*n” or “m*” or “m*n”.  If <span class="math notranslate nohighlight">\(N\)</span> is the number of columns in
+the array, then an asterisk with no numeric values means all column
+indices from 1 to <span class="math notranslate nohighlight">\(N\)</span>.  A leading asterisk means all indices
+from 1 to n (inclusive).  A trailing asterisk means all indices from m
+to <span class="math notranslate nohighlight">\(N\)</span> (inclusive).  A middle asterisk means all indices from m
+to n (inclusive).</p>
+<p>Using a wildcard is the same as if the individual columns of the array
+had been listed one by one.  For example, these two dump commands are
+equivalent, since the <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a>
+command creates a per-atom array with six columns:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">myPress</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">stress</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">NULL</span>
+<span class="k">dump </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">tmp.dump</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">myPress[</span><span class="o">*</span><span class="n">]</span>
+<span class="k">dump </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">tmp.dump</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">myPress[1]</span><span class="w"> </span><span class="n">myPress[2]</span><span class="w"> </span><span class="n">myPress[3]</span><span class="sc"> &amp;</span>
+<span class="w">                                  </span><span class="n">myPress[4]</span><span class="w"> </span><span class="n">myPress[5]</span><span class="w"> </span><span class="n">myPress[6]</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Per-atom attributes used as arguments to the <em>custom</em> and <em>cfg</em> styles:</p>
+<p>The <em>id</em>, <em>mol</em>, <em>proc</em>, <em>procp1</em>, <em>type</em>, <em>typelabel</em>, <em>element</em>, <em>mass</em>,
+<em>vx</em>, <em>vy</em>, <em>vz</em>, <em>fx</em>, <em>fy</em>, <em>fz</em>, <em>q</em> attributes are self-explanatory.</p>
+<p><em>Id</em> is the atom ID.  <em>Mol</em> is the molecule ID, included in the data file
+for molecular systems.  <em>Proc</em> is the ID of the processor (0 to
+<span class="math notranslate nohighlight">\(N_\text{procs}-1\)</span>) that currently owns the atom.  <em>Procp1</em> is the
+proc ID+1, which can be convenient in place of a <em>type</em> attribute (1 to
+<span class="math notranslate nohighlight">\(N_\text{types}\)</span>) for coloring atoms in a visualization program.
+<em>Type</em> is the atom type (1 to <span class="math notranslate nohighlight">\(N_\text{types}\)</span>).  <em>Typelabel</em> is the
+atom <a class="reference internal" href="Howto_type_labels.html"><span class="doc">type label</span></a>.  <em>Element</em> is typically the
+chemical name of an element, which you must assign to each type via the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify element</span></a> command.  More generally, it can
+be any string you wish to associated with an atom type.  <em>Mass</em> is the atom
+mass.  The quantities <em>vx</em>, <em>vy</em>, <em>vz</em>, <em>fx</em>, <em>fy</em>, <em>fz</em>, and <em>q</em> are
+components of atom velocity and force and atomic charge.</p>
+<p>There are several options for outputting atom coordinates.  The <em>x</em>,
+<em>y</em>, and <em>z</em> attributes write atom coordinates “unscaled”, in the
+appropriate distance <a class="reference internal" href="units.html"><span class="doc">units</span></a> (<span class="math notranslate nohighlight">\(\AA\)</span>,
+<span class="math notranslate nohighlight">\(\sigma\)</span>, etc.).  Use <em>xs</em>, <em>ys</em>, and <em>zs</em> if you want the
+coordinates “scaled” to the box size so that each value is 0.0 to 1.0.
+If the simulation box is triclinic (tilted), then all atom coords will
+still be between 0.0 and 1.0.  The actual unscaled <span class="math notranslate nohighlight">\((x,y,z)\)</span>
+coordinate is <span class="math notranslate nohighlight">\(x_s a + y_s b + z_s c\)</span>, where <span class="math notranslate nohighlight">\((a,b,c)\)</span> are
+the non-orthogonal vectors of the simulation box edges, as discussed on
+the <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto triclinic</span></a> page.</p>
+<p>Use <em>xu</em>, <em>yu</em>, and <em>zu</em> if you want the coordinates “unwrapped” by the
+image flags for each atom.  Unwrapped means that if the atom has passed
+through a periodic boundary one or more times, the value is printed for
+what the coordinate would be if it had not been wrapped back into the
+periodic box.  Note that using <em>xu</em>, <em>yu</em>, and <em>zu</em> means that the
+coordinate values may be far outside the box bounds printed with the
+snapshot.  Using <em>xsu</em>, <em>ysu</em>, and <em>zsu</em> is similar to using <em>xu</em>, <em>yu</em>,
+and <em>zu</em>, except that the unwrapped coordinates are scaled by the box
+size. Atoms that have passed through a periodic boundary will have the
+corresponding coordinate increased or decreased by 1.0.</p>
+<p>The image flags can be printed directly using the <em>ix</em>, <em>iy</em>, and <em>iz</em>
+attributes.  For periodic dimensions, they specify which image of the
+simulation box the atom is considered to be in.  An image of 0 means
+it is inside the box as defined.  A value of 2 means add 2 box lengths
+to get the true value.  A value of <span class="math notranslate nohighlight">\(-1\)</span> means subtract 1 box length to
+get the true value.  LAMMPS updates these flags as atoms cross
+periodic boundaries during the simulation.</p>
+<p>The <em>mux</em>, <em>muy</em>, and <em>muz</em> attributes are specific to dipolar systems
+defined with an atom style of <em>dipole</em>.  They give the orientation of
+the atom’s point dipole moment.  The <em>mu</em> attribute gives the magnitude
+of the atom’s dipole moment.</p>
+<p>The <em>radius</em> and <em>diameter</em> attributes are specific to spherical
+particles that have a finite size, such as those defined with an atom
+style of <em>sphere</em>.</p>
+<p>The <em>omegax</em>, <em>omegay</em>, and <em>omegaz</em> attributes are specific to
+finite-size spherical particles that have an angular velocity.  Only
+certain atom styles, such as <em>sphere</em>, define this quantity.</p>
+<p>The <em>angmomx</em>, <em>angmomy</em>, and <em>angmomz</em> attributes are specific to
+finite-size aspherical particles that have an angular momentum.  Only
+the <em>ellipsoid</em> atom style defines this quantity.</p>
+<p>The <em>tqx</em>, <em>tqy</em>, and <em>tqz</em> attributes are for finite-size particles
+that can sustain a rotational torque due to interactions with other
+particles.</p>
+<p>The <em>c_ID</em> and <em>c_ID[I]</em> attributes allow per-atom vectors or arrays
+calculated by a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to be output.  The ID in the
+attribute should be replaced by the actual ID of the compute that has
+been defined previously in the input script.  See the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command for details.  There are computes for calculating the
+per-atom energy, stress, centro-symmetry parameter, and coordination
+number of individual atoms.</p>
+<p>Note that computes which calculate global or local quantities, as
+opposed to per-atom quantities, cannot be output in a dump custom
+command.  Instead, global quantities can be output by the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command, and local quantities
+can be output by the dump local command.</p>
+<p>If <em>c_ID</em> is used as a attribute, then the per-atom vector calculated by
+the compute is printed.  If <em>c_ID[i]</em> is used, then <span class="math notranslate nohighlight">\(i\)</span> must be in
+the range from 1 to <span class="math notranslate nohighlight">\(M\)</span>, which will print the <span class="math notranslate nohighlight">\(i\)</span>th column
+of the per-atom array with <span class="math notranslate nohighlight">\(M\)</span> columns calculated by the compute.
+See the discussion above for how <span class="math notranslate nohighlight">\(i\)</span> can be specified with a
+wildcard asterisk to effectively specify multiple values.</p>
+<p>The <em>f_ID</em> and <em>f_ID[I]</em> attributes allow vector or array per-atom
+quantities calculated by a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> to be output.  The ID in the
+attribute should be replaced by the actual ID of the fix that has been
+defined previously in the input script.  The <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a> command is one that calculates per-atom quantities.
+Since it can time-average per-atom quantities produced by any
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>, or atom-style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>, this allows those time-averaged results to be written to a
+dump file.</p>
+<p>If <em>f_ID</em> is used as a attribute, then the per-atom vector calculated by
+the fix is printed.  If <em>f_ID[i]</em> is used, then <span class="math notranslate nohighlight">\(i\)</span> must be in the
+range from 1 to <span class="math notranslate nohighlight">\(M\)</span>, which will print the <span class="math notranslate nohighlight">\(i\)</span>th column of
+the per-atom array with <span class="math notranslate nohighlight">\(M\)</span> columns calculated by the fix.  See
+the discussion above for how <span class="math notranslate nohighlight">\(i\)</span> can be specified with a wildcard
+asterisk to effectively specify multiple values.</p>
+<p>The <em>v_name</em> attribute allows per-atom vectors calculated by a
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> to be output.  The name in the attribute
+should be replaced by the actual name of the variable that has been
+defined previously in the input script.  Only an atom-style variable can
+be referenced, since it is the only style that generates per-atom
+values.  Variables of style <em>atom</em> can reference individual atom
+attributes, per-atom attributes, thermodynamic keywords, or invoke other
+computes, fixes, or variables when they are evaluated, so this is a very
+general means of creating quantities to output to a dump file.</p>
+<p>The <em>i_name</em>, <em>d_name</em>, <em>i2_name</em>, <em>d2_name</em> attributes refer to
+custom per-atom integer and floating-point vectors or arrays that have
+been added via the <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>
+command.  When that command is used specific names are given to each
+attribute which are the “name” portion of these keywords.  For arrays
+<em>i2_name</em> and <em>d2_name</em>, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[i], i2_mySpin[i], where
+<span class="math notranslate nohighlight">\(i\)</span> is in the range from 1 to <span class="math notranslate nohighlight">\(M\)</span>, where <span class="math notranslate nohighlight">\(M\)</span> is the
+number of columns in the custom array).  See the discussion above for
+how <span class="math notranslate nohighlight">\(i\)</span> can be specified with a wildcard asterisk to effectively
+specify multiple values.</p>
+<p>See the <a class="reference internal" href="Modify.html"><span class="doc">Modify</span></a> page for information on how to add
+new compute and fix styles to LAMMPS to calculate per-atom quantities
+which could then be output into dump files.</p>
+<hr class="docutils" />
+<p>Attributes used as arguments to the <em>local</em> style:</p>
+<p>The <em>index</em> attribute can be used to generate an index number from 1
+to N for each line written into the dump file, where N is the total
+number of local datums from all processors, or lines of output that
+will appear in the snapshot.  Note that because data from different
+processors depend on what atoms they currently own, and atoms migrate
+between processor, there is no guarantee that the same index will be
+used for the same info (e.g. a particular bond) in successive
+snapshots.</p>
+<p>The <em>c_ID</em> and <em>c_ID[I]</em> attributes allow local vectors or arrays
+calculated by a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to be output.  The ID in the
+attribute should be replaced by the actual ID of the compute that has
+been defined previously in the input script.  See the
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command for details.  There are computes for
+calculating local information such as indices, types, and energies for
+bonds and angles.</p>
+<p>Note that computes which calculate global or per-atom quantities, as
+opposed to local quantities, cannot be output in a dump local command.
+Instead, global quantities can be output by the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style
+custom</span></a> command, and per-atom quantities can be output
+by the dump custom command.</p>
+<p>If <em>c_ID</em> is used as a attribute, then the local vector calculated by
+the compute is printed.  If <em>c_ID[I]</em> is used, then I must be in the
+range from 1-M, which will print the Ith column of the local array
+with M columns calculated by the compute.  See the discussion above
+for how I can be specified with a wildcard asterisk to effectively
+specify multiple values.</p>
+<p>The <em>f_ID</em> and <em>f_ID[I]</em> attributes allow local vectors or arrays
+calculated by a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> to be output.  The ID in the attribute
+should be replaced by the actual ID of the fix that has been defined
+previously in the input script.</p>
+<p>If <em>f_ID</em> is used as a attribute, then the local vector calculated by
+the fix is printed.  If <em>f_ID[I]</em> is used, then I must be in the
+range from 1-M, which will print the Ith column of the local with M
+columns calculated by the fix.  See the discussion above for how I can
+be specified with a wildcard asterisk to effectively specify multiple
+values.</p>
+<p>Here is an example of how to dump bond info for a system, including
+the distance and energy of each bond:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">local</span><span class="w"> </span><span class="n">batom1</span><span class="w"> </span><span class="n">batom2</span><span class="w"> </span><span class="n">btype</span>
+<span class="k">compute </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">local</span><span class="w"> </span><span class="n">dist</span><span class="w"> </span><span class="n">engpot</span>
+<span class="k">dump </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">local</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">tmp.dump</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="n">c_1[1]</span><span class="w"> </span><span class="n">c_1[2]</span><span class="w"> </span><span class="n">c_1[3]</span><span class="w"> </span><span class="n">c_2[1]</span><span class="w"> </span><span class="n">c_2[2]</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>Attributes used as arguments to the <em>grid</em> and <em>grid/vtk</em> styles:</p>
+<p>The attributes that begin with <em>c_ID</em> and <em>f_ID</em> both take
+colon-separated fields <em>gname</em> and <em>dname</em>.  These refer to a grid
+name and data field name which is defined by the compute or fix.  Note
+that a compute or fix can define one or more grids (of different
+sizes) and one or more data fields for each of those grids.  The sizes
+of all grids output in a single dump grid command must be the same.</p>
+<p>The <em>c_ID:gname:dname</em> and <em>c_ID:gname:dname[I]</em> attributes allow
+per-grid vectors or arrays calculated by a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> to
+be output.  The ID in the attribute should be replaced by the actual
+ID of the compute that has been defined previously in the input
+script.</p>
+<p>If <em>c_ID:gname:dname</em> is used as a attribute, then the per-grid vector
+calculated by the compute is printed.  If <em>c_ID:gname:dname[I]</em> is
+used, then I must be in the range from 1-M, which will print the Ith
+column of the per-grid array with M columns calculated by the compute.
+See the discussion above for how I can be specified with a wildcard
+asterisk to effectively specify multiple values.</p>
+<p>The <em>f_ID:gname:dname</em> and <em>f_ID:gname:dname[I]</em> attributes allow
+per-grid vectors or arrays calculated by a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> to be
+output.  The ID in the attribute should be replaced by the actual ID
+of the fix that has been defined previously in the input script.</p>
+<p>If <em>f_ID:gname:dname</em> is used as a attribute, then the per-grid vector
+calculated by the fix is printed.  If <em>f_ID:gname:dname[I]</em> is used,
+then I must be in the range from 1-M, which will print the Ith column
+of the per-grid with M columns calculated by the fix.  See the
+discussion above for how I can be specified with a wildcard asterisk
+to effectively specify multiple values.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>To write compressed dump files, you must either compile LAMMPS with the
+<code class="docutils literal notranslate"><span class="pre">-DLAMMPS_GZIP</span></code> option or use the styles from the COMPRESS package.
+See the <a class="reference internal" href="Build_settings.html"><span class="doc">Build settings</span></a> page for details.</p>
+<p>To create images or movies, you must install the GRAPHICS package.
+See the <a class="reference internal" href="Build_extras.html"><span class="doc">Build extras</span></a> page for details.</p>
+<p>While a dump command is active (i.e., has not been stopped by using
+the <a class="reference internal" href="undump.html"><span class="doc">undump command</span></a>), no commands may be used that will
+change the timestep (e.g., <a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep</span></a>).
+LAMMPS will terminate with an error otherwise.</p>
+<p>The <em>atom/gz</em>, <em>cfg/gz</em>, <em>custom/gz</em>, and <em>xyz/gz</em> styles are part of
+the COMPRESS package.  They are only enabled if LAMMPS was built with
+that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for
+more info.</p>
+<p>The <em>dcd</em>, <em>extxyz</em>, <em>xtc</em>, and <em>yaml</em> styles are part of the EXTRA-DUMP
+package.  They are only enabled if LAMMPS was built with that package.
+See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="dump_adios.html"><span class="doc">dump atom/adios</span></a>, <a class="reference internal" href="dump_adios.html"><span class="doc">dump custom/adios</span></a>,
+<a class="reference internal" href="dump_cfg_uef.html"><span class="doc">dump cfg/uef</span></a>, <a class="reference internal" href="dump_h5md.html"><span class="doc">dump h5md</span></a>,
+<a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>, <a class="reference internal" href="dump_molfile.html"><span class="doc">dump molfile</span></a>,
+<a class="reference internal" href="dump_netcdf.html"><span class="doc">dump netcdf</span></a>, <a class="reference internal" href="dump_netcdf.html"><span class="doc">dump netcdf/mpiio</span></a>,
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a>, <a class="reference internal" href="undump.html"><span class="doc">undump</span></a>,
+<a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The defaults for the <em>image</em> and <em>movie</em> styles are listed on the
+<a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> page.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dumps.html" class="btn btn-neutral float-left" title="Dump Styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dump_adios.html" class="btn btn-neutral float-right" title="dump atom/adios command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

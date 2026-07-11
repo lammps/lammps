@@ -1,0 +1,867 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS Development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#include "../testing/core.h"
+#include "atom.h"
+#include "info.h"
+#include "lammps.h"
+#include "molecule.h"
+#include "platform.h"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
+
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <mpi.h>
+#include <string>
+
+using namespace LAMMPS_NS;
+
+using testing::ContainsRegex;
+using testing::StrEq;
+
+using utils::split_words;
+
+static constexpr double EPSILON = 5.0e-14;
+
+#define test_name test_info_->name()
+
+static void create_molecule_files(const std::string &h2o_filename, const std::string &co2_filename)
+{
+    // create molecule files
+    const char h2o_file[] = "# Water molecule. SPC/E model.\n\n3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 1.12456 0.09298 1.27452\n"
+                            "2 1.53683 0.75606 1.89928\n3 0.49482 0.56390 0.65678\n\n"
+                            "Types\n\n1 1\n2 2\n3 2\n\n"
+                            "Charges\n\n1 -0.8472\n2 0.4236\n3 0.4236\n\n"
+                            "Bonds\n\n1 1 1 2\n2 1 1 3\n\n"
+                            "Angles\n\n1 1 2 1 3\n\n"
+                            "Shake Flags\n\n1 1\n2 1\n3 1\n\n"
+                            "Shake Atoms\n\n1 1 2 3\n2 1 2 3\n3 1 2 3\n\n"
+                            "Shake Bond Types\n\n1 1 1 1\n2 1 1 1\n3 1 1 1\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+    const char co2_file[] = "# CO2 molecule file. TraPPE model. units = real\n\n"
+                            "3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 0.0 0.0 0.0\n2 -1.16 0.0 0.0\n3 1.16 0.0 0.0\n\n"
+                            "Types\n\n1 1\n2 2\n3 2\n\n"
+                            "Charges\n\n1 0.7\n2 -0.35\n3 -0.35\n\n"
+                            "Bonds\n\n1 1 1 2\n2 1 1 3\n\n"
+                            "Angles\n\n1 1 2 1 3\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
+    if (fp) {
+        fputs(h2o_file, fp);
+        fclose(fp);
+    }
+    fp = fopen(co2_filename.c_str(), "w");
+    if (fp) {
+        fputs(co2_file, fp);
+        fclose(fp);
+    }
+}
+
+static void create_labelmap_files(const std::string &h2o_filename, const std::string &co2_filename)
+{
+    // create molecule files
+    const char h2o_file[] =
+        "# Water molecule. SPC/E model. units = real\n\n3 atoms\n2 bonds\n1 angles\n\n"
+        "Coords\n\n1 1.12456 0.09298 1.27452\n"
+        "2 1.53683 0.75606 1.89928\n3 0.49482 0.56390 0.65678\n\n"
+        "Types\n\n1 OW\n2 HO\n3 HO\n\n"
+        "Charges\n\n1 -0.8472\n2 0.4236\n3 0.4236\n\n"
+        "Bonds\n\n1 OW-HO 1 2\n2 OW-HO 1 3\n\n"
+        "Angles\n\n1 HO-OW-HO 2 1 3\n\n"
+        "Shake Flags\n\n1 1\n2 1\n3 1\n\n"
+        "Shake Atoms\n\n1 1 2 3\n2 1 2 3\n3 1 2 3\n\n"
+        "Shake Bond Types\n\n1 OW-HO OW-HO HO-OW-HO\n2 OW-HO OW-HO HO-OW-HO\n3 "
+        "OW-HO OW-HO HO-OW-HO\n\n"
+        "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+        "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+    const char co2_file[] = "# CO2 molecule file. TraPPE model. units = metal\n\n"
+                            "3 atoms\n2 bonds\n1 angles\n\n"
+                            "Coords\n\n1 0.0 0.0 0.0\n2 -1.16 0.0 0.0\n3 1.16 0.0 0.0\n\n"
+                            "Types\n\n1 C\n2 O\n3 O\n\n"
+                            "Charges\n\n1 0.7\n2 -0.35\n3 -0.35\n\n"
+                            "Bonds\n\n1 C=O 1 2\n2 C=O 1 3\n\n"
+                            "Angles\n\n1 O=C=O 2 1 3\n\n"
+                            "Special Bond Counts\n\n1 2 0 0\n2 1 1 0\n3 1 1 0\n\n"
+                            "Special Bonds\n\n1 2 3\n2 1 3\n3 1 2\n\n";
+
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
+    if (fp) {
+        fputs(h2o_file, fp);
+        fclose(fp);
+    }
+    fp = fopen(co2_filename.c_str(), "w");
+    if (fp) {
+        fputs(co2_file, fp);
+        fclose(fp);
+    }
+}
+
+static void create_molecule_json(const std::string &h2o_filename, const std::string &co2_filename)
+{
+    // create molecule files
+    const char h2o_file[] =
+        "{\n"
+        "\"application\": \"LAMMPS\",\n"
+        "\"format\": \"molecule\",\n"
+        "\"revision\": 1,\n"
+        "\"scheme\": \"https://download.lammps.org/json/molecule-schema.json\",\n"
+        "\"title\": \"Water molecule. SPC/E model\",\n"
+        "\"types\": {\n"
+        "     \"format\": [\"atom-id\", \"type\"],\n"
+        "     \"data\": [\n"
+        "          [1, 1],\n"
+        "          [2, 2],\n"
+        "          [3, 2],\n"
+        "     ]\n"
+        "},\n"
+        "\"coords\": {\n"
+        "     \"format\": [\"atom-id\", \"x\", \"y\", \"z\"],\n"
+        "     \"data\": [\n"
+        "          [1, 1.12456, 0.09298, 1.27452],\n"
+        "          [2, 1.53683, 0.75606, 1.89928],\n"
+        "          [3, 0.49482, 0.56390, 0.65678]\n"
+        "     ]\n"
+        "},\n"
+        "\"charges\": {\n"
+        "     \"format\": [\"atom-id\", \"charge\"],\n"
+        "     \"data\": [\n"
+        "          [1, -0.8472],\n"
+        "          [2,  0.4236],\n"
+        "          [3,  0.4236]\n"
+        "     ]\n"
+        "},\n"
+        "\"bonds\": {\n"
+        "     \"format\": [\"bond-type\", \"atom1\", \"atom2\"],\n"
+        "     \"data\": [\n"
+        "          [1, 1, 2],\n"
+        "          [1, 1, 3]\n"
+        "     ]\n"
+        "},\n"
+        "\"angles\": {\n"
+        "     \"format\": [\"angle-type\", \"atom1\", \"atom2\", \"atom3\"],\n"
+        "     \"data\": [\n"
+        "          [1, 2, 1, 3]\n"
+        "     ]\n"
+        "}\n";
+
+    const char co2_file[] =
+        "{\n"
+        "\"application\": \"LAMMPS\",\n"
+        "\"format\": \"molecule\",\n"
+        "\"revision\": 1,\n"
+        "\"scheme\": \"https://download.lammps.org/json/molecule-schema.json\",\n"
+        "\"title\": \"CO2 molecule file. TraPPE model.\",\n"
+        "\"units\": \"real\",\n"
+        "\"types\": {\n"
+        "     \"format\": [\"atom-id\", \"type\"],\n"
+        "     \"data\": [\n"
+        "          [1, 1],\n"
+        "          [2, 2],\n"
+        "          [3, 2]\n"
+        "     ]\n"
+        "},\n"
+        "\"coords\": {\n"
+        "     \"format\": [\"atom-id\", \"x\", \"y\", \"z\"],\n"
+        "     \"data\": [\n"
+        "          [1,  0.00, 0.0, 0.0],\n"
+        "          [2, -1.16, 0.0, 0.0],\n"
+        "          [3,  1.16, 0.0, 0.0]\n"
+        "     ]\n"
+        "},\n"
+        "\"charges\": {\n"
+        "     \"format\": [\"atom-id\", \"charge\"],\n"
+        "     \"data\": [\n"
+        "          [1,  0.7],\n"
+        "          [2, -0.35],\n"
+        "          [3, -0.35]\n"
+        "     ]\n"
+        "},\n"
+        "\"bonds\": {\n"
+        "     \"format\": [\"bond-type\", \"atom1\", \"atom2\"],\n"
+        "     \"data\": [\n"
+        "          [1, 1, 2],\n"
+        "          [1, 1, 3]\n"
+        "     ]\n"
+        "},\n"
+        "\"angles\": {\n"
+        "     \"format\": [\"angle-type\", \"atom1\", \"atom2\", \"atom3\"],\n"
+        "     \"data\": [\n"
+        "          [1, 2, 1, 3]\n"
+        "     ]\n"
+        "}\n";
+
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
+    if (fp) {
+        fputs(h2o_file, fp);
+        fclose(fp);
+    }
+    fp = fopen(co2_filename.c_str(), "w");
+    if (fp) {
+        fputs(co2_file, fp);
+        fclose(fp);
+    }
+}
+
+static void create_labelmap_json(const std::string &h2o_filename, const std::string &co2_filename)
+{
+    // create molecule files
+    const char h2o_file[] =
+        "{\n"
+        "\"application\": \"LAMMPS\",\n"
+        "\"format\": \"molecule\",\n"
+        "\"revision\": 1,\n"
+        "\"scheme\": \"https://download.lammps.org/json/molecule-schema.json\",\n"
+        "\"title\": \"Water molecule. SPC/E model\",\n"
+        "\"units\": \"real\",\n"
+        "\"types\": {\n"
+        "     \"format\": [\"atom-id\", \"type\"],\n"
+        "     \"data\": [\n"
+        "          [\"OW\", 1],\n"
+        "          [\"HO\", 2],\n"
+        "          [\"HO\", 2],\n"
+        "     ]\n"
+        "},\n"
+        "\"coords\": {\n"
+        "     \"format\": [\"atom-id\", \"x\", \"y\", \"z\"],\n"
+        "     \"data\": [\n"
+        "          [1, 1.12456, 0.09298, 1.27452],\n"
+        "          [2, 1.53683, 0.75606, 1.89928],\n"
+        "          [3, 0.49482, 0.56390, 0.65678]\n"
+        "     ]\n"
+        "},\n"
+        "\"charges\": {\n"
+        "     \"format\": [\"atom-id\", \"charge\"],\n"
+        "     \"data\": [\n"
+        "          [1, -0.8472],\n"
+        "          [2,  0.4236],\n"
+        "          [3,  0.4236]\n"
+        "     ]\n"
+        "},\n"
+        "\"bonds\": {\n"
+        "     \"format\": [\"bond-type\", \"atom1\", \"atom2\"],\n"
+        "     \"data\": [\n"
+        "          [\"OW-HO\", 1, 2],\n"
+        "          [\"OW-HO\", 1, 3]\n"
+        "     ]\n"
+        "},\n"
+        "\"angles\": {\n"
+        "     \"format\": [\"angle-type\", \"atom1\", \"atom2\", \"atom3\"],\n"
+        "     \"data\": [\n"
+        "          [\"HO-OW-HO\", 2, 1, 3]\n"
+        "     ]\n"
+        "}\n";
+
+    const char co2_file[] =
+        "{\n"
+        "\"application\": \"LAMMPS\",\n"
+        "\"format\": \"molecule\",\n"
+        "\"revision\": 1,\n"
+        "\"scheme\": \"https://download.lammps.org/json/molecule-schema.json\",\n"
+        "\"title\": \"CO2 molecule file. TraPPE model.\",\n"
+        "\"units\": \"metal\",\n"
+        "\"types\": {\n"
+        "     \"format\": [\"atom-id\", \"type\"],\n"
+        "     \"data\": [\n"
+        "          [\"C\", 1],\n"
+        "          [\"O\", 2],\n"
+        "          [\"O\", 2]\n"
+        "     ]\n"
+        "},\n"
+        "\"coords\": {\n"
+        "     \"format\": [\"atom-id\", \"x\", \"y\", \"z\"],\n"
+        "     \"data\": [\n"
+        "          [1,  0.00, 0.0, 0.0],\n"
+        "          [2, -1.16, 0.0, 0.0],\n"
+        "          [3,  1.16, 0.0, 0.0]\n"
+        "     ]\n"
+        "},\n"
+        "\"charges\": {\n"
+        "     \"format\": [\"atom-id\", \"charge\"],\n"
+        "     \"data\": [\n"
+        "          [1,  0.7],\n"
+        "          [2, -0.35],\n"
+        "          [3, -0.35]\n"
+        "     ]\n"
+        "},\n"
+        "\"bonds\": {\n"
+        "     \"format\": [\"bond-type\", \"atom1\", \"atom2\"],\n"
+        "     \"data\": [\n"
+        "          [\"C=O\", 1, 2],\n"
+        "          [\"C=O\", 1, 3]\n"
+        "     ]\n"
+        "},\n"
+        "\"angles\": {\n"
+        "     \"format\": [\"angle-type\", \"atom1\", \"atom2\", \"atom3\"],\n"
+        "     \"data\": [\n"
+        "          [\"O=C=O\", 2, 1, 3]\n"
+        "     ]\n"
+        "}\n";
+
+    FILE *fp = fopen(h2o_filename.c_str(), "w");
+    if (fp) {
+        fputs(h2o_file, fp);
+        fclose(fp);
+    }
+    fp = fopen(co2_filename.c_str(), "w");
+    if (fp) {
+        fputs(co2_file, fp);
+        fclose(fp);
+    }
+}
+
+// whether to print verbose output (i.e. not capturing LAMMPS screen output).
+bool verbose = false;
+
+class MoleculeFileTest : public LAMMPSTest {
+protected:
+    static void SetUpTestSuite()
+    {
+        create_molecule_files("moltest.h2o.mol", "moltest.co2.mol");
+        create_labelmap_files("labelmap.h2o.mol", "labelmap.co2.mol");
+        create_molecule_json("moltest.h2o.json", "moltest.co2.json");
+        create_labelmap_json("labelmap.h2o.json", "labelmap.co2.json");
+    }
+
+    static void TearDownTestSuite()
+    {
+        platform::unlink("moltest.h2o.mol");
+        platform::unlink("moltest.co2.mol");
+        platform::unlink("labelmap.h2o.mol");
+        platform::unlink("labelmap.co2.mol");
+        platform::unlink("moltest.h2o.json");
+        platform::unlink("moltest.co2.json");
+        platform::unlink("labelmap.h2o.json");
+        platform::unlink("labelmap.co2.json");
+    }
+
+    void SetUp() override
+    {
+        testbinary = "MoleculeFileTest";
+        LAMMPSTest::SetUp();
+        command("units real");
+        ASSERT_NE(lmp, nullptr);
+    }
+
+    void TearDown() override { LAMMPSTest::TearDown(); }
+
+    void run_mol_cmd(const std::string &name, const std::string &args, const std::string &content)
+    {
+        std::string file = fmt::format("moltest_{}.mol", name);
+        FILE *fp         = fopen(file.c_str(), "w");
+        fputs(content.c_str(), fp);
+        fclose(fp);
+
+        command(fmt::format("molecule {} {} {}", name, file, args));
+        platform::unlink(file);
+    }
+
+    void run_json_cmd(const std::string &name, const std::string &args, const std::string &content)
+    {
+        std::string file = fmt::format("moltest_{}.json", name);
+        FILE *fp         = fopen(file.c_str(), "w");
+        fputs(content.c_str(), fp);
+        fclose(fp);
+
+        command(fmt::format("molecule {} {} {}", name, file, args));
+        platform::unlink(file);
+    }
+};
+
+TEST_F(MoleculeFileTest, nofile)
+{
+    TEST_FAILURE(".*Cannot open molecule file nofile.mol.*", command("molecule 1 nofile.mol"););
+}
+
+TEST_F(MoleculeFileTest, badid)
+{
+    TEST_FAILURE(
+        ".*Molecule template ID @mol must have only alphanumeric or underscore characters.*",
+        command("molecule @mol nofile.mol"););
+}
+
+TEST_F(MoleculeFileTest, badargs)
+{
+    TEST_FAILURE(".*Illegal molecule offset command: missing argument.*",
+                 run_mol_cmd(test_name, "offset 1 2 3 4",
+                             "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule toff command: missing argument.*",
+        run_mol_cmd(test_name, "toff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule boff command: missing argument.*",
+        run_mol_cmd(test_name, "boff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule aoff command: missing argument.*",
+        run_mol_cmd(test_name, "aoff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule doff command: missing argument.*",
+        run_mol_cmd(test_name, "doff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule ioff command: missing argument.*",
+        run_mol_cmd(test_name, "ioff", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    TEST_FAILURE(
+        ".*Illegal molecule scale command: missing argument.*",
+        run_mol_cmd(test_name, "scale", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"););
+    platform::unlink("moltest_badargs.mol");
+}
+
+TEST_F(MoleculeFileTest, noatom)
+{
+    TEST_FAILURE(
+        ".*No atoms or invalid atom count in molecule file.*",
+        run_mol_cmd(test_name, "", "Comment\n0 atoms\n1 bonds\n\n Coords\n\nBonds\n\n 1 1 2\n"););
+    platform::unlink("moltest_noatom.mol");
+}
+
+TEST_F(MoleculeFileTest, nojson)
+{
+    TEST_FAILURE(
+        ".*Molecule template nojson: No types entries in JSON data for molecule.*",
+        run_json_cmd(test_name, "",
+                     "{\"application\":\"LAMMPS\",\"format\":\"molecule\",\"revision\": 1,"
+                     "\"types\":{\"format\": [\"atom-id\",\"type\"],\"data\": [ ]},"
+                     "\"coords\":{\"format\":[\"atom-id\",\"x\",\"y\",\"z\"],\"data\": [ ]}}"););
+    platform::unlink("moltest_noatom.json");
+}
+
+TEST_F(MoleculeFileTest, jsonunits)
+{
+    TEST_FAILURE(
+        ".*Molecule template jsonunits: Incompatible units in JSON molecule data: current = real, "
+        "JSON = lj.*",
+        run_json_cmd(test_name, "",
+                     "{\"application\":\"LAMMPS\",\"units\":\"lj\",\"format\":\"molecule\","
+                     "\"revision\": 1,\"types\":{\"format\": [\"atom-id\",\"type\"],\"data\": [ ]},"
+                     "\"coords\":{\"format\":[\"atom-id\",\"x\",\"y\",\"z\"],\"data\": [ ]}}"););
+    platform::unlink("moltest_jsonunits.json");
+}
+
+TEST_F(MoleculeFileTest, empty)
+{
+    TEST_FAILURE(".*Unexpected end of molecule file.*", run_mol_cmd(test_name, "", "Comment\n\n"););
+    platform::unlink("moltest_empty.mol");
+}
+
+TEST_F(MoleculeFileTest, nospecial)
+{
+    TEST_FAILURE(".*Cannot auto-generate special bonds before simulation box is defined.*",
+                 run_mol_cmd(test_name, "",
+                             "Comment\n3 atoms\n\n2 bonds\n\n"
+                             " Coords\n\n 1 1.0 1.0 1.0\n 2 1.0 1.0 0.0\n 3 1.0 0.0 1.0\n"
+                             " Bonds\n\n 1 1 1 2\n 2 1 1 3\n"););
+    platform::unlink("moltest_nospecial.mol");
+}
+
+TEST_F(MoleculeFileTest, minimal)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*1 atoms.*\n.*0 bonds.*"));
+}
+
+TEST_F(MoleculeFileTest, minjson)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    run_json_cmd(
+        test_name, "",
+        "{\"application\":\"LAMMPS\",\"format\":\"molecule\",\"revision\": 1,"
+        "\"types\":{\"format\": [\"atom-id\",\"type\"],\"data\": [[1,1]]},"
+        "\"coords\":{\"format\":[\"atom-id\",\"x\",\"y\",\"z\"],\"data\": [[1,0.0,0.0,0.0]]}}");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template minjson:\n.no title.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*1 atoms.*\n.*0 bonds.*"));
+}
+
+TEST_F(MoleculeFileTest, notype)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style atomic");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    run_mol_cmd(test_name, "", "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*1 atoms.*\n.*0 bonds.*"));
+    TEST_FAILURE(".*ERROR: Create_atoms molecule must have atom types.*",
+                 command("create_atoms 0 single 0.0 0.0 0.0 mol notype 542465"););
+}
+
+TEST_F(MoleculeFileTest, extramass)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style atomic");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 1 box");
+    run_mol_cmd(test_name, "",
+                "Comment\n1 atoms\n\n Coords\n\n 1 0.0 0.0 0.0\n"
+                " Types\n\n 1 1\n Masses\n\n 1 1.0\n");
+    command("create_atoms 0 single 0.0 0.0 0.0 mol extramass 73546");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*WARNING: Molecule attributes do not match "
+                                      "system attributes.*"));
+}
+
+TEST_F(MoleculeFileTest, twomols)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    run_mol_cmd(test_name, "",
+                "Comment\n2 atoms\n\n"
+                " Coords\n\n 1 0.0 0.0 0.0\n 2 0.0 0.0 1.0\n"
+                " Molecules\n\n 1 1\n 2 2\n\n Types\n\n 1 1\n 2 2\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*2 molecules.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*2 atoms with max type 2.*\n.*0 bonds.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 1);
+    auto mols = lmp->atom->get_molecule_by_id(test_name);
+    ASSERT_EQ(mols.size(), 1);
+}
+
+TEST_F(MoleculeFileTest, tenmols)
+{
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    run_mol_cmd(test_name, "",
+                "Comment\n10 atoms\n\n"
+                " Coords\n\n"
+                " 1 0.0 0.0 0.0\n"
+                " 2 0.0 0.0 1.0\n"
+                " 3 0.0 1.0 0.0\n"
+                " 4 0.0 1.0 1.0\n"
+                " 5 1.0 0.0 0.0\n"
+                " 6 1.0 0.0 1.0\n"
+                " 7 1.0 1.0 0.0\n"
+                " 8 1.0 1.0 1.0\n"
+                " 9 0.5 0.5 0.5\n"
+                "10 0.5 0.5 0.5\n\n"
+                " Molecules\n\n"
+                " 1 1\n"
+                " 2 2\n"
+                " 3 3\n"
+                " 4 4\n"
+                " 5 5\n"
+                " 6 6\n"
+                " 7 7\n"
+                " 8 8\n"
+                " 9 9\n"
+                "10 10\n\n"
+                " Types\n\n"
+                " 1 1\n"
+                " 2 2\n"
+                " 3 1\n"
+                " 4 2\n"
+                " 5 1\n"
+                " 6 2\n"
+                " 7 1\n"
+                " 8 2\n"
+                " 9 1\n"
+                "10 2\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output,
+                ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*10 molecules.*\n"
+                              ".*0 fragments.*\n.*0 bodies.*\n.*10 atoms with max type 2.*\n.*0 bonds.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 1);
+    auto mols = lmp->atom->get_molecule_by_id(test_name);
+    ASSERT_EQ(mols.size(), 1);
+    command("atom_style molecular");
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 2 box");
+    command("mass * 1.0");
+    command("create_atoms 0 single 0 0 0 mol tenmols 123451");
+    command("run 0 post no");
+}
+
+TEST_F(MoleculeFileTest, twofiles)
+{
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule twomols moltest.h2o.mol moltest.co2.mol offset 2 1 1 0 0");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(
+        output,
+        ContainsRegex(".*Read molecule template twomols:.*\n.*Water.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"
+                      ".*Read molecule template twomols:.*\n.*CO2.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule h2o moltest.h2o.mol");
+    command("molecule co2 moltest.co2.mol");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_EQ(lmp->atom->nmolecule, 4);
+    auto mols = lmp->atom->get_molecule_by_id("twomols");
+    ASSERT_EQ(mols.size(), 2);
+    mols = lmp->atom->get_molecule_by_id("h2o");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2");
+    ASSERT_EQ(mols.size(), 1);
+}
+
+TEST_F(MoleculeFileTest, labelmap)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box bond/types 2 angle/types 2");
+    command("labelmap atom 1 HO 2 OW 3 C 4 O");
+    command("labelmap bond 1 OW-HO 2 C=O");
+    command("labelmap angle 1 HO-OW-HO 2 O=C=O");
+    command("molecule h2olabel labelmap.h2o.mol");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(
+        output,
+        ContainsRegex(".*Read molecule template h2olabel:.*\n.*Water.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule co2label labelmap.co2.mol");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(
+        output,
+        ContainsRegex(".*Read molecule template co2label:.*\n.*CO2.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    BEGIN_CAPTURE_OUTPUT();
+    command("molecule h2onum moltest.h2o.mol");
+    command("molecule co2num moltest.co2.mol offset 2 1 1 0 0");
+    output = END_CAPTURE_OUTPUT();
+
+    auto mark   = output.find("WARNING");
+    auto first  = output.substr(0, mark);
+    mark        = output.find("Read molecule", mark);
+    auto second = output.substr(mark);
+    ASSERT_THAT(
+        first,
+        ContainsRegex(".*Read molecule template h2onum:.*\n.*Water.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 2.*\n.*2 bonds with max type 1.*\n"
+                      ".*1 angles with max type 1.*\n.*0 dihedrals.*\n.*0 impropers.*\n"));
+    ASSERT_THAT(
+        second,
+        ContainsRegex(".*Read molecule template co2num:.*\n.*CO2.*\n.*1 molecules.*\n"
+                      ".*0 fragments.*\n.*0 bodies.*\n.*3 atoms with max type 4.*\n.*2 bonds with max type 2.*\n"
+                      ".*1 angles with max type 2.*\n.*0 dihedrals.*"));
+    ASSERT_EQ(lmp->atom->nmolecule, 4);
+    auto mols = lmp->atom->get_molecule_by_id("h2onum");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2num");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("h2olabel");
+    ASSERT_EQ(mols.size(), 1);
+    mols = lmp->atom->get_molecule_by_id("co2label");
+    ASSERT_EQ(mols.size(), 1);
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("labelmap atom 1 A 2 B");
+    END_CAPTURE_OUTPUT();
+    TEST_FAILURE(".*Unknown atom type OW in Types section of molecule file: 1 OW.*",
+                 command("molecule fail labelmap.h2o.mol"););
+}
+
+TEST_F(MoleculeFileTest, bonds)
+{
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style bond");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 2 box bond/types 2 extra/bond/per/atom 2 "
+            "extra/special/per/atom 4");
+    run_mol_cmd(test_name, "",
+                "Comment\n"
+                "4 atoms\n"
+                "2 bonds\n\n"
+                " Coords\n\n"
+                " 1 1.0 1.0 1.0\n"
+                " 2 1.0 1.0 0.0\n"
+                " 3 1.0 0.0 1.0\n"
+                " 4 1.0 0.0 0.0\n"
+                " Types\n\n"
+                " 1 1\n"
+                " 2 1\n"
+                " 3 2\n"
+                " 4 2\n\n"
+                " Bonds\n\n"
+                " 1 1 1 2\n"
+                " 2 2 1 3\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Comment.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*4 atoms.*type.*2.*\n"
+                                      ".*2 bonds.*type.*2.*\n.*0 angles.*"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("mass * 2.0");
+    command("create_atoms 0 single 0.5 0.5 0.5 mol bonds 67235");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Created 4 atoms.*"));
+
+    BEGIN_HIDE_OUTPUT();
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->natoms, 4);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    mol->compute_mass();
+    mol->compute_com();
+    ASSERT_DOUBLE_EQ(mol->masstotal, 8.0);
+    EXPECT_DOUBLE_EQ(mol->com[0], 1.0);
+    EXPECT_DOUBLE_EQ(mol->com[1], 0.5);
+    EXPECT_DOUBLE_EQ(mol->com[2], 0.5);
+    EXPECT_DOUBLE_EQ(mol->maxextent, sqrt(2.0));
+    EXPECT_EQ(mol->comatom, 1);
+    END_HIDE_OUTPUT();
+}
+
+TEST_F(MoleculeFileTest, dipoles)
+{
+    if (!Info::has_package("DIPOLE")) GTEST_SKIP();
+    BEGIN_CAPTURE_OUTPUT();
+    command("atom_style dipole");
+    command("region box block 0 1 0 1 0 1");
+    command("create_box 2 box");
+    run_mol_cmd(test_name, "",
+                "# Dumbbell with dipole molecule file.\n\n"
+                "2 atoms\n\n"
+                "Coords\n\n1 -1.0 0.0 0.0\n2  1.0 0.0 0.0\n\n"
+                "Types\n\n1 1\n2 2\n\n"
+                "Dipoles\n\n1 1.0 0.0 0.0\n2 1.0 1.0 0.0\n\n");
+    auto output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Read molecule template.*\n.*Dumbbell.*\n.*1 molecules.*\n"
+                                      ".*0 fragments.*\n.*0 bodies.*\n.*2 atoms.*type.*2.*\n"));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("mass * 1.0");
+    command("create_atoms 0 single 0.5 0.5 0.5 mol dipoles 67235 rotate 90.0 0.0 0.0 1.0");
+    output = END_CAPTURE_OUTPUT();
+    ASSERT_THAT(output, ContainsRegex(".*Created 2 atoms.*"));
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->natoms, 2);
+    ASSERT_EQ(lmp->atom->natoms, 2);
+    mol->compute_mass();
+    mol->compute_com();
+    EXPECT_NEAR(mol->masstotal, 2.0, EPSILON);
+    EXPECT_NEAR(mol->com[0], 0.0, EPSILON);
+    EXPECT_NEAR(mol->com[1], 0.0, EPSILON);
+    EXPECT_NEAR(mol->com[2], 0.0, EPSILON);
+    EXPECT_EQ(mol->comatom, 1);
+    ASSERT_NE(mol->mu, nullptr);
+    EXPECT_NEAR(mol->mu[0][0], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[0][1], 0.0, EPSILON);
+    EXPECT_NEAR(mol->mu[0][2], 0.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][0], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][1], 1.0, EPSILON);
+    EXPECT_NEAR(mol->mu[1][2], 0.0, EPSILON);
+    EXPECT_NEAR(mol->maxextent, 2.0, EPSILON);
+    // dipoles should be rotated by 90 degrees clockwise around the z axis
+    double **mu = lmp->atom->mu;
+    ASSERT_NE(mu, nullptr);
+    EXPECT_NEAR(mu[0][0], 0.0, EPSILON);
+    EXPECT_NEAR(mu[0][1], 1.0, EPSILON);
+    EXPECT_NEAR(mu[0][2], 0.0, EPSILON);
+    EXPECT_NEAR(mu[0][3], 1.0, EPSILON);
+    EXPECT_NEAR(mu[1][0], -1.0, EPSILON);
+    EXPECT_NEAR(mu[1][1], 1.0, EPSILON);
+    EXPECT_NEAR(mu[1][2], 0.0, EPSILON);
+    EXPECT_NEAR(mu[1][3], sqrt(2.0), EPSILON);
+}
+
+TEST_F(MoleculeFileTest, auto_invalidopt)
+{
+    TEST_FAILURE(".*Illegal auto option f.*", run_mol_cmd(test_name, "auto afi", "Comment\n\n"););
+}
+
+TEST_F(MoleculeFileTest, auto_angle_dihedral)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box bond/types 1 angle/types 1 dihedral/types 1 "
+            "extra/bond/per/atom 2 extra/angle/per/atom 2 extra/dihedral/per/atom 1 extra/special/per/atom 4");
+
+    command("labelmap atom 1 A");
+    command("labelmap bond 1 A-A");
+    command("labelmap angle 1 A-A-A");
+    command("labelmap dihedral 1 A-A-A-A");
+
+    run_mol_cmd(test_name, "auto ad",
+                "Comment\n"
+                "4 atoms\n"
+                "3 bonds\n\n"
+                "Types\n\n"
+                "1 1\n2 1\n3 1\n4 1\n\n"
+                "Bonds\n\n"
+                "1 1 1 2\n"
+                "2 1 2 3\n"
+                "3 1 3 4\n\n");
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->nangles, 2);
+    ASSERT_EQ(mol->ndihedrals, 1);
+}
+
+TEST_F(MoleculeFileTest, auto_angle_improper)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+    command("atom_style full");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 4 box bond/types 1 angle/types 1 improper/types 1 "
+            "extra/bond/per/atom 2 extra/angle/per/atom 2 extra/improper/per/atom 1 extra/special/per/atom 4");
+
+    command("labelmap atom 1 A");
+    command("labelmap bond 1 A-A");
+    command("labelmap angle 1 A-A-A");
+    command("labelmap improper 1 A-A-A-A");
+
+    run_mol_cmd(test_name, "auto ai",
+                "Comment\n"
+                "4 atoms\n"
+                "3 bonds\n\n"
+                "Types\n\n"
+                "1 1\n2 1\n3 1\n4 1\n\n"
+                "Bonds\n\n"
+                "1 1 1 2\n"
+                "2 1 1 3\n"
+                "3 1 1 4\n\n");
+
+    Molecule *mol = lmp->atom->molecules[0];
+    ASSERT_EQ(mol->nangles, 3);
+    ASSERT_EQ(mol->nimpropers, 1);
+}
+
+int main(int argc, char **argv)
+{
+    MPI_Init(&argc, &argv);
+    ::testing::InitGoogleMock(&argc, argv);
+
+    // handle arguments passed via environment variable
+    if (const char *var = getenv("TEST_ARGS")) {
+        std::vector<std::string> env = split_words(var);
+        for (auto arg : env) {
+            if (arg == "-v") {
+                verbose = true;
+            }
+        }
+    }
+
+    if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
+
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
+}

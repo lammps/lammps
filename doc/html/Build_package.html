@@ -1,0 +1,462 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.7. Include packages in build &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Build_package.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+      <script src="_static/tabs.js?v=3030b3cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.8. Packages with extra build options" href="Build_extras.html" />
+    <link rel="prev" title="3.6. Optional build settings" href="Build_settings.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Build_prerequisites.html">3.1. Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.2. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.3. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.4. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.5. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.6. Optional build settings</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.7. Include packages in build</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#information-for-both-build-systems">3.7.1. Information for both build systems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cmake-presets-for-installing-many-packages">3.7.2. CMake presets for installing many packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#make-shortcuts-for-installing-many-packages">3.7.3. Make shortcuts for installing many packages</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_extras.html">3.8. Packages with extra build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.9. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.10. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_diskspace.html">3.11. Notes for saving disk space when building LAMMPS from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.12. Development build options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.7. </span>Include packages in build</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Build_settings.html" class="btn btn-neutral float-left" title="3.6. Optional build settings" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_extras.html" class="btn btn-neutral float-right" title="3.8. Packages with extra build options" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="include-packages-in-build">
+<h1><span class="section-number">3.7. </span>Include packages in build<a class="headerlink" href="#include-packages-in-build" title="Link to this heading"></a></h1>
+<p>In LAMMPS, a package is a group of files that enable a specific set of
+features.  For example, force fields for molecular systems or
+rigid-body constraints are in packages.  In the src directory, each
+package is a subdirectory with the package name in capital letters.</p>
+<p>An overview of packages is given on the <a class="reference internal" href="Packages.html"><span class="doc">Packages</span></a> doc
+page.  Brief overviews of each package are on the <a class="reference internal" href="Packages_details.html"><span class="doc">Packages details</span></a> page.</p>
+<p>When building LAMMPS, you can choose to include or exclude each
+package.  Generally, there is no need to include a package if you
+never plan to use its features.</p>
+<p>If you get a run-time error that a LAMMPS command or style is
+“unknown”, it is often because the command is contained in a package,
+and your build did not include that package.  If the command or style
+<em>is</em> available in a package included in the LAMMPS distribution,
+the error message will indicate which package would be needed.
+Running LAMMPS with the <a class="reference internal" href="Run_options.html"><span class="doc">-h command-line switch</span></a>
+will print <em>all</em> optional commands and packages that were enabled
+when building that executable.</p>
+<p>For the majority of packages, if you follow the single step below to
+include it, you can then build LAMMPS exactly the same as you would
+without any packages installed.  A few packages may require additional
+steps, as explained on the <a class="reference internal" href="Build_extras.html"><span class="doc">Build extras</span></a> page.</p>
+<p>These links take you to the extra instructions for those select
+packages:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Build_extras.html#adios"><span class="std std-ref">ADIOS</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#apip"><span class="std std-ref">APIP</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#colvar"><span class="std std-ref">COLVARS</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#compress"><span class="std std-ref">COMPRESS</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#electrode"><span class="std std-ref">ELECTRODE</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#gpu"><span class="std std-ref">GPU</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Build_extras.html#h5md"><span class="std std-ref">H5MD</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#intel"><span class="std std-ref">INTEL</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#kim"><span class="std std-ref">KIM</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#kokkos"><span class="std std-ref">KOKKOS</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#lepton"><span class="std std-ref">LEPTON</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#machdyn"><span class="std std-ref">MACHDYN</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Build_extras.html#mdi"><span class="std std-ref">MDI</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#misc"><span class="std std-ref">MISC</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#ml-hdnnp"><span class="std std-ref">ML-HDNNP</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#mliap"><span class="std std-ref">ML-IAP</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#ml-pace"><span class="std std-ref">ML-PACE</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#ml-pod"><span class="std std-ref">ML-POD</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Build_extras.html#ml-quip"><span class="std std-ref">ML-QUIP</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#ml-runner"><span class="std std-ref">ML-RUNNER</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#molfile"><span class="std std-ref">MOLFILE</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#netcdf"><span class="std std-ref">NETCDF</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#openmp"><span class="std std-ref">OPENMP</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#opt"><span class="std std-ref">OPT</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="Build_extras.html#plumed"><span class="std std-ref">PLUMED</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#python"><span class="std std-ref">PYTHON</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#qmmm"><span class="std std-ref">QMMM</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#rheo"><span class="std std-ref">RHEO</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#scafacos"><span class="std std-ref">SCAFACOS</span></a></p></td>
+<td><p><a class="reference internal" href="Build_extras.html#voronoi"><span class="std std-ref">VORONOI</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Build_extras.html#vtk"><span class="std std-ref">VTK</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>The mechanism for including packages is simple but different for the CMake
+build system in comparison to the traditional make build.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-csh notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">PKG_NAME</span><span class="o">=</span>value          <span class="c"># yes or no (default)</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-csh notranslate"><div class="highlight"><pre><span></span>-D <span class="nv">PKG_MANYBODY</span><span class="o">=</span>yes
+-D <span class="nv">PKG_INTEL</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>All packages are included the same way.  See the shortcut section
+below for how to install many packages at once with CMake.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you switch between building with CMake and make builds, no
+packages in the src directory can be installed when you invoke
+<code class="docutils literal notranslate"><span class="pre">cmake</span></code>.  CMake will give an error if that is not the case,
+indicating how you can uninstall all packages in the src dir.</p>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>lammps/src
+make<span class="w"> </span>ps<span class="w">        </span><span class="c1"># check which packages are currently installed</span>
+make<span class="w"> </span>yes-name<span class="w">  </span><span class="c1"># install a package with name</span>
+make<span class="w"> </span>no-name<span class="w">   </span><span class="c1"># uninstall a package with name</span>
+make<span class="w"> </span>mpi<span class="w">       </span><span class="c1"># build LAMMPS with whatever packages are now installed</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>no-rigid
+make<span class="w"> </span>yes-intel
+</pre></div>
+</div>
+<p>All packages are included the same way.  See the shortcut section
+below for how to install many packages at once with make.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You must always re-build LAMMPS (via make) after installing or
+uninstalling a package, for the action to take effect. The
+included dependency tracking will make certain only files that
+are required to be rebuilt are recompiled.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You cannot install or uninstall packages and build LAMMPS in a
+single make command with multiple targets, e.g. <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">yes-colloid</span> <span class="pre">mpi</span></code>.  This is because the make procedure creates
+a list of source files that will be out-of-date for the build
+if the package configuration changes within the same command.
+You can include or exclude multiple packages in a single make
+command, e.g. <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">yes-colloid</span> <span class="pre">no-manybody</span></code>.</p>
+</div>
+</div></div>
+<section id="information-for-both-build-systems">
+<h2><span class="section-number">3.7.1. </span>Information for both build systems<a class="headerlink" href="#information-for-both-build-systems" title="Link to this heading"></a></h2>
+<p>Almost all packages can be included or excluded in a LAMMPS build,
+independent of the other packages.  However, some packages include files
+derived from files in other packages.  LAMMPS checks for this and does
+the right thing.  Individual files are only included if their
+dependencies are already included.  Likewise, if a package is excluded,
+other files dependent on that package are also excluded.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default <strong>no</strong> packages are installed.  Prior to August 2018,
+however, if you downloaded a tarball, 3 packages (KSPACE, MANYBODY,
+MOLECULE) were pre-installed via the traditional make procedure in
+the <code class="docutils literal notranslate"><span class="pre">src</span></code> directory.  That is no longer the case, so that CMake
+will build as-is without needing to first uninstall those packages.
+You can quickly include those packages (plus RIGID and GRAPHICS) by
+using the “basic” preset with CMake or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">yes-basic</span></code> with
+traditional make as discussed below.</p>
+</div>
+<hr class="docutils" />
+</section>
+<section id="cmake-presets-for-installing-many-packages">
+<span id="cmake-presets"></span><h2><span class="section-number">3.7.2. </span>CMake presets for installing many packages<a class="headerlink" href="#cmake-presets-for-installing-many-packages" title="Link to this heading"></a></h2>
+<p>Instead of specifying all the CMake options via the command-line,
+CMake allows initializing its settings cache using script files.
+These are regular CMake files which can manipulate and set CMake
+variables (which represent selected options), and can also contain
+control flow constructs for more complex operations.</p>
+<p>LAMMPS includes several of these files to define configuration
+“presets”, similar to the options that exist for the Make based
+system. Using these files, you can enable/disable portions of the
+available packages in LAMMPS. If you need a custom preset, you can
+make a copy of one of them and modify it to suit your needs.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># enable just a few core packages (MOLECULE, KSPACE, MANYBODY, RIGID, GRAPHICS)</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/basic.cmake<span class="w">    </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># enable most packages</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/most.cmake<span class="w">     </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># enable packages which download sources or potential files</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/download.cmake<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># disable packages that do require extra libraries or tools</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/nolib.cmake<span class="w">    </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># change settings to use the Clang compilers by default</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/clang.cmake<span class="w">    </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># change settings to use the GNU compilers by default</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/gcc.cmake<span class="w">      </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># change settings to use the Intel compilers by default</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/intel.cmake<span class="w">    </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># change settings to use the PGI compilers by default</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/pgi.cmake<span class="w">      </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># enable all packages</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/all_on.cmake<span class="w">   </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># disable all packages</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/all_off.cmake<span class="w">  </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1">#  compile with MinGW cross-compilers</span>
+mingw64-cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/mingw-cross.cmake<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+
+<span class="c1"># compile serial multi-arch binaries on macOS</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/macos-multiarch.cmake<span class="w"> </span><span class="o">[</span>OPTIONS<span class="o">]</span><span class="w"> </span>../cmake
+</pre></div>
+</div>
+<p>Presets that have names starting with “windows” are specifically for
+compiling LAMMPS <a class="reference internal" href="Build_windows.html"><span class="doc">natively on Windows</span></a> and
+presets that have names starting with “kokkos” are specifically for
+selecting configurations for compiling LAMMPS with <a class="reference internal" href="Build_extras.html#kokkos"><span class="std std-ref">KOKKOS</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Running cmake this way manipulates the CMake settings cache in your
+current build directory.  You can combine multiple presets and options
+in a single cmake run, or change settings incrementally by running
+cmake with new flags.  If you use a present for selecting a set of
+compilers, it will reset all settings from previous CMake runs.</p>
+</div>
+<section id="example">
+<h3>Example<a class="headerlink" href="#example" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># build LAMMPS with most commonly used packages, but then remove</span>
+<span class="c1"># those requiring additional library or tools, but still enable</span>
+<span class="c1"># GPU package and configure it for using CUDA. You can run.</span>
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/most.cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/nolib.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-D<span class="w"> </span><span class="nv">PKG_GPU</span><span class="o">=</span>on<span class="w"> </span>-D<span class="w"> </span><span class="nv">GPU_API</span><span class="o">=</span>cuda<span class="w"> </span>../cmake
+
+<span class="c1"># to add another package, say BODY to the previous configuration you can run:</span>
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_BODY</span><span class="o">=</span>on<span class="w"> </span>.
+
+<span class="c1"># to reset the package selection from above to the default of no packages</span>
+<span class="c1"># but leaving all other settings untouched. You can run:</span>
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/all_off.cmake<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="make-shortcuts-for-installing-many-packages">
+<h2><span class="section-number">3.7.3. </span>Make shortcuts for installing many packages<a class="headerlink" href="#make-shortcuts-for-installing-many-packages" title="Link to this heading"></a></h2>
+<p>The following commands are useful for managing package source files
+and their installation when building LAMMPS via traditional make.
+Just type <code class="docutils literal notranslate"><span class="pre">make</span></code> in lammps/src to see a one-line summary.</p>
+<p>These commands install/uninstall sets of packages:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>yes-all<span class="w">                        </span><span class="c1"># install all packages</span>
+make<span class="w"> </span>no-all<span class="w">                         </span><span class="c1"># check for changes and uninstall all packages</span>
+make<span class="w"> </span>no-installed<span class="w">                   </span><span class="c1"># only check and uninstall installed packages</span>
+make<span class="w"> </span>yes-basic<span class="w">                      </span><span class="c1"># install a few commonly used packages&#39;</span>
+make<span class="w"> </span>no-basic<span class="w">                       </span><span class="c1"># remove a few commonly used packages&#39;</span>
+make<span class="w"> </span>yes-most<span class="w">                       </span><span class="c1"># install most packages w/o libs&#39;</span>
+make<span class="w"> </span>no-most<span class="w">                        </span><span class="c1"># remove most packages w/o libs&#39;</span>
+</pre></div>
+</div>
+<p>which install/uninstall various sets of packages.  Typing <code class="docutils literal notranslate"><span class="pre">make</span>
+<span class="pre">package</span></code> will list all the these commands.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Installing or uninstalling a package for the make based build process
+works by simply copying files back and forth between the main source
+directory src and the subdirectories with the package name (e.g.
+src/KSPACE, src/MANYBODY), so that the files are included or excluded
+when LAMMPS is built.  Only source files in the src folder will be
+compiled.</p>
+</div>
+<p>The following make commands help manage files that exist in both the
+src directory and in package subdirectories.  You do not normally
+need to use these commands unless you are editing LAMMPS files or are
+updating LAMMPS via git.</p>
+<p>Type <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">package-status</span></code> or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">ps</span></code> to show which packages are
+currently installed.  For those that are installed, it will list any
+files that are different in the src directory and package
+subdirectory.</p>
+<p>Type <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">package-installed</span></code> or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">pi</span></code> to show which packages are
+currently installed, without listing the status of packages that are
+not installed.</p>
+<p>Type <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">package-update</span></code> or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">pu</span></code> to overwrite src files with
+files from the package subdirectories if the package is installed.  It
+should be used after the checkout has been <a class="reference internal" href="Install_git.html"><span class="doc">updated or changed
+with git</span></a>, this will only update the files in the package
+subdirectories, but not the copies in the src folder.</p>
+<p>Type <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">package-overwrite</span></code> to overwrite files in the package
+subdirectories with src files.</p>
+<p>Type <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">package-diff</span></code> to list all differences between pairs of
+files in both the source directory and the package directory.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Build_settings.html" class="btn btn-neutral float-left" title="3.6. Optional build settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_extras.html" class="btn btn-neutral float-right" title="3.8. Packages with extra build options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,29 @@
+dimension 3
+units lj
+boundary p p f
+
+read_data msd.plane.data
+mass 1 1.0
+
+pair_style none
+atom_modify sort 0 1.0
+
+variable R equal 8
+fix step all nve/manifold/rattle 1e-4 4 plane 0 0 1 0 0 0
+fix temp all langevin 1.0 1.0 1.0 12321 gjf yes
+
+velocity all create 1.0 1283
+run 25000
+
+compute dx2 all msd
+
+variable D equal "1.0"
+variable t equal time
+variable my_msd equal "4*(v_t - 125)*v_D"
+variable msd equal c_dx2[4]
+
+fix msd_out all print 250 "$t    ${msd}    ${my_msd}" file msd.plane.dat screen no
+
+thermo_style custom time step pe ke etotal temp c_dx2[4] v_my_msd
+thermo 1000
+run 25000

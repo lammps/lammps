@@ -1,0 +1,35 @@
+# Created by charmm2lammps v1.8.2.6 beta on Thu Mar  3 20:56:57 EST 2016
+
+units           real
+neigh_modify    delay 2 every 1
+#newton          off
+
+boundary        p p p
+
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmmfsw
+improper_style  harmonic
+
+pair_style      lj/charmmfsw/coul/charmmfsh 8 12
+pair_modify     mix arithmetic
+
+fix             cmap all cmap charmm22.cmap
+fix_modify      cmap energy yes
+
+read_data       gagg.data fix cmap crossterm CMAP
+
+special_bonds   charmm
+fix             1 all nve
+
+#fix             1 all nvt temp 300 300 100.0
+#fix             2 all shake 1e-9 500 0 m 1.0
+
+velocity        all create 0.0 12345678 dist uniform
+
+thermo          1000
+thermo_style    custom step ecoul evdwl ebond eangle edihed f_cmap eimp
+timestep        2.0
+
+run             100000

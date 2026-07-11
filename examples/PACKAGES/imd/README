@@ -1,0 +1,58 @@
+Interactive MD example files using the fix imd command
+
+To run the demos, first start the LAMMPS simulation, during
+initialization it will stop and wait for an IMD client to
+connect. Then launch VMD on the same machine with the respective
+script to connect and visualize the running simulation.  For example:
+
+mpirun -np 4 lmp_linux -log none -in in.melt_imd &
+vmd -e melt_imd-demo.vmd
+
+When exiting VMD, the simulation will either continue or wait
+for a new connection depending on whether the "nowait" flag was
+activated or not.  To terminate the LAMMPS simulation, 
+type "imd kill" into the VMD command line prompt.
+
+To combine interactive MD with force feedback using a
+Novint Falcon game controller, have a look at:
+http://sites.google.com/site/akohlmey/software/vrpn-icms
+
+Examples:
+
+ melt: 
+       an adapted version of the 3d-LJ melt example.
+       the VMD visualization contains one highlighted
+       atom to play with force application through a
+       mouse: Open the Graphical Representations dialog,
+       Double-click on the first VDW representation
+       to disable it, click with the mouse on the blue
+       atom and - while holding the mouse button down -
+       drag the atom into some direction. A red arrow
+       should appear indicating direction and magnitude
+       of the force. Now double-click on the first VDW
+       representation again to re-enable the rest of
+       the atoms and watch the blue atom move.
+
+bucky-plus-cnt:
+       this is "the buckyball challenge". a demo that
+       is very popular to demonstrate the use of IMD
+       with force feedback. The system is a SWCNT with
+       some atoms fixed in space and five C60 fullerenes
+       in a reflecting wall box. The challenge is to
+       push all five buckyballs into the nanotube and
+       have them stay inside.
+
+ deca-ala-solv:
+       a solvated deca alanin helix. The mouse mode is
+       preset to move residues instead of individual
+       atoms. Disable the water rep and grab an atom
+       from the peptide and drag it to apply forces.
+
+ deca-ala:
+       this is the same system as the previous, but 
+       the fix is only applied to the peptide and thus
+       the corresponding VMD script needs a different
+       topology file with the matching number of atoms
+       to visualize it and receive the IMD data.
+
+In case of problems, contact <akohlmey@gmail.com>.

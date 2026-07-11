@@ -1,0 +1,10 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+
+neigh_modify     delay 2 every 2 check no
+timestep         0.0001
+newton           ${newton_pair} ${newton_bond}
+
+if $(is_defined(variable,pair_style)) then "pair_style ${pair_style}"
+if $(is_defined(variable,read_data))  then "read_data  ${data_file}"
+

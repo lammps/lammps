@@ -1,0 +1,22 @@
+# REBO polyethelene benchmark
+
+units		    metal
+atom_style	    atomic
+
+read_data	    data.rebo
+
+replicate	    17 16 2
+
+neighbor	    0.5 bin
+neigh_modify	    delay 5 every 1
+
+pair_style	    rebo
+pair_coeff	    * * CH.rebo C H
+
+velocity	    all create 300.0 761341
+
+fix		    1 all nve
+timestep	    0.0005
+
+thermo		    10
+run		    100

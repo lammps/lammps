@@ -1,0 +1,41 @@
+# DATE: 2023-10-30 UNITS: metal CONTRIBUTOR: Federica Lodesani <federica.lodesani@unimore.it>  CITATION: Bertani, Menziani, Pedone (2021). Physical Review Materials, 5(4), 045602
+#
+# Multiple entries can be added to this file, LAMMPS only reads the ones it needs
+#
+# These entries are in LAMMPS "metal" units:
+#
+# Format of a single entry (one or more lines):
+#   element 1 (central atom), element 2, element 3,
+#   k_theta, theta_0, rho, cutoff
+#
+# (ijj)-->determines cutoff for i-j distance
+# (jik)-->determines k, theta_0 for i-j-k angle term
+#
+# i  j  k   K     theta0   rho  cutoff
+O   P   P    32.5  109.47   1.0   3.3
+O   P   Si   60.0  109.47   1.0   0.000
+O   P   O   0.000  0.000    1.0   0.000
+O   Si  P    60.0  109.47   1.0   0.000
+O   Si  Si   12.5  109.47   1.0   3.3
+O   Si  O   0.000  0.000    1.0   0.000
+O   O   P   0.000  0.000    1.0   0.000
+O   O   Si  0.000  0.000    1.0   0.000
+O   O   O   0.000  0.000    1.0   0.000
+P   P   P   0.000  0.000    1.0   0.000
+P   P   Si  0.000  0.000    1.0   0.000
+P   P   O   0.000  0.000    1.0   0.000
+P   Si  P   0.000  0.000    1.0   0.000
+P   Si  Si  0.000  0.000    1.0   0.000
+P   Si  O   0.000  0.000    1.0   0.000
+P   O   P   0.000  0.000    1.0   0.000
+P   O   Si  0.000  0.000    1.0   0.000
+P   O   O   0.000  0.000    1.0   0.000
+Si  P   P   0.000  0.000    1.0   0.000
+Si  P   Si  0.000  0.000    1.0   0.000
+Si  P   O   0.000  0.000    1.0   0.000
+Si  Si  P   0.000  0.000    1.0   0.000
+Si  Si  Si  0.000  0.000    1.0   0.000
+Si  Si  O   0.000  0.000    1.0   0.000
+Si  O   P   0.000  0.000    1.0   0.000
+Si  O   Si  0.000  0.000    1.0   0.000
+Si  O   O   0.000  0.000    1.0   0.000

@@ -1,0 +1,106 @@
+LAMMPS (24 Mar 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Coarse-Grained SPC/E Water
+
+variable T   equal 300.0
+variable rc  equal   9.0
+variable rcD equal  10.0
+
+units            real
+boundary     p p p
+atom_style   atomic
+dimension    3
+newton       on
+comm_modify  vel yes
+
+read_data    cg_spce.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (40.31 40.31 40.31)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2180 atoms
+  read_data CPU = 0.003 seconds
+
+pair_style       hybrid/overlay table spline 1000 dpd/ext/tstat ${T} ${T} ${rc} 385262
+pair_style       hybrid/overlay table spline 1000 dpd/ext/tstat 300 ${T} ${rc} 385262
+pair_style       hybrid/overlay table spline 1000 dpd/ext/tstat 300 300 ${rc} 385262
+pair_style       hybrid/overlay table spline 1000 dpd/ext/tstat 300 300 9 385262
+
+pair_coeff   1 1 table cg_spce_table.pot VOTCA ${rc}
+pair_coeff   1 1 table cg_spce_table.pot VOTCA 9
+WARNING: 16 of 351 force values in table VOTCA are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/pair_table.cpp:465)
+pair_coeff   1 1 dpd/ext/tstat 20.0 10.0 0.5 0.5 ${rcD}
+pair_coeff   1 1 dpd/ext/tstat 20.0 10.0 0.5 0.5 10
+
+timestep    1.0
+run_style   verlet
+
+velocity all create ${T} 68768932
+velocity all create 300 68768932
+
+thermo_style custom step time temp press
+thermo       100
+
+fix 1 all    nve
+
+run          1000
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 7 7 7
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair dpd/ext/tstat, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 5.38 | 5.38 | 5.38 Mbytes
+   Step          Time           Temp          Press     
+         0   0              300            7353.4129    
+       100   100            303.74025      4964.013     
+       200   200            298.35396      8007.7802    
+       300   300            298.28547      6291.5807    
+       400   400            298.01797      6252.1041    
+       500   500            299.88984      3489.931     
+       600   600            302.5718       9092.203     
+       700   700            305.38722      5909.02      
+       800   800            294.81401      10282.286    
+       900   900            292.40724      8338.6878    
+      1000   1000           293.64788      6951.569     
+Loop time of 28.1058 on 1 procs for 1000 steps with 2180 atoms
+
+Performance: 3.074 ns/day, 7.807 hours/ns, 35.580 timesteps/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 27.948     | 27.948     | 27.948     |   0.0 | 99.44
+Neigh   | 0.071647   | 0.071647   | 0.071647   |   0.0 |  0.25
+Comm    | 0.058215   | 0.058215   | 0.058215   |   0.0 |  0.21
+Output  | 0.00026724 | 0.00026724 | 0.00026724 |   0.0 |  0.00
+Modify  | 0.014429   | 0.014429   | 0.014429   |   0.0 |  0.05
+Other   |            | 0.01283    |            |       |  0.05
+
+Nlocal:           2180 ave        2180 max        2180 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           6643 ave        6643 max        6643 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         261826 ave      261826 max      261826 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 261826
+Ave neighs/atom = 120.10367
+Neighbor list builds = 12
+Dangerous builds = 0
+Total wall time: 0:00:28

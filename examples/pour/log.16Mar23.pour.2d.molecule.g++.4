@@ -1,0 +1,148 @@
+LAMMPS (8 Feb 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# Pour 2d granular particles into container
+
+dimension	2
+atom_style	sphere
+atom_modify     map array
+boundary	f fm p
+newton		off
+comm_modify	vel yes cutoff 2.5
+
+fix             prop all property/atom mol ghost yes
+
+region		reg block 0 100 0 50 -0.5 0.5 units box
+create_box	1 reg
+Created orthogonal box = (0 0 -0.5) to (100 50 0.5)
+  4 by 1 by 1 MPI processor grid
+
+neighbor	0.2 bin
+neigh_modify	delay 0
+
+# IMPORTANT NOTE: these values of stiffness (4000) and timestep (0.001)
+# are used in this example file to produce a quick simulation and movie.
+# More appropriate values for realistic simulations would be
+# k = 4.0e5 and dt = 0.0001, as in bench/in.chute (if it were Hertzian).
+
+pair_style      gran/hertz/history 4000.0 NULL 100.0 NULL 0.5 0
+pair_coeff	* *
+
+timestep	0.001
+
+fix		2 all gravity 1.0 spherical 0.0 -180.0
+fix		xwalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 		xplane 0 100
+fix		ywalls all wall/gran hertz/history 4000.0 NULL 100.0 NULL 0 1 		yplane 0 NULL
+
+molecule        object molecule.vshape
+Read molecule template object:
+  1 molecules
+  0 fragments
+  5 atoms with max type 1
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+fix             3 all rigid/small molecule mol object
+  create bodies CPU = 0.000 seconds
+  0 rigid bodies with 0 atoms
+  2.236068 = max distance from body owner to body atom
+
+# ensure region size + molecule size does not overlap wall
+
+region          slab block 3.0 97.0 30 34.5 -0.5 0.5 units box
+fix             ins all pour 500 0 4767548 vol 0.8 10 	        region slab mol object rigid 3
+Particle insertion: 26 every 3000 steps, 500 by step 57001
+
+fix             4 all enforce2d
+
+compute		1 all erotate/sphere
+compute         Tsphere all temp/sphere
+thermo_style	custom step atoms ke c_1 vol
+thermo_modify	lost ignore norm no temp Tsphere
+compute_modify	Tsphere dynamic/dof yes
+
+thermo		1000
+
+#dump		id all atom 100 tmp.dump
+
+#variable        colors string #                "red green blue yellow white #                purple pink orange lime gray"
+#variable	mol2 atom mol%10
+#dump		2 all image 250 image.*.jpg v_mol2 type #		zoom 1.6 adiam 1.5
+#dump_modify	2 pad 5 amap 0 10 sa 1 10 ${colors}
+
+#variable        colors string #                "red green blue yellow white #                purple pink orange lime gray"
+#variable	mol3 atom mol%10
+#dump		3 all movie 250 movie.mpg v_mol3 type #		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5 amap 0 10 sa 1 10 ${colors}
+
+run	        25000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: Gravity may not be correctly applied to rigid bodies if they consist of overlapped particles (src/RIGID/fix_rigid_small.cpp:554)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.2
+  ghost atom cutoff = 2.5
+  binsize = 0.6, bins = 167 84 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gran/hertz/history, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/newtoff
+      stencil: full/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.773 | 5.773 | 5.773 Mbytes
+   Step        Atoms        KinEng          c_1           Volume    
+         0           0  -0              0              5000         
+      1000         130   248.65568      0.002050506    5000         
+      2000         130   452.01354      0.0020557556   5000         
+      3000         130   720.36849      0.0021462148   5000         
+      4000         260   1281.7126      0.0021462148   5000         
+      5000         260   1875.9602      0.0021462148   5000         
+      6000         260   1742.7747      2.0692779      5000         
+      7000         390   1860.2142      1.7515066      5000         
+      8000         390   1853.6219      2.3354959      5000         
+      9000         390   1749.6466      5.1516327      5000         
+     10000         520   1860.4314      4.2186838      5000         
+     11000         520   1636.9411      4.006706       5000         
+     12000         520   1454.1835      4.3341069      5000         
+     13000         650   1881.6358      3.9606372      5000         
+     14000         650   1648.6494      3.8239413      5000         
+     15000         650   1463.0973      2.9363979      5000         
+     16000         780   1571.0119      3.9061213      5000         
+     17000         780   1472.941       2.0289532      5000         
+     18000         780   1370.5265      3.1038747      5000         
+     19000         910   1433.6728      2.7600454      5000         
+     20000         910   1375.3629      2.9649297      5000         
+     21000         910   1184.8017      2.5049255      5000         
+     22000        1040   1312.0653      1.8441521      5000         
+     23000        1040   1181.5473      1.7693597      5000         
+     24000        1040   1263.4442      2.1476891      5000         
+     25000        1170   1152.2404      2.4292153      5000         
+Loop time of 1.59966 on 4 procs for 25000 steps with 1170 atoms
+
+Performance: 1350285.365 tau/day, 15628.303 timesteps/s, 18.285 Matom-step/s
+98.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.23769    | 0.30075    | 0.35002    |   7.5 | 18.80
+Neigh   | 0.048877   | 0.062647   | 0.073072   |   3.7 |  3.92
+Comm    | 0.075225   | 0.087826   | 0.096819   |   2.9 |  5.49
+Output  | 0.0010015  | 0.0011427  | 0.0015053  |   0.6 |  0.07
+Modify  | 0.97758    | 0.99506    | 1.0071     |   1.1 | 62.20
+Other   |            | 0.1522     |            |       |  9.52
+
+Nlocal:          292.5 ave         314 max         274 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+Nghost:           44.5 ave          67 max          23 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:            430 ave         452 max         393 min
+Histogram: 1 0 0 0 0 0 0 2 0 1
+
+Total # of neighbors = 1720
+Ave neighs/atom = 1.4700855
+Neighbor list builds = 1707
+Dangerous builds = 0
+Total wall time: 0:00:01

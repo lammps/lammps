@@ -1,0 +1,56 @@
+.. index:: pair_style extep
+.. index:: pair_style extep/omp
+
+pair_style extep command
+========================
+
+Accelerator Variants: *extep/omp*
+
+Syntax
+""""""
+
+.. code-block:: LAMMPS
+
+   pair_style extep
+
+Examples
+""""""""
+
+.. code-block:: LAMMPS
+
+   pair_style extep
+   pair_coeff * * BN.extep B N
+
+Description
+"""""""""""
+
+Style *extep* computes the Extended Tersoff Potential (ExTeP)
+interactions as described in :ref:`(Los2017) <Los2017>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
+Restrictions
+""""""""""""
+none
+
+Related commands
+""""""""""""""""
+
+:doc:`pair_tersoff <pair_tersoff>`
+
+Default
+"""""""
+
+none
+
+----------
+
+.. _Los2017:
+
+**(Los2017)** J. H. Los et al. "Extended Tersoff potential for boron nitride:
+Energetics and elastic properties of pristine and defective h-BN",
+Phys. Rev. B 96 (184108), 2017.

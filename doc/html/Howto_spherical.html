@@ -1,0 +1,410 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.5.1. Finite-size spherical and aspherical particles &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_spherical.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.5.2. Granular models" href="Howto_granular.html" />
+    <link rel="prev" title="10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay" href="Howto_eam_overlay.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular.html">10.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular_surfaces.html">10.5.3. Granular surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">10.5.4. Body particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bpm.html">10.5.5. Bonded particle models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">10.5.6. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">10.5.7. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">10.5.8. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_peri.html">10.5.10. Peridynamics with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">10.5.11. Manifolds (surfaces)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_rheo.html">10.5.12. Reproducing hydrodynamics and elastic objects (RHEO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spins.html">10.5.13. Magnetic spins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_apip.html">10.5.14. Adaptive-precision interatomic potentials (APIP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_ldd.html">10.5.15. Local Density Dependent Potentials via LDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.5.1. </span>Finite-size spherical and aspherical particles</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_eam_overlay.html" class="btn btn-neutral float-left" title="10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_granular.html" class="btn btn-neutral float-right" title="10.5.2. Granular models" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="finite-size-spherical-and-aspherical-particles">
+<h1><span class="section-number">10.5.1. </span>Finite-size spherical and aspherical particles<a class="headerlink" href="#finite-size-spherical-and-aspherical-particles" title="Link to this heading"></a></h1>
+<p>Typical MD models treat atoms or particles as point masses.  Sometimes
+it is desirable to have a model with finite-size particles such as
+spheroids, ellipsoids, superellipsoids, or generalized aspherical
+bodies.  The difference is that such particles have a moment of inertia,
+rotational energy, and angular momentum.  Rotation is induced by torque
+coming from interactions with other particles.</p>
+<p>LAMMPS has several options for running simulations with these kinds of
+particles.  The following aspects are discussed in turn:</p>
+<ul class="simple">
+<li><p>atom styles</p></li>
+<li><p>pair potentials</p></li>
+<li><p>time integration</p></li>
+<li><p>computes, thermodynamics, and dump output</p></li>
+<li><p>rigid bodies composed of finite-size particles</p></li>
+</ul>
+<p>Example input scripts for these kinds of models are in the body,
+colloid, dipole, ellipse, line, peri, pour, and tri directories of the
+<a class="reference internal" href="Examples.html"><span class="doc">examples directory</span></a> in the LAMMPS distribution.</p>
+<section id="atom-styles">
+<h2>Atom styles<a class="headerlink" href="#atom-styles" title="Link to this heading"></a></h2>
+<p>There are several <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a> that allow for
+definition of finite-size particles: sphere, dipole, ellipsoid, line,
+tri, peri, and body.</p>
+<p>The <em>sphere</em> style defines particles that are spheroids and each
+particle can have a unique diameter and mass (or density).  These
+particles store an angular velocity (omega) and can be acted upon by
+torque.  The “set” command can be used to modify the diameter and mass
+of individual particles, after then are created.</p>
+<p>The <em>dipole</em> style does not actually define finite-size particles, but
+is often used in conjunction with spherical particles, via a command
+like</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">atom_style</span><span class="w"> </span><span class="n">hybrid</span><span class="w"> </span><span class="n">sphere</span><span class="w"> </span><span class="n">dipole</span>
+</pre></div>
+</div>
+<p>This is because when dipoles interact with each other, they induce
+torques, and a particle must be finite-size (i.e. have a moment of
+inertia) in order to respond and rotate.  See the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style
+dipole</span></a> command for details.  The “set” command can be used
+to modify the orientation and length of the dipole moment of individual
+particles, after then are created.</p>
+<p>The <em>ellipsoid</em> style defines particles that are ellipsoids or
+superellipsoids and thus can be aspherical.  Each particle has a shape,
+specified by 3 diameters, and mass (or density).  Superellipsoid
+particles can be defined by additionally specifying 2 blockiness
+exponents (block) and adding the <cite>superellipsoid</cite> keyword to the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style ellipsoid</span></a> command.</p>
+<p>These particles store an angular momentum and their orientation
+(quaternion), and can be acted upon by torque.  They do not store an
+angular velocity (omega), which can be in a different direction than
+angular momentum, rather they compute it as needed.  The <a class="reference internal" href="set.html"><span class="doc">set
+command</span></a> can be used to modify the diameter, orientation, and mass
+of individual particles, after they are created.  The <a class="reference internal" href="set.html"><span class="doc">set command</span></a> can also be used to modify the blockiness of superellipsoid
+particles.  It also has a brief explanation of what quaternions are.</p>
+<p>The <em>line</em> style defines line segment particles with two end points and
+a mass (or density).  They can be used in 2d simulations, and they can
+be joined together to form rigid bodies which represent arbitrary
+polygons.</p>
+<p>The <em>tri</em> style defines triangular particles with three corner points
+and a mass (or density).  They can be used in 3d simulations, and they
+can be joined together to form rigid bodies which represent arbitrary
+particles with a triangulated surface.</p>
+<p>The <em>peri</em> style is used with <a class="reference internal" href="pair_peri.html"><span class="doc">Peridynamic models</span></a> and
+defines particles as having a volume, that is used internally in the
+<a class="reference internal" href="pair_peri.html"><span class="doc">pair_style peri</span></a> potentials.</p>
+<p>The <em>body</em> style allows for definition of particles which can represent
+complex entities, such as surface meshes of discrete points, collections
+of sub-particles, deformable objects, etc.  The body style is discussed
+in more detail on the <a class="reference internal" href="Howto_body.html"><span class="doc">Howto body</span></a> doc page.</p>
+<p>Note that if one of these atom styles is used (or multiple styles via
+the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style hybrid</span></a> command), not all particles in
+the system are required to be finite-size or aspherical.</p>
+<p>For example, in the ellipsoid style, if the 3 shape parameters are set
+to the same value, the particle will be a sphere rather than an
+ellipsoid.  If the 3 shape parameters are all set to 0.0 or if the
+diameter is set to 0.0, it will be a point particle.  In the line or tri
+style, if the lineflag or triflag is specified as 0, then it will be a
+point particle.  Similarly, if a superellipsoid has both blockiness
+parameters set to 1.0, the superellipsoid will be a regular ellipsoid.</p>
+<p>Some of the pair styles used to compute pairwise interactions between
+finite-size particles also compute the correct interaction with point
+particles as well, e.g. the interaction between a point particle and a
+finite-size particle or between two point particles.  If necessary,
+<a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a> can be used to ensure the correct
+interactions are computed for the appropriate style of interactions.
+Likewise, using groups to partition particles (ellipsoids versus spheres
+versus point particles) will allow you to use the appropriate time
+integrators and temperature computations for each class of particles.
+See the doc pages for various commands for details.</p>
+<p>Also note that for <a class="reference internal" href="dimension.html"><span class="doc">2d simulations</span></a>, atom styles sphere
+and ellipsoid still use 3d particles, rather than as circular disks or
+ellipses.  This means they have the same moment of inertia as the 3d
+object.  When temperature is computed, the correct degrees of freedom
+are used for rotation in a 2d versus 3d system.</p>
+</section>
+<section id="pair-potentials">
+<h2>Pair potentials<a class="headerlink" href="#pair-potentials" title="Link to this heading"></a></h2>
+<p>When a system with finite-size particles is defined, the particles
+will only rotate and experience torque if the force field computes
+such interactions.  These are the various <a class="reference internal" href="pair_style.html"><span class="doc">pair styles</span></a> that generate torque:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pair_granular.html"><span class="doc">pair_style granular</span></a></p></li>
+<li><p><a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hooke</span></a></p></li>
+<li><p><a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hooke/history</span></a></p></li>
+<li><p><a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hertz/history</span></a></p></li>
+<li><p><a class="reference internal" href="pair_granular_superellipsoid.html"><span class="doc">pair_style granular/superellipsoid</span></a></p></li>
+<li><p><a class="reference internal" href="pair_dipole.html"><span class="doc">pair_style dipole/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_gayberne.html"><span class="doc">pair_style gayberne</span></a></p></li>
+<li><p><a class="reference internal" href="pair_resquared.html"><span class="doc">pair_style resquared</span></a></p></li>
+<li><p><a class="reference internal" href="pair_brownian.html"><span class="doc">pair_style brownian</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lubricate.html"><span class="doc">pair_style lubricate</span></a></p></li>
+<li><p><a class="reference internal" href="pair_line_lj.html"><span class="doc">pair_style line/lj</span></a></p></li>
+<li><p><a class="reference internal" href="pair_tri_lj.html"><span class="doc">pair_style tri/lj</span></a></p></li>
+<li><p><a class="reference internal" href="pair_body_nparticle.html"><span class="doc">pair_style body/nparticle</span></a></p></li>
+</ul>
+<p>Most of the granular pair styles are used with spherical particles with
+the exception of the <em>granular/superellipsoid</em> pair style which is used
+with superellipsoid particles.  The dipole pair style is used with the
+dipole atom style, which could be applied to spherical or ellipsoidal
+particles.  The GayBerne and REsquared potentials require ellipsoidal
+particles, though they will also work if the 3 shape parameters are the
+same (a sphere).  The Brownian and lubrication potentials are used with
+spherical particles.  The line, tri, and body potentials are used with
+line segment, triangular, and body particles respectively.</p>
+</section>
+<section id="time-integration">
+<h2>Time integration<a class="headerlink" href="#time-integration" title="Link to this heading"></a></h2>
+<p>There are several fixes that perform time integration on finite-size
+spherical particles, meaning the integrators update the rotational
+orientation and angular velocity or angular momentum of the particles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere</span></a></p></li>
+<li><p><a class="reference internal" href="fix_nvt_sphere.html"><span class="doc">fix nvt/sphere</span></a></p></li>
+<li><p><a class="reference internal" href="fix_npt_sphere.html"><span class="doc">fix npt/sphere</span></a></p></li>
+</ul>
+<p>Likewise, there are 3 fixes that perform time integration on
+ellipsoidal particles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_nve_asphere.html"><span class="doc">fix nve/asphere</span></a></p></li>
+<li><p><a class="reference internal" href="fix_nvt_asphere.html"><span class="doc">fix nvt/asphere</span></a></p></li>
+<li><p><a class="reference internal" href="fix_npt_asphere.html"><span class="doc">fix npt/asphere</span></a></p></li>
+</ul>
+<p>The advantage of these fixes is that those which thermostat the
+particles include the rotational degrees of freedom in the temperature
+calculation and thermostatting.  The <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>
+command can also be used with its <em>omgea</em> or <em>angmom</em> options to
+thermostat the rotational degrees of freedom for spherical or
+ellipsoidal particles.  Other thermostatting fixes only operate on the
+translational kinetic energy of finite-size particles.</p>
+<p>These fixes perform constant NVE time integration on line segment,
+triangular, and body particles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_nve_line.html"><span class="doc">fix nve/line</span></a></p></li>
+<li><p><a class="reference internal" href="fix_nve_tri.html"><span class="doc">fix nve/tri</span></a></p></li>
+<li><p><a class="reference internal" href="fix_nve_body.html"><span class="doc">fix nve/body</span></a></p></li>
+</ul>
+<p>Note that for mixtures of point and finite-size particles, these
+integration fixes can only be used with <a class="reference internal" href="group.html"><span class="doc">groups</span></a> which
+contain finite-size particles.</p>
+</section>
+<section id="computes-thermodynamics-and-dump-output">
+<h2>Computes, thermodynamics, and dump output<a class="headerlink" href="#computes-thermodynamics-and-dump-output" title="Link to this heading"></a></h2>
+<p>There are several computes that calculate the temperature or
+rotational energy of spherical or ellipsoidal particles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="compute_temp_sphere.html"><span class="doc">compute temp/sphere</span></a></p></li>
+<li><p><a class="reference internal" href="compute_temp_asphere.html"><span class="doc">compute temp/asphere</span></a></p></li>
+<li><p><a class="reference internal" href="compute_erotate_sphere.html"><span class="doc">compute erotate/sphere</span></a></p></li>
+<li><p><a class="reference internal" href="compute_erotate_asphere.html"><span class="doc">compute erotate/asphere</span></a></p></li>
+</ul>
+<p>These include rotational degrees of freedom in their computation.  If
+you wish the thermodynamic output of temperature or pressure to use one
+of these computes (e.g. for a system entirely composed of finite-size
+particles), then the compute can be defined and the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a> command used.  Note that by default thermodynamic
+quantities will be calculated with a temperature that only includes
+translational degrees of freedom.  See the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command for details.</p>
+<p>These commands can be used to output various attributes of finite-size
+particles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a></p></li>
+<li><p><a class="reference internal" href="compute_property_atom.html"><span class="doc">compute property/atom</span></a></p></li>
+<li><p><a class="reference internal" href="dump.html"><span class="doc">dump local</span></a></p></li>
+<li><p><a class="reference internal" href="compute_body_local.html"><span class="doc">compute body/local</span></a></p></li>
+</ul>
+<p>Attributes include the dipole moment, the angular velocity, the angular
+momentum, the quaternion, the torque, the end-point and corner-point
+coordinates (for line and tri particles), and sub-particle attributes of
+body particles.</p>
+</section>
+<section id="rigid-bodies-composed-of-finite-size-particles">
+<h2>Rigid bodies composed of finite-size particles<a class="headerlink" href="#rigid-bodies-composed-of-finite-size-particles" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command treats a collection of
+particles as a rigid body, computes its inertia tensor, sums the total
+force and torque on the rigid body each timestep due to forces on its
+constituent particles, and integrates the motion of the rigid body.</p>
+<p>If any of the constituent particles of a rigid body are finite-size
+particles (spheres or ellipsoids or line segments or triangles), then
+their contribution to the inertia tensor of the body is different than
+if they were point particles.  This means the rotational dynamics of the
+rigid body will be different.  Thus a model of a dimer is different if
+the dimer consists of two point masses versus two spheroids, even if the
+two particles have the same mass.  Finite-size particles that experience
+torque due to their interaction with other particles will also impart
+that torque to a rigid body they are part of.</p>
+<p>See the “fix rigid” command for example of complex rigid-body models it
+is possible to define in LAMMPS.</p>
+<p>Note that the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> command can also be used to
+treat 2, 3, or 4 particles as a rigid body, but it always assumes the
+particles are point masses.</p>
+<p>Also note that body particles cannot be modeled with the <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command.  Body particles are treated by LAMMPS as single
+particles, though they can store an internal state, such as a list of
+sub-particles.  Individual body particles are typically treated as rigid
+bodies, and their motion integrated with a command like <a class="reference internal" href="fix_nve_body.html"><span class="doc">fix
+nve/body</span></a>.  Interactions between pairs of body particles
+are computed via a command like <a class="reference internal" href="pair_body_nparticle.html"><span class="doc">pair_style body/nparticle</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_eam_overlay.html" class="btn btn-neutral float-left" title="10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_granular.html" class="btn btn-neutral float-right" title="10.5.2. Granular models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

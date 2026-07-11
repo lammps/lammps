@@ -1,0 +1,2204 @@
+LAMMPS (5 Oct 2016)
+Processor partition = 1
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+Created orthogonal box = (0 0 0) to (21.724 21.724 21.724)
+  1 by 1 by 1 MPI processor grid
+Created 512 atoms
+512 atoms in group Si
+1 atoms in group del
+Deleted 1 atoms, new total = 511
+Reading potential file Si.sw with DATE: 2007-06-11
+Neighbor list info ...
+  1 neighbor list requests
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.77118
+  ghost atom cutoff = 4.77118
+  binsize = 2.38559, bins = 10 10 10
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+Memory usage per processor = 2.39832 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0    1802.5039    -2211.666            0   -2092.8401    12351.692 
+      10    996.01982   -2158.3093            0    -2092.649    14285.475 
+      20    590.09928   -2131.1531            0   -2092.2521    12113.964 
+      30      1033.01   -2159.2522            0   -2091.1534    6860.4116 
+      40    724.76581    -2137.281            0   -2089.5025    5999.4372 
+      50    489.66604   -2120.8082            0   -2088.5281    6403.4234 
+      60    960.70653   -2150.7394            0    -2087.407     5687.324 
+      70    908.41498   -2145.7665            0   -2085.8813    8220.9655 
+      80    796.82286   -2137.1227            0   -2084.5941    11307.153 
+      90    1245.9045   -2164.9841            0   -2082.8507    11282.071 
+     100    1083.0647   -2152.0805            0    -2080.682    12015.018 
+Loop time of 0.263535 on 1 procs for 100 steps with 511 atoms
+
+Performance: 32.785 ns/day, 0.732 hours/ns, 379.456 timesteps/s
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.25941    | 0.25941    | 0.25941    |   0.0 | 98.43
+Neigh   | 0.0015869  | 0.0015869  | 0.0015869  |   0.0 |  0.60
+Comm    | 0.00070167 | 0.00070167 | 0.00070167 |   0.0 |  0.27
+Output  | 8.1301e-05 | 8.1301e-05 | 8.1301e-05 |   0.0 |  0.03
+Modify  | 0.0014684  | 0.0014684  | 0.0014684  |   0.0 |  0.56
+Other   |            | 0.0002882  |            |       |  0.11
+
+Nlocal:    511 ave 511 max 511 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1017 ave 1017 max 1017 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  13996 ave 13996 max 13996 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 13996
+Ave neighs/atom = 27.3894
+Neighbor list builds = 2
+Dangerous builds = 0
+WARNING: Resetting reneighboring criteria during PRD (../prd.cpp:216)
+Neighbor list info ...
+  2 neighbor list requests
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.77118
+  ghost atom cutoff = 4.77118
+  binsize = 2.38559, bins = 10 10 10
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 5.96082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     100    1083.0647   -2152.0805   -2152.0805    12015.018   -12015.018 
+     110    1083.0647   -2211.4354   -2211.4354     7410.368    -7410.368 
+     114    1083.0647   -2211.6275   -2211.6275    7404.1637   -7404.1637 
+Loop time of 0.0333571 on 1 procs for 14 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     100    1083.0647   -2152.0805   -2152.0805    12015.018   -12015.018 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     100         1800   -2152.0805   -2152.0805    16938.978   -16938.978 
+     110    1407.2016   -2123.5336   -2123.5336    16792.855   -16792.855 
+Loop time of 0.0276499 on 1 procs for 10 steps with 511 atoms
+
+101.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     110    1407.2016   -2123.5336   -2123.5336    16792.855   -16792.855 
+     120    1407.2016   -2211.3883   -2211.3883    9671.0828   -9671.0828 
+     125    1407.2016   -2211.6353   -2211.6353     9638.283    -9638.283 
+Loop time of 0.03426 on 1 procs for 15 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 110
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     110         1800   -2123.5336   -2123.5336    19490.621   -19490.621 
+     120    1739.8594   -2117.1376   -2117.1376    18703.472   -18703.472 
+Loop time of 0.028563 on 1 procs for 10 steps with 511 atoms
+
+98.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     120    1739.8594   -2117.1376   -2117.1376    18703.472   -18703.472 
+     130    1739.8594   -2212.4068   -2212.4068    8627.9775   -8627.9775 
+     137    1739.8594    -2213.296    -2213.296    8562.6334   -8562.6334 
+Loop time of 0.039432 on 1 procs for 17 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 110
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     110         1800   -2123.5336   -2123.5336    19490.621   -19490.621 
+     120    1676.4339   -2113.3214   -2113.3214    19357.152   -19357.152 
+Loop time of 0.028398 on 1 procs for 10 steps with 511 atoms
+
+102.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     120    1676.4339   -2113.3214   -2113.3214    19357.152   -19357.152 
+     130    1676.4339   -2211.3222   -2211.3222    11503.079   -11503.079 
+     135    1676.4339   -2211.6285   -2211.6285     11484.34    -11484.34 
+Loop time of 0.0361462 on 1 procs for 15 steps with 511 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 120
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     120         1800   -2113.3214   -2113.3214    20205.812   -20205.812 
+     130    1767.1431   -2109.2421   -2109.2421    19570.363   -19570.363 
+Loop time of 0.028434 on 1 procs for 10 steps with 511 atoms
+
+102.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     130    1767.1431   -2109.2421   -2109.2421    19570.363   -19570.363 
+     140    1767.1431   -2211.2751   -2211.2751    12109.276   -12109.276 
+     145    1767.1431   -2211.6261   -2211.6261    12101.876   -12101.876 
+Loop time of 0.035532 on 1 procs for 15 steps with 511 atoms
+
+98.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 130
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     130         1800   -2109.2421   -2109.2421    19796.026   -19796.026 
+     140    1780.3794   -2106.1802   -2106.1802     19441.79    -19441.79 
+Loop time of 0.0289311 on 1 procs for 10 steps with 511 atoms
+
+100.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     140    1780.3794   -2106.1802   -2106.1802     19441.79    -19441.79 
+     150    1780.3794    -2211.318    -2211.318    12207.989   -12207.989 
+     155    1780.3794   -2211.6309   -2211.6309    12192.911   -12192.911 
+Loop time of 0.03565 on 1 procs for 15 steps with 511 atoms
+
+98.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 140
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     140         1800   -2106.1802   -2106.1802    19576.546   -19576.546 
+     150    1746.5229    -2101.023    -2101.023    18905.445   -18905.445 
+Loop time of 0.0296099 on 1 procs for 10 steps with 511 atoms
+
+97.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     150    1746.5229    -2101.023    -2101.023    18905.445   -18905.445 
+     160    1746.5229   -2211.2683   -2211.2683    11946.852   -11946.852 
+     165    1746.5229   -2211.6271   -2211.6271    11966.501   -11966.501 
+Loop time of 0.0356081 on 1 procs for 15 steps with 511 atoms
+
+98.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 150
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     150         1800    -2101.023    -2101.023     19272.73    -19272.73 
+     160    1799.6137   -2099.4291   -2099.4291    19995.515   -19995.515 
+Loop time of 0.030134 on 1 procs for 10 steps with 511 atoms
+
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     160    1799.6137   -2099.4291   -2099.4291    19995.515   -19995.515 
+     170    1799.6137   -2211.3073   -2211.3073    12309.831   -12309.831 
+     175    1799.6137   -2211.6296   -2211.6296    12324.169   -12324.169 
+Loop time of 0.0351 on 1 procs for 15 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 160
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     160         1800   -2099.4291   -2099.4291    19998.167   -19998.167 
+     170    1795.6449   -2097.6594   -2097.6594     19583.84    -19583.84 
+Loop time of 0.030587 on 1 procs for 10 steps with 511 atoms
+
+101.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     170    1795.6449   -2097.6594   -2097.6594     19583.84    -19583.84 
+     180    1795.6449   -2211.2532   -2211.2532    12284.651   -12284.651 
+     186    1795.6449   -2211.6401   -2211.6401    12295.446   -12295.446 
+Loop time of 0.0373011 on 1 procs for 16 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 170
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     170         1800   -2097.6594   -2097.6594    19613.751   -19613.751 
+     180    1804.5796   -2096.5323   -2096.5323    19081.334   -19081.334 
+Loop time of 0.0305531 on 1 procs for 10 steps with 511 atoms
+
+101.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     180    1804.5796   -2096.5323   -2096.5323    19081.334   -19081.334 
+     190    1804.5796   -2211.1956   -2211.1956    12345.615   -12345.615 
+     196    1804.5796   -2211.6375   -2211.6375    12355.583   -12355.583 
+Loop time of 0.0374172 on 1 procs for 16 steps with 511 atoms
+
+101.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 180
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     180         1800   -2096.5323   -2096.5323    19049.881   -19049.881 
+     190    1813.2897   -2096.0443   -2096.0443    18844.421   -18844.421 
+Loop time of 0.0302849 on 1 procs for 10 steps with 511 atoms
+
+99.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     190    1813.2897   -2096.0443   -2096.0443    18844.421   -18844.421 
+     200    1813.2897   -2211.1872   -2211.1872     12416.74    -12416.74 
+     205    1813.2897   -2211.6183   -2211.6183    12408.872   -12408.872 
+Loop time of 0.034276 on 1 procs for 15 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 190
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     190         1800   -2096.0443   -2096.0443    18753.147   -18753.147 
+     200     1729.795   -2090.1248   -2090.1248     19011.48    -19011.48 
+Loop time of 0.0303299 on 1 procs for 10 steps with 511 atoms
+
+102.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     200     1729.795   -2090.1248   -2090.1248     19011.48    -19011.48 
+     216     1729.795   -2211.6385   -2211.6385    11843.785   -11843.785 
+Loop time of 0.0360031 on 1 procs for 16 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     100     1729.795   -2090.1248   -2090.1248     19011.48    -19011.48 
+     110      1831.27   -2095.5272   -2095.5272    17676.566   -17676.566 
+     120    1810.4817   -2092.8651   -2092.8651     16360.26    -16360.26 
+     130    1642.2751   -2080.5879   -2080.5879    15745.256   -15745.256 
+     140      1700.98   -2083.2166   -2083.2166    13916.989   -13916.989 
+     150    1777.7546   -2086.8791   -2086.8791    13352.583   -13352.583 
+     160    1718.1749   -2081.5431   -2081.5431    14366.375   -14366.375 
+     170    1767.1296   -2083.3696   -2083.3696    14125.895   -14125.895 
+     180     1883.072   -2089.5629   -2089.5629    14337.497   -14337.497 
+     190     1833.024   -2084.9187   -2084.9187     15182.01    -15182.01 
+     200    1836.5326    -2083.942    -2083.942    15524.675   -15524.675 
+Loop time of 0.308739 on 1 procs for 100 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     200    1836.5326    -2083.942    -2083.942    15524.675   -15524.675 
+     217    1836.5326   -2213.3066   -2213.3066    9227.8712   -9227.8712 
+Loop time of 0.042752 on 1 procs for 17 steps with 511 atoms
+
+100.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 200
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     200    1836.5326    -2083.942    -2083.942    15524.675   -15524.675 
+     210    1909.6039   -2087.6329   -2087.6329    15133.724   -15133.724 
+     220    1825.9505   -2081.1108   -2081.1108    14932.959   -14932.959 
+     230    1810.4665   -2079.2025   -2079.2025    15410.209   -15410.209 
+     240    1871.6829   -2082.3771   -2082.3771     15392.27    -15392.27 
+     250    1791.3773   -2076.2876   -2076.2876    15063.506   -15063.506 
+     260    1784.1987   -2075.0577   -2075.0577    14819.036   -14819.036 
+     270    1943.8082   -2084.8184   -2084.8184    15061.372   -15061.372 
+     280    1897.9349    -2081.151    -2081.151    15152.508   -15152.508 
+     290    1740.1879   -2070.2571   -2070.2571     15387.48    -15387.48 
+     300    1840.8826   -2076.3958   -2076.3958    14533.579   -14533.579 
+Loop time of 0.312478 on 1 procs for 100 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     300    1840.8826   -2076.3958   -2076.3958    14533.579   -14533.579 
+     317    1840.8826   -2213.3062   -2213.3062    9257.3838   -9257.3838 
+Loop time of 0.042815 on 1 procs for 17 steps with 511 atoms
+
+100.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 300
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     300    1840.8826   -2076.3958   -2076.3958    14533.579   -14533.579 
+     310     1960.999   -2083.8351   -2083.8351    13835.648   -13835.648 
+     320    1827.6467   -2074.7191   -2074.7191    14533.243   -14533.243 
+     330    1839.8855   -2075.2936   -2075.2936     14190.05    -14190.05 
+     340    1958.8799   -2082.9805   -2082.9805    15031.903   -15031.903 
+     350    1887.2419   -2078.2548   -2078.2548    15501.348   -15501.348 
+     360    1869.1123   -2077.2136   -2077.2136    15754.073   -15754.073 
+     370    1874.2242   -2077.7919   -2077.7919    15890.497   -15890.497 
+     380    1918.0246   -2081.0374   -2081.0374    15821.278   -15821.278 
+     390    1989.2729   -2086.2936   -2086.2936    16037.305   -16037.305 
+     400    1909.9347   -2081.8654   -2081.8654    15848.055   -15848.055 
+Loop time of 0.316776 on 1 procs for 100 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     400    1909.9347   -2081.8654   -2081.8654    15848.055   -15848.055 
+     417    1909.9347   -2213.3028   -2213.3028    9729.8124   -9729.8124 
+Loop time of 0.0418508 on 1 procs for 17 steps with 511 atoms
+
+100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 400
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     400    1909.9347   -2081.8654   -2081.8654    15848.055   -15848.055 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 400
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     400         1800   -2081.8654   -2081.8654    15093.016   -15093.016 
+     410    1864.7704   -2087.0088   -2087.0088    15065.726   -15065.726 
+Loop time of 0.0313129 on 1 procs for 10 steps with 511 atoms
+
+102.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     410    1864.7704   -2087.0088   -2087.0088    15065.726   -15065.726 
+     427    1864.7704   -2213.3045   -2213.3045    9422.5848   -9422.5848 
+Loop time of 0.0408139 on 1 procs for 17 steps with 511 atoms
+
+100.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 410
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     410         1800   -2087.0088   -2087.0088    14620.879   -14620.879 
+     420    1847.0559   -2091.0214   -2091.0214    14509.121   -14509.121 
+Loop time of 0.0304611 on 1 procs for 10 steps with 511 atoms
+
+101.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     420    1847.0559   -2091.0214   -2091.0214    14509.121   -14509.121 
+     437    1847.0559    -2213.301    -2213.301     9297.437    -9297.437 
+Loop time of 0.0408771 on 1 procs for 17 steps with 511 atoms
+
+100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 420
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     420         1800   -2091.0214   -2091.0214    14185.938   -14185.938 
+     430    1734.6218   -2087.5695   -2087.5695     13746.73    -13746.73 
+Loop time of 0.03003 on 1 procs for 10 steps with 511 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     430    1734.6218   -2087.5695   -2087.5695     13746.73    -13746.73 
+     448    1734.6218   -2213.3139   -2213.3139    8528.3177   -8528.3177 
+Loop time of 0.0412688 on 1 procs for 18 steps with 511 atoms
+
+101.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 430
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     430         1800   -2087.5695   -2087.5695    14195.752   -14195.752 
+     440    1762.3737   -2085.8966   -2085.8966    13666.566   -13666.566 
+Loop time of 0.029882 on 1 procs for 10 steps with 511 atoms
+
+100.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     440    1762.3737   -2085.8966   -2085.8966    13666.566   -13666.566 
+     458    1762.3737   -2213.3164   -2213.3164     8719.155    -8719.155 
+Loop time of 0.0425708 on 1 procs for 18 steps with 511 atoms
+
+101.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 440
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     440         1800   -2085.8966   -2085.8966    13924.986   -13924.986 
+     450    1826.3133   -2088.4372   -2088.4372    13251.504   -13251.504 
+Loop time of 0.030338 on 1 procs for 10 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     450    1826.3133   -2088.4372   -2088.4372    13251.504   -13251.504 
+     468    1826.3133   -2213.3161   -2213.3161    9156.4467   -9156.4467 
+Loop time of 0.0425601 on 1 procs for 18 steps with 511 atoms
+
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 450
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     450         1800   -2088.4372   -2088.4372    13070.782   -13070.782 
+     460    1715.5367   -2083.6266   -2083.6266    12817.275   -12817.275 
+Loop time of 0.0306129 on 1 procs for 10 steps with 511 atoms
+
+98.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     460    1715.5367   -2083.6266   -2083.6266    12817.275   -12817.275 
+     477    1715.5367   -2213.3091   -2213.3091    8397.9452   -8397.9452 
+Loop time of 0.0410869 on 1 procs for 17 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 460
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     460         1800   -2083.6266   -2083.6266    13397.375   -13397.375 
+     470    1845.2632   -2087.3849   -2087.3849    13016.928   -13016.928 
+Loop time of 0.030822 on 1 procs for 10 steps with 511 atoms
+
+100.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     470    1845.2632   -2087.3849   -2087.3849    13016.928   -13016.928 
+     488    1845.2632   -2213.3158   -2213.3158     9287.188    -9287.188 
+Loop time of 0.042804 on 1 procs for 18 steps with 511 atoms
+
+98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 470
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     470         1800   -2087.3849   -2087.3849    12706.058   -12706.058 
+     480    1767.5613   -2086.0057   -2086.0057    12461.902   -12461.902 
+Loop time of 0.030751 on 1 procs for 10 steps with 511 atoms
+
+100.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     480    1767.5613   -2086.0057   -2086.0057    12461.902   -12461.902 
+     497    1767.5613   -2213.3019   -2213.3019    8752.5633   -8752.5633 
+Loop time of 0.042315 on 1 procs for 17 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 480
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     480         1800   -2086.0057   -2086.0057    12684.693   -12684.693 
+     490    1728.5749   -2081.9885   -2081.9885    12829.859   -12829.859 
+Loop time of 0.0303981 on 1 procs for 10 steps with 511 atoms
+
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     490    1728.5749   -2081.9885   -2081.9885    12829.859   -12829.859 
+     507    1728.5749   -2213.3014   -2213.3014    8485.7495   -8485.7495 
+Loop time of 0.0423961 on 1 procs for 17 steps with 511 atoms
+
+99.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 490
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     490         1800   -2081.9885   -2081.9885    13320.411   -13320.411 
+     500     1891.138   -2088.7374   -2088.7374    12386.297   -12386.297 
+Loop time of 0.0305209 on 1 procs for 10 steps with 511 atoms
+
+98.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     500     1891.138   -2088.7374   -2088.7374    12386.297   -12386.297 
+     517     1891.138   -2213.3005   -2213.3005    9605.3107   -9605.3107 
+Loop time of 0.0408092 on 1 procs for 17 steps with 511 atoms
+
+100.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 400
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     400     1891.138   -2088.7374   -2088.7374    12386.297   -12386.297 
+     410    1773.0967   -2081.7528   -2081.7528    12268.785   -12268.785 
+     420    1665.0224   -2075.3222   -2075.3222    11812.774   -11812.774 
+     430     1782.442   -2083.6485   -2083.6485    10625.081   -10625.081 
+     440    1757.4851   -2082.5466   -2082.5466    9963.5329   -9963.5329 
+     450     1689.562   -2078.5148   -2078.5148     11062.09    -11062.09 
+     460    1845.6561   -2089.1933   -2089.1933    12574.483   -12574.483 
+     470    1822.0509   -2088.0578   -2088.0578    12830.328   -12830.328 
+     480    1705.1513   -2080.7503   -2080.7503    13567.308   -13567.308 
+     490    1869.8595   -2091.9679   -2091.9679    13839.486   -13839.486 
+     500    1933.0389   -2096.6039   -2096.6039    14231.015   -14231.015 
+Loop time of 0.313524 on 1 procs for 100 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     500    1933.0389   -2096.6039   -2096.6039    14231.015   -14231.015 
+     517    1933.0389    -2213.315    -2213.315    9887.6185   -9887.6185 
+Loop time of 0.0422869 on 1 procs for 17 steps with 511 atoms
+
+101.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 500
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     500    1933.0389   -2088.9106   -2088.9106    15154.438   -15154.438 
+     510    1830.7134    -2082.768    -2082.768    15279.574   -15279.574 
+     520     1864.403   -2085.6688   -2085.6688    13831.378   -13831.378 
+     530    1847.8361   -2085.3472   -2085.3472    12304.827   -12304.827 
+     540    1680.4873   -2075.0597   -2075.0597    12165.862   -12165.862 
+     550    1668.0044   -2074.8249   -2074.8249    11016.786   -11016.786 
+     560    1740.3092   -2080.0486   -2080.0486    10105.198   -10105.198 
+     570    1701.7356   -2077.8553   -2077.8553    11109.954   -11109.954 
+     580    1722.8657   -2079.4914   -2079.4914    12116.463   -12116.463 
+     590    1811.5465   -2085.5005   -2085.5005    13406.884   -13406.884 
+     600    1880.4257   -2090.2274   -2090.2274    14426.745   -14426.745 
+Loop time of 0.310763 on 1 procs for 100 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     600    1880.4257   -2090.2274   -2090.2274    14426.745   -14426.745 
+     617    1880.4257   -2213.3076   -2213.3076    9530.6422   -9530.6422 
+Loop time of 0.0420921 on 1 procs for 17 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 600
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     600    1880.4257   -2090.2274   -2090.2274    14426.745   -14426.745 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 600
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     600         1800   -2085.8105   -2085.8105    13260.091   -13260.091 
+     610    1779.0739    -2084.642    -2084.642    13566.665   -13566.665 
+Loop time of 0.0303929 on 1 procs for 10 steps with 511 atoms
+
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     610    1779.0739    -2084.642    -2084.642    13566.665   -13566.665 
+     627    1779.0739   -2213.3028   -2213.3028    8837.0481   -8837.0481 
+Loop time of 0.0412211 on 1 procs for 17 steps with 511 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 610
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     610         1800    -2084.642    -2084.642    13710.387   -13710.387 
+     620    1873.2685   -2089.7057   -2089.7057    14011.757   -14011.757 
+Loop time of 0.0303311 on 1 procs for 10 steps with 511 atoms
+
+102.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     620    1873.2685   -2089.7057   -2089.7057    14011.757   -14011.757 
+     637    1873.2685    -2213.298    -2213.298    9482.1704   -9482.1704 
+Loop time of 0.041193 on 1 procs for 17 steps with 511 atoms
+
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 620
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     620         1800   -2089.7057   -2089.7057    13508.544   -13508.544 
+     630    1770.5193   -2088.0067   -2088.0067    14809.812   -14809.812 
+Loop time of 0.030719 on 1 procs for 10 steps with 511 atoms
+
+100.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     630    1770.5193   -2088.0067   -2088.0067    14809.812   -14809.812 
+     647    1770.5193   -2213.3067   -2213.3067    8776.5917   -8776.5917 
+Loop time of 0.043777 on 1 procs for 17 steps with 511 atoms
+
+100.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 630
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     630         1800   -2088.0067   -2088.0067    15012.287   -15012.287 
+     640    1753.1865   -2085.1316   -2085.1316     15420.17    -15420.17 
+Loop time of 0.030581 on 1 procs for 10 steps with 511 atoms
+
+98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     640    1753.1865   -2085.1316   -2085.1316     15420.17    -15420.17 
+     656    1753.1865   -2213.2932   -2213.2932    8655.2954   -8655.2954 
+Loop time of 0.039391 on 1 procs for 16 steps with 511 atoms
+
+99.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 640
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     640         1800   -2085.1316   -2085.1316    15741.688   -15741.688 
+     650    1851.5744   -2088.7359   -2088.7359     15127.84    -15127.84 
+Loop time of 0.030504 on 1 procs for 10 steps with 511 atoms
+
+101.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     650    1851.5744   -2088.7359   -2088.7359     15127.84    -15127.84 
+     666    1851.5744   -2213.2954   -2213.2954    9329.5338   -9329.5338 
+Loop time of 0.0395539 on 1 procs for 16 steps with 511 atoms
+
+101.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 650
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     650         1800   -2088.7359   -2088.7359    14773.623   -14773.623 
+     660    1808.1123   -2089.4878   -2089.4878     15030.51    -15030.51 
+Loop time of 0.0303659 on 1 procs for 10 steps with 511 atoms
+
+98.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     660    1808.1123   -2089.4878   -2089.4878     15030.51    -15030.51 
+     677    1808.1123    -2213.308    -2213.308    9036.3682   -9036.3682 
+Loop time of 0.0428429 on 1 procs for 17 steps with 511 atoms
+
+100.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 660
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     660         1800   -2089.4878   -2089.4878    14974.794   -14974.794 
+     670    1863.6138   -2093.9193   -2093.9193    14916.355   -14916.355 
+Loop time of 0.030519 on 1 procs for 10 steps with 511 atoms
+
+101.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     670    1863.6138   -2093.9193   -2093.9193    14916.355   -14916.355 
+     687    1863.6138   -2213.3079   -2213.3079    9417.8578   -9417.8578 
+Loop time of 0.0415249 on 1 procs for 17 steps with 511 atoms
+
+101.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 670
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     670         1800   -2093.9193   -2093.9193    14479.451   -14479.451 
+     680    1788.6782   -2093.4379   -2093.4379    14765.795   -14765.795 
+Loop time of 0.030427 on 1 procs for 10 steps with 511 atoms
+
+98.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     680    1788.6782   -2093.4379   -2093.4379    14765.795   -14765.795 
+     696    1788.6782   -2213.2918   -2213.2918    8900.4524   -8900.4524 
+Loop time of 0.0395269 on 1 procs for 16 steps with 511 atoms
+
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 680
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     680         1800   -2093.4379   -2093.4379    14843.554   -14843.554 
+     690    1770.1871   -2091.7205   -2091.7205    13840.679   -13840.679 
+Loop time of 0.0304661 on 1 procs for 10 steps with 511 atoms
+
+98.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     690    1770.1871   -2091.7205   -2091.7205    13840.679   -13840.679 
+     707    1770.1871   -2213.3059   -2213.3059    8771.7717   -8771.7717 
+Loop time of 0.0416019 on 1 procs for 17 steps with 511 atoms
+
+98.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 690
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     690         1800   -2091.7205   -2091.7205    14045.437   -14045.437 
+     700    1767.5706   -2089.8124   -2089.8124    13796.838   -13796.838 
+Loop time of 0.0308151 on 1 procs for 10 steps with 511 atoms
+
+97.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     700    1767.5706   -2089.8124   -2089.8124    13796.838   -13796.838 
+     717    1767.5706   -2213.3045   -2213.3045    8754.3739   -8754.3739 
+Loop time of 0.041549 on 1 procs for 17 steps with 511 atoms
+
+101.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 600
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     600    1767.5706   -2089.8124   -2089.8124    13796.838   -13796.838 
+     610    1788.1384   -2091.3678   -2091.3678    12906.865   -12906.865 
+     620    1743.9969   -2088.6393   -2088.6393    11596.605   -11596.605 
+     630    1652.6533   -2082.6976   -2082.6976    11092.624   -11092.624 
+     640    1732.9219   -2087.9437   -2087.9437    10507.634   -10507.634 
+     650    1679.3355   -2084.2348   -2084.2348    11280.869   -11280.869 
+     660    1611.7341   -2079.4483   -2079.4483    11881.743   -11881.743 
+     670    1803.1935   -2091.5571   -2091.5571    12630.587   -12630.587 
+     680     1834.674    -2093.021    -2093.021     13500.71    -13500.71 
+     690    1690.9447   -2082.9537   -2082.9537    13775.138   -13775.138 
+     700    1820.0293   -2090.8186   -2090.8186    13130.501   -13130.501 
+Loop time of 0.313969 on 1 procs for 100 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     700    1820.0293   -2090.8186   -2090.8186    13130.501   -13130.501 
+     717    1820.0293   -2213.3066   -2213.3066    9113.8976   -9113.8976 
+Loop time of 0.0417299 on 1 procs for 17 steps with 511 atoms
+
+98.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 700
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     700    1820.0293   -2090.8186   -2090.8186    13130.501   -13130.501 
+     710    1841.8131   -2091.5482   -2091.5482    13130.858   -13130.858 
+     720     1725.675   -2083.2407   -2083.2407    13823.221   -13823.221 
+     730    1754.3244   -2084.4385   -2084.4385    13374.878   -13374.878 
+     740    1848.0129   -2089.8537   -2089.8537    12903.231   -12903.231 
+     750    1753.3731   -2082.8613   -2082.8613    13673.663   -13673.663 
+     760     1783.327   -2084.0985   -2084.0985    13369.536   -13369.536 
+     770    1885.1545   -2090.0395   -2090.0395     12836.19    -12836.19 
+     780    1770.3649   -2081.7626   -2081.7626    11757.722   -11757.722 
+     790    1754.3666    -2080.047    -2080.047    11580.453   -11580.453 
+     800    1771.6498   -2080.4662   -2080.4662    11388.669   -11388.669 
+Loop time of 0.31291 on 1 procs for 100 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     800    1771.6498   -2080.4662   -2080.4662    11388.669   -11388.669 
+     817    1771.6498   -2213.2995   -2213.2995    8782.1017   -8782.1017 
+Loop time of 0.0429831 on 1 procs for 17 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 800
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     800    1771.6498   -2082.6513   -2082.6513    12006.899   -12006.899 
+     810    1736.4023   -2079.5663   -2079.5663    12815.123   -12815.123 
+     820    1857.5885   -2086.7635   -2086.7635    12397.382   -12397.382 
+     830    1839.0047   -2084.7587   -2084.7587    13117.804   -13117.804 
+     840    1780.8765    -2080.238    -2080.238    14341.053   -14341.053 
+     850    1858.5996   -2084.6881   -2084.6881    13551.872   -13551.872 
+     860    1926.1114   -2088.5302   -2088.5302    12919.549   -12919.549 
+     870    1790.0978   -2079.0916   -2079.0916    13001.975   -13001.975 
+     880    1759.1888   -2076.6279   -2076.6279    12195.191   -12195.191 
+     890    1832.2093   -2080.9836   -2080.9836    11659.889   -11659.889 
+     900    1747.1163    -2074.902    -2074.902    11587.628   -11587.628 
+Loop time of 0.314126 on 1 procs for 100 steps with 511 atoms
+
+100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     900    1747.1163    -2074.902    -2074.902    11587.628   -11587.628 
+     918    1747.1163   -2213.3043   -2213.3043    8613.9502   -8613.9502 
+Loop time of 0.041868 on 1 procs for 18 steps with 511 atoms
+
+100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 900
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     900    1747.1163    -2074.902    -2074.902    11587.628   -11587.628 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 900
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     900         1800   -2078.5784   -2078.5784    12957.229   -12957.229 
+     910    1908.7048    -2085.301    -2085.301    12281.463   -12281.463 
+Loop time of 0.0309811 on 1 procs for 10 steps with 511 atoms
+
+96.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     910    1908.7048    -2085.301    -2085.301    12281.463   -12281.463 
+     927    1908.7048   -2213.2978   -2213.2978    9725.1916   -9725.1916 
+Loop time of 0.042022 on 1 procs for 17 steps with 511 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 910
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     910         1800    -2085.301    -2085.301    11534.871   -11534.871 
+     920    1774.7027   -2083.2357   -2083.2357    11097.876   -11097.876 
+Loop time of 0.0310349 on 1 procs for 10 steps with 511 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     920    1774.7027   -2083.2357   -2083.2357    11097.876   -11097.876 
+     937    1774.7027   -2213.2973   -2213.2973    8805.4812   -8805.4812 
+Loop time of 0.0404248 on 1 procs for 17 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 920
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     920         1800   -2083.2357   -2083.2357    11271.619   -11271.619 
+     930    1766.0612   -2080.5832   -2080.5832    11417.688   -11417.688 
+Loop time of 0.0302508 on 1 procs for 10 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     930    1766.0612   -2080.5832   -2080.5832    11417.688   -11417.688 
+     948    1766.0612    -2213.311    -2213.311    8744.1641   -8744.1641 
+Loop time of 0.0427041 on 1 procs for 18 steps with 511 atoms
+
+100.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 930
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     930         1800   -2080.5832   -2080.5832    11650.782   -11650.782 
+     940    1912.5851   -2087.6092   -2087.6092    11589.366   -11589.366 
+Loop time of 0.030688 on 1 procs for 10 steps with 511 atoms
+
+101.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     940    1912.5851   -2087.6092   -2087.6092    11589.366   -11589.366 
+     957    1912.5851   -2213.3055   -2213.3055     9749.755    -9749.755 
+Loop time of 0.0418909 on 1 procs for 17 steps with 511 atoms
+
+97.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 940
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     940         1800   -2087.6092   -2087.6092    10816.124   -10816.124 
+     950    1755.8094     -2084.33     -2084.33    11831.713   -11831.713 
+Loop time of 0.0307958 on 1 procs for 10 steps with 511 atoms
+
+100.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     950    1755.8094     -2084.33     -2084.33    11831.713   -11831.713 
+     967    1755.8094   -2213.3089   -2213.3089    8675.7388   -8675.7388 
+Loop time of 0.0409579 on 1 procs for 17 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 950
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     950         1800     -2084.33     -2084.33    12135.217   -12135.217 
+     960    1782.2936   -2082.7711   -2082.7711    11733.657   -11733.657 
+Loop time of 0.0304961 on 1 procs for 10 steps with 511 atoms
+
+101.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     960    1782.2936   -2082.7711   -2082.7711    11733.657   -11733.657 
+     978    1782.2936   -2213.3155   -2213.3155    8854.0315   -8854.0315 
+Loop time of 0.043375 on 1 procs for 18 steps with 511 atoms
+
+99.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 960
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     960         1800   -2082.7711   -2082.7711    11855.266   -11855.266 
+     970    1762.4747   -2079.8722   -2079.8722    11474.135   -11474.135 
+Loop time of 0.031585 on 1 procs for 10 steps with 511 atoms
+
+98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     970    1762.4747   -2079.8722   -2079.8722    11474.135   -11474.135 
+     988    1762.4747   -2213.3124   -2213.3124      8720.25     -8720.25 
+Loop time of 0.045589 on 1 procs for 18 steps with 511 atoms
+
+98.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 970
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     970         1800   -2079.8722   -2079.8722    11731.862   -11731.862 
+     980    1880.3067   -2084.7208   -2084.7208    12677.172   -12677.172 
+Loop time of 0.0315292 on 1 procs for 10 steps with 511 atoms
+
+101.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     980    1880.3067   -2084.7208   -2084.7208    12677.172   -12677.172 
+     997    1880.3067     -2213.31     -2213.31    9531.4404   -9531.4404 
+Loop time of 0.0423679 on 1 procs for 17 steps with 511 atoms
+
+99.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 980
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     980         1800   -2084.7208   -2084.7208     12125.62    -12125.62 
+     990    1723.7713   -2079.2551   -2079.2551    12302.453   -12302.453 
+Loop time of 0.0308249 on 1 procs for 10 steps with 511 atoms
+
+100.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     990    1723.7713   -2079.2551   -2079.2551    12302.453   -12302.453 
+    1007    1723.7713   -2213.2996   -2213.2996    8454.1149   -8454.1149 
+Loop time of 0.0429661 on 1 procs for 17 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 990
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     990         1800   -2079.2551   -2079.2551    12825.997   -12825.997 
+    1000    1847.7229   -2081.9222   -2081.9222    12957.736   -12957.736 
+Loop time of 0.031245 on 1 procs for 10 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1000    1847.7229   -2081.9222   -2081.9222    12957.736   -12957.736 
+    1017    1847.7229   -2213.3063   -2213.3063    9309.0063   -9309.0063 
+Loop time of 0.042382 on 1 procs for 17 steps with 511 atoms
+
+101.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 900
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+     900    1847.7229   -2081.9222   -2081.9222    12957.736   -12957.736 
+     910    1905.7366    -2085.281    -2085.281    13167.441   -13167.441 
+     920    1891.4535   -2083.9949   -2083.9949    13589.993   -13589.993 
+     930    1821.6913   -2079.1457   -2079.1457    14290.592   -14290.592 
+     940    1905.7302   -2084.4983   -2084.4983     13067.97    -13067.97 
+     950    1935.0351    -2086.375    -2086.375     12487.45    -12487.45 
+     960    1708.4752   -2071.4825   -2071.4825    12375.449   -12375.449 
+     970    1791.4179   -2076.9711   -2076.9711    10896.223   -10896.223 
+     980    1911.4025   -2084.8937   -2084.8937    11343.506   -11343.506 
+     990    1745.7067   -2074.0508   -2074.0508    12534.315   -12534.315 
+    1000    1762.9922   -2075.2681   -2075.2681     11917.56    -11917.56 
+Loop time of 0.31426 on 1 procs for 100 steps with 511 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1000    1762.9922   -2075.2681   -2075.2681     11917.56    -11917.56 
+    1018    1762.9922   -2213.3102   -2213.3102    8725.5481   -8725.5481 
+Loop time of 0.0456631 on 1 procs for 18 steps with 511 atoms
+
+100.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1000
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1000    1762.9922   -2084.4584   -2084.4584    12777.643   -12777.643 
+    1010    1825.1931   -2088.5876   -2088.5876    12619.004   -12619.004 
+    1020     1829.595   -2088.9293   -2088.9293    11998.019   -11998.019 
+    1030    1778.5327   -2085.6552   -2085.6552    11966.215   -11966.215 
+    1040    1737.4837   -2083.0349   -2083.0349    11994.144   -11994.144 
+    1050    1699.3134   -2080.5132   -2080.5132    11690.917   -11690.917 
+    1060    1749.3335   -2083.7105   -2083.7105    10939.727   -10939.727 
+    1070    1677.8755   -2078.7617   -2078.7617     11432.06    -11432.06 
+    1080    1730.3297   -2081.8193   -2081.8193    11654.812   -11654.812 
+    1090    1880.0485   -2091.1202   -2091.1202    12095.103   -12095.103 
+    1100    1844.0832   -2088.1365   -2088.1365    13143.118   -13143.118 
+Loop time of 0.314662 on 1 procs for 100 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1100    1844.0832   -2088.1365   -2088.1365    13143.118   -13143.118 
+    1117    1844.0832   -2213.3069   -2213.3069    9282.6658   -9282.6658 
+Loop time of 0.0424831 on 1 procs for 17 steps with 511 atoms
+
+101.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1100    1844.0832   -2088.1365   -2088.1365    13143.118   -13143.118 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1100         1800   -2077.4466   -2077.4466     12374.68    -12374.68 
+    1110    1794.3288   -2076.4679   -2076.4679    13450.511   -13450.511 
+Loop time of 0.0316031 on 1 procs for 10 steps with 511 atoms
+
+98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1110    1794.3288   -2076.4679   -2076.4679    13450.511   -13450.511 
+    1129    1794.3288   -2213.3091   -2213.3091     8940.536    -8940.536 
+Loop time of 0.0475101 on 1 procs for 19 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1110
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1110         1800   -2076.4679   -2076.4679    13489.461   -13489.461 
+    1120    1788.3721   -2075.0221   -2075.0221    13009.449   -13009.449 
+Loop time of 0.0316911 on 1 procs for 10 steps with 511 atoms
+
+101.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1120    1788.3721   -2075.0221   -2075.0221    13009.449   -13009.449 
+    1138    1788.3721   -2213.3054   -2213.3054    8898.3926   -8898.3926 
+Loop time of 0.0438979 on 1 procs for 18 steps with 511 atoms
+
+100.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1120
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1120         1800   -2075.0221   -2075.0221     13089.31    -13089.31 
+    1130    1856.4475   -2077.9978   -2077.9978    11851.549   -11851.549 
+Loop time of 0.031652 on 1 procs for 10 steps with 511 atoms
+
+97.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1130    1856.4475   -2077.9978   -2077.9978    11851.549   -11851.549 
+    1149    1856.4475    -2213.315    -2213.315    9368.9769   -9368.9769 
+Loop time of 0.0489578 on 1 procs for 19 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1130
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1130         1800   -2077.9978   -2077.9978    11463.864   -11463.864 
+    1140    1855.1642   -2080.8639   -2080.8639    12606.289   -12606.289 
+Loop time of 0.0313241 on 1 procs for 10 steps with 511 atoms
+
+102.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1140    1855.1642   -2080.8639   -2080.8639    12606.289   -12606.289 
+    1158    1855.1642   -2213.2941   -2213.2941    9347.2687   -9347.2687 
+Loop time of 0.044364 on 1 procs for 18 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1140
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1140         1800   -2080.8639   -2080.8639    12227.418   -12227.418 
+    1150    1754.1769   -2077.0391   -2077.0391    12898.982   -12898.982 
+Loop time of 0.031492 on 1 procs for 10 steps with 511 atoms
+
+98.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1150    1754.1769   -2077.0391   -2077.0391    12898.982   -12898.982 
+    1172    1754.1769   -2213.2904   -2213.2904    8655.0917   -8655.0917 
+Loop time of 0.0543001 on 1 procs for 22 steps with 511 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1140
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1140         1800   -2080.8639   -2080.8639    12227.418   -12227.418 
+    1150    1753.8414   -2076.9412   -2076.9412    11701.088   -11701.088 
+Loop time of 0.0311151 on 1 procs for 10 steps with 511 atoms
+
+102.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1150    1753.8414   -2076.9412   -2076.9412    11701.088   -11701.088 
+    1168    1753.8414   -2213.3136   -2213.3136    8661.2896   -8661.2896 
+Loop time of 0.042974 on 1 procs for 18 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1150
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1150         1800   -2076.9412   -2076.9412    12018.108   -12018.108 
+    1160    1797.7268   -2075.8409   -2075.8409    12196.235   -12196.235 
+Loop time of 0.031481 on 1 procs for 10 steps with 511 atoms
+
+101.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1160    1797.7268   -2075.8409   -2075.8409    12196.235   -12196.235 
+    1178    1797.7268   -2213.3065   -2213.3065    8964.5013   -8964.5013 
+Loop time of 0.0428748 on 1 procs for 18 steps with 511 atoms
+
+95.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1160
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1160         1800   -2075.8409   -2075.8409    12211.847   -12211.847 
+    1170     1910.303    -2082.144    -2082.144    13529.404   -13529.404 
+Loop time of 0.0312381 on 1 procs for 10 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1170     1910.303    -2082.144    -2082.144    13529.404   -13529.404 
+    1188     1910.303   -2213.3042   -2213.3042    9733.1104   -9733.1104 
+Loop time of 0.043483 on 1 procs for 18 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1170
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1170         1800    -2082.144    -2082.144    12771.836   -12771.836 
+    1180    1807.6278   -2081.7394   -2081.7394    11821.393   -11821.393 
+Loop time of 0.031647 on 1 procs for 10 steps with 511 atoms
+
+101.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1180    1807.6278   -2081.7394   -2081.7394    11821.393   -11821.393 
+    1198    1807.6278   -2213.3074   -2213.3074    9030.6138   -9030.6138 
+Loop time of 0.042119 on 1 procs for 18 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1180
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1180         1800   -2081.7394   -2081.7394    11769.005   -11769.005 
+    1190    1807.6912   -2081.3402   -2081.3402    12029.101   -12029.101 
+Loop time of 0.031131 on 1 procs for 10 steps with 511 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1190    1807.6912   -2081.3402   -2081.3402    12029.101   -12029.101 
+    1208    1807.6912   -2213.3068   -2213.3068    9028.9158   -9028.9158 
+Loop time of 0.044251 on 1 procs for 18 steps with 511 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1190
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1190         1800   -2081.3402   -2081.3402    11976.277   -11976.277 
+    1200     1772.405   -2078.6293   -2078.6293    11504.588   -11504.588 
+Loop time of 0.0311711 on 1 procs for 10 steps with 511 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1200     1772.405   -2078.6293   -2078.6293    11504.588   -11504.588 
+    1218     1772.405   -2213.3045   -2213.3045    8788.2922   -8788.2922 
+Loop time of 0.0446589 on 1 procs for 18 steps with 511 atoms
+
+100.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1100     1772.405   -2078.6293   -2078.6293    11504.588   -11504.588 
+    1110    1841.4504   -2082.3004   -2082.3004    11835.557   -11835.557 
+    1120     1807.742   -2079.2374   -2079.2374    12821.498   -12821.498 
+    1130     1790.642   -2077.3454   -2077.3454    13749.128   -13749.128 
+    1140    1900.0418   -2083.8296   -2083.8296    13949.327   -13949.327 
+    1150    1890.2384   -2082.5759   -2082.5759    13709.691   -13709.691 
+    1160    1807.0303   -2076.6399   -2076.6399    12536.323   -12536.323 
+    1170    1798.8502     -2075.71     -2075.71    12400.989   -12400.989 
+    1180    1837.9004   -2077.9128   -2077.9128    12473.398   -12473.398 
+    1190    1840.7383   -2077.7693   -2077.7693    12605.625   -12605.625 
+    1200     1914.287   -2082.3787   -2082.3787     12904.92    -12904.92 
+Loop time of 0.307646 on 1 procs for 100 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1200     1914.287   -2082.3787   -2082.3787     12904.92    -12904.92 
+    1217     1914.287   -2213.3177   -2213.3177      9761.94     -9761.94 
+Loop time of 0.040998 on 1 procs for 17 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1200
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1200     1914.287   -2074.1482   -2074.1482    11505.917   -11505.917 
+    1210    1826.9103   -2068.2472   -2068.2472      11079.5     -11079.5 
+    1220     1870.997   -2071.0969   -2071.0969    11222.603   -11222.603 
+    1230    1890.9297   -2072.4369   -2072.4369    11466.599   -11466.599 
+    1240    1870.3433   -2071.2176   -2071.2176    11404.919   -11404.919 
+    1250    1910.8982   -2074.1595   -2074.1595    11072.432   -11072.432 
+    1260    1834.3742   -2069.5042   -2069.5042    10584.129   -10584.129 
+    1270    1793.6144   -2067.2562   -2067.2562    12031.506   -12031.506 
+    1280    1901.5756   -2074.8648   -2074.8648     11896.27    -11896.27 
+    1290    1965.3902   -2079.7594   -2079.7594      11425.6     -11425.6 
+    1300    1895.3333   -2076.0534   -2076.0534    12322.239   -12322.239 
+Loop time of 0.308373 on 1 procs for 100 steps with 511 atoms
+
+100.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1300    1895.3333   -2076.0534   -2076.0534    12322.239   -12322.239 
+    1317    1895.3333   -2213.3039   -2213.3039    9628.1103   -9628.1103 
+Loop time of 0.0416398 on 1 procs for 17 steps with 511 atoms
+
+100.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1300
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1300    1895.3333   -2068.9959   -2068.9959    11397.731   -11397.731 
+    1310    2008.3102   -2077.6466   -2077.6466    11821.038   -11821.038 
+    1320    1918.6513   -2073.2415   -2073.2415    10521.308   -10521.308 
+    1330    1810.4244   -2067.6511   -2067.6511    10340.407   -10340.407 
+    1340    1896.3917   -2074.8412   -2074.8412     9010.375    -9010.375 
+    1350     1799.271   -2069.8641   -2069.8641    8936.0179   -8936.0179 
+    1360     1689.595   -2063.7014   -2063.7014    10980.423   -10980.423 
+    1370    1836.3874    -2074.171    -2074.171      11195.4     -11195.4 
+    1380    1845.2701    -2075.395    -2075.395    10331.317   -10331.317 
+    1390    1878.5464   -2078.1238   -2078.1238    11915.087   -11915.087 
+    1400    2058.1602   -2090.5677   -2090.5677    11865.763   -11865.763 
+Loop time of 0.30961 on 1 procs for 100 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1400    2058.1602   -2090.5677   -2090.5677    11865.763   -11865.763 
+    1417    2058.1602   -2213.2846   -2213.2846    10753.332   -10753.332 
+Loop time of 0.0408909 on 1 procs for 17 steps with 511 atoms
+
+100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1400
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1400    2058.1602   -2090.5677   -2090.5677    11865.763   -11865.763 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1400
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1400         1800   -2073.6269   -2073.6269    11064.044   -11064.044 
+    1410    1827.9341   -2076.0048   -2076.0048    11091.717   -11091.717 
+Loop time of 0.0305099 on 1 procs for 10 steps with 511 atoms
+
+101.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1410    1827.9341   -2076.0048   -2076.0048    11091.717   -11091.717 
+    1427    1827.9341   -2213.3006   -2213.3006    9169.3452   -9169.3452 
+Loop time of 0.0407579 on 1 procs for 17 steps with 511 atoms
+
+100.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1410
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1410         1800   -2076.0048   -2076.0048    10899.863   -10899.863 
+    1420    1826.4372   -2078.2126   -2078.2126    11205.832   -11205.832 
+Loop time of 0.0304079 on 1 procs for 10 steps with 511 atoms
+
+101.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1420    1826.4372   -2078.2126   -2078.2126    11205.832   -11205.832 
+    1437    1826.4372   -2213.3007   -2213.3007    9159.7965   -9159.7965 
+Loop time of 0.0388138 on 1 procs for 17 steps with 511 atoms
+
+100.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1420
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1420         1800   -2078.2126   -2078.2126    11024.259   -11024.259 
+    1430    1759.3512   -2075.9084   -2075.9084    11824.146   -11824.146 
+Loop time of 0.030129 on 1 procs for 10 steps with 511 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1430    1759.3512   -2075.9084   -2075.9084    11824.146   -11824.146 
+    1447    1759.3512      -2213.3      -2213.3    8704.4413   -8704.4413 
+Loop time of 0.03913 on 1 procs for 17 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1430
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1430         1800   -2075.9084   -2075.9084    12103.324   -12103.324 
+    1440    1874.7141   -2081.2001   -2081.2001    12071.563   -12071.563 
+Loop time of 0.0297551 on 1 procs for 10 steps with 511 atoms
+
+100.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1440    1874.7141   -2081.2001   -2081.2001    12071.563   -12071.563 
+    1458    1874.7141   -2213.3151   -2213.3151    9489.1719   -9489.1719 
+Loop time of 0.0406489 on 1 procs for 18 steps with 511 atoms
+
+100.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1440
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1440         1800   -2081.2001   -2081.2001    11558.421   -11558.421 
+    1450    1707.8783   -2075.4411   -2075.4411    11922.325   -11922.325 
+Loop time of 0.029954 on 1 procs for 10 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1450    1707.8783   -2075.4411   -2075.4411    11922.325   -11922.325 
+    1467    1707.8783   -2213.3064   -2213.3064    8345.7821   -8345.7821 
+Loop time of 0.0394599 on 1 procs for 17 steps with 511 atoms
+
+101.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1450
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1450         1800   -2075.4411   -2075.4411    12555.023   -12555.023 
+    1460    1804.5585    -2076.001    -2076.001    12948.752   -12948.752 
+Loop time of 0.0300791 on 1 procs for 10 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1460    1804.5585    -2076.001    -2076.001    12948.752   -12948.752 
+    1477    1804.5585   -2213.3083   -2213.3083    9010.9224   -9010.9224 
+Loop time of 0.039629 on 1 procs for 17 steps with 511 atoms
+
+98.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1460
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1460         1800    -2076.001    -2076.001    12917.444   -12917.444 
+    1470    1769.9141   -2074.2381   -2074.2381    11725.762   -11725.762 
+Loop time of 0.0295961 on 1 procs for 10 steps with 511 atoms
+
+94.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1470    1769.9141   -2074.2381   -2074.2381    11725.762   -11725.762 
+    1488    1769.9141   -2213.3065   -2213.3065    8771.6996   -8771.6996 
+Loop time of 0.04246 on 1 procs for 18 steps with 511 atoms
+
+101.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1470
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1470         1800   -2074.2381   -2074.2381    11932.394   -11932.394 
+    1480    1877.0657   -2079.5479   -2079.5479    12641.694   -12641.694 
+Loop time of 0.029814 on 1 procs for 10 steps with 511 atoms
+
+100.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1480    1877.0657   -2079.5479   -2079.5479    12641.694   -12641.694 
+    1498    1877.0657   -2213.3155   -2213.3155    9507.9339   -9507.9339 
+Loop time of 0.041815 on 1 procs for 18 steps with 511 atoms
+
+100.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1480
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1480         1800   -2079.5479   -2079.5479    12112.401   -12112.401 
+    1490    1740.4531   -2075.8361   -2075.8361    12143.035   -12143.035 
+Loop time of 0.0300591 on 1 procs for 10 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1490    1740.4531   -2075.8361   -2075.8361    12143.035   -12143.035 
+    1507    1740.4531   -2213.3013   -2213.3013     8568.745    -8568.745 
+Loop time of 0.0415261 on 1 procs for 17 steps with 511 atoms
+
+101.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1490
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1490         1800   -2075.8361   -2075.8361    12552.007   -12552.007 
+    1500    1865.5056   -2080.3772   -2080.3772    12596.993   -12596.993 
+Loop time of 0.0302341 on 1 procs for 10 steps with 511 atoms
+
+102.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1500    1865.5056   -2080.3772   -2080.3772    12596.993   -12596.993 
+    1518    1865.5056    -2213.317    -2213.317    9426.9106   -9426.9106 
+Loop time of 0.0433121 on 1 procs for 18 steps with 511 atoms
+
+99.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1400
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1400    1865.5056   -2080.3772   -2080.3772    12596.993   -12596.993 
+    1410    1860.7576   -2080.3607   -2080.3607    12871.936   -12871.936 
+    1420     1832.087   -2078.8394   -2078.8394     12751.02    -12751.02 
+    1430    1884.2614   -2082.7284   -2082.7284    12273.634   -12273.634 
+    1440    1885.4169    -2083.361    -2083.361    12252.741   -12252.741 
+    1450    1892.5004   -2084.5295   -2084.5295    13153.785   -13153.785 
+    1460    1817.6516   -2080.4012   -2080.4012    12574.267   -12574.267 
+    1470    1732.8609   -2075.5882   -2075.5882    12036.884   -12036.884 
+    1480    1794.6837   -2080.3923   -2080.3923     11799.95    -11799.95 
+    1490    1798.6926   -2081.3741   -2081.3741    12222.274   -12222.274 
+    1500     1735.077   -2077.8535   -2077.8535    11959.591   -11959.591 
+Loop time of 0.305472 on 1 procs for 100 steps with 511 atoms
+
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1500     1735.077   -2077.8535   -2077.8535    11959.591   -11959.591 
+    1517     1735.077   -2213.3068   -2213.3068    8531.9697   -8531.9697 
+Loop time of 0.0406871 on 1 procs for 17 steps with 511 atoms
+
+100.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1500
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1500     1735.077   -2077.8535   -2077.8535    11959.591   -11959.591 
+    1510    1781.9543   -2081.5528   -2081.5528     11209.46    -11209.46 
+    1520    1811.6404   -2084.0969   -2084.0969    11520.154   -11520.154 
+    1530    1777.1272   -2082.3927   -2082.3927     11899.76    -11899.76 
+    1540    1828.2296    -2086.329    -2086.329    12380.972   -12380.972 
+    1550    1834.4926    -2087.336    -2087.336    13595.858   -13595.858 
+    1560     1820.193   -2087.0253   -2087.0253    13581.578   -13581.578 
+    1570    1829.8364   -2088.3227   -2088.3227    13165.912   -13165.912 
+    1580     1808.763   -2087.6197   -2087.6197     13171.18    -13171.18 
+    1590    1773.8614   -2085.9923   -2085.9923    12595.436   -12595.436 
+    1600    1771.0175   -2086.4398   -2086.4398    11929.008   -11929.008 
+Loop time of 0.304992 on 1 procs for 100 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1600    1771.0175   -2086.4398   -2086.4398    11929.008   -11929.008 
+    1618    1771.0175   -2213.3032   -2213.3032    8776.8174   -8776.8174 
+Loop time of 0.0429771 on 1 procs for 18 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1600
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1600    1771.0175   -2086.4398   -2086.4398    11929.008   -11929.008 
+    1610    1702.1013   -2082.4611   -2082.4611    11070.701   -11070.701 
+    1620    1592.7725   -2075.6422   -2075.6422    10771.358   -10771.358 
+    1630    1665.4565   -2080.6048   -2080.6048    10807.061   -10807.061 
+    1640    1779.2665   -2088.1265   -2088.1265    12226.866   -12226.866 
+    1650    1773.7316   -2087.7192   -2087.7192    12864.134   -12864.134 
+    1660     1810.932   -2090.1186   -2090.1186    13244.821   -13244.821 
+    1670    1785.2262   -2088.3648   -2088.3648     14001.42    -14001.42 
+    1680    1772.6277   -2087.4539   -2087.4539    13279.288   -13279.288 
+    1690     1835.326   -2091.4833   -2091.4833    11730.777   -11730.777 
+    1700    1827.5837   -2090.8956   -2090.8956     11320.78    -11320.78 
+Loop time of 0.300216 on 1 procs for 100 steps with 511 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1700    1827.5837   -2090.8956   -2090.8956     11320.78    -11320.78 
+    1717    1827.5837   -2213.2966   -2213.2966    9165.6418   -9165.6418 
+Loop time of 0.0380828 on 1 procs for 17 steps with 511 atoms
+
+99.8% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1700
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1700    1827.5837   -2090.8956   -2090.8956     11320.78    -11320.78 
+    1710    1702.0318   -2082.5525   -2082.5525    11915.626   -11915.626 
+    1720    1610.6771   -2076.3337   -2076.3337    12203.515   -12203.515 
+    1730    1745.2594   -2084.7859   -2084.7859    11324.009   -11324.009 
+    1740    1766.7723   -2085.5572   -2085.5572    10887.393   -10887.393 
+    1750    1733.1392    -2082.523    -2082.523    12191.635   -12191.635 
+    1760     1811.122   -2086.6172   -2086.6172    12579.699   -12579.699 
+    1770    1797.8303   -2084.4496   -2084.4496    12993.991   -12993.991 
+    1780    1854.8082   -2086.7481   -2086.7481    13687.174   -13687.174 
+    1790    1906.1518   -2088.5392   -2088.5392    14217.685   -14217.685 
+    1800    1845.0055   -2082.9776   -2082.9776    13954.597   -13954.597 
+Loop time of 0.302947 on 1 procs for 100 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1800    1845.0055   -2082.9776   -2082.9776    13954.597   -13954.597 
+    1817    1845.0055   -2213.3059   -2213.3059    9289.4874   -9289.4874 
+Loop time of 0.0390921 on 1 procs for 17 steps with 511 atoms
+
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1800
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1800    1845.0055   -2082.9776   -2082.9776    13954.597   -13954.597 
+    1810    1786.2585   -2077.6923   -2077.6923    13061.826   -13061.826 
+    1820    1857.3756   -2081.0525   -2081.0525    12101.123   -12101.123 
+    1830    1918.6229   -2083.8844   -2083.8844    11998.481   -11998.481 
+    1840    1814.2297   -2076.0614   -2076.0614    12381.261   -12381.261 
+    1850    1797.1443   -2074.1897   -2074.1897    12011.866   -12011.866 
+    1860    1841.4468   -2076.4633   -2076.4633    11779.858   -11779.858 
+    1870    1859.9882    -2077.169    -2077.169    12457.418   -12457.418 
+    1880    1837.3949   -2075.2995   -2075.2995     13130.83    -13130.83 
+    1890    1860.4839   -2076.5602   -2076.5602    12975.533   -12975.533 
+    1900    1842.3036   -2075.1927   -2075.1927     12321.27    -12321.27 
+Loop time of 0.302574 on 1 procs for 100 steps with 511 atoms
+
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1900    1842.3036   -2075.1927   -2075.1927     12321.27    -12321.27 
+    1918    1842.3036   -2213.3071   -2213.3071    9267.4039   -9267.4039 
+Loop time of 0.0449641 on 1 procs for 18 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 1900
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    1900    1842.3036   -2077.6965   -2077.6965    12171.231   -12171.231 
+    1910    1824.0275   -2076.3941   -2076.3941    12769.871   -12769.871 
+    1920    1863.5312     -2078.97     -2078.97    13477.615   -13477.615 
+    1930    1833.5988   -2077.0209   -2077.0209    13894.285   -13894.285 
+    1940    1866.0103   -2079.2503   -2079.2503    14224.715   -14224.715 
+    1950    1872.5803   -2079.8489   -2079.8489    14336.597   -14336.597 
+    1960    1828.8798    -2077.204    -2077.204    14285.013   -14285.013 
+    1970    1834.4493   -2077.8435   -2077.8435    13605.908   -13605.908 
+    1980    1867.5949   -2080.3378   -2080.3378    13500.908   -13500.908 
+    1990    1900.9708   -2082.9437   -2082.9437    13203.771   -13203.771 
+    2000    1846.7057   -2079.8684   -2079.8684    13038.962   -13038.962 
+Loop time of 0.304078 on 1 procs for 100 steps with 511 atoms
+
+99.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2000    1846.7057   -2079.8684   -2079.8684    13038.962   -13038.962 
+    2018    1846.7057    -2213.313    -2213.313    9294.7894   -9294.7894 
+Loop time of 0.042769 on 1 procs for 18 steps with 511 atoms
+
+100.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2000
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2000    1846.7057   -2079.8684   -2079.8684    13038.962   -13038.962 
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2000
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2000         1800   -2083.0214   -2083.0214    12356.844   -12356.844 
+    2010     1796.541   -2083.2984   -2083.2984    12200.004   -12200.004 
+Loop time of 0.0294549 on 1 procs for 10 steps with 511 atoms
+
+98.4% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2010     1796.541   -2083.2984   -2083.2984    12200.004   -12200.004 
+    2027     1796.541   -2213.3095   -2213.3095     8952.928    -8952.928 
+Loop time of 0.0375421 on 1 procs for 17 steps with 511 atoms
+
+98.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2010
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2010         1800   -2083.2984   -2083.2984     12223.76    -12223.76 
+    2020    1866.2236   -2088.2088   -2088.2088    13143.892   -13143.892 
+Loop time of 0.0299649 on 1 procs for 10 steps with 511 atoms
+
+100.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2020    1866.2236   -2088.2088   -2088.2088    13143.892   -13143.892 
+    2037    1866.2236   -2213.3167   -2213.3167    9431.6184   -9431.6184 
+Loop time of 0.0406201 on 1 procs for 17 steps with 511 atoms
+
+98.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2020
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2020         1800   -2088.2088   -2088.2088    12689.064   -12689.064 
+    2030    1840.7744   -2091.4781   -2091.4781    11873.352   -11873.352 
+Loop time of 0.029686 on 1 procs for 10 steps with 511 atoms
+
+97.7% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2030    1840.7744   -2091.4781   -2091.4781    11873.352   -11873.352 
+    2047    1840.7744   -2213.3107   -2213.3107    9250.3993   -9250.3993 
+Loop time of 0.039752 on 1 procs for 17 steps with 511 atoms
+
+98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2030
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2030         1800   -2091.4781   -2091.4781     11593.31    -11593.31 
+    2040    1774.5994   -2090.3837   -2090.3837    12527.692   -12527.692 
+Loop time of 0.029264 on 1 procs for 10 steps with 511 atoms
+
+99.1% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2040    1774.5994   -2090.3837   -2090.3837    12527.692   -12527.692 
+    2057    1774.5994   -2213.3125   -2213.3125    8801.2805   -8801.2805 
+Loop time of 0.0393238 on 1 procs for 17 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2040
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2040         1800   -2090.3837   -2090.3837    12702.145   -12702.145 
+    2050    1754.8258   -2087.9592   -2087.9592    12374.555   -12374.555 
+Loop time of 0.0293281 on 1 procs for 10 steps with 511 atoms
+
+102.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2050    1754.8258   -2087.9592   -2087.9592    12374.555   -12374.555 
+    2067    1754.8258   -2213.3071   -2213.3071    8663.5099   -8663.5099 
+Loop time of 0.0378778 on 1 procs for 17 steps with 511 atoms
+
+100.3% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2050
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2050         1800   -2087.9592   -2087.9592    12684.814   -12684.814 
+    2060    1732.9045   -2084.0166   -2084.0166    12837.336   -12837.336 
+Loop time of 0.0296359 on 1 procs for 10 steps with 511 atoms
+
+101.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2060    1732.9045   -2084.0166   -2084.0166    12837.336   -12837.336 
+    2077    1732.9045   -2213.3164   -2213.3164     8516.646    -8516.646 
+Loop time of 0.0400112 on 1 procs for 17 steps with 511 atoms
+
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2060
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2060         1800   -2084.0166   -2084.0166    13298.153   -13298.153 
+    2070    1767.2959   -2082.3052   -2082.3052    12802.142   -12802.142 
+Loop time of 0.030153 on 1 procs for 10 steps with 511 atoms
+
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2070    1767.2959   -2082.3052   -2082.3052    12802.142   -12802.142 
+    2087    1767.2959   -2213.3142   -2213.3142     8751.697    -8751.697 
+Loop time of 0.039422 on 1 procs for 17 steps with 511 atoms
+
+98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2070
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2070         1800   -2082.3052   -2082.3052    13026.756   -13026.756 
+    2080    1803.1762   -2082.9567   -2082.9567    12610.424   -12610.424 
+Loop time of 0.0300329 on 1 procs for 10 steps with 511 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2080    1803.1762   -2082.9567   -2082.9567    12610.424   -12610.424 
+    2096    1803.1762   -2213.3045   -2213.3045    8995.7209   -8995.7209 
+Loop time of 0.0397959 on 1 procs for 16 steps with 511 atoms
+
+100.5% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2080
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2080         1800   -2082.9567   -2082.9567     12588.61    -12588.61 
+    2090    1768.8968   -2081.3166   -2081.3166    12584.029   -12584.029 
+Loop time of 0.0297282 on 1 procs for 10 steps with 511 atoms
+
+100.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2090    1768.8968   -2081.3166   -2081.3166    12584.029   -12584.029 
+    2106    1768.8968   -2213.3018   -2213.3018     8759.485    -8759.485 
+Loop time of 0.0381379 on 1 procs for 16 steps with 511 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2090
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2090         1800   -2081.3166   -2081.3166    12797.648   -12797.648 
+    2100    1798.8501   -2081.6286   -2081.6286    12456.599   -12456.599 
+Loop time of 0.02983 on 1 procs for 10 steps with 511 atoms
+
+97.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2100    1798.8501   -2081.6286   -2081.6286    12456.599   -12456.599 
+    2117    1798.8501   -2213.3158   -2213.3158    8968.5283   -8968.5283 
+Loop time of 0.0403299 on 1 procs for 17 steps with 511 atoms
+
+99.2% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2000
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2000    1798.8501   -2081.6286   -2081.6286    12456.599   -12456.599 
+    2010    1843.3065   -2084.9687   -2084.9687     13434.98    -13434.98 
+    2020    1800.2374   -2082.5689   -2082.5689    13977.437   -13977.437 
+    2030    1772.8491   -2081.1983   -2081.1983    13043.955   -13043.955 
+    2040    1826.4833   -2085.1577   -2085.1577    11774.478   -11774.478 
+    2050    1818.3834   -2085.0861   -2085.0861     11725.56    -11725.56 
+    2060    1734.0566   -2079.9784   -2079.9784    12991.636   -12991.636 
+    2070    1838.3814   -2087.2862   -2087.2862    13808.035   -13808.035 
+    2080    1851.9328   -2088.6821   -2088.6821    12455.428   -12455.428 
+    2090    1704.4903   -2079.4816   -2079.4816    12454.382   -12454.382 
+    2100    1757.2871   -2083.4355   -2083.4355    12381.356   -12381.356 
+Loop time of 0.301173 on 1 procs for 100 steps with 511 atoms
+
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up cg style minimization ...
+  Unit style    : metal
+Memory usage per processor = 6.83582 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2100    1757.2871   -2083.4355   -2083.4355    12381.356   -12381.356 
+    2116    1757.2871   -2213.3063   -2213.3063    8686.4518   -8686.4518 
+Loop time of 0.038753 on 1 procs for 16 steps with 511 atoms
+
+98.0% CPU use with 1 MPI tasks x no OpenMP threads
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 2100
+  Time step     : 0.001
+Memory usage per processor = 5.71082 Mbytes
+Step Temp PotEng c_pe Press v_press 
+    2100    1757.2871   -2082.5424   -2082.5424    12845.786   -12845.786 
+
+PRD done
+Loop time of 13.6693 on 1 procs for 16 steps with 511 atoms
+
+102.1% CPU use with 1 MPI tasks x no OpenMP threads
+
+PRD stats:
+  Dephase  time (%) = 2.18632 (15.9944)
+  Dynamics time (%) = 6.17929 (45.2057)
+  Quench   time (%) = 3.78822 (27.7134)
+  Comm     time (%) = 0.682548 (4.9933)
+  Output   time (%) = 0 (0)
+  Other    time (%) = 1.56808 (11.4716)
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 11.847     | 11.847     | 11.847     |   0.0 | 86.67
+Neigh   | 0.16295    | 0.16295    | 0.16295    |   0.0 |  1.19
+Comm    | 0.035795   | 0.035795   | 0.035795   |   0.0 |  0.26
+Output  | 0.015715   | 0.015715   | 0.015715   |   0.0 |  0.11
+Modify  | 0.040043   | 0.040043   | 0.040043   |   0.0 |  0.29
+Other   |            | 1.568      |            |       | 11.47
+
+Nlocal:    511 ave 511 max 511 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    1016 ave 1016 max 1016 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  13454 ave 13454 max 13454 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 13454
+Ave neighs/atom = 26.3288
+Neighbor list builds = 95
+Dangerous builds = 0
+Total wall time: 0:00:13

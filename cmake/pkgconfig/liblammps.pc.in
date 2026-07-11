@@ -1,0 +1,32 @@
+# pkg-config file for lammps
+# https://people.freedesktop.org/~dbn/pkg-config-guide.html
+
+# Add the directory where lammps.pc got installed to your PKG_CONFIG_PATH
+# e.g. export PKG_CONFIG_PATH=@CMAKE_INSTALL_FULL_LIBDIR@/pkgconfig
+
+# Use this on commandline with:
+# c++ `pkg-config --cflags --libs lammps` -o myapp myapp.cpp
+
+# Use this in a Makefile:
+# myapp: myapp.cpp
+# 	$(CC) `pkg-config --cflags --libs lammps` -o $@ $<
+
+# Use this in autotools:
+# configure.ac:
+# PKG_CHECK_MODULES([LAMMPS], [lammps])
+# Makefile.am:
+# myapp_CFLAGS = $(LAMMPS_CFLAGS)
+# myapp_LDADD = $(LAMMPS_LIBS)
+
+prefix=@CMAKE_INSTALL_PREFIX@
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: liblammps@LAMMPS_MACHINE@
+Description: Large-scale Atomic/Molecular Massively Parallel Simulator Library
+URL: https://www.lammps.org
+Version: @PROJECT_VERSION@
+Requires:
+Libs: -L${libdir} -llammps@LAMMPS_MACHINE@
+Libs.private: -lm
+Cflags: -I${includedir} @LAMMPS_API_DEFINES@

@@ -1,0 +1,26 @@
+# general triclinic box for 2d hex lattice primitive cell
+
+dimension     2
+
+lattice       custom 1.0 a1 1.0 0.0 0.0 a2 0.5 0.86602540378 0.0 &
+              a3 0.0 0.0 1.0 basis 0.0 0.0 0.0 triclinic/general
+
+create_box    1 NULL 0 1 0 1 -0.5 0.5
+create_atoms  1 box
+
+mass          * 1.0
+
+write_data    tmp.data.hex.primitive triclinic/general
+
+pair_style    lj/cut 1.1
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy bvecx bvecy pxx pyy vol
+thermo_modify triclinic/general yes
+
+dump          1 all custom 100 tmp.dump.hex.primitive id type x y z
+dump_modify   1 triclinic/general yes
+
+run           0

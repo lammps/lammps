@@ -1,0 +1,23 @@
+# eFF benchmark of H plasma
+
+units 		electron
+atom_style	electron
+
+read_data  	data.eff
+
+pair_style      eff/cut 12
+pair_coeff	* * 
+
+neigh_modify    one 6000 page 60000
+
+comm_modify	vel yes
+
+compute         effTemp all temp/eff
+
+thermo          5
+thermo_style    custom step etotal pe ke temp press
+thermo_modify   temp effTemp
+
+fix		1 all nve/eff
+
+run		100

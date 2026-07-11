@@ -1,0 +1,522 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.5.15. Local Density Dependent Potentials via LDD &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_ldd.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.6.1. Using CMake with LAMMPS" href="Howto_cmake.html" />
+    <link rel="prev" title="10.5.14. Adaptive-precision interatomic potentials (APIP)" href="Howto_apip.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_spherical.html">10.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular.html">10.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular_surfaces.html">10.5.3. Granular surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">10.5.4. Body particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bpm.html">10.5.5. Bonded particle models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">10.5.6. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">10.5.7. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">10.5.8. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_peri.html">10.5.10. Peridynamics with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">10.5.11. Manifolds (surfaces)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_rheo.html">10.5.12. Reproducing hydrodynamics and elastic objects (RHEO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spins.html">10.5.13. Magnetic spins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_apip.html">10.5.14. Adaptive-precision interatomic potentials (APIP)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.5.15. Local Density Dependent Potentials via LDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.5.15. </span>Local Density Dependent Potentials via LDD</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_apip.html" class="btn btn-neutral float-left" title="10.5.14. Adaptive-precision interatomic potentials (APIP)" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_cmake.html" class="btn btn-neutral float-right" title="10.6.1. Using CMake with LAMMPS" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="local-density-dependent-potentials-via-ldd">
+<h1><span class="section-number">10.5.15. </span>Local Density Dependent Potentials via LDD<a class="headerlink" href="#local-density-dependent-potentials-via-ldd" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id1">Overview</a></p></li>
+<li><p><a class="reference internal" href="#local-density-definitions" id="id2">Local Density Definitions</a></p></li>
+<li><p><a class="reference internal" href="#local-density-square-gradient-potentials" id="id3">Local Density/ Square Gradient Potentials</a></p></li>
+<li><p><a class="reference internal" href="#input-file-examples" id="id4">Input File Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#example-1-a-simple-atomic-input-example-using-only-tabulated-ld-potentials" id="id5">Example 1) A simple atomic input example using only tabulated LD potentials</a></p></li>
+<li><p><a class="reference internal" href="#example-2-molecular-input-example-that-layers-tabulated-pair-ld-and-sg-interactions-via-pair-style-hybrid" id="id6">Example 2) Molecular input example that layers tabulated pair, LD and SG interactions via <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a></a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#read-data-file-format" id="id7">read_data file format</a></p></li>
+<li><p><a class="reference internal" href="#outputting-the-local-density-data" id="id8">Outputting the local-density data</a></p></li>
+<li><p><a class="reference internal" href="#when-to-use-ld-sg-potentials" id="id9">When to use LD/SG potentials:</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="overview">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="pair_ldd.html"><span class="doc">LDD pair style</span></a> in the BOCS package implements
+potentials that are a function of the local density,
+<span class="math notranslate nohighlight">\(\rho_{\beta|I}\)</span>, of type <span class="math notranslate nohighlight">\(\beta\)</span> particles around a central
+particle, <span class="math notranslate nohighlight">\(I\)</span>.  There are two types of local density dependent
+potentials implemented.  There are Local Density (LD) potentials
+<span class="math notranslate nohighlight">\(U_{LD}\)</span> , which are direct functions of <span class="math notranslate nohighlight">\(\rho_{\beta|I}\)</span>.
+There are also Square Gradient (SG) potentials <span class="math notranslate nohighlight">\(U_{SG}\)</span>.  SG
+potentials use a direct function of the local density,
+<span class="math notranslate nohighlight">\(U_\nabla(\rho_{\beta|I})\)</span>, as a coefficient of the square
+gradient, <span class="math notranslate nohighlight">\(|\frac{\partial \rho_{\beta|I}}{\partial R_I}|^2\)</span> of a
+particular local density.  Such potentials are useful for coarse grained
+models and can be parameterized from trajectory data using <a class="reference external" href="https://github.com/noid-group/BOCS">BOCS version
+5 and higher.</a></p>
+</section>
+<section id="local-density-definitions">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Local Density Definitions</a><a class="headerlink" href="#local-density-definitions" title="Link to this heading"></a></h2>
+<p>Each site (atom) in a molecular dynamics simulation <span class="math notranslate nohighlight">\(I\)</span> is
+assigned a type <span class="math notranslate nohighlight">\(t_I\)</span>.  These site types may be labeled
+e.g. <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>, …, etc.  The local density,
+<span class="math notranslate nohighlight">\(\rho_{\beta|I}\)</span>, of <span class="math notranslate nohighlight">\(\beta\)</span> particles around a central
+particle, <span class="math notranslate nohighlight">\(I\)</span>, of type <span class="math notranslate nohighlight">\(t_I = \alpha\)</span> is defined:</p>
+<div class="math notranslate nohighlight">
+\[\rho_{\beta|I} = \sum_{J\in S_{\beta|I}} \bar{w}_{\beta|\alpha}(r_{IJ})\]</div>
+<p>where <span class="math notranslate nohighlight">\(S_{\beta|I}\)</span> is the set of particles of type <span class="math notranslate nohighlight">\(\beta\)</span>
+that are not excluded from pairwise interactions involving site
+<span class="math notranslate nohighlight">\(I\)</span>.  <span class="math notranslate nohighlight">\(\bar{w}_{\beta|\alpha}(r_{IJ})\)</span> is a normalized
+indicator function, it determines the pair weighted contribution from
+each particle <span class="math notranslate nohighlight">\(J\)</span>, of type <span class="math notranslate nohighlight">\(t_J = \beta\)</span> to the
+<span class="math notranslate nohighlight">\(\beta\)</span> local density around a central particle <span class="math notranslate nohighlight">\(I\)</span> of type
+<span class="math notranslate nohighlight">\(t_I = \alpha\)</span>.</p>
+<p>The normalized indicator function is defined by dividing a
+continuous/differentiable non-negative non-increasing indicator function
+<span class="math notranslate nohighlight">\(w(r)\)</span> by its spatial integral <span class="math notranslate nohighlight">\([w]\)</span>.  Therefore,
+<span class="math notranslate nohighlight">\(\bar{w}(r)\)</span> is defined for each <span class="math notranslate nohighlight">\(\beta|\alpha\)</span> pair as:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\bar{w}(r) = \frac{w(r)}{[w]} \theta(r - r_c) \\
+[w] = \int_{0}^{r_{c}} {4\pi r^2 w(r)} dr\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\theta\)</span> is the Heaviside function, <span class="math notranslate nohighlight">\(r_c\)</span> is the local
+density length-scale, and <span class="math notranslate nohighlight">\(\bar{w}(r)\)</span> is defined such that
+<span class="math notranslate nohighlight">\(\bar{w}(r) = 0\)</span>, if <span class="math notranslate nohighlight">\(r &gt; r_c\)</span>.  The local density of
+<span class="math notranslate nohighlight">\(\beta\)</span> particles that surround a given particle <span class="math notranslate nohighlight">\(I\)</span> is
+defined by the sum of contributions from <span class="math notranslate nohighlight">\(\beta\)</span> particles that
+are within (&lt;=) the cutoff <span class="math notranslate nohighlight">\(r_c\)</span>.  The choice of indicator
+function is specified by the user in the <em>indicator</em> argument of the
+<a class="reference internal" href="pair_ldd.html"><span class="doc">ldd pair_coeff</span></a> command. Different options are listed
+under different pages indexed on the <a class="reference internal" href="pair_ldd.html"><span class="doc">pair ldd</span></a> page.
+Note that the weighting function and its length-scale can be defined
+independently for each pair of site types.</p>
+<p>If particle <span class="math notranslate nohighlight">\(I\)</span> is of type <span class="math notranslate nohighlight">\(t_I = \beta\)</span>, its contribution
+to the local density <span class="math notranslate nohighlight">\(\rho_{t_I|I}\)</span> can be included or excluded
+from the sum without changing the net force on a pair of particles.
+Practically, the only difference is a horizontal shift in the argument
+of the LD potential function <span class="math notranslate nohighlight">\(U_{\beta|\beta} (\rho)\)</span>.  Whether or
+not to include this contribution is set by the user in the <a class="reference internal" href="pair_ldd.html"><span class="doc">ldd
+pair_coeff</span></a> command via the <em>self yes</em> or <em>self no</em>
+arguments.</p>
+<p>For molecular systems, particles included in the local density around a
+given particle <span class="math notranslate nohighlight">\(I\)</span> are identified by the neighbor list for the
+non-bonded interactions.  That is, a particle excluded by the neighbor
+list for a central particle will also be excluded from the sum defining
+its local density.</p>
+<p>For example, consider a 5 bead chain that is simulated with default 1-2,
+1-3, and 1-4 non-bonded exclusions:</p>
+<p><span class="math notranslate nohighlight">\(A_{1}-B_{2}-C_{3}-D_{4}-E_{5}\)</span></p>
+<p>The local density of particles of type E surrounding site 1,
+<span class="math notranslate nohighlight">\(\rho_{E|1}\)</span> will include the contribution from the end chain
+particle <span class="math notranslate nohighlight">\(\bar{w}_{E|A}(r_{15})\)</span>.  Conversely, the local density
+of particles of type B surrounding site 1, <span class="math notranslate nohighlight">\(\rho_{B|1}\)</span> will only
+include intermolecular contributions to the local density.  Whether or
+not the local density of A particles surrounding site 1,
+<span class="math notranslate nohighlight">\(\rho_{A|1}\)</span>, will include the <em>self</em> intramolecular contribution
+<span class="math notranslate nohighlight">\(\bar{w}_{A|A}(0)\)</span> is determined by whether <em>self yes</em> or <em>self
+no</em> is listed as an argument by the user in the <a class="reference internal" href="pair_ldd.html"><span class="doc">ldd pair_coeff</span></a> command.</p>
+<p>The choice of local density definition used for a particular interaction
+between types, <span class="math notranslate nohighlight">\(\beta|\alpha\)</span> is set by the user via the <a class="reference internal" href="pair_ldd.html"><span class="doc">ldd
+pair_coeff</span></a> command with the different available options for
+indicator functions.  Note, that the weighting function,
+<span class="math notranslate nohighlight">\(\bar{w}_{\beta|\alpha}\)</span>, and local density potential,
+<span class="math notranslate nohighlight">\(U_{\beta|\alpha}\)</span> are not symmetric with respect to
+<span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\beta\)</span>.  For instance, if <span class="math notranslate nohighlight">\(\alpha = v\)</span>
+corresponds to solvents and <span class="math notranslate nohighlight">\(\beta = u\)</span> corresponds to solutes,
+then the package allows the user to specify distinct weighting
+functions, <span class="math notranslate nohighlight">\(\bar{w}_{v|u} \neq \bar{w}_{u|v}\)</span> and distinct LD
+potentials <span class="math notranslate nohighlight">\(U_{v|u} \neq U_{u|v}\)</span>, for treating solvent around
+solute and solute around solvent respectively.</p>
+</section>
+<hr class="docutils" />
+<section id="local-density-square-gradient-potentials">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Local Density/ Square Gradient Potentials</a><a class="headerlink" href="#local-density-square-gradient-potentials" title="Link to this heading"></a></h2>
+<p>The LDD pair style implements forces for two kinds of local density dependent potentials.</p>
+<p>LD (Local Density) potentials are defined:</p>
+<div class="math notranslate nohighlight">
+\[U_{LD}(\mathbf{R}) = \sum_{I} \sum_{\beta} U_{\beta|t_I}(\rho_{\beta|I}),\]</div>
+<p>where the first sum is over all sites, <span class="math notranslate nohighlight">\(I\)</span> , and the second sum is
+over all site types, <span class="math notranslate nohighlight">\(\beta\)</span>.  The form of
+<span class="math notranslate nohighlight">\(U_{\beta|\alpha}\)</span> is specified by the user in the <a class="reference internal" href="pair_ldd.html"><span class="doc">ldd
+pair_coeff</span></a> command using the <em>potential</em> keyword.  For
+instance, <span class="math notranslate nohighlight">\(U_{\beta|\alpha}(\rho_{\beta|I})\)</span> can be defined as zero
+(<em>noforce</em>) or as a <em>constant</em>, <em>linear</em>, or <em>quadratic</em> function of the
+local density.  Alternatively, <span class="math notranslate nohighlight">\(U_{\beta|\alpha}(\rho_{\beta|I})\)</span>
+can be specified by a table of values using the <em>table/lin</em> or
+<em>table/spline</em> keywords.  Additionally the <em>potential</em> arg <em>mdpd</em> is a
+quadratic function in local density that can be combined with the dpd
+pair_style to simulate pairwise mdpd interactions in the LD framework.
+All of these forms are documented on the <a class="reference internal" href="pair_ldd.html"><span class="doc">pair_style ldd</span></a> page.</p>
+<p>SG (Square Gradient) potentials are defined:</p>
+<div class="math notranslate nohighlight">
+\[U_{SG}(\mathbf{R}) = \sum_{I} \sum_{\beta} U_{\nabla; \beta|t_I} (\rho_{\beta|I}) \left | \nabla_{I} \rho_{\beta|I} \right|^2\]</div>
+<p>where the first sum is over all sites, <span class="math notranslate nohighlight">\(I\)</span>, the second sum is over
+all site types, <span class="math notranslate nohighlight">\(\beta\)</span> and the gradient <span class="math notranslate nohighlight">\(\nabla_{I} =
+\frac{\partial}{\partial\mathbf{R_I}}\)</span> is evaluated with respect to the
+position of particle <span class="math notranslate nohighlight">\(I\)</span>.  The form of the coefficient,
+<span class="math notranslate nohighlight">\(U_{\nabla; \beta|t_I}\)</span>, is specified by the user in the <a class="reference internal" href="pair_ldd.html"><span class="doc">ldd
+pair_coeff</span></a> command using the (optional) <em>gradient</em> keyword.
+Many of the available functional forms for the LD potential are also
+available for the SG coefficients, see <a class="reference internal" href="pair_ldd.html"><span class="doc">pair_ldd</span></a> for
+details.</p>
+<hr class="docutils" />
+<p>For any given site <span class="math notranslate nohighlight">\(I\)</span>, once the local densities
+<span class="math notranslate nohighlight">\(\rho_{\beta|I}\)</span> and the gradients of the local density
+<span class="math notranslate nohighlight">\(\nabla_{I} \rho_{\beta|I}\)</span> have been determined, the
+corresponding forces are pairwise decomposable with pair forces
+analogous to those stated in <a class="reference external" href="https://pubs.aip.org/aip/jcp/article/156/3/034106/2839866/Coarse-grained-models-for-local-density-gradients">Delyser 2021</a>
+and <a class="reference external" href="https://pubs.aip.org/aip/jcp/article/151/22/224106/198468/Analysis-of-local-density-potentials">Delyser 2019</a>.</p>
+<p>The per-atom local densities and gradients are owned by the <em>ldd</em> pair
+style itself (recomputed every step, not stored in data or restart
+files); no special atom style is required, and the data is exposed to the
+rest of LAMMPS through <a class="reference internal" href="fix_pair.html"><span class="doc">fix pair</span></a> (see the <a class="reference internal" href="pair_ldd.html"><span class="doc">pair
+ldd</span></a> page).</p>
+<p>Interactions are specified per <em>species</em> pair.  The potential file
+defines a set of species and the <code class="docutils literal notranslate"><span class="pre">pair_coeff</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">file.ldd</span> <span class="pre">S1</span> <span class="pre">S2</span> <span class="pre">...</span></code>
+command maps each atom type to a species (several types may map to the
+same species).  Each of the <span class="math notranslate nohighlight">\(N_{\text{species}}^2\)</span> <em>ordered</em>
+species pairs is given on its own line.  In particular, the entry <code class="docutils literal notranslate"><span class="pre">A</span>
+<span class="pre">B</span></code> specifies the interaction for atoms of species A surrounded by atoms
+of species B, and is distinct from <code class="docutils literal notranslate"><span class="pre">B</span> <span class="pre">A</span></code>, the interaction for species B
+surrounded by species A.  This “surrounded by” convention (<code class="docutils literal notranslate"><span class="pre">A</span> <span class="pre">B</span></code>)
+corresponds to the local density often written as <code class="docutils literal notranslate"><span class="pre">B|A</span></code> (species B
+given a central particle of species A) in published works.</p>
+</section>
+<hr class="docutils" />
+<section id="input-file-examples">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Input File Examples</a><a class="headerlink" href="#input-file-examples" title="Link to this heading"></a></h2>
+<section id="example-1-a-simple-atomic-input-example-using-only-tabulated-ld-potentials">
+<h3><a class="toc-backref" href="#id5" role="doc-backlink">Example 1) A simple atomic input example using only tabulated LD potentials</a><a class="headerlink" href="#example-1-a-simple-atomic-input-example-using-only-tabulated-ld-potentials" title="Link to this heading"></a></h3>
+<p>The input script uses a plain atomic atom style and maps the two atom
+types to species A and B from the potential file:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c">## Init system/units</span>
+<span class="k">units</span><span class="w"> </span><span class="n">real</span>
+<span class="k">dimension</span><span class="w"> </span><span class="m">3</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">atomic</span>
+
+<span class="k">newton</span><span class="w"> </span><span class="n">on</span>
+<span class="k">timestep</span><span class="w"> </span><span class="m">1</span>
+
+<span class="k">read_data</span><span class="w"> </span><span class="n">my_mix.data</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">22345</span><span class="w"> </span><span class="n">dist</span><span class="w"> </span><span class="n">gaussian</span>
+
+<span class="c">## pair_style ldd takes no cutoff (it comes from each indicator rc)</span>
+<span class="k">pair_style</span><span class="w"> </span><span class="n">ldd</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">my_mix.ldd</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">B</span><span class="w">   </span><span class="c"># atom type 1 -&gt; species A, type 2 -&gt; species B</span>
+
+<span class="c">## Run / Output</span>
+<span class="k">run_style</span><span class="w"> </span><span class="n">verlet</span>
+<span class="k">neigh_modify</span><span class="w">    </span><span class="n">delay</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">every</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">neighbor</span><span class="w">        </span><span class="m">2.0</span><span class="w"> </span><span class="n">bin</span>
+<span class="k">thermo</span><span class="w"> </span><span class="m">500</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">100.0</span>
+<span class="c"># expose the per-atom local densities (one column per species) + total energy</span>
+<span class="k">fix </span><span class="nv nv-Identifier">lddout</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">ldd</span><span class="w"> </span><span class="n">local_density</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">total_energy</span><span class="w"> </span><span class="m">0</span>
+<span class="k">dump </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="n">dump.txt</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">f_lddout[</span><span class="o">*</span><span class="n">]</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="n">sort</span><span class="w"> </span><span class="n">id</span>
+
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+</pre></div>
+</div>
+<p>with the potential file <code class="docutils literal notranslate"><span class="pre">my_mix.ldd</span></code>:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># all four ordered species pairs must be listed (use &quot;ignore&quot; for none)</span>
+<span class="n">A</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">dpd</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">lin</span><span class="w"> </span><span class="n">LD_table.1.1.dat</span>
+<span class="n">A</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="n">ignore</span>
+<span class="n">B</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">dpd</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">5.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">no</span><span class="w">  </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">lin</span><span class="w"> </span><span class="n">LD_table.2.1.dat</span>
+<span class="n">B</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">dpd</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">5.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">lin</span><span class="w"> </span><span class="n">LD_table.2.2.dat</span>
+</pre></div>
+</div>
+<p>Note in the above example, only species pairs A|A, A|B, and B|B interact
+according to LD potentials (the A B entry, corresponding to B|A, is ignored).</p>
+</section>
+<section id="example-2-molecular-input-example-that-layers-tabulated-pair-ld-and-sg-interactions-via-pair-style-hybrid">
+<h3><a class="toc-backref" href="#id6" role="doc-backlink">Example 2) Molecular input example that layers tabulated pair, LD and SG interactions via <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a></a><a class="headerlink" href="#example-2-molecular-input-example-that-layers-tabulated-pair-ld-and-sg-interactions-via-pair-style-hybrid" title="Link to this heading"></a></h3>
+<p>The molecular topology uses the ordinary <em>full</em> atom style; the <em>ldd</em>
+interactions are layered in with <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid/overlay</span></a>:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c">## Initialize system /units</span>
+
+<span class="k">units</span><span class="w"> </span><span class="n">real</span>
+<span class="k">dimension</span><span class="w"> </span><span class="m">3</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">full</span>
+
+<span class="k">newton</span><span class="w"> </span><span class="n">on</span>
+<span class="k">timestep</span><span class="w"> </span><span class="m">1</span>
+
+<span class="k">bond_style</span><span class="w"> </span><span class="n">harmonic</span>
+
+<span class="k">region </span><span class="nv nv-Identifier">my_box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">40</span>
+<span class="k">create_box </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">my_box</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">types</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">extra</span><span class="o">/</span><span class="n">bond</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">1</span>
+
+<span class="k">mass</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">59.044</span>
+<span class="k">mass</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">59.044</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">ldd</span><span class="w"> </span><span class="n">table</span><span class="w"> </span><span class="n">spline</span><span class="w"> </span><span class="m">3000</span>
+
+<span class="k">molecule</span><span class="w"> </span><span class="n">DI</span><span class="w"> </span><span class="n">DIMER.mol</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="m">250</span><span class="w"> </span><span class="m">885401</span><span class="w"> </span><span class="n">my_box</span><span class="w"> </span><span class="n">mol</span><span class="w"> </span><span class="n">DI</span><span class="w"> </span><span class="m">454353</span>
+
+<span class="k">include</span><span class="w"> </span><span class="n">ff_bonded_params.lammps</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">22345</span><span class="w"> </span><span class="n">dist</span><span class="w"> </span><span class="n">gaussian</span>
+
+<span class="c">## Pair styles</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">table</span><span class="w"> </span><span class="n">lammps_nb_ALL.table</span><span class="w"> </span><span class="n">nb_All</span><span class="w"> </span><span class="m">15.0</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ldd</span><span class="w"> </span><span class="n">dimer.ldd</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">B</span><span class="w">   </span><span class="c"># type 1 -&gt; species A, type 2 -&gt; species B</span>
+
+<span class="c">## Run / Output</span>
+<span class="k">run_style</span><span class="w"> </span><span class="n">verlet</span>
+<span class="k">neigh_modify</span><span class="w">    </span><span class="n">delay</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">every</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">neighbor</span><span class="w">        </span><span class="m">2.0</span><span class="w"> </span><span class="n">bin</span>
+<span class="k">thermo</span><span class="w"> </span><span class="m">500</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">100.0</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+</pre></div>
+</div>
+<p>with the potential file <code class="docutils literal notranslate"><span class="pre">dimer.ldd</span></code>:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="n">A</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">lucy</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">spline</span><span class="w"> </span><span class="n">LD.1.1.dat</span><span class="w"> </span><span class="n">gradient</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">gradspline</span><span class="w"> </span><span class="n">SG.1.1.dat</span>
+<span class="n">A</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">lucy</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">spline</span><span class="w"> </span><span class="n">LD.1.2.dat</span>
+<span class="n">B</span><span class="w"> </span><span class="n">A</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">lucy</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">spline</span><span class="w"> </span><span class="n">LD.2.1.dat</span>
+<span class="n">B</span><span class="w"> </span><span class="n">B</span><span class="w"> </span><span class="n">indicator</span><span class="w"> </span><span class="n">lucy</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="n">self</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">potential</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">spline</span><span class="w"> </span><span class="n">LD.2.2.dat</span><span class="w"> </span><span class="n">gradient</span><span class="w"> </span><span class="n">table</span><span class="o">/</span><span class="n">gradspline</span><span class="w"> </span><span class="n">SG.2.2.dat</span>
+</pre></div>
+</div>
+<p>Note in the above example LD cross interactions are both specified, but not necessarily symmetric.
+Also in this example, the cross interactions opt not to use the optional <em>gradient</em> keyword.
+Conversely the like-species interactions (A|A, B|B) layer SG potentials on top of the already defined LD and pair interactions.</p>
+<p>See <code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/bocs</span></code> for full input files for a 4-site chain example (topology like A-B-C-D).</p>
+<p>See <a class="reference internal" href="pair_ldd.html"><span class="doc">pair_style ldd</span></a> for all pair_coeff <em>args</em> options that exist, all restrictions, and more examples.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="read-data-file-format">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">read_data file format</a><a class="headerlink" href="#read-data-file-format" title="Link to this heading"></a></h2>
+<p>The <em>ldd</em> pair style does not require a special atom style: the local
+densities, their gradients, and the associated energies are owned by the
+pair style and recomputed every step, so they are never read from or
+written to a data file.  The <code class="docutils literal notranslate"><span class="pre">read_data</span></code> input therefore follows the
+usual format for whatever atom style you choose, e.g. <em>atomic</em> for a
+simple system or <em>full</em> for a molecular one.</p>
+</section>
+<hr class="docutils" />
+<section id="outputting-the-local-density-data">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Outputting the local-density data</a><a class="headerlink" href="#outputting-the-local-density-data" title="Link to this heading"></a></h2>
+<p>For each central particle <span class="math notranslate nohighlight">\(I\)</span> and each species <span class="math notranslate nohighlight">\(\beta\)</span>, there
+is a local density of <span class="math notranslate nohighlight">\(\beta\)</span> particles that surround <span class="math notranslate nohighlight">\(I\)</span>,
+<span class="math notranslate nohighlight">\(\rho_{\beta|I}\)</span>, and a corresponding gradient <span class="math notranslate nohighlight">\(\frac{\partial
+\rho_{\beta|I}}{\partial \boldsymbol{R}_I}\)</span>.  These quantities (along with
+the per-species LD/SG energies and the per-atom total energy) are made
+available to the rest of LAMMPS through the <a class="reference internal" href="fix_pair.html"><span class="doc">fix pair</span></a>
+command, which copies the chosen pair-style fields into a per-atom array.
+<a class="reference internal" href="pair_ldd.html"><span class="doc">pair_style ldd</span></a> describes the available options and quantities output.</p>
+<p>For example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">lddout</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">ldd</span><span class="w"> </span><span class="n">local_density</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">grad_density</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">total_energy</span><span class="w"> </span><span class="m">0</span>
+<span class="k">dump </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="n">dump.txt</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span><span class="w"> </span><span class="n">fx</span><span class="w"> </span><span class="n">fy</span><span class="w"> </span><span class="n">fz</span><span class="w"> </span><span class="n">f_lddout[</span><span class="o">*</span><span class="n">]</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="n">sort</span><span class="w"> </span><span class="n">id</span>
+</pre></div>
+</div>
+<p>writes a custom trajectory that includes the local densities and their
+gradients alongside the usual positions, velocities, and forces (one
+column per species, three per species for the gradient).  Such a
+trajectory can be used with the <a class="reference external" href="https://github.com/noid-group/BOCS">Bottom-up Open-source Coarse-graining
+Software</a>, which can parameterize
+LD/SG potentials from atomistic data and convert LAMMPS trajectories to
+.trr files for analysis with <a class="reference external" href="https://www.gromacs.org/">gromacs</a> tools.</p>
+</section>
+<hr class="docutils" />
+<section id="when-to-use-ld-sg-potentials">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">When to use LD/SG potentials:</a><a class="headerlink" href="#when-to-use-ld-sg-potentials" title="Link to this heading"></a></h2>
+<p>This package has been primarily developed in the context of
+parameterizing/simulating bottom up coarse grained models.  We have
+found that LD/SG potentials are particularly useful for supplementing
+pair potentials when simulating CG models in the NPT ensemble and in
+different interfacial environments.  In particular, such potentials
+dramatically improve CG descriptions of the pressure-density equation of
+state, interfacial profiles, liquid-vapor coexistence, and
+transferability between bulk and interfacial systems.  SG potentials are
+slower to simulate than LD potentials alone, so where applicable for
+coarse graining we recommend trying to construct/simulate LD potentials
+first and then [if necessary] adding SG potentials to refine further.
+CG force fields with LD and SG potentials can be parameterized via the
+multi-scale coarse graining method implemented in <a class="reference external" href="https://github.com/noid-group/BOCS">BOCSv5 and higher</a>.</p>
+<hr class="docutils" />
+<p>A number of works have been published using this package (with <a class="reference external" href="https://github.com/noid-group/BOCS">BOCS</a>) in its development stage for
+different CG studies and are listed below:</p>
+<p id="delyser1"><strong>(DeLyser)</strong> DeLyser, Noid. “Extending Pressure-Matching to Inhomogeneous Systems via Local-Density Potentials.” The Journal of Chemical Physics, 147, no. 13: 134111 (2017)</p>
+<p id="delyser2"><strong>(DeLyser)</strong> DeLyser, Noid. “Analysis of local density potentials.” The Journal of Chemical Physics, 151, no. 22:224106 (2019)</p>
+<p id="delyser3"><strong>(DeLyser)</strong> DeLyser, Noid “Bottom-up coarse-grained models for external fields and interfaces” The Journal of Chemical Physics 153, 224103 (2020)</p>
+<p id="delyser4"><strong>(DeLyser)</strong> DeLyser, Noid “Coarse-grained models for local density gradients” The Journal of Chemical Physics 156, 034106 (2021)</p>
+<p id="szukalo"><strong>(Szukalo)</strong> Szukalo, Noid “A temperature-dependent length-scale for transferable local density potentials”. The Journal of Chemical Physics, 159, 074104 (2023)</p>
+<p id="lesniewski1"><strong>(Lesniewski)</strong> Lesniewski, Remsing, Noid “Revisiting what we lose by coarse-graining: Modeling cooperative hydrophobic phenomena with short-ranged, pair-additive forces.” The Journal of Chemical Physics, 164, 204111 (2026)</p>
+<p id="dutta"><strong>(Dutta)</strong> Dutta, Lesniewski, Qaisrani, Noid, Andrienko, Nikoubashman. “Accurate coarse-graining of conjugated organic molecules in melts and thin films using density-dependent potentials”. The Journal of Chemical Theory and Computation, 22, 7, 3697-3708 (2026)</p>
+<p id="lesniewski2"><strong>(Lesniewski)</strong> Lesniewski, DeLyser, W. G. Noid “Progress toward a better BOCS: systematic coarse-graining with local density potentials” In Prep 2026</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_apip.html" class="btn btn-neutral float-left" title="10.5.14. Adaptive-precision interatomic potentials (APIP)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_cmake.html" class="btn btn-neutral float-right" title="10.6.1. Using CMake with LAMMPS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

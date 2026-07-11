@@ -1,0 +1,599 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.6.5. LAMMPS Python Tutorial &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_python.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+      <script src="_static/tabs.js?v=3030b3cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.6.6. Using LAMMPS on Windows 10 with WSL" href="Howto_wsl.html" />
+    <link rel="prev" title="10.6.4. Moltemplate Tutorial" href="Howto_moltemplate.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_cmake.html">10.6.1. Using CMake with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_github.html">10.6.2. LAMMPS GitHub tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_lammps_gui.html">10.6.3. Using LAMMPS-GUI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_moltemplate.html">10.6.4. Moltemplate Tutorial</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.6.5. LAMMPS Python Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_wsl.html">10.6.6. Using LAMMPS on Windows 10 with WSL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.6.5. </span>LAMMPS Python Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_moltemplate.html" class="btn btn-neutral float-left" title="10.6.4. Moltemplate Tutorial" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_wsl.html" class="btn btn-neutral float-right" title="10.6.6. Using LAMMPS on Windows 10 with WSL" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="lammps-python-tutorial">
+<h1><span class="section-number">10.6.5. </span>LAMMPS Python Tutorial<a class="headerlink" href="#lammps-python-tutorial" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#overview" id="id2">Overview</a></p></li>
+<li><p><a class="reference internal" href="#quick-start" id="id3">Quick Start</a></p>
+<ul>
+<li><p><a class="reference internal" href="#system-wide-or-user-installation" id="id4">System-wide or User Installation</a></p>
+<ul>
+<li><p><a class="reference internal" href="#step-1-building-lammps-as-a-shared-library" id="id5">Step 1: Building LAMMPS as a shared library</a></p></li>
+<li><p><a class="reference internal" href="#step-2-installing-the-lammps-python-module" id="id6">Step 2: Installing the LAMMPS Python module</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#installation-inside-of-a-virtual-environment" id="id7">Installation inside of a virtual environment</a></p>
+<ul>
+<li><p><a class="reference internal" href="#benefits-of-using-a-virtualenv" id="id8">Benefits of using a virtualenv</a></p></li>
+<li><p><a class="reference internal" href="#creating-a-virtualenv-with-lammps-installed" id="id9">Creating a virtualenv with lammps installed</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#creating-a-new-lammps-instance" id="id10">Creating a new lammps instance</a></p></li>
+<li><p><a class="reference internal" href="#commands" id="id11">Commands</a></p></li>
+<li><p><a class="reference internal" href="#accessing-atom-data" id="id12">Accessing atom data</a></p></li>
+<li><p><a class="reference internal" href="#retrieving-the-values-of-thermodynamic-data-and-variables" id="id13">Retrieving the values of thermodynamic data and variables</a></p></li>
+<li><p><a class="reference internal" href="#error-handling" id="id14">Error handling</a></p></li>
+<li><p><a class="reference internal" href="#using-lammps-in-ipython-notebooks-and-jupyter" id="id15">Using LAMMPS in IPython notebooks and Jupyter</a></p></li>
+<li><p><a class="reference internal" href="#interactive-python-examples" id="id16">Interactive Python Examples</a></p>
+<ul>
+<li><p><a class="reference internal" href="#validating-a-dihedral-potential" id="id17">Validating a dihedral potential</a></p></li>
+<li><p><a class="reference internal" href="#running-a-monte-carlo-relaxation" id="id18">Running a Monte Carlo relaxation</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="overview">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Overview</a><a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> Python module is a wrapper class for the
+LAMMPS <a class="reference internal" href="Library.html#lammps-c-api"><span class="std std-ref">C language library interface API</span></a> which is written using
+<a class="reference external" href="https://docs.python.org/3/library/ctypes.html">Python ctypes</a>.  The design choice of this wrapper class is to
+follow the C language API closely with only small changes related to Python
+specific requirements and to better accommodate object oriented programming.</p>
+<p>In addition to this flat <a class="reference external" href="https://docs.python.org/3/library/ctypes.html">ctypes</a> interface, the
+<a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> wrapper class exposes a discoverable
+API that doesn’t require as much knowledge of the underlying C language
+library interface or LAMMPS C++ code implementation.</p>
+<p>Finally, the API exposes some additional features for <a class="reference external" href="https://ipython.org/">IPython integration</a> into <a class="reference external" href="https://jupyter.org/">Jupyter notebooks</a>, e.g. for embedded
+visualization output from <a class="reference internal" href="dump_image.html"><span class="doc">dump style image</span></a>.</p>
+</section>
+<hr class="docutils" />
+<section id="quick-start">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Quick Start</a><a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<section id="system-wide-or-user-installation">
+<h3><a class="toc-backref" href="#id4" role="doc-backlink">System-wide or User Installation</a><a class="headerlink" href="#system-wide-or-user-installation" title="Link to this heading"></a></h3>
+<section id="step-1-building-lammps-as-a-shared-library">
+<h4><a class="toc-backref" href="#id5" role="doc-backlink">Step 1: Building LAMMPS as a shared library</a><a class="headerlink" href="#step-1-building-lammps-as-a-shared-library" title="Link to this heading"></a></h4>
+<p>To use LAMMPS inside of Python it has to be compiled as shared library.
+This library is then loaded by the Python interface.  In this example we
+enable the <a class="reference internal" href="Packages_details.html#pkg-molecule"><span class="std std-ref">MOLECULE package</span></a> and compile LAMMPS
+with <a class="reference internal" href="Build_extras.html#graphics"><span class="std std-ref">PNG, JPEG and FFMPEG output support</span></a> enabled.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span><span class="nv">$LAMMPS_DIR</span>/build-shared
+<span class="nb">cd</span><span class="w">  </span><span class="nv">$LAMMPS_DIR</span>/build-shared
+
+<span class="c1"># MPI, PNG, Jpeg, FFMPEG are auto-detected</span>
+cmake<span class="w"> </span>../cmake<span class="w"> </span>-DPKG_MOLECULE<span class="o">=</span>yes<span class="w"> </span>-DPKG_PYTHON<span class="o">=</span>on<span class="w"> </span>-DBUILD_SHARED_LIBS<span class="o">=</span>yes
+make
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span><span class="nv">$LAMMPS_DIR</span>/src
+
+<span class="c1"># add LAMMPS packages if necessary</span>
+make<span class="w"> </span>yes-MOLECULE
+make<span class="w"> </span>yes-PYTHON
+
+<span class="c1"># compile shared library using Makefile</span>
+make<span class="w"> </span>mpi<span class="w"> </span><span class="nv">mode</span><span class="o">=</span>shlib<span class="w"> </span><span class="nv">LMP_INC</span><span class="o">=</span><span class="s2">&quot;-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG&quot;</span><span class="w"> </span><span class="nv">JPG_LIB</span><span class="o">=</span><span class="s2">&quot;-lpng -ljpeg&quot;</span>
+</pre></div>
+</div>
+</div></div>
+</section>
+<section id="step-2-installing-the-lammps-python-module">
+<h4><a class="toc-backref" href="#id6" role="doc-backlink">Step 2: Installing the LAMMPS Python module</a><a class="headerlink" href="#step-2-installing-the-lammps-python-module" title="Link to this heading"></a></h4>
+<p>Next install the LAMMPS Python module into your current Python installation with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>install-python
+</pre></div>
+</div>
+<p>This will create a so-called <a class="reference external" href="https://packaging.python.org/en/latest/discussions/package-formats/#what-is-a-wheel">“wheel”</a>
+and then install the LAMMPS Python module from that “wheel” into either
+into a system folder (provided the command is executed with root
+privileges) or into your personal Python module folder.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Recompiling the shared library requires re-installing the Python
+package.</p>
+</div>
+<div class="hint admonition" id="externally-managed">
+<p class="admonition-title">Handling an “externally-managed-environment” Error</p>
+<p>Some Python installations made through Linux distributions
+(e.g. Ubuntu 24.04LTS or later) will prevent installing the LAMMPS
+Python module into a system folder or a corresponding folder of the
+individual user as attempted by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">install-python</span></code> with an error
+stating that an <em>externally managed</em> python installation must be only
+managed by the same package package management tool.  This is an
+optional setting, so not all Linux distributions follow it currently
+(Spring 2025).  The reasoning and explanations for this error can be
+found in the <a class="reference external" href="https://packaging.python.org/en/latest/specifications/externally-managed-environments/">Python Packaging User Guide</a></p>
+<p>These guidelines suggest to create a virtual environment and install
+the LAMMPS Python module there (see below).  This is generally a good
+idea and the LAMMPS developers recommend this, too.  If, however, you
+want to proceed and install the LAMMPS Python module regardless, you
+can install the “wheel” file (see above) manually with the <code class="docutils literal notranslate"><span class="pre">pip</span></code>
+command by adding the <code class="docutils literal notranslate"><span class="pre">--break-system-packages</span></code> flag.</p>
+</div>
+</section>
+</section>
+<section id="installation-inside-of-a-virtual-environment">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">Installation inside of a virtual environment</a><a class="headerlink" href="#installation-inside-of-a-virtual-environment" title="Link to this heading"></a></h3>
+<p>You can use virtual environments to create a custom Python environment
+specifically tuned for your workflow.</p>
+<section id="benefits-of-using-a-virtualenv">
+<h4><a class="toc-backref" href="#id8" role="doc-backlink">Benefits of using a virtualenv</a><a class="headerlink" href="#benefits-of-using-a-virtualenv" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>isolation of your system Python installation from your development installation</p></li>
+<li><p>installation can happen in your user directory without root access (useful for HPC clusters)</p></li>
+<li><p>installing packages through pip allows you to get newer versions of packages than e.g., through apt-get or yum package managers (and without root access)</p></li>
+<li><p>you can even install specific old versions of a package if necessary</p></li>
+</ul>
+<p><strong>Prerequisite (e.g. on Ubuntu)</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>apt-get<span class="w"> </span>install<span class="w"> </span>python-venv
+</pre></div>
+</div>
+</section>
+<section id="creating-a-virtualenv-with-lammps-installed">
+<h4><a class="toc-backref" href="#id9" role="doc-backlink">Creating a virtualenv with lammps installed</a><a class="headerlink" href="#creating-a-virtualenv-with-lammps-installed" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># create virtual envrionment named &#39;testing&#39;</span>
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span><span class="nv">$HOME</span>/python/testing
+
+<span class="c1"># activate &#39;testing&#39; environment</span>
+<span class="nb">source</span><span class="w"> </span><span class="nv">$HOME</span>/python/testing/bin/activate
+</pre></div>
+</div>
+<p>Now configure and compile the LAMMPS shared library as outlined above.
+When using CMake and the shared library has already been build, you
+need to re-run CMake to update the location of the python executable
+to the location in the virtual environment with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>.<span class="w"> </span>-DPython_EXECUTABLE<span class="o">=</span><span class="k">$(</span>which<span class="w"> </span>python<span class="k">)</span>
+
+<span class="c1"># install LAMMPS package in virtualenv</span>
+<span class="o">(</span>testing<span class="o">)</span><span class="w"> </span>make<span class="w"> </span>install-python
+
+<span class="c1"># install other useful packages</span>
+<span class="o">(</span>testing<span class="o">)</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>matplotlib<span class="w"> </span>jupyter<span class="w"> </span>mpi4py<span class="w"> </span>pandas
+
+...
+
+<span class="c1"># return to original shell</span>
+<span class="o">(</span>testing<span class="o">)</span><span class="w"> </span>deactivate
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="creating-a-new-lammps-instance">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Creating a new lammps instance</a><a class="headerlink" href="#creating-a-new-lammps-instance" title="Link to this heading"></a></h2>
+<p>To create a lammps object you need to first import the class from the lammps
+module. By using the default constructor, a new <a class="reference internal" href="Python_module.html#lammps.lammps" title="lammps.lammps"><code class="xref py py-class docutils literal notranslate"><span class="pre">lammps</span></code></a> instance is created.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">lammps</span><span class="w"> </span><span class="kn">import</span> <span class="n">lammps</span>
+<span class="n">L</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="Python_create.html"><span class="doc">LAMMPS Python documentation</span></a> for how to customize
+the instance creation with optional arguments.</p>
+</section>
+<hr class="docutils" />
+<section id="commands">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Commands</a><a class="headerlink" href="#commands" title="Link to this heading"></a></h2>
+<p>Sending a LAMMPS command with the library interface is done using
+the <code class="docutils literal notranslate"><span class="pre">command</span></code> method of the lammps object.</p>
+<p>For instance, let’s take the following LAMMPS command:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">region </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span>
+</pre></div>
+</div>
+<p>This command can be executed with the following Python code if <code class="docutils literal notranslate"><span class="pre">L</span></code> is a <code class="docutils literal notranslate"><span class="pre">lammps</span></code>
+instance:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="s2">&quot;region box block 0 10 0 5 -0.5 0.5&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For convenience, the <code class="docutils literal notranslate"><span class="pre">lammps</span></code> class also provides a command wrapper <code class="docutils literal notranslate"><span class="pre">cmd</span></code>
+that turns any LAMMPS command into a regular function call:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">region</span><span class="p">(</span><span class="s2">&quot;box block&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that each parameter is set as Python number literal. With
+the wrapper each command takes an arbitrary parameter list and transparently
+merges it to a single command string, separating individual parameters by
+white-space.</p>
+<p>The benefit of this approach is avoiding redundant command calls and easier
+parameterization. With the <code class="docutils literal notranslate"><span class="pre">command</span></code> function each call needs to be assembled
+manually using formatted strings.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="o">.</span><span class="n">command</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;region box block </span><span class="si">{</span><span class="n">xlo</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">xhi</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">ylo</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">yhi</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">zlo</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">zhi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The wrapper accepts parameters directly and will convert
+them automatically to a final command string.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">L</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">region</span><span class="p">(</span><span class="s2">&quot;box block&quot;</span><span class="p">,</span> <span class="n">xlo</span><span class="p">,</span> <span class="n">xhi</span><span class="p">,</span> <span class="n">ylo</span><span class="p">,</span> <span class="n">yhi</span><span class="p">,</span> <span class="n">zlo</span><span class="p">,</span> <span class="n">zhi</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When running in IPython you can use Tab-completion after <code class="docutils literal notranslate"><span class="pre">L.cmd.</span></code> to see
+all available LAMMPS commands.</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="accessing-atom-data">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Accessing atom data</a><a class="headerlink" href="#accessing-atom-data" title="Link to this heading"></a></h2>
+<p>All per-atom properties that are part of the <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> in the current simulation can be accessed using the
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">extract_atoms()</span></code> method.  This
+can be retrieved as ctypes objects or as NumPy arrays through the
+lammps.numpy module.  Those represent the <em>local</em> atoms of the
+individual sub-domain for the current MPI process and may contain
+information for the local ghost atoms or not depending on the property.
+Both can be accessed as lists, but for the ctypes list object the size
+is not known and hast to be retrieved first to avoid out-of-bounds
+accesses.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">nlocal</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">extract_setting</span><span class="p">(</span><span class="s2">&quot;nlocal&quot;</span><span class="p">)</span>
+<span class="n">nall</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">extract_setting</span><span class="p">(</span><span class="s2">&quot;nall&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of local atoms &quot;</span><span class="p">,</span> <span class="n">nlocal</span><span class="p">,</span> <span class="s2">&quot;  Number of local and ghost atoms &quot;</span><span class="p">,</span> <span class="n">nall</span><span class="p">);</span>
+
+<span class="c1"># access via ctypes directly</span>
+<span class="n">atom_id</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Atom IDs&quot;</span><span class="p">,</span> <span class="n">atom_id</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nlocal</span><span class="p">])</span>
+
+<span class="c1"># access through numpy wrapper</span>
+<span class="n">atom_type</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;type&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Atom types&quot;</span><span class="p">,</span> <span class="n">atom_type</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;v&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;positions array shape&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;velocity array shape&quot;</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="c1"># turn on communicating velocities to ghost atoms</span>
+<span class="n">L</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">comm_modify</span><span class="p">(</span><span class="s2">&quot;vel&quot;</span><span class="p">,</span> <span class="s2">&quot;yes&quot;</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s1">&#39;v&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;velocity array shape&quot;</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Some properties can also be set from Python since internally the
+data of the C++ code is accessed directly:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># set position in 2D simulation</span>
+<span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+<span class="c1"># set position in 3D simulation</span>
+<span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="retrieving-the-values-of-thermodynamic-data-and-variables">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Retrieving the values of thermodynamic data and variables</a><a class="headerlink" href="#retrieving-the-values-of-thermodynamic-data-and-variables" title="Link to this heading"></a></h2>
+<p>To access thermodynamic data from the last completed timestep,
+you can use the <a class="reference internal" href="Python_module.html#lammps.lammps.get_thermo" title="lammps.lammps.get_thermo"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_thermo()</span></code></a>
+method, and to extract the value of (compatible) variables, you
+can use the <a class="reference internal" href="Python_module.html#lammps.lammps.extract_variable" title="lammps.lammps.extract_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">extract_variable()</span></code></a>
+method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;ke&quot;</span><span class="p">)</span> <span class="c1"># kinetic energy</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">)</span> <span class="c1"># potential energy</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">extract_variable</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+</pre></div>
+</div>
+</section>
+<section id="error-handling">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Error handling</a><a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
+<p>We are using C++ exceptions in LAMMPS for errors and the C language
+library interface captures and records them.  This allows checking
+whether errors have happened in Python during a call into LAMMPS and
+then re-throw the error as a Python exception.  This way you can handle
+LAMMPS errors in the conventional way through the Python exception
+handling mechanism.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Capturing a LAMMPS exception in Python can still mean that the
+current LAMMPS process is in an illegal state and must be
+terminated.  It is advised to save your data and terminate the Python
+instance as quickly as possible.</p>
+</div>
+</section>
+<section id="using-lammps-in-ipython-notebooks-and-jupyter">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Using LAMMPS in IPython notebooks and Jupyter</a><a class="headerlink" href="#using-lammps-in-ipython-notebooks-and-jupyter" title="Link to this heading"></a></h2>
+<p>If the LAMMPS Python package is installed for the same Python
+interpreter as IPython, you can use LAMMPS directly inside of an IPython
+notebook inside of Jupyter. Jupyter is a powerful integrated development
+environment (IDE) for many dynamic languages like Python, Julia and
+others, which operates inside of any web browser.  Besides
+auto-completion and syntax highlighting it allows you to create
+formatted documents using Markup, mathematical formulas, graphics and
+animations intermixed with executable Python code.  It is a great format
+for tutorials and showcasing your latest research.</p>
+<p>To launch an instance of Jupyter simply run the following command inside your
+Python environment (this assumes you followed the Quick Start instructions):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>jupyter<span class="w"> </span>notebook
+</pre></div>
+</div>
+</section>
+<section id="interactive-python-examples">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Interactive Python Examples</a><a class="headerlink" href="#interactive-python-examples" title="Link to this heading"></a></h2>
+<p>Examples of IPython notebooks can be found in the <code class="docutils literal notranslate"><span class="pre">python/examples/ipython</span></code>
+subdirectory. To open these notebooks launch <code class="docutils literal notranslate"><span class="pre">jupyter</span> <span class="pre">notebook</span></code> inside this
+directory and navigate to one of them. If you compiled and installed
+a LAMMPS shared library with PNG, JPEG and FFMPEG support
+you should be able to rerun all of these notebooks.</p>
+<section id="validating-a-dihedral-potential">
+<h3><a class="toc-backref" href="#id17" role="doc-backlink">Validating a dihedral potential</a><a class="headerlink" href="#validating-a-dihedral-potential" title="Link to this heading"></a></h3>
+<p>This example showcases how an IPython Notebook can be used to compare a simple
+LAMMPS simulation of a harmonic dihedral potential to its analytical solution.
+Four atoms are placed in the simulation and the dihedral potential is applied on
+them using a datafile. Then one of the atoms is rotated along the central axis by
+setting its position from Python, which changes the dihedral angle.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">phi</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span> \<span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">360</span><span class="p">)]</span>
+
+<span class="n">pos</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">p</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">p</span><span class="p">))</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">phi</span><span class="p">]</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+<span class="n">pe</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pos</span><span class="p">:</span>
+    <span class="n">x</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">p</span>
+    <span class="n">L</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="s2">&quot;no&quot;</span><span class="p">)</span>
+    <span class="n">pe</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>By evaluating the potential energy for each position we can verify that
+trajectory with the analytical formula.  To compare both solutions, we plot
+both trajectories over each other using matplotlib, which embeds the generated
+plot inside the IPython notebook.</p>
+<img alt="_images/python_dihedral.jpg" class="align-center" src="_images/python_dihedral.jpg" />
+</section>
+<section id="running-a-monte-carlo-relaxation">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Running a Monte Carlo relaxation</a><a class="headerlink" href="#running-a-monte-carlo-relaxation" title="Link to this heading"></a></h3>
+<p>This second example shows how to use the <cite>lammps</cite> Python interface to create a
+2D Monte Carlo Relaxation simulation, computing and plotting energy terms and
+even embedding video output.</p>
+<p>Initially, a 2D system is created in a state with minimal energy.</p>
+<img alt="_images/python_mc_minimum.jpg" class="align-center" src="_images/python_mc_minimum.jpg" />
+<p>It is then disordered by moving each atom by a random delta.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">27848</span><span class="p">)</span>
+<span class="n">deltaperturb</span> <span class="o">=</span> <span class="mf">0.2</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<span class="n">natoms</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">natoms</span><span class="p">):</span>
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">deltaperturb</span> \<span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">deltaperturb</span> \<span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dx</span>
+    <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">dy</span>
+
+<span class="n">L</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;post&quot;</span><span class="p">,</span> <span class="s2">&quot;no&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/python_mc_disordered.jpg" class="align-center" src="_images/python_mc_disordered.jpg" />
+<p>Finally, the Monte Carlo algorithm is implemented in Python. It continuously
+moves random atoms by a random delta and only accepts certain moves.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">estart</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">)</span>
+<span class="n">elast</span> <span class="o">=</span> <span class="n">estart</span>
+
+<span class="n">naccept</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">energies</span> <span class="o">=</span> <span class="p">[</span><span class="n">estart</span><span class="p">]</span>
+
+<span class="n">niterations</span> <span class="o">=</span> <span class="mi">3000</span>
+<span class="n">deltamove</span> <span class="o">=</span> <span class="mf">0.1</span>
+<span class="n">kT</span> <span class="o">=</span> <span class="mf">0.05</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">niterations</span><span class="p">):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">numpy</span><span class="o">.</span><span class="n">extract_atom</span><span class="p">(</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">natoms</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">iatom</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">natoms</span><span class="p">)</span>
+    <span class="n">current_atom</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">iatom</span><span class="p">]</span>
+
+    <span class="n">x0</span> <span class="o">=</span> <span class="n">current_atom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y0</span> <span class="o">=</span> <span class="n">current_atom</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">deltamove</span> \<span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">dy</span> <span class="o">=</span> <span class="n">deltamove</span> \<span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">current_atom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">dx</span>
+    <span class="n">current_atom</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span> <span class="o">+</span> <span class="n">dy</span>
+
+    <span class="n">L</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;pre no post no&quot;</span><span class="p">)</span>
+
+    <span class="n">e</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">get_thermo</span><span class="p">(</span><span class="s2">&quot;pe&quot;</span><span class="p">)</span>
+    <span class="n">energies</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">e</span> <span class="o">&lt;=</span> <span class="n">elast</span><span class="p">:</span>
+        <span class="n">naccept</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">elast</span> <span class="o">=</span> <span class="n">e</span>
+    <span class="k">elif</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">natoms</span>\<span class="o">*</span><span class="p">(</span><span class="n">elast</span><span class="o">-</span><span class="n">e</span><span class="p">)</span><span class="o">/</span><span class="n">kT</span><span class="p">):</span>
+        <span class="n">naccept</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">elast</span> <span class="o">=</span> <span class="n">e</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">current_atom</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x0</span>
+        <span class="n">current_atom</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y0</span>
+</pre></div>
+</div>
+<p>The energies of each iteration are collected in a Python list and finally plotted using matplotlib.</p>
+<img alt="_images/python_mc_energies_plot.jpg" class="align-center" src="_images/python_mc_energies_plot.jpg" />
+<p>The IPython notebook also shows how to use dump commands and embed video files
+inside of the IPython notebook.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_moltemplate.html" class="btn btn-neutral float-left" title="10.6.4. Moltemplate Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_wsl.html" class="btn btn-neutral float-right" title="10.6.6. Using LAMMPS on Windows 10 with WSL" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

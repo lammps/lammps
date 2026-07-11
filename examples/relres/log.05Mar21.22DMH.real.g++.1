@@ -1,0 +1,456 @@
+LAMMPS (10 Feb 2021)
+  using 1 OpenMP thread(s) per MPI task
+# Example: use of lj/relres for simulation of 2,2-dimethylhexane: C3H7-C5H11
+# with various Rso setting as well as run of reference system for time comparison (real units)
+# The first run writes restart file that is used by all subsequent runs.
+
+# Run relres with Rso=6.25
+
+units           real
+atom_style      molecular
+boundary        p p p
+dielectric      1
+special_bonds   lj/coul 0.0 0.0 0.5
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  fourier
+
+pair_style      lj/relres 5.75 6.25 12.0 14.0
+read_data       Data.22DMH.in.real
+Reading data file ...
+  orthogonal box = (3.7421629 3.7421629 3.7421629) to (68.257837 68.257837 68.257837)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  8000 atoms
+  reading velocities ...
+  8000 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  3 = max dihedrals/atom
+  reading bonds ...
+  7000 bonds
+  reading angles ...
+  9000 angles
+  reading dihedrals ...
+  5000 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.5     
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     5 = max # of 1-4 neighbors
+     7 = max # of special neighbors
+  special bonds CPU = 0.003 seconds
+  read_data CPU = 0.036 seconds
+
+pair_coeff      6    6  0.175  3.905  0.0     0.0
+pair_coeff      4    4  0.118  3.905  0.0     0.0
+pair_coeff      2    2  0.118  3.905  1.2218  3.905
+pair_coeff      5    5  0.145  3.960  0.0     0.0
+pair_coeff      3    3  0.118  3.905  0.0     0.0
+pair_coeff      1    1  0.05   3.8    2.9128  3.9309
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+
+run 1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Pair style lj/relres: doi:10.1021/acs.jctc.0c01003
+
+@Article{Chaimovich1,
+ author = {A. Chaimovich, C. Peter, K. Kremer},
+ title = {Relative resolution: A hybrid formalism for fluid mixtures},
+ journal = {J.~Chem.~Phys.},
+ year =    2015,
+ volume =  143,
+ pages =   {243107}
+@Article{Chaimovich2,
+ author = {M. Chaimovich, A. Chaimovich},
+ title = {Relative Resolution: A Computationally Efficient Implementation in LAMMPS},
+ journal = {J.~Chem.~Theory~Comput.},
+ year =    2021,
+ volume =  17,
+ pages =   {1045--1059}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/relres, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 20.01 | 20.01 | 20.01 Mbytes
+Step Temp Press PotEng KinEng TotEng E_pair E_mol Volume 
+       0    286.85653   -328.51562    3703.8924    6839.6636    10543.556   -4875.3137    8579.2062     268531.8 
+     100      293.231    -55.62132    3520.4874    6991.6533    10512.141   -4797.2633    8317.7507     268531.8 
+     200    292.73476    332.40528    3456.3029    6979.8212    10436.124   -4914.7261    8371.0291     268531.8 
+     300    292.56511    221.98408    3380.7472    6975.7762    10356.523   -4936.5552    8317.3024     268531.8 
+     400    288.42948    117.72433     3428.113    6877.1681    10305.281   -4887.6852    8315.7982     268531.8 
+     500    289.20503   -238.73381     3373.758    6895.6601    10269.418   -4947.3214    8321.0795     268531.8 
+     600    292.02137    74.370782    3263.4324    6962.8115    10226.244   -4948.3906     8211.823     268531.8 
+     700    290.20603    475.24398    3260.0754    6919.5273    10179.603   -4931.4093    8191.4846     268531.8 
+     800    293.12504    175.54324    3156.6048    6989.1268    10145.732   -5006.7161    8163.3209     268531.8 
+     900    287.78433    63.785361    3251.5393    6861.7855    10113.325    -5029.094    8280.6333     268531.8 
+    1000    290.11974   -101.34839    3183.4817      6917.47    10100.952   -5002.9413     8186.423     268531.8 
+Loop time of 6.05162 on 1 procs for 1000 steps with 8000 atoms
+
+Performance: 14.277 ns/day, 1.681 hours/ns, 165.245 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.7637     | 4.7637     | 4.7637     |   0.0 | 78.72
+Bond    | 0.693      | 0.693      | 0.693      |   0.0 | 11.45
+Neigh   | 0.41311    | 0.41311    | 0.41311    |   0.0 |  6.83
+Comm    | 0.070843   | 0.070843   | 0.070843   |   0.0 |  1.17
+Output  | 0.00045886 | 0.00045886 | 0.00045886 |   0.0 |  0.01
+Modify  | 0.084814   | 0.084814   | 0.084814   |   0.0 |  1.40
+Other   |            | 0.02564    |            |       |  0.42
+
+Nlocal:        8000.00 ave        8000 max        8000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        18934.0 ave       18934 max       18934 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        371920.0 ave      371920 max      371920 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 371920
+Ave neighs/atom = 46.490000
+Ave special neighs/atom = 5.2500000
+Neighbor list builds = 13
+Dangerous builds = 0
+
+write_restart	restart.relres.real
+System init for write_restart ...
+
+# Run relres with Rso=7.25
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.relres.real
+Reading restart file ...
+  restart file = 10 Feb 2021, LAMMPS = 10 Feb 2021
+  restoring atom style molecular from restart
+  orthogonal box = (3.7421629 3.7421629 3.7421629) to (68.257837 68.257837 68.257837)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/relres from restart
+  restoring bond style harmonic from restart
+  restoring angle style harmonic from restart
+  restoring dihedral style fourier from restart
+  8000 atoms
+  7000 bonds
+  9000 angles
+  5000 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.5     
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     5 = max # of 1-4 neighbors
+     7 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_restart CPU = 0.004 seconds
+
+pair_style      lj/relres 6.75 7.25 12.0 14.0
+
+pair_coeff      6    6  0.175  3.905  0.0     0.0
+pair_coeff      4    4  0.118  3.905  0.0     0.0
+pair_coeff      2    2  0.118  3.905  1.2218  3.905
+pair_coeff      5    5  0.145  3.960  0.0     0.0
+pair_coeff      3    3  0.118  3.905  0.0     0.0
+pair_coeff      1    1  0.05   3.8    2.9128  3.9309
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 2
+
+run 1000
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/relres, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 20.51 | 20.51 | 20.51 Mbytes
+Step Temp Press PotEng KinEng TotEng E_pair E_mol Volume 
+    1000    290.11974     21.86402    3334.7257      6917.47    10252.196   -4851.6973     8186.423     268531.8 
+    1100    289.71937    460.00291    3365.0978    6907.9236    10273.021   -4881.5513    8246.6491     268531.8 
+    1200     293.0828    194.76483    3348.6267    6988.1197    10336.746   -4743.4894    8092.1162     268531.8 
+    1300    291.27785    153.93026    3496.2858    6945.0834    10441.369   -4753.3325    8249.6183     268531.8 
+    1400    292.69435   -51.690836    3516.6743    6978.8575    10495.532   -4774.0701    8290.7445     268531.8 
+    1500     290.0279    149.43706    3578.8283    6915.2801    10494.108   -4815.5857     8394.414     268531.8 
+    1600    292.89473   -109.05125    3487.6652    6983.6354    10471.301   -4839.1407    8326.8059     268531.8 
+    1700    290.99802   -146.06465      3496.48    6938.4111    10434.891   -4868.0031    8364.4831     268531.8 
+    1800    286.48455   -45.580207    3550.2611    6830.7943    10381.055   -4766.3336    8316.5947     268531.8 
+    1900     287.0735   -157.60878    3488.4248    6844.8368    10333.262   -4853.6992     8342.124     268531.8 
+    2000    287.38046   -429.32757    3435.8336    6852.1558    10287.989   -4878.4345    8314.2681     268531.8 
+Loop time of 7.46943 on 1 procs for 1000 steps with 8000 atoms
+
+Performance: 11.567 ns/day, 2.075 hours/ns, 133.879 timesteps/s
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.1145     | 6.1145     | 6.1145     |   0.0 | 81.86
+Bond    | 0.71392    | 0.71392    | 0.71392    |   0.0 |  9.56
+Neigh   | 0.45677    | 0.45677    | 0.45677    |   0.0 |  6.12
+Comm    | 0.072404   | 0.072404   | 0.072404   |   0.0 |  0.97
+Output  | 0.00036481 | 0.00036481 | 0.00036481 |   0.0 |  0.00
+Modify  | 0.085956   | 0.085956   | 0.085956   |   0.0 |  1.15
+Other   |            | 0.02552    |            |       |  0.34
+
+Nlocal:        8000.00 ave        8000 max        8000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        18846.0 ave       18846 max       18846 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        475557.0 ave      475557 max      475557 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 475557
+Ave neighs/atom = 59.444625
+Ave special neighs/atom = 5.2500000
+Neighbor list builds = 14
+Dangerous builds = 0
+
+# Run relres with mixed Rso: 6.25 for C3H7 group and 7.25 for C5H11 group
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.relres.real
+Reading restart file ...
+  restart file = 10 Feb 2021, LAMMPS = 10 Feb 2021
+  restoring atom style molecular from restart
+  orthogonal box = (3.7421629 3.7421629 3.7421629) to (68.257837 68.257837 68.257837)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/relres from restart
+  restoring bond style harmonic from restart
+  restoring angle style harmonic from restart
+  restoring dihedral style fourier from restart
+  8000 atoms
+  7000 bonds
+  9000 angles
+  5000 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.5     
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     5 = max # of 1-4 neighbors
+     7 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_restart CPU = 0.004 seconds
+
+pair_style      lj/relres 6.75 7.25 12.0 14.0
+
+pair_coeff      6    6  0.175  3.905  0.0     0.0    5.75 6.25 12.0 14.0
+pair_coeff      4    4  0.118  3.905  0.0     0.0    5.75 6.25 12.0 14.0
+pair_coeff      2    2  0.118  3.905  1.2218  3.905  5.75 6.25 12.0 14.0
+pair_coeff      5    5  0.145  3.960  0.0     0.0
+pair_coeff      3    3  0.118  3.905  0.0     0.0
+pair_coeff      1    1  0.05   3.8    2.9128  3.9309
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 2
+
+run 1000
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/relres, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 20.51 | 20.51 | 20.51 Mbytes
+Step Temp Press PotEng KinEng TotEng E_pair E_mol Volume 
+    1000    290.11974    54.754001    3314.0966      6917.47    10231.567   -4872.3264     8186.423     268531.8 
+    1100    289.78217    480.37221    3342.8765    6909.4211    10252.298   -4900.7266    8243.6032     268531.8 
+    1200    293.25523    188.46596    3322.6257    6992.2308    10314.857   -4771.3485    8093.9742     268531.8 
+    1300    291.59734    146.50303    3465.2113     6952.701    10417.912   -4782.9861    8248.1974     268531.8 
+    1400    292.71873   -40.372074     3491.747    6979.4389    10471.186   -4790.7124    8282.4594     268531.8 
+    1500    290.60378    120.25863    3539.5538    6929.0112    10468.565   -4849.9813    8389.5351     268531.8 
+    1600    293.21218   -143.75501    3452.9516    6991.2046    10444.156   -4885.0192    8337.9708     268531.8 
+    1700    291.02865   -207.34728    3465.4131    6939.1416    10404.555    -4887.363    8352.7761     268531.8 
+    1800    286.00091   -91.017961    3530.3422    6819.2625    10349.605   -4807.6624    8338.0046     268531.8 
+    1900     286.3006     -145.399    3485.1695    6826.4082    10311.578    -4848.263    8333.4325     268531.8 
+    2000    288.43931   -469.99712    3409.0906    6877.4025    10286.493   -4905.9002    8314.9907     268531.8 
+Loop time of 6.78592 on 1 procs for 1000 steps with 8000 atoms
+
+Performance: 12.732 ns/day, 1.885 hours/ns, 147.364 timesteps/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.4637     | 5.4637     | 5.4637     |   0.0 | 80.52
+Bond    | 0.68994    | 0.68994    | 0.68994    |   0.0 | 10.17
+Neigh   | 0.45166    | 0.45166    | 0.45166    |   0.0 |  6.66
+Comm    | 0.070376   | 0.070376   | 0.070376   |   0.0 |  1.04
+Output  | 0.000405   | 0.000405   | 0.000405   |   0.0 |  0.01
+Modify  | 0.084545   | 0.084545   | 0.084545   |   0.0 |  1.25
+Other   |            | 0.02527    |            |       |  0.37
+
+Nlocal:        8000.00 ave        8000 max        8000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        18820.0 ave       18820 max       18820 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:        434269.0 ave      434269 max      434269 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 434269
+Ave neighs/atom = 54.283625
+Ave special neighs/atom = 5.2500000
+Neighbor list builds = 14
+Dangerous builds = 0
+
+# Run reference system with lj/smooth
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+read_restart	restart.relres.real
+Reading restart file ...
+  restart file = 10 Feb 2021, LAMMPS = 10 Feb 2021
+  restoring atom style molecular from restart
+  orthogonal box = (3.7421629 3.7421629 3.7421629) to (68.257837 68.257837 68.257837)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style lj/relres from restart
+  restoring bond style harmonic from restart
+  restoring angle style harmonic from restart
+  restoring dihedral style fourier from restart
+  8000 atoms
+  7000 bonds
+  9000 angles
+  5000 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.5     
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     5 = max # of 1-4 neighbors
+     7 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_restart CPU = 0.004 seconds
+
+pair_style      lj/smooth 12.0 14.0
+
+pair_coeff      6    6  0.175  3.905
+pair_coeff      4    4  0.118  3.905
+pair_coeff      2    2  0.118  3.905
+pair_coeff      5    5  0.145  3.960
+pair_coeff      3    3  0.118  3.905
+pair_coeff      1    1  0.05   3.8
+pair_modify     shift yes
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 1.0
+thermo 100
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e+02
+Resetting global fix info from restart file:
+  fix style: nvt, fix ID: 2
+
+run 1000
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/smooth, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 26.62 | 26.62 | 26.62 Mbytes
+Step Temp Press PotEng KinEng TotEng E_pair E_mol Volume 
+    1000    290.11974   -80.648214    3258.0256      6917.47    10175.496   -4928.3973     8186.423     268531.8 
+    1100    289.70919    358.20314     3288.412    6907.6811    10196.093   -4959.5166    8247.9285     268531.8 
+    1200    292.84488    96.692992    3277.1296    6982.4468    10259.576   -4818.7374     8095.867     268531.8 
+    1300    291.07262    65.629153    3425.4662    6940.1899    10365.656   -4828.0862    8253.5524     268531.8 
+    1400    292.39722   -113.07286    3448.8088     6971.773    10420.582   -4841.3586    8290.1674     268531.8 
+    1500    289.80998    90.176596    3510.6526    6910.0843    10420.737   -4884.6145    8395.2671     268531.8 
+    1600    292.48452   -180.26543    3426.6967    6973.8544    10400.551     -4903.46    8330.1567     268531.8 
+    1700    291.32152   -220.54923     3421.802    6946.1246    10367.927    -4946.101    8367.9031     268531.8 
+    1800    286.77292   -101.26406    3475.3166    6837.6701    10312.987    -4830.565    8305.8816     268531.8 
+    1900     286.6849   -161.65289    3428.0457    6835.5713    10263.617   -4909.5924    8337.6381     268531.8 
+    2000     287.3785   -477.01298    3367.9719    6852.1091    10220.081   -4962.7001    8330.6719     268531.8 
+Loop time of 25.7415 on 1 procs for 1000 steps with 8000 atoms
+
+Performance: 3.356 ns/day, 7.150 hours/ns, 38.848 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 24.253     | 24.253     | 24.253     |   0.0 | 94.22
+Bond    | 0.72224    | 0.72224    | 0.72224    |   0.0 |  2.81
+Neigh   | 0.57723    | 0.57723    | 0.57723    |   0.0 |  2.24
+Comm    | 0.076624   | 0.076624   | 0.076624   |   0.0 |  0.30
+Output  | 0.00035693 | 0.00035693 | 0.00035693 |   0.0 |  0.00
+Modify  | 0.087599   | 0.087599   | 0.087599   |   0.0 |  0.34
+Other   |            | 0.02479    |            |       |  0.10
+
+Nlocal:        8000.00 ave        8000 max        8000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:        18804.0 ave       18804 max       18804 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.02600e+06 ave   2.026e+06 max   2.026e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2026005
+Ave neighs/atom = 253.25063
+Ave special neighs/atom = 5.2500000
+Neighbor list builds = 13
+Dangerous builds = 0
+
+Total wall time: 0:00:46

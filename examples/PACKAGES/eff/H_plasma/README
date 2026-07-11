@@ -1,0 +1,2 @@
+Example of a hydrogen plasma, using pre-set velocities for a temperature of 20000K (nve), setting the velocities to 50000K (nvt), and an isobaric-isothermic case (npt) to show volume and density convergence at specified temperature (20000K) and pressure (1GPa).
+

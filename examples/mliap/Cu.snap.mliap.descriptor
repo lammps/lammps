@@ -1,0 +1,21 @@
+# DATE: 2021-03-03 UNITS: metal CONTRIBUTOR: Pedro Antonio Santos Florez pedroantoniosantosf@gmail.com  CITATION: none
+
+# LAMMPS SNAP parameters for Cu
+
+# required
+rcutfac 5.0
+twojmax 6
+
+# elements
+
+nelems 1
+elems Cu
+radelems 0.5
+welems 1.0
+
+# optional
+
+rfac0 0.99363
+rmin0 0
+bzeroflag 0
+switchflag 1

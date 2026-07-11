@@ -1,0 +1,235 @@
+LAMMPS (4 Feb 2025 - Development - patch_4Feb2025-344-g0a4a2f6deb-modified)
+Processor partition = 1
+  using 1 OpenMP thread(s) per MPI task
+# Units and dimensions
+units        electron
+dimension    3
+boundary     p p p
+atom_style   atomic
+atom_modify  map yes
+pair_style   none
+
+# Time step (in femtoseconds)
+timestep     0.5
+
+# Temperature (in Kelvin)
+variable     Temp equal 17.4
+
+# Number of Nose-Hoover chains
+variable     nhc equal 4
+
+# Force constant (in Hartree energies per Bohr radius squared)
+variable     k equal 1.2154614120000001e-08
+
+# Number of beads
+variable     Nbeads equal 4
+variable     ibead uloop ${Nbeads} pad
+variable     ibead uloop 4 pad
+variable     seed equal 18889
+
+# Create box and atoms. All distances are in Bohr
+region       box block -1500 1500 -1500 1500 -1500 1500
+create_box   1 box
+Created orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  1 by 1 by 1 MPI processor grid
+variable     a loop 3
+label        loop
+variable     x1 equal -15.0+0.5*v_a
+variable     y1 equal 10.0-0.5*v_a
+variable     z1 equal 1+0.5*v_a
+create_atoms 1 single ${x1} ${y1} ${z1}
+create_atoms 1 single -14.5 ${y1} ${z1}
+create_atoms 1 single -14.5 9.5 ${z1}
+create_atoms 1 single -14.5 9.5 1.5
+Created 1 atoms
+  using lattice units in orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  create_atoms CPU = 0.000 seconds
+next         a
+jump         SELF loop
+variable     x1 equal -15.0+0.5*v_a
+variable     y1 equal 10.0-0.5*v_a
+variable     z1 equal 1+0.5*v_a
+create_atoms 1 single ${x1} ${y1} ${z1}
+create_atoms 1 single -14 ${y1} ${z1}
+create_atoms 1 single -14 9 ${z1}
+create_atoms 1 single -14 9 2
+Created 1 atoms
+  using lattice units in orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  create_atoms CPU = 0.000 seconds
+next         a
+jump         SELF loop
+variable     x1 equal -15.0+0.5*v_a
+variable     y1 equal 10.0-0.5*v_a
+variable     z1 equal 1+0.5*v_a
+create_atoms 1 single ${x1} ${y1} ${z1}
+create_atoms 1 single -13.5 ${y1} ${z1}
+create_atoms 1 single -13.5 8.5 ${z1}
+create_atoms 1 single -13.5 8.5 2.5
+Created 1 atoms
+  using lattice units in orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  create_atoms CPU = 0.000 seconds
+next         a
+jump         SELF loop
+
+# Electron mass (in amu)
+mass         1 0.00054858
+
+# Initialize velocities
+velocity     all create ${Temp} ${seed}${ibead} mom yes rot yes dist gaussian
+velocity     all create 17.4 ${seed}${ibead} mom yes rot yes dist gaussian
+velocity     all create 17.4 18889${ibead} mom yes rot yes dist gaussian
+velocity     all create 17.4 188892 mom yes rot yes dist gaussian
+
+# Add harmonic external force
+fix          harm all spring/self ${k}
+fix          harm all spring/self 1.215461412e-08
+
+# Add harmonic potential energy to total energy and potential energy
+fix_modify   harm energy yes
+
+# PIMD command
+fix          pimdb all pimd/nvt/bosonic method pimd temp ${Temp} nhc ${nhc}
+fix          pimdb all pimd/nvt/bosonic method pimd temp 17.4 nhc ${nhc}
+fix          pimdb all pimd/nvt/bosonic method pimd temp 17.4 nhc 4
+
+# Outputs
+variable virial        equal f_pimdb[3]
+variable prim_kinetic  equal f_pimdb[4]
+
+thermo_style custom step pe v_virial v_prim_kinetic
+thermo          1
+
+run             100
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2444)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (src/comm_brick.cpp:212)
+Per MPI rank memory allocation (min/avg/max) = 9.176 | 9.176 | 9.176 Mbytes
+   Step         PotEng        v_virial    v_prim_kinetic
+         0   0              0              0.00024796164
+         1   8.5850843e-10  5.313724e-10   0.00024796083
+         2   3.4339027e-09  1.4919466e-09  0.00024795841
+         3   7.7257901e-09  2.8816048e-09  0.00024795438
+         4   1.3733516e-08  4.7001635e-09  0.00024794873
+         5   2.1456164e-08  6.9473741e-09  0.00024794148
+         6   3.0892555e-08  9.6229225e-09  0.00024793261
+         7   4.2041252e-08  1.2726429e-08  0.00024792214
+         8   5.4900553e-08  1.6257449e-08  0.00024791006
+         9   6.9468499e-08  2.0215473e-08  0.00024789638
+        10   8.5742867e-08  2.4599926e-08  0.0002478811 
+        11   1.0372118e-07  2.9410168e-08  0.00024786422
+        12   1.2340069e-07  3.4645495e-08  0.00024784576
+        13   1.447784e-07   4.0305136e-08  0.0002478257 
+        14   1.6785106e-07  4.6388259e-08  0.00024780406
+        15   1.9261515e-07  5.2893965e-08  0.00024778084
+        16   2.190669e-07   5.9821291e-08  0.00024775605
+        17   2.4720228e-07  6.7169211e-08  0.00024772969
+        18   2.7701701e-07  7.4936635e-08  0.00024770176
+        19   3.0850655e-07  8.312241e-08   0.00024767228
+        20   3.416661e-07   9.1725317e-08  0.00024764125
+        21   3.7649064e-07  1.0074408e-07  0.00024760868
+        22   4.1297485e-07  1.1017735e-07  0.00024757457
+        23   4.511132e-07   1.2002372e-07  0.00024753893
+        24   4.9089989e-07  1.3028173e-07  0.00024750177
+        25   5.3232887e-07  1.4094984e-07  0.0002474631 
+        26   5.7539386e-07  1.5202647e-07  0.00024742293
+        27   6.2008832e-07  1.6350996e-07  0.00024738126
+        28   6.6640547e-07  1.7539859e-07  0.00024733811
+        29   7.1433828e-07  1.876906e-07   0.00024729348
+        30   7.6387949e-07  2.0038414e-07  0.00024724738
+        31   8.150216e-07   2.1347732e-07  0.00024719983
+        32   8.6775685e-07  2.2696818e-07  0.00024715084
+        33   9.2207727e-07  2.4085472e-07  0.0002471004 
+        34   9.7797464e-07  2.5513485e-07  0.00024704855
+        35   1.0354405e-06  2.6980645e-07  0.00024699528
+        36   1.0944662e-06  2.8486732e-07  0.00024694061
+        37   1.1550427e-06  3.0031522e-07  0.00024688456
+        38   1.2171611e-06  3.1614785e-07  0.00024682713
+        39   1.2808118e-06  3.3236283e-07  0.00024676833
+        40   1.3459853e-06  3.4895776e-07  0.00024670818
+        41   1.4126717e-06  3.6593016e-07  0.0002466467 
+        42   1.4808611e-06  3.832775e-07   0.0002465839 
+        43   1.5505431e-06  4.009972e-07   0.00024651978
+        44   1.6217074e-06  4.1908663e-07  0.00024645437
+        45   1.6943431e-06  4.3754308e-07  0.00024638767
+        46   1.7684394e-06  4.5636381e-07  0.00024631971
+        47   1.8439852e-06  4.7554603e-07  0.0002462505 
+        48   1.9209691e-06  4.9508689e-07  0.00024618005
+        49   1.9993796e-06  5.1498348e-07  0.00024610839
+        50   2.079205e-06   5.3523286e-07  0.00024603551
+        51   2.1604333e-06  5.5583202e-07  0.00024596145
+        52   2.2430524e-06  5.7677791e-07  0.00024588621
+        53   2.32705e-06    5.9806742e-07  0.00024580981
+        54   2.4124135e-06  6.1969741e-07  0.00024573228
+        55   2.4991302e-06  6.4166468e-07  0.00024565362
+        56   2.5871872e-06  6.6396597e-07  0.00024557386
+        57   2.6765714e-06  6.8659801e-07  0.00024549301
+        58   2.7672695e-06  7.0955745e-07  0.00024541108
+        59   2.859268e-06   7.328409e-07   0.00024532811
+        60   2.9525533e-06  7.5644494e-07  0.00024524409
+        61   3.0471115e-06  7.8036609e-07  0.00024515907
+        62   3.1429287e-06  8.0460083e-07  0.00024507304
+        63   3.2399907e-06  8.2914562e-07  0.00024498603
+        64   3.3382831e-06  8.5399683e-07  0.00024489807
+        65   3.4377915e-06  8.7915084e-07  0.00024480916
+        66   3.5385011e-06  9.0460395e-07  0.00024471933
+        67   3.6403972e-06  9.3035245e-07  0.0002446286 
+        68   3.7434648e-06  9.5639257e-07  0.00024453698
+        69   3.8476886e-06  9.8272051e-07  0.0002444445 
+        70   3.9530535e-06  1.0093324e-06  0.00024435118
+        71   4.0595439e-06  1.0362244e-06  0.00024425703
+        72   4.1671443e-06  1.0633926e-06  0.00024416208
+        73   4.275839e-06   1.0908331e-06  0.00024406635
+        74   4.3856121e-06  1.1185418e-06  0.00024396985
+        75   4.4964475e-06  1.1465147e-06  0.00024387262
+        76   4.6083292e-06  1.1747478e-06  0.00024377466
+        77   4.7212408e-06  1.2032371e-06  0.00024367601
+        78   4.835166e-06   1.2319783e-06  0.00024357668
+        79   4.9500883e-06  1.2609674e-06  0.00024347669
+        80   5.0659909e-06  1.2902001e-06  0.00024337607
+        81   5.1828572e-06  1.3196723e-06  0.00024327483
+        82   5.3006702e-06  1.3493797e-06  0.000243173  
+        83   5.419413e-06   1.379318e-06   0.0002430706 
+        84   5.5390685e-06  1.4094831e-06  0.00024296765
+        85   5.6596194e-06  1.4398705e-06  0.00024286417
+        86   5.7810485e-06  1.4704759e-06  0.00024276019
+        87   5.9033384e-06  1.501295e-06   0.00024265573
+        88   6.0264715e-06  1.5323234e-06  0.00024255081
+        89   6.1504303e-06  1.5635565e-06  0.00024244545
+        90   6.275197e-06   1.5949902e-06  0.00024233967
+        91   6.400754e-06   1.6266197e-06  0.0002422335 
+        92   6.5270834e-06  1.6584408e-06  0.00024212696
+        93   6.6541672e-06  1.6904488e-06  0.00024202007
+        94   6.7819875e-06  1.7226394e-06  0.00024191285
+        95   6.9105262e-06  1.7550078e-06  0.00024180534
+        96   7.0397651e-06  1.7875497e-06  0.00024169754
+        97   7.169686e-06   1.8202604e-06  0.00024158948
+        98   7.3002707e-06  1.8531354e-06  0.00024148118
+        99   7.4315008e-06  1.88617e-06    0.00024137268
+       100   7.563358e-06   1.9193596e-06  0.00024126398
+Loop time of 0.00190888 on 1 procs for 100 steps with 3 atoms
+
+Performance: 2263110719.025 fs/day, 0.000 hours/fs, 52386.822 timesteps/s, 157.160 katom-step/s
+0.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 2.774e-06  | 2.774e-06  | 2.774e-06  |   0.0 |  0.15
+Comm    | 2.3215e-05 | 2.3215e-05 | 2.3215e-05 |   0.0 |  1.22
+Output  | 0.00042246 | 0.00042246 | 0.00042246 |   0.0 | 22.13
+Modify  | 0.0013744  | 0.0013744  | 0.0013744  |   0.0 | 72.00
+Other   |            | 8.601e-05  |            |       |  4.51
+
+Nlocal:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 23
+Dangerous builds = 0
+Total wall time: 0:00:00

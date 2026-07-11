@@ -1,0 +1,566 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>thermo_modify command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/thermo_modify.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="thermo_style command" href="thermo_style.html" />
+    <link rel="prev" title="thermo command" href="thermo.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">thermo_modify command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">thermo_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="thermo.html" class="btn btn-neutral float-left" title="thermo command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="thermo_style.html" class="btn btn-neutral float-right" title="thermo_style command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="thermo-modify-command">
+<span id="index-0"></span><h1>thermo_modify command<a class="headerlink" href="#thermo-modify-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">thermo_modify</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>one or more keyword/value pairs may be listed</p></li>
+<li><p>keyword = <em>lost</em> or <em>lost/bond</em> or <em>warn</em> or <em>norm</em> or <em>flush</em> or <em>line</em> or <em>colname</em> or <em>format</em> or <em>temp</em> or <em>press</em> or <em>triclinic/general</em></p>
+<pre class="literal-block"><em>lost</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em>
+<em>lost/bond</em> value = <em>error</em> or <em>warn</em> or <em>ignore</em>
+<em>warn</em> value = <em>ignore</em> or <em>reset</em> or <em>default</em> or a number
+<em>norm</em> value = <em>yes</em> or <em>no</em>
+<em>flush</em> value = <em>yes</em> or <em>no</em>
+<em>line</em> value = <em>one</em> or <em>multi</em> or <em>yaml</em>
+<em>colname</em> values =  ID string, or <em>auto</em> or <em>default</em>
+  string = new column header name
+  ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+       <em>or</em> a thermo keyword or reference to compute, fix, property or variable.
+<em>format</em> values = <em>line</em> string, <em>int</em> string, <em>float</em> string, ID string, or <em>none</em>
+  string = C-style format string
+  ID = integer from 1 to N, or integer from -1 to -N, where N = # of quantities being output
+       <em>or</em> an integer range such as 2*6 (negative values are not allowed)
+       <em>or</em> a thermo keyword or reference to compute, fix, property or variable.
+<em>temp</em> value = compute ID that calculates a temperature
+<em>press</em> value = compute ID that calculates a pressure
+<em>triclinic/general</em> arg = <em>yes</em> or <em>no</em></pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">thermo_modify</span><span class="w"> </span><span class="n">lost</span><span class="w"> </span><span class="n">ignore</span><span class="w"> </span><span class="n">flush</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">thermo_modify</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">myTemp</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="o">%</span><span class="m">15.8</span><span class="n">g</span>
+<span class="k">thermo_modify</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">myTemp</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="s">&quot;%ld %g %g %15.8g&quot;</span>
+<span class="k">thermo_modify</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="n">multi</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">float</span><span class="w"> </span><span class="o">%</span><span class="n">g</span>
+<span class="k">thermo_modify</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="n">yaml</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">none</span>
+<span class="k">thermo_modify</span><span class="w"> </span><span class="n">colname</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">Timestep</span><span class="w"> </span><span class="n">colname</span><span class="w"> </span><span class="o">-</span><span class="m">2</span><span class="w"> </span><span class="n">Pressure</span><span class="w"> </span><span class="n">colname</span><span class="w"> </span><span class="n">f_1[1]</span><span class="w"> </span><span class="n">AvgDensity</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Set options for how thermodynamic information is computed and printed by
+LAMMPS.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These options apply to the <em>currently defined</em> thermo style.  When
+you specify a <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command, all
+thermodynamic settings are restored to their default values,
+including those previously reset by a thermo_modify command.  Thus if
+your input script specifies a thermo_style command, you should use
+the thermo_modify command <strong>after</strong> it.</p>
+</div>
+<p>The <em>lost</em> keyword determines whether LAMMPS checks for lost atoms each
+time it computes thermodynamics and what it does if atoms are lost.  An
+atom can be “lost” if it moves across a non-periodic simulation box
+<a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> or if it moves more than a box length outside
+the simulation domain (or more than a processor subdomain length)
+before reneighboring occurs.  The latter case is typically due to bad
+dynamics (e.g., too large a time step and/or huge forces and velocities).  If
+the value is <em>ignore</em>, LAMMPS does not check for lost atoms.  If the
+value is <em>error</em> or <em>warn</em>, LAMMPS checks and either issues an error or
+warning.  The simulation will exit with an error and continue with a warning.
+A warning will only be issued once, the first time an atom is lost.
+This can be a useful debugging option.</p>
+<p>The <em>lost/bond</em> keyword determines whether LAMMPS throws an error or
+not if an atom in a bonded interaction (bond, angle, etc) cannot be
+found when it creates bonded neighbor lists.  By default this is a
+fatal error.  However in some scenarios it may be desirable to only
+issue a warning or ignore it and skip the computation of the missing
+bond, angle, etc.  An example would be when gas molecules in a vapor
+are drifting out of the box through a fixed boundary condition (see
+the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command).  In this case one atom may be
+deleted before the rest of the molecule is, on a later timestep.</p>
+<p>The <em>warn</em> keyword allows you to control whether LAMMPS will print
+warning messages and how many of them.  Most warning messages are only
+printed by MPI rank 0.  They are usually pointing out important issues
+that should be investigated, but LAMMPS cannot determine for
+certain whether they are an indication of an error.</p>
+<p>Some warning messages are printed during a run (or immediately before)
+each time a specific MPI rank encounters the issue (e.g., bonds that are
+stretched too far or dihedrals in extreme configurations).  The number
+of these can quickly blow up the size of the log file and screen output.
+A limit of 100 warning messages is therefore applied by default.  The
+warning count is applied to the entire input file, unless it is reset
+with a <code class="docutils literal notranslate"><span class="pre">thermo_modify</span> <span class="pre">warn</span> <span class="pre">reset</span></code> command.  If there are more warnings
+than the limit, LAMMPS will print one final warning that it will not
+print any additional warning messages.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The warning limit is enforced on either the per-processor count or
+the total count across all MPI processes.  For efficiency reasons,
+however, the total count is only updated at steps with thermodynamic
+output.  Thus when running on a large number of MPI processes in
+parallel, the total number of warnings printed can be significantly
+larger than the given limit.</p>
+</div>
+<p>Any number after the keyword <em>warn</em> will change the warning limit
+accordingly.  With the value <em>ignore</em> all warnings will be suppressed,
+with the value <em>always</em> no limit will be applied and warnings will
+always be printed, with the value <em>reset</em> the internal warning counter
+will be reset to zero, and with the value <em>default</em>, the counter is
+reset and the limit set to 100.  An example usage of either <em>reset</em> or
+<em>default</em> would be to re-enable warnings that were disabled or have
+reached the limit during equilibration, where the warnings would be
+acceptable while the system is still adjusting, but then change to all
+warnings for the production run, where they would indicate problems that
+would require a closer look at what is causing them.</p>
+<p>The <em>norm</em> keyword determines whether various thermodynamic output
+values are normalized by the number of atoms or not, depending on
+whether it is set to <em>yes</em> or <em>no</em>.  Different unit styles have
+different defaults for this setting (see below).  Even if <em>norm</em> is set
+to <em>yes</em>, a value is only normalized if it is an “extensive” quantity,
+meaning that it scales with the number of atoms in the system.  For the
+thermo keywords described by the page for the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command, all energy-related keywords are extensive, such
+as <em>pe</em> or <em>ebond</em> or <em>enthalpy</em>.  Other keywords such as <em>temp</em> or
+<em>press</em> are “intensive” meaning their value is independent (in a
+statistical sense) of the number of atoms in the system and thus are
+never normalized.  For thermodynamic output values extracted from fixes
+and computes in a <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command, the
+page for the individual <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> or <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>
+lists whether the value is “extensive” or “intensive” and thus whether
+it is normalized.  Thermodynamic output values calculated by a variable
+formula are assumed to be “intensive” and thus are never normalized.
+You can always include a divide by the number of atoms in the variable
+formula if this is not the case.</p>
+<p>The <em>flush</em> keyword invokes a flush operation after thermodynamic info
+is written to the screen and log file.  This ensures the output is
+updated and not buffered (by the application) even if LAMMPS halts
+before the simulation completes.  Please note that this does not affect
+buffering by the OS or devices, so you may still lose data in case the
+simulation stops due to a hardware failure.</p>
+<p>The <em>line</em> keyword determines whether thermodynamics will be output as a
+series of numeric values on one line (“one”), in a multi-line format
+with 3 quantities with text strings per line and a dashed-line header
+containing the timestep and CPU time (“multi”), or in a YAML format
+block (“yaml”).  This modify option overrides the <em>one</em>, <em>multi</em>, or
+<em>yaml</em> thermo_style settings.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4May2022.</span></p>
+</div>
+<p>The <em>colname</em> keyword can be used to change the default header keyword for
+a column or field of thermodynamic output.  The column names can either be
+manually set by the user, or automatically generated for certain fixes and
+computes.</p>
+<p>The setting for <em>ID string</em> replaces the default text with the
+provided string.  <em>ID</em> can be a positive integer when it represents the
+column number counting from the left, a negative integer when it represents
+the column number from the right (i.e., <span class="math notranslate nohighlight">\(-1\)</span> is the last
+column/keyword), or a thermo keyword (or compute, fix, property, or
+variable reference) and then it replaces the string for that specific
+thermo keyword.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 10Dec2025.</span></p>
+</div>
+<p>With a setting of <em>auto</em>, certain fixes or computes will
+generate more descriptive strings as their thermo keywords, which are
+described in the ‘output’ section of their documentation.  Current commands
+that automatically generate descriptive thermo output strings include ‘fix
+nvt’, ‘fix npt’, ‘fix nph’, ‘compute reduce’, and ‘fix bond/react’.</p>
+<p>With a <em>colname</em> setting of <em>default</em>, the default column names are used.
+The default column names follow the same convention as the arguments
+provided to the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command.</p>
+<p>The <em>colname</em> keyword can be used multiple times.  If multiple <em>colname</em>
+settings refer to the same keyword, the last setting has precedence.  The
+<em>auto</em> keyword will only override user-provided strings for computes and
+fixes that support automatically generated column names.  A setting of
+<em>default</em> clears all previous settings, reverting all values to their
+default values.</p>
+<p>The <em>format</em> keyword can be used to change the default numeric format of
+any of quantities the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command
+outputs.  All the specified format strings are C-style formats (i.e., as
+used by the C/C++ printf() command).  The <em>line</em> keyword takes a single
+argument which is the format string for the entire line of thermo
+output, with <span class="math notranslate nohighlight">\(N\)</span> fields, which you must enclose in quotes if it is more
+than one field.  The <em>int</em> and <em>float</em> keywords take a single format
+argument and are applied to all integer or floating-point quantities
+output.  The setting for <em>ID string</em> also takes a single format argument
+that is used for the indexed value in each line.  The interpretation is
+the same as for <em>colname</em> (i.e., a positive integer is the n-th value
+corresponding to the n-th thermo keyword, a negative integer is counting
+backwards, and a string matches the entry with the thermo keyword).
+For example, the fifth column is output in high precision for
+“format 5 %20.15g”, and the pair energy for “format epair %20.15g”.
+The <em>ID</em> field can be a range, such as “3*6”, “*”, “2*”, or “*3”;
+in such cases, all fields in the range (inclusive) are set to the specified
+format string. Ranges containing negative numbers are not supported.</p>
+<p>The <em>format</em> keyword can be used multiple times.  The precedence is
+that for each value in a line of output, the <em>ID</em> format (if specified)
+is used, else the <em>int</em> or <em>float</em> setting (if specified) is used,
+else the <em>line</em> setting (if specified) for that value is used, else
+the default setting is used.  A setting of <em>none</em> clears all previous
+settings, reverting all values to their default format.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The thermo output values <em>step</em> and <em>atoms</em> are stored internally as
+8-byte signed integers, rather than the usual 4-byte signed integers.
+When specifying the <em>format int</em> option you can use a “%d”-style
+format identifier in the format string and LAMMPS will convert this
+to the corresponding 8-byte form when it is applied to those
+keywords.  However, when specifying the <em>line</em> option or <em>format ID
+string</em> option for <em>step</em> and <em>natoms</em>, you should specify a format
+string appropriate for an 8-byte signed integer (i.e., one with “%ld”
+or “%lld”, depending on the platform).</p>
+</div>
+<p>The <em>temp</em> keyword is used to determine how thermodynamic temperature is
+calculated, which is used by all thermo quantities that require a
+temperature (“temp”, “press”, “ke”, “etotal”, “enthalpy”, “pxx”, etc).
+The specified compute ID must have been previously defined by the user
+via the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command and it must be a style of
+compute that calculates a temperature.  As described in the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command, thermo output uses a default
+compute for temperature with ID = <em>thermo_temp</em>.  This option allows the
+user to override the default.</p>
+<p>The <em>press</em> keyword is used to determine how thermodynamic pressure is
+calculated, which is used by all thermo quantities that require a
+pressure (“press”, “enthalpy”, “pxx”, etc).  The specified compute ID
+must have been previously defined by the user via the <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command and it must be a style of compute that calculates a
+pressure.  As described in the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
+command, thermo output uses a default compute for pressure with ID =
+<em>thermo_press</em>.  This option allows the user to override the default.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If both the <em>temp</em> and <em>press</em> keywords are used in a single
+thermo_modify command (or in two separate commands), then the order
+in which the keywords are specified is important.  Note that a
+<a class="reference internal" href="compute_pressure.html"><span class="doc">pressure compute</span></a> defines its own
+temperature compute as an argument when it is specified.  The <em>temp</em>
+keyword will override this (for the pressure compute being used by
+thermodynamics), but only if the <em>temp</em> keyword comes after the
+<em>press</em> keyword.  If the <em>temp</em> keyword comes before the <em>press</em>
+keyword, then the new pressure compute specified by the <em>press</em>
+keyword will be unaffected by the <em>temp</em> setting.</p>
+</div>
+<p>The <em>triclinic/general</em> keyword can only be used with a value of <em>yes</em>
+if the simulation box was created as a general triclinic box.  See the
+<a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto_triclinic</span></a> doc page for a detailed
+explanation of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.</p>
+<p>If this keyword is <em>yes</em>, the output of the simulation box edge
+vectors and the pressure tensor components for the system are
+affected.  These are specified by the <em>avec,bvec,cvec</em> and
+<em>pxx,pyy,pzz,pxy,pxz,pyz</em> keywords of the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command.  See the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>
+doc page for details.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>none</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a>, <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The option defaults are lost = error, warn = 100, norm = yes for unit
+style of <em>lj</em>, norm = no for unit style of <em>real</em> and <em>metal</em>, flush =
+no, temp/press = compute IDs defined by thermo_style, and
+triclinic/general = no.</p>
+<p>The defaults for the line and format options depend on the thermo style.
+For styles “one” and “custom”, the line and format defaults are “one”,
+“%10d”, and “%14.8g”.  For style “multi”, the line and format defaults
+are “multi”, “%14d”, and “%14.4f”. For style “yaml”, the line and format
+defaults are “%d” and “%.15g”.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="thermo.html" class="btn btn-neutral float-left" title="thermo command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="thermo_style.html" class="btn btn-neutral float-right" title="thermo_style command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

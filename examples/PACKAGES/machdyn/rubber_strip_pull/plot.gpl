@@ -1,0 +1,13 @@
+#!/usr/bin/gnuplot
+
+set grid
+set key top left
+set xlabel "yy strain"
+set ylabel "yy stress [GPa]"
+plot [0:0.1] "stress_strain.dat" w p ti "engineering stress from simulation", 1.1*x ti "analytic true stress with E=1.1 GPa"
+
+pause -1
+
+set terminal postscript color enhanced lw 2
+set out "stress_strain.ps"
+replot

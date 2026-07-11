@@ -1,0 +1,44 @@
+units           metal
+atom_style      full
+processors      * * 1
+boundary        p p f
+read_data       ./3Lgold_1Lgr_atop_sliding.data
+
+# global group definition
+group          gold type 1
+group          gra  type 2
+
+# Define mass
+mass            * 12.0107  # mass of carbon atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 196.96657  # mass of gold atom , uint: a.u.=1.66X10^(-27)kg
+
+# Define potentials
+pair_style 	hybrid/overlay eam rebo saip/metal 16.0
+pair_coeff      1 1 eam  ./Au_u3.eam
+pair_coeff      * * rebo ./CH.rebo NULL C
+pair_coeff      * * saip/metal ./CHAu.ILP Au C
+
+# compute energy
+compute         0 all pair rebo
+compute         1 all pair eam
+compute         2 all pair saip/metal
+variable        REBO equal c_0
+variable        EAM  equal c_1
+variable        ILP  equal c_2
+
+thermo_style    custom step etotal pe ke v_REBO v_ILP temp
+
+thermo          100
+thermo_modify   lost error
+
+# Creat initial velocity
+velocity        all set 0.0 0.0 0.0
+velocity 	gra create 300.0 4928459 mom yes rot yes dist gaussian
+velocity 	gold create 300.0 4928459 mom yes rot yes dist gaussian
+
+# Integration
+fix             intsub gold nve
+fix             intrib gra nve
+
+timestep        1e-3
+run		1000

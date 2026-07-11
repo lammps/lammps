@@ -1,0 +1,369 @@
+LAMMPS (9 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+####################################################################################################
+#
+# combined TLSPH / ULSPH example
+#
+# A column of water is placed in a container and allowed to collapse unter the
+# influence of gravity. Several solid objects are also placed in the container.
+# The water flow pushes the solid objects around until the system comes to halt due to
+# viscous damping. The solid objects have a lower mass density than water and finally float on
+# the water surface.
+#
+# Water is modelled using the Updated Lagrangian formalism. Solid bodies are modelled using the
+# Total Lagrangian formalism. Contact forces between container, solid bodies, and water prevent
+# mutual penetration of these physical entities.
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        rho_water equal 1000 # mass density water
+variable        rho_obj equal 300 # mass density solid objects
+variable        c0 equal 10.0 # speed of sound for water
+variable        E equal 5*${c0}*${c0}*${rho_water} # Young's modulus for solid objects
+variable        E equal 5*10*${c0}*${rho_water} 
+variable        E equal 5*10*10*${rho_water} 
+variable        E equal 5*10*10*1000 
+variable        nu equal 0.3 # Poisson ratio for solid objects
+variable        sigma_yield equal 0.1*${E} # plastic yield stress for solid objects
+variable        sigma_yield equal 0.1*500000 
+variable        hardening_parameter equal 0 # plastic hardening parameter for solid objects
+variable        contact_stiffness equal 2.5*${c0}^2*${rho_water} # contact force amplitude
+variable        contact_stiffness equal 2.5*10^2*${rho_water} 
+variable        contact_stiffness equal 2.5*10^2*1000 
+variable        q1 equal 1.0 # artificial viscosity
+variable        q2 equal 0.0 # artificial viscosity
+variable        Hg equal 10 # Hourglass control coefficient for solid objects
+variable        Cp equal 1.0 # heat capacity -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+units           si
+dimension       2
+boundary        sm sm p
+atom_style      smd
+neigh_modify    every 5 delay 0 check yes
+comm_modify     vel yes
+newton          off
+atom_modify     map array
+comm_style      tiled
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+# create simulation box, a container, and a water column
+variable        l0 equal 0.05 # initial particle lattice spacing
+region          box block 0 6 0 8 -0.01 0.01 units box
+create_box      3 box
+Created orthogonal box = (0.0000000 0.0000000 -0.01) to (6.0000000 8.0000000 0.01)
+  2 by 2 by 1 MPI processor grid
+region          water block 0.25 1 0.25 4 EDGE EDGE units box
+region          container block 0.15 5.85 0.15 8 -0.01 0.01 units box side out # container
+lattice         sq ${l0}
+lattice         sq 0.05
+Lattice spacing in x,y,z = 0.05 0.05 0.05
+create_atoms    1 region water
+Created 1216 atoms
+  create_atoms CPU = 0.001 seconds
+group           water type 1
+1216 atoms in group water
+create_atoms    3 region container
+Created 1302 atoms
+  create_atoms CPU = 0.001 seconds
+group           container type 3
+1302 atoms in group container
+
+# create some solid objects to be pushed around
+region          obj1 prism 2 2.6 0.25 0.85 EDGE EDGE 0.3 0 0 units box
+region          obj2 block 3 3.6 0.25 0.85 EDGE EDGE units box
+region          obj3 sphere 4.3 0.5 0 0.25 units box
+create_atoms    2 region obj1
+Created 146 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms    2 region obj2
+Created 156 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms    2 region obj3
+Created 77 atoms
+  create_atoms CPU = 0.000 seconds
+group           solids type 2
+379 atoms in group solids
+group           tlsph type 2
+379 atoms in group tlsph
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.5*${l0} # SPH kernel diameter
+variable        h equal 2.5*0.05 
+variable        vol_one equal ${l0}^2 # initial particle volume for 2d simulation
+variable        vol_one equal 0.05^2 
+set             group all diameter ${h}
+set             group all diameter 0.125
+Setting atom values ...
+  2897 settings made for diameter
+set             group all smd/contact/radius ${l0}
+set             group all smd/contact/radius 0.05
+Setting atom values ...
+  2897 settings made for smd/contact/radius
+set             group all volume  ${vol_one}
+set             group all volume  0.0025
+Setting atom values ...
+  2897 settings made for volume
+set             group all smd/mass/density ${rho_water}
+set             group all smd/mass/density 1000
+Setting atom values ...
+  2897 settings made for smd/mass/density
+set             group solids smd/mass/density ${rho_obj}
+set             group solids smd/mass/density 300
+Setting atom values ...
+  379 settings made for smd/mass/density
+variable        contact_scale equal 1.5 # scale factor to increase contact gap between bodies
+variable        skin equal ${h} # Verlet list range
+variable        skin equal 0.125 
+neighbor        ${skin} bin
+neighbor        0.125 bin
+
+####################################################################################################
+# DEFINE BOUNDARY CONDITIONS
+#
+# note that the the particles constituting the container are simply not integrated in time,
+# thus these particles never move. This is equivalent to a fixed displacement boundary condition.
+####################################################################################################
+fix             gfix all gravity -9.81 vector 0 1 0 # add gravity
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# 3 different pair styles are used:
+#     - updated Lagrangian SPH for water
+#     - total Lagrangian SPH for solid objects
+#     - a repulsive Hertzian potential for contact forces between different physical bodies
+####################################################################################################
+pair_style      hybrid/overlay smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION                                smd/tlsph smd/hertz ${contact_scale}
+pair_style      hybrid/overlay smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION                                smd/tlsph smd/hertz 1.5
+pair_coeff      1 1 smd/ulsph *COMMON ${rho_water} ${c0} ${q1} ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 ${c0} ${q1} ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 10 ${q1} ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 10 1 ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 10 1 1 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      2 2 smd/tlsph *COMMON ${rho_obj} ${E} ${nu} ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 ${E} ${nu} ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 ${nu} ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 1                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 1                 *STRENGTH_LINEAR_PLASTIC 50000 ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 1                 *STRENGTH_LINEAR_PLASTIC 50000 0                 *EOS_LINEAR                 *END
+pair_coeff      3 3 none
+pair_coeff      1 2 smd/hertz ${contact_stiffness}
+pair_coeff      1 2 smd/hertz 250000
+pair_coeff      1 3 smd/hertz ${contact_stiffness}
+pair_coeff      1 3 smd/hertz 250000
+pair_coeff      2 3 smd/hertz ${contact_stiffness}
+pair_coeff      2 3 smd/hertz 250000
+pair_coeff      2 2 smd/hertz ${contact_stiffness}
+pair_coeff      2 2 smd/hertz 250000
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix_water water smd/integrate_ulsph adjust_radius 1.01 10 15
+fix             integration_fix_solids solids smd/integrate_tlsph
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+compute         eint all smd/internal/energy
+compute         contact_radius all smd/contact/radius
+compute         S solids smd/tlsph/stress
+compute         nn water smd/ulsph/num/neighs
+compute         epl solids smd/plastic/strain
+compute         vol all smd/vol
+compute         rho all smd/rho
+
+dump            dump_id all custom 100 dump.LAMMPS id type x y                 fx fy vx vy c_eint c_contact_radius mol                 c_S[1] c_S[2] c_S[4] mass radius c_epl c_vol c_rho c_nn proc
+dump_modify     dump_id first yes
+
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+compute         alleint all reduce sum c_eint
+variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
+thermo          100
+thermo_style    custom step ke pe v_etot c_alleint f_dtfix dt
+thermo_modify   lost ignore
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+fix             balance_fix all balance 500 0.9 rcb # load balancing for MPI
+run             10000
+Neighbor list info ...
+  update every 5 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.25
+  ghost atom cutoff = 0.25
+  binsize = 0.125, bins = 49 65 1
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair smd/ulsph, perpetual, skip from (4)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (2) pair smd/tlsph, perpetual, skip from (4)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (3) pair smd/hertz, perpetual, skip from (4)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (4) neighbor class addition, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/newtoff
+      stencil: half/bin/2d/newtoff
+      bin: standard
+
+TLSPH neighbors:
+  max # of neighbors for a single particle = 20
+  average # of neighbors/particle in group tlsph = 16.1953
+Per MPI rank memory allocation (min/avg/max) = 33.75 | 34.05 | 34.21 Mbytes
+Step KinEng PotEng v_etot c_alleint f_dtfix Dt 
+       0            0    2061.4431    160890.25            0            0        1e-16 
+     100    110.38483    1974.0319    160890.91    83.958227  0.025850826 0.00026152059 
+     200     410.9998    1980.3731    160890.98    96.652105  0.052002352 0.00026164496 
+     300    862.92747      2032.91    160890.79    103.49371  0.078169741 0.00026169298 
+     400    1475.0476    2060.9237    160890.74    132.98616   0.10434325 0.00026167602 
+     500    2222.5964    2085.0285    160890.87       179.57   0.13051706 0.00026168892 
+     600    3094.6488    2120.0243    160890.99    242.61995    0.1566886 0.00026173387 
+     700    4105.8784    2146.5075    160891.07    325.53014   0.18285775 0.00026171391 
+     800    5247.7398    2172.2379    160891.16    425.42573   0.20902811 0.00026168535 
+     900    6499.9584    2205.5968    160891.26    542.68096    0.2351982 0.00026169831 
+    1000    7860.7882    2232.9696    160891.28      673.519    0.2613694 0.00026172796 
+    1100    9341.2891    2236.5819    160891.32    809.66021   0.28754068 0.00026172733 
+    1200    10912.001    2237.9563    160891.42    957.43887   0.31371344 0.00026172798 
+    1300    12552.004    2245.8632    160891.59    1132.7199   0.33988625 0.0002617283 
+    1400    14246.853    2262.0913     160891.8    1347.5916   0.36605911 0.00026172825 
+    1500    15866.379     2366.879    160892.63    1639.1772   0.39219431 0.00026009533 
+    1600    17341.368    2517.4637    160893.05    2086.5435   0.41827701 0.00026165088 
+    1700    18867.401    2571.2558    160893.24    2594.7072   0.44444158 0.00026137908 
+    1800    20459.221    2547.2114    160893.12    3092.9812   0.47060324 0.0002617438 
+    1900    21960.773    2564.3855    160893.58     3629.442   0.49677656 0.00026172693 
+    2000    23319.918    2622.9544    160893.92    4259.9621   0.52294912 0.00026172494 
+    2100    24377.644    2882.5329    160894.56    4973.9483   0.54911541 0.00026137954 
+    2200    25430.827    3039.9698     160895.1    5752.9782   0.57521248 0.00026087071 
+    2300    26271.379    3123.1708    160895.67    6746.5541   0.60135585 0.00026159423 
+    2400    27059.111    3139.5429    160895.59    7742.1161    0.6275021 0.00026160385 
+    2500    27508.933     3368.076    160895.85    8718.2215   0.65366646 0.00026162198 
+    2600    28094.936    3418.1261    160894.07    9562.0049   0.67981916 0.0002615721 
+    2700    28787.355    3310.3589    160893.77    10267.434   0.70597716 0.0002615586 
+    2800     29336.45    3297.5857    160893.38    10825.402   0.73214103 0.00026174244 
+    2900    29991.889    3179.6992    160891.61    11184.363   0.75818764 0.00025998806 
+    3000    30688.958    3013.4253    160891.61    11366.212   0.78428218 0.00026137377 
+    3100    31326.322    2795.4081    160891.15    11492.417   0.81040043 0.00026111003 
+    3200    31847.633     2617.773    160890.98     11569.31   0.83655938 0.00026139625 
+    3300    32313.831    2444.1932    160890.95    11616.693   0.86271621 0.00026157968 
+    3400    32691.546    2310.6105    160890.99    11674.542   0.88887621 0.00026144794 
+    3500    32192.445    2870.8241    160890.46    11913.837    0.9150388 0.00026154188 
+    3600     32817.36    2517.3965     160895.3    11970.017   0.94119262 0.00026171503 
+    3700     31147.98    3146.4192     160888.4    13325.589   0.96476165 0.00020512803 
+    3800    29823.459    3988.1418    160898.94    14208.015   0.99059864 0.00025968427 
+    3900    28452.626    4228.8969    160905.02    15702.514    1.0158802 0.00024057395 
+    4000    27568.981    4385.2883    160905.71    16683.879    1.0396349 0.0002605873 
+    4100    27240.818     3813.649    160898.61    17767.991    1.0655522 0.00025821485 
+    4200    27150.863    3629.3834    160898.28    18107.953    1.0914009 0.00026010449 
+    4300     27134.33    2948.4054    160896.47    18664.208    1.1173095 0.00026013826 
+    4400    26571.162    2794.6958    160895.88    19130.289    1.1431826 0.00025962739 
+    4500     25871.24    2841.0684    160895.94    19484.233    1.1691267 0.00025898302 
+    4600    25449.245    2662.3592    160894.92    19770.669    1.1950856 0.00025957714 
+    4700      25225.6    2401.4379    160896.04     19959.29    1.2210258 0.00025930411 
+    4800    24363.351    2394.7252    160897.91    20568.393    1.2469465 0.00025909397 
+    4900    23268.777    2558.0367    160897.79    21275.551     1.272844 0.00025888676 
+    5000    22039.476    2810.8741    160898.56     22035.37    1.2987289 0.0002588652 
+    5100    20669.517     2910.051    160899.73    23055.916    1.3246192 0.00025893693 
+    5200    19036.065    3098.8499    160899.79    24164.997    1.3505143 0.00025894764 
+    5300    17399.525    3280.7348    160898.46    25169.697     1.376407 0.00025890002 
+    5400    16126.916    3392.9894    160896.37    25743.496    1.4023122 0.00025923267 
+    5500    15388.847    3177.4351    160894.77    25962.578    1.4282294 0.00025912999 
+    5600    14980.949    2724.2506    160894.07    25957.678    1.4541406 0.00025905524 
+    5700    14384.933    2438.1412    160894.21    25895.334    1.4800347 0.00025890247 
+    5800     13543.66    2288.3169    160894.71    25919.508    1.5059251 0.00025889292 
+    5900    12600.419    2192.6499    160894.98     26013.86    1.5318119 0.00025882608 
+    6000    11648.247    2143.9198    160894.96    26130.569    1.5576947 0.00025883277 
+    6100    10761.864    2121.7962    160894.92    26241.412    1.5835774 0.00025882777 
+    6200    9959.5712    2120.1235    160894.95    26348.925    1.6094602 0.00025882797 
+    6300    9237.1393     2135.296    160894.96    26461.367     1.635343 0.00025882787 
+    6400    8583.6121    2168.4542    160894.99    26576.994    1.6612257 0.00025882781 
+    6500    7963.7472    2220.8952    160895.15     26712.75    1.6871085 0.00025882777 
+    6600    7357.5525     2285.645    160895.27     26877.93    1.7129913 0.00025882809 
+    6700    6773.6829    2354.0838     160895.3    27059.712    1.7388741 0.00025882734 
+    6800    6253.0639    2397.1935    160895.22    27237.424    1.7647569 0.00025882765 
+    6900    5832.7325    2402.7565       160895    27380.966    1.7906397 0.00025882771 
+    7000    5516.4341    2378.9426    160894.75    27476.487    1.8165224 0.00025882773 
+    7100    5271.1656    2357.0101    160894.57    27525.721    1.8424099 0.00025901825 
+    7200    5096.0661    2300.6606    160894.64    27569.838    1.8683152 0.00025899781 
+    7300    4969.7828    2232.2569    160894.64    27618.571    1.8942048 0.00025885715 
+    7400    4869.8207    2188.5342    160894.71    27675.254    1.9200895 0.00025884712 
+    7500    4808.7304    2172.7734    160894.71    27740.694     1.945974 0.00025884589 
+    7600    4539.9554    2287.6262    160895.88    27970.299    1.9718584 0.00025884503 
+    7700    4529.6991    2235.6187     160895.4    28196.422    1.9977429 0.00025884464 
+    7800    4477.9563      2348.37    160895.47    28374.358    2.0236273 0.00025884449 
+    7900    4288.3014     2488.457    160895.53    28696.456    2.0495118 0.00025884444 
+    8000    4153.7215    2662.9637    160896.02    28917.429    2.0753962 0.00025884442 
+    8100     4178.193    2575.1107    160895.99     29186.71    2.1012807 0.00025884442 
+    8200    4204.5591    2475.0319    160895.28    29450.604    2.1271651 0.00025884442 
+    8300    4315.6393    2378.0944    160895.56    29647.245    2.1530496 0.00025884442 
+    8400      4431.42    2326.1965    160895.27    29835.156     2.178934 0.00025884442 
+    8500     4628.293    2311.6543    160895.03    29960.205    2.2048184 0.00025884442 
+    8600    4893.5297    2313.4828       160895    30057.185    2.2307029 0.00025884442 
+    8700    5243.9676    2283.1015    160895.01     30156.89    2.2565873 0.00025884442 
+    8800    5637.0288    2255.1729    160895.14    30272.669    2.2824718 0.00025884442 
+    8900    6072.5778    2245.4877    160895.16    30395.226    2.3083562 0.00025884442 
+    9000    6512.8195    2274.8733    160895.33    30538.044    2.3342407 0.00025884442 
+    9100    6874.6866    2372.6178     160895.6    30728.848    2.3601294 0.0002592265 
+    9200     6883.747    2587.4625    160896.82    31161.961    2.3860453 0.00025740262 
+    9300    7629.5733    2328.0119    160895.79     31341.47    2.4118195 0.0002595483 
+    9400    8020.8094    2296.2399    160895.88    31686.846    2.4376763 0.00025852365 
+    9500    8406.9195    2366.0657    160895.73    31965.648    2.4635669 0.00025891926 
+    9600    8806.1858    2441.5546    160895.85     32227.66    2.4894503 0.00025855472 
+    9700    9031.0664    2619.8307    160897.08    32535.083    2.5153342 0.00025891516 
+    9800    8813.7579    2933.7362    160897.31     33097.97    2.5412258 0.0002589147 
+    9900    8761.1593    2904.8099    160897.01    33694.479    2.5670974 0.00025891454 
+   10000    8882.8378    2695.0029    160897.39    34132.865    2.5929888 0.00025891448 
+Loop time of 29.8501 on 4 procs for 10000 steps with 2897 atoms
+
+59.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 15.651     | 18.012     | 20.1       |  38.3 | 60.34
+Neigh   | 0.082616   | 0.1133     | 0.14896    |   7.2 |  0.38
+Comm    | 0.98751    | 1.5704     | 2.2966     |  38.0 |  5.26
+Output  | 0.80062    | 0.83063    | 0.90213    |   4.6 |  2.78
+Modify  | 6.6226     | 8.727      | 11.077     |  53.8 | 29.24
+Other   |            | 0.5967     |            |       |  2.00
+
+Nlocal:        724.250 ave         726 max         723 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+Nghost:        217.750 ave         295 max          74 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:        10752.8 ave       22829 max        1748 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+
+Total # of neighbors = 43011
+Ave neighs/atom = 14.846738
+Neighbor list builds = 286
+Dangerous builds = 0
+Total wall time: 0:00:29

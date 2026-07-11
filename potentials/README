@@ -1,0 +1,124 @@
+This directory contains potential files for different elements and
+alloys, as used by LAMMPS for various pair styles.  See the
+description of the "pair_style" and "pair_coeff" commands for details
+of the file formats and the various styles in LAMMPS that read these
+files.
+
+IMPORTANT NOTE: These files are provided primarily to demonstrate the
+different types of interatomic potentials that LAMMPS supports.  Each
+file has a header line with a date for when it was added to the LAMMPS
+distribution.  Also a citation and contact info for the person who
+contributed it to LAMMPS (if we remember who that is).  This info is
+not meant to "guarantee" that the potential is correct.  I.e. that the
+contributor transcribed the info from the paper correctly or that the
+paper itself had no errors.  In many cases (but not all), we or other
+LAMMPS users have confirmed that when the potential file is used with
+the current version of LAMMPS, it reproduces results in the cited
+publication.  In some cases, this accuracy check may require other
+parameters not contained in the potential file to be specified as part
+of a LAMMPS simulation, e.g. a distance cutoff.  Also, for particular
+materials and applications modeled with a pair style coded in LAMMPS,
+a different potential file may be more suitable than the one provided
+here.  For best results when choosing a potential, you should do a
+thorough search of published literature and on-line databases such as
+the Interatomic Potentials Repository Project (NIST) or the
+Knowledgebase of Interatomic Models (KIM).  Whatever potential you
+choose for your application, you should verify that you have defined
+it and are using it correctly in LAMMPS, by comparing with published
+results for that potential.
+
+2nd IMPORTANT NOTE: The DATE field in the first line of each of these
+files is printed to the screen and log file when it is read by a
+LAMMPS input script.  If an updated or corrected version of the same
+potential file is later added to the LAMMPS distribution, then a new
+DATE will be added to the file.  This means you can "diff" an old and
+new log file and see that the potential file changed, which could
+affect your simulation results.
+
+3rd IMPORTANT NOTE: The UNITS field in the first line of these files
+is parsed and checked against the current units setting in LAMMPS.
+If there is a mismatch, LAMMPS will stop with an error. If there is
+no UNITS field provided, there is no check.
+
+A small amount of metadata is included in the first line of each file
+in order to track the provenance of each file. The metadata is
+indicated by a keyword followed by white space, followed by the
+metadata, followed by whitespace. The metadata is intended to be
+straightforward and human-readable, while still conforming to a
+standard format.
+
+DATE: Format is "yyyy-mm-dd".  This indicates the date of a significant
+change to the file. Multiple entries can appear in reverse
+chronological order. As described above, the first of these will be
+printed to the screen and log file when it is read by a LAMMPS input
+script.
+
+UNITS: Format is "unit".  This indicates the LAMMPS unit style this
+potential was parameterized for.  Any difference to the currently used
+unit style in a LAMMPS simulation will cause termination with an error.
+
+CONTRIBUTOR: Format is "name[, email address]". This indicates the person
+who contributed the file and/or who is best able to provide more details
+about its provenance.
+
+CITATION: Format is "surname[[, surname] and surname], Publication
+abbreviation with spaces and no periods, volume, page[-page], (year)"
+
+COMMENT: This one is optional and is used to hold any other text that
+can not go elsewhere.
+
+If the first line of the file is always skipped by the file reader,
+then the first line should begin with the DATE keyword.  If the file
+format supports comment lines, then the first line should be a comment
+line with the metadata e.g. "# DATE: 2010-01-01..."  If the first line
+of the file is required to begin with data, then the metadata will be
+appended to the first line e.g. "7 DATE: 2010-01-01..."
+
+The prefix of each file indicates the element(s) it is parameterized
+for.  An additional lower-case identification tag may be appended.
+
+Si = Silicon
+SiC = Silicon and Carbon
+Au_u3 = Gold universal 3
+
+The suffix of each file indicates the pair style it is used with:
+
+adp           ADP angular dependent potential
+airebo        AI-REBO potentials
+bop.table     BOP potential, tabulated form
+cdeam         concentration-dependent EAM
+cgdna         potential files for styles in the CG-DNA package
+comb          COMB potential
+comb3         COMB3 potential
+ctip          Coulombic portion of CTIP potential
+eam           embedded atom method (EAM) single element, DYNAMO funcfl format
+eam.alloy     EAM multi-element alloy, DYNAMO setfl format
+eam.fs        Finnis-Sinclair EAM format (single element or alloy)
+edip          EDIP potential for silicon-based materials
+eim           embedded-ion method (EIM) potential
+lcbop         LCBOP long-range bond-order potential
+meam          modified EAM (MEAM) library and individual elements/alloys
+meam.spline   modified EAM (MEAM) spline potential
+meam.sw.spline modified EAM (MEAM) Stillinger-Weber spline potential
+mesocnt       mesoscopic carbon nanotube (CNT) potential
+mgpt          model generalized pseudopotential theory (MGPT) potential
+mliap         MLIAP potential
+mliap.descriptor MLIAP potential descriptor
+mliap.model   MLIAP potential model
+nb3b.harmonic nonbonded 3-body harmonic potential
+pod           ML potential with proper orthogonal descriptors (POD)
+poly          polymorphic 3-body potential
+reax          ReaxFF potential (see README.reax for more info)
+rebo          REBO potentials
+rebomos       REBOMoS potential
+smtbq         second moment tight binding QEq (SMTBQ) potential
+snap          SNAP potential
+snapcoeff     SNAP potential
+snapparam     SNAP potential
+streitz       Coulombic portion of Streitz-Mintmire potential
+sw            Stillinger-Weber potential
+tersoff       Tersoff potential
+tersoff.mod   modified Tersoff potential
+tersoff.zbl   Tersoff with ZBL core
+uf3           UF3 potential
+vashishta     Vashishta 2-body and 3-body potential

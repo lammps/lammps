@@ -1,0 +1,708 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.4.3. AMBER to LAMMPS Tutorial &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_amber2lammps.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.4.4. AMOEBA and HIPPO force fields" href="Howto_amoeba.html" />
+    <link rel="prev" title="10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields" href="Howto_bioFF.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_FFgeneral.html">10.4.1. Some general force field considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bioFF.html">10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.4.3. AMBER to LAMMPS Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amoeba.html">10.4.4. AMOEBA and HIPPO force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip3p.html">10.4.5. TIP3P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip4p.html">10.4.6. TIP4P and OPC water models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip5p.html">10.4.7. TIP5P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spc.html">10.4.8. SPC and SPC/E water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_eam_overlay.html">10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.4.3. </span>AMBER to LAMMPS Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_bioFF.html" class="btn btn-neutral float-left" title="10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_amoeba.html" class="btn btn-neutral float-right" title="10.4.4. AMOEBA and HIPPO force fields" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="amber-to-lammps-tutorial">
+<h1><span class="section-number">10.4.3. </span>AMBER to LAMMPS Tutorial<a class="headerlink" href="#amber-to-lammps-tutorial" title="Link to this heading"></a></h1>
+<p><strong>written by Arun Srikanth Sridhar</strong></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p><a class="reference external" href="https://github.com/askforarun/AMBER2LAMMPS">AMBER2LAMMPS</a> is a Python utility that converts AMBER
+topology (<code class="docutils literal notranslate"><span class="pre">.prmtop</span></code>) and coordinate/charge (<code class="docutils literal notranslate"><span class="pre">.crd</span></code>) files into
+LAMMPS data and parameter files.  It provides both a command-line
+interface and a Python API with built-in validation.  This tutorial
+provides a detailed workflow with examples using the <a class="reference external" href="https://github.com/askforarun/AMBER2LAMMPS">AMBER2LAMMPS</a> python utility.  The legacy scripts previously
+distributed in <code class="docutils literal notranslate"><span class="pre">tools/amber2lmp</span></code> have been removed due to their
+reliance on Python 2 and lack of maintenance.</p>
+<p>This tutorial assumes familiarity with molecular dynamics simulations
+and molecular mechanics force fields, including atom typing, bond
+topologies, partial charge assignment, and different force field
+families (AMBER, CHARMM, GROMOS, OPLS/AA).  For an introduction to force
+field concepts, see <a class="reference internal" href="Howto_FFgeneral.html"><span class="doc">Some general force field considerations</span></a> before starting this
+tutorial.  AMBER offers various force fields for different biomolecules,
+including ff19SB/ff14SB (proteins), Bsc1/OL3 (DNA/RNA), GLYCAM06
+(carbohydrates), and Lipid17 (lipids), alongside the General AMBER Force
+Field (GAFF/GAFF2) for small organic molecules (see
+<a class="reference external" href="https://ambermd.org/AmberModels.php">https://ambermd.org/AmberModels.php</a> and Wang, J., et
+al., J. Comput. Chem., 25, 1157-1174 (2004) for GAFF force field
+development).</p>
+<div class="warning admonition">
+<p class="admonition-title">Important Force Field Compatibility Warning:</p>
+<p>Different force field families (AMBER, CHARMM, GROMOS, OPLS/AA) use
+distinct atom typing schemes, charge assignment methods, and
+parameterization strategies.  <strong>Never mix and match parameters from
+different force field families; this leads to unphysical results and
+simulation failures.</strong> Always use a consistent force field family
+throughout your system.</p>
+</div>
+<hr class="docutils" />
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#what-the-amber2lammps-tool-does" id="id3">What the AMBER2LAMMPS tool does</a></p></li>
+<li><p><a class="reference internal" href="#amber2lammps-homepage-and-download" id="id4">AMBER2LAMMPS homepage and download</a></p></li>
+<li><p><a class="reference internal" href="#requirements" id="id5">Requirements</a></p></li>
+<li><p><a class="reference internal" href="#installing-dependencies" id="id6">Installing dependencies</a></p>
+<ul>
+<li><p><a class="reference internal" href="#ambertools" id="id7">AmberTools</a></p></li>
+<li><p><a class="reference internal" href="#python-packages" id="id8">Python packages</a></p></li>
+<li><p><a class="reference internal" href="#open-babel-optional-for-smiles-to-pdb-conversion" id="id9">Open Babel (optional, for SMILES to PDB conversion)</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#command-reference" id="id10">Command Reference</a></p></li>
+<li><p><a class="reference internal" href="#conversion-process" id="id11">Conversion Process</a></p>
+<ul>
+<li><p><a class="reference internal" href="#charge-normalization" id="id12">Charge normalization</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#workflow-examples" id="id13">Workflow Examples</a></p></li>
+<li><p><a class="reference internal" href="#prepare-input-files-ethanol-example" id="id14">Prepare input files (ethanol example)</a></p>
+<ul>
+<li><p><a class="reference internal" href="#convert-smiles-to-pdb-optional" id="id15">Convert SMILES to PDB (optional)</a></p></li>
+<li><p><a class="reference internal" href="#generate-amber-topology-and-coordinates" id="id16">Generate AMBER topology and coordinates</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#basic-conversion-workflow" id="id17">Basic conversion workflow</a></p>
+<ul>
+<li><p><a class="reference internal" href="#lammps-input-script" id="id18">LAMMPS input script</a></p></li>
+<li><p><a class="reference internal" href="#cli-usage-with-lammps-execution" id="id19">CLI usage with LAMMPS execution</a></p>
+<ul>
+<li><p><a class="reference internal" href="#additional-cli-examples" id="id20">Additional CLI examples</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#python-api-usage-with-lammps-execution" id="id21">Python API usage with LAMMPS execution</a></p>
+<ul>
+<li><p><a class="reference internal" href="#additional-api-examples" id="id22">Additional API examples</a></p></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#validation-of-amber2lammps" id="id23">Validation of AMBER2LAMMPS</a></p></li>
+<li><p><a class="reference internal" href="#getting-help" id="id24">Getting Help</a></p></li>
+<li><p><a class="reference internal" href="#citation" id="id25">Citation</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="what-the-amber2lammps-tool-does">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">What the AMBER2LAMMPS tool does</a><a class="headerlink" href="#what-the-amber2lammps-tool-does" title="Link to this heading"></a></h2>
+<p>This tool helps you run molecular dynamics simulations in <strong>LAMMPS</strong>
+when you have your molecular system set up in <strong>AMBER</strong> format.
+AMBER2LAMMPS uses AmberTools utilities (antechamber and tleap) to
+perform the conversion.</p>
+<p><strong>Typical workflow:</strong></p>
+<ol class="arabic simple">
+<li><p>Start with a molecular structure (PDB file or SMILES string to be converted to PDB)</p></li>
+<li><p>Use AMBER tools to create AMBER files (<code class="docutils literal notranslate"><span class="pre">.prmtop</span></code>, <code class="docutils literal notranslate"><span class="pre">.crd</span></code>)</p></li>
+<li><p><strong>Convert AMBER files to LAMMPS format</strong> using this tool</p></li>
+<li><p>Run your simulation in LAMMPS</p></li>
+</ol>
+<p><strong>What gets converted:</strong></p>
+<ul class="simple">
+<li><p><strong>``.prmtop``</strong> (topology file): Contains bonds, angles, atom types, and force field parameters -&gt; LAMMPS data and parameter files</p></li>
+<li><p><strong>``.crd``</strong> (coordinates file): Contains atomic positions -&gt; LAMMPS coordinates</p></li>
+</ul>
+<p><strong>What you get as output:</strong></p>
+<ul class="simple">
+<li><p><strong>LAMMPS data file</strong> (e.g., <code class="docutils literal notranslate"><span class="pre">data.lammps</span></code>): Contains atomic coordinates, box dimensions, and molecular topology</p></li>
+<li><p><strong>LAMMPS parameter file</strong> (e.g., <code class="docutils literal notranslate"><span class="pre">parm.lammps</span></code>): Contains force field parameters for bonds, angles, and non-bonded interactions</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="amber2lammps-homepage-and-download">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">AMBER2LAMMPS homepage and download</a><a class="headerlink" href="#amber2lammps-homepage-and-download" title="Link to this heading"></a></h2>
+<p>AMBER2LAMMPS is developed and maintained outside the LAMMPS repository.
+Download its source code from its GitHub project page or clone its repository from GitHub:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># direct download</span>
+curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>AMBER2LAMMPS-main.tar.gz<span class="w"> </span>https://github.com/askforarun/AMBER2LAMMPS/archive/refs/heads/main.tar.gz
+tar<span class="w"> </span>-xzvvf<span class="w"> </span>AMBER2LAMMPS-main.tar.gz
+<span class="nb">cd</span><span class="w"> </span>AMBER2LAMMPS-main
+
+<span class="c1"># clone repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/askforarun/AMBER2LAMMPS.git
+<span class="nb">cd</span><span class="w"> </span>AMBER2LAMMPS
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="requirements">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Requirements</a><a class="headerlink" href="#requirements" title="Link to this heading"></a></h2>
+<p><strong>Platform Compatibility</strong></p>
+<p>AMBER2LAMMPS works on all major platforms:</p>
+<ul class="simple">
+<li><p><strong>Linux</strong>: Full support (Ubuntu, CentOS, Fedora, etc.)</p></li>
+<li><p><strong>macOS</strong>: Full support (Intel and Apple Silicon)</p></li>
+<li><p><strong>Windows</strong>: Support via WSL2 or Git Bash</p></li>
+</ul>
+<p><strong>System Requirements</strong></p>
+<ul class="simple">
+<li><p><strong>Structure</strong>: PDB file (or a SMILES string that you can convert to PDB).</p></li>
+<li><p><strong>AmberTools utilities</strong>: <code class="docutils literal notranslate"><span class="pre">antechamber</span></code> and <code class="docutils literal notranslate"><span class="pre">tleap</span></code> to
+build <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code> and <code class="docutils literal notranslate"><span class="pre">.crd</span></code>.</p></li>
+<li><p><strong>Python packages</strong>: <code class="docutils literal notranslate"><span class="pre">parmed</span></code> and <code class="docutils literal notranslate"><span class="pre">numpy</span></code>.</p></li>
+<li><p><strong>LAMMPS</strong>: On your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> (<code class="docutils literal notranslate"><span class="pre">which</span> <span class="pre">lmp</span></code> or <code class="docutils literal notranslate"><span class="pre">lmp</span> <span class="pre">-help</span></code>) and built
+with <code class="docutils literal notranslate"><span class="pre">MOLECULE</span></code>, <code class="docutils literal notranslate"><span class="pre">KSPACE</span></code>, and <code class="docutils literal notranslate"><span class="pre">EXTRA-MOLECULE</span></code> packages.</p></li>
+<li><p><strong>Optional</strong>: Open Babel (<code class="docutils literal notranslate"><span class="pre">obabel</span></code>) if starting from SMILES.</p></li>
+</ul>
+</section>
+<section id="installing-dependencies">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink">Installing dependencies</a><a class="headerlink" href="#installing-dependencies" title="Link to this heading"></a></h2>
+<section id="ambertools">
+<h3><a class="toc-backref" href="#id7" role="doc-backlink">AmberTools</a><a class="headerlink" href="#ambertools" title="Link to this heading"></a></h3>
+<p>Install from <a class="reference external" href="https://ambermd.org/GetAmber.php#ambertools">https://ambermd.org/GetAmber.php#ambertools</a> and activate
+the environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>Ambertools23<span class="w">  </span><span class="c1"># or your AmberTools environment</span>
+</pre></div>
+</div>
+<p>To see the available force fields, run antechamber -h</p>
+</section>
+<section id="python-packages">
+<h3><a class="toc-backref" href="#id8" role="doc-backlink">Python packages</a><a class="headerlink" href="#python-packages" title="Link to this heading"></a></h3>
+<p>Using conda (recommended):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>parmed<span class="w"> </span>numpy
+</pre></div>
+</div>
+<p>Using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>parmed<span class="w"> </span>numpy
+</pre></div>
+</div>
+</section>
+<section id="open-babel-optional-for-smiles-to-pdb-conversion">
+<h3><a class="toc-backref" href="#id9" role="doc-backlink">Open Babel (optional, for SMILES to PDB conversion)</a><a class="headerlink" href="#open-babel-optional-for-smiles-to-pdb-conversion" title="Link to this heading"></a></h3>
+<p>Using conda (recommended):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>openbabel
+</pre></div>
+</div>
+<p>Using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>--user<span class="w"> </span>openbabel
+</pre></div>
+</div>
+<p>Using system package manager:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ubuntu/Debian</span>
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>openbabel
+
+<span class="c1"># Fedora/Red Hat</span>
+sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>openbabel
+
+<span class="c1"># macOS</span>
+brew<span class="w"> </span>install<span class="w"> </span>open-babel
+</pre></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="command-reference">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Command Reference</a><a class="headerlink" href="#command-reference" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 10.0%" />
+<col style="width: 75.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Argument</p></th>
+<th class="head"><p>Required?</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Input Files</strong></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">topology</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>AMBER topology file (<code class="docutils literal notranslate"><span class="pre">.prmtop</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">crd</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>AMBER coordinate file (<code class="docutils literal notranslate"><span class="pre">.crd</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Output Files</strong></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">data_file</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>Output LAMMPS data filename</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">param_file</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>Output LAMMPS parameter filename</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Options</strong></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">-b,</span> <span class="pre">--buffer</span></code></p></td>
+<td><p>optional</p></td>
+<td><p>Vacuum padding (Angstrom) for the simulation box. Default: <code class="docutils literal notranslate"><span class="pre">3.8</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--charge</span></code></p></td>
+<td><p>yes</p></td>
+<td><p>Target net charge (integer). Applies a uniform offset to every
+atom to reach this charge (1e-6 tolerance).</p></td>
+</tr>
+<tr class="row-odd"><td></td>
+<td></td>
+<td><p>Does not add counterions; add those with the AMBER tools before conversion.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">--keep-temp</span></code></p></td>
+<td><p>optional</p></td>
+<td><p>Keep temporary files (bonds.txt, angles.txt, dihedrals.txt, pairs.txt) after conversion. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">--verbose</span></code></p></td>
+<td><p>optional</p></td>
+<td><p>Print step-by-step progress, counts, and box size. Default: <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">-h,</span> <span class="pre">--help</span></code></p></td>
+<td><p>optional</p></td>
+<td><p>Show help message.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="conversion-process">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Conversion Process</a><a class="headerlink" href="#conversion-process" title="Link to this heading"></a></h2>
+<p>The converter implements the following sequence (see
+<code class="docutils literal notranslate"><span class="pre">amber_to_lammps.py</span></code>):</p>
+<ol class="arabic simple">
+<li><p><strong>Input validation</strong>: <code class="docutils literal notranslate"><span class="pre">validate_files</span></code> checks that <code class="docutils literal notranslate"><span class="pre">topology</span></code> and <code class="docutils literal notranslate"><span class="pre">crd</span></code> exist and are readable. The CLI performs this validation automatically, while the Python API requires manual validation if desired.</p></li>
+<li><p><strong>AMBER topology load</strong>: ParmEd reads atoms, bonds, angles, and
+dihedrals from <code class="docutils literal notranslate"><span class="pre">.prmtop</span></code>; counts are printed with <code class="docutils literal notranslate"><span class="pre">--verbose</span></code>.</p></li>
+<li><p><strong>Atom typing and masses</strong>: Atom types and masses are extracted
+from the topology file.</p></li>
+<li><p><strong>Coordinates and charges</strong>: Coordinates are read from the
+CRD file and charges from the topology file.</p></li>
+<li><p><strong>Box creation (``–buffer``)</strong>: A bounding box around the coordinates
+is expanded by the buffer on all sides.</p></li>
+<li><p><strong>Charge normalization</strong>: Charges are shifted uniformly to achieve the
+target net charge specified by <code class="docutils literal notranslate"><span class="pre">--charge</span></code>.</p></li>
+<li><p><strong>Non-bonded parameters</strong>: Lennard-Jones parameters are extracted
+from the topology and become <code class="docutils literal notranslate"><span class="pre">pair_coeff</span></code> entries in the parameter file.</p></li>
+<li><p><strong>Topology terms</strong>: Bonds, angles, and dihedrals are exported via
+ParmEd to temporary files and written to the LAMMPS data/parameter
+files.</p></li>
+<li><p><strong>Cleanup</strong>: Temporary helper files (<code class="docutils literal notranslate"><span class="pre">bonds.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">angles.txt</span></code>,
+<code class="docutils literal notranslate"><span class="pre">dihedrals.txt</span></code>, <code class="docutils literal notranslate"><span class="pre">pairs.txt</span></code>) are removed unless <code class="docutils literal notranslate"><span class="pre">--keep-temp</span></code> is specified.</p></li>
+<li><p><strong>Verbose diagnostics</strong>: With <code class="docutils literal notranslate"><span class="pre">--verbose</span></code>, the script reports
+counts, box extents after buffering, and the final total charge.</p></li>
+</ol>
+<section id="charge-normalization">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Charge normalization</a><a class="headerlink" href="#charge-normalization" title="Link to this heading"></a></h3>
+<p><strong>AMBER Charge Schemes:</strong>
+AMBER uses various charge methods including:</p>
+<ul class="simple">
+<li><p><strong>RESP</strong> (Restrained Electrostatic Potential): Derived from quantum
+mechanical electrostatic potential</p></li>
+<li><p><strong>AM1-BCC</strong>: Semi-empirical charges with bond charge corrections</p></li>
+<li><p><strong>CM5</strong> or <strong>CM1A</strong>: Charge models based on atomic charges</p></li>
+</ul>
+<p>In this tutorial, we will use AM1-BCC charges.</p>
+<p><strong>Charge Normalization in AMBER2LAMMPS:</strong></p>
+<ul class="simple">
+<li><p>Most systems should be overall neutral for PME to converge; small
+residual charges (+/-0.003) from AM1-BCC (or other methods) calculated
+from antechamber are common.</p></li>
+<li><p>For neutral molecules, run with <code class="docutils literal notranslate"><span class="pre">--charge</span> <span class="pre">0</span></code> so AMBER2LAMMPS applies
+a uniform offset that removes the residual charge; this prevents the
+error from scaling up when the system is replicated in LAMMPS.</p></li>
+<li><p>For intentionally charged species (e.g., protonated or deprotonated),
+add counterions in tleap/packmol before conversion. AMBER2LAMMPS never
+adds ions; it only shifts existing charges to your requested total.</p></li>
+<li><p>How the flag works:
+- <code class="docutils literal notranslate"><span class="pre">--charge</span> <span class="pre">0</span></code>: uniform shift makes the summed charge 0 within 1e-6.
+- <code class="docutils literal notranslate"><span class="pre">--charge</span> <span class="pre">+1</span></code> (or any integer): uniform shift makes the total that integer within 1e-6.
+- The same constant is added to every atom, so relative charge differences are preserved.</p></li>
+</ul>
+<dl class="simple">
+<dt><strong>Example:</strong> If your system has net charge +0.003 and you specify</dt><dd><p><code class="docutils literal notranslate"><span class="pre">--charge</span> <span class="pre">0</span></code>, each atom’s charge will be reduced by <code class="docutils literal notranslate"><span class="pre">(0.003</span> <span class="pre">/</span>
+<span class="pre">number_of_atoms)</span></code> to reach neutrality.</p>
+</dd>
+</dl>
+</section>
+</section>
+<hr class="docutils" />
+<section id="workflow-examples">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Workflow Examples</a><a class="headerlink" href="#workflow-examples" title="Link to this heading"></a></h2>
+</section>
+<section id="prepare-input-files-ethanol-example">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Prepare input files (ethanol example)</a><a class="headerlink" href="#prepare-input-files-ethanol-example" title="Link to this heading"></a></h2>
+<section id="convert-smiles-to-pdb-optional">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">Convert SMILES to PDB (optional)</a><a class="headerlink" href="#convert-smiles-to-pdb-optional" title="Link to this heading"></a></h3>
+<p>If you start from a SMILES string, generate a PDB with <code class="docutils literal notranslate"><span class="pre">obabel</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>obabel<span class="w"> </span>-:CCO<span class="w"> </span>-h<span class="w"> </span>-opdb<span class="w"> </span>-O<span class="w"> </span>ethanol.pdb<span class="w"> </span>--gen3d<span class="w">  </span><span class="c1"># adds hydrogens, recommended</span>
+obabel<span class="w"> </span>-:c1ccccc1<span class="w"> </span>-h<span class="w"> </span>-opdb<span class="w"> </span>-O<span class="w"> </span>benzene.pdb<span class="w"> </span>--gen3d
+obabel<span class="w"> </span>-:<span class="s2">&quot;CC(=O)OC1=CC=CC=C1C(=O)O&quot;</span><span class="w"> </span>-h<span class="w"> </span>-opdb<span class="w"> </span>-O<span class="w"> </span>aspirin.pdb<span class="w"> </span>--gen3d
+</pre></div>
+</div>
+</section>
+<section id="generate-amber-topology-and-coordinates">
+<h3><a class="toc-backref" href="#id16" role="doc-backlink">Generate AMBER topology and coordinates</a><a class="headerlink" href="#generate-amber-topology-and-coordinates" title="Link to this heading"></a></h3>
+<p>Assuming <code class="docutils literal notranslate"><span class="pre">ethanol.pdb</span></code> is your structure:</p>
+<ol class="arabic">
+<li><p>Generate a MOL2 file with charges:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>antechamber<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span><span class="w"> </span>-at<span class="w"> </span>gaff2<span class="w"> </span>-dr<span class="w"> </span>yes<span class="w"> </span>-fi<span class="w"> </span>pdb<span class="w"> </span>-fo<span class="w"> </span>mol2<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>-i<span class="w"> </span>ethanol.pdb<span class="w"> </span>-o<span class="w"> </span>ethanol.mol2<span class="w"> </span>-c<span class="w"> </span>bcc
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">bcc</span></code> assigns AM1-BCC charges;
+use the <code class="docutils literal notranslate"><span class="pre">-at</span></code> option to choose the force field.</p>
+</li>
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">tleap.in</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>source leaprc.gaff2
+ETH = loadmol2 ethanol.mol2
+check ETH
+saveamberparm SUS ethanol.prmtop ethanol.crd
+quit
+</pre></div>
+</div>
+<p>leaprc.gaff2 loads the gaff2 force field parameters that were used in step 1</p>
+</li>
+<li><p>Run tleap and inspect <code class="docutils literal notranslate"><span class="pre">leap.log</span></code> for errors:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>tleap<span class="w"> </span>-f<span class="w"> </span>tleap.in
+</pre></div>
+</div>
+<p>Outputs: <code class="docutils literal notranslate"><span class="pre">ethanol.prmtop</span></code> and <code class="docutils literal notranslate"><span class="pre">ethanol.crd</span></code>.</p>
+</li>
+</ol>
+</section>
+</section>
+<hr class="docutils" />
+<section id="basic-conversion-workflow">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Basic conversion workflow</a><a class="headerlink" href="#basic-conversion-workflow" title="Link to this heading"></a></h2>
+<section id="lammps-input-script">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">LAMMPS input script</a><a class="headerlink" href="#lammps-input-script" title="Link to this heading"></a></h3>
+<p>Save the following LAMMPS commands in a file called <code class="docutils literal notranslate"><span class="pre">example_lammps_input.lmp</span></code>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># LAMMPS Input Script for Converted AMBER System
+
+units real
+dimension 3
+boundary p p p
+atom_style full
+
+read_data data.lammps
+
+pair_style      lj/cut/coul/long 9 9
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  fourier
+special_bonds lj 0.0 0.0 0.5 coul 0.0 0.0 0.83333333
+
+include parm.lammps
+
+thermo_style custom ebond eangle edihed eimp epair evdwl ecoul elong etail pe
+run 0
+</pre></div>
+</div>
+<p>The above script includes the parameter file via <code class="docutils literal notranslate"><span class="pre">include</span> <span class="pre">parm.lammps</span></code>
+and loads the coordinate data via <code class="docutils literal notranslate"><span class="pre">read_data</span> <span class="pre">data.lammps</span></code>.</p>
+</section>
+<section id="cli-usage-with-lammps-execution">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">CLI usage with LAMMPS execution</a><a class="headerlink" href="#cli-usage-with-lammps-execution" title="Link to this heading"></a></h3>
+<p>Ensure amber_to_lammps.py is executable and the input files are accessible.</p>
+<p>Run the converter:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>amber_to_lammps.py<span class="w"> </span>data.lammps<span class="w"> </span>parm.lammps<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>ethanol.prmtop<span class="w"> </span>ethanol.crd<span class="w"> </span>--charge<span class="w"> </span><span class="m">0</span><span class="w"> </span>--verbose<span class="w"> </span>-b<span class="w"> </span><span class="m">4</span>.5
+</pre></div>
+</div>
+<p>Outputs: <code class="docutils literal notranslate"><span class="pre">data.lammps</span></code> (coordinates/topology) and <code class="docutils literal notranslate"><span class="pre">parm.lammps</span></code></p>
+<p>Run with LAMMPS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lmp<span class="w"> </span>-in<span class="w"> </span>example_lammps_input.lmp
+</pre></div>
+</div>
+<section id="additional-cli-examples">
+<h4><a class="toc-backref" href="#id20" role="doc-backlink">Additional CLI examples</a><a class="headerlink" href="#additional-cli-examples" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Custom buffer and verbose logging (adds 5 Angstroms of padding)</span>
+python3<span class="w"> </span>amber_to_lammps.py<span class="w"> </span>my_data.lammps<span class="w"> </span>my_params.lammps<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>ethanol.prmtop<span class="w"> </span>ethanol.crd<span class="w"> </span>--charge<span class="w"> </span><span class="m">0</span><span class="w"> </span>--verbose<span class="w"> </span>-b<span class="w"> </span><span class="m">5</span>.0
+
+<span class="c1"># Custom output names</span>
+python3<span class="w"> </span>amber_to_lammps.py<span class="w"> </span>system.data<span class="w"> </span>system.parm<span class="w"> </span>system.prmtop<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>system.crd<span class="w"> </span>--charge<span class="w"> </span><span class="m">0</span>
+
+<span class="c1"># Minimal output without verbose logging</span>
+python3<span class="w"> </span>amber_to_lammps.py<span class="w"> </span>small.data<span class="w"> </span>small.parm<span class="w"> </span><span class="se">\</span>
+<span class="w">   </span>ethanol.prmtop<span class="w"> </span>ethanol.crd<span class="w"> </span>--charge<span class="w"> </span><span class="m">0</span><span class="w"> </span>-b<span class="w"> </span><span class="m">3</span>.0
+
+<span class="c1"># Using absolute paths with custom buffer</span>
+python3<span class="w"> </span>amber_to_lammps.py<span class="w"> </span>/home/user/lammps/output/data.lammps<span class="w"> </span>/home/user/lammps/output/param.lammps<span class="w"> </span>/home/user/amber/topology.prmtop<span class="w"> </span>/home/user/amber/coords.crd<span class="w"> </span>--charge<span class="w"> </span><span class="m">0</span><span class="w"> </span>-b<span class="w"> </span><span class="m">4</span>.5
+
+<span class="c1"># Keep temporary files for debugging</span>
+python3<span class="w"> </span>amber_to_lammps.py<span class="w"> </span>debug_data.lammps<span class="w"> </span>debug_parm.lammps<span class="w"> </span>molecule.prmtop<span class="w"> </span>molecule.crd<span class="w"> </span>--charge<span class="w"> </span><span class="m">0</span><span class="w"> </span>--keep-temp<span class="w"> </span>--verbose
+</pre></div>
+</div>
+<p>Make sure to rename the files in example_lammps_input.lmp to match the
+names of the files generated by the conversion when custom file names
+are used.</p>
+</section>
+</section>
+<section id="python-api-usage-with-lammps-execution">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Python API usage with LAMMPS execution</a><a class="headerlink" href="#python-api-usage-with-lammps-execution" title="Link to this heading"></a></h3>
+<p>This example script uses the <a class="reference internal" href="Python_head.html"><span class="doc">LAMMPS Python module</span></a>
+to execute LAMMPS directly from Python.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">amber_to_lammps</span><span class="w"> </span><span class="kn">import</span> <span class="n">amber2lammps</span><span class="p">,</span> <span class="n">validate_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">lammps</span><span class="w"> </span><span class="kn">import</span> <span class="n">lammps</span>
+
+<span class="n">validate_files</span><span class="p">(</span><span class="s1">&#39;ethanol.prmtop&#39;</span><span class="p">,</span> <span class="s1">&#39;ethanol.crd&#39;</span><span class="p">)</span>
+
+<span class="n">amber2lammps</span><span class="p">(</span>
+    <span class="n">data_file</span><span class="o">=</span><span class="s1">&#39;data.lammps&#39;</span><span class="p">,</span>
+    <span class="n">param_file</span><span class="o">=</span><span class="s1">&#39;parm.lammps&#39;</span><span class="p">,</span>
+    <span class="n">topology</span><span class="o">=</span><span class="s1">&#39;ethanol.prmtop&#39;</span><span class="p">,</span>
+    <span class="n">crd</span><span class="o">=</span><span class="s1">&#39;ethanol.crd&#39;</span><span class="p">,</span>
+    <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">buffer</span><span class="o">=</span><span class="mf">3.8</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">lmp</span> <span class="o">=</span> <span class="n">lammps</span><span class="p">()</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">file</span><span class="p">(</span><span class="s1">&#39;example_lammps_input.lmp&#39;</span><span class="p">)</span>
+<span class="n">lmp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<section id="additional-api-examples">
+<h4><a class="toc-backref" href="#id22" role="doc-backlink">Additional API examples</a><a class="headerlink" href="#additional-api-examples" title="Link to this heading"></a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Example 1: Basic conversion without validation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">amber_to_lammps</span><span class="w"> </span><span class="kn">import</span> <span class="n">amber2lammps</span>
+
+<span class="n">amber2lammps</span><span class="p">(</span>
+    <span class="n">data_file</span><span class="o">=</span><span class="s1">&#39;benzene.data&#39;</span><span class="p">,</span>
+    <span class="n">param_file</span><span class="o">=</span><span class="s1">&#39;benzene.parm&#39;</span><span class="p">,</span>
+    <span class="n">topology</span><span class="o">=</span><span class="s1">&#39;benzene.prmtop&#39;</span><span class="p">,</span>
+    <span class="n">crd</span><span class="o">=</span><span class="s1">&#39;benzene.crd&#39;</span><span class="p">,</span>
+    <span class="n">charge</span><span class="o">=</span><span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="c1"># Example 2: Custom buffer and verbose output</span>
+<span class="n">amber2lammps</span><span class="p">(</span>
+    <span class="n">data_file</span><span class="o">=</span><span class="s1">&#39;ethanol.data&#39;</span><span class="p">,</span>
+    <span class="n">param_file</span><span class="o">=</span><span class="s1">&#39;ethanol.parm&#39;</span><span class="p">,</span>
+    <span class="n">topology</span><span class="o">=</span><span class="s1">&#39;ethanol.prmtop&#39;</span><span class="p">,</span>
+    <span class="n">crd</span><span class="o">=</span><span class="s1">&#39;ethanol.crd&#39;</span><span class="p">,</span>
+    <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">buffer</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">keep_temp</span><span class="o">=</span><span class="kc">True</span>  <span class="c1"># Keep temporary files for inspection</span>
+<span class="p">)</span>
+
+<span class="c1"># Example 3: Batch processing multiple molecules</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">amber_to_lammps</span><span class="w"> </span><span class="kn">import</span> <span class="n">amber2lammps</span><span class="p">,</span> <span class="n">validate_files</span>
+
+<span class="n">molecules</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;benzene&#39;</span><span class="p">,</span> <span class="s1">&#39;aspirin&#39;</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">molecules</span><span class="p">:</span>
+    <span class="n">validate_files</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mol</span><span class="si">}</span><span class="s1">.prmtop&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mol</span><span class="si">}</span><span class="s1">.crd&#39;</span><span class="p">)</span>
+    <span class="n">amber2lammps</span><span class="p">(</span>
+        <span class="n">data_file</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mol</span><span class="si">}</span><span class="s1">.data&#39;</span><span class="p">,</span>
+        <span class="n">param_file</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mol</span><span class="si">}</span><span class="s1">.parm&#39;</span><span class="p">,</span>
+        <span class="n">topology</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mol</span><span class="si">}</span><span class="s1">.prmtop&#39;</span><span class="p">,</span>
+        <span class="n">crd</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mol</span><span class="si">}</span><span class="s1">.crd&#39;</span><span class="p">,</span>
+        <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="validation-of-amber2lammps">
+<h2><a class="toc-backref" href="#id23" role="doc-backlink">Validation of AMBER2LAMMPS</a><a class="headerlink" href="#validation-of-amber2lammps" title="Link to this heading"></a></h2>
+<p>AMBER2LAMMPS has been validated against InterMol output. See the project
+page for details: <a class="reference external" href="https://github.com/askforarun/AMBER2LAMMPS">https://github.com/askforarun/AMBER2LAMMPS</a></p>
+</section>
+<section id="getting-help">
+<h2><a class="toc-backref" href="#id24" role="doc-backlink">Getting Help</a><a class="headerlink" href="#getting-help" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><strong>Submit Issues:</strong> <a class="reference external" href="https://github.com/askforarun/AMBER2LAMMPS/issues">https://github.com/askforarun/AMBER2LAMMPS/issues</a></p></li>
+<li><p><strong>Feature Requests:</strong> Use GitHub Issues or Discussions</p></li>
+<li><p><strong>Questions:</strong> Use GitHub Discussions or Issues</p></li>
+</ul>
+</section>
+<section id="citation">
+<h2><a class="toc-backref" href="#id25" role="doc-backlink">Citation</a><a class="headerlink" href="#citation" title="Link to this heading"></a></h2>
+<p>If you use the AMBER2LAMMPS tool in your research, please cite it as:</p>
+<p><strong>DOI:</strong> <a class="reference external" href="https://doi.org/10.5281/zenodo.18114886">10.5281/zenodo.18114886</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_bioFF.html" class="btn btn-neutral float-left" title="10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_amoeba.html" class="btn btn-neutral float-right" title="10.4.4. AMOEBA and HIPPO force fields" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

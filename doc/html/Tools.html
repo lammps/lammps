@@ -1,0 +1,1111 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>9. Auxiliary tools &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Tools.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10. Howto discussions" href="Howto.html" />
+    <link rel="prev" title="8.1. Package details" href="Packages_details.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Auxiliary tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pre-processing-tools">9.1. Pre-processing tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#post-processing-tools">9.2. Post-processing tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#miscellaneous-tools">9.3. Miscellaneous tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tool-descriptions">9.4. Tool descriptions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#binary2txt-tool">9.4.1. binary2txt tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ch2lmp-tool">9.4.2. ch2lmp tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#chain-tool">9.4.3. chain tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lammps-coding-standard">9.4.4. LAMMPS coding standard</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#colvars-tools">9.4.5. colvars tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#createatoms-tool">9.4.6. createatoms tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#drude-tool">9.4.7. drude tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#eam-database-tool">9.4.8. eam database tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#eam-generate-tool">9.4.9. eam generate tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#eff-tool">9.4.10. eff tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#emacs-tool">9.4.11. emacs tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fep-tool">9.4.12. fep tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#i-pi-tool">9.4.13. i-PI tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ipp-tool">9.4.14. ipp tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#json-support-files">9.4.15. JSON support files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kate-tool">9.4.16. kate tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lammps-gui">9.4.17. LAMMPS-GUI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lmp2arc-tool">9.4.18. lmp2arc tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lmp2cfg-tool">9.4.19. lmp2cfg tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#magic-patterns-for-the-file-command">9.4.20. Magic patterns for the “file” command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#matlab-tool">9.4.21. matlab tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#micelle2d-tool">9.4.22. micelle2d tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#moltemplate-tool">9.4.23. moltemplate tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#msi2lmp-tool">9.4.24. msi2lmp tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scripts-for-building-lammps-when-offline">9.4.25. Scripts for building LAMMPS when offline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#phonon-tool">9.4.26. phonon tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#polybond-tool">9.4.27. polybond tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pymol-asphere-tool">9.4.28. pymol_asphere tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-tool">9.4.29. python tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#regression-tester-tool">9.4.30. Regression tester tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#replica-tool">9.4.31. replica tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#smd-tool">9.4.32. smd tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#spin-tool">9.4.33. spin tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#singularity-apptainer-tool">9.4.34. singularity/apptainer tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#stl-bin2txt-tool">9.4.35. stl_bin2txt tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#swig-interface">9.4.36. SWIG interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tabulate-tool">9.4.37. tabulate tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tinker-tool">9.4.38. tinker tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#valgrind-tool">9.4.39. valgrind tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vim-tool">9.4.40. vim tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xmgrace-tool">9.4.41. xmgrace tool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active"><span class="section-number">9. </span>Auxiliary tools</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Packages_details.html" class="btn btn-neutral float-left" title="8.1. Package details" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto.html" class="btn btn-neutral float-right" title="10. Howto discussions" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="auxiliary-tools">
+<h1><span class="section-number">9. </span>Auxiliary tools<a class="headerlink" href="#auxiliary-tools" title="Link to this heading"></a></h1>
+<p>LAMMPS is designed to be a computational kernel for performing
+molecular dynamics computations.  Additional pre- and post-processing
+steps are often necessary to setup and analyze a simulation.  A list
+of such tools can be found on the <a class="reference external" href="https://www.lammps.org">LAMMPS webpage</a> at these links:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.lammps.org/prepost.html">Pre/Post processing</a></p></li>
+<li><p><a class="reference external" href="https://www.lammps.org/external.html">External LAMMPS packages &amp; tools</a></p></li>
+<li><p><a class="reference external" href="https://lammps.github.io/pizza/">Pizza.py toolkit</a></p></li>
+</ul>
+<p>The last link for <a class="reference external" href="https://lammps.github.io/pizza/">Pizza.py</a> is a Python-based tool developed at
+Sandia which provides tools for doing setup, analysis, plotting, and
+visualization for LAMMPS simulations.</p>
+<p>Additional tools included in the LAMMPS distribution are described on
+this page.</p>
+<p>Note that many users write their own setup or analysis tools or use
+other existing codes and convert their output to a LAMMPS input format
+or vice versa.  The tools listed here are included in the LAMMPS
+distribution as examples of auxiliary tools.  Some of them are not
+actively supported by the LAMMPS developers, as they were contributed
+by LAMMPS users.  If you have problems using them, we can direct you
+to the authors.</p>
+<p>The source code for each of these codes is in the tools subdirectory
+of the LAMMPS distribution.  There is a Makefile (which you may need
+to edit for your platform) which will build several of the tools which
+reside in that directory.  Most of them are larger packages in their
+own subdirectories with their own Makefiles and/or README files.</p>
+<hr class="docutils" />
+<section id="pre-processing-tools">
+<h2><span class="section-number">9.1. </span>Pre-processing tools<a class="headerlink" href="#pre-processing-tools" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#charmm"><span class="std std-ref">ch2lmp</span></a></p></td>
+<td><p><a class="reference internal" href="#chain"><span class="std std-ref">chain</span></a></p></td>
+<td><p><a class="reference internal" href="#createatoms"><span class="std std-ref">createatoms</span></a></p></td>
+<td><p><a class="reference internal" href="#drude"><span class="std std-ref">drude</span></a></p></td>
+<td><p><a class="reference internal" href="#eamdb"><span class="std std-ref">eam database</span></a></p></td>
+<td><p><a class="reference internal" href="#eamgn"><span class="std std-ref">eam generate</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#eff"><span class="std std-ref">eff</span></a></p></td>
+<td><p><a class="reference internal" href="#ipp"><span class="std std-ref">ipp</span></a></p></td>
+<td><p><a class="reference internal" href="#micelle"><span class="std std-ref">micelle2d</span></a></p></td>
+<td><p><a class="reference internal" href="#moltemplate"><span class="std std-ref">moltemplate</span></a></p></td>
+<td><p><a class="reference internal" href="#msi"><span class="std std-ref">msi2lmp</span></a></p></td>
+<td><p><a class="reference internal" href="#polybond"><span class="std std-ref">polybond</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#stlconvert"><span class="std std-ref">stl_bin2txt</span></a></p></td>
+<td><p><a class="reference internal" href="#tabulate"><span class="std std-ref">tabulate</span></a></p></td>
+<td><p><a class="reference internal" href="#tinker"><span class="std std-ref">tinker</span></a></p></td>
+<td><p><a class="reference internal" href="Howto_amber2lammps.html"><span class="doc">AMBER2LAMMPS</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="post-processing-tools">
+<h2><span class="section-number">9.2. </span>Post-processing tools<a class="headerlink" href="#post-processing-tools" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#binary"><span class="std std-ref">binary2txt</span></a></p></td>
+<td><p><a class="reference internal" href="#charmm"><span class="std std-ref">ch2lmp</span></a></p></td>
+<td><p><a class="reference internal" href="#colvars-tools"><span class="std std-ref">colvars</span></a></p></td>
+<td><p><a class="reference internal" href="#eff"><span class="std std-ref">eff</span></a></p></td>
+<td><p><a class="reference internal" href="#fep"><span class="std std-ref">fep</span></a></p></td>
+<td><p><a class="reference internal" href="#arc"><span class="std std-ref">lmp2arc</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#cfg"><span class="std std-ref">lmp2cfg</span></a></p></td>
+<td><p><a class="reference internal" href="#matlab"><span class="std std-ref">matlab</span></a></p></td>
+<td><p><a class="reference internal" href="#phonon"><span class="std std-ref">phonon</span></a></p></td>
+<td><p><a class="reference internal" href="#pymol"><span class="std std-ref">pymol_asphere</span></a></p></td>
+<td><p><a class="reference internal" href="#pythontools"><span class="std std-ref">python</span></a></p></td>
+<td><p><a class="reference internal" href="#replica"><span class="std std-ref">replica</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#smd"><span class="std std-ref">smd</span></a></p></td>
+<td><p><a class="reference internal" href="#spin"><span class="std std-ref">spin</span></a></p></td>
+<td><p><a class="reference internal" href="#xmgrace"><span class="std std-ref">xmgrace</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="miscellaneous-tools">
+<h2><span class="section-number">9.3. </span>Miscellaneous tools<a class="headerlink" href="#miscellaneous-tools" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#coding-standard"><span class="std std-ref">LAMMPS coding standards</span></a></p></td>
+<td><p><a class="reference internal" href="#emacs"><span class="std std-ref">emacs</span></a></p></td>
+<td><p><a class="reference internal" href="#ipi"><span class="std std-ref">i-PI</span></a></p></td>
+<td><p><a class="reference internal" href="#json"><span class="std std-ref">JSON support</span></a></p></td>
+<td><p><a class="reference internal" href="#kate"><span class="std std-ref">kate</span></a></p></td>
+<td><p><a class="reference internal" href="#lammps-gui"><span class="std std-ref">LAMMPS-GUI</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#magic"><span class="std std-ref">LAMMPS magic patterns for file(1)</span></a></p></td>
+<td><p><a class="reference internal" href="#offline"><span class="std std-ref">Offline build tool</span></a></p></td>
+<td><p><a class="reference internal" href="#regression"><span class="std std-ref">Regression tester</span></a></p></td>
+<td><p><a class="reference internal" href="#singularity-tool"><span class="std std-ref">singularity/apptainer</span></a></p></td>
+<td><p><a class="reference internal" href="#swig"><span class="std std-ref">SWIG interface</span></a></p></td>
+<td><p><a class="reference internal" href="#valgrind"><span class="std std-ref">valgrind</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#vim"><span class="std std-ref">vim</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<hr class="docutils" />
+<section id="tool-descriptions">
+<h2><span class="section-number">9.4. </span>Tool descriptions<a class="headerlink" href="#tool-descriptions" title="Link to this heading"></a></h2>
+<section id="binary2txt-tool">
+<span id="binary"></span><h3><span class="section-number">9.4.1. </span>binary2txt tool<a class="headerlink" href="#binary2txt-tool" title="Link to this heading"></a></h3>
+<p>The file binary2txt.cpp converts one or more binary LAMMPS dump file
+into ASCII text files.  The syntax for running the tool is</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>binary2txt<span class="w"> </span>file1<span class="w"> </span>file2<span class="w"> </span>...
+</pre></div>
+</div>
+<p>which creates file1.txt, file2.txt, etc.  This tool must be compiled
+on a platform that can read the binary file created by a LAMMPS run,
+since binary files are not compatible across all platforms.</p>
+<hr class="docutils" />
+</section>
+<section id="ch2lmp-tool">
+<span id="charmm"></span><h3><span class="section-number">9.4.2. </span>ch2lmp tool<a class="headerlink" href="#ch2lmp-tool" title="Link to this heading"></a></h3>
+<p>The ch2lmp subdirectory contains tools for converting files
+back-and-forth between the CHARMM MD code and LAMMPS.</p>
+<p>They are intended to make it easy to use CHARMM as a builder and as a
+post-processor for LAMMPS. Using charmm2lammps.pl, you can convert a
+PDB file with associated CHARMM info, including CHARMM force field
+data, into its LAMMPS equivalent. Support for the CMAP correction of
+CHARMM22 and later is available as an option. This tool can also add
+solvent water molecules and Na+ or Cl- ions to the system.
+Using lammps2pdb.pl you can convert LAMMPS atom dumps into PDB files.</p>
+<p>See the README file in the ch2lmp subdirectory for more information.</p>
+<p>These tools were created by Pieter in’t Veld (pjintve at sandia.gov)
+and Paul Crozier (pscrozi at sandia.gov) at Sandia.</p>
+<p>CMAP support added and tested by Xiaohu Hu (hux2 at ornl.gov) and
+Robert A. Latour (latourr at clemson.edu), David Hyde-Volpe, and
+Tigran Abramyan, (Clemson University) and
+Chris Lorenz (chris.lorenz at kcl.ac.uk), King’s College London.</p>
+<hr class="docutils" />
+</section>
+<section id="chain-tool">
+<span id="chain"></span><h3><span class="section-number">9.4.3. </span>chain tool<a class="headerlink" href="#chain-tool" title="Link to this heading"></a></h3>
+<p>The file chain.f90 creates a LAMMPS data file containing bead-spring
+polymer chains and/or monomer solvent atoms.  It uses a text file
+containing chain definition parameters as an input.  The created
+chains and solvent atoms can strongly overlap, so LAMMPS needs to run
+the system initially with a “soft” pair potential to un-overlap it.
+The syntax for running the tool is</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>chain<span class="w"> </span>&lt;<span class="w"> </span>def.chain<span class="w"> </span>&gt;<span class="w"> </span>data.file
+</pre></div>
+</div>
+<p>See the def.chain or def.chain.ab files in the tools directory for
+examples of definition files.  This tool was used to create the system
+for the <a class="reference internal" href="Speed_bench.html"><span class="doc">chain benchmark</span></a>.</p>
+<hr class="docutils" />
+</section>
+<section id="lammps-coding-standard">
+<span id="coding-standard"></span><h3><span class="section-number">9.4.4. </span>LAMMPS coding standard<a class="headerlink" href="#lammps-coding-standard" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">coding_standard</span></code> folder contains multiple python scripts to
+check for and apply some LAMMPS coding conventions.  The following
+scripts are available:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>permissions.py   # detects if sources have executable permissions and scripts have not
+whitespace.py    # detects TAB characters and trailing whitespace
+homepage.py      # detects outdated LAMMPS homepage URLs (pointing to sandia.gov instead of lammps.org)
+errordocs.py     # detects deprecated error docs in header files
+versiontags.py   # detects .. versionadded:: or .. versionchanged:: with pending version date
+</pre></div>
+</div>
+<p>The tools need to be given the main folder of the LAMMPS distribution
+or individual file names as argument and will by default check them
+and report any non-compliance.  With the optional <code class="docutils literal notranslate"><span class="pre">-f</span></code> argument the
+corresponding script will try to change the non-compliant file(s) to
+match the conventions.</p>
+<p>For convenience this scripts can also be invoked by the make file in
+the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder with, <cite>make check-whitespace</cite> or <cite>make fix-whitespace</cite>
+to either detect or edit the files.  Correspondingly for the other python
+scripts. <cite>make check</cite> will run all checks.</p>
+<hr class="docutils" />
+</section>
+<section id="colvars-tools">
+<span id="id1"></span><h3><span class="section-number">9.4.5. </span>colvars tools<a class="headerlink" href="#colvars-tools" title="Link to this heading"></a></h3>
+<p>The colvars directory contains a collection of tools for post-processing
+data produced by the colvars collective variable library.
+To compile the tools, edit the makefile for your system and run “make”.</p>
+<p>Please report problems and issues the colvars library and its tools
+at: <a class="reference external" href="https://github.com/colvars/colvars/issues">https://github.com/colvars/colvars/issues</a></p>
+<p>abf_integrate:</p>
+<p>MC-based integration of multidimensional free energy gradient
+Version 20110511</p>
+<pre class="literal-block">./abf_integrate &lt; filename &gt; [-n &lt; nsteps &gt;] [-t &lt; temp &gt;] [-m [0|1] (metadynamics)] [-h &lt; hill_height &gt;] [-f &lt; variable_hill_factor &gt;]</pre>
+<p>The LAMMPS interface to the colvars collective variable library, as
+well as these tools, were created by Axel Kohlmeyer (akohlmey at
+gmail.com) while at ICTP, Italy.</p>
+<hr class="docutils" />
+</section>
+<section id="createatoms-tool">
+<span id="createatoms"></span><h3><span class="section-number">9.4.6. </span>createatoms tool<a class="headerlink" href="#createatoms-tool" title="Link to this heading"></a></h3>
+<p>The tools/createatoms directory contains a Fortran program called
+createAtoms.f which can generate a variety of interesting crystal
+structures and geometries and output the resulting list of atom
+coordinates in LAMMPS or other formats.</p>
+<p>See the included Manual.pdf for details.</p>
+<p>The tool is authored by Xiaowang Zhou (Sandia), xzhou at sandia.gov.</p>
+<hr class="docutils" />
+</section>
+<section id="drude-tool">
+<span id="drude"></span><h3><span class="section-number">9.4.7. </span>drude tool<a class="headerlink" href="#drude-tool" title="Link to this heading"></a></h3>
+<p>The tools/drude directory contains a Python script called
+polarizer.py which can add Drude oscillators to a LAMMPS
+data file in the required format.</p>
+<p>See the header of the polarizer.py file for details.</p>
+<p>The tool is authored by Agilio Padua and Alain Dequidt: agilio.padua
+at ens-lyon.fr, alain.dequidt at uca.fr</p>
+<hr class="docutils" />
+</section>
+<section id="eam-database-tool">
+<span id="eamdb"></span><h3><span class="section-number">9.4.8. </span>eam database tool<a class="headerlink" href="#eam-database-tool" title="Link to this heading"></a></h3>
+<p>The tools/eam_database directory contains a Fortran and a Python program
+that will generate EAM alloy setfl potential files for any combination
+of the 17 elements: Cu, Ag, Au, Ni, Pd, Pt, Al, Pb, Fe, Mo, Ta, W, Mg,
+Co, Ti, Zr, Cr.  The files can then be used with the <a class="reference internal" href="pair_eam.html"><span class="doc">pair_style
+eam/alloy</span></a> command.</p>
+<p>The Fortran version of the tool was authored by Xiaowang Zhou (Sandia),
+xzhou at sandia.gov, with updates from Lucas Hale (NIST) lucas.hale at
+nist.gov and is based on his paper:</p>
+<p>X. W. Zhou, R. A. Johnson, and H. N. G. Wadley, Phys. Rev. B, 69,
+144113 (2004).</p>
+<p>The parameters for Cr were taken from:</p>
+<p>Lin Z B, Johnson R A and Zhigilei L V, Phys. Rev. B 77 214108 (2008).</p>
+<p>The Python version of the tool was authored  by Germain Clavier
+(Unicaen) germain.clavier at unicaen.fr</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The parameters in the database are only optimized for individual
+elements. The mixed parameters for interactions between different
+elements generated by this tool are derived from simple mixing rules
+and are thus inferior to parameterizations that are specifically
+optimized for specific mixtures and combinations of elements.</p>
+</div>
+<hr class="docutils" />
+</section>
+<section id="eam-generate-tool">
+<span id="eamgn"></span><h3><span class="section-number">9.4.9. </span>eam generate tool<a class="headerlink" href="#eam-generate-tool" title="Link to this heading"></a></h3>
+<p>The tools/eam_generate directory contains several one-file C programs
+that convert an analytic formula into a tabulated <a class="reference internal" href="pair_eam.html"><span class="doc">embedded atom
+method (EAM)</span></a> setfl potential file.  The potentials they
+produce are in the potentials directory, and can be used with the
+<a class="reference internal" href="pair_eam.html"><span class="doc">pair_style eam/alloy</span></a> command.</p>
+<p>The source files and potentials were provided by Gerolf Ziegenhain
+(gerolf at ziegenhain.com).</p>
+<hr class="docutils" />
+</section>
+<section id="eff-tool">
+<span id="eff"></span><h3><span class="section-number">9.4.10. </span>eff tool<a class="headerlink" href="#eff-tool" title="Link to this heading"></a></h3>
+<p>The tools/eff directory contains various scripts for generating
+structures and post-processing output for simulations using the
+electron force field (eFF).</p>
+<p>These tools were provided by Andres Jaramillo-Botero at CalTech
+(ajaramil at wag.caltech.edu).</p>
+<hr class="docutils" />
+</section>
+<section id="emacs-tool">
+<span id="emacs"></span><h3><span class="section-number">9.4.11. </span>emacs tool<a class="headerlink" href="#emacs-tool" title="Link to this heading"></a></h3>
+<p>The tools/emacs directory contains an Emacs Lisp add-on file for GNU Emacs
+that enables a lammps-mode for editing input scripts when using GNU Emacs,
+with various highlighting options set up.</p>
+<p>These tools were provided by Aidan Thompson at Sandia
+(athomps at sandia.gov).</p>
+<hr class="docutils" />
+</section>
+<section id="fep-tool">
+<span id="fep"></span><h3><span class="section-number">9.4.12. </span>fep tool<a class="headerlink" href="#fep-tool" title="Link to this heading"></a></h3>
+<p>The tools/fep directory contains Python scripts useful for
+post-processing results from performing free-energy perturbation
+simulations using the FEP package.</p>
+<p>The scripts were contributed by Agilio Padua (ENS de Lyon), agilio.padua at ens-lyon.fr.</p>
+<p>See README file in the tools/fep directory.</p>
+<hr class="docutils" />
+</section>
+<section id="i-pi-tool">
+<span id="ipi"></span><h3><span class="section-number">9.4.13. </span>i-PI tool<a class="headerlink" href="#i-pi-tool" title="Link to this heading"></a></h3>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 27June2024.</span></p>
+</div>
+<p>The tools/i-pi directory used to contain a bundled version of the i-PI
+software package for use with LAMMPS.  This version, however, was
+removed in 06/2024.</p>
+<p>The i-PI package was created and is maintained by Michele Ceriotti,
+michele.ceriotti at gmail.com, to interface to a variety of molecular
+dynamics codes.</p>
+<p>i-PI is now available via PyPI using the pip package manager at:
+<a class="reference external" href="https://pypi.org/project/ipi/">https://pypi.org/project/ipi/</a></p>
+<p>Here are the commands to set up a virtual environment and install
+i-PI into it with all its dependencies.</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>ipienv
+<span class="nb">source</span><span class="w"> </span>ipienv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>ipi
+</pre></div>
+</div>
+<p>To install the development version from GitHub, please use:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/i-pi/i-pi.git
+</pre></div>
+</div>
+<p>For further information, please consult the [i-PI home
+page](<a class="reference external" href="https://ipi-code.org">https://ipi-code.org</a>).</p>
+<hr class="docutils" />
+</section>
+<section id="ipp-tool">
+<span id="ipp"></span><h3><span class="section-number">9.4.14. </span>ipp tool<a class="headerlink" href="#ipp-tool" title="Link to this heading"></a></h3>
+<p>The tools/ipp directory contains a Perl script ipp which can be used
+to facilitate the creation of a complicated file (say, a LAMMPS input
+script or tools/createatoms input file) using a template file.</p>
+<p>ipp was created and is maintained by Reese Jones (Sandia), rjones at
+sandia.gov.</p>
+<p>See two examples in the tools/ipp directory.  One of them is for the
+tools/createatoms tool’s input file.</p>
+<hr class="docutils" />
+</section>
+<section id="json-support-files">
+<span id="json"></span><h3><span class="section-number">9.4.15. </span>JSON support files<a class="headerlink" href="#json-support-files" title="Link to this heading"></a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 12June2025.</span></p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">tools/json</span></code> directory contains files and tools to support
+using <a class="reference external" href="https://www.json.org/">JSON format</a> files in LAMMPS.
+Currently only the <a class="reference internal" href="molecule.html"><span class="doc">molecule command</span></a> supports
+files in JSON format directly, but this is planned to be expanded
+in the future.</p>
+<section id="json-file-validation">
+<h4>JSON file validation<a class="headerlink" href="#json-file-validation" title="Link to this heading"></a></h4>
+<p>The JSON syntax is independent of its content, and thus the data in the
+file must follow suitable conventions to be correctly parsed during
+input.  This can be done in a portable fashion using a <a class="reference external" href="https://json-schema.org/">JSON schema file</a> (which is in JSON format as well) to define
+those conventions.  A suitable JSON validator software can then validate
+JSON files against the requirements.  Validating a particular JSON file
+against a schema ensures that both, the syntax <em>and</em> the conventions
+are followed.  This is useful when writing or editing JSON files in a
+text editor or when writing a pre-processing script or tool to create
+JSON files for a specific purpose in LAMMPS.  It <strong>cannot</strong> check
+whether the file contents are physically meaningful, though.</p>
+<p>One such validator tool is <a class="reference external" href="https://check-jsonschema.readthedocs.io/">check-jsonschema</a> which is written in Python
+and can be installed using the <a class="reference external" href="https://pypi.org/">pip Python package manager</a>, best in a virtual environment as shown below (for
+a Bourne Shell command line):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>validate-json
+<span class="nb">source</span><span class="w"> </span>validate-json/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>check-jsonschema
+</pre></div>
+</div>
+<p>To validate a specific JSON file against a provided schema (here for
+a <a class="reference internal" href="molecule.html"><span class="doc">molecule command file</span></a> you would then run for example:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>check-jsonschema<span class="w"> </span>--schemafile<span class="w"> </span>molecule-schema.json<span class="w"> </span>tip3p.json
+</pre></div>
+</div>
+<p>The latest schema files are also maintained and available for download
+at <a class="reference external" href="https://download.lammps.org/json/">https://download.lammps.org/json/</a> .  This enables validation of JSON
+files even if the LAMMPS sources are not locally available. Example:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>check-jsonschema<span class="w"> </span>--schemafile<span class="w"> </span>https://download.lammps.org/json/molecule-schema.json<span class="w"> </span>tip3p.json
+</pre></div>
+</div>
+<p>Because YAML is a superset of JSON, the same tool and mechanism can also
+validate YAML files against a JSON schema.  This is used for the force-style
+regression test reference files in the <code class="docutils literal notranslate"><span class="pre">unittest/force-styles</span></code> folder, which
+are described by <code class="docutils literal notranslate"><span class="pre">force-style-test-schema.json</span></code>.  For example, to validate
+all of them:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>check-jsonschema<span class="w"> </span>--schemafile<span class="w"> </span>force-style-test-schema.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>unittest/force-styles/tests/*.yaml
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="Developer_unittest.html"><span class="doc">unit test developer documentation</span></a> for a
+description of the available keys in these reference files.</p>
+</section>
+<section id="json-file-format-normalization">
+<h4>JSON file format normalization<a class="headerlink" href="#json-file-format-normalization" title="Link to this heading"></a></h4>
+<p>There are extensions to the strict JSON format that allow for comments
+or ignore additional (dangling) commas. The <code class="docutils literal notranslate"><span class="pre">reformat-json.cpp</span></code> tool
+will read JSON files in relaxed format, but write it out in strict format.
+It is also possible to change the level of indentation from -1 (all data
+one long line) to any positive integer value.  The original file will be
+backed up (.bak added to file name) and then overwritten.</p>
+<p>Manual compilation (it will be automatically included in the CMake build
+if building tools is requested during CMake configuration):</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>g++<span class="w"> </span>-I<span class="w"> </span>&lt;path/to/lammps/src&gt;<span class="w"> </span>-o<span class="w"> </span>reformat-json<span class="w"> </span>reformat-json.cpp
+</pre></div>
+</div>
+<p>Usage:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>reformat-json &lt;indent-width&gt; &lt;json-file-1&gt; [&lt;json-file-2&gt; ...]
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="kate-tool">
+<span id="kate"></span><h3><span class="section-number">9.4.16. </span>kate tool<a class="headerlink" href="#kate-tool" title="Link to this heading"></a></h3>
+<p>The file in the tools/kate directory is an add-on to the Kate editor
+in the KDE suite that allow syntax highlighting of LAMMPS input
+scripts.  See the README.txt file for details.</p>
+<p>The file was provided by Alessandro Luigi Sellerio
+(alessandro.sellerio at ieni.cnr.it).</p>
+<hr class="docutils" />
+</section>
+<section id="lammps-gui">
+<span id="id2"></span><h3><span class="section-number">9.4.17. </span>LAMMPS-GUI<a class="headerlink" href="#lammps-gui" title="Link to this heading"></a></h3>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
+input files that is linked to the <a class="reference internal" href="Library.html#lammps-c-api"><span class="std std-ref">LAMMPS C-library</span></a>.  It used to be included with LAMMPS in the
+<code class="docutils literal notranslate"><span class="pre">tools/lammps-gui</span></code> folder, but it is now hosted in its own git
+repository at <a class="reference external" href="https://github.com/akohlmey/lammps-gui/">https://github.com/akohlmey/lammps-gui/</a> and the online
+documentation is at <a class="reference external" href="https://lammps-gui.lammps.org/">https://lammps-gui.lammps.org/</a></p>
+<p>It is still possible to compile <a class="reference internal" href="Build_basics.html#tools"><span class="std std-ref">LAMMPS-GUI together with LAMMPS</span></a>.</p>
+<hr class="docutils" />
+</section>
+<section id="lmp2arc-tool">
+<span id="arc"></span><h3><span class="section-number">9.4.18. </span>lmp2arc tool<a class="headerlink" href="#lmp2arc-tool" title="Link to this heading"></a></h3>
+<p>The lmp2arc subdirectory contains a tool for converting LAMMPS output
+files to the format for Accelrys’ Insight MD code (formerly
+MSI/Biosym and its Discover MD code).  See the README file for more
+information.</p>
+<p>This tool was written by John Carpenter (Cray), Michael Peachey
+(Cray), and Steve Lustig (Dupont).  John is now at the Mayo Clinic
+(jec at mayo.edu), but still fields questions about the tool.</p>
+<p>This tool was updated for the current LAMMPS C++ version by Jeff
+Greathouse at Sandia (jagreat at sandia.gov).</p>
+<hr class="docutils" />
+</section>
+<section id="lmp2cfg-tool">
+<span id="cfg"></span><h3><span class="section-number">9.4.19. </span>lmp2cfg tool<a class="headerlink" href="#lmp2cfg-tool" title="Link to this heading"></a></h3>
+<p>The lmp2cfg subdirectory contains a tool for converting LAMMPS output
+files into a series of *.cfg files which can be read into the
+<a class="reference external" href="http://li.mit.edu/Archive/Graphics/A/">AtomEye</a> visualizer.  See
+the README file for more information.</p>
+<p>This tool was written by Ara Kooser at Sandia (askoose at sandia.gov).</p>
+<hr class="docutils" />
+</section>
+<section id="magic-patterns-for-the-file-command">
+<span id="magic"></span><h3><span class="section-number">9.4.20. </span>Magic patterns for the “file” command<a class="headerlink" href="#magic-patterns-for-the-file-command" title="Link to this heading"></a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 10Mar2021.</span></p>
+</div>
+<p>The file <code class="docutils literal notranslate"><span class="pre">magic</span></code> contains patterns that are used by the
+<a class="reference external" href="https://en.wikipedia.org/wiki/File_(command)">file program</a>
+available on most Unix-like operating systems which enables it
+to detect various LAMMPS files and print some useful information
+about them.  To enable these patterns, append or copy the contents
+of the file to either the file <code class="docutils literal notranslate"><span class="pre">.magic</span></code> in your home directory
+or (as administrator) to <code class="docutils literal notranslate"><span class="pre">/etc/magic</span></code> (for a system-wide
+installation).  Afterwards the <code class="docutils literal notranslate"><span class="pre">file</span></code> command should be able to
+detect most LAMMPS restarts, dump, data and log files. Examples:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>file<span class="w"> </span>*.*
+<span class="go">dihedral-quadratic.restart:   LAMMPS binary restart file (rev 2), Version 10 Mar 2021, Little Endian</span>
+<span class="go">mol-pair-wf_cut.restart:      LAMMPS binary restart file (rev 2), Version 24 Dec 2020, Little Endian</span>
+<span class="go">atom.bin:                     LAMMPS atom style binary dump (rev 2), Little Endian, First time step: 445570</span>
+<span class="go">custom.bin:                   LAMMPS custom style binary dump (rev 2), Little Endian, First time step: 100</span>
+<span class="go">bn1.lammpstrj:                LAMMPS text mode dump, First time step: 5000</span>
+<span class="go">data.fourmol:                 LAMMPS data file written by LAMMPS</span>
+<span class="go">pnc.data:                     LAMMPS data file written by msi2lmp</span>
+<span class="go">data.spce:                    LAMMPS data file written by TopoTools</span>
+<span class="go">B.data:                       LAMMPS data file written by OVITO</span>
+<span class="go">log.lammps:                   LAMMPS log file written by version 10 Feb 2021</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+<section id="matlab-tool">
+<span id="matlab"></span><h3><span class="section-number">9.4.21. </span>matlab tool<a class="headerlink" href="#matlab-tool" title="Link to this heading"></a></h3>
+<p>The matlab subdirectory contains several <a class="reference external" href="https://www.mathworks.com">MATLAB</a> scripts for
+post-processing LAMMPS output.  The scripts include readers for log
+and dump files, a reader for EAM potential files, and a converter that
+reads LAMMPS dump files and produces CFG files that can be visualized
+with the <a class="reference external" href="http://li.mit.edu/Archive/Graphics/A/">AtomEye</a>
+visualizer.</p>
+<p>See the README.pdf file for more information.</p>
+<p>These scripts were written by Arun Subramaniyan at Purdue Univ
+(asubrama at purdue.edu).</p>
+<hr class="docutils" />
+</section>
+<section id="micelle2d-tool">
+<span id="micelle"></span><h3><span class="section-number">9.4.22. </span>micelle2d tool<a class="headerlink" href="#micelle2d-tool" title="Link to this heading"></a></h3>
+<p>The file micelle2d.f creates a LAMMPS data file containing short lipid
+chains in a monomer solution.  It uses a text file containing lipid
+definition parameters as an input.  The created molecules and solvent
+atoms can strongly overlap, so LAMMPS needs to run the system
+initially with a “soft” pair potential to un-overlap it.  The syntax
+for running the tool is</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>micelle2d<span class="w"> </span>&lt;<span class="w"> </span>def.micelle2d<span class="w"> </span>&gt;<span class="w"> </span>data.file
+</pre></div>
+</div>
+<p>See the def.micelle2d file in the tools directory for an example of a
+definition file.  This tool was used to create the system for the
+<a class="reference internal" href="Examples.html"><span class="doc">micelle example</span></a>.</p>
+<hr class="docutils" />
+</section>
+<section id="moltemplate-tool">
+<span id="moltemplate"></span><h3><span class="section-number">9.4.23. </span>moltemplate tool<a class="headerlink" href="#moltemplate-tool" title="Link to this heading"></a></h3>
+<p>The moltemplate subdirectory contains instructions for installing
+moltemplate, a Python-based tool for building molecular systems based
+on a text-file description, and creating LAMMPS data files that encode
+their molecular topology as lists of bonds, angles, dihedrals, etc.
+See the README.txt file for more information.</p>
+<p>This tool was written by Andrew Jewett (jewett.aij at gmail.com), who
+supports it.  It has its own WWW page at
+<a class="reference external" href="https://moltemplate.org">https://moltemplate.org</a>.
+The latest sources can be found <a class="reference external" href="https://github.com/jewettaij/moltemplate/releases">on its GitHub page</a></p>
+<hr class="docutils" />
+</section>
+<section id="msi2lmp-tool">
+<span id="msi"></span><h3><span class="section-number">9.4.24. </span>msi2lmp tool<a class="headerlink" href="#msi2lmp-tool" title="Link to this heading"></a></h3>
+<p>The msi2lmp subdirectory contains a tool for creating LAMMPS template
+input and data files from BIOVIA’s Materias Studio files (formerly
+Accelrys’ Insight MD code, formerly MSI/Biosym and its Discover MD code).</p>
+<p>This tool was written by John Carpenter (Cray), Michael Peachey
+(Cray), and Steve Lustig (Dupont). Several people contributed changes
+to remove bugs and adapt its output to changes in LAMMPS.</p>
+<p>This tool has several known limitations and is no longer under active
+development, so there are no changes except for the occasional bug fix.</p>
+<p>See the README file in the tools/msi2lmp folder for more information.</p>
+<hr class="docutils" />
+</section>
+<section id="scripts-for-building-lammps-when-offline">
+<span id="offline"></span><h3><span class="section-number">9.4.25. </span>Scripts for building LAMMPS when offline<a class="headerlink" href="#scripts-for-building-lammps-when-offline" title="Link to this heading"></a></h3>
+<p>In some situations it might be necessary to build LAMMPS on a system
+without direct internet access. The scripts in <code class="docutils literal notranslate"><span class="pre">tools/offline</span></code> folder
+allow you to pre-load external dependencies for both the documentation
+build and for building LAMMPS with CMake.</p>
+<p>It does so by</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>downloading necessary <code class="docutils literal notranslate"><span class="pre">pip</span></code> packages,</p></li>
+<li><p>cloning <code class="docutils literal notranslate"><span class="pre">git</span></code> repositories</p></li>
+<li><p>downloading tarballs</p></li>
+</ol>
+</div></blockquote>
+<p>to a designated cache folder.</p>
+<p>As of April 2021, all of these downloads make up around 600MB. By
+default, the offline scripts will download everything into the
+<code class="docutils literal notranslate"><span class="pre">$HOME/.cache/lammps</span></code> folder, but this can be changed by setting the
+<code class="docutils literal notranslate"><span class="pre">LAMMPS_CACHING_DIR</span></code> environment variable.</p>
+<p>Once the caches have been initialized, they can be used for building the
+LAMMPS documentation or compiling LAMMPS using CMake on an offline
+system.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">use_caches.sh</span></code> script must be sourced into the current shell
+to initialize the offline build environment. Note that it must use
+the same <code class="docutils literal notranslate"><span class="pre">LAMMPS_CACHING_DIR</span></code>. This script does the following:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>Set up environment variables that modify the behavior of both,
+<code class="docutils literal notranslate"><span class="pre">pip</span></code> and <code class="docutils literal notranslate"><span class="pre">git</span></code></p></li>
+<li><p>Start a simple local HTTP server using Python to host files for CMake</p></li>
+</ol>
+</div></blockquote>
+<p>Afterwards, it will print out instructions on how to modify the CMake
+commands to make sure it uses the local HTTP server.</p>
+<p>To undo the environment changes and shutdown the local HTTP server,
+run the <code class="docutils literal notranslate"><span class="pre">deactivate_caches</span></code> command.</p>
+<section id="examples">
+<h4>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h4>
+<p>For all of the examples below, you first need to create the cache, which
+requires an internet connection.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./tools/offline/init_caches.sh
+</pre></div>
+</div>
+<p>Afterwards, you can disconnect or copy the contents of the
+<code class="docutils literal notranslate"><span class="pre">LAMMPS_CACHING_DIR</span></code> folder to an offline system.</p>
+</section>
+<section id="documentation-build">
+<h4>Documentation Build<a class="headerlink" href="#documentation-build" title="Link to this heading"></a></h4>
+<p>The documentation build will create a new virtual environment that
+typically first installs dependencies from <code class="docutils literal notranslate"><span class="pre">pip</span></code>. With the offline
+environment loaded, these installations will instead grab the necessary
+packages from your local cache.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># if LAMMPS_CACHING_DIR is different from default, make sure to set it first</span>
+<span class="c1"># export LAMMPS_CACHING_DIR=path/to/folder</span>
+<span class="nb">source</span><span class="w"> </span>tools/offline/use_caches.sh
+<span class="nb">cd</span><span class="w"> </span>doc/
+make<span class="w"> </span>html
+
+deactivate_caches
+</pre></div>
+</div>
+</section>
+<section id="cmake-build">
+<h4>CMake Build<a class="headerlink" href="#cmake-build" title="Link to this heading"></a></h4>
+<p>When compiling certain packages with external dependencies, the CMake
+build system will download necessary files or sources from the web. For
+more flexibility the CMake configuration allows users to specify the URL
+of each of these dependencies.  What the <code class="docutils literal notranslate"><span class="pre">init_caches.sh</span></code> script does
+is create a CMake “preset” file, which sets the URLs for all of the known
+dependencies and redirects the download to the local cache.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># if LAMMPS_CACHING_DIR is different from default, make sure to set it first</span>
+<span class="c1"># export LAMMPS_CACHING_DIR=path/to/folder</span>
+<span class="nb">source</span><span class="w"> </span>tools/offline/use_caches.sh
+
+mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">LAMMPS_DOWNLOADS_URL</span><span class="o">=</span><span class="si">${</span><span class="nv">HTTP_CACHE_URL</span><span class="si">}</span><span class="w"> </span>-C<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">LAMMPS_HTTP_CACHE_CONFIG</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span>-C<span class="w"> </span>../cmake/presets/most.cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">DOWNLOAD_POTENTIALS</span><span class="o">=</span>off<span class="w"> </span>../cmake
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">8</span>
+
+deactivate_caches
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="phonon-tool">
+<span id="phonon"></span><h3><span class="section-number">9.4.26. </span>phonon tool<a class="headerlink" href="#phonon-tool" title="Link to this heading"></a></h3>
+<p>The phonon subdirectory contains a post-processing tool, <em>phana</em>, useful
+for analyzing the output of the <a class="reference internal" href="fix_phonon.html"><span class="doc">fix phonon</span></a> command
+in the PHONON package.</p>
+<p>See the README file for instructions on building the tool and what
+library it needs.  And see the examples/PACKAGES/phonon directory for
+example problems that can be post-processed with this tool.</p>
+<p>This tool was written by Ling-Ti Kong at Shanghai Jiao Tong
+University.</p>
+<hr class="docutils" />
+</section>
+<section id="polybond-tool">
+<span id="polybond"></span><h3><span class="section-number">9.4.27. </span>polybond tool<a class="headerlink" href="#polybond-tool" title="Link to this heading"></a></h3>
+<p>The polybond subdirectory contains a Python-based tool useful for
+performing “programmable polymer bonding”.  The Python file
+lmpsdata.py provides a “Lmpsdata” class with various methods which can
+be invoked by a user-written Python script to create data files with
+complex bonding topologies.</p>
+<p>See the Manual.pdf for details and example scripts.</p>
+<p>This tool was written by Zachary Kraus at Georgia Tech.</p>
+<hr class="docutils" />
+</section>
+<section id="pymol-asphere-tool">
+<span id="pymol"></span><h3><span class="section-number">9.4.28. </span>pymol_asphere tool<a class="headerlink" href="#pymol-asphere-tool" title="Link to this heading"></a></h3>
+<p>The pymol_asphere subdirectory contains a tool for converting a
+LAMMPS dump file that contains orientation info for ellipsoidal
+particles into an input file for the <a class="reference external" href="https://www.pymol.org">PyMol visualization package</a> or its <a class="reference external" href="https://github.com/schrodinger/pymol-open-source">open source variant</a>.</p>
+<p>Specifically, the tool triangulates the ellipsoids so they can be
+viewed as true ellipsoidal particles within PyMol.  See the README and
+examples directory within pymol_asphere for more information.</p>
+<p>This tool was written by Mike Brown at Sandia.</p>
+<hr class="docutils" />
+</section>
+<section id="python-tool">
+<span id="pythontools"></span><h3><span class="section-number">9.4.29. </span>python tool<a class="headerlink" href="#python-tool" title="Link to this heading"></a></h3>
+<p>The python subdirectory contains several Python scripts
+that perform common LAMMPS post-processing tasks, such as:</p>
+<ul class="simple">
+<li><p>extract thermodynamic info from a log file as columns of numbers</p></li>
+<li><p>plot two columns of thermodynamic info from a log file using GnuPlot</p></li>
+<li><p>sort the snapshots in a dump file by atom ID</p></li>
+<li><p>convert multiple <a class="reference internal" href="neb.html"><span class="doc">NEB</span></a> dump files into one dump file for viz</p></li>
+<li><p>convert dump files into XYZ, CFG, or PDB format for viz by other packages</p></li>
+</ul>
+<p>These are simple scripts built on <a class="reference external" href="https://lammps.github.io/pizza/">Pizza.py</a> modules.  See the
+README for more info on Pizza.py and how to use these scripts.</p>
+<hr class="docutils" />
+</section>
+<section id="regression-tester-tool">
+<span id="regression"></span><h3><span class="section-number">9.4.30. </span>Regression tester tool<a class="headerlink" href="#regression-tester-tool" title="Link to this heading"></a></h3>
+<p>The regression-tests subdirectory contains a tool for performing
+regression tests with a given LAMMPS binary.  The tool launches the
+LAMMPS binary with any given input script under one of the <cite>examples</cite>
+subdirectories, and compares the thermo output in the generated log file
+with those in the provided log file with the same number of processors
+in the same subdirectory. If the differences between the actual and
+reference values are within specified tolerances, the test is considered
+passed.  For each test batch, that is, a set of example input scripts,
+the <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> command, the LAMMPS command-line arguments, and the
+tolerances for individual thermo quantities can be specified in a
+configuration file in YAML format.</p>
+<p>The tool also reports if and how the run fails, and if a reference log file
+is missing.  See the README file for more information.</p>
+<p>This tool was written by Trung Nguyen at U of Chicago (ndactrung at gmail.com).</p>
+<hr class="docutils" />
+</section>
+<section id="replica-tool">
+<span id="replica"></span><h3><span class="section-number">9.4.31. </span>replica tool<a class="headerlink" href="#replica-tool" title="Link to this heading"></a></h3>
+<p>The tools/replica directory contains the reorder_remd_traj python script which
+can be used to reorder the replica trajectories (resulting from the use of the
+temper command) according to temperature. This will produce discontinuous
+trajectories with all frames at the same temperature in each trajectory.
+Additional options can be used to calculate the canonical configurational
+log-weight for each frame at each temperature using the pymbar package. See
+the README.md file for further details. Try out the peptide example provided.</p>
+<p>This tool was written by (and is maintained by) Tanmoy Sanyal,
+while at the Shell lab at UC Santa Barbara. (tanmoy dot 7989 at gmail.com)</p>
+<hr class="docutils" />
+</section>
+<section id="smd-tool">
+<span id="smd"></span><h3><span class="section-number">9.4.32. </span>smd tool<a class="headerlink" href="#smd-tool" title="Link to this heading"></a></h3>
+<p>The smd subdirectory contains a C++ file dump2vtk_tris.cpp and
+Makefile which can be compiled and used to convert triangle output
+files created by the Smooth-Mach Dynamics (MACHDYN) package into a
+VTK-compatible unstructured grid file.  It could then be read in and
+visualized by VTK.</p>
+<p>See the header of dump2vtk.cpp for more details.</p>
+<p>This tool was written by the MACHDYN package author, Georg
+Ganzenmuller at the Fraunhofer-Institute for High-Speed Dynamics,
+Ernst Mach Institute in Germany (georg.ganzenmueller at emi.fhg.de).</p>
+<hr class="docutils" />
+</section>
+<section id="spin-tool">
+<span id="spin"></span><h3><span class="section-number">9.4.33. </span>spin tool<a class="headerlink" href="#spin-tool" title="Link to this heading"></a></h3>
+<p>The spin subdirectory contains a C file interpolate.c which can
+be compiled and used to perform a cubic polynomial interpolation of
+the MEP following a GNEB calculation.</p>
+<p>See the README file in tools/spin/interpolate_gneb for more details.</p>
+<p>This tool was written by the SPIN package author, Julien
+Tranchida at Sandia National Labs (jtranch at sandia.gov, and by Aleksei
+Ivanov, at University of Iceland (ali5 at hi.is).</p>
+<hr class="docutils" />
+</section>
+<section id="singularity-apptainer-tool">
+<span id="singularity-tool"></span><h3><span class="section-number">9.4.34. </span>singularity/apptainer tool<a class="headerlink" href="#singularity-apptainer-tool" title="Link to this heading"></a></h3>
+<p>The singularity subdirectory contains container definitions files that
+can be used to build container images for building and testing LAMMPS on
+specific OS variants using the <a class="reference external" href="https://apptainer.org">Apptainer</a> or
+<a class="reference external" href="https://sylabs.io">Singularity</a> container software. Contributions for
+additional variants are welcome.  For more details please see the
+README.md file in that folder.</p>
+<hr class="docutils" />
+</section>
+<section id="stl-bin2txt-tool">
+<span id="stlconvert"></span><h3><span class="section-number">9.4.35. </span>stl_bin2txt tool<a class="headerlink" href="#stl-bin2txt-tool" title="Link to this heading"></a></h3>
+<p>The file stl_bin2txt.cpp converts binary STL files - like they are
+frequently offered for download on the web - into ASCII format STL files
+that LAMMPS can read with the <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms mesh</span></a> or
+the <a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">fix smd/wall_surface</span></a> commands.  The syntax
+for running the tool is</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>stl_bin2txt<span class="w"> </span>infile.stl<span class="w"> </span>outfile.stl
+</pre></div>
+</div>
+<p>which creates outfile.stl from infile.stl.  This tool must be compiled
+on a platform compatible with the byte-ordering that was used to create
+the binary file.  This usually is a so-called little endian hardware
+(like x86).</p>
+<hr class="docutils" />
+</section>
+<section id="swig-interface">
+<span id="swig"></span><h3><span class="section-number">9.4.36. </span>SWIG interface<a class="headerlink" href="#swig-interface" title="Link to this heading"></a></h3>
+<p>The <a class="reference external" href="https://swig.org">SWIG tool</a> offers a mostly automated way to
+incorporate compiled code modules into scripting languages.  It
+processes the function prototypes in C and generates wrappers for a wide
+variety of scripting languages from it.  Thus it can also be applied to
+the <a class="reference internal" href="Library.html"><span class="doc">C language library interface</span></a> of LAMMPS so that
+build a wrapper that allows to call LAMMPS from programming languages
+like: C#/Mono, Lua, Java, JavaScript, Perl, Python, R, Ruby, Tcl, and
+more.</p>
+<section id="what-is-included">
+<h4>What is included<a class="headerlink" href="#what-is-included" title="Link to this heading"></a></h4>
+<p>We provide here an “interface file”, <code class="docutils literal notranslate"><span class="pre">lammps.i</span></code>, that has the content
+of the <code class="docutils literal notranslate"><span class="pre">library.h</span></code> file adapted so SWIG can process it.  That will
+create wrappers for all the functions that are present in the LAMMPS C
+library interface.  Please note that not all kinds of C functions can be
+automatically translated, so you would have to add custom functions to
+be able to utilize those where the automatic translation does not work.
+A few functions for converting pointers and accessing arrays are
+predefined.  We provide the file here on an “as is” basis to help people
+getting started, but not as a fully tested and supported feature of the
+LAMMPS distribution.  Any contributions to complete this are, of course,
+welcome.  Please also note, that for the case of creating a Python wrapper,
+a fully supported <a class="reference internal" href="Python_module.html"><span class="doc">Ctypes based lammps module</span></a>
+already exists.  That module is designed to be object-oriented while
+SWIG will generate a 1:1 translation of the functions in the interface file.</p>
+</section>
+<section id="building-the-wrapper">
+<h4>Building the wrapper<a class="headerlink" href="#building-the-wrapper" title="Link to this heading"></a></h4>
+<p>When using CMake, the build steps for building a wrapper
+module are integrated for the languages: Java, Lua,
+Perl5, Python, Ruby, and Tcl.  These require that the
+LAMMPS library is build as a shared library and all
+necessary development headers and libraries are present.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">WITH_SWIG</span><span class="o">=</span>on<span class="w">          </span><span class="c1"># to enable building any SWIG wrapper</span>
+-D<span class="w"> </span><span class="nv">BUILD_SWIG_JAVA</span><span class="o">=</span>on<span class="w">    </span><span class="c1"># to enable building the Java wrapper</span>
+-D<span class="w"> </span><span class="nv">BUILD_SWIG_LUA</span><span class="o">=</span>on<span class="w">     </span><span class="c1"># to enable building the Lua wrapper</span>
+-D<span class="w"> </span><span class="nv">BUILD_SWIG_PERL5</span><span class="o">=</span>on<span class="w">   </span><span class="c1"># to enable building the Perl 5.x wrapper</span>
+-D<span class="w"> </span><span class="nv">BUILD_SWIG_PYTHON</span><span class="o">=</span>on<span class="w">  </span><span class="c1"># to enable building the Python wrapper</span>
+-D<span class="w"> </span><span class="nv">BUILD_SWIG_RUBY</span><span class="o">=</span>on<span class="w">    </span><span class="c1"># to enable building the Ruby wrapper</span>
+-D<span class="w"> </span><span class="nv">BUILD_SWIG_TCL</span><span class="o">=</span>on<span class="w">     </span><span class="c1"># to enable building the Tcl wrapper</span>
+</pre></div>
+</div>
+<p>Manual building allows a little more flexibility. E.g. one can choose
+the name of the module and build and use a dynamically loaded object
+for Tcl with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>swig<span class="w"> </span>-tcl<span class="w"> </span>-module<span class="w"> </span>tcllammps<span class="w"> </span>lammps.i
+gcc<span class="w"> </span>-fPIC<span class="w"> </span>-shared<span class="w"> </span><span class="k">$(</span>pkg-config<span class="w"> </span>tcl<span class="w"> </span>--cflags<span class="k">)</span><span class="w"> </span>-o<span class="w"> </span>tcllammps.so<span class="w"> </span><span class="se">\</span>
+<span class="w">            </span>lammps_wrap.c<span class="w"> </span>-L<span class="w"> </span>../src/<span class="w"> </span>-llammps
+tclsh
+</pre></div>
+</div>
+<p>Or one can build an extended Tcl shell command with the wrapped
+functions included with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>swig<span class="w"> </span>-tcl<span class="w"> </span>-module<span class="w"> </span>tcllmps<span class="w"> </span>lammps_shell.i
+gcc<span class="w"> </span>-o<span class="w"> </span>tcllmpsh<span class="w"> </span>lammps_wrap.c<span class="w"> </span>-Xlinker<span class="w"> </span>-export-dynamic<span class="w"> </span><span class="se">\</span>
+<span class="w">         </span>-DHAVE_CONFIG_H<span class="w"> </span><span class="k">$(</span>pkg-config<span class="w"> </span>tcl<span class="w"> </span>--cflags<span class="k">)</span><span class="w"> </span><span class="se">\</span>
+<span class="w">         </span><span class="k">$(</span>pkg-config<span class="w"> </span>tcl<span class="w"> </span>--libs<span class="k">)</span><span class="w"> </span>-L<span class="w"> </span>../src<span class="w"> </span>-llammps
+</pre></div>
+</div>
+<p>In both cases it is assumed that the LAMMPS library was compiled
+as a shared library in the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder. Otherwise the last
+part of the commands needs to be adjusted.</p>
+</section>
+<section id="utility-functions">
+<h4>Utility functions<a class="headerlink" href="#utility-functions" title="Link to this heading"></a></h4>
+<p>Definitions for several utility functions required to manage and access
+data passed or returned as pointers are included in the <code class="docutils literal notranslate"><span class="pre">lammps.i</span></code>
+file.  So most of the functionality of the library interface should be
+accessible.  What works and what does not depends a bit on the
+individual language for which the wrappers are built and how well SWIG
+supports those.  The <a class="reference external" href="https://swig.org/doc.html">SWIG documentation</a>
+has very detailed instructions and recommendations.</p>
+</section>
+<section id="usage-examples">
+<h4>Usage examples<a class="headerlink" href="#usage-examples" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">tools/swig</span></code> folder has multiple shell scripts, <code class="docutils literal notranslate"><span class="pre">run_&lt;name&gt;_example.sh</span></code>
+that will create a small example script and demonstrate how to load
+the wrapper and run LAMMPS through it in the corresponding programming
+language.</p>
+<p>For illustration purposes below is a part of the Tcl example script.</p>
+<div class="highlight-tcl notranslate"><div class="highlight"><pre><span></span><span class="nb">load</span><span class="w"> </span>.<span class="o">/</span>tcllammps.so
+<span class="k">set</span><span class="w"> </span>lmp<span class="w"> </span><span class="k">[</span><span class="nv">lammps_open_no_mpi</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span>NULL<span class="w"> </span>NULL<span class="k">]</span>
+<span class="nv">lammps_command</span><span class="w"> </span><span class="nv">$lmp</span><span class="w"> </span><span class="s2">&quot;units real&quot;</span>
+<span class="nv">lammps_command</span><span class="w"> </span><span class="nv">$lmp</span><span class="w"> </span><span class="s2">&quot;lattice fcc 2.5&quot;</span>
+<span class="nv">lammps_command</span><span class="w"> </span><span class="nv">$lmp</span><span class="w"> </span><span class="s2">&quot;region box block -5 5 -5 5 -5 5&quot;</span>
+<span class="nv">lammps_command</span><span class="w"> </span><span class="nv">$lmp</span><span class="w"> </span><span class="s2">&quot;create_box 1 box&quot;</span>
+<span class="nv">lammps_command</span><span class="w"> </span><span class="nv">$lmp</span><span class="w"> </span><span class="s2">&quot;create_atoms 1 box&quot;</span>
+
+<span class="k">set</span><span class="w"> </span>dt<span class="w"> </span><span class="k">[</span><span class="nv">doublep_value</span><span class="w"> </span><span class="k">[</span><span class="nv">voidp_to_doublep</span><span class="w"> </span><span class="k">[</span><span class="nv">lammps_extract_global</span><span class="w"> </span><span class="nv">$lmp</span><span class="w"> </span>dt<span class="k">]]]</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LAMMPS version $ver&quot;</span>
+<span class="nb">puts</span><span class="w"> </span><span class="k">[</span><span class="nb">format</span><span class="w"> </span><span class="s2">&quot;Number of created atoms: %g&quot;</span><span class="w"> </span><span class="k">[</span><span class="nv">lammps_get_natoms</span><span class="w"> </span><span class="nv">$lmp</span><span class="k">]]</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Current size of timestep: $dt&quot;</span>
+<span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;LAMMPS version: [lammps_version $lmp]&quot;</span>
+<span class="nv">lammps_close</span><span class="w"> </span><span class="nv">$lmp</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="tabulate-tool">
+<span id="tabulate"></span><h3><span class="section-number">9.4.37. </span>tabulate tool<a class="headerlink" href="#tabulate-tool" title="Link to this heading"></a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 22Dec2022.</span></p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">tabulate</span></code> folder contains Python scripts to generate and
+visualize tabulated potential files for LAMMPS.  The bulk of the code is
+in the <code class="docutils literal notranslate"><span class="pre">tabulate</span></code> module in the <code class="docutils literal notranslate"><span class="pre">tabulate.py</span></code> file.  Some example
+files demonstrating its use are included.  See the README file for more
+information.</p>
+<hr class="docutils" />
+</section>
+<section id="tinker-tool">
+<span id="tinker"></span><h3><span class="section-number">9.4.38. </span>tinker tool<a class="headerlink" href="#tinker-tool" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">tinker</span></code> folder contains Python scripts to convert Tinker input
+files to LAMMPS.</p>
+<p>See the README file for more information.</p>
+<p>Those scripts were written by Steve Plimpton sjplimp at gmail.com</p>
+<hr class="docutils" />
+</section>
+<section id="valgrind-tool">
+<span id="valgrind"></span><h3><span class="section-number">9.4.39. </span>valgrind tool<a class="headerlink" href="#valgrind-tool" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">valgrind</span></code> folder contains additional suppressions for LAMMPS when
+using <a class="reference external" href="https://valgrind.org/">valgrind’s</a> ` <a class="reference external" href="https://valgrind.org/info/tools.html#memcheck">memcheck tool</a> to search for memory
+access violation and memory leaks.  These suppressions are automatically
+invoked when running tests through CMake “ctest -T memcheck”.  See the
+instructions in the <code class="docutils literal notranslate"><span class="pre">README</span></code> file to add these suppressions when using
+valgrind with LAMMPS or other programs.</p>
+<hr class="docutils" />
+</section>
+<section id="vim-tool">
+<span id="vim"></span><h3><span class="section-number">9.4.40. </span>vim tool<a class="headerlink" href="#vim-tool" title="Link to this heading"></a></h3>
+<p>The files in the <code class="docutils literal notranslate"><span class="pre">tools/vim</span></code> directory are add-ons to the VIM editor
+that allow easier editing of LAMMPS input scripts.  See the <code class="docutils literal notranslate"><span class="pre">README.txt</span></code>
+file for details.</p>
+<p>These files were provided by Gerolf Ziegenhain (gerolf at
+ziegenhain.com)</p>
+<hr class="docutils" />
+</section>
+<section id="xmgrace-tool">
+<span id="xmgrace"></span><h3><span class="section-number">9.4.41. </span>xmgrace tool<a class="headerlink" href="#xmgrace-tool" title="Link to this heading"></a></h3>
+<p>The files in the tools/xmgrace directory can be used to plot the
+thermodynamic data in LAMMPS log files via the xmgrace plotting
+package.  There are several tools in the directory that can be used in
+post-processing mode.  The lammpsplot.cpp file can be compiled and
+used to create plots from the current state of a running LAMMPS
+simulation.</p>
+<p>See the README file for details.</p>
+<p>These files were provided by Vikas Varshney (vv0210 at gmail.com)</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Packages_details.html" class="btn btn-neutral float-left" title="8.1. Package details" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto.html" class="btn btn-neutral float-right" title="10. Howto discussions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

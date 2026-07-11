@@ -1,0 +1,238 @@
+LAMMPS (10 Feb 2021)
+# 3d Lennard-Jones melt
+#
+# This example requires that the KIM Portable Model (PM)
+# `SW_StillingerWeber_1985_Si__MO_405512056662_005`
+# is installed.  This can be done with the command
+#   kim-api-collections-management install user SW_StillingerWeber_1985_Si__MO_405512056662_005
+# If this command does not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see `https://openkim.org/doc/obtaining-models` for alternative options.
+#
+
+variable     x index 1
+variable     y index 1
+variable     z index 1
+
+variable     xx equal 20*$x
+variable     xx equal 20*1
+variable     yy equal 20*$y
+variable     yy equal 20*1
+variable     zz equal 20*$z
+variable     zz equal 20*1
+
+kim          init SW_StillingerWeber_1985_Si__MO_405512056662_005 real
+#=== BEGIN kim init ==========================================
+units real
+neighbor 2.0 bin   # Angstroms
+timestep 1.0       # femtoseconds
+
+This model has 9 mutable parameters. 
+ No.      | Parameter name     | data type  | extent
+-----------------------------------------------------
+ 1        | A                  | "Double"   | 1
+ 2        | B                  | "Double"   | 1
+ 3        | p                  | "Double"   | 1
+ 4        | q                  | "Double"   | 1
+ 5        | sigma              | "Double"   | 1
+ 6        | gamma              | "Double"   | 1
+ 7        | cutoff             | "Double"   | 1
+ 8        | lambda             | "Double"   | 1
+ 9        | costheta0          | "Double"   | 1
+#=== END kim init ============================================
+
+kim          query a0 get_lattice_constant_cubic crystal=["fcc"] species=["Si"] units=["angstrom"]
+#=== BEGIN kim-query =========================================
+variable a0 string "4.146581932902336"
+#=== END kim-query ===========================================
+
+
+lattice      fcc ${a0}
+lattice      fcc 4.146581932902336
+Lattice spacing in x,y,z = 4.1465819 4.1465819 4.1465819
+region       box block 0 ${xx} 0 ${yy} 0 ${zz}
+region       box block 0 20 0 ${yy} 0 ${zz}
+region       box block 0 20 0 20 0 ${zz}
+region       box block 0 20 0 20 0 20
+create_box   1 box
+Created orthogonal box = (0.0000000 0.0000000 0.0000000) to (82.931639 82.931639 82.931639)
+  1 by 2 by 2 MPI processor grid
+create_atoms 1 box
+Created 32000 atoms
+  create_atoms CPU = 0.001 seconds
+
+kim          interactions Si
+#=== BEGIN kim interactions ==================================
+pair_style kim SW_StillingerWeber_1985_Si__MO_405512056662_005
+pair_coeff * * Si
+#=== END kim interactions ====================================
+
+
+mass         1 39.95
+velocity     all create 200.0 232345 loop geom
+
+neighbor     0.3 bin
+neigh_modify delay 0 every 1 check yes
+
+fix          1 all nve
+#fix         1 all npt temp 1.0 1.0 1.0 iso 1.0 1.0 3.0
+
+run          100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- OpenKIM: https://doi.org/10.1007/s11837-011-0102-6
+
+@Article{tadmor:elliott:2011,
+ author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+ title = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+ journal = {{JOM}},
+ year =    2011,
+ volume =  63,
+ number =  17,
+ pages =   {17},
+ doi =     {10.1007/s11837-011-0102-6}
+}
+
+- OpenKIM potential: https://openkim.org/cite/MO_405512056662_005#item-citation
+
+@Comment
+{
+\documentclass{article}
+\usepackage{url}
+\begin{document}
+This Model originally published in \cite{MO_405512056662_005a, MO_405512056662_005b} is archived in OpenKIM~\cite{MO_405512056662_005, MD_335816936951_004, tadmor:elliott:2011, elliott:tadmor:2011}.
+\bibliographystyle{vancouver}
+\bibliography{kimcite-MO_405512056662_005.bib}
+\end{document}
+}
+
+@Misc{MO_405512056662_005,
+  author       = {Amit K Singh},
+  title        = {{S}tillinger-{W}eber potential for {S}i due to {S}tillinger and {W}eber (1985) v005},
+  doi          = {10.25950/c74b293f},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/c74b293f}},
+  keywords     = {OpenKIM, Model, MO_405512056662_005},
+  publisher    = {OpenKIM},
+  year         = 2018,
+}
+
+@Misc{MD_335816936951_004,
+  author       = {Mingjian Wen},
+  title        = {{S}tillinger-{W}eber ({SW}) {M}odel {D}river v004},
+  doi          = {10.25950/f3abd2d6},
+  howpublished = {OpenKIM, \url{https://doi.org/10.25950/c74b293f}},
+  keywords     = {OpenKIM, Model Driver, MD_335816936951_004},
+  publisher    = {OpenKIM},
+  year         = 2018,
+}
+
+@Article{tadmor:elliott:2011,
+  author    = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller and C. A. Becker},
+  title     = {The potential of atomistic simulations and the {K}nowledgebase of {I}nteratomic {M}odels},
+  journal   = {{JOM}},
+  year      = {2011},
+  volume    = {63},
+  number    = {7},
+  pages     = {17},
+  doi       = {10.1007/s11837-011-0102-6},
+}
+
+@Misc{elliott:tadmor:2011,
+  author       = {Ryan S. Elliott and Ellad B. Tadmor},
+  title        = {{K}nowledgebase of {I}nteratomic {M}odels ({KIM}) Application Programming Interface ({API})},
+  howpublished = {\url{https://openkim.org/kim-api}},
+  publisher    = {OpenKIM},
+  year         = 2011,
+  doi          = {10.25950/ff8f563a},
+}
+
+@Article{MO_405512056662_005a,
+  author = {Stillinger, Frank H. and Weber, Thomas A.},
+  doi = {10.1103/PhysRevB.31.5262},
+  issue = {8},
+  journal = {Physical Review B},
+  month = {Apr},
+  pages = {5262--5271},
+  publisher = {American Physical Society},
+  title = {Computer simulation of local order in condensed phases of silicon},
+  volume = {31},
+  year = {1985},
+}
+
+@Book{MO_405512056662_005b,
+  author = {Tadmor, Ellad B. and Miller, Ronald E.},
+  doi = {10.1017/CBO9781139003582},
+  publisher = {Cambridge University Press},
+  title = {Modeling Materials: {C}ontinuum, Atomistic and Multiscale Techniques},
+  year = {2011},
+}
+- OpenKIM query: https://doi.org/10.1063/5.0014267
+
+@Article{karls:bierbaum:2020,
+ author = {D. S. Karls and M. Bierbaum and A. A. Alemi and R. S. Elliott and J. P. Sethna and E. B. Tadmor},
+ title = {The {O}pen{KIM} processing pipeline: {A} cloud-based automatic material property computation engine},
+ journal = {{T}he {J}ournal of {C}hemical {P}hysics},
+ year =    2020,
+ volume =  153,
+ number =  6,
+ pages =   {064104},
+ doi =     {10.1063/5.0014267}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.07118
+  ghost atom cutoff = 4.07118
+  binsize = 2.03559, bins = 41 41 41
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair kim, perpetual
+      attributes: full, newton off, cut 4.07118
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.489 | 3.489 | 3.489 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0          200   -126084.25            0   -107007.66    1528.8768 
+     100    94.450495   -116016.03            0   -107007.07    2282.2685 
+Loop time of 5.33871 on 4 procs for 100 steps with 32000 atoms
+
+Performance: 1.618 ns/day, 14.830 hours/ns, 18.731 timesteps/s
+99.6% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.244      | 5.2604     | 5.2753     |   0.5 | 98.53
+Neigh   | 0.027617   | 0.027767   | 0.027955   |   0.1 |  0.52
+Comm    | 0.017101   | 0.031947   | 0.04856    |   6.3 |  0.60
+Output  | 3.4e-05    | 4.525e-05  | 5.6e-05    |   0.0 |  0.00
+Modify  | 0.011577   | 0.01165    | 0.011709   |   0.0 |  0.22
+Other   |            | 0.0069     |            |       |  0.13
+
+Nlocal:        8000.00 ave        8029 max        7968 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Nghost:        4259.00 ave        4303 max        4202 min
+Histogram: 1 0 0 0 0 0 2 0 0 1
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      112548.0 ave      113091 max      111995 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+
+Total # of neighbors = 450192
+Ave neighs/atom = 14.068500
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:07

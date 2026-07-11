@@ -1,0 +1,647 @@
+LAMMPS (2 Jun 2020)
+  using 1 OpenMP thread(s) per MPI task
+# 3d EAM surface for local HD
+
+# nearest neighbor distance = a * sqrt(2)/2 = 2.77 Angs for Pt with a = 3.92
+# hop event on (100) surface is same distance
+# exchange event is 2 atoms moving same distance
+
+variable        Tequil index 400.0
+variable        Vmax index 0.4
+variable        qfactor index 0.3
+variable        cutbond index 3.2
+variable        Dcut index 10.0
+variable        cutevent index 1.1
+variable        alpha index 200.0
+variable        boost index 4000.0
+variable        ghostcut index 12.0
+variable        steps index 2000
+variable        nevent index 100
+variable        nx index 2
+variable        ny index 2
+variable        zoom index 1.8
+variable        seed index 3875984
+variable        tol index 1.0e-15
+variable        add index 50
+
+units           metal
+atom_style	atomic
+atom_modify     map array
+boundary        p p p
+comm_modify     cutoff ${ghostcut}
+comm_modify     cutoff 12.0
+
+lattice		fcc 3.92
+Lattice spacing in x,y,z = 3.92 3.92 3.92
+region		box block 0 6 0 6 0 4
+create_box	2 box
+Created orthogonal box = (0.0 0.0 0.0) to (23.52 23.52 15.68)
+  2 by 2 by 1 MPI processor grid
+create_atoms	1 box
+Created 576 atoms
+  create_atoms CPU = 0.000 seconds
+
+mass            * 1.0
+
+change_box      all z final -0.1 5.0 boundary p p f
+  orthogonal box = (0.0 0.0 -0.392) to (23.52 23.52 19.6)
+WARNING: Reset image flags for non-periodic boundary (src/domain.cpp:1909)
+
+# replicate in xy
+
+replicate       ${nx} ${ny} 1
+replicate       2 ${ny} 1
+replicate       2 2 1
+  orthogonal box = (0.0 0.0 -0.392) to (47.04 47.04 19.6)
+  2 by 2 by 1 MPI processor grid
+  2304 atoms
+  replicate CPU = 0.000324488 secs
+
+# add adatoms
+
+include         adatoms.list.${add}
+include         adatoms.list.50
+create_atoms 1 single 5 9 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4.5 7.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6 6 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 5 6 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4.5 1.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6.5 7.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 10.5 5.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 2.5 1.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 3.5 4.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 0 10 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 11 10 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6.5 10.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 3.5 5.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 7.5 10.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1.5 1.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1.5 6.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 7 2 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4 0 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 9 0 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4 9 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 10 7 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4 4 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 9.5 2.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1 5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 7 10 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 0 4 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1 10 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 7.5 6.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4 10 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6.5 3.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 3 6 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 8.5 4.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6.5 0.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1 4 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 8.5 11.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 3 9 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 2 3 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6.5 8.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1 0 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 0.5 10.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4 11 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 3 5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 0 1 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 2 11 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 2 0 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 7.5 11.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 1 7 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 3.5 10.5 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 0 2 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 8 4 4
+Created 1 atoms
+  create_atoms CPU = 0.000 seconds
+
+# define frozen substrate and mobile atoms
+
+region          base block INF INF INF INF 0 1.8
+set             region base type 2
+  1152 settings made for typegroup           base type 2
+1152 atoms in group base
+group           mobile type 1
+1202 atoms in group mobile
+
+# pair style
+
+pair_style	eam/alloy
+pair_coeff	* * ptvoterlammps.eam Pt Pt
+
+neighbor	0.5 bin
+neigh_modify    every 1 delay 5 check yes
+
+fix		1 mobile nve
+fix		2 mobile langevin ${Tequil} ${Tequil} 1.0 ${seed} zero yes
+fix		2 mobile langevin 400.0 ${Tequil} 1.0 ${seed} zero yes
+fix		2 mobile langevin 400.0 400.0 1.0 ${seed} zero yes
+fix		2 mobile langevin 400.0 400.0 1.0 3875984 zero yes
+
+timestep	0.005
+
+compute         tmobile mobile temp
+
+thermo		100
+thermo_modify   temp tmobile
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:486)
+
+# thermal equilibration
+
+run             1000
+Neighbor list info ...
+  update every 1 steps, delay 5 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.07583
+  ghost atom cutoff = 12
+  binsize = 3.03792, bins = 16 16 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.443 | 3.443 | 3.443 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -13067.188            0   -13067.188   -53763.139 
+     100    216.49187   -13065.694            0   -13032.085   -24077.115 
+     200    285.11905   -13057.047            0   -13012.785   -38815.844 
+     300    321.67264   -13048.005            0   -12998.068   -29296.124 
+     400    352.90893   -13045.707            0    -12990.92   -34630.884 
+     500     371.9393   -13041.234            0   -12983.494   -28913.827 
+     600    379.08135    -13040.06            0   -12981.211     -33399.8 
+     700    388.73836   -13039.691            0   -12979.343   -29446.954 
+     800    402.13628   -13040.606            0   -12978.178   -33026.861 
+     900    389.43806   -13036.884            0   -12976.427   -30328.658 
+    1000    388.66198   -13037.479            0   -12977.142   -30859.145 
+Loop time of 0.572404 on 4 procs for 1000 steps with 2354 atoms
+
+Performance: 754.712 ns/day, 0.032 hours/ns, 1747.018 timesteps/s
+96.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.45189    | 0.4594     | 0.46833    |   0.9 | 80.26
+Neigh   | 0.039092   | 0.039772   | 0.040386   |   0.3 |  6.95
+Comm    | 0.040249   | 0.051709   | 0.060548   |   3.4 |  9.03
+Output  | 0.00014281 | 0.0002625  | 0.00061965 |   0.0 |  0.05
+Modify  | 0.017148   | 0.017244   | 0.017364   |   0.1 |  3.01
+Other   |            | 0.004017   |            |       |  0.70
+
+Nlocal:    588.5 ave 592 max 581 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+Nghost:    1964 ave 1973 max 1959 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Neighs:    14148.8 ave 14283 max 13931 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+
+Total # of neighbors = 56595
+Ave neighs/atom = 24.0421
+Neighbor list builds = 91
+Dangerous builds = 0
+reset_timestep  0
+
+# pin base so will not move during quenches
+
+fix             freeze base setforce 0.0 0.0 0.0
+
+# event detection
+
+compute         event all event/displace ${cutevent}
+compute         event all event/displace 1.1
+
+# hyper/local
+
+fix             HL mobile hyper/local ${cutbond} ${qfactor} ${Vmax} ${Tequil}                 ${Dcut} ${alpha} ${boost}
+fix             HL mobile hyper/local 3.2 ${qfactor} ${Vmax} ${Tequil}                 ${Dcut} ${alpha} ${boost}
+fix             HL mobile hyper/local 3.2 0.3 ${Vmax} ${Tequil}                 ${Dcut} ${alpha} ${boost}
+fix             HL mobile hyper/local 3.2 0.3 0.4 ${Tequil}                 ${Dcut} ${alpha} ${boost}
+fix             HL mobile hyper/local 3.2 0.3 0.4 400.0                 ${Dcut} ${alpha} ${boost}
+fix             HL mobile hyper/local 3.2 0.3 0.4 400.0                 10.0 ${alpha} ${boost}
+fix             HL mobile hyper/local 3.2 0.3 0.4 400.0                 10.0 200.0 ${boost}
+fix             HL mobile hyper/local 3.2 0.3 0.4 400.0                 10.0 200.0 4000.0
+
+# thermo output
+
+thermo_style    custom step temp pe f_HL f_HL[*]
+WARNING: New thermo_style command, previous thermo_modify settings will be lost (src/output.cpp:709)
+
+thermo_modify   lost ignore
+thermo_modify   temp tmobile
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:486)
+
+thermo          ${nevent}
+thermo          100
+
+# dump
+
+region          substrate block INF INF INF INF 1.8 3.8
+region          adatoms block INF INF INF INF 3.8 INF
+variable        acolor atom rmask(base)+2*rmask(substrate)+3*rmask(adatoms)
+
+dump		1 all image 10000000 local.*.jpg v_acolor type size 1024 1024 		zoom ${zoom} adiam 2.5 view 0.0 0.0 up 0 1 0 axes yes 0.9 0.01
+dump		1 all image 10000000 local.*.jpg v_acolor type size 1024 1024 		zoom 1.8 adiam 2.5 view 0.0 0.0 up 0 1 0 axes yes 0.9 0.01
+dump_modify	1 pad 6 amap 1 3 sa 1 3 blue red green
+
+# run
+
+hyper           ${steps} ${nevent} HL event min ${tol} ${tol} 1000 1000 dump 1
+hyper           2000 ${nevent} HL event min ${tol} ${tol} 1000 1000 dump 1
+hyper           2000 100 HL event min ${tol} ${tol} 1000 1000 dump 1
+hyper           2000 100 HL event min 1.0e-15 ${tol} 1000 1000 dump 1
+hyper           2000 100 HL event min 1.0e-15 1.0e-15 1000 1000 dump 1
+WARNING: Resetting reneighboring criteria during hyper (src/REPLICA/hyper.cpp:131)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.07583
+  ghost atom cutoff = 12
+  binsize = 3.03792, bins = 16 16 7
+  3 neighbor lists, perpetual/occasional/extra = 1 2 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix hyper/local, occasional
+      attributes: full, newton on, cut 10
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (3) fix hyper/local, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 6.786 | 6.786 | 6.786 Mbytes
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+       0    388.66198   -13037.479            0            1            0            0          0.4            1            0            0            0            0            0            0            0            0            0            0        1e+20            0            0            0            0            0            0            0            0            0            0            1            0 
+      68    388.66198   -13101.057            0            1            0            0          0.4            1            0            0            0            0            0            0            0            0            0            0        1e+20            0            0            0            0            0            0         1360            0            0            0            1            0 
+Loop time of 0.078882 on 4 procs for 68 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+       0    388.66198   -13037.479    2.1560986            0            7   0.19075505          0.4            0            0            0    5.9276206    1380.4406            0            0            0            0    3.2725891            0        1e+20            0            0            0            0            0            0            0            0            0            0    10345.213            0 
+     100    388.08547   -13035.803    1.9458797      5579.52            7   0.22444002          0.4   0.99435481   0.98307948    1.0037683    5.9276206    1380.4406     7612.921         5.23            0            0    3.4801431   0.99683836   0.98307948    1.0037683            0            0            0            0            0         2000            0            0            0    4811.1645            0 
+Loop time of 0.0768972 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     100    388.08547   -13035.803    1.9458797      5579.52            7   0.22444002          0.4   0.99435481   0.98307948    1.0037683    5.9276206    1380.4406     7612.921         5.23            0            0    3.4801431   0.99683836   0.98307948    1.0037683            0            0            0            0            0         2000            0            0            0    4811.1645            0 
+     171    388.08547   -13101.057    1.9458797      5579.52            7   0.22444002          0.4   0.99435481   0.98307948    1.0037683    5.9276206    1380.4406     7612.921    3.0584795            0            0    3.4801431   0.99683836   0.98307948    1.0037683            0            0            0            0            0         3420            0            0            0    4811.1645            0 
+Loop time of 0.0822812 on 4 procs for 71 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     100    388.08547   -13035.803    1.9458309      5579.52            7   0.22444002          0.4   0.99435481   0.98307948    1.0037683    5.9276206    1380.4406     7612.921         5.23            0            0    3.4801431   0.99683836   0.98307948    1.0037683            0            0            0            0            0         2000            0            0            0     4806.677            0 
+     200    401.00579   -13036.475    1.7413518    5055.0046            7   0.31164106          0.4   0.99292126   0.97454567    1.0099107    5.9276206    1380.4406    6265.1974          5.8  0.026724138            0    3.7115994   0.99518634   0.97454567    1.0099107            0            0            0            0            0         4000            0            0            0    5975.1486            1 
+Loop time of 0.0801389 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     200    401.00579   -13036.475    1.7413518    5055.0046            7   0.31164106          0.4   0.99292126   0.97454567    1.0099107    5.9276206    1380.4406    6265.1974          5.8  0.026724138            0    3.7115994   0.99518634   0.97454567    1.0099107            0            0            0            0            0         4000            0            0            0    5975.1486            1 
+     270    401.00579   -13101.057    1.7413518    5055.0046            7   0.31164106          0.4   0.99292126   0.97454567    1.0099107    5.9276206    1380.4406    6265.1974    4.2962963  0.026724138            0    3.7115994   0.99518634   0.97454567    1.0099107            0            0            0            0            0         5400            0            0            0    5975.1486            1 
+Loop time of 0.0823423 on 4 procs for 70 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     200    401.00579   -13036.475    1.7412451    5055.0046            7   0.31164106          0.4   0.99292126   0.97454567    1.0099107    5.9276206    1380.4406    6265.1974          5.8  0.026724138            0    3.7115994   0.99518634   0.97454567    1.0099107            0            0            0            0            0         4000            0            0            0    5960.9703            1 
+     300    393.06665   -13036.447    1.2104123    4309.6701            6   0.25677049          0.4   0.99077715   0.96163085    1.0121227    5.9276206    1380.4406    5967.5417         5.82   0.03722795 0.0011454754    3.7958861   0.99407566   0.96163085    1.0121227            0            0            0            0            0         6000            0            0            0    2438.7867            0 
+Loop time of 0.07828 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     300    393.06665   -13036.447    1.2104123    4309.6701            6   0.25677049          0.4   0.99077715   0.96163085    1.0121227    5.9276206    1380.4406    5967.5417         5.82   0.03722795 0.0011454754    3.7958861   0.99407566   0.96163085    1.0121227            0            0            0            0            0         6000            0            0            0    2438.7867            0 
+     371    393.06665   -13101.057    1.2104123    4309.6701            6   0.25677049          0.4   0.99077715   0.96163085    1.0121227    5.9276206    1380.4406    5967.5417    4.7061995   0.03722795 0.0011454754    3.7958861   0.99407566   0.96163085    1.0121227            0            0            0            0            0         7420            0            0            0    2438.7867            0 
+Loop time of 0.0849175 on 4 procs for 71 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     300    393.06665   -13036.447     1.210401    4309.6701            6   0.25677049          0.4   0.99077715   0.96163085    1.0121227    5.9276206    1380.4406    5967.5417         5.82   0.03722795 0.0011454754    3.7958861   0.99407566   0.96163085    1.0121227            0            0            0            0            0         6000            0            0            0    2432.9129            0 
+     400    395.31214   -13036.548   0.97543536      3697.18            5   0.29627573          0.4   0.99121527   0.95719757    1.0171656    5.9276206    1380.4406    5405.5572       5.8525  0.064502349 0.00085433575    3.8763827   0.99330778   0.95719757    1.0171656            0            0            0            0            0         8000            0            0            0     1494.721            0 
+Loop time of 0.0789399 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     400    395.31214   -13036.548   0.97543536      3697.18            5   0.29627573          0.4   0.99121527   0.95719757    1.0171656    5.9276206    1380.4406    5405.5572       5.8525  0.064502349 0.00085433575    3.8763827   0.99330778   0.95719757    1.0171656            0            0            0            0            0         8000            0            0            0     1494.721            0 
+     472    395.31214   -13101.057   0.97543536      3697.18            5   0.29627573          0.4   0.99121527   0.95719757    1.0171656    5.9276206    1380.4406    5405.5572    4.9597458  0.064502349 0.00085433575    3.8763827   0.99330778   0.95719757    1.0171656            0            0            0            0            0         9440            0            0            0     1494.721            0 
+Loop time of 0.0826263 on 4 procs for 72 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     400    395.31214   -13036.548   0.97546459      3697.18            5   0.29627573          0.4   0.99121527   0.95719757    1.0171656    5.9276206    1380.4406    5405.5572       5.8525  0.064502349 0.00085433575    3.8763827   0.99330778   0.95719757    1.0171656            0            0            0            0            0         8000            0            0            0    1495.2683            0 
+     500    407.51943   -13034.684    1.5129292    3762.6056            7   0.32103986          0.4   0.99260954   0.95025478     1.023175    5.9276206    1380.4406    4945.9788        5.798  0.092100724 0.00068989307    3.8763827   0.99301979   0.95024238     1.023175            0            0            0            0            0        10000            0            0            0    2846.6451            1 
+Loop time of 0.0785343 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     500    407.51943   -13034.684    1.5129292    3762.6056            7   0.32103986          0.4   0.99260954   0.95025478     1.023175    5.9276206    1380.4406    4945.9788        5.798  0.092100724 0.00068989307    3.8763827   0.99301979   0.95024238     1.023175            0            0            0            0            0        10000            0            0            0    2846.6451            1 
+     570    407.51943   -13101.057    1.5129292    3762.6056            7   0.32103986          0.4   0.99260954   0.95025478     1.023175    5.9276206    1380.4406    4945.9788    5.0859649  0.092100724 0.00068989307    3.8763827   0.99301979   0.95024238     1.023175            0            0            0            0            0        11400            0            0            0    2846.6451            1 
+Loop time of 0.0831875 on 4 procs for 70 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     500    407.51943   -13034.684    1.5129263    3762.6056            7   0.32103986          0.4   0.99260954   0.95025478     1.023175    5.9276206    1380.4406    4945.9788        5.798  0.092100724 0.00068989307    3.8763827   0.99301979   0.95024238     1.023175            0            0            0            0            0        10000            0            0            0    2845.3486            1 
+     600    403.68879   -13034.437    1.6119602    3538.1789            8   0.37263827          0.4   0.99175914   0.94814388    1.0294169    5.9276206    1380.4406    4879.0252        5.805  0.091587712 0.0054550675    3.8763827   0.99287249   0.94770585    1.0294169            0            0            0            0            0        12000            0            0            0    4550.0103            1 
+Loop time of 0.0778956 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     600    403.68879   -13034.437    1.6119602    3538.1789            8   0.37263827          0.4   0.99175914   0.94814388    1.0294169    5.9276206    1380.4406    4879.0252        5.805  0.091587712 0.0054550675    3.8763827   0.99287249   0.94770585    1.0294169            0            0            0            0            0        12000            0            0            0    4550.0103            1 
+     673    403.68879   -13101.057    1.6119602    3538.1789            8   0.37263827          0.4   0.99175914   0.94814388    1.0294169    5.9276206    1380.4406    4879.0252    5.1753343  0.091587712 0.0054550675    3.8763827   0.99287249   0.94770585    1.0294169            0            0            0            0            0        13460            0            0            0    4550.0103            1 
+Loop time of 0.0866084 on 4 procs for 73 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     600    403.68879   -13034.437    1.6118577    3538.1789            8   0.37263827          0.4   0.99175914   0.94814388    1.0294169    5.9276206    1380.4406    4879.0252        5.805  0.091587712 0.0054550675    3.8763827   0.99287249   0.94770585    1.0294169            0            0            0            0            0        12000            0            0            0     4540.524            1 
+     700    402.40951   -13034.611   0.81457022    3996.0376            5   0.31795282          0.4   0.99307568    0.9469785    1.0356629    5.9276206    1380.4406    4633.0803    5.7657143   0.10332012 0.0047076313    3.8763827    0.9927955   0.94558506    1.0356629            0            0            0            0            0        14000            0            0            0    2433.3681            2 
+Loop time of 0.0783963 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     700    402.40951   -13034.611   0.81457022    3996.0376            5   0.31795282          0.4   0.99307568    0.9469785    1.0356629    5.9276206    1380.4406    4633.0803    5.7657143   0.10332012 0.0047076313    3.8763827    0.9927955   0.94558506    1.0356629            0            0            0            0            0        14000            0            0            0    2433.3681            2 
+     773    402.40951   -13101.057   0.81457022    3996.0376            5   0.31795282          0.4   0.99307568    0.9469785    1.0356629    5.9276206    1380.4406    4633.0803     5.221216   0.10332012 0.0047076313    3.8763827    0.9927955   0.94558506    1.0356629            0            0            0            0            0        15460            0            0            0    2433.3681            2 
+Loop time of 0.0879632 on 4 procs for 73 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     700    402.40951   -13034.611    0.8145522    3996.0376            5   0.31795282          0.4   0.99307568    0.9469785    1.0356629    5.9276206    1380.4406    4633.0803    5.7657143   0.10332012 0.0047076313    3.8763827    0.9927955   0.94558506    1.0356629            0            0            0            0            0        14000            0            0            0    2429.4864            2 
+     800     404.0219    -13035.35    2.0280594     2522.768            9   0.29614163          0.4   0.99235515   0.94241897     1.041911    5.9276206    1380.4406    4611.5881         5.75    0.1123913 0.0041304348    3.8763827   0.99277876   0.94229366     1.041911            0            0            0            0            0        16000            0            0            0    3341.5414            0 
+Loop time of 0.0830372 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     800     404.0219    -13035.35    2.0280594     2522.768            9   0.29614163          0.4   0.99235515   0.94241897     1.041911    5.9276206    1380.4406    4611.5881         5.75    0.1123913 0.0041304348    3.8763827   0.99277876   0.94229366     1.041911            0            0            0            0            0        16000            0            0            0    3341.5414            0 
+     875     404.0219   -13101.057    2.0280594     2522.768            9   0.29614163          0.4   0.99235515   0.94241897     1.041911    5.9276206    1380.4406    4611.5881    5.2571429    0.1123913 0.0041304348    3.8763827   0.99277876   0.94229366     1.041911            0            0            0            0            0        17500            0            0            0    3341.5414            0 
+Loop time of 0.106053 on 4 procs for 75 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     800     404.0219    -13035.35    2.0280349     2522.768            9   0.29614163          0.4   0.99235515   0.94241897     1.041911    5.9276206    1380.4406    4611.5881         5.75    0.1123913 0.0041304348    3.8763827   0.99277876   0.94229366     1.041911            0            0            0            0            0        16000            0            0            0     3339.579            0 
+     900    399.91074   -13034.973   0.95275442    3161.8387            5   0.36638548          0.4   0.99295506   0.93909912    1.0481595    5.9276206    1380.4406    4500.9735    5.7177778   0.12436844 0.0038865138    3.8763827   0.99275079   0.93842885    1.0481595            0            0            0            0            0        18000            0            0            0    1628.7316            2 
+Loop time of 0.0954949 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     900    399.91074   -13034.973   0.95275442    3161.8387            5   0.36638548          0.4   0.99295506   0.93909912    1.0481595    5.9276206    1380.4406    4500.9735    5.7177778   0.12436844 0.0038865138    3.8763827   0.99275079   0.93842885    1.0481595            0            0            0            0            0        18000            0            0            0    1628.7316            2 
+     976    399.91074   -13102.244   0.95275442    3161.8387            5   0.36638548          0.4   0.99295506   0.93909912    1.0481595    5.9276206    1380.4406    4500.9735     5.272541   0.12436844 0.0038865138    3.8763827   0.99275079   0.93842885    1.0481595            0            0            0            0            0        19520            0            0            0    1628.7316            2 
+Loop time of 0.0902783 on 4 procs for 76 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+     900    399.91074   -13034.973   0.95307991    3160.9514            5   0.42271366          0.4   0.99267641   0.93909912    1.0481595    5.9292845    1379.4982    4500.9735    5.7177778   0.12436844 0.0038865138    3.8763827   0.99275079   0.93842885    1.0481595    2.7471779            0            0            0            0        18000            1            1            4    1627.8857            2 
+    1000    417.82316   -13039.554    1.4089391    6086.7002            6    0.2668611          0.4   0.99526586   0.94236305    1.0494983    5.9292845    1379.4982    4302.6407        5.774   0.12573606 0.0034638033    3.8763827   0.99291291   0.93842885    1.0529963    2.7471779            0            0            0            0        20000            1            1            4    10750.027            0 
+Loop time of 0.0780252 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1000    417.82316   -13039.554    1.4089391    6086.7002            6    0.2668611          0.4   0.99526586   0.94236305    1.0494983    5.9292845    1379.4982    4302.6407        5.774   0.12573606 0.0034638033    3.8763827   0.99291291   0.93842885    1.0529963    2.7471779            0            0            0            0        20000            1            1            4    10750.027            0 
+    1069    417.82316   -13102.244    1.4089391    6086.7002            6    0.2668611          0.4   0.99526586   0.94236305    1.0494983    5.9292845    1379.4982    4302.6407    5.4013096   0.12573606 0.0034638033    3.8763827   0.99291291   0.93842885    1.0529963    2.7471779            0            0            0            0        21380            1            1            4    10750.027            0 
+Loop time of 0.0806106 on 4 procs for 69 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1000    417.82316   -13039.554    1.4087876    6086.7002            6    0.2668611          0.4   0.99526586   0.94236305    1.0494983    5.9292845    1379.4982    4302.6407        5.774   0.12573606 0.0034638033    3.8763827   0.99291291   0.93842885    1.0529963    2.7471779            0            0            0            0        20000            1            1            4    10700.259            0 
+    1100    388.96194   -13034.299    1.2536756     3347.844            7   0.31351452          0.4   0.99338469   0.94091364    1.0522698    5.9292845    1379.4982    4384.5779    5.7981818   0.11774851 0.0039197241    3.8763827   0.99302197   0.93842885    1.0529963    2.7471779            0            0            0            0        22000            1            1            4    3842.8412            1 
+Loop time of 0.078698 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1100    388.96194   -13034.299    1.2536756     3347.844            7   0.31351452          0.4   0.99338469   0.94091364    1.0522698    5.9292845    1379.4982    4384.5779    5.7981818   0.11774851 0.0039197241    3.8763827   0.99302197   0.93842885    1.0529963    2.7471779            0            0            0            0        22000            1            1            4    3842.8412            1 
+    1169    388.96194   -13102.244    1.2536756     3347.844            7   0.31351452          0.4   0.99338469   0.94091364    1.0522698    5.9292845    1379.4982    4384.5779    5.4559453   0.11774851 0.0039197241    3.8763827   0.99302197   0.93842885    1.0529963    2.7471779            0            0            0            0        23380            1            1            4    3842.8412            1 
+Loop time of 0.0793428 on 4 procs for 69 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1100    388.96194   -13034.299    1.2536216     3347.844            7   0.31351452          0.4   0.99338469   0.94091364    1.0522698    5.9292845    1379.4982    4384.5779    5.7981818   0.11774851 0.0039197241    3.8763827   0.99302197   0.93842885    1.0529963    2.7471779            0            0            0            0        22000            1            1            4     3837.378            1 
+    1200    416.13133   -13039.115     1.136132    3568.4524            6   0.35533996          0.4   0.99425562    0.9364246    1.0585182    5.9292845    1379.4982    4306.0803    5.8033333   0.12464101 0.0035898909    4.0254085   0.99310701    0.9364246    1.0585182    2.7471779            0            0            0            0        24000            1            1            4     2979.741            3 
+Loop time of 0.0783656 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1200    416.13133   -13039.115     1.136132    3568.4524            6   0.35533996          0.4   0.99425562    0.9364246    1.0585182    5.9292845    1379.4982    4306.0803    5.8033333   0.12464101 0.0035898909    4.0254085   0.99310701    0.9364246    1.0585182    2.7471779            0            0            0            0        24000            1            1            4     2979.741            3 
+    1273    416.13133   -13102.244     1.136132    3568.4524            6   0.35533996          0.4   0.99425562    0.9364246    1.0585182    5.9292845    1379.4982    4306.0803     5.470542   0.12464101 0.0035898909    4.0254085   0.99310701    0.9364246    1.0585182    2.7471779            0            0            0            0        25460            1            1            4     2979.741            3 
+Loop time of 0.0876518 on 4 procs for 73 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1200    416.13133   -13039.115    1.1361057    3568.4524            6   0.35533996          0.4   0.99425562    0.9364246    1.0585182    5.9292845    1379.4982    4306.0803    5.8033333   0.12464101 0.0035898909    4.0254085   0.99310701    0.9364246    1.0585182    2.7471779            0            0            0            0        24000            1            1            4    2976.9031            3 
+    1300    410.00168   -13035.264   0.69108116    2815.6646            5   0.33760803          0.4   0.99554496   0.93639346     1.064754    5.9292845    1379.4982    4219.0606    5.7769231   0.12822903 0.0045272969    4.0475228   0.99322786   0.93631673     1.064754    2.7471779            0            0            0            0        26000            1            1            4    3571.3217            2 
+Loop time of 0.0806069 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1300    410.00168   -13035.264   0.69108116    2815.6646            5   0.33760803          0.4   0.99554496   0.93639346     1.064754    5.9292845    1379.4982    4219.0606    5.7769231   0.12822903 0.0045272969    4.0475228   0.99322786   0.93631673     1.064754    2.7471779            0            0            0            0        26000            1            1            4    3571.3217            2 
+    1372    410.00168   -13102.244   0.69108116    2815.6646            5   0.33760803          0.4   0.99554496   0.93639346     1.064754    5.9292845    1379.4982    4219.0606    5.4737609   0.12822903 0.0045272969    4.0475228   0.99322786   0.93631673     1.064754    2.7471779            0            0            0            0        27440            1            1            4    3571.3217            2 
+Loop time of 0.101343 on 4 procs for 72 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1300    410.00168   -13035.264   0.69104928    2815.6646            5   0.33760803          0.4   0.99554496   0.93639346     1.064754    5.9292845    1379.4982    4219.0606    5.7769231   0.12822903 0.0045272969    4.0475228   0.99322786   0.93631673     1.064754    2.7471779            0            0            0            0        26000            1            1            4    3567.5136            2 
+    1400     423.4606   -13036.225     1.703102    2579.4314            7   0.24557477          0.4   0.99782055   0.93345496    1.0682561    5.9292845    1379.4982    4099.3865    5.7721429   0.12609826 0.0042074001    4.0475228   0.99346354   0.93345496    1.0682561    2.7471779            0            0            0            0        28000            1            1            4    2627.7529            0 
+Loop time of 0.0779268 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1400     423.4606   -13036.225     1.703102    2579.4314            7   0.24557477          0.4   0.99782055   0.93345496    1.0682561    5.9292845    1379.4982    4099.3865    5.7721429   0.12609826 0.0042074001    4.0475228   0.99346354   0.93345496    1.0682561    2.7471779            0            0            0            0        28000            1            1            4    2627.7529            0 
+    1472     423.4606   -13102.244     1.703102    2579.4314            7   0.24557477          0.4   0.99782055   0.93345496    1.0682561    5.9292845    1379.4982    4099.3865    5.4898098   0.12609826 0.0042074001    4.0475228   0.99346354   0.93345496    1.0682561    2.7471779            0            0            0            0        29440            1            1            4    2627.7529            0 
+Loop time of 0.0863118 on 4 procs for 72 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1400     423.4606   -13036.225    1.7031193    2579.4314            7   0.24557477          0.4   0.99782055   0.93345496    1.0682561    5.9292845    1379.4982    4099.3865    5.7721429   0.12609826 0.0042074001    4.0475228   0.99346354   0.93345496    1.0682561    2.7471779            0            0            0            0        28000            1            1            4    2626.4636            0 
+    1500    417.42191   -13035.425   0.63879915    3265.9276            5   0.29228757          0.4    1.0007582   0.93528148    1.0742773    5.9292845    1379.4982    3967.4215        5.808   0.12396694  0.003902663    4.0475228   0.99383929    0.9320167    1.0742773    2.7471779            0            0            0            0        30000            1            1            4     1469.864            0 
+Loop time of 0.078608 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1500    417.42191   -13035.425   0.63879915    3265.9276            5   0.29228757          0.4    1.0007582   0.93528148    1.0742773    5.9292845    1379.4982    3967.4215        5.808   0.12396694  0.003902663    4.0475228   0.99383929    0.9320167    1.0742773    2.7471779            0            0            0            0        30000            1            1            4     1469.864            0 
+    1575    417.42191   -13102.244   0.63879915    3265.9276            5   0.29228757          0.4    1.0007582   0.93528148    1.0742773    5.9292845    1379.4982    3967.4215    5.5314286   0.12396694  0.003902663    4.0475228   0.99383929    0.9320167    1.0742773    2.7471779            0            0            0            0        31500            1            1            4     1469.864            0 
+Loop time of 0.0875254 on 4 procs for 75 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1500    417.42191   -13035.425   0.63881053    3265.9276            5   0.29228757          0.4    1.0007582   0.93528148    1.0742773    5.9292845    1379.4982    3967.4215        5.808   0.12396694  0.003902663    4.0475228   0.99383929    0.9320167    1.0742773    2.7471779            0            0            0            0        30000            1            1            4    1469.1489            0 
+    1600    401.08407   -13036.858    2.3070534     2462.029            9   0.26709092          0.4    1.0019205   0.93145421    1.0802698    5.9292845    1379.4982    3922.9667      5.83625   0.12368816 0.0036410366    4.0475228    0.9942857   0.93077554    1.0802698    2.7471779            0            0            0            0        32000            1            1            4    5228.0098            0 
+Loop time of 0.0780517 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1600    401.08407   -13036.858    2.3070534     2462.029            9   0.26709092          0.4    1.0019205   0.93145421    1.0802698    5.9292845    1379.4982    3922.9667      5.83625   0.12368816 0.0036410366    4.0475228    0.9942857   0.93077554    1.0802698    2.7471779            0            0            0            0        32000            1            1            4    5228.0098            0 
+    1667    401.08407   -13102.244    2.3070534     2462.029            9   0.26709092          0.4    1.0019205   0.93145421    1.0802698    5.9292845    1379.4982    3922.9667    5.6016797   0.12368816 0.0036410366    4.0475228    0.9942857   0.93077554    1.0802698    2.7471779            0            0            0            0        33340            1            1            4    5228.0098            0 
+Loop time of 0.0795826 on 4 procs for 67 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1600    401.08407   -13036.858    2.3069745     2462.029            9   0.26709092          0.4    1.0019205   0.93145421    1.0802698    5.9292845    1379.4982    3922.9667      5.83625   0.12368816 0.0036410366    4.0475228    0.9942857   0.93077554    1.0802698    2.7471779            0            0            0            0        32000            1            1            4    5216.9826            0 
+    1700    390.57304   -13035.592   0.75779993    1179.4046            6   0.28725951          0.4    1.0026134    0.9311732    1.0858013    5.9292845    1379.4982    3901.4109    5.8264706   0.12155477  0.003634528    4.0475228   0.99473366   0.93050239    1.0858013    2.7471779            0            0            0            0        34000            1            1            4    400.12853            0 
+Loop time of 0.0782826 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1700    390.57304   -13035.592   0.75779993    1179.4046            6   0.28725951          0.4    1.0026134    0.9311732    1.0858013    5.9292845    1379.4982    3901.4109    5.8264706   0.12155477  0.003634528    4.0475228   0.99473366   0.93050239    1.0858013    2.7471779            0            0            0            0        34000            1            1            4    400.12853            0 
+    1769    390.57304   -13102.244   0.75779993    1179.4046            6   0.28725951          0.4    1.0026134    0.9311732    1.0858013    5.9292845    1379.4982    3901.4109    5.5992086   0.12155477  0.003634528    4.0475228   0.99473366   0.93050239    1.0858013    2.7471779            0            0            0            0        35380            1            1            4    400.12853            0 
+Loop time of 0.0823042 on 4 procs for 69 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1700    390.57304   -13035.592   0.75783515    1179.4046            6   0.28725951          0.4    1.0026134    0.9311732    1.0858013    5.9292845    1379.4982    3901.4109    5.8264706   0.12155477  0.003634528    4.0475228   0.99473366   0.93050239    1.0858013    2.7471779            0            0            0            0        34000            1            1            4    400.32271            0 
+    1800    398.05229   -13039.968    1.4993394    4237.7772            6   0.25966095          0.4    1.0035311     0.929455    1.0894688    5.9292845    1379.4982     3874.257    5.8227778   0.11487453 0.0034347868    4.0475228   0.99520141     0.929455    1.0894875    2.7471779            0            0            0            0        36000            1            1            4    5377.4056            0 
+Loop time of 0.07784 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1800    398.05229   -13039.968    1.4993394    4237.7772            6   0.25966095          0.4    1.0035311     0.929455    1.0894688    5.9292845    1379.4982     3874.257    5.8227778   0.11487453 0.0034347868    4.0475228   0.99520141     0.929455    1.0894875    2.7471779            0            0            0            0        36000            1            1            4    5377.4056            0 
+    1870    398.05229   -13102.244    1.4993394    4237.7772            6   0.25966095          0.4    1.0035311     0.929455    1.0894688    5.9292845    1379.4982     3874.257    5.6048128   0.11487453 0.0034347868    4.0475228   0.99520141     0.929455    1.0894875    2.7471779            0            0            0            0        37400            1            1            4    5377.4056            0 
+Loop time of 0.0836493 on 4 procs for 70 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1800    398.05229   -13039.968    1.4993215    4237.7772            6   0.25966095          0.4    1.0035311     0.929455    1.0894688    5.9292845    1379.4982     3874.257    5.8227778   0.11487453 0.0034347868    4.0475228   0.99520141     0.929455    1.0894875    2.7471779            0            0            0            0        36000            1            1            4    5369.6279            0 
+    1900    413.06274   -13039.873    1.3826465    7339.1562            5   0.22717549          0.4     0.999658   0.92261066    1.0792934    5.9292845    1379.4982    4011.3391    5.8310526   0.11065981 0.0032493907    4.0475228   0.99552368   0.92261066    1.0894875    2.7471779            0            0            0            0        38000            1            1            4     10818.73            0 
+Loop time of 0.0805019 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1900    413.06274   -13039.873    1.3826465    7339.1562            5   0.22717549          0.4     0.999658   0.92261066    1.0792934    5.9292845    1379.4982    4011.3391    5.8310526   0.11065981 0.0032493907    4.0475228   0.99552368   0.92261066    1.0894875    2.7471779            0            0            0            0        38000            1            1            4     10818.73            0 
+    1969    413.06274   -13102.244    1.3826465    7339.1562            5   0.22717549          0.4     0.999658   0.92261066    1.0792934    5.9292845    1379.4982    4011.3391    5.6267141   0.11065981 0.0032493907    4.0475228   0.99552368   0.92261066    1.0894875    2.7471779            0            0            0            0        39380            1            1            4     10818.73            0 
+Loop time of 0.0814294 on 4 procs for 69 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    1900    413.06274   -13039.873    1.3825572    7339.1562            5   0.22717549          0.4     0.999658   0.92261066    1.0792934    5.9292845    1379.4982    4011.3391    5.8310526   0.11065981 0.0032493907    4.0475228   0.99552368   0.92261066    1.0894875    2.7471779            0            0            0            0        38000            1            1            4    10781.258            0 
+    2000    399.72382   -13038.217    1.1754671    2735.2303            6   0.31028081          0.4   0.99858834   0.92453074    1.0748234    5.9292845    1379.4982    4045.0012        5.811   0.10841507 0.0030975736    4.0475228   0.99572029     0.922532    1.0894875    2.7471779            0            0            0            0        40000            1            1            4    2622.0819            1 
+Loop time of 0.0794099 on 4 procs for 100 steps with 2354 atoms
+
+Step Temp PotEng f_HL f_HL[1] f_HL[2] f_HL[3] f_HL[4] f_HL[5] f_HL[6] f_HL[7] f_HL[8] f_HL[9] f_HL[10] f_HL[11] f_HL[12] f_HL[13] f_HL[14] f_HL[15] f_HL[16] f_HL[17] f_HL[18] f_HL[19] f_HL[20] f_HL[21] f_HL[22] f_HL[23] f_HL[24] f_HL[25] f_HL[26] f_HL[27] f_HL[28] 
+    2000    399.72382   -13038.217    1.1754671    2735.2303            6   0.31028081          0.4   0.99858834   0.92453074    1.0748234    5.9292845    1379.4982    4045.0012        5.811   0.10841507 0.0030975736    4.0475228   0.99572029     0.922532    1.0894875    2.7471779            0            0            0            0        40000            1            1            4    2622.0819            1 
+    2071    399.72382   -13102.244    1.1754671    2735.2303            6   0.31028081          0.4   0.99858834   0.92453074    1.0748234    5.9292845    1379.4982    4045.0012    5.6117817   0.10841507 0.0030975736    4.0475228   0.99572029     0.922532    1.0894875    2.7471779            0            0            0            0        41420            1            1            4    2622.0819            1 
+Loop time of 0.0837786 on 4 procs for 71 steps with 2354 atoms
+
+Final hyper stats ...
+
+Cummulative quantities for fix hyper:
+  hyper time = 40000
+  time boost factor = 4000
+  event timesteps = 1
+  # of atoms in events = 1
+Quantities for this hyper run:
+  event timesteps = 1
+  # of atoms in events = 1
+  max length of any bond = 4.04752
+  max drift distance of any atom = 2.74718
+  fraction of biased bonds with zero bias = 0.108415
+  fraction of biased bonds with negative strain = 0.00309757
+Current quantities:
+  ave bonds/atom = 5.92928
+Cummulative quantities specific to fix hyper/local:
+  # of new bonds formed = 4
+  max bonds/atom = 12
+Quantities for this hyper run specific to fix hyper/local:
+  ave boost for all bonds/step = 4045
+  ave biased bonds/step = 5.811
+  ave bias coeff of all bonds = 0.99572
+  min bias coeff of any bond = 0.922532
+  max bias coeff of any bond = 1.08949
+  max dist from my subbox of any non-maxstrain bond ghost atom = 0
+  max dist from my box of any bond ghost atom = 0
+  count of bond ghost neighbors not found on reneighbor steps = 0
+  bias overlaps = 0
+  CPU time for bond builds = 0.00247526
+Current quantities specific to fix hyper/local:
+  neighbor bonds/bond = 1379.5
+  ave boost coeff for all bonds = 0.998588
+
+Loop time of 3.52992 on 4 procs for 2000 steps with 2354 atoms
+
+Performance: 244.765 ns/day, 0.098 hours/ns, 566.585 timesteps/s
+114.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Hyper stats:
+  Dynamics time (%) = 1.59393 (45.1549)
+  Quench   time (%) = 1.71979 (48.7203)
+  Other    time (%) = 0.219256 (6.21136)
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.4735     | 2.4914     | 2.5135     |   1.0 | 70.58
+Neigh   | 0.11535    | 0.11805    | 0.12056    |   0.7 |  3.34
+Comm    | 0.20734    | 0.21636    | 0.22119    |   1.1 |  6.13
+Output  | 0.00089145 | 0.0014108  | 0.0029645  |   2.4 |  0.04
+Modify  | 0.47314    | 0.48343    | 0.49869    |   1.4 | 13.70
+Other   |            | 0.2193     |            |       |  6.21
+
+Nlocal:    588.5 ave 607 max 577 min
+Histogram: 1 0 2 0 0 0 0 0 0 1
+Nghost:    1965.75 ave 1977 max 1947 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Neighs:    13775.8 ave 14221 max 13511 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
+FullNghs:  136920 ave 139934 max 133922 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 547678
+Ave neighs/atom = 232.658
+Neighbor list builds = 193
+Dangerous builds = 0
+Total wall time: 0:00:04

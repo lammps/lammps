@@ -1,0 +1,28 @@
+# Output raw and computed data. This can be used to perform the moment
+# calculation in some external tool and validate our results
+# ---------------------------------------------------------------------
+
+# create pure copper system
+units metal
+lattice fcc 3.75
+region box block 0 6 0 6 0 6
+create_box 2 box
+
+timestep 0.002
+create_atoms 1 box
+
+pair_style eam/alloy
+pair_coeff * * AlCu.eam.alloy Cu Al
+
+# Initialize to a high temperature, then cool in npt ensemble
+velocity all create 1000.0 6567345
+fix 1 all npt temp 300.0 300.0 $(500*dt) iso 0.0 0.0 $(100*dt)
+
+variable toteng equal "etotal"
+fix 2 all ave/moments 1 10 10 v_toteng mean variance skew kurtosis
+
+thermo_style custom step etotal f_2[*]
+thermo_modify format float %14.8f
+
+thermo 1
+run 100

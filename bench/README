@@ -1,0 +1,109 @@
+LAMMPS benchmark problems
+
+This directory contains 5 benchmark problems which are discussed in
+the Benchmark section of the LAMMPS documentation, and on the
+Benchmark page of the LAMMPS WWW site (https://www.lammps.org/bench.html).
+
+This directory also has one sub-directories:
+
+POTENTIALS      benchmarks scripts for various potentials in LAMMPS
+
+The results for all of these benchmarks are displayed and discussed on
+the Benchmark page of the LAMMPS WWW site: https://www.lammps.org/bench.html
+
+The remainder of this file refers to the 5 problems in the top-level
+of this directory and how to run them on CPUs, either in serial or
+parallel.  The sub-directories have their own README files which you
+should refer to before running those scripts.
+
+----------------------------------------------------------------------
+
+Each of the 5 problems has 32,000 atoms and runs for 100 timesteps.
+Each can be run as a serial benchmark (on one processor) or in
+parallel.  In parallel, each benchmark can be run as a fixed-size or
+scaled-size problem.  For fixed-size benchmarking, the same 32K atom
+problem is run on various numbers of processors.  For scaled-size
+benchmarking, the model size is increased with the number of
+processors.  E.g. on 8 processors, a 256K-atom problem is run; on 1024
+processors, a 32-million atom problem is run, etc.
+
+A few sample log file outputs on different machines and different
+numbers of processors are included in this directory to compare your
+answers to.  E.g. a log file like log.date.chain.lmp.scaled.foo.P is
+for a scaled-size version of the Chain benchmark, run on P processors
+of machine "foo" with the dated version of LAMMPS.  Note that the Eam
+and Lj benchmarks may not give identical answers on different machines
+because of the "velocity loop geom" option that assigns velocities
+based on atom coordinates - see the discussion in the documentation
+for the velocity command for details.
+
+The CPU time (in seconds) for the run is in the "Loop time" line
+of the log files, e.g.
+
+Loop time of 3.89418 on 8 procs for 100 steps with 32000 atoms
+
+Timing results for these problems run on various machines are listed
+on the Benchmarks page of the LAMMPS WWW Site.
+
+----------------------------------------------------------------------
+
+These are the 5 benchmark problems:
+
+LJ = atomic fluid, Lennard-Jones potential with 2.5 sigma cutoff (55
+neighbors per atom), NVE integration
+
+Chain = bead-spring polymer melt of 100-mer chains, FENE bonds and LJ
+pairwise interactions with a 2^(1/6) sigma cutoff (5 neighbors per
+atom), NVE integration
+
+EAM = metallic solid, Cu EAM potential with 4.95 Angstrom cutoff (45
+neighbors per atom), NVE integration
+
+Chute = granular chute flow, frictional history potential with 1.1
+sigma cutoff (7 neighbors per atom), NVE integration
+
+Rhodo = rhodopsin protein in solvated lipid bilayer, CHARMM force
+field with a 10 Angstrom LJ cutoff (440 neighbors per atom),
+particle-particle particle-mesh (PPPM) for long-range Coulombics, NPT
+integration
+
+----------------------------------------------------------------------
+
+Here is how to run each problem, assuming the LAMMPS executable is
+named lmp_mpi, and you are using the mpirun command to launch parallel
+runs:
+
+Serial (one processor runs):
+
+lmp_mpi -in in.lj
+lmp_mpi -in in.chain
+lmp_mpi -in in.eam
+lmp_mpi -in in.chute
+lmp_mpi -in in.rhodo
+
+Parallel fixed-size runs (on 8 procs in this case):
+
+mpirun -np 8 lmp_mpi -in in.lj
+mpirun -np 8 lmp_mpi -in in.chain
+mpirun -np 8 lmp_mpi -in in.eam
+mpirun -np 8 lmp_mpi -in in.chute
+mpirun -np 8 lmp_mpi -in in.rhodo
+
+Parallel scaled-size runs (on 16 procs in this case):
+
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 -in in.lj
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 -in in.chain.scaled
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 -in in.eam
+mpirun -np 16 lmp_mpi -var x 4 -var y 4 -in in.chute.scaled
+mpirun -np 16 lmp_mpi -var x 2 -var y 2 -var z 4 -in in.rhodo.scaled
+
+For each of the scaled-size runs you must set 3 variables as -var
+command line switches.  The variables x,y,z are used in the input
+scripts to scale up the problem size in each dimension.  Imagine the P
+processors arrayed as a 3d grid, so that P = Px * Py * Pz.  For P =
+16, you might use Px = 2, Py = 2, Pz = 4.  To scale up equally in all
+dimensions you roughly want Px = Py = Pz.  Using the var switches, set
+x = Px, y = Py, and z = Pz.
+
+For Chute runs, you must have Pz = 1.  Therefore P = Px * Py and you
+only need to set variables x and y.

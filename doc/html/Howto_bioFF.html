@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_bioFF.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.4.3. AMBER to LAMMPS Tutorial" href="Howto_amber2lammps.html" />
+    <link rel="prev" title="10.4.1. Some general force field considerations" href="Howto_FFgeneral.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_FFgeneral.html">10.4.1. Some general force field considerations</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amber2lammps.html">10.4.3. AMBER to LAMMPS Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amoeba.html">10.4.4. AMOEBA and HIPPO force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip3p.html">10.4.5. TIP3P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip4p.html">10.4.6. TIP4P and OPC water models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip5p.html">10.4.7. TIP5P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spc.html">10.4.8. SPC and SPC/E water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_eam_overlay.html">10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.4.2. </span>CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_FFgeneral.html" class="btn btn-neutral float-left" title="10.4.1. Some general force field considerations" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_amber2lammps.html" class="btn btn-neutral float-right" title="10.4.3. AMBER to LAMMPS Tutorial" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="charmm-amber-compass-classii-xe-dreiding-and-opls-force-fields">
+<h1><span class="section-number">10.4.2. </span>CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields<a class="headerlink" href="#charmm-amber-compass-classii-xe-dreiding-and-opls-force-fields" title="Link to this heading"></a></h1>
+<p>Here we only discuss formulas implemented in LAMMPS that correspond to
+formulas commonly used in the CHARMM, AMBER, COMPASS, and DREIDING force
+fields.  Setting coefficients is done either from special sections in an
+input data file via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command or in the
+input script with commands like <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> or
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a> and so on.  See the <a class="reference internal" href="Tools.html"><span class="doc">Tools</span></a>
+doc page for additional tools that can use CHARMM, AMBER, or Materials
+Studio generated files to assign force field coefficients and convert
+their output into LAMMPS input. LAMMPS input scripts can also be
+generated by <a class="reference external" href="https://charmm-gui.org/">charmm-gui.org</a>.</p>
+<section id="charmm-and-amber">
+<h2>CHARMM and AMBER<a class="headerlink" href="#charmm-and-amber" title="Link to this heading"></a></h2>
+<p>The <a class="reference external" href="https://mackerell.umaryland.edu/charmm_ff.shtml">CHARMM force field</a> <a class="reference internal" href="#howto-mackerell"><span class="std std-ref">(MacKerell)</span></a> and <a class="reference external" href="https://ambermd.org/AmberModels.php">AMBER force field</a> <a class="reference internal" href="#howto-cornell"><span class="std std-ref">(Cornell)</span></a>
+have potential energy function of the form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}V &amp; = \sum_{bonds} E_b + \sum_{angles} \!E_a + \!\overbrace{\sum_{dihedral} \!\!E_d}^{\substack{
+       \text{charmm} \\
+      \text{charmmfsw}
+    }} +\!\!\! \sum_{impropers} \!\!\!E_i \\[.6em]
+    &amp; \quad + \!\!\!\!\!\!\!\!\!\!\underbrace{~\sum_{pairs} \left(E_{LJ}+E_{coul}\right)}_{\substack{
+       \text{lj/charmm/coul/charmm} \\
+      \text{lj/charmm/coul/charmm/implicit} \\
+      \text{lj/charmm/coul/long} \\
+      \text{lj/charmm/coul/msm} \\
+       \text{lj/charmmfsw/coul/charmmfsh} \\
+      \text{lj/charmmfsw/coul/long}
+    }} \!\!\!\!\!\!\!\!+ \!\!\sum_{special}\! E_s + \!\!\!\!\sum_{residues} \!\!\!{\scriptstyle\mathrm{CMAP}(\phi,\psi)}\end{split}\]</div>
+<p>The terms are computed by bond styles (relationship between two atoms),
+angle styles (between 3 atoms) , dihedral/improper styles (between 4
+atoms), pair styles (non-covalently bonded pair interactions) and
+special bonds. The CMAP term (see <a class="reference internal" href="fix_cmap.html"><span class="doc">fix cmap</span></a> command for
+details) corrects for pairs of dihedral angles (“Correction MAP”) to
+significantly improve the structural and dynamic properties of proteins
+in crystalline and solution environments <a class="reference internal" href="#howto-brooks"><span class="std std-ref">(Brooks)</span></a>. The AMBER force field does not include the CMAP term.</p>
+<p>The interaction styles listed below compute force field formulas that
+are consistent with common options in CHARMM or AMBER.  See each
+command’s documentation for the formula it computes.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style harmonic</span></a></p></li>
+<li><p><a class="reference internal" href="angle_charmm.html"><span class="doc">angle_style charmm</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style charmmfsh</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style charmm</span></a></p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmmfsw/coul/charmmfsh</span></a></p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmmfsw/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmm/coul/charmm</span></a></p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmm/coul/charmm/implicit</span></a></p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">pair_style lj/charmm/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds charmm</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds amber</span></a></p></li>
+</ul>
+<p>The pair styles compute Lennard Jones (LJ) and Coulombic interactions
+with additional switching or shifting functions that ramp the energy
+and/or force smoothly to zero between an inner <span class="math notranslate nohighlight">\((a)\)</span> and outer
+<span class="math notranslate nohighlight">\((b)\)</span> cutoff. The older styles with <em>charmm</em> (not <em>charmmfsw</em> or
+<em>charmmfsh</em>) in their name compute the LJ and Coulombic interactions
+with an energy switching function (esw) <span class="math notranslate nohighlight">\(S(r)\)</span> which ramps the energy
+smoothly to zero between the inner and outer cutoff. This can cause
+irregularities in pairwise forces (due to the discontinuous second
+derivative of energy at the boundaries of the switching region), which
+in some cases can result in complications in energy minimization and
+detectable artifacts in MD simulations.</p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-2 docutils">
+<div class="sd-col sd-d-flex-column docutils">
+<div class="math notranslate nohighlight">
+\[\begin{split}LJ(r) &amp;= 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+         \left(\frac{\sigma}{r}\right)^6 \right]\\[.6em]
+C(r) &amp;= \frac{C q_i q_j}{ \epsilon r}\\[.6em]
+S(r) &amp;=  \frac{ \left(b^2 - r^2\right)^2 \left(b^2 + 2r^2 - 3{a^2}\right)}
+        { \left(b^2 - a^2\right)^3 }\\[.6em]
+E_{LJ}(r) &amp;=  \begin{cases}
+  LJ(r), &amp; r \leq a \\
+  LJ(r) S(r), &amp; a &lt; r \leq b \\
+  0, &amp;r &gt; b
+\end{cases} \\[.6em]
+E_{coul}(r) &amp;=  \begin{cases}
+  C(r), &amp; r \leq a \\
+  C(r) S(r), &amp; a &lt; r \leq b \\
+  0, &amp; r &gt; b
+\end{cases}\end{split}\]</div>
+</div>
+<div class="sd-col sd-d-flex-column docutils">
+<img alt="_images/howto_charmm_ELJ.png" class="align-center" src="_images/howto_charmm_ELJ.png" />
+</div>
+</div>
+</div>
+<p>The newer styles with <em>charmmfsw</em> or <em>charmmfsh</em> in their name replace
+energy switching with force switching (fsw) for LJ interactions and
+force shifting (fsh) functions for Coulombic interactions
+<a class="reference internal" href="#howto-steinbach"><span class="std std-ref">(Steinbach)</span></a></p>
+<div class="sd-container-fluid sd-sphinx-override sd-mb-4 docutils">
+<div class="sd-row sd-row-cols-1 sd-row-cols-xs-1 sd-row-cols-sm-1 sd-row-cols-md-2 sd-row-cols-lg-2 docutils">
+<div class="sd-col sd-d-flex-column docutils">
+<div class="math notranslate nohighlight">
+\[\begin{split}    E_{LJ}(r) = &amp; \begin{cases}
+4  \epsilon \sigma^6  \left(\frac{\displaystyle\sigma
+  ^6-r^6}{\displaystyle r^{12}}-\frac{\displaystyle\sigma ^6}{\displaystyle a^6
+  b^6}+\frac{\displaystyle 1}{\displaystyle a^3 b^3}\right) &amp; r\leq a \\
+\frac{\displaystyle 4 \epsilon \sigma^6   \left(\sigma ^6
+  \left(b^6-r^6\right)^2-b^3 r^6 \left(a^3+b^3\right)
+  \left(b^3-r^3\right)^2\right)}{\displaystyle b^6 r^{12}
+  \left(b^6-a^6\right)} &amp; a&lt;r \leq b\\
+  0, &amp; r&gt;b
+ \end{cases}\\[.6em]
+  E_{coul}(r) &amp; =  \begin{cases}
+       C(r) \frac{\displaystyle (b-r)^2}{\displaystyle r b^2}, &amp;  r \leq b \\
+       0, &amp; r &gt; b
+     \end{cases}\end{split}\]</div>
+</div>
+<div class="sd-col sd-d-flex-column docutils">
+<img alt="_images/howto_charmmfsw_ELJ.png" class="align-center" src="_images/howto_charmmfsw_ELJ.png" />
+</div>
+</div>
+</div>
+<p>These styles are used by LAMMPS input scripts generated by
+<a class="reference external" href="https://charmm-gui.org/">https://charmm-gui.org/</a> <a class="reference internal" href="#howto-brooks"><span class="std std-ref">(Brooks)</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For CHARMM, newer <em>charmmfsw</em> or <em>charmmfsh</em> styles were released in
+March 2017.  We recommend they be used instead of the older <em>charmm</em>
+styles.  See discussion of the differences on the <a class="reference internal" href="pair_charmm.html"><span class="doc">pair charmm</span></a> and <a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral charmm</span></a> doc
+pages.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The TIP3P water model is strongly recommended for use with the CHARMM
+force field. In fact, <a class="reference external" href="https://matsci.org/t/using-spc-water-with-charmm-ff/24715">“using the SPC model with CHARMM parameters is
+a bad idea”</a> and <a class="reference external" href="https://matsci.org/t/hybrid-pair-styles-for-charmm-and-tip4p-ew/32609">“to
+enable TIP4P style water in CHARMM, you would have to write a new pair
+style”</a>
+. LAMMPS input scripts generated by Solution Builder on <a class="reference external" href="https://charmm-gui.org">https://charmm-gui.org</a>
+use TIP3P molecules for solvation.  Any other water model can and
+probably will lead to false conclusions.</p>
+</div>
+</section>
+<section id="compass">
+<h2>COMPASS<a class="headerlink" href="#compass" title="Link to this heading"></a></h2>
+<p>COMPASS is a general force field for atomistic simulation of common
+organic molecules, inorganic small molecules, and polymers which was
+developed using ab initio and empirical parameterization techniques
+<a class="reference internal" href="#howto-sun"><span class="std std-ref">(Sun)</span></a>.  See the <a class="reference internal" href="Tools.html"><span class="doc">Tools</span></a> page for the
+msi2lmp tool for creating LAMMPS template input and data files from
+BIOVIA’s Materials Studio files.  Please note that the msi2lmp tool is
+very old and largely unmaintained, so it does not support all features
+of Materials Studio provided force field files, especially additions
+during the last decade.  You should watch the output carefully and
+compare results, where possible.  See <a class="reference internal" href="#howto-sun"><span class="std std-ref">(Sun)</span></a> for a
+description of the COMPASS force field.</p>
+<p>These interaction styles listed below compute force field formulas that
+are consistent with the COMPASS force field.  See each command’s
+documentation for the formula it computes.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_class2.html"><span class="doc">bond_style class2</span></a></p></li>
+<li><p><a class="reference internal" href="angle_class2.html"><span class="doc">angle_style class2</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_class2.html"><span class="doc">dihedral_style class2</span></a></p></li>
+<li><p><a class="reference internal" href="improper_class2.html"><span class="doc">improper_style class2</span></a></p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2</span></a></p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2/coul/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style  lj/class2/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds lj/coul 0 0 1</span></a></p></li>
+</ul>
+</section>
+<section id="classii-xe">
+<h2>ClassII-xe<a class="headerlink" href="#classii-xe" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The computationally efficient simulation of condensed-phase materials
+such as metals, polymers, and composites can be achieved with fixed-bond
+force fields.  Two popular fixed-bond force fields for such materials
+are COMPASS <a class="reference internal" href="#howto-sun"><span class="std std-ref">(Sun)</span></a> and PCFF <a class="reference internal" href="#howto-maple"><span class="std std-ref">(Maple)</span></a>.  Both use a Class II-based functional form that
+incorporates anharmonic vibrational modes via the quartic Taylor-series
+expansion of the Hamiltonian.  In addition, Class II-based force fields
+add intermolecular coupling via cross-term interactions that also
+account for more complex vibrational modes.  The underlying harmonic
+bonds and harmonic cross-terms can limit the reliability of the physics,
+e.g., when calculating mechanical properties.  To overcome the harmonic
+bonding limitations, a Morse bond <a class="reference internal" href="#howto-morse"><span class="std std-ref">(Morse)</span></a> can be
+used in place of the quartic bond, but this improvement when modeling
+bond dissociation is limited when the cross-terms remain harmonic.  To
+improve the physicality of the response of the cross-terms that couple
+bond stretch to other higher-order interactions (angles, dihedrals, and
+impropers), those respective cross-terms also need to be modified.</p>
+<p>The cross-term potentials that model bond stretch coupling to
+higher-order interactions are similar in functional form to the harmonic
+bonding potential.  Thus, the exponential function that <a class="reference internal" href="#howto-morse"><span class="std std-ref">(Morse)</span></a> derived for converting a harmonic bonding potential to a
+bonding potential that accommodates larger bond stretches and can model
+bond dissociation, can also be implemented into the cross-terms.  This
+defines the naming convention for the ClassII-xe functional form, where
+x refers to cross-term and e refers to an exponential function, and
+defines the purpose of the ClassII-xe functional form.  The purpose is
+to allow bond dissociation in a ClassII-based force field via a
+consistent definition of bond dissociation via the Morse bonding
+potential and the higher-order cross-term coupling potentials.  See
+<a class="reference internal" href="#howto-kemppainen"><span class="std std-ref">(Kemppainen)</span></a> for a description of the
+ClassII-xe functional form.  The interaction styles listed below compute
+the force field formulas for the ClassII-xe functional form:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_morse.html"><span class="doc">bond_style morse</span></a></p></li>
+<li><p><a class="reference internal" href="angle_class2.html"><span class="doc">angle_style class2xe</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_class2.html"><span class="doc">dihedral_style class2xe</span></a></p></li>
+<li><p><a class="reference internal" href="improper_class2.html"><span class="doc">improper_style class2</span></a></p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2</span></a></p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2/coul/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_class2.html"><span class="doc">pair_style lj/class2/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds lj/coul 0 0 1</span></a></p></li>
+</ul>
+<p>Since both COMPASS and PCFF are Class II-based, their parameters can be
+converted into the ClassII-xe functional form.  The conversion from
+ClassII to ClassII-xe functional form requires reparameterizing the
+cross-terms, which can be accomplished via the LUNAR tool, for which a
+link is provided on the <a class="reference external" href="https://www.lammps.org/prepost.html">Pre/Post processing</a> page.  LUNAR can be used to
+build a model from scratch in either COMPASS or PCFF (using its
+‘atom_typing’ and ‘all2lmp’ modules) and then convert that model to
+COMPASS-xe or PCFF-xe (using its ‘auto_morse_bond_update’ module).  To
+establish a consistent naming convention for the new ClassII-xe
+functional form when converting from a parent force field, the -xe
+suffix should be added to the parent force field name (e.g. PCFF
+vs. PCFF-xe).</p>
+<p>The usage of the ClassII-xe functional form can only let a bond
+dissociate; however, to disconnect the dissociated bond and remove the
+higher-order interactions, other LAMMPS commands are required, such as
+<a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a> or <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a>.  It was demonstrated that PCFF-xe (without <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix
+bond/react</span></a> or <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a>)
+can model a material up to fracture <a class="reference internal" href="#howto-kemppainen"><span class="std std-ref">(Kemppainen)</span></a>, allowing for calculation of mechanical properties
+such such as tensile and shear modulus, tensile and shear yield
+strength, Poisson’s ratio, etc.  However, the simulation may crash after
+fracture if bonds beyond than the processor communication cutoff
+distance.  Thus, post-fracture phenomena cannot be simulated without the
+usage of <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a> or <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a>.  Note that using <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a> can cause instabilities and crashes because a
+discontinuity is introduced to the energy landscape when a bond is
+removed.  On the other hand, <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a> can
+relax high-energy configurations via the <code class="docutils literal notranslate"><span class="pre">stabilization</span></code> keyword,
+whereby a small local group of atoms involved in the discontinuity are
+integrated with <a class="reference internal" href="fix_nve_limit.html"><span class="doc">fix nve/limit</span></a>.  <a class="reference external" href="https://www.lammps.org/prepost.html">LUNAR</a> can also be used to assist with
+setting up simulations that include <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a>.</p>
+</section>
+<section id="dreiding">
+<h2>DREIDING<a class="headerlink" href="#dreiding" title="Link to this heading"></a></h2>
+<p>DREIDING is a generic force field developed by the <a class="reference external" href="http://www.wag.caltech.edu">Goddard group</a> at Caltech and is useful for predicting
+structures and dynamics of organic, biological and main-group inorganic
+molecules.  The philosophy in DREIDING is to use general force constants
+and geometry parameters based on simple hybridization considerations,
+rather than individual force constants and geometric parameters that
+depend on the particular combinations of atoms involved in the bond,
+angle, or torsion terms.  DREIDING has an <a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">explicit hydrogen bond
+term</span></a> to describe interactions involving a
+hydrogen atom on very electronegative atoms (N, O, F).  Unlike CHARMM or
+AMBER, the DREIDING force field has not been parameterized for
+considering solvents (like water) and has no rules for assigning
+(partial) charges.  That will seriously limit its accuracy when used for
+simulating systems where those matter.</p>
+<p>See <a class="reference internal" href="#howto-mayo"><span class="std std-ref">(Mayo)</span></a> for a description of the DREIDING force field</p>
+<p>The interaction styles listed below compute force field formulas that
+are consistent with the DREIDING force field.  See each command’s
+documentation for the formula it computes.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style harmonic</span></a></p></li>
+<li><p><a class="reference internal" href="bond_morse.html"><span class="doc">bond_style morse</span></a></p></li>
+<li><p><a class="reference internal" href="angle_cosine_squared.html"><span class="doc">angle_style cosine/squared</span></a></p></li>
+<li><p><a class="reference internal" href="angle_harmonic.html"><span class="doc">angle_style harmonic</span></a></p></li>
+<li><p><a class="reference internal" href="angle_cosine.html"><span class="doc">angle_style cosine</span></a></p></li>
+<li><p><a class="reference internal" href="angle_cosine_periodic.html"><span class="doc">angle_style cosine/periodic</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">dihedral_style charmm</span></a></p></li>
+<li><p><a class="reference internal" href="improper_umbrella.html"><span class="doc">improper_style umbrella</span></a></p></li>
+<li><p><a class="reference internal" href="pair_buck.html"><span class="doc">pair_style buck</span></a></p></li>
+<li><p><a class="reference internal" href="pair_buck.html"><span class="doc">pair_style buck/coul/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_buck.html"><span class="doc">pair_style buck/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">pair_style lj/cut/coul/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">pair_style lj/cut/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">pair_style hbond/dreiding/lj</span></a></p></li>
+<li><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">pair_style hbond/dreiding/morse</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds dreiding</span></a></p></li>
+</ul>
+</section>
+<section id="opls">
+<h2>OPLS<a class="headerlink" href="#opls" title="Link to this heading"></a></h2>
+<p>OPLS (Optimized Potentials for Liquid Simulations) is a general force
+field for atomistic simulation of organic molecules in solvent.  It was
+developed by the <a class="reference external" href="https://traken.chem.yale.edu/oplsaam.html">Jorgensen group</a> at Purdue University and
+later at Yale University.  Multiple versions of the OPLS parameters
+exist for united atom representations (OPLS-UA) and for all-atom
+representations (OPLS-AA).</p>
+<p>This force field is based on atom types mapped to specific functional
+groups in organic and biological molecules.  Each atom includes a
+static, partial atomic charge reflecting the oxidation state of the
+element derived from its bonded neighbors <a class="reference internal" href="#howto-jorgensen"><span class="std std-ref">(Jorgensen)</span></a> and computed based on increments determined by the
+atom type of the atoms bonded to it.</p>
+<p>The interaction styles listed below compute force field formulas that
+are fully or in part consistent with the OPLS style force fields.  See
+each command’s documentation for the formula it computes.  Some are only
+compatible with a subset of OPLS interactions.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style harmonic</span></a></p></li>
+<li><p><a class="reference internal" href="angle_harmonic.html"><span class="doc">angle_style harmonic</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_opls.html"><span class="doc">dihedral_style opls</span></a></p></li>
+<li><p><a class="reference internal" href="improper_cvff.html"><span class="doc">improper_style cvff</span></a></p></li>
+<li><p><a class="reference internal" href="improper_fourier.html"><span class="doc">improper_style fourier</span></a></p></li>
+<li><p><a class="reference internal" href="improper_harmonic.html"><span class="doc">improper_style harmonic</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">pair_style lj/cut/coul/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">pair_style lj/cut/coul/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify geometric</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds lj/coul 0.0 0.0 0.5</span></a></p></li>
+</ul>
+<hr class="docutils" />
+<p id="howto-mackerell"><strong>(MacKerell)</strong> MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586 . <a class="reference external" href="https://doi.org/10.1021/jp973084f">https://doi.org/10.1021/jp973084f</a></p>
+<p id="howto-cornell"><strong>(Cornell)</strong> Cornell, Cieplak, Bayly, Gould, Merz, Ferguson, Spellmeyer, Fox, Caldwell, Kollman (1995).  JACS 117, 5179-5197. <a class="reference external" href="https://doi.org/10.1021/ja00124a002">https://doi.org/10.1021/ja00124a002</a></p>
+<p id="howto-steinbach"><strong>(Steinbach)</strong> Steinbach, Brooks (1994). J Comput Chem, 15, 667. <a class="reference external" href="https://doi.org/10.1002/jcc.540150702">https://doi.org/10.1002/jcc.540150702</a></p>
+<p id="howto-brooks"><strong>(Brooks)</strong> Brooks, et al (2009). J Comput Chem, 30, 1545. <a class="reference external" href="https://onlinelibrary.wiley.com/doi/10.1002/jcc.21287">https://onlinelibrary.wiley.com/doi/10.1002/jcc.21287</a></p>
+<p id="howto-sun"><strong>(Sun)</strong> Sun (1998). J. Phys. Chem. B, 102, 7338-7364. <a class="reference external" href="https://doi.org/10.1021/jp980939v">https://doi.org/10.1021/jp980939v</a></p>
+<p id="howto-mayo"><strong>(Mayo)</strong> Mayo, Olfason, Goddard III (1990). J Phys Chem, 94, 8897-8909. <a class="reference external" href="https://doi.org/10.1021/j100389a010">https://doi.org/10.1021/j100389a010</a></p>
+<p id="howto-jorgensen"><strong>(Jorgensen)</strong> Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. <a class="reference external" href="https://doi.org/10.1021/ja00214a001">https://doi.org/10.1021/ja00214a001</a></p>
+<p id="howto-maple"><strong>(Maple)</strong> Maple, Journal of Computational Chemistry, 15, 162-182 (1994). <a class="reference external" href="https://doi.org/10.1002/jcc.540150207">https://doi.org/10.1002/jcc.540150207</a></p>
+<p id="howto-morse"><strong>(Morse)</strong> Morse, Physical review, 34, 57 (1929). <a class="reference external" href="https://doi.org/10.1103/PhysRev.34.57">https://doi.org/10.1103/PhysRev.34.57</a></p>
+<p id="howto-kemppainen"><strong>(Kemppainen)</strong> Kemppainen, npj Computational Materials 11, 341 (2025). <a class="reference external" href="https://doi.org/10.1038/s41524-025-01838-5">https://doi.org/10.1038/s41524-025-01838-5</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_FFgeneral.html" class="btn btn-neutral float-left" title="10.4.1. Some general force field considerations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_amber2lammps.html" class="btn btn-neutral float-right" title="10.4.3. AMBER to LAMMPS Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

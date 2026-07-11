@@ -1,0 +1,95 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-73-g36fa601fe0)
+  using 1 OpenMP thread(s) per MPI task
+# monolayer MoS2
+units           metal
+boundary        p p f
+processors      * * 1
+atom_modify map array
+
+atom_style      atomic
+read_data       single_layer_MoS2.data
+Reading data file ...
+  triclinic box = (0 0 -100) to (51.15232 44.299209 100) with tilt (25.57616 0 0)
+WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (src/domain.cpp:219)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  768 atoms
+  read_data CPU = 0.002 seconds
+
+mass            * 32.065        # mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94         # mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
+
+########################## Define potentials ################################
+pair_style      rebomos
+pair_coeff      * * MoS.rebomos Mo S S
+Reading rebomos potential file MoS.rebomos with DATE: 2013-11-04
+#########################################################################
+
+### Simulation settings ####
+timestep        0.001
+velocity        all create 300.0 12345 loop geom
+
+############################
+
+# Output
+thermo          500
+thermo_style    custom step etotal pe ke temp
+thermo_modify   lost warn
+
+###### Run molecular dynamics ######
+fix             thermostat all nve
+run             5000
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13.4
+  ghost atom cutoff = 13.4
+  binsize = 6.7, bins = 12 7 30
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair rebomos, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.045 | 4.045 | 4.045 Mbytes
+   Step         TotEng         PotEng         KinEng          Temp     
+         0  -5466.9785     -5496.7212      29.742759      300          
+       500  -5466.964      -5482.6985      15.734505      158.7059     
+      1000  -5466.9615     -5480.9492      13.98763       141.08607    
+      1500  -5466.964      -5482.6912      15.727258      158.63281    
+      2000  -5466.9657     -5483.3606      16.394878      165.36675    
+      2500  -5466.9624     -5481.6253      14.662948      147.89765    
+      3000  -5466.9642     -5482.7515      15.7873        159.23842    
+      3500  -5466.9654     -5483.3789      16.413502      165.5546     
+      4000  -5466.9628     -5481.848       14.885236      150.13977    
+      4500  -5466.9648     -5483.5045      16.539775      166.82825    
+      5000  -5466.9649     -5483.4932      16.528298      166.71249    
+Loop time of 5.69326 on 4 procs for 5000 steps with 768 atoms
+
+Performance: 75.879 ns/day, 0.316 hours/ns, 878.231 timesteps/s, 674.482 katom-step/s
+98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.2611     | 5.3666     | 5.4358     |   3.0 | 94.26
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.23476    | 0.30106    | 0.40642    |  12.8 |  5.29
+Output  | 0.00014996 | 0.0004478  | 0.0013353  |   0.0 |  0.01
+Modify  | 0.0068861  | 0.0069917  | 0.0072247  |   0.2 |  0.12
+Other   |            | 0.01814    |            |       |  0.32
+
+Nlocal:            192 ave         194 max         190 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:            710 ave         712 max         708 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:        35456 ave       35824 max       35088 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+
+Total # of neighbors = 141824
+Ave neighs/atom = 184.66667
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:05

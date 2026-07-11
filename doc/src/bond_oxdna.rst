@@ -1,0 +1,231 @@
+.. index:: bond_style oxdna/fene
+.. index:: bond_style oxdna2/fene
+.. index:: bond_style oxdna3/fene
+.. index:: bond_style oxrna2/fene
+
+bond_style oxdna/fene command
+=============================
+
+bond_style oxdna2/fene command
+==============================
+
+bond_style oxdna3/fene command
+==============================
+
+bond_style oxrna2/fene command
+==============================
+
+Syntax
+""""""
+
+.. code-block:: LAMMPS
+
+   bond_style oxdna/fene
+
+   bond_style oxdna2/fene
+
+   bond_style oxdna3/fene
+
+   bond_style oxrna2/fene
+
+Examples
+""""""""
+
+.. code-block:: LAMMPS
+
+   # LJ units
+   bond_style oxdna/fene
+   bond_coeff * 2.0 0.25 0.7525
+
+   bond_style oxdna2/fene
+   bond_coeff * 2.0 0.25 0.7564
+
+   bond_style oxdna3/fene
+   bond_coeff * oxdna3_lj.cgdna
+
+   bond_style oxrna2/fene
+   bond_coeff * 2.0 0.25 0.76107
+
+   # Real units
+   bond_style oxdna/fene
+   bond_coeff * 11.92337812042065 2.1295 6.409795
+
+   bond_style oxdna2/fene
+   bond_coeff * 11.92337812042065 2.1295 6.4430152
+
+   bond_style oxdna3/fene
+   bond_coeff * oxdna3_real.cgdna
+
+   bond_style oxrna2/fene
+   bond_coeff * 11.92337812042065 2.1295 6.482800913
+
+.. note::
+
+   The coefficients in the above examples have to be kept fixed and
+   cannot be changed without reparameterizing the entire model. They are
+   provided in forms compatible with both *units lj* and *units real*
+   (see documentation of :doc:`units <units>`).  These can also be read
+   from a potential file (sole option for oxDNA3) with correct
+   unit style by specifying the name of the file. Several potential files
+   for each unit style are included in the ``potentials`` directory of
+   the LAMMPS distribution.
+
+Description
+"""""""""""
+
+The *oxdna/fene*, *oxdna2/fene*, *oxdna3/fene* and *oxrna2/fene* bond styles use the potential
+
+.. math::
+
+   E = - \frac{\epsilon}{2} \ln \left[ 1 - \left(\frac{r-r_0}{\Delta}\right)^2\right]
+
+to define a modified finite extensible nonlinear elastic (FENE)
+potential :ref:`(Ouldridge) <Ouldridge0>` to model the connectivity of
+the phosphate backbone in the oxDNA/oxRNA force field for coarse-grained
+modelling of DNA/RNA.
+
+The following coefficients must be defined for the bond type via the
+:doc:`bond_coeff <bond_coeff>` command as given in the above example, or
+in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands:
+
+* :math:`\epsilon` (energy)
+* :math:`\Delta` (distance)
+* :math:`r_0` (distance)
+
+.. note::
+
+   The oxDNA bond style has to be used together with the corresponding
+   oxDNA pair styles for excluded volume interaction *oxdna/excv* ,
+   stacking *oxdna/stk* , cross-stacking *oxdna/xstk* and coaxial
+   stacking interaction *oxdna/coaxstk* as well as hydrogen-bonding
+   interaction *oxdna/hbond* (see also documentation of :doc:`pair_style
+   oxdna/excv <pair_oxdna>`). For the oxDNA2 :ref:`(Snodin) <Snodin0>`
+   bond style the analogous pair styles *oxdna2/excv* , *oxdna2/stk* ,
+   *oxdna2/xstk* , *oxdna2/coaxstk* , *oxdna2/hbond* and an additional
+   Debye-Hueckel pair style *oxdna2/dh* have to be defined. The same
+   applies to the oxDNA3 :ref:`(Bonato) <Bonato>`
+   and oxRNA2 :ref:`(Sulc1) <Sulc01>` styles.
+
+.. note::
+
+   This bond style has to be used with the *atom_style hybrid bond
+   ellipsoid oxdna* (see documentation of :doc:`atom_style
+   <atom_style>`). The *atom_style oxdna* stores the 3'-to-5' polarity
+   of the nucleotide strand, which is set through the bond topology in
+   the data file. The first (second) atom in a bond definition is
+   understood to point towards the 3'-end (5'-end) of the strand.
+
+.. warning::
+
+   If data files are produced with :doc:`write_data <write_data>`, then
+   the :doc:`newton <newton>` command should be set to *newton on*.
+   Otherwise the data files will not have the same 3'-to-5' polarity
+   as the initial data file. This limitation does not apply to
+   binary restart files produced with :doc:`write_restart <write_restart>`.
+
+Example input and data files for DNA and RNA duplexes can be found in
+``examples/PACKAGES/cgdna/examples/lj_units/oxDNA/`, `.../oxDNA2/`, `.../oxDNA3/``
+and ``.../oxRNA2/`` or in the corresponding folder for real units.
+A simple python setup tool which creates single
+straight or helical DNA strands, DNA/RNA duplexes or arrays of DNA/RNA
+duplexes can be found in ``examples/PACKAGES/cgdna/util/``.
+
+Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses
+this implementation. An updated documentation that contains general information
+on the model, its implementation and performance as well as the structure of
+the data and input file can be found `here <PDF/CG-DNA.pdf>`_.
+
+Please cite also the relevant oxDNA/oxRNA publications. These are
+:ref:`(Ouldridge) <Ouldridge0>` and
+:ref:`(Ouldridge-DPhil) <Ouldridge-DPhil0>` for oxDNA,
+:ref:`(Snodin) <Snodin0>` for oxDNA2,
+:ref:`(Bonato) <Bonato>` for oxDNA3,
+:ref:`(Sulc1) <Sulc01>` for oxRNA2
+and for sequence-specific hydrogen-bonding and stacking interactions
+:ref:`(Sulc2) <Sulc02>`.
+
+----------
+
+Potential file reading
+""""""""""""""""""""""
+
+For each style oxdna, oxdna2, oxdna3 and oxrna2, the first parameter argument
+can be a filename, and if it is, no further arguments should be
+supplied. Therefore the following command:
+
+.. code-block:: LAMMPS
+
+   bond_style oxdna/fene
+   bond_coeff * oxdna_lj.cgdna
+
+will be interpreted as a request to read the (FENE) potential
+:ref:`(Ouldridge) <Ouldridge0>` parameters from the file with the given
+name.  The file can define multiple potential parameters for both bonded
+and pair interactions, but for the above bonded interactions there must
+exist in the file a line of the form:
+
+.. code-block:: LAMMPS
+
+   *   fene    epsilon delta r0
+
+There are sample potential files for each unit style in the
+``potentials`` directory of the LAMMPS distribution. The potential file
+unit system must align with the units defined via the :doc:`units
+<units>` command. For conversion between different *LJ* and *real* unit
+systems for oxDNA, the python tool *lj2real.py* located in the
+``examples/PACKAGES/cgdna/util/`` directory can be used. This tool
+assumes similar file structure to the examples found in
+``examples/PACKAGES/cgdna/examples/``.
+
+----------
+
+Restrictions
+""""""""""""
+
+This bond style can only be used if LAMMPS was built with the
+CG-DNA package and the MOLECULE and ASPHERE package.  See the
+:doc:`Build package <Build_package>` page for more info.
+
+Related commands
+""""""""""""""""
+
+:doc:`pair_style oxdna/excv <pair_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`, :doc:`pair_style oxdna3/excv <pair_oxdna3>`,
+:doc:`pair_style oxrna2/excv <pair_oxrna2>`, :doc:`bond_coeff <bond_coeff>`, :doc:`atom_style oxdna <atom_style>`,
+:doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
+
+Default
+"""""""
+
+
+none
+
+----------
+
+.. _Henrich0:
+
+**(Henrich)** O. Henrich, Y.A. Gutierrez-Fosado, T. Curk, T.E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).
+
+.. _Ouldridge-DPhil0:
+
+**(Ouldridge-DPhil)** T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).
+
+.. _Ouldridge0:
+
+**(Ouldridge)** T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).
+
+.. _Snodin0:
+
+**(Snodin)** B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).
+
+.. _Bonato:
+
+**(Bonato)** A. Bonato, T.E. Ouldridge, A.A. Louis, J.P.K. Doye, L. Rovigatti, M. Matthies, O.Henrich, in preparation.
+
+.. _Sulc01:
+
+**(Sulc1)** P. Sulc, F. Romano, T.E. Ouldridge, et al., J. Chem. Phys. 140, 235102 (2014).
+
+.. _Sulc02:
+
+**(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).

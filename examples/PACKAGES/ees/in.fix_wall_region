@@ -1,0 +1,29 @@
+units lj
+atom_style ellipsoid
+boundary p p p
+read_data Data_region
+#------------------------------------#
+region the_wall block 20. 40. 20. 40. 20. 40. side out
+#------------------------------------#
+pair_style resquared 1
+pair_coeff 1 1 10.0 1.0 0.5 0.5 4 0.5 0.5 4 1
+#------------------------------------#
+timestep 0.0005
+#------------------------------------#
+
+fix EES_block all wall/region/ees the_wall 10. 1. 20
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+thermo_style custom step temp press etotal f_EES_block[1] f_EES_block[3]
+
+fix NVE all nve/asphere
+#------------------------------------#
+compute qw all  property/atom quatw
+compute qi all  property/atom quati
+compute qj all  property/atom quatj
+compute qk all  property/atom quatk
+#------------------------------------#
+thermo 500
+#dump 1 all custom 1000 dump_region id type x y z c_qw c_qi c_qj c_qk 
+run 50000
+

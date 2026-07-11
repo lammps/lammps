@@ -1,0 +1,902 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fix graphics/labels command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/fix_graphics_labels.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix graphics/lines command" href="fix_graphics_lines.html" />
+    <link rel="prev" title="fix graphics/isosurface command" href="fix_graphics_isosurface.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fix Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_acks2_reaxff.html">fix acks2/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_add_heat.html">fix add/heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_atom.html">fix addtorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_group.html">fix addtorque/group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_alchemy.html">fix alchemy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_align_self.html">fix align/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_bitorsion.html">fix amoeba/bitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_pitorsion.html">fix amoeba/pitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_weight_apip.html">fix atom_weight/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_grid.html">fix ave/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_moments.html">fix ave/moments command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial.html">fix ave/spatial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial_sphere.html">fix ave/spatial/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_baoab.html">fix baoab command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_react.html">fix bond/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html">fix brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-sphere-command">fix brownian/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-asphere-command">fix brownian/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_charge_regulation.html">fix charge/regulation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_damping_cundall.html">fix damping/cundall command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform.html">fix deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform_pressure.html">fix deform/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html#fix-efield-tip4p-command">fix efield/tip4p command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield_lepton.html">fix efield/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html">fix electrode/conp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-conq-command">fix electrode/conq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-thermo-command">fix electrode/thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gemc.html">fix gemc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gjf.html">fix gjf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_arrows.html">fix graphics/arrows command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_chunk.html">fix graphics/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_isosurface.html">fix graphics/isosurface command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix graphics/labels command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dump-image-info">Dump image info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#including-a-dynamic-image">Including a “dynamic” image</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_lines.html">fix graphics/lines command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_objects.html">fix graphics/objects command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_periodic.html">fix graphics/periodic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_replica.html">fix graphics/replica command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat_flow.html">fix heat/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hmc.html">fix hmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ilves.html">fix ilves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_apip.html">fix lambda/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_la_csp_apip.html">fix lambda/la/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_thermostat_apip.html">fix lambda_thermostat/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qm.html">fix mdi/qm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qmmm.html">fix mdi/qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mol_swap.html">fix mol/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neighbor_swap.html">fix neighbor/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nonaffine_displacement.html">fix nonaffine/displacement command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff_virial.html">fix numdiff/virial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_bpm_sphere.html">fix nve/bpm/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pair.html">fix pair command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html">fix pimd/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-nvt-command">fix pimd/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-langevin-bosonic-command">fix pimd/langevin/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-nvt-bosonic-command">fix pimd/nvt/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html">fix polarize/bem/gmres command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-bem-icc-command">fix polarize/bem/icc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-functional-command">fix polarize/functional command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_langevin.html">fix press/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-ctip-command">fix qeq/ctip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reaxff.html">fix qeq/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_rel_reaxff.html">fix qeq/rel/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtpie_reaxff.html">fix qtpie/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_bonds.html">fix reaxff/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_species.html">fix reaxff/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo.html">fix rheo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_oxidation.html">fix rheo/oxidation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_pressure.html">fix rheo/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_thermal.html">fix rheo/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_viscosity.html">fix rheo/viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-small-command">fix rigid/nph/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_set.html">fix set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_settorque_atom.html">fix settorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sgcmc.html">fix sgcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_global.html">fix surface/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_local.html">fix surface/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-grid-command">fix ttm/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-thermal-command">fix ttm/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_nonlinear.html">fix viscous/nonlinear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_sphere.html">fix viscous/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-outside-command">fix wall/harmonic/outside command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lepton-command">fix wall/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-table-command">fix wall/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_flow.html">fix wall/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="fixes.html">Fix Styles</a></li>
+      <li class="breadcrumb-item active">fix graphics/labels command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="fix_graphics_isosurface.html" class="btn btn-neutral float-left" title="fix graphics/isosurface command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_graphics_lines.html" class="btn btn-neutral float-right" title="fix graphics/lines command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="fix-graphics-labels-command">
+<span id="index-0"></span><h1>fix graphics/labels command<a class="headerlink" href="#fix-graphics-labels-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="n">Nevery</span><span class="w"> </span><span class="n">mode</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">args</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>graphics/labels = style name of this fix command</p></li>
+<li><p>Nevery = update graphics information every this many time steps</p></li>
+<li><p>zero or more keyword/args groups may be appended</p></li>
+<li><p>keyword = <em>image</em> or <em>text</em> or <em>colorscale</em></p>
+<pre class="literal-block"><em>image</em> filename x y z keyword args = display image in visualization
+   filename = name of the image file
+   x, y, z  = position where the center of the image is located in the visualization
+   any of x, y, or z can be a variable (see below)
+   one or more keyword/arg pairs may be appended
+   keyword = <em>scale</em> or <em>transcolor</em>
+     <em>scale</em> value = the image is scaled by this value (default 1.0), can be a variable (see below)
+     <em>transcolor</em> arg = select color for transparency: <em>auto</em> or <em>none</em> or <em>r/g/b</em>
+        <em>auto</em> = uses the color in the lower left corner of the image for transparency
+        <em>none</em> = disables transparency
+        <em>r/g/b</em> = provide three integers in the range 0 to 255 to select transparancy color in RGB color space
+
+<em>text</em> labeltext x y z keyword args = display text in visualization
+   labeltext = text for the label, must be quoted if it contains whitespace
+   x, y, z  = position where the center of the text is located in the visualization
+   any of x, y, or z can be a variable (see below)
+
+   keyword = <em>fontcolor</em> or <em>framecolor</em> or <em>backcolor</em> or <em>transcolor</em> or <em>size</em> or <em>horizontal</em> or <em>vertical</em>
+     <em>fontcolor</em> arg = select color for text: <em>white</em> (default) or <em>black</em> or <em>r/g/b</em>
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>framecolor</em> arg = select color for frame around text: <em>silver</em> (default) or <em>darkgray</em> or <em>white</em> or <em>black</em> or <em>r/g/b</em>
+        <em>silver</em> = uses a very light gray
+        <em>darkgray</em> = uses a very dark gray
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>backcolor</em> arg = select color for background of the text: <em>silver</em> (default) or <em>darkgray</em> or <em>white</em> or <em>black</em> <em>r/g/b</em>
+        <em>silver</em> = uses a very light gray
+        <em>darkgray</em> = uses a very dark gray
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>transcolor</em> arg = select color for transparency: <em>silver</em> (default) or <em>darkgray</em> or <em>white</em> or <em>black</em> or <em>none</em> or <em>r/g/b</em>
+        <em>silver</em> = uses a very light gray
+        <em>darkgray</em> = uses a very dark gray
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>none</em> = disables transparency
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>size</em> value = set the size of the characters (default 24), can be a variable (see below)
+     <em>horizontal</em> = create horizontal text label
+     <em>vertical</em> = create vertical text label
+
+<em>colorscale</em> dump-ID titletext x y z keyword args = display a colormap label in visualization
+   labeltext = text for the legend of the colormap label, must be quoted if it contains whitespace
+   x, y, z  = position where the center of the colormap label is located in the visualization
+   any of x, y, or z can be a variable (see below)
+
+   keyword = <em>fontcolor</em> or <em>framecolor</em> or <em>backcolor</em> or <em>transcolor</em> or <em>size</em> or <em>length</em> or <em>tics</em> or <em>map</em> or <em>horizontal</em> or <em>vertical</em>
+     <em>fontcolor</em> arg = select color for text: <em>white</em> (default) or <em>black</em> or <em>r/g/b</em>
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>framecolor</em> arg = select color for frame around text: <em>silver</em> (default) or <em>darkgray</em> or <em>white</em> or <em>black</em> or <em>r/g/b</em>
+        <em>silver</em> = uses a very light gray
+        <em>darkgray</em> = uses a very dark gray
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>backcolor</em> arg = select color for background of the text: <em>silver</em> (default) or <em>darkgray</em> or <em>white</em> or <em>black</em> <em>r/g/b</em>
+        <em>silver</em> = uses a very light gray
+        <em>darkgray</em> = uses a very dark gray
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>transcolor</em> arg = select color for transparency: <em>silver</em> (default) or <em>darkgray</em> or <em>white</em> or <em>black</em> or <em>none</em> or <em>r/g/b</em>
+        <em>silver</em> = uses a very light gray
+        <em>darkgray</em> = uses a very dark gray
+        <em>white</em> = uses white
+        <em>black</em> = uses black
+        <em>none</em> = disables transparency
+        <em>r/g/b</em> = provide three integers in the range 0 to 255
+     <em>size</em> value = set the size of the characters (default 24), can be a variable (see below)
+     <em>length</em> value = approximate minimal length of the colorscale label
+     <em>tics</em> value = number of tics drawn between the colors of the colorscale label
+     <em>map</em> value = which colormap of the dump to represent: <em>atom</em> (default) or <em>grid</em> or <em>bond</em>
+     <em>horizontal</em> = create horizontal text label
+     <em>vertical</em> = create vertical text label</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">pix</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="n">teapot.png</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="o">-</span><span class="m">2.0</span><span class="w"> </span><span class="n">transcolor</span><span class="w"> </span><span class="n">auto</span>
+<span class="k">fix </span><span class="nv nv-Identifier">pot</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="n">teapot.ppm</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">v_ypos</span><span class="w"> </span><span class="n">v_zpos</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="n">v_prog</span><span class="w"> </span><span class="n">transcolor</span><span class="w"> </span><span class="m">19</span><span class="o">/</span><span class="m">92</span><span class="o">/</span><span class="m">192</span>
+<span class="k">fix </span><span class="nv nv-Identifier">lbl</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="s">&quot;LAMMPS graphics demo&quot;</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="o">-</span><span class="m">2.0</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span><span class="w"> </span><span class="n">framecolor</span><span class="w"> </span><span class="n">black</span>
+<span class="k">fix </span><span class="nv nv-Identifier">info</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="s">&quot;Step: $(step)  Angle: ${rot}&quot;</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="o">-</span><span class="m">2.0</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">32</span>
+<span class="k">fix </span><span class="nv nv-Identifier">obj</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="n">colorscale</span><span class="w"> </span><span class="n">viz</span><span class="w"> </span><span class="s">&quot;Atom Velocity&quot;</span><span class="w"> </span><span class="m">20.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="m">13.0</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">32</span><span class="w"> </span><span class="n">length</span><span class="w"> </span><span class="m">1000</span><span class="sc"> &amp;</span>
+<span class="w">                                  </span><span class="n">transcolor</span><span class="w"> </span><span class="n">none</span><span class="w"> </span><span class="n">framecolor</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span><span class="w"> </span><span class="n">tics</span><span class="w"> </span><span class="m">12</span>
+<span class="k">fix </span><span class="nv nv-Identifier">bnd</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="n">colorscale</span><span class="w"> </span><span class="n">viz</span><span class="w"> </span><span class="s">&quot;Bond Strain&quot;</span><span class="w"> </span><span class="m">20.0</span><span class="w"> </span><span class="m">6.5</span><span class="w"> </span><span class="o">-</span><span class="m">13.0</span><span class="w"> </span><span class="n">map</span><span class="w"> </span><span class="n">bond</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">32</span><span class="w"> </span><span class="n">length</span><span class="w"> </span><span class="m">1000</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p>This fix allows to add either images or text as “labels” to <a class="reference internal" href="dump_image.html"><span class="doc">dump
+image</span></a> created images by using the <em>fix</em> keyword.  This can
+be useful to augment images with additional graphics or text directly
+and without having to post-process the images.  The positions can be
+either interpreted as coordinates in the simulation box or as
+coordinates in the coordinate system of the image.  The selection is
+made by setting the <em>fflag1</em> keyword in the <a class="reference internal" href="dump_image.html"><span class="doc">dump image fix</span></a> command (see the “Dump image info” section below).  When
+the positioning uses the coordinate system of the simulation the
+distance of the graphics objects from the camera is determined from the
+given z-coordinate and atoms or other graphics objects in the “scene”
+can be located in front of or behind any <em>image</em>, <em>text</em> or <em>colorscale</em>
+label.  The label is <em>always</em> parallel to the image plane.</p>
+<p>When the image coordinate system is used, the labels are <em>always</em> on
+top, and if two labels are overlapping, the label that is added to the
+image <em>first</em> will be on top of the other.  That order cannot be changed
+within the same fix, but you can use multiple fix commands and then the
+order of the <em>fix</em> keywords in the <em>dump image”</em> command line determines
+the order and thus which label is drawn on top of the other.</p>
+<p>The <em>group-id</em> is ignored by this fix.</p>
+<p>The <em>Nevery</em> keyword determines how often the graphics data is updated.
+This should be the same value as the corresponding <em>N</em> parameter of the
+<a class="reference internal" href="dump.html"><span class="doc">dump</span></a> image command.  LAMMPS will stop with an error
+message if the settings for this fix and the dump command are not
+compatible.</p>
+<p>The <em>image</em> keyword reads an image file and adds it to the visualization
+centered around the provided position and optionally scaled by the
+provided scale factor.  The filename suffix determines whether LAMMPS
+will try to read a file in JPEG, PNG, TGA, or PPM format.  If the suffix
+is “.jpg” or “.jpeg”, then LAMMPS attempts to read the image in <a class="reference external" href="https://jpeg.org/jpeg/">JPEG
+format</a>, if the suffix is “.png”, then LAMMPS attempts
+to read the image in <a class="reference external" href="https://en.wikipedia.org/wiki/portable_network_graphics">PNG format</a>, and if the suffix is
+“.tga” then LAMMPS will read the file in <a class="reference external" href="https://en.wikipedia.org/wiki/Truevision_TGA">TGA format</a>.
+Otherwise LAMMPS will try to read the image in <a class="reference external" href="https://en.wikipedia.org/wiki/netpbm">ppm (aka netpbm) format</a>.  Not all variants of those file formats are compatible
+with image reader code in LAMMPS.  If LAMMPS encounters an incompatible
+or unrecognizable file format or a corrupted file, it will stop with an
+error.</p>
+<p>If LAMMPS detects during a run that the file has been changed, it will
+re-read it.  This allows for instance to create a plot using internal
+LAMMPS data or from processing an output file during the simulation with
+the <a class="reference external" href="https://matplotlib.org">matplotlib</a> python module using a
+<a class="reference internal" href="python.html"><span class="doc">python</span></a> command and <a class="reference internal" href="fix_python_invoke.html"><span class="doc">fix python/invoke</span></a> and then embed the resulting image into the
+dump image output.  See below for a minimal example for such a setup.</p>
+<p>When using the <em>image</em> keyword, the name of the image file and its position
+in the “scene” are required arguments.  Optional keyword / value pairs
+may be added:</p>
+<blockquote>
+<div><p>The <em>scale</em> value determines if the image is scaled before it is added
+to the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> output.  LAMMPS currently
+employs a bilinear scaling algorithm.</p>
+<p>The <em>transcolor</em> value selects a color for transparency.  All pixels
+in the image with that color will be skipped when the image is
+rendered.  The color is specified as an R/G/B triple with values
+ranging from 0 to 255 for each channel.  There are also two special
+arguments: <em>auto</em> will pick the color of the pixel in the lower left
+corner as transparency color and <em>none</em> will disable all transparency
+processing (this is the default).</p>
+</div></blockquote>
+<p>The <em>text</em> keyword will process a provided text into a pixmap and adds
+it to the visualization centered around the provided position in a
+similar fashion as with the <em>image</em> keyword.  The requirements for the
+text argument are the same as in the <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a>
+command: it must be a single argument, so text with whitespace must be
+quoted; and the text may contain equal style or immediate variables
+using the <code class="docutils literal notranslate"><span class="pre">${name}</span></code> or <code class="docutils literal notranslate"><span class="pre">$(expression)</span></code> format.  The variables are
+evaluated and expanded at every <em>Nevery</em> time step.</p>
+<p>When using the <em>text</em> keyword, the text and its position in the “scene”
+are required arguments.  Optional keyword / value pairs may be added:</p>
+<blockquote>
+<div><p>The <em>size</em> value determines the size of the letters in the text in
+pixels (approximately) and values between 4 and 512 are accepted.
+The default value is 24.</p>
+<p>There are four color settings: <em>fontcolor</em> or <em>framecolor</em> or
+<em>backcolor</em> or <em>transcolor</em>.  The color can be specified for all of
+those either as an R/G/B triple with values ranging from 0 to 255 for
+each channel (e.g. yellow would be “255/255/0”).  There are also a few
+shortcuts for common choices: <em>silver</em>, <em>darkgray</em>, <em>white</em>, <em>black</em>.
+The default <em>backcolor</em> value is <em>silver</em>.</p>
+<ul class="simple">
+<li><p><em>fontcolor</em> selects the color for the text, default is <em>white</em></p></li>
+<li><p><em>backcolor</em> selects the color for the background, default is
+<em>silver</em></p></li>
+<li><p><em>framecolor</em> selects the color for the frame around the background,
+default is <em>silver</em>.</p></li>
+<li><p><em>transcolor</em> value selects a color for transparency, default is
+<em>silver</em>.  If this color is the same as any of the other color
+settings, those pixels are not drawn.  Thus with the default
+settings, the text will be rendered in white without background or
+frame.  The <em>none</em> setting for <em>transcolor</em> disables transparency
+processing.</p></li>
+</ul>
+<p>When rendering text with transparent background it is recommended to
+select a similar color but slightly darker or brighter color as
+background.  This will reduce unwanted color effects at the edges due
+to anti-aliasing.</p>
+<p>The <em>horizontal</em> keyword selects creating a horizontal text label
+(this is the default setting).  The <em>vertical</em> keyword selects
+creating a vertical text label instead.</p>
+</div></blockquote>
+<p>The <em>colorscale</em> keyword will create a colormap legend indicating the
+mapping of values to colors in the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>
+instance with the given dump-ID and adds it to the
+visualization centered around the provided position in a similar fashion
+as with the <em>image</em> or <em>text</em> keywords.  The requirements for the text
+argument are the same as in the <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a> command: it
+must be a single argument, so text with whitespace must be quoted; and
+the text may contain equal style or immediate variables using the
+<code class="docutils literal notranslate"><span class="pre">${name}</span></code> or <code class="docutils literal notranslate"><span class="pre">$(expression)</span></code> format.  The variables are evaluated
+and expanded at every <em>Nevery</em> time step.  The text is shown in the
+center of and above the colormap.  To the left from the text is the
+lower boundary value and to the right the upper boundary value.  The
+colors are created by a linear interpolation between the lower and upper
+boundary value and writing out pixels in the corresponding color.  The
+fix will receive the actual values from the dump with the given
+<em>dump-ID</em>.</p>
+<div class="note admonition">
+<p class="admonition-title">Dynamic color maps</p>
+<p>When using a dynamic color map with “min” or “max” as the upper or
+lower range values of the map, the dump will execute only <em>after</em> the
+fix, and thus the upper and lower boundary values will be those from
+the <em>previous</em> step where the dump created an image. will be
+determined every time the fix is executed and the numbers updated
+accordingly.  Thus when adding a <em>colorscale</em> label with this fix it
+is generally recommended to use a map with a fixed range. This is
+especially true when creating movies as a fixed range prevents the
+color scale label to shrink or grow due to the different width of
+characters.</p>
+</div>
+<p>When using the <em>colorscale</em> keyword, the dump-ID, text and its position
+in the “scene” are required arguments.  Optional keyword / value pairs
+may be added:</p>
+<blockquote>
+<div><p>The <em>size</em> value determines the size of the letters in the text in
+pixels (approximately) and values between 4 and 512 are accepted.  The
+default value is 24. The size (height and width) of the colorbar
+follows the size of the text.</p>
+<p>The <em>length</em> value allows to set a minimal length of the colorscale
+label.  For technical reasons, this is not exactly enforced, but
+rather a rough approximation that is used to determine the amount of
+padding in the text.</p>
+<p>The <em>tics</em> value determines how many “tics” or lines separating the
+colors are drawn.  This can simplify determining which value a
+specific color corresponds to.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p>The <em>map</em> value selects which of the colormaps of the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> instance the legend represents.  A dump image has separate
+colormaps for coloring atoms (set with <a class="reference internal" href="dump_image.html"><span class="doc">dump_modify amap</span></a>), grid cells (<em>gmap</em>), and bonds (<em>bmap</em>).  The <em>atom</em>
+setting (the default) selects the atom colormap, <em>grid</em> the grid cell
+colormap, and <em>bond</em> the bond colormap.  If the selected colormap is not
+actually used to color anything in the corresponding dump image, a
+warning is printed and the legend will show that colormap’s (unused)
+default range.</p>
+<p>There are four color settings: <em>fontcolor</em> or <em>framecolor</em> or
+<em>backcolor</em> or <em>transcolor</em>.  The color can be specified for all of
+those either as an R/G/B triple with values ranging from 0 to 255 for
+each channel (e.g. yellow would be “255/255/0”).  There are also a few
+shortcuts for common choices: <em>silver</em>, <em>darkgray</em>, <em>white</em>, <em>black</em>.
+The default <em>backcolor</em> value is <em>silver</em>.</p>
+<ul class="simple">
+<li><p><em>fontcolor</em> selects the color for the text, the border of the
+colorbar and the tics. default is <em>white</em></p></li>
+<li><p><em>backcolor</em> selects the color for the background, default is
+<em>silver</em></p></li>
+<li><p><em>framecolor</em> selects the color for the frame around the background,
+default is <em>silver</em>.</p></li>
+<li><p><em>transcolor</em> value selects a color for transparency, default is
+<em>silver</em>.  If this color is the same as any of the other color
+settings, those pixels are not drawn.  Thus with the default
+settings, the text will be rendered in white without background or
+frame.  The <em>none</em> setting for <em>transcolor</em> disables transparency
+processing.</p></li>
+</ul>
+<p>When rendering text with transparent background it is recommended to
+select a similar color but slightly darker or brighter color as
+background.  This will reduce unwanted color effects at the edges due
+to anti-aliasing.</p>
+<p>The <em>horizontal</em> keyword selects creating a horizontal colorscale label
+(this is the default setting).  The <em>vertical</em> keyword selects
+creating a vertical text label instead.</p>
+</div></blockquote>
+<p>There may be multiple <em>image</em> or <em>text</em> or <em>colorscale</em> keywords with
+their arguments in a single fix <em>graphics/labels</em> command.</p>
+<p>The arguments for the positions of an <em>image</em> or <em>text</em> and the <em>scale</em>
+factor of an <em>image</em> or the <em>size</em> of a <em>text</em> can be specified as
+equal-style <a class="reference internal" href="variable.html"><span class="doc">variables</span></a>, namely <em>x</em>, <em>y</em>, <em>z</em>, <em>scale</em>,
+or <em>size</em>.  If any of these values is a variable, it should be specified
+as <cite>v_name</cite>, where <cite>name</cite> is the variable name.  In this case, the
+variable will be evaluated each <em>nevery</em> timestep, and its value used to
+position and resize the image or text.  Please see the documentation of
+the <a class="reference internal" href="fix_graphics_objects.html"><span class="doc">fix graphics/objects</span></a> command for a
+more detailed discussion on using variables with graphics objects.</p>
+</section>
+<hr class="docutils" />
+<section id="dump-image-info">
+<h2>Dump image info<a class="headerlink" href="#dump-image-info" title="Link to this heading"></a></h2>
+<p>The fix graphics/labels command is designed to be used with the <em>fix</em>
+keyword of <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>.  The fix adds images or text
+to the visualization.</p>
+<p>The color style setting for the fix in the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> has no effect on either image or text labels. The
+transparency is by default fully opaque and can be changed with
+<em>dump_modify ftrans</em>.</p>
+<p>The <em>fflag1</em> setting of <em>dump image fix</em> determines how the coordinates
+for the location of the center of the image or the center of the text
+label are interpreted.  Setting <em>fflag1</em> to 0 uses the simulation box
+coordinate system (x, y, and z) while setting <em>fflag1</em> to 1 uses the
+image coordinate system where (0,0) is the location of the lower left
+corner and (&lt;image width&gt;, &lt;image height&gt;) the upper right corner.  In
+the latter case, the z-coordinate is ignored and the image or label is
+placed on top of everything.</p>
+<p>The <em>fflag2</em> settings of <em>dump image fix</em> is ignored.</p>
+</section>
+<hr class="docutils" />
+<section id="including-a-dynamic-image">
+<h2>Including a “dynamic” image<a class="headerlink" href="#including-a-dynamic-image" title="Link to this heading"></a></h2>
+<p>The LAMMPS input commands below provide a demonstration for creating and
+updating a plot during a run and importing it into a visualization.
+This requires to compile LAMMPS with the <a class="reference internal" href="Packages_details.html#pkg-python"><span class="std std-ref">PYTHON</span></a>
+package and also compile and install the <a class="reference internal" href="Python_install.html"><span class="doc">LAMMPS Python module</span></a>.</p>
+<p>The first <a class="reference internal" href="python.html"><span class="doc">python</span></a> command loads the <a class="reference external" href="https://matplotlib.org">matplotlib</a>
+and LAMMPS Python modules and configures <em>matplotlib</em> to use the <a class="reference external" href="https://matplotlib.org/stable/users/explain/figure/backends.html#backends">non-interactive ‘agg’
+back end</a>
+for creating image files.</p>
+<p>The second <a class="reference internal" href="python.html"><span class="doc">python</span></a> command defines the <code class="docutils literal notranslate"><span class="pre">myplot()</span></code>
+Python function that is supposed to be called regularly during the run
+from <a class="reference internal" href="fix_python_invoke.html"><span class="doc">fix python/invoke</span></a>.  This function has to
+accept two arguments, the LAMMPS object pointer and an integer as
+required by the fix.  The LAMMPS object pointer can be utilized to query
+the running LAMMPS instance about internal data.  In this example, we
+only retrieve the LAMMPS version and add it to the plot title.  By
+default, plots have an opaque white background and black lines and text.
+In order to overlay the plot as a transparent image, all lines and text
+are set to use the color white, while backgrounds are set to use a very
+bright gray (to minimize anti-aliasing artifacts when deleting the
+background pixels).</p>
+<p>The two fix commands invoke the python function and read and make the
+resulting PNG format image available to dump image.  The plot is updated
+only for every 10th dumped image.</p>
+<p>The final lines are <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> commands for integrating
+the generated plot into the visualization of the atom.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">python</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">import matplotlib</span>
+<span class="s">matplotlib.use(&#39;agg&#39;)</span>
+<span class="s">import matplotlib.pyplot as plt</span>
+<span class="s">from lammps import lammps</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="k">python</span><span class="w"> </span><span class="n">myplot</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">SELF</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">pi</span><span class="w"> </span><span class="n">here</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">def myplot(lmpptr, vflag):</span>
+<span class="s">   lmp = lammps(ptr=lmpptr)</span>
+<span class="s">   fig, ax = plt.subplots(facecolor=(0.9,0.9,0.9),edgecolor=&#39;white&#39;)</span>
+<span class="s">   ax.set_facecolor((0.9,0.9,0.9))</span>
+<span class="s">   ax.set_title(&#39;Demo Plot: LAMMPS version &#39; + str(lmp.version()) ,color=&#39;white&#39;)</span>
+<span class="s">   ax.set_xlabel(&#39;Time&#39;,color=&#39;white&#39;)</span>
+<span class="s">   ax.set_ylabel(&#39;Value&#39;,color=&#39;white&#39;)</span>
+<span class="s">   ax.tick_params(colors=&#39;white&#39;)</span>
+<span class="s">   for spine in ax.spines.values():</span>
+<span class="s">       spine.set_edgecolor(&#39;white&#39;)</span>
+<span class="s">   ax.plot([1,2,3,4,5,6],[2,3,2.5,3.1,2.8,3.0],color=&#39;white&#39;, linestyle=&#39;--&#39;)</span>
+<span class="s">   fname = &#39;myplot.png&#39;</span>
+<span class="s">   plt.savefig(fname,dpi=180)</span>
+<span class="s">   plt.close()</span>
+<span class="s">&quot;&quot;&quot;</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">plot</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">python</span><span class="o">/</span><span class="n">invoke</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">post_force</span><span class="w"> </span><span class="n">myplot</span>
+<span class="k">fix </span><span class="nv nv-Identifier">label</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="n">myplot.png</span><span class="w"> </span><span class="m">20.0</span><span class="w"> </span><span class="m">9.0</span><span class="w"> </span><span class="m">10.0</span><span class="w"> </span><span class="n">transcolor</span><span class="w"> </span><span class="n">auto</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">0.5</span>
+
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">800</span><span class="w"> </span><span class="m">800</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">0.02</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">23154</span><span class="w"> </span><span class="m">0.8</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.4</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">label</span><span class="w"> </span><span class="nv nv-Identifier">type</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="n">backcolor2</span><span class="w"> </span><span class="n">gray</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span><span class="w"> </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">silver</span>
+</pre></div>
+</div>
+<figure class="align-center" id="id5">
+<a class="reference internal image-reference" href="_images/fix_graphics_labels_plot.png"><img alt="_images/fix_graphics_labels_plot.png" height="400" src="_images/fix_graphics_labels_plot.png" width="400" />
+</a>
+<figcaption>
+<p><span class="caption-text">Example image output for adding the above commands to the <code class="docutils literal notranslate"><span class="pre">melt</span></code> example.</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<hr class="docutils" />
+<section id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Link to this heading"></a></h2>
+<p>No information about this fix is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options apply to this fix.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>This fix is part of the GRAPHICS package.  It is only enabled if LAMMPS
+was built with that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>To read JPEG or PNG format images, support for the corresponding
+graphics libraries must have been compiled and linked into LAMMPS.
+Please see the <a class="reference internal" href="Build_extras.html#graphics"><span class="std std-ref">instructions for building LAMMPS with the GRAPHICS
+package</span></a> for more information on how to do that.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a>,
+<a class="reference internal" href="fix_graphics_arrows.html"><span class="doc">fix graphics/arrows</span></a>,
+<a class="reference internal" href="fix_graphics_chunk.html"><span class="doc">fix graphics/chunk</span></a>,
+<a class="reference internal" href="fix_graphics_isosurface.html"><span class="doc">fix graphics/isosurface</span></a>,
+<a class="reference internal" href="fix_graphics_lines.html"><span class="doc">fix graphics/lines</span></a>,
+<a class="reference internal" href="fix_graphics_objects.html"><span class="doc">fix graphics/objects</span></a>,
+<a class="reference internal" href="fix_graphics_periodic.html"><span class="doc">fix graphics/periodic</span></a>,
+<a class="reference internal" href="fix_graphics_replica.html"><span class="doc">fix graphics/replica</span></a>,
+<a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>transcolor = “none” for <em>image</em> and “silver” for <em>text</em>, scale = 1.0, fontcolor = white, backcolor = silver, framecolor = silver, size = 24, horizontal, tics = 0</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fix_graphics_isosurface.html" class="btn btn-neutral float-left" title="fix graphics/isosurface command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_graphics_lines.html" class="btn btn-neutral float-right" title="fix graphics/lines command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+LAMMPS (3 Aug 2023)
+Processor partition = 0
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+variable ibead uloop 99 pad
+
+units metal
+atom_style atomic
+atom_modify map yes
+boundary p p p
+pair_style lj/cut 9.5251
+read_data data.metalnpt${ibead}
+read_data data.metalnpt01
+Reading data file ...
+  orthogonal box = (-11.876697 -11.876697 -11.876697) to (11.876697 11.876697 11.876697)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  200 atoms
+  reading velocities ...
+  200 velocities
+  read_data CPU = 0.001 seconds
+
+pair_coeff    * * 0.00965188 3.4
+pair_modify shift yes
+
+mass 1 39.948
+
+timestep 0.001
+
+velocity all create 0.0 ${ibead}
+velocity all create 0.0 01
+
+fix 1 all pimd/langevin method pimd ensemble nvt integrator obabo thermostat PILE_L 1234 tau 1.0 temp 113.15 taup 1.0 fixcom no
+
+thermo_style custom step temp f_1[*] vol press
+thermo 100
+thermo_modify norm no
+
+# dump dcd all custom 100 ${ibead}.dcd id type xu yu zu vx vy vz ix iy iz fx fy fz
+# dump_modify dcd sort id format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
+
+run 1000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Initializing PI Langevin equation thermostat...
+  Bead ID    |    omega    |    tau    |    c1    |    c2
+      0     5.92546167e+01 1.00000000e+00 9.99500125e-01 3.16148726e-02
+      1     5.92546167e+01 1.00000000e+00 9.99500125e-01 3.16148726e-02
+      2     5.92546167e+01 1.00000000e+00 9.99500125e-01 3.16148726e-02
+      3     5.92546167e+01 1.00000000e+00 9.99500125e-01 3.16148726e-02
+  PILE_L thermostat successfully initialized!
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11.5251
+  ghost atom cutoff = 11.5251
+  binsize = 5.76255, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.121 | 3.121 | 3.121 Mbytes
+   Step          Temp          f_1[1]         f_1[2]         f_1[3]         f_1[4]         f_1[5]         f_1[6]         f_1[7]         f_1[8]         f_1[9]        f_1[10]         Volume         Press     
+         0   0              0              8.8893303     -7.3046601      4.3005229      3.3062167      0              0             -1743.5332      0              0              13402.228     -164.47373    
+       100   248.24141      6.3854564      4.1458616     -7.7546467      9.6829291      3.3062167      0              0             -1743.5332      0.00061164884  127.22547      13402.228      26.894568    
+       200   346.2569       8.9066861      2.6427185     -7.8943744      14.016847      3.3062167      0              0             -1743.5332      0.00088274242  177.45909      13402.228      91.225638    
+       300   217.65314      5.5986414      7.0223362     -7.788449       18.162833      3.3062167      0              0             -1743.5332      0.00054181173  111.54876      13402.228     -125.00786    
+       400   266.83825      6.8638187      6.2507813     -7.7241546      21.628032      3.3062167      0              0             -1743.5332      0.0007209203   136.75648      13402.228      21.104834    
+       500   342.40379      8.8075736      5.1959052     -7.7020799      25.668758      3.3062167      0              0             -1743.5332      0.00087137898  175.48435      13402.228      208.60351    
+       600   280.37754      7.2120867      8.0025846     -7.5954127      28.570788      3.3062167      0              0             -1743.5332      0.00072432598  143.69546      13402.228      162.09838    
+       700   377.11625      9.700474       6.0049074     -7.5861377      30.034627      3.3062167      0              0             -1743.5332      0.00092377441  193.27472      13402.228      389.35575    
+       800   378.36221      9.7325237      6.1704761     -7.6170017      31.447502      3.3062167      0              0             -1743.5332      0.00097254954  193.91329      13402.228      387.71781    
+       900   271.99864      6.9965581      9.037081      -7.4781664      32.906719      3.3062167      0              0             -1743.5332      0.00074024142  139.40121      13402.228      266.3664     
+      1000   362.4753       9.3238683      8.0266514     -7.4835536      34.914285      3.3062167      0              0             -1743.5332      0.00088800624  185.77114      13402.228      433.67079    
+Loop time of 0.166656 on 1 procs for 1000 steps with 200 atoms
+
+Performance: 518.435 ns/day, 0.046 hours/ns, 6000.401 timesteps/s, 1.200 Matom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.10478    | 0.10478    | 0.10478    |   0.0 | 62.87
+Neigh   | 0.00096007 | 0.00096007 | 0.00096007 |   0.0 |  0.58
+Comm    | 0.0035065  | 0.0035065  | 0.0035065  |   0.0 |  2.10
+Output  | 0.0001037  | 0.0001037  | 0.0001037  |   0.0 |  0.06
+Modify  | 0.056454   | 0.056454   | 0.056454   |   0.0 | 33.87
+Other   |            | 0.0008515  |            |       |  0.51
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1360 ave        1360 max        1360 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           9544 ave        9544 max        9544 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 9544
+Ave neighs/atom = 47.72
+Neighbor list builds = 4
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -1,0 +1,18 @@
+asphere_vis: Tool for triangulating aspherical particles
+	     to convert LAMMPS output to PyMol input
+
+Building the tool:
+
+cd src
+make       # may need to edit Makefile for your system
+
+This will place the asphere_vis executable in the bin directory.
+
+Documentation is in the doc directory. 
+
+See instructions on how to run an example ellipsoid viz in the
+examples dir.
+
+Mike Brown, Sandia National Labs
+wmbrown at sandia.gov
+June 2007

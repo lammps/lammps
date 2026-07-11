@@ -1,0 +1,799 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.8.7. Writing new bond, angle, dihedral, and improper styles &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_write_bond.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.8.12. Writing a new fix style" href="Developer_write_fix.html" />
+    <link rel="prev" title="4.8.1. Writing new pair styles" href="Developer_write_pair.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html">4.8.1. Writing new pair styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#package-and-build-system-considerations">4.8.2. Package and build system considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-1-a-pairwise-additive-model">4.8.3. Case 1: a pairwise additive model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-2-a-many-body-potential">4.8.4. Case 2: a many-body potential</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-3-a-potential-requiring-communication">4.8.5. Case 3: a potential requiring communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-4-potentials-without-a-compute-function">4.8.6. Case 4: potentials without a compute() function</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.8.7. Writing new bond, angle, dihedral, and improper styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#case-1-implementing-a-bond-style">4.8.8. Case 1: Implementing a bond style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#case-2-implementing-an-angle-style">4.8.9. Case 2: Implementing an angle style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#case-3-implementing-a-dihedral-style">4.8.10. Case 3: Implementing a dihedral style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#case-4-implementing-an-improper-style">4.8.11. Case 4: Implementing an improper style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_fix.html">4.8.12. Writing a new fix style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html">4.8.13. Writing new compute styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-1-a-global-scalar-compute">4.8.14. Case 1: A global scalar compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-2-a-per-atom-compute">4.8.15. Case 2: A per-atom compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#notes-on-flags-and-output-types">4.8.16. Notes on flags and output types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html">4.8.17. Writing a new command style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html#case-1-implementing-the-geturl-command">4.8.18. Case 1: Implementing the geturl command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_openmp.html">4.8.19. Creating styles for the OPENMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html">4.8.20. Writing or updating documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#anatomy-of-a-style-documentation-page">4.8.21. Anatomy of a style documentation page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#integrating-a-new-style-into-the-command-lists">4.8.22. Integrating a new style into the command lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#documenting-an-accelerated-variant-of-an-existing-style">4.8.23. Documenting an accelerated variant of an existing style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#adding-and-referencing-example-inputs">4.8.24. Adding and referencing example inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#other-documentation-that-may-need-updating">4.8.25. Other documentation that may need updating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#building-and-checking-the-documentation">4.8.26. Building and checking the documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_write.html"><span class="section-number">4.8. </span>Writing new styles</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.8.7. </span>Writing new bond, angle, dihedral, and improper styles</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_write_pair.html" class="btn btn-neutral float-left" title="4.8.1. Writing new pair styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_write_fix.html" class="btn btn-neutral float-right" title="4.8.12. Writing a new fix style" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="writing-new-bond-angle-dihedral-and-improper-styles">
+<h1><span class="section-number">4.8.7. </span>Writing new bond, angle, dihedral, and improper styles<a class="headerlink" href="#writing-new-bond-angle-dihedral-and-improper-styles" title="Link to this heading"></a></h1>
+<p>Bond, angle, dihedral, and improper styles are used to compute bonded
+interactions between groups of two, three, or four atoms whose topology
+is described in a data file or set by other commands.  They are derived
+from the <code class="docutils literal notranslate"><span class="pre">Bond</span></code>, <code class="docutils literal notranslate"><span class="pre">Angle</span></code>, <code class="docutils literal notranslate"><span class="pre">Dihedral</span></code>, and <code class="docutils literal notranslate"><span class="pre">Improper</span></code> base
+classes, respectively.  As shown on the corresponding pages <a class="reference internal" href="Modify_bond.html"><span class="doc">Bond,
+angle, dihedral, improper styles</span></a>, the classes that
+compute these molecular interactions share a common design.</p>
+<p>In general, new styles for bonded interactions should be added to the
+<a class="reference internal" href="Packages_details.html#pkg-extra-molecule"><span class="std std-ref">EXTRA-MOLECULE package</span></a>.  If you feel that
+your contribution should be added to a different package (e.g. the
+<a class="reference internal" href="Packages_details.html#pkg-molecule"><span class="std std-ref">MOLECULE package</span></a>), please consult with the
+<a class="reference internal" href="Intro_authors.html"><span class="doc">LAMMPS developers</span></a> first.</p>
+<p>Before implementing an accelerated style the corresponding plain CPU
+version should be implemented and properly tested.  The accelerated
+version should then be derived from the plain CPU version so that only
+the code relevant for acceleration is re-implemented.  Those should then
+be added to the corresponding accelerator package (<a class="reference internal" href="Packages_details.html#pkg-kokkos"><span class="std std-ref">KOKKOS</span></a>, <a class="reference internal" href="Packages_details.html#pkg-openmp"><span class="std std-ref">OPENMP</span></a>, <a class="reference internal" href="Packages_details.html#pkg-intel"><span class="std std-ref">INTEL</span></a>).</p>
+<p>The contributed code needs to support the <a class="reference internal" href="Build_make.html"><span class="doc">traditional GNU make
+build process</span></a> <strong>and</strong> the <a class="reference internal" href="Build_cmake.html"><span class="doc">CMake build process</span></a>.  This is usually automatic unless the new style uses
+some external library, which is uncommon for bonded interactions.</p>
+<p>It is highly recommended also to include one or more example input decks
+and <a class="reference internal" href="Developer_unittest.html"><span class="doc">force-style unit tests</span></a>.  The tests will
+be particularly useful to test consistency between the <code class="docutils literal notranslate"><span class="pre">compute()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">single()</span></code> methods, plain and accelerated versions, and to test
+correct restarting and writing and reading of data files.</p>
+</section>
+<hr class="docutils" />
+<section id="case-1-implementing-a-bond-style">
+<h1><span class="section-number">4.8.8. </span>Case 1: Implementing a bond style<a class="headerlink" href="#case-1-implementing-a-bond-style" title="Link to this heading"></a></h1>
+<p>In this section we describe the procedure of implementing a new bond
+style.  As a concrete example we use the harmonic bond style
+<a class="reference internal" href="bond_harmonic.html"><span class="doc">bond_style harmonic</span></a>, the simplest non-trivial
+bond style.  The implementation can be found in the files
+<code class="docutils literal notranslate"><span class="pre">src/MOLECULE/bond_harmonic.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">src/MOLECULE/bond_harmonic.h</span></code>
+of the LAMMPS source code.  It implements the potential:</p>
+<div class="math notranslate nohighlight">
+\[E = K (r - r_0)^2\]</div>
+<p>with the spring constant <span class="math notranslate nohighlight">\(K\)</span> and the equilibrium distance
+<span class="math notranslate nohighlight">\(r_0\)</span> as per-type coefficients.</p>
+<section id="header-file">
+<h2>Header file<a class="headerlink" href="#header-file" title="Link to this heading"></a></h2>
+<p>The header file <code class="docutils literal notranslate"><span class="pre">bond_harmonic.h</span></code> starts with the standard LAMMPS
+copyright and license block (see, for example, the discussion in
+<a class="reference internal" href="Developer_write_pair.html"><span class="doc">Writing a new pair style</span></a> for details).</p>
+<p>After the copyright block, every bond style must be registered in LAMMPS
+by including the following lines before the include guards:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef BOND_CLASS</span>
+<span class="c1">// clang-format off</span>
+<span class="n">BondStyle</span><span class="p">(</span><span class="n">harmonic</span><span class="p">,</span><span class="n">BondHarmonic</span><span class="p">);</span>
+<span class="c1">// clang-format on</span>
+<span class="cp">#else</span>
+</pre></div>
+</div>
+<p>This block between <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">BOND_CLASS</span></code> and <code class="docutils literal notranslate"><span class="pre">#else</span></code> will be included
+by the <code class="docutils literal notranslate"><span class="pre">Force</span></code> class in <code class="docutils literal notranslate"><span class="pre">force.cpp</span></code> to build a map of factory
+functions for bond styles.  The map connects the name of the bond style,
+“harmonic”, with the name of the class, <code class="docutils literal notranslate"><span class="pre">BondHarmonic</span></code>.  During
+compilation, LAMMPS generates a file <code class="docutils literal notranslate"><span class="pre">style_bond.h</span></code> that contains
+<code class="docutils literal notranslate"><span class="pre">#include</span></code> statements for all installed bond styles.  Before including
+<code class="docutils literal notranslate"><span class="pre">style_bond.h</span></code> into <code class="docutils literal notranslate"><span class="pre">force.cpp</span></code>, the <code class="docutils literal notranslate"><span class="pre">BOND_CLASS</span></code> define is set
+and the <code class="docutils literal notranslate"><span class="pre">BondStyle(name,class)</span></code> macro defined.  The <code class="docutils literal notranslate"><span class="pre">//</span>
+<span class="pre">clang-format</span></code> comments prevent <code class="docutils literal notranslate"><span class="pre">clang-format</span></code> from reformatting the
+macro argument in a way that would break it.</p>
+<p>Analogously, an angle style would use <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">ANGLE_CLASS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">AngleStyle(name,class)</span></code>, a dihedral style would use <code class="docutils literal notranslate"><span class="pre">#ifdef</span>
+<span class="pre">DIHEDRAL_CLASS</span></code> and <code class="docutils literal notranslate"><span class="pre">DihedralStyle(name,class)</span></code>, and an improper
+style would use <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">IMPROPER_CLASS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ImproperStyle(name,class)</span></code>.</p>
+<p>The class definition itself follows after the include guard:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef LMP_BOND_HARMONIC_H</span>
+<span class="cp">#define LMP_BOND_HARMONIC_H</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;bond.h&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">BondHarmonic</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Bond</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">BondHarmonic</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">  </span><span class="o">~</span><span class="n">BondHarmonic</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">coeff</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">equilibrium_distance</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">read_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_data</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">single</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">born_matrix</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">&amp;</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="nf">extract</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w"> </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">r0</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">allocate</span><span class="p">();</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w">    </span><span class="c1">// namespace LAMMPS_NS</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p>The class is derived from <code class="docutils literal notranslate"><span class="pre">Bond</span></code> and overrides all <em>pure</em> virtual
+methods as require by the C++ standard (<code class="docutils literal notranslate"><span class="pre">compute()</span></code>, <code class="docutils literal notranslate"><span class="pre">coeff()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">equilibrium_distance()</span></code>, <code class="docutils literal notranslate"><span class="pre">write_restart()</span></code>, <code class="docutils literal notranslate"><span class="pre">read_restart()</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">single()</span></code>) and several optional ones.  All overriding methods use the
+<code class="docutils literal notranslate"><span class="pre">override</span></code> keyword to allow the compiler to detect mismatches.  The
+per-type coefficient arrays <code class="docutils literal notranslate"><span class="pre">k</span></code> and <code class="docutils literal notranslate"><span class="pre">r0</span></code> are declared as protected
+member variables.  The <code class="docutils literal notranslate"><span class="pre">allocate()</span></code> method is declared as <code class="docutils literal notranslate"><span class="pre">virtual</span></code>
+so that derived classes can override it if needed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Ideally, there should be no additional <code class="docutils literal notranslate"><span class="pre">#include</span></code> statements
+outside of <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;bond.h&quot;</span></code>.  Where possible, forward
+declarations should be used and the proper include statements only
+added to the implementation file (discussed below).  Exceptions are
+headers for C++ container classes.  Please see
+<a class="reference internal" href="Modify_requirements.html"><span class="doc">Requirements for contributions to LAMMPS</span></a> and <a class="reference internal" href="Modify_style.html"><span class="doc">LAMMPS programming style</span></a> for more
+information and this and related issues.</p>
+</div>
+</section>
+<section id="implementation-file">
+<h2>Implementation file<a class="headerlink" href="#implementation-file" title="Link to this heading"></a></h2>
+<p>The implementation file <code class="docutils literal notranslate"><span class="pre">bond_harmonic.cpp</span></code> starts with the same
+copyright block and includes, followed by <code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span>
+<span class="pre">LAMMPS_NS;</span></code>.</p>
+<section id="constructor-and-destructor">
+<h3>Constructor and destructor<a class="headerlink" href="#constructor-and-destructor" title="Link to this heading"></a></h3>
+<p>The constructor is minimal; it only calls the base class constructor
+and sets the <code class="docutils literal notranslate"><span class="pre">born_matrix_enable</span></code> flag to enable the optional
+<code class="docutils literal notranslate"><span class="pre">born_matrix()</span></code> method:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">BondHarmonic</span><span class="o">::</span><span class="n">BondHarmonic</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">_lmp</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Bond</span><span class="p">(</span><span class="n">_lmp</span><span class="p">),</span><span class="w"> </span><span class="n">k</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">r0</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">born_matrix_enable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>It is recommended to always initialize all pointers to <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> in
+the initializer list so that they can be safely deleted in the
+destructor.</p>
+<p>The destructor frees the per-type coefficient arrays, but only if
+<code class="docutils literal notranslate"><span class="pre">allocated</span></code> is true and <code class="docutils literal notranslate"><span class="pre">copymode</span></code> is false.  The <code class="docutils literal notranslate"><span class="pre">copymode</span></code>
+flag is set by Kokkos-accelerated styles that copy the base class
+rather than owning the storage:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">BondHarmonic</span><span class="o">::~</span><span class="n">BondHarmonic</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">allocated</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="o">!</span><span class="n">copymode</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">destroy</span><span class="p">(</span><span class="n">setflag</span><span class="p">);</span>
+<span class="w">    </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">destroy</span><span class="p">(</span><span class="n">k</span><span class="p">);</span>
+<span class="w">    </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">destroy</span><span class="p">(</span><span class="n">r0</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="the-allocate-method">
+<h3>The allocate() method<a class="headerlink" href="#the-allocate-method" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">allocate()</span></code> helper allocates all per-type arrays.  Types are
+one-indexed, so arrays of size <code class="docutils literal notranslate"><span class="pre">nbondtypes</span> <span class="pre">+</span> <span class="pre">1</span></code> are created. The
+<code class="docutils literal notranslate"><span class="pre">setflag</span></code> array, which tracks whether coefficients have been set for
+each type, is also allocated here and initialized to zero:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">BondHarmonic::allocate</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">allocated</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">np1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">create</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">np1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;bond:k&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">create</span><span class="p">(</span><span class="n">r0</span><span class="p">,</span><span class="w"> </span><span class="n">np1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;bond:r0&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">create</span><span class="p">(</span><span class="n">setflag</span><span class="p">,</span><span class="w"> </span><span class="n">np1</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;bond:setflag&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">np1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">setflag</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">setflag</span></code> array is declared in the <code class="docutils literal notranslate"><span class="pre">Bond</span></code> base class.  It is
+used by <code class="docutils literal notranslate"><span class="pre">Bond::init()</span></code> to check that coefficients have been set for
+all bond types.</p>
+</section>
+<section id="the-coeff-method-required">
+<h3>The coeff() method (required)<a class="headerlink" href="#the-coeff-method-required" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">coeff()</span></code> method processes the arguments of the
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a> command.  The first argument is always
+the type range (e.g. <code class="docutils literal notranslate"><span class="pre">1*3</span></code>, handled by <code class="docutils literal notranslate"><span class="pre">utils::bounds()</span></code>);
+subsequent arguments are the potential coefficients.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">BondHarmonic::coeff</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">narg</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">arg</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">narg</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Incorrect args for bond coefficients&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">errorurl</span><span class="p">(</span><span class="mi">21</span><span class="p">));</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">allocated</span><span class="p">)</span><span class="w"> </span><span class="n">allocate</span><span class="p">();</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">ilo</span><span class="p">,</span><span class="w"> </span><span class="n">ihi</span><span class="p">;</span>
+<span class="w">  </span><span class="n">utils</span><span class="o">::</span><span class="n">bounds</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">ilo</span><span class="p">,</span><span class="w"> </span><span class="n">ihi</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">k_one</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">numeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">lmp</span><span class="p">);</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">r0_one</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">numeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">lmp</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ilo</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">ihi</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">k_one</span><span class="p">;</span>
+<span class="w">    </span><span class="n">r0</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r0_one</span><span class="p">;</span>
+<span class="w">    </span><span class="n">setflag</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">    </span><span class="n">count</span><span class="o">++</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">count</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Incorrect args for bond coefficients&quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">errorurl</span><span class="p">(</span><span class="mi">21</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">utils::bounds()</span></code> function converts the type string into integer
+lower and upper bounds <code class="docutils literal notranslate"><span class="pre">ilo</span></code> and <code class="docutils literal notranslate"><span class="pre">ihi</span></code>.  After setting the
+coefficients for each type in the range, <code class="docutils literal notranslate"><span class="pre">setflag[i]</span></code> is set to 1.
+The final check guards against a range that matches no types.</p>
+</section>
+<section id="the-compute-method-required">
+<h3>The compute() method (required)<a class="headerlink" href="#the-compute-method-required" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">compute()</span></code> method iterates over all bonds in the local bond
+list (<code class="docutils literal notranslate"><span class="pre">neighbor-&gt;bondlist</span></code>) and accumulates forces and energies.
+The two arguments <code class="docutils literal notranslate"><span class="pre">eflag</span></code> and <code class="docutils literal notranslate"><span class="pre">vflag</span></code> control whether energies and
+virial contributions are computed.  The actual energy and virial
+accumulation is handled by calling <code class="docutils literal notranslate"><span class="pre">ev_tally()</span></code> at the end of each
+iteration step.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">BondHarmonic::compute</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">eflag</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vflag</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i1</span><span class="p">,</span><span class="w"> </span><span class="n">i2</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">type</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">delx</span><span class="p">,</span><span class="w"> </span><span class="n">dely</span><span class="p">,</span><span class="w"> </span><span class="n">delz</span><span class="p">,</span><span class="w"> </span><span class="n">ebond</span><span class="p">,</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">rsq</span><span class="p">,</span><span class="w"> </span><span class="n">r</span><span class="p">,</span><span class="w"> </span><span class="n">dr</span><span class="p">,</span><span class="w"> </span><span class="n">rk</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">ebond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">  </span><span class="n">ev_init</span><span class="p">(</span><span class="n">eflag</span><span class="p">,</span><span class="w"> </span><span class="n">vflag</span><span class="p">);</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">**</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">x</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">**</span><span class="n">f</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">f</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">**</span><span class="n">bondlist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">bondlist</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">nbondlist</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">nbondlist</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">nlocal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nlocal</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">newton_bond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force</span><span class="o">-&gt;</span><span class="n">newton_bond</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nbondlist</span><span class="p">;</span><span class="w"> </span><span class="n">n</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">i1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bondlist</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="n">i2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bondlist</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bondlist</span><span class="p">[</span><span class="n">n</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">    </span><span class="n">delx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">    </span><span class="n">dely</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">    </span><span class="n">delz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">    </span><span class="n">rsq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">delx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dely</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dely</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delz</span><span class="p">;</span>
+<span class="w">    </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="n">rsq</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r0</span><span class="p">[</span><span class="n">type</span><span class="p">];</span>
+<span class="w">    </span><span class="n">rk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">k</span><span class="p">[</span><span class="n">type</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// force &amp; energy</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)</span>
+<span class="w">      </span><span class="n">fbond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-2.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rk</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">      </span><span class="n">fbond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">eflag</span><span class="p">)</span><span class="w"> </span><span class="n">ebond</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rk</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="p">;</span>
+
+<span class="w">    </span><span class="c1">// apply force to each of 2 atoms</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">newton_bond</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">i1</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nlocal</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">f</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">delx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">      </span><span class="n">f</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">dely</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">      </span><span class="n">f</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">delz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">newton_bond</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">i2</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nlocal</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">f</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">delx</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">      </span><span class="n">f</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">dely</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">      </span><span class="n">f</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-=</span><span class="w"> </span><span class="n">delz</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fbond</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">evflag</span><span class="p">)</span><span class="w"> </span><span class="n">ev_tally</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span><span class="w"> </span><span class="n">i2</span><span class="p">,</span><span class="w"> </span><span class="n">nlocal</span><span class="p">,</span><span class="w"> </span><span class="n">newton_bond</span><span class="p">,</span><span class="w"> </span><span class="n">ebond</span><span class="p">,</span><span class="w"> </span><span class="n">fbond</span><span class="p">,</span><span class="w"> </span><span class="n">delx</span><span class="p">,</span><span class="w"> </span><span class="n">dely</span><span class="p">,</span><span class="w"> </span><span class="n">delz</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Before the loop, <code class="docutils literal notranslate"><span class="pre">ev_init(eflag,</span> <span class="pre">vflag)</span></code> initializes the energy and
+virial accumulators and sets several flags (including <code class="docutils literal notranslate"><span class="pre">evflag</span></code>) that
+control which quantities are computed.  The force scalar <code class="docutils literal notranslate"><span class="pre">fbond</span></code>
+is defined such that the force on atom <code class="docutils literal notranslate"><span class="pre">i1</span></code> is
+<code class="docutils literal notranslate"><span class="pre">fbond</span> <span class="pre">*</span> <span class="pre">(x[i1]</span> <span class="pre">-</span> <span class="pre">x[i2])</span></code> and the force on atom <code class="docutils literal notranslate"><span class="pre">i2</span></code> is
+<code class="docutils literal notranslate"><span class="pre">-fbond</span> <span class="pre">*</span> <span class="pre">(x[i1]</span> <span class="pre">-</span> <span class="pre">x[i2])</span></code>.  This sign convention matches the
+force as the negative gradient of the energy.</p>
+<p>The Newton’s third law check (<code class="docutils literal notranslate"><span class="pre">newton_bond</span> <span class="pre">||</span> <span class="pre">i</span> <span class="pre">&lt;</span> <span class="pre">nlocal</span></code>) is
+important for correctness in parallel runs: when <code class="docutils literal notranslate"><span class="pre">newton_bond</span></code> is
+on, forces are computed for both atoms even when they are on different
+MPI ranks, relying on a subsequent reverse communication to add up the
+contributions; when <code class="docutils literal notranslate"><span class="pre">newton_bond</span></code> is off, only forces on local atoms
+(<code class="docutils literal notranslate"><span class="pre">i</span> <span class="pre">&lt;</span> <span class="pre">nlocal</span></code>) are accumulated.</p>
+</section>
+<section id="the-equilibrium-distance-method-required-for-bond-styles">
+<h3>The equilibrium_distance() method (required for bond styles)<a class="headerlink" href="#the-equilibrium-distance-method-required-for-bond-styles" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">equilibrium_distance()</span></code> method returns the equilibrium bond
+length for the given type.  This is used, for instance, by the <a class="reference internal" href="fix_shake.html"><span class="doc">fix
+shake</span></a> and <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a> commands:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="nf">BondHarmonic::equilibrium_distance</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">r0</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="the-single-method-required-for-bond-styles">
+<h3>The single() method (required for bond styles)<a class="headerlink" href="#the-single-method-required-for-bond-styles" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">single()</span></code> method computes the force divided by <em>r</em> and the
+potential energy for a single pair of atoms.  It is called by
+<a class="reference internal" href="compute_bond_local.html"><span class="doc">compute bond/local</span></a> and related commands:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="nf">BondHarmonic::single</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">rsq</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="cm">/*i*/</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="cm">/*j*/</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">&amp;</span><span class="n">fforce</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="n">rsq</span><span class="p">);</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">dr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">r0</span><span class="p">[</span><span class="n">type</span><span class="p">];</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">rk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">k</span><span class="p">[</span><span class="n">type</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="p">;</span>
+<span class="w">  </span><span class="n">fforce</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">r</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">0.0</span><span class="p">)</span><span class="w"> </span><span class="n">fforce</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">-2.0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rk</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">r</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">rk</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dr</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The return value is the potential energy.  <code class="docutils literal notranslate"><span class="pre">fforce</span></code> is set to <code class="docutils literal notranslate"><span class="pre">-dE/dr</span>
+<span class="pre">/</span> <span class="pre">r</span></code> (i.e. the force divided by the interatomic distance) so that it
+can be easily converted into the x-, y-, and z-direction force
+components by multiplying with <span class="math notranslate nohighlight">\(\Delta x\)</span>, <span class="math notranslate nohighlight">\(\Delta y\)</span>, and
+<span class="math notranslate nohighlight">\(\Delta z\)</span>, respectively.</p>
+</section>
+<section id="restart-and-data-file-methods-required">
+<h3>Restart and data file methods (required)<a class="headerlink" href="#restart-and-data-file-methods-required" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">write_restart()</span></code> method is called by proc 0 to write the
+per-type coefficients to the binary restart file.  The matching
+<code class="docutils literal notranslate"><span class="pre">read_restart()</span></code> method is called when reading a restart file; it
+allocates storage, reads coefficients on proc 0, and broadcasts them
+to all ranks.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">BondHarmonic::write_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">fwrite</span><span class="p">(</span><span class="o">&amp;</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">fp</span><span class="p">);</span>
+<span class="w">  </span><span class="n">fwrite</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">fp</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">BondHarmonic::read_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">allocate</span><span class="p">();</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">me</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">utils</span><span class="o">::</span><span class="n">sfread</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">fp</span><span class="p">,</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="w">    </span><span class="n">utils</span><span class="o">::</span><span class="n">sfread</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">r0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">),</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">fp</span><span class="p">,</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">MPI_Bcast</span><span class="p">(</span><span class="o">&amp;</span><span class="n">k</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">world</span><span class="p">);</span>
+<span class="w">  </span><span class="n">MPI_Bcast</span><span class="p">(</span><span class="o">&amp;</span><span class="n">r0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">world</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">setflag</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">BondHarmonic::write_data</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="n">fp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nbondtypes</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">fprintf</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;%d %g %g</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">r0</span><span class="p">[</span><span class="n">i</span><span class="p">]);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Note that index 0 of each array is unused (types are one-indexed), so
+<code class="docutils literal notranslate"><span class="pre">&amp;k[1]</span></code> is the start of the actual data.  Using <code class="docutils literal notranslate"><span class="pre">utils::sfread()</span></code>
+(instead of <code class="docutils literal notranslate"><span class="pre">fread()</span></code>) provides error checking.</p>
+</section>
+</section>
+</section>
+<hr class="docutils" />
+<section id="case-2-implementing-an-angle-style">
+<h1><span class="section-number">4.8.9. </span>Case 2: Implementing an angle style<a class="headerlink" href="#case-2-implementing-an-angle-style" title="Link to this heading"></a></h1>
+<p>Angle styles are similar to bond styles but involve three atoms.  The
+implementation follows the same pattern as for bond styles, so for
+details not mentioned here, you can refer to the corresponding section
+documenting the implementation of bond styles.  As an example we use
+<a class="reference internal" href="angle_harmonic.html"><span class="doc">angle_style harmonic</span></a> which implements the
+potential:</p>
+<div class="math notranslate nohighlight">
+\[E = K (\theta - \theta_0)^2\]</div>
+<p>with spring constant <span class="math notranslate nohighlight">\(K\)</span> and equilibrium angle <span class="math notranslate nohighlight">\(\theta_0\)</span>.</p>
+<p>The header file uses <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">ANGLE_CLASS</span></code> and <code class="docutils literal notranslate"><span class="pre">AngleStyle(name,class)</span></code>
+for the registration block, and the class is derived from <code class="docutils literal notranslate"><span class="pre">Angle</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef ANGLE_CLASS</span>
+<span class="c1">// clang-format off</span>
+<span class="n">AngleStyle</span><span class="p">(</span><span class="n">harmonic</span><span class="p">,</span><span class="n">AngleHarmonic</span><span class="p">);</span>
+<span class="c1">// clang-format on</span>
+<span class="cp">#else</span>
+
+<span class="cp">#ifndef LMP_ANGLE_HARMONIC_H</span>
+<span class="cp">#define LMP_ANGLE_HARMONIC_H</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;angle.h&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">AngleHarmonic</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Angle</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">AngleHarmonic</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">  </span><span class="o">~</span><span class="n">AngleHarmonic</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">coeff</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">equilibrium_angle</span><span class="p">(</span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">read_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_data</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">single</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="nf">extract</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w"> </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">theta0</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">allocate</span><span class="p">();</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w">    </span><span class="c1">// namespace LAMMPS_NS</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p>Key differences from a bond style:</p>
+<ul class="simple">
+<li><p>The registration macro is <code class="docutils literal notranslate"><span class="pre">AngleStyle</span></code> and the include guard
+<code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">ANGLE_CLASS</span></code>.</p></li>
+<li><p>The base class is <code class="docutils literal notranslate"><span class="pre">Angle</span></code> (<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;angle.h&quot;</span></code>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">equilibrium_distance()</span></code> method is replaced by
+<code class="docutils literal notranslate"><span class="pre">equilibrium_angle()</span></code> (used by <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">single()</span></code> method signature takes four atom indices instead
+of a distance squared plus two atom indices.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">compute()</span></code> loop iterates over <code class="docutils literal notranslate"><span class="pre">neighbor-&gt;anglelist</span></code> and
+<code class="docutils literal notranslate"><span class="pre">neighbor-&gt;nanglelist</span></code> involving three-atom groups.</p></li>
+<li><p>The types array is <code class="docutils literal notranslate"><span class="pre">atom-&gt;nangletypes</span></code>.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">compute()</span></code> method for angle styles uses three atom indices
+(<code class="docutils literal notranslate"><span class="pre">i1</span></code>, <code class="docutils literal notranslate"><span class="pre">i2</span></code>, <code class="docutils literal notranslate"><span class="pre">i3</span></code>) from <code class="docutils literal notranslate"><span class="pre">neighbor-&gt;anglelist[n][0..3]</span></code>, where
+the type is at index 3.  The equilibrium angle <code class="docutils literal notranslate"><span class="pre">theta0</span></code> is stored
+in radians (converted from degrees in <code class="docutils literal notranslate"><span class="pre">coeff()</span></code>).</p>
+</section>
+<hr class="docutils" />
+<section id="case-3-implementing-a-dihedral-style">
+<h1><span class="section-number">4.8.10. </span>Case 3: Implementing a dihedral style<a class="headerlink" href="#case-3-implementing-a-dihedral-style" title="Link to this heading"></a></h1>
+<p>Dihedral styles compute interactions among four atoms forming a
+torsion angle.  Harmonic dihedrals implement the potential:</p>
+<div class="math notranslate nohighlight">
+\[E = K \left[1 + d \cos(n\phi) \right]\]</div>
+<p>where <span class="math notranslate nohighlight">\(K\)</span> is the force constant, <span class="math notranslate nohighlight">\(d\)</span> is the sign (+1 or
+-1), and <span class="math notranslate nohighlight">\(n\)</span> is the multiplicity (periodicity).  The implementation
+can be found in <code class="docutils literal notranslate"><span class="pre">src/MOLECULE/dihedral_harmonic.cpp</span></code> and
+<code class="docutils literal notranslate"><span class="pre">src/MOLECULE/dihedral_harmonic.h</span></code>.</p>
+<p>The header file uses <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">DIHEDRAL_CLASS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">DihedralStyle(name,class)</span></code>, and the class is derived from
+<code class="docutils literal notranslate"><span class="pre">Dihedral</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef DIHEDRAL_CLASS</span>
+<span class="c1">// clang-format off</span>
+<span class="n">DihedralStyle</span><span class="p">(</span><span class="n">harmonic</span><span class="p">,</span><span class="n">DihedralHarmonic</span><span class="p">);</span>
+<span class="c1">// clang-format on</span>
+<span class="cp">#else</span>
+
+<span class="cp">#ifndef LMP_DIHEDRAL_HARMONIC_H</span>
+<span class="cp">#define LMP_DIHEDRAL_HARMONIC_H</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;dihedral.h&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DihedralHarmonic</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Dihedral</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">DihedralHarmonic</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">  </span><span class="o">~</span><span class="n">DihedralHarmonic</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">coeff</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">read_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_data</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w"> </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">cos_shift</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">sin_shift</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">sign</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">multiplicity</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">allocate</span><span class="p">();</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w">    </span><span class="c1">// namespace LAMMPS_NS</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p>Key differences from bond and angle styles:</p>
+<ul class="simple">
+<li><p>The base class is <code class="docutils literal notranslate"><span class="pre">Dihedral</span></code> (<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;dihedral.h&quot;</span></code>).</p></li>
+<li><p>There is no <code class="docutils literal notranslate"><span class="pre">equilibrium_distance()</span></code> or <code class="docutils literal notranslate"><span class="pre">equilibrium_angle()</span></code>
+method; dihedral styles have no analogue required by other
+LAMMPS subsystems.</p></li>
+<li><p>There is no <code class="docutils literal notranslate"><span class="pre">single()</span></code> method in the base class for dihedrals.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">compute()</span></code> loop uses four atom indices from
+<code class="docutils literal notranslate"><span class="pre">neighbor-&gt;dihedrallist[n][0..4]</span></code> (type at index 4).</p></li>
+<li><p>The types array is <code class="docutils literal notranslate"><span class="pre">atom-&gt;ndihedraltypes</span></code>.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">writedata</span></code> flag must be set to 1 in the constructor if
+<code class="docutils literal notranslate"><span class="pre">write_data()</span></code> is implemented (the default is 0 for dihedral styles).</p></li>
+</ul>
+<p>In the constructor, the <code class="docutils literal notranslate"><span class="pre">writedata</span></code> flag is set:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">DihedralHarmonic</span><span class="o">::</span><span class="n">DihedralHarmonic</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">_lmp</span><span class="p">)</span><span class="w"> </span><span class="o">:</span>
+<span class="w">    </span><span class="n">Dihedral</span><span class="p">(</span><span class="n">_lmp</span><span class="p">),</span><span class="w"> </span><span class="n">k</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">cos_shift</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">sin_shift</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">sign</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span>
+<span class="w">    </span><span class="n">multiplicity</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">writedata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="case-4-implementing-an-improper-style">
+<h1><span class="section-number">4.8.11. </span>Case 4: Implementing an improper style<a class="headerlink" href="#case-4-implementing-an-improper-style" title="Link to this heading"></a></h1>
+<p>Improper styles compute interactions involving four atoms where the
+geometry represents an out-of-plane deformation rather than a
+conventional torsion.  Harmonic impropers implement:</p>
+<div class="math notranslate nohighlight">
+\[E = K (\chi - \chi_0)^2\]</div>
+<p>where <span class="math notranslate nohighlight">\(K\)</span> is the force constant and <span class="math notranslate nohighlight">\(\chi_0\)</span> is the
+equilibrium improper angle.</p>
+<p>The header file uses <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">IMPROPER_CLASS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">ImproperStyle(name,class)</span></code>, and the class is derived from <code class="docutils literal notranslate"><span class="pre">Improper</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef IMPROPER_CLASS</span>
+<span class="c1">// clang-format off</span>
+<span class="n">ImproperStyle</span><span class="p">(</span><span class="n">harmonic</span><span class="p">,</span><span class="n">ImproperHarmonic</span><span class="p">);</span>
+<span class="c1">// clang-format on</span>
+<span class="cp">#else</span>
+
+<span class="cp">#ifndef LMP_IMPROPER_HARMONIC_H</span>
+<span class="cp">#define LMP_IMPROPER_HARMONIC_H</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;improper.h&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">ImproperHarmonic</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Improper</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">ImproperHarmonic</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">  </span><span class="o">~</span><span class="n">ImproperHarmonic</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">compute</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">coeff</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">read_restart</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="nf">write_data</span><span class="p">(</span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="nf">extract</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w"> </span><span class="k">protected</span><span class="o">:</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">chi</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">allocate</span><span class="p">();</span>
+<span class="p">};</span>
+
+<span class="p">}</span><span class="w">    </span><span class="c1">// namespace LAMMPS_NS</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p>Key differences from dihedral styles:</p>
+<ul class="simple">
+<li><p>The base class is <code class="docutils literal notranslate"><span class="pre">Improper</span></code> (<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;improper.h&quot;</span></code>).</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">compute()</span></code> loop uses four atom indices from
+<code class="docutils literal notranslate"><span class="pre">neighbor-&gt;improperlist[n][0..4]</span></code> (type at index 4).</p></li>
+<li><p>The types array is <code class="docutils literal notranslate"><span class="pre">atom-&gt;nimpropertypes</span></code>.</p></li>
+<li><p>A <code class="docutils literal notranslate"><span class="pre">symmatoms</span></code> array in the base class can be used to record
+which atom in the quadruplet is the central atom of symmetry.
+In <code class="docutils literal notranslate"><span class="pre">ImproperHarmonic</span></code>, <code class="docutils literal notranslate"><span class="pre">symmatoms[0]</span> <span class="pre">=</span> <span class="pre">1</span></code> indicates that the
+first atom in the quadruplet is the atom of symmetry.</p></li>
+</ul>
+<p>Constructor setup:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">ImproperHarmonic</span><span class="o">::</span><span class="n">ImproperHarmonic</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">_lmp</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Improper</span><span class="p">(</span><span class="n">_lmp</span><span class="p">),</span><span class="w"> </span><span class="n">k</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">),</span><span class="w"> </span><span class="n">chi</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">writedata</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">  </span><span class="c1">// the first atom in the quadruplet is the atom of symmetry</span>
+<span class="w">  </span><span class="n">symmatoms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_write_pair.html" class="btn btn-neutral float-left" title="4.8.1. Writing new pair styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_write_fix.html" class="btn btn-neutral float-right" title="4.8.12. Writing a new fix style" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

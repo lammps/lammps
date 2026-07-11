@@ -1,0 +1,190 @@
+LAMMPS (17 Feb 2022)
+#===========================================================================#
+#  System of colloidal particles under shear.                               #
+#                                                                           #
+#  Run consists of 10x12x4 particles, each composed of 3613 particle nodes  #
+#    (3612 particles forming a spherical shell, and 1 central particle).    #
+#  280 x 280 x 101 lattice-Boltzmann grid sites.                            #
+#                                                                           #
+#  This simulation is used to illustrate the simulation time of a realistic #
+#    implementation of the lb/fluid fix.                                    #
+#  The data file "confinedcolloids.dat" is quite large and so is not        #
+#  included here.  It can be obtained from:                                 #
+#  http://publish.uwo.ca/~cdennist/confinedcolloids.dat.gz                  #
+#                                                                           #
+#  Sample output from this run can be found in the file:                    #
+#    results64.out                                                          #
+#===========================================================================#
+
+units       micro
+dimension   3
+boundary    p p f
+atom_style  molecular
+read_data   confinedcolloids.dat
+Reading data file ...
+  orthogonal box = (0 0 0) to (16.8 16.8 6)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  1734240 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.372 seconds
+  read_data CPU = 34.950 seconds
+
+mass * 0.00010287
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and
+#   the simulation is terminated.
+#----------------------------------------------------------------------------
+neighbor 0.03 bin
+neigh_modify delay 0 every 1
+neigh_modify exclude type 2 2
+neigh_modify exclude type 2 1
+
+#----------------------------------------------------------------------------
+# ForceAtoms are the particles at the center of each colloidal object which
+#   do not interact with the fluid, but are used to implement the hard-sphere
+#   interactions.
+#----------------------------------------------------------------------------
+group ForceAtoms type 1
+480 atoms in group ForceAtoms
+
+#----------------------------------------------------------------------------
+# FluidAtoms are the particles representing the surface of the colloidal
+#   object which do interact with the fluid.
+#----------------------------------------------------------------------------
+group FluidAtoms type 2
+1733760 atoms in group FluidAtoms
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interaction between the particles at the center of
+#   each colloidal object (use a truncated and shifted Lennard-Jones
+#   potential).
+#----------------------------------------------------------------------------
+pair_style lj/cut 1.572
+pair_coeff * * 0.0 0.0 1.572
+pair_coeff 1 1 10.0 1.400492785 1.572
+pair_modify shift yes
+
+timestep 0.001
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particles specified through FluidAtoms
+#   (however, this fix does not explicitly apply a force back on to these
+#    particles...this is accomplished through the use of the lb/viscous fix).
+# Use a fluid density = 1.0, fluid viscosity = 1.0, (water at STP) and a
+# lattice spacing dx=0.06.
+# Implement top/bottomw walls moving at speeds of 20.0 in opposite directions
+#----------------------------------------------------------------------------
+fix   1 FluidAtoms lb/fluid 1 1.0 1.0 dx 0.06 zwall_velocity -20.0 20.0
+Using a lattice-Boltzmann grid of 280 by 280 by 101 total grid points. (../fix_lb_fluid.cpp:486)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1018)
+
+#----------------------------------------------------------------------------
+# Apply the force due to the fluid onto the FluidAtoms particles (again,
+#   these atoms represent the surface of the colloidal object, which should
+#   interact with the fluid).
+#----------------------------------------------------------------------------
+fix   2 FluidAtoms lb/viscous
+
+#----------------------------------------------------------------------------
+# Each colloidal object (spherical shell of particles and central particle)
+#   is specified as a separate molecule in the confinedcolloids.dat data
+#   file.  Integrate the motion of each of these sets of particles as rigid
+#   objects which move and rotate together.
+#----------------------------------------------------------------------------
+fix   3 all rigid molecule
+  480 rigid bodies with 1734240 atoms
+
+#----------------------------------------------------------------------------
+# Implement a repulsive interaction between the ForceAtoms particles, and the
+#   upper and lower z-walls. (A truncated and shifted Lennard-Jones potential
+#   is used).
+#----------------------------------------------------------------------------
+fix   wallhi ForceAtoms wall/lj126 zhi 5.88 20.0 0.8071542386 0.906 units box
+fix   walllo ForceAtoms wall/lj126 zlo 0.0  20.0 0.8071542386 0.906 units box
+
+#dump  ParticleTracking ForceAtoms custom 50 test.track id mol x y z vx vy vz
+
+thermo 50
+
+#run   400
+run 100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix lb/fluid command:
+
+@Article{Denniston et al.,
+ author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,F.E. Mackay, S.T.T. Ollila, T. Whitehead},
+ title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid}, journal = {Comp.~Phys.~Comm.},
+ year =    2022,
+ volume =  275,
+ pages =   {108318}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.602
+  ghost atom cutoff = 1.602
+  binsize = 0.801, bins = 21 21 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 373.3 | 373.3 | 373.3 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0            0            0            0            0 
+      50    4511970.8            0            0    89.610701   0.21526205 
+     100     16113793            0            0     320.0305  -0.54714356 
+Loop time of 2168.87 on 4 procs for 100 steps with 1734240 atoms
+
+Performance: 3983.646 ns/day, 0.006 hours/ns, 0.046 timesteps/s
+99.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67377    | 0.70143    | 0.72779    |   2.5 |  0.03
+Bond    | 4.19e-05   | 6.0825e-05 | 7.85e-05   |   0.0 |  0.00
+Neigh   | 1978.7     | 1982.4     | 1985.9     |   6.3 | 91.40
+Comm    | 9.4132     | 12.886     | 16.538     |  78.3 |  0.59
+Output  | 0.0089264  | 0.016853   | 0.024638   |   4.3 |  0.00
+Modify  | 171.19     | 171.23     | 171.27     |   0.3 |  7.89
+Other   |            | 1.598      |            |       |  0.07
+
+Nlocal:         433560 ave      433560 max      433560 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:         397888 ave      397888 max      397888 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:             60 ave          60 max          60 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 240
+Ave neighs/atom = 0.00013838915
+Ave special neighs/atom = 0
+Neighbor list builds = 16
+Dangerous builds = 0
+Total wall time: 0:39:00

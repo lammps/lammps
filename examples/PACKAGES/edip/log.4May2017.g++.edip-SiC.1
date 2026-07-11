@@ -1,0 +1,92 @@
+LAMMPS (4 May 2017)
+  using 1 OpenMP thread(s) per MPI task
+# Test of MEAM potential for SiC system
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+
+read_data	data.SiC
+  orthogonal box = (-6 -6 -6) to (5.97232 5.97232 5.97232)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  128 atoms
+
+pair_style	edip/multi
+pair_coeff	* * SiC.edip Si C
+Reading potential file SiC.edip with DATE: 2017-05-16
+
+mass 1 28.085
+mass 2 12.001
+
+neighbor	1.0 bin
+neigh_modify	delay 1
+
+fix		1 all nve
+thermo		10
+timestep	0.001
+
+#dump		1 all atom 50 dump.meam
+
+#dump		2 all image 10 image.*.jpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3 element Si C
+
+#dump		3 all movie 10 movie.mpg element element #		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Si C
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 1 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.94159
+  ghost atom cutoff = 3.94159
+  binsize = 1.97079, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair edip/multi, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.692 | 2.692 | 2.692 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -563.61621            0   -563.61621   -726147.34 
+      10    4224.3601   -633.24829            0   -563.90103   -312355.55 
+      20    4528.5661   -638.15183            0   -563.81071   -20091.291 
+      30    4817.3654   -642.92111            0   -563.83905     106625.5 
+      40    4619.4324    -639.6884            0   -563.85562    107180.42 
+      50    4783.0025   -642.26961            0   -563.75166    75134.335 
+      60     4525.145   -638.06177            0   -563.77681    71591.713 
+      70    4685.2578   -640.72377            0    -563.8104    63956.042 
+      80    4621.8393   -639.75912            0   -563.88682    18177.383 
+      90    4834.7702   -643.34582            0   -563.97805    15282.823 
+     100    4424.0589   -636.60208            0   -563.97656    47963.501 
+Loop time of 0.0552888 on 1 procs for 100 steps with 128 atoms
+
+Performance: 156.270 ns/day, 0.154 hours/ns, 1808.685 timesteps/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.051872   | 0.051872   | 0.051872   |   0.0 | 93.82
+Neigh   | 0.0023525  | 0.0023525  | 0.0023525  |   0.0 |  4.25
+Comm    | 0.0004518  | 0.0004518  | 0.0004518  |   0.0 |  0.82
+Output  | 0.00014806 | 0.00014806 | 0.00014806 |   0.0 |  0.27
+Modify  | 0.00024796 | 0.00024796 | 0.00024796 |   0.0 |  0.45
+Other   |            | 0.0002165  |            |       |  0.39
+
+Nlocal:    128 ave 128 max 128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    473 ave 473 max 473 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  2376 ave 2376 max 2376 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2376
+Ave neighs/atom = 18.5625
+Neighbor list builds = 11
+Dangerous builds = 0
+Total wall time: 0:00:00

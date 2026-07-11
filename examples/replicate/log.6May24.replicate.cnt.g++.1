@@ -1,0 +1,134 @@
+LAMMPS (17 Apr 2024)
+# three orthogonal periodic CNTs
+# demo for replicating triply looped system
+# infinite loops in x, y, z
+# includes bonded interactions across box corners
+# includes bonds, angles, dihedrals, impropers (class2)
+
+units real
+
+boundary p p p
+
+atom_style full
+
+pair_style lj/class2 10
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+read_data three_periodic_CNTs.data.gz
+Reading data file ...
+  orthogonal box = (0 0 0) to (80.96 80.96 80.96)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3168 atoms
+  reading velocities ...
+  3168 velocities
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  3 = max angles/atom
+  scanning dihedrals ...
+  12 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  orthogonal box = (0 0 0) to (80.96 80.96 80.96)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  4752 bonds
+  reading angles ...
+  9504 angles
+  reading dihedrals ...
+  19008 dihedrals
+  reading impropers ...
+  3168 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     3 = max # of 1-2 neighbors
+     6 = max # of 1-3 neighbors
+    18 = max # of 1-4 neighbors
+    18 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_data CPU = 0.056 seconds
+
+replicate 2 2 2 bond/periodic
+Replication is creating a 2x2x2 = 8 times larger system...
+  orthogonal box = (0 0 0) to (161.92 161.92 161.92)
+  1 by 1 by 1 MPI processor grid
+  bounding box image = (0 0 0) to (0 0 0)
+  bounding box extra memory = 1.62 MB
+  average # of replicas added to proc = 8.00 out of 8 (100.00%)
+  25344 atoms
+  38016 bonds
+  76032 angles
+  152064 dihedrals
+  25344 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     3 = max # of 1-2 neighbors
+     6 = max # of 1-3 neighbors
+    18 = max # of 1-4 neighbors
+    18 = max # of special neighbors
+  special bonds CPU = 0.012 seconds
+  replicate CPU = 0.027 seconds
+
+fix 1 all nve
+
+run 100
+Generated 0 of 0 mixed pair_coeff terms from sixthpower/geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 27 27 27
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/class2, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Inconsistent image flags (../domain.cpp:1051)
+Per MPI rank memory allocation (min/avg/max) = 51.87 | 51.87 | 51.87 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -14266.189      1466925.5      1452659.3     -29908.753    
+       100   2155.9128     -17224.188      1306769.8      1452409        1985.2082    
+Loop time of 5.0155 on 1 procs for 100 steps with 25344 atoms
+
+Performance: 1.723 ns/day, 13.932 hours/ns, 19.938 timesteps/s, 505.314 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.6557     | 1.6557     | 1.6557     |   0.0 | 33.01
+Bond    | 3.2813     | 3.2813     | 3.2813     |   0.0 | 65.42
+Neigh   | 0.047025   | 0.047025   | 0.047025   |   0.0 |  0.94
+Comm    | 0.0085317  | 0.0085317  | 0.0085317  |   0.0 |  0.17
+Output  | 7.8551e-05 | 7.8551e-05 | 7.8551e-05 |   0.0 |  0.00
+Modify  | 0.014635   | 0.014635   | 0.014635   |   0.0 |  0.29
+Other   |            | 0.008159   |            |       |  0.16
+
+Nlocal:          25344 ave       25344 max       25344 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          22737 ave       22737 max       22737 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.89358e+06 ave 2.89358e+06 max 2.89358e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2893576
+Ave neighs/atom = 114.17203
+Ave special neighs/atom = 18
+Neighbor list builds = 1
+Dangerous builds = 0
+
+# write_restart replicate.restart
+# write_data replicate.data
+Total wall time: 0:00:05

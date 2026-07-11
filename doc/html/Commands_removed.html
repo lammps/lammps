@@ -1,0 +1,486 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6.15. Removed commands and packages &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Commands_removed.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix atc command" href="atc_add_molecule.html" />
+    <link rel="prev" title="6.14. Dump styles" href="Commands_dump.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Commands.html">6. Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">6.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_parse.html">6.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">6.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_category.html">6.4. Commands by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">6.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">6.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">6.7. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_pair.html">6.8. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html">6.9. Bond styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#angle-styles">6.10. Angle styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#dihedral-styles">6.11. Dihedral styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#improper-styles">6.12. Improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">6.13. KSpace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_dump.html">6.14. Dump styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">6.15. Removed commands and packages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#amber2lmp-tools">6.15.1. amber2lmp tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#atc-awpmd-and-poems-packages">6.15.2. ATC, AWPMD, and POEMS packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#neighbor-style-and-comm-mode-multi-old">6.15.3. Neighbor style and comm mode multi/old</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lammps-gui-source-code">6.15.4. LAMMPS-GUI source code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gjf-formulation-in-fix-langevin">6.15.5. GJF formulation in fix langevin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lammps-shell">6.15.6. LAMMPS shell</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#i-pi-tool">6.15.7. i-PI tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-reaxc-package">6.15.8. USER-REAXC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpiio-package">6.15.9. MPIIO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mscg-package">6.15.10. MSCG package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#latte-package">6.15.11. LATTE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#minimize-style-fire-old">6.15.12. Minimize style fire/old</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pair-style-mesont-tpm-compute-style-mesont-atom-style-mesont">6.15.13. Pair style mesont/tpm, compute style mesont, atom style mesont</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#box-command">6.15.14. Box command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reset-ids-reset-atom-ids-reset-mol-ids-commands">6.15.15. Reset_ids, reset_atom_ids, reset_mol_ids commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#message-package">6.15.16. MESSAGE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#reax-package">6.15.17. REAX package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#meam-package">6.15.18. MEAM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#user-cuda-package">6.15.19. USER-CUDA package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compute-atom-molecule">6.15.20. Compute atom/molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fix-ave-spatial-and-fix-ave-spatial-sphere">6.15.21. Fix ave/spatial and fix ave/spatial/sphere</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart2data-tool">6.15.22. restart2data tool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Commands.html"><span class="section-number">6. </span>Commands</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6.15. </span>Removed commands and packages</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Commands_dump.html" class="btn btn-neutral float-left" title="6.14. Dump styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="atc_add_molecule.html" class="btn btn-neutral float-right" title="fix atc command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="removed-commands-and-packages">
+<h1><span class="section-number">6.15. </span>Removed commands and packages<a class="headerlink" href="#removed-commands-and-packages" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#amber2lmp-tools" id="id1">amber2lmp tools</a></p></li>
+<li><p><a class="reference internal" href="#atc-awpmd-and-poems-packages" id="id2">ATC, AWPMD, and POEMS packages</a></p></li>
+<li><p><a class="reference internal" href="#neighbor-style-and-comm-mode-multi-old" id="id3">Neighbor style and comm mode multi/old</a></p></li>
+<li><p><a class="reference internal" href="#lammps-gui-source-code" id="id4">LAMMPS-GUI source code</a></p></li>
+<li><p><a class="reference internal" href="#gjf-formulation-in-fix-langevin" id="id5">GJF formulation in fix langevin</a></p></li>
+<li><p><a class="reference internal" href="#lammps-shell" id="id6">LAMMPS shell</a></p></li>
+<li><p><a class="reference internal" href="#i-pi-tool" id="id7">i-PI tool</a></p></li>
+<li><p><a class="reference internal" href="#user-reaxc-package" id="id8">USER-REAXC package</a></p></li>
+<li><p><a class="reference internal" href="#mpiio-package" id="id9">MPIIO package</a></p></li>
+<li><p><a class="reference internal" href="#mscg-package" id="id10">MSCG package</a></p></li>
+<li><p><a class="reference internal" href="#latte-package" id="id11">LATTE package</a></p></li>
+<li><p><a class="reference internal" href="#minimize-style-fire-old" id="id12">Minimize style fire/old</a></p></li>
+<li><p><a class="reference internal" href="#pair-style-mesont-tpm-compute-style-mesont-atom-style-mesont" id="id13">Pair style mesont/tpm, compute style mesont, atom style mesont</a></p></li>
+<li><p><a class="reference internal" href="#box-command" id="id14">Box command</a></p></li>
+<li><p><a class="reference internal" href="#reset-ids-reset-atom-ids-reset-mol-ids-commands" id="id15">Reset_ids, reset_atom_ids, reset_mol_ids commands</a></p></li>
+<li><p><a class="reference internal" href="#message-package" id="id16">MESSAGE package</a></p></li>
+<li><p><a class="reference internal" href="#reax-package" id="id17">REAX package</a></p></li>
+<li><p><a class="reference internal" href="#meam-package" id="id18">MEAM package</a></p></li>
+<li><p><a class="reference internal" href="#user-cuda-package" id="id19">USER-CUDA package</a></p></li>
+<li><p><a class="reference internal" href="#compute-atom-molecule" id="id20">Compute atom/molecule</a></p></li>
+<li><p><a class="reference internal" href="#fix-ave-spatial-and-fix-ave-spatial-sphere" id="id21">Fix ave/spatial and fix ave/spatial/sphere</a></p></li>
+<li><p><a class="reference internal" href="#restart2data-tool" id="id22">restart2data tool</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<p>This page lists LAMMPS commands and packages that have been removed from
+the distribution and provides suggestions for alternatives or
+replacements.  LAMMPS has special dummy styles implemented, that will
+stop LAMMPS and print a suitable error message in most cases, when a
+style/command is used that has been removed or will replace the command
+with the direct alternative (if available) and print a warning.</p>
+<section id="amber2lmp-tools">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">6.15.1. </span>amber2lmp tools</a><a class="headerlink" href="#amber2lmp-tools" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 11Feb2026.</span></p>
+</div>
+<p>The tools in the <code class="docutils literal notranslate"><span class="pre">tools/amber2lmp</span></code> folder have been removed because
+they were unmaintained for a long time and required Python 2 which has
+been obsolete for a long time.  Instead the external <a class="reference external" href="https://github.com/askforarun/AMBER2LAMMPS">AMBER2LAMMPS tool</a> can be used for the same
+purpose.  There is an <cite>Howto_amber2lammps</cite> included in this manual.</p>
+</section>
+<section id="atc-awpmd-and-poems-packages">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">6.15.2. </span>ATC, AWPMD, and POEMS packages</a><a class="headerlink" href="#atc-awpmd-and-poems-packages" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 10Sep2025.</span></p>
+</div>
+<p>The ATC, AWPMD, and POEMS packages are removed because they were
+unmaintained for a long time and their legacy C++ programming style
+started to create problems with modern C++ compilers.  LAMMPS version 22
+July 2025 is the last version that contains them.  You have to download
+and compile this version, if you want to use any of these packages.</p>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+<section id="neighbor-style-and-comm-mode-multi-old">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">6.15.3. </span>Neighbor style and comm mode multi/old</a><a class="headerlink" href="#neighbor-style-and-comm-mode-multi-old" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 10Sep2025.</span></p>
+</div>
+<p>The original implementation of neighbor style multi and comm mode multi,
+most recently available under “multi/old” has been removed.  The new
+implementation should be used instead.</p>
+</section>
+<section id="lammps-gui-source-code">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">6.15.4. </span>LAMMPS-GUI source code</a><a class="headerlink" href="#lammps-gui-source-code" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 10Sep2025.</span></p>
+</div>
+<p>The LAMMPS-GUI sources used to be included in LAMMPS but they are now
+hosted in their own git repository at
+<a class="reference external" href="https://github.com/akohlmey/lammps-gui/">https://github.com/akohlmey/lammps-gui/</a> and the corresponding online
+documentation is at <a class="reference external" href="https://lammps-gui.lammps.org/">https://lammps-gui.lammps.org/</a></p>
+</section>
+<section id="gjf-formulation-in-fix-langevin">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">6.15.5. </span>GJF formulation in fix langevin</a><a class="headerlink" href="#gjf-formulation-in-fix-langevin" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 22Jul2025.</span></p>
+</div>
+<p>The <em>gjf</em> keyword in fix langevin has been removed.  The GJF
+functionality has been moved to its own fix style <a class="reference internal" href="fix_gjf.html"><span class="doc">fix gjf</span></a>.</p>
+</section>
+<section id="lammps-shell">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink"><span class="section-number">6.15.6. </span>LAMMPS shell</a><a class="headerlink" href="#lammps-shell" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 29Aug2024.</span></p>
+</div>
+<p>The LAMMPS shell has been removed from the LAMMPS distribution. Users
+are encouraged to use the <a class="reference internal" href="Tools.html#lammps-gui"><span class="std std-ref">LAMMPS-GUI</span></a> tool instead.</p>
+</section>
+<section id="i-pi-tool">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink"><span class="section-number">6.15.7. </span>i-PI tool</a><a class="headerlink" href="#i-pi-tool" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 27Jun2024.</span></p>
+</div>
+<p>The i-PI tool has been removed from the LAMMPS distribution.  Instead,
+instructions to install i-PI from PyPI via pip are provided.</p>
+</section>
+<section id="user-reaxc-package">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink"><span class="section-number">6.15.8. </span>USER-REAXC package</a><a class="headerlink" href="#user-reaxc-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 7Feb2024.</span></p>
+</div>
+<p>The USER-REAXC package has been renamed to <a class="reference internal" href="Packages_details.html#pkg-reaxff"><span class="std std-ref">REAXFF</span></a>.
+In the process also the pair style and related fixes were renamed to use
+the “reaxff” string instead of “reax/c”. For a while LAMMPS was maintaining
+backward compatibility by providing aliases for the styles.  These have
+been removed, so using “reaxff” is now <em>required</em>.</p>
+</section>
+<section id="mpiio-package">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink"><span class="section-number">6.15.9. </span>MPIIO package</a><a class="headerlink" href="#mpiio-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 21Nov2023.</span></p>
+</div>
+<p>The MPIIO package has been removed from LAMMPS since it was unmaintained
+for many years and thus not updated to incorporate required changes that
+had been applied to the corresponding non-MPIIO commands. As a
+consequence the MPIIO commands had become unreliable and sometimes
+crashing LAMMPS or corrupting data.  Similar functionality is available
+through the <a class="reference internal" href="Packages_details.html#pkg-adios"><span class="std std-ref">ADIOS package</span></a> and the <a class="reference internal" href="Packages_details.html#pkg-netcdf"><span class="std std-ref">NETCDF
+package</span></a>.  Also, the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify nfile or dump_modify
+fileper</span></a> keywords may be used for an efficient way of
+writing out dump files when running on large numbers of processors.
+Similarly, the “nfile” and “fileper” keywords exist for restarts:
+see <a class="reference internal" href="restart.html"><span class="doc">restart</span></a>, <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>,
+<a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a>.</p>
+</section>
+<section id="mscg-package">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink"><span class="section-number">6.15.10. </span>MSCG package</a><a class="headerlink" href="#mscg-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 21Nov2023.</span></p>
+</div>
+<p>The MSCG package has been removed from LAMMPS since it was unmaintained
+for many years and instead superseded by the <a class="reference external" href="https://software.rcc.uchicago.edu/mscg/">OpenMSCG software</a> of the Voth group at the
+University of Chicago, which can be used independent from LAMMPS.</p>
+</section>
+<section id="latte-package">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink"><span class="section-number">6.15.11. </span>LATTE package</a><a class="headerlink" href="#latte-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 15Jun2023.</span></p>
+</div>
+<p>The LATTE package with the fix latte command was removed from LAMMPS.
+This functionality has been superseded by <a class="reference internal" href="fix_mdi_qm.html"><span class="doc">fix mdi/qm</span></a>
+and <a class="reference internal" href="fix_mdi_qmmm.html"><span class="doc">fix mdi/qmmm</span></a> from the <a class="reference internal" href="Packages_details.html#pkg-mdi"><span class="std std-ref">MDI package</span></a>.  These fixes are compatible with several quantum software
+packages, including LATTE.  See the <code class="docutils literal notranslate"><span class="pre">examples/QUANTUM</span></code> dir and the
+<a class="reference internal" href="Howto_mdi.html"><span class="doc">MDI coupling HOWTO</span></a> page.  MDI supports running LAMMPS
+with LATTE as a plugin library (similar to the way fix latte worked), as
+well as on a different set of MPI processors.</p>
+</section>
+<section id="minimize-style-fire-old">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink"><span class="section-number">6.15.12. </span>Minimize style fire/old</a><a class="headerlink" href="#minimize-style-fire-old" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 8Feb2023.</span></p>
+</div>
+<p>Minimize style <em>fire/old</em> has been removed. Its functionality can be
+reproduced with style <em>fire</em> with specific options. Please see the
+<a class="reference internal" href="min_modify.html"><span class="doc">min_modify command</span></a> documentation for details.</p>
+</section>
+<section id="pair-style-mesont-tpm-compute-style-mesont-atom-style-mesont">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink"><span class="section-number">6.15.13. </span>Pair style mesont/tpm, compute style mesont, atom style mesont</a><a class="headerlink" href="#pair-style-mesont-tpm-compute-style-mesont-atom-style-mesont" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 8Feb2023.</span></p>
+</div>
+<p>Pair style <em>mesont/tpm</em>, compute style <em>mesont</em>, and atom style
+<em>mesont</em> have been removed from the <a class="reference internal" href="Packages_details.html#pkg-mesont"><span class="std std-ref">MESONT package</span></a>.
+The same functionality is available through
+<a class="reference internal" href="pair_mesocnt.html"><span class="doc">pair style mesocnt</span></a>,
+<a class="reference internal" href="bond_mesocnt.html"><span class="doc">bond style mesocnt</span></a> and
+<a class="reference internal" href="angle_mesocnt.html"><span class="doc">angle style mesocnt</span></a>.</p>
+</section>
+<section id="box-command">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink"><span class="section-number">6.15.14. </span>Box command</a><a class="headerlink" href="#box-command" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 22Dec2022.</span></p>
+</div>
+<p>The <em>box</em> command has been removed and the LAMMPS code changed so it won’t
+be needed.  If present, LAMMPS will ignore the command and print a warning.</p>
+</section>
+<section id="reset-ids-reset-atom-ids-reset-mol-ids-commands">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink"><span class="section-number">6.15.15. </span>Reset_ids, reset_atom_ids, reset_mol_ids commands</a><a class="headerlink" href="#reset-ids-reset-atom-ids-reset-mol-ids-commands" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 22Dec2022.</span></p>
+</div>
+<p>The <em>reset_ids</em>, <em>reset_atom_ids</em>, and <em>reset_mol_ids</em> commands have
+been folded into the <a class="reference internal" href="reset_atoms.html"><span class="doc">reset_atoms</span></a> command.  If
+present, LAMMPS will replace the commands accordingly and print a
+warning.</p>
+</section>
+<section id="message-package">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink"><span class="section-number">6.15.16. </span>MESSAGE package</a><a class="headerlink" href="#message-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4May2022.</span></p>
+</div>
+<p>The MESSAGE package has been removed since it was superseded by the
+<a class="reference internal" href="Packages_details.html#pkg-mdi"><span class="std std-ref">MDI package</span></a>. MDI implements the same functionality
+and in a more general way with direct support for more applications.</p>
+</section>
+<section id="reax-package">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink"><span class="section-number">6.15.17. </span>REAX package</a><a class="headerlink" href="#reax-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4Jan2019.</span></p>
+</div>
+<p>The REAX package has been removed since it was superseded by the
+<a class="reference internal" href="Packages_details.html#pkg-reaxff"><span class="std std-ref">REAXFF package</span></a>.  The REAXFF package has been tested
+to yield equivalent results to the REAX package, offers better
+performance, supports OpenMP multi-threading via OPENMP, and GPU and
+threading parallelization through KOKKOS.  The new pair styles are not
+syntax compatible with the removed reax pair style, so input files will
+have to be adapted.  The REAXFF package was originally called
+USER-REAXC.</p>
+</section>
+<section id="meam-package">
+<h2><a class="toc-backref" href="#id18" role="doc-backlink"><span class="section-number">6.15.18. </span>MEAM package</a><a class="headerlink" href="#meam-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4Jan2019.</span></p>
+</div>
+<p>The MEAM package in Fortran has been replaced by a C++ implementation.
+The code in the <a class="reference internal" href="Packages_details.html#pkg-meam"><span class="std std-ref">MEAM package</span></a> is a translation of the
+Fortran code of MEAM into C++, which removes several restrictions
+(e.g. there can be multiple instances in hybrid pair styles) and allows
+for some optimizations leading to better performance.  The pair style
+<a class="reference internal" href="pair_meam.html"><span class="doc">meam</span></a> has the exact same syntax.  For a transition
+period the C++ version of MEAM was called USER-MEAMC so it could
+coexist with the Fortran version.</p>
+</section>
+<section id="user-cuda-package">
+<h2><a class="toc-backref" href="#id19" role="doc-backlink"><span class="section-number">6.15.19. </span>USER-CUDA package</a><a class="headerlink" href="#user-cuda-package" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 31May2016.</span></p>
+</div>
+<p>The USER-CUDA package had been removed, since it had been unmaintained
+for a long time and had known bugs and problems.  Significant parts of
+the design were transferred to the
+<a class="reference internal" href="Packages_details.html#pkg-kokkos"><span class="std std-ref">KOKKOS package</span></a>, which has similar
+performance characteristics on NVIDIA GPUs. Both, the KOKKOS
+and the <a class="reference internal" href="Packages_details.html#pkg-gpu"><span class="std std-ref">GPU package</span></a> are maintained
+and allow running LAMMPS with GPU acceleration.</p>
+</section>
+<section id="compute-atom-molecule">
+<h2><a class="toc-backref" href="#id20" role="doc-backlink"><span class="section-number">6.15.20. </span>Compute atom/molecule</a><a class="headerlink" href="#compute-atom-molecule" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 11: </span>Dec2015</p>
+</div>
+<p>The atom/molecule command has been removed from LAMMPS since it was superseded
+by the more general and extensible “chunk infrastructure”.  Here the system is
+partitioned in one of many possible ways - including using molecule IDs -
+through the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command and then
+summing is done using <a class="reference internal" href="compute_reduce_chunk.html"><span class="doc">compute reduce/chunk</span></a> Please
+refer to the <a class="reference internal" href="Howto_chunk.html"><span class="doc">chunk HOWTO</span></a> section for an overview.</p>
+</section>
+<section id="fix-ave-spatial-and-fix-ave-spatial-sphere">
+<h2><a class="toc-backref" href="#id21" role="doc-backlink"><span class="section-number">6.15.21. </span>Fix ave/spatial and fix ave/spatial/sphere</a><a class="headerlink" href="#fix-ave-spatial-and-fix-ave-spatial-sphere" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 11Dec2015.</span></p>
+</div>
+<p>The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
+since they were superseded by the more general and extensible “chunk
+infrastructure”.  Here the system is partitioned in one of many possible
+ways through the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command
+and then averaging is done using <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>.
+Please refer to the <a class="reference internal" href="Howto_chunk.html"><span class="doc">chunk HOWTO</span></a> section for an overview.</p>
+</section>
+<section id="restart2data-tool">
+<h2><a class="toc-backref" href="#id22" role="doc-backlink"><span class="section-number">6.15.22. </span>restart2data tool</a><a class="headerlink" href="#restart2data-tool" title="Link to this heading"></a></h2>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 23Nov2013.</span></p>
+</div>
+<p>The functionality of the restart2data tool has been folded into the
+LAMMPS executable directly instead of having a separate tool.  A
+combination of the commands <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> and
+<a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a> can be used to the same effect.  For
+added convenience this conversion can also be triggered by
+<a class="reference internal" href="Run_options.html"><span class="doc">command-line flags</span></a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Commands_dump.html" class="btn btn-neutral float-left" title="6.14. Dump styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="atc_add_molecule.html" class="btn btn-neutral float-right" title="fix atc command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

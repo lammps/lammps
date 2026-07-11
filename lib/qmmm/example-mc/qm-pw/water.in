@@ -1,0 +1,38 @@
+&CONTROL
+title="QMMM"
+calculation='md',
+restart_mode = 'from_scratch',
+tprnfor=.t.,
+prefix='ms2',
+pseudo_dir='pseudo'
+nstep = 2000,
+tqmmm = .true.
+/
+
+&SYSTEM
+ibrav = 1,
+celldm(1) = 18.642155649244,
+nat = 3,
+ntyp = 2,
+ecutwfc = 25.0 ,
+ecutrho = 250.0 ,
+/
+
+&ELECTRONS
+conv_thr  = 1.D-8,
+/
+
+&IONS
+ion_positions = 'default'
+/
+
+ATOMIC_SPECIES
+O 16.0000 O.pbe-van_bm.UPF
+H 1.0000  H.pbe-van_ak.UPF
+
+ATOMIC_POSITIONS angstrom
+O 4.890520 4.325756 3.842052
+H 3.893761 4.308535 3.950637
+H 4.946166 4.514250 2.851741
+
+K_POINTS gamma

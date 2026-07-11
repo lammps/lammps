@@ -1,0 +1,91 @@
+Compute styles
+==============
+
+Classes that compute scalar and vector quantities like temperature and
+the pressure tensor, as well as classes that compute per-atom quantities
+like kinetic energy and the centro-symmetry parameter are derived from
+the Compute class.  New styles can be created to add new calculations to
+LAMMPS.
+
+:doc:`Developer_write_compute` contains a detailed discussion of writing
+new compute styles from scratch with examples from existing styles.
+
+The ``src/compute_temp.cpp`` file is a simple example of computing a
+scalar temperature. The ``src/compute_ke_atom.cpp`` file is a simple
+example of computing per-atom kinetic energy.
+
+Here is a brief description of methods you define in your new derived
+class.  See ``src/compute.h`` for additional details.
+
++-----------------------+------------------------------------------------------------------+
+| post_constructor      | perform tasks that cannot be run in the constructor (optional)   |
++-----------------------+------------------------------------------------------------------+
+| init                  | perform one time setup (required)                                |
++-----------------------+------------------------------------------------------------------+
+| init_list             | neighbor list setup, if needed (optional)                        |
++-----------------------+------------------------------------------------------------------+
+| setup                 | called before the first timestep of a run (optional)             |
++-----------------------+------------------------------------------------------------------+
+| compute_scalar        | compute a scalar quantity (optional)                             |
++-----------------------+------------------------------------------------------------------+
+| compute_vector        | compute a vector of quantities (optional)                        |
++-----------------------+------------------------------------------------------------------+
+| compute_array         | compute a 2d array of quantities (optional)                      |
++-----------------------+------------------------------------------------------------------+
+| compute_peratom       | compute one or more quantities per atom (optional)               |
++-----------------------+------------------------------------------------------------------+
+| compute_local         | compute one or more quantities per processor (optional)          |
++-----------------------+------------------------------------------------------------------+
+| compute_pergrid       | compute one or more quantities per grid cell (optional)          |
++-----------------------+------------------------------------------------------------------+
+| compute_image         | compute image data for dump image (optional)                     |
++-----------------------+------------------------------------------------------------------+
+| set_arrays            | initialize per-atom arrays when a new atom is created (optional) |
++-----------------------+------------------------------------------------------------------+
+| pack_forward_comm     | pack a buffer with items to communicate (optional)               |
++-----------------------+------------------------------------------------------------------+
+| unpack_forward_comm   | unpack the buffer (optional)                                     |
++-----------------------+------------------------------------------------------------------+
+| pack_reverse_comm     | pack a buffer with items to reverse communicate (optional)       |
++-----------------------+------------------------------------------------------------------+
+| unpack_reverse_comm   | unpack the buffer (optional)                                     |
++-----------------------+------------------------------------------------------------------+
+| dof_remove_pre        | pre-check before removing atoms from temperature DOF (optional)  |
++-----------------------+------------------------------------------------------------------+
+| dof_remove            | return 1 to exclude an atom from temperature DOF count (optional)|
++-----------------------+------------------------------------------------------------------+
+| remove_bias           | remove velocity bias from one atom (optional)                    |
++-----------------------+------------------------------------------------------------------+
+| remove_bias_all       | remove velocity bias from all atoms in group (optional)          |
++-----------------------+------------------------------------------------------------------+
+| reapply_bias_all      | reapply velocity bias to all atoms in group (optional)           |
++-----------------------+------------------------------------------------------------------+
+| restore_bias          | restore velocity bias for one atom after remove_bias (optional)  |
++-----------------------+------------------------------------------------------------------+
+| restore_bias_all      | same as before, but for all atoms in group (optional)            |
++-----------------------+------------------------------------------------------------------+
+| lock_enable           | enable locking mechanism for fix ave/time (optional)             |
++-----------------------+------------------------------------------------------------------+
+| lock_disable          | disable locking mechanism (optional)                             |
++-----------------------+------------------------------------------------------------------+
+| refresh               | refresh internal state (e.g. for dump_modify refresh) (optional) |
++-----------------------+------------------------------------------------------------------+
+| pair_setup_callback   | callback invoked during pair-style setup (optional)              |
++-----------------------+------------------------------------------------------------------+
+| pair_tally_callback   | callback function for *tally*\ -style computes (optional).       |
++-----------------------+------------------------------------------------------------------+
+| get_thermo_colname    | return custom column label for thermo output (optional)          |
++-----------------------+------------------------------------------------------------------+
+| modify_param          | called when a compute_modify request is executed (optional)      |
++-----------------------+------------------------------------------------------------------+
+| memory_usage          | tally memory usage (optional)                                    |
++-----------------------+------------------------------------------------------------------+
+
+Tally-style computes are a special case, as their computation is done in
+two stages: the callback function is registered with the pair style and
+then called from the Pair::ev_tally() function, which is called for each
+pair after force and energy has been computed for this pair. Then the
+tallied values are retrieved with the standard compute_scalar or
+compute_vector or compute_peratom methods. The :doc:`compute styles in
+the TALLY package <compute_tally>` provide *examples* for utilizing this
+mechanism.

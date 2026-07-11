@@ -1,0 +1,286 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.13.3. LAMMPS Input Base Class &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Classes_input.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.13.4. Citation management for contributed features" href="Classes_cite.html" />
+    <link rel="prev" title="4.13.2. LAMMPS Atom and AtomVec Base Classes" href="Classes_atom.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Classes_lammps.html">4.13.1. LAMMPS Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Classes_atom.html">4.13.2. LAMMPS Atom and AtomVec Base Classes</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.13.3. LAMMPS Input Base Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Classes_cite.html">4.13.4. Citation management for contributed features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Classes.html"><span class="section-number">4.13. </span>C++ base classes</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.13.3. </span>LAMMPS Input Base Class</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Classes_atom.html" class="btn btn-neutral float-left" title="4.13.2. LAMMPS Atom and AtomVec Base Classes" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Classes_cite.html" class="btn btn-neutral float-right" title="4.13.4. Citation management for contributed features" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="lammps-input-base-class">
+<h1><span class="section-number">4.13.3. </span>LAMMPS Input Base Class<a class="headerlink" href="#lammps-input-base-class" title="Link to this heading"></a></h1>
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS5InputE">
+<span id="_CPPv3N9LAMMPS_NS5InputE"></span><span id="_CPPv2N9LAMMPS_NS5InputE"></span><span id="LAMMPS_NS::Input"></span><span class="target" id="classLAMMPS__NS_1_1Input"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">Input</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">protected</span></span><span class="w"> </span><a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><span class="n"><span class="pre">Pointers</span></span></a><a class="headerlink" href="#_CPPv4N9LAMMPS_NS5InputE" title="Link to this definition"></a><br /></dt>
+<dd><p>Class for processing commands and input files. </p>
+<p>The Input class contains methods for reading, pre-processing and
+parsing LAMMPS commands and input files and will dispatch commands
+to the respective class instances or contain the code to execute
+the commands directly.  It also contains the instance of the
+Variable class which performs computations and text substitutions.</p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS5Input5InputEP6LAMMPSiPPc">
+<span id="_CPPv3N9LAMMPS_NS5Input5InputEP6LAMMPSiPPc"></span><span id="_CPPv2N9LAMMPS_NS5Input5InputEP6LAMMPSiPPc"></span><span id="LAMMPS_NS::Input::Input__LAMMPSP.i.cPP"></span><span class="target" id="classLAMMPS__NS_1_1Input_1abd21b9a5d98f5ac7b05ef80bec6f706f"></span><span class="sig-name descname"><span class="n"><span class="pre">Input</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">class</span></span><span class="w"> </span><a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><span class="n"><span class="pre">LAMMPS</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS5Input5InputEP6LAMMPSiPPc" title="Link to this definition"></a><br /></dt>
+<dd><p><a class="reference internal" href="#classLAMMPS__NS_1_1Input"><span class="std std-ref">Input</span></a> class constructor</p>
+<p><p>This sets up the input processing, processes the <em>-var</em> and <em>-echo</em>
+command-line flags, holds the factory of commands and creates and
+initializes an instance of the Variable class.</p>
+<p>To execute a command, a specific class instance, derived from
+<code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">Command</span></code>, is created, then its <code class="docutils literal notranslate"><span class="pre">command()</span></code> member
+function executed, and finally the class instance is deleted.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmp</strong> – pointer to the base <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> class </p></li>
+<li><p><strong>argc</strong> – number of entries in <em>argv</em></p></li>
+<li><p><strong>argv</strong> – argument vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS5Input4fileEv">
+<span id="_CPPv3N9LAMMPS_NS5Input4fileEv"></span><span id="_CPPv2N9LAMMPS_NS5Input4fileEv"></span><span id="LAMMPS_NS::Input::file"></span><span class="target" id="classLAMMPS__NS_1_1Input_1a5dafc7f590ea20432d3a8ca63e7ee96a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">file</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS5Input4fileEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Process all input from the <code class="docutils literal notranslate"><span class="pre">FILE</span> <span class="pre">*</span></code> pointer <em>infile</em></p>
+<p>This will read lines from <em>infile</em>, parse and execute them until the end
+of the file is reached.  The <em>infile</em> pointer will usually point to
+<code class="docutils literal notranslate"><span class="pre">stdin</span></code> or the input file given with the <code class="docutils literal notranslate"><span class="pre">-in</span></code> command-line flag.</p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS5Input4fileEPKc">
+<span id="_CPPv3N9LAMMPS_NS5Input4fileEPKc"></span><span id="_CPPv2N9LAMMPS_NS5Input4fileEPKc"></span><span id="LAMMPS_NS::Input::file__cCP"></span><span class="target" id="classLAMMPS__NS_1_1Input_1afd15ad1408b89c5f6df242228147b370"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">file</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS5Input4fileEPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Process all input from the file <em>filename</em></p>
+<p>This function opens the file at the path <em>filename</em>, puts the current
+file pointer stored in <em>infile</em> on a stack and instead assigns <em>infile</em>
+with the newly opened file pointer.  Then it will call the
+<a class="reference internal" href="#_CPPv4N9LAMMPS_NS5Input4fileEv" title="LAMMPS_NS::Input::file"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">Input::file()</span></code></a> function to read,
+parse and execute the contents of that file.  When the end of the file
+is reached, it is closed and the previous file pointer from the infile
+file pointer stack restored to <em>infile</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> – name of file with <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> commands </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS5Input3oneERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS5Input3oneERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS5Input3oneERKNSt6stringE"></span><span id="LAMMPS_NS::Input::one__ssCR"></span><span class="target" id="classLAMMPS__NS_1_1Input_1ad2ba7d137bc5ca20182ef7cd050940ed"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">one</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&amp;</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS5Input3oneERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Process a single command from a string in <em>single</em></p>
+<p>This function takes the text in <em>single</em>, makes a copy, parses that,
+executes the command and returns the name of the command (without the
+arguments).  If there was no command in <em>single</em> it will return
+<code class="docutils literal notranslate"><span class="pre">nullptr</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>single</strong> – string with <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> command </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>string with name of the parsed command w/o arguments </p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Classes_atom.html" class="btn btn-neutral float-left" title="4.13.2. LAMMPS Atom and AtomVec Base Classes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Classes_cite.html" class="btn btn-neutral float-right" title="4.13.4. Citation management for contributed features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

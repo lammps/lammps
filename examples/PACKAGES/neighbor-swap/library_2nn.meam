@@ -1,0 +1,26 @@
+# DATE: 2024-08-08 UNITS: metal CONTRIBUTOR: Axel Kohlmeyer, akohlmey@gmail.com CITATION: Wang, J., Kwon, H., Kim, H.S. et al. A neural network model for high entropy alloy design. npj Comput Mater 9, 60 (2023). https://doi.org/10.1038/s41524-023-01010-x
+# Use with MoCoNiVFeAlCr_2nn.meam like this: pair_coeff * * library_2nn Mo Co Ni V Fe Al Cr MoCoNiVFeAlCr_2nn.meam <Element of atom type 1> <Element of atom type 2> ...
+# elt        lat     z       ielement     atwt
+# alpha      b0      b1      b2           b3    alat    esub    asub
+# t0         t1              t2           t3            rozero  ibar
+'Mo' 'bcc' 8 1 89.9600
+5.8381780760 5.950 9.000 3.000 1.000 3.1465589671 6.810 0.610
+1.00 2.000 7.750 -7.000 1.000 3
+'Co' 'hcp' 12 1 58.9330
+5.2356147485 3.500 0.000 0.000 4.000 2.5000000000 4.410 0.900
+1.00 3.000 5.000 -1.000 1.000 3
+'Ni' 'fcc' 12 1 58.6900
+5.0842175782 2.560 1.500 6.000 1.500 3.5213917703 4.450 0.940
+1.00 3.100 1.800 4.360 1.000 3
+'V' 'bcc' 8 1 50.9420
+4.8137039168 4.740 1.000 2.500 1.000 3.0310889132 5.300 0.730
+1.00 3.300 3.200 -2.000 1.000 3
+'Fe' 'bcc' 8 1 55.8470
+5.1571615396 4.150 1.000 1.000 1.000 2.8636573352 4.290 0.560
+1.00 2.600 1.800 -7.200 1.000 3
+'Al' 'fcc' 12 1 26.9820
+4.6855976824 3.200 2.600 6.000 2.600 4.0446507884 3.360 1.160
+1.00 3.050 0.510 7.750 1.000 3
+'Cr' 'bcc' 8 1 51.9600
+5.5800716432 6.490 1.000 6.000 1.000 2.8809778433 4.100 0.520
+1.00 2.000 6.800 -8.000 1.000 3

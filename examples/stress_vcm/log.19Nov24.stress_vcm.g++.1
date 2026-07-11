@@ -1,0 +1,253 @@
+LAMMPS (19 Nov 2024)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+# Removing Binned Velocities of Center of Mass (VCM) from Stress
+
+# This example shows how to remove rigid body motion from
+# binned stress calculations. This uses a combination of commands
+# from compute chunk/atom, compute temp/chunk, compute
+# stress/atom and fix ave/time. We'll show how these commands
+# work in the context of a shockwave experiment on a cube of
+# atoms. To shock the cube, a rectangular region of atoms is
+# frozen, moved into the cube with a constant velocity along the
+# x direction, and then unfrozen. As the shockwave begins
+# propagating, the body of the cube also moves along the x
+# direction. To better understand the stress dynamics of the
+# cube we remove the velocity component belonging to the overall
+# motion of each bin.
+
+units		    metal
+boundary        p p p
+atom_style	    atomic
+lattice		    fcc 5.3589
+Lattice spacing in x,y,z = 5.3589 5.3589 5.3589
+processors 		1 * *
+
+# Defining regions for box and atoms.
+# In this experiment an elongated simulation cell is
+# defined in the x direction to allow for non-periodic
+# motion of the atoms.
+
+region		    box1 block -3 24 0 12 0 12 units lattice
+region		    box2 block 0 12 0 12 0 12 units lattice
+
+# Creating box and atoms
+
+create_box	    1 box1
+Created orthogonal box = (-16.0767 0 0) to (128.6136 64.3068 64.3068)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 region box2
+Created 7200 atoms
+  using lattice units in orthogonal box = (-16.0767 0 0) to (128.6136 64.3068 64.3068)
+  create_atoms CPU = 0.002 seconds
+
+mass		    1 40.00
+
+# Adding energy to the system
+
+velocity        all create 600.0 9999
+
+pair_style	    lj/cut 10
+pair_coeff	    1 1 0.04 3.405
+
+# Begin time integration
+
+timestep        2e-3
+
+fix	            fix_nve all nve
+
+thermo		    100
+
+run             500
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 25 11 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.721 | 5.721 | 5.721 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   600           -2252.7567      0             -1694.4304     -974.62456    
+       100   284.72172     -1977.4291      0             -1712.483       2453.7429    
+       200   304.44519     -1994.7937      0             -1711.4941      1822.2699    
+       300   304.28012     -1993.2958      0             -1710.1498      1498.3794    
+       400   296.76492     -1985.1364      0             -1708.9836      1259.9474    
+       500   295.00895     -1982.4224      0             -1707.9036      964.9526     
+Loop time of 3.01696 on 1 procs for 500 steps with 7200 atoms
+
+Performance: 28.638 ns/day, 0.838 hours/ns, 165.730 timesteps/s, 1.193 Matom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.8439     | 2.8439     | 2.8439     |   0.0 | 94.26
+Neigh   | 0.11212    | 0.11212    | 0.11212    |   0.0 |  3.72
+Comm    | 0.015585   | 0.015585   | 0.015585   |   0.0 |  0.52
+Output  | 0.003747   | 0.003747   | 0.003747   |   0.0 |  0.12
+Modify  | 0.026097   | 0.026097   | 0.026097   |   0.0 |  0.87
+Other   |            | 0.01551    |            |       |  0.51
+
+Nlocal:           7200 ave        7200 max        7200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           6410 ave        6410 max        6410 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         615095 ave      615095 max      615095 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 615095
+Ave neighs/atom = 85.429861
+Neighbor list builds = 9
+Dangerous builds = 0
+
+#------------------------------------#
+# Chunk, Stress, and VCM removal steps
+#------------------------------------#
+
+# 1. Create 20 equispaced bins sliced along the x direction.
+# "units reduced" normalizes the distance from 0 to 1
+variable        nbins index 20
+variable        fraction equal 1.0/v_nbins
+variable        volfrac equal 1/(vol*${fraction})
+variable        volfrac equal 1/(vol*0.05)
+compute         ch_id all chunk/atom bin/1d x lower ${fraction} units reduced
+compute         ch_id all chunk/atom bin/1d x lower 0.05 units reduced
+
+# 2. Calculate temperature bins with VCM aka COM velocities removed.
+compute         ch_temp_vcm all temp/chunk ch_id com yes
+
+# 3. Compute per atom stress with VCM removed via temp-ID.
+# The velocities from specified temp-ID are used to compute stress
+# Stress/atom units are pressure*volume! Optionally handled next step.
+compute         atom_stress_vcm all stress/atom ch_temp_vcm
+
+# 4. Divide out bin volume from xx stress component.
+variable        stress atom -(c_atom_stress_vcm[1])/(vol*${fraction})
+variable        stress atom -(c_atom_stress_vcm[1])/(vol*0.05)
+
+# 5. Sum the per atom stresses in each bin.
+compute         ch_stress_vcm all reduce/chunk ch_id sum v_stress
+
+# 6. Average and output to file.
+# The average output is every 100 steps with samples collected 20 times with 5 step intervals
+# fix             ave_stress_vcm all ave/time 5 20 100 c_ch_stress_vcm mode vector file stress_xx.out
+
+#------------------------------------#
+
+# Piston compressing along x direction
+
+region 			piston block -1 1 INF INF INF INF units lattice
+group          	piston region piston
+863 atoms in group piston
+fix 			fix_piston piston move linear 5 0 0 units box # strain rate ~ 8e10 1/s
+
+thermo_style    custom step temp ke pe lx ly lz pxx pyy pzz econserve
+
+# Atom dump
+
+# dump		    atom_dump all atom 50 dump.vcm
+
+# # Image dumps
+
+# dump		    2 all image 250 image.*.jpg type type # 		        axes yes 0.8 0.02 view 60 -30
+# dump_modify	    2 pad 1
+
+# # Movie dump
+
+# dump		    3 all movie 125 movie.avi type type # 		        axes yes 0.8 0.02 view 60 -30
+# dump_modify	    3 pad 1
+
+run	            500
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: One or more atoms are time integrated more than once (src/modify.cpp:296)
+Per MPI rank memory allocation (min/avg/max) = 6.975 | 6.975 | 6.975 Mbytes
+   Step          Temp          KinEng         PotEng           Lx             Ly             Lz            Pxx            Pyy            Pzz         Econserve   
+       500   295.00895      274.51875     -1982.4224      144.6903       64.3068        64.3068        631.89976      1127.2965      1135.6616     -1707.9036    
+       600   357.38902      332.56613     -1951.3422      144.6903       64.3068        64.3068        2236.6706      2003.2726      1943.6815     -1618.7761    
+       700   420.30268      391.11005     -1911.8178      144.6903       64.3068        64.3068        3761.5011      3065.4699      3140.3169     -1520.7077    
+       800   484.96279      451.27911     -1875.379       144.6903       64.3068        64.3068        5362.254       4174.4201      4166.0818     -1424.0999    
+       900   587.78954      546.96391     -1871.217       144.6903       64.3068        64.3068        6481.4714      4875.705       4676.6083     -1324.2531    
+      1000   684.07997      636.56636     -1868.1639      144.6903       64.3068        64.3068        7734.6158      5271.3524      5272.1276     -1231.5975    
+Loop time of 3.09383 on 1 procs for 500 steps with 7200 atoms
+
+Performance: 27.927 ns/day, 0.859 hours/ns, 161.612 timesteps/s, 1.164 Matom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.8485     | 2.8485     | 2.8485     |   0.0 | 92.07
+Neigh   | 0.18767    | 0.18767    | 0.18767    |   0.0 |  6.07
+Comm    | 0.011533   | 0.011533   | 0.011533   |   0.0 |  0.37
+Output  | 0.003323   | 0.003323   | 0.003323   |   0.0 |  0.11
+Modify  | 0.031777   | 0.031777   | 0.031777   |   0.0 |  1.03
+Other   |            | 0.01107    |            |       |  0.36
+
+Nlocal:           7200 ave        7200 max        7200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           6409 ave        6409 max        6409 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         646408 ave      646408 max      646408 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 646408
+Ave neighs/atom = 89.778889
+Neighbor list builds = 15
+Dangerous builds = 0
+
+unfix           fix_piston
+
+run             1500
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 6.6 | 6.6 | 6.6 Mbytes
+   Step          Temp          KinEng         PotEng           Lx             Ly             Lz            Pxx            Pyy            Pzz         Econserve   
+      1000   684.07997      636.56636     -1868.1639      144.6903       64.3068        64.3068        7734.6158      5271.3524      5272.1276     -1231.5975    
+      1100   710.19886      660.87113     -1894.0485      144.6903       64.3068        64.3068        8048.3485      5396.6668      5376.5956     -1233.1774    
+      1200   717.16487      667.35331     -1901.3849      144.6903       64.3068        64.3068        8009.7984      5634.5121      5349.4113     -1234.0316    
+      1300   710.26037      660.92837     -1894.9802      144.6903       64.3068        64.3068        8063.4125      5572.1245      5530.174      -1234.0519    
+      1400   715.93921      666.21278     -1898.8885      144.6903       64.3068        64.3068        7752.0927      5293.5463      5322.2312     -1232.6757    
+      1500   748.85411      696.84154     -1926.4891      144.6903       64.3068        64.3068        6030.5428      4076.8886      4012.7653     -1229.6475    
+      1600   767.98982      714.64815     -1939.8556      144.6903       64.3068        64.3068        4200.3475      2532.5711      2530.5518     -1225.2075    
+      1700   757.22042      704.62675     -1925.553       144.6903       64.3068        64.3068        2686.7843      1482.2796      1505.8073     -1220.9262    
+      1800   727.30327      676.78754     -1894.6635      144.6903       64.3068        64.3068        1764.2793      781.37451      801.18668     -1217.8759    
+      1900   688.82146      640.97853     -1856.5007      144.6903       64.3068        64.3068        1022.805       417.32394      359.74951     -1215.5221    
+      2000   655.91228      610.35509     -1823.954       144.6903       64.3068        64.3068        551.98825     -20.148643     -56.976652     -1213.5989    
+      2100   620.22468      577.14622     -1789.1761      144.6903       64.3068        64.3068        264.05975     -266.8323      -314.45533     -1212.0299    
+      2200   589.13325      548.21428     -1758.9252      144.6903       64.3068        64.3068        41.369707     -533.503       -525.69401     -1210.7109    
+      2300   563.20394      524.08593     -1733.6036      144.6903       64.3068        64.3068       -220.99189     -810.90513     -774.65084     -1209.5176    
+      2400   540.44236      502.90528     -1711.3384      144.6903       64.3068        64.3068       -358.01508     -962.31635     -977.3253      -1208.4332    
+      2500   523.5718       487.20648     -1694.7088      144.6903       64.3068        64.3068       -521.87444     -1152.8386     -1231.7615     -1207.5023    
+Loop time of 9.34327 on 1 procs for 1500 steps with 7200 atoms
+
+Performance: 27.742 ns/day, 0.865 hours/ns, 160.543 timesteps/s, 1.156 Matom-step/s
+98.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.4692     | 8.4692     | 8.4692     |   0.0 | 90.65
+Neigh   | 0.7512     | 0.7512     | 0.7512     |   0.0 |  8.04
+Comm    | 0.031189   | 0.031189   | 0.031189   |   0.0 |  0.33
+Output  | 0.010584   | 0.010584   | 0.010584   |   0.0 |  0.11
+Modify  | 0.053052   | 0.053052   | 0.053052   |   0.0 |  0.57
+Other   |            | 0.02803    |            |       |  0.30
+
+Nlocal:           7200 ave        7200 max        7200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           6380 ave        6380 max        6380 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         515773 ave      515773 max      515773 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 515773
+Ave neighs/atom = 71.635139
+Neighbor list builds = 57
+Dangerous builds = 0
+Total wall time: 0:00:15

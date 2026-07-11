@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+History of LAMMPS</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation.</P>
+<P>
+This is a brief history of features added to each version of LAMMPS.</P>
+<HR>
+<H3>
+LAMMPS 2001 - November 2001</H3>
+<UL>
+    <LI>
+    F90 + MPI version of code 
+    <LI>
+    dynamic memory, no param.h file settings to twiddle, see "extra memory"
+    command
+    <LI>
+    changed required ordering of some input script commands (see discussion in
+    <A HREF="input_commands.html">input_commands</A>) file
+    <LI>
+    new commands: "extra memory", "maximum cutoff", "restart version",
+    "angle coeff", "dihedral coeff", "improper coeff",
+    "volume control", "slab volume", "rotation zero"
+    <LI>
+    changed meaning or syntax of commands:
+    "special bonds", "fix style rescale", "fix style hoover/drag",
+    "temp control rescale", "press control", "restart"
+    <LI>
+    deleted commands: "log file", "press_x control" (and y,z)
+    <LI>
+    better match to CHARMM force fields via "nonbond style lj/charmm",
+    "coulomb style charmm/switch", "angle style charmm", dihedral style charmm"
+    (due to Mark Stevens and Paul Crozier)
+    <LI>
+    changed "special bonds" default to 0.0 weighting on 1-4 interactions for
+    CHARMM compatibility, added "special bonds amber" option for AMBER
+    compatibility
+    <LI>
+    ghost atoms and new treatment of periodic boundary conditions, 
+    this allows for cutoffs &gt; box-size and faster neighbor binning,
+    binned neighbor list construction is now the default as it is almost
+    always faster
+    <LI>
+    perform blocked-input from data and restart files, faster for many MPI 
+    implementations (due to Mathias Puetz)
+    <LI>
+    added Velocities option to data file to initialize each atom's
+    velocity (see <A HREF="data_format.html">data_format</A> file) 
+    <LI>
+    pressure control was decoupled from temperature control, so that
+    constant NPH simulations can be run (not just NPT), temperature 
+    controls such as rescale or Langevin can now be used with constant P
+    simulations (due to Mark Stevens)
+    <LI>
+    temperature rescaling (either in "temp control" or "fix style rescale")
+    has an added fractional parameter which allows it to be applied
+    in a lightweight or heavy-handed way to induce the desired temperature
+    <LI>
+    got rid of crib.html file, see global.f for documentation of all 
+    variables
+    <LI>
+    2-d slab Ewald and PPPM option, (see "slab volume" in
+    <A HREF="input_commands.html">input commands</A>) (due to Paul Crozier)
+    <LI>
+    new multiharmonic dihedral and cvff improper force-field options
+    (due to Mathias Puetz)
+    <LI>
+    SHAKE constraint for small clusters of atoms, see "fix style shake"
+    and "assign fix bondtype" commands
+    <LI>
+    added option to output restart files with timestep stamp or to toggle
+    between 2 files, see "restart" command
+    <LI>
+    tools for converting to/from other MD program formats:
+    msi2lmp (updated by John Carpenter),
+    lmp2arc (due to John Carpenter),
+    amber2lammps & dump2trj (Python scripts due to Keir Novik)
+    <LI>
+    tools for creating and massaging LAMMPS data and restart files:
+    setup_lj, setup_flow_2d, setup_chain, peek_restart, restart2data,
+    replicate
+</UL>
+<HR>
+<H3>
+LAMMPS 99 - June 99 </H3>
+<UL>
+    <LI>
+    all-MPI version of code (F77 + C + MPI) for maximum portablility 
+    <LI>
+    only one PPPM choice now, the better of the two earlier ones 
+    <LI>
+    PPPM uses portable FFTs and data remapping routines, written in C w/ 
+    MPI, can now use non-power-of-2 processors and grid sizes 
+    <LI>
+    auto-mapping of simulation box to processors 
+    <LI>
+    removed a few unused/unneeded commands (bdump, log file, id string, 
+    limit) 
+    <LI>
+    changed syntax of some commands for simplicity &amp; consistency (see <A
+     HREF="input_commands.html">input commands</A>) 
+    <LI>
+    changed method of calling/writing user diagnostic routines to be 
+    simpler 
+    <LI>
+    documentation in HTML format 
+</UL>
+<HR>
+<H3>
+Version 5.0 - Oct 1997 </H3>
+<UL>
+    <LI>
+    final version of class II force fields (due to Eric Simon)
+    <LI>
+    new formulation of NVE, NVT, NPT and rRESPA integrators (due to
+    Mark Stevens)
+    <LI>
+    new version of msi2lmp pre-processing tool, does not require DISCOVER 
+    to run, only DISCOVER force field files (due to Steve Lustig)
+    <LI>
+    energy minimizer, Hessian-free truncated Newton method
+    (due to Todd Plantenga)
+    <LI>
+    new pressure controllers and constraints (due to Mark Stevens)
+    <LI>
+    replicate tool for generating new data files from old ones 
+</UL>
+<HR ALIGN="LEFT">
+<H3>
+Version 4.0 - March 1997 </H3>
+<UL>
+    <LI>
+    1st version of class II force fields (due to Eric Simon)
+    <LI>
+    new, faster PPPM solver (newpppm, due to Roy Pollock)
+    <LI>
+    rRESPA (due to Mark Stevens)
+    <LI>
+    new data file format 
+    <LI>
+    new constraints, diagnostics 
+    <LI>
+    msi2lmp pre-processing tool (due to Steve Lustig)
+</UL>
+<HR>
+<H3>
+Version 3.0 - March 1996 </H3>
+<UL>
+    <LI>
+    more general force-field formulation 
+    <LI>
+    atom/group constraints 
+    <LI>
+    LJ units and bond potentials 
+    <LI>
+    smoothed LJ potential option 
+    <LI>
+    Langevin thermostat 
+    <LI>
+    Newton's 3rd law option 
+    <LI>
+    hook for user-supplied diagnostic routines 
+</UL>
+<HR>
+<H3>
+Version 2.0 - October 1995 </H3>
+<UL>
+    <LI>
+    bug fix of velocity initialization which caused drift 
+    <LI>
+    PPPM for long-range Coulombic (due to Roy Pollock)
+    <LI>
+    constant NPT (due to Mark Stevens)
+</UL>
+<HR>
+<H3>
+Version 1.1 - February 1995 </H3>
+<UL>
+    <LI>
+    Ewald for long-range Coulombic (due to Roy Pollock)
+    <LI>
+    full Newton's 3rd law (doubled communication) 
+    <LI>
+    dumping of atom positions and velocities 
+    <LI>
+    restart files 
+</UL>
+<HR>
+<H3>
+Version 1.0 - January 1995 </H3>
+<UL>
+    <LI>
+    short-range bonded and non-bonded forces 
+    <LI>
+    partial Newton's 3rd law 
+    <LI>
+    velocity-Verlet integrator 
+</UL>
+</BODY>
+</HTML>

@@ -1,0 +1,23 @@
+---
+Language:        Cpp
+BasedOnStyle:  LLVM
+AccessModifierOffset: -4
+AlignConsecutiveAssignments: true
+AlignEscapedNewlines: Left
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLambdasOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: WithoutElse
+BraceWrapping:
+  AfterFunction:   true
+BreakBeforeBraces: Custom
+BreakInheritanceList: AfterColon
+BreakConstructorInitializers: AfterColon
+ColumnLimit:     100
+IndentCaseLabels: true
+IndentWidth:     4
+ObjCBlockIndentWidth: 4
+PenaltyBreakAssignment: 4
+Standard:        Cpp11
+TabWidth:        4
+UseTab:          Never
+...

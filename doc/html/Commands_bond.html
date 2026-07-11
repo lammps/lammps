@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6.9. Bond styles &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Commands_bond.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="6.13. KSpace styles" href="Commands_kspace.html" />
+    <link rel="prev" title="6.8. Pair styles" href="Commands_pair.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Commands.html">6. Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">6.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_parse.html">6.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">6.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_category.html">6.4. Commands by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">6.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">6.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">6.7. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_pair.html">6.8. Pair styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">6.9. Bond styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#angle-styles">6.10. Angle styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dihedral-styles">6.11. Dihedral styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#improper-styles">6.12. Improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">6.13. KSpace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_dump.html">6.14. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_removed.html">6.15. Removed commands and packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Commands.html"><span class="section-number">6. </span>Commands</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6.9. </span>Bond styles</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Commands_pair.html" class="btn btn-neutral float-left" title="6.8. Pair styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Commands_kspace.html" class="btn btn-neutral float-right" title="6.13. KSpace styles" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Commands_all.html"><span class="doc">General commands</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_fix.html"><span class="doc">Fix styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_compute.html"><span class="doc">Compute styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_pair.html"><span class="doc">Pair styles</span></a></p></td>
+<td><p><a class="reference internal" href="#bond"><span class="std std-ref">Bond styles</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#angle"><span class="std std-ref">Angle styles</span></a></p></td>
+<td><p><a class="reference internal" href="#dihedral"><span class="std std-ref">Dihedral styles</span></a></p></td>
+<td><p><a class="reference internal" href="#improper"><span class="std std-ref">Improper styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_kspace.html"><span class="doc">KSpace styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_dump.html"><span class="doc">Dump styles</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<section id="bond-styles">
+<span id="bond"></span><h1><span class="section-number">6.9. </span>Bond styles<a class="headerlink" href="#bond-styles" title="Link to this heading"></a></h1>
+<p>All LAMMPS <a class="reference internal" href="bond_style.html"><span class="doc">bond_style</span></a> commands.  Some styles have
+accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="bond_none.html"><span class="doc">none</span></a></p></td>
+<td><p><a class="reference internal" href="bond_zero.html"><span class="doc">zero</span></a></p></td>
+<td><p><a class="reference internal" href="bond_hybrid.html"><span class="doc">hybrid (k)</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="bond_bpm_rotational.html"><span class="doc">bpm/rotational</span></a></p></td>
+<td><p><a class="reference internal" href="bond_bpm_spring.html"><span class="doc">bpm/spring</span></a></p></td>
+<td><p><a class="reference internal" href="bond_bpm_spring_plastic.html"><span class="doc">bpm/spring/plastic</span></a></p></td>
+<td><p><a class="reference internal" href="bond_class2.html"><span class="doc">class2 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_fene.html"><span class="doc">fene (iko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="bond_fene_expand.html"><span class="doc">fene/expand (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_fene.html"><span class="doc">fene/nm (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_gaussian.html"><span class="doc">gaussian (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_gromos.html"><span class="doc">gromos (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">harmonic (iko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="bond_harmonic_restrain.html"><span class="doc">harmonic/restrain (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_harmonic_shift.html"><span class="doc">harmonic/shift (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_harmonic_shift_cut.html"><span class="doc">harmonic/shift/cut (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_lepton.html"><span class="doc">lepton (o)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_mesocnt.html"><span class="doc">mesocnt</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="bond_mm3.html"><span class="doc">mm3 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_morse.html"><span class="doc">morse (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_nonlinear.html"><span class="doc">nonlinear (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_oxdna.html"><span class="doc">oxdna/fene</span></a></p></td>
+<td><p><a class="reference internal" href="bond_oxdna.html"><span class="doc">oxdna2/fene</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="bond_oxdna.html"><span class="doc">oxdna3/fene</span></a></p></td>
+<td><p><a class="reference internal" href="bond_oxdna.html"><span class="doc">oxrna2/fene</span></a></p></td>
+<td><p><a class="reference internal" href="bond_quartic.html"><span class="doc">quartic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_quartic_exp.html"><span class="doc">quartic/exp (k)</span></a></p></td>
+<td><p><a class="reference internal" href="bond_rheo_shell.html"><span class="doc">rheo/shell</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="bond_special.html"><span class="doc">special</span></a></p></td>
+<td><p><a class="reference internal" href="bond_table.html"><span class="doc">table (o)</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="angle-styles">
+<span id="angle"></span><h1><span class="section-number">6.10. </span>Angle styles<a class="headerlink" href="#angle-styles" title="Link to this heading"></a></h1>
+<p>All LAMMPS <a class="reference internal" href="angle_style.html"><span class="doc">angle_style</span></a> commands.  Some styles have
+accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
+OPT.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="angle_none.html"><span class="doc">none</span></a></p></td>
+<td><p><a class="reference internal" href="angle_zero.html"><span class="doc">zero</span></a></p></td>
+<td><p><a class="reference internal" href="angle_hybrid.html"><span class="doc">hybrid (k)</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="angle_amoeba.html"><span class="doc">amoeba</span></a></p></td>
+<td><p><a class="reference internal" href="angle_charmm.html"><span class="doc">charmm (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_class2.html"><span class="doc">class2 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_class2.html"><span class="doc">class2/p6 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_class2.html"><span class="doc">class2xe (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="angle_cosine.html"><span class="doc">cosine (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cosine_buck6d.html"><span class="doc">cosine/buck6d (o)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cosine_delta.html"><span class="doc">cosine/delta (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cosine_periodic.html"><span class="doc">cosine/periodic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cosine_shift.html"><span class="doc">cosine/shift (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="angle_cosine_shift_exp.html"><span class="doc">cosine/shift/exp (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cosine_squared.html"><span class="doc">cosine/squared (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cosine_squared_restricted.html"><span class="doc">cosine/squared/restricted (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_cross.html"><span class="doc">cross (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_dipole.html"><span class="doc">dipole (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="angle_fourier.html"><span class="doc">fourier (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_fourier_simple.html"><span class="doc">fourier/simple (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_gaussian.html"><span class="doc">gaussian (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_harmonic.html"><span class="doc">harmonic (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_lepton.html"><span class="doc">lepton (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="angle_mesocnt.html"><span class="doc">mesocnt</span></a></p></td>
+<td><p><a class="reference internal" href="angle_mm3.html"><span class="doc">mm3 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_mwlc.html"><span class="doc">mwlc (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_quartic.html"><span class="doc">quartic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="angle_spica.html"><span class="doc">spica (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="angle_table.html"><span class="doc">table (o)</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="dihedral-styles">
+<span id="dihedral"></span><h1><span class="section-number">6.11. </span>Dihedral styles<a class="headerlink" href="#dihedral-styles" title="Link to this heading"></a></h1>
+<p>All LAMMPS <a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral_style</span></a> commands.  Some styles
+have accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
+OPT.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="dihedral_none.html"><span class="doc">none</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_zero.html"><span class="doc">zero</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_hybrid.html"><span class="doc">hybrid (k)</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">charmm (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_charmm.html"><span class="doc">charmmfsw (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_class2.html"><span class="doc">class2 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_class2.html"><span class="doc">class2xe (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_cosine_shift_exp.html"><span class="doc">cosine/shift/exp (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="dihedral_cosine_squared_restricted.html"><span class="doc">cosine/squared/restricted (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_fourier.html"><span class="doc">fourier (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_harmonic.html"><span class="doc">harmonic (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_helix.html"><span class="doc">helix (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_lepton.html"><span class="doc">lepton (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="dihedral_multi_harmonic.html"><span class="doc">multi/harmonic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_nharmonic.html"><span class="doc">nharmonic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_opls.html"><span class="doc">opls (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_quadratic.html"><span class="doc">quadratic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_spherical.html"><span class="doc">spherical (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="dihedral_table.html"><span class="doc">table (o)</span></a></p></td>
+<td><p><a class="reference internal" href="dihedral_table.html"><span class="doc">table/cut (o)</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="improper-styles">
+<span id="improper"></span><h1><span class="section-number">6.12. </span>Improper styles<a class="headerlink" href="#improper-styles" title="Link to this heading"></a></h1>
+<p>All LAMMPS <a class="reference internal" href="improper_style.html"><span class="doc">improper_style</span></a> commands.  Some styles
+have accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t =
+OPT.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="improper_none.html"><span class="doc">none</span></a></p></td>
+<td><p><a class="reference internal" href="improper_zero.html"><span class="doc">zero</span></a></p></td>
+<td><p><a class="reference internal" href="improper_hybrid.html"><span class="doc">hybrid (k)</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="improper_amoeba.html"><span class="doc">amoeba</span></a></p></td>
+<td><p><a class="reference internal" href="improper_class2.html"><span class="doc">class2 (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_cossq.html"><span class="doc">cossq (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_cvff.html"><span class="doc">cvff (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_distance.html"><span class="doc">distance (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="improper_distharm.html"><span class="doc">distharm (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_fourier.html"><span class="doc">fourier (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_harmonic.html"><span class="doc">harmonic (iko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_inversion_harmonic.html"><span class="doc">inversion/harmonic (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_ring.html"><span class="doc">ring (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="improper_sqdistharm.html"><span class="doc">sqdistharm (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="improper_umbrella.html"><span class="doc">umbrella (ko)</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Commands_pair.html" class="btn btn-neutral float-left" title="6.8. Pair styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Commands_kspace.html" class="btn btn-neutral float-right" title="6.13. KSpace styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

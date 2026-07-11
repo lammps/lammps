@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.25. Internal Styles &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_internal.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.26. Use of distributed grids within style classes" href="Developer_grid.html" />
+    <link rel="prev" title="4.15. Utility functions" href="Developer_utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.25. Internal Styles</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#deprecated-styles">4.25.1. DEPRECATED Styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#internal-fix-styles">4.25.2. Internal fix styles</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.25. </span>Internal Styles</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_utils.html" class="btn btn-neutral float-left" title="4.15. Utility functions" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_grid.html" class="btn btn-neutral float-right" title="4.26. Use of distributed grids within style classes" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="internal-styles">
+<h1><span class="section-number">4.25. </span>Internal Styles<a class="headerlink" href="#internal-styles" title="Link to this heading"></a></h1>
+<p>LAMMPS has a number of styles that are not meant to be used in an input
+file and thus are not documented in the <a class="reference internal" href="Commands_all.html"><span class="doc">LAMMPS command
+documentation</span></a>.  The differentiation between user
+commands and internal commands is through the case of the command name:
+user commands and styles are all lower case, internal styles are all
+upper case.  Internal styles are not called from the input file, but
+their classes are instantiated by other styles.  Often they are
+created by other styles to store internal data or to perform actions
+regularly at specific steps of the simulation.</p>
+<p>The paragraphs below document some of those styles that have general
+utility and may be used to avoid redundant implementation.</p>
+<section id="deprecated-styles">
+<h2><span class="section-number">4.25.1. </span>DEPRECATED Styles<a class="headerlink" href="#deprecated-styles" title="Link to this heading"></a></h2>
+<p>The styles called DEPRECATED (e.g. pair, bond, fix, compute, region, etc.)
+have the purpose to inform users that a specific style has been removed
+or renamed.  This is achieved by creating an alias for the deprecated
+style to the corresponding class.  For example, the fix style DEPRECATED
+is aliased to fix style ave/spatial and fix style ave/spatial/sphere with
+the following code:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">FixStyle</span><span class="p">(</span><span class="n">DEPRECATED</span><span class="p">,</span><span class="n">FixDeprecated</span><span class="p">);</span>
+<span class="n">FixStyle</span><span class="p">(</span><span class="n">ave</span><span class="o">/</span><span class="n">spatial</span><span class="p">,</span><span class="n">FixDeprecated</span><span class="p">);</span>
+<span class="n">FixStyle</span><span class="p">(</span><span class="n">ave</span><span class="o">/</span><span class="n">spatial</span><span class="o">/</span><span class="n">sphere</span><span class="p">,</span><span class="n">FixDeprecated</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The individual class will then determine based on the style name
+what action to perform:</p>
+<ul class="simple">
+<li><p>inform that the style has been removed and what style replaces it, if any, and then error out</p></li>
+<li><p>inform that the style has been renamed and then either execute the replacement or error out</p></li>
+<li><p>inform that the style is no longer required, and it is thus ignored and continue</p></li>
+</ul>
+<p>There is also a section in the user’s guide for <a class="reference internal" href="Commands_removed.html"><span class="doc">removed commands
+and packages</span></a> with additional explanations.</p>
+</section>
+<section id="internal-fix-styles">
+<h2><span class="section-number">4.25.2. </span>Internal fix styles<a class="headerlink" href="#internal-fix-styles" title="Link to this heading"></a></h2>
+<p>These provide an implementation of features that would otherwise have
+been replicated across multiple styles.  The used fix ID is generally
+derived from the compute or fix ID creating the fix with some string
+appended.  When needed, the fix can be looked up with
+<code class="docutils literal notranslate"><span class="pre">Modify::get_fix_by_id()</span></code>, which returns a pointer to the fix
+instance.  The data managed by the fix can be accessed just as for other
+fixes that can be used in input files.</p>
+<section id="fix-dummy">
+<h3>fix DUMMY<a class="headerlink" href="#fix-dummy" title="Link to this heading"></a></h3>
+<p>Most fix classes cannot be instantiated before the simulation box has
+been created since they access data that is only available then.
+However, in some cases it is required that a fix must be at or close to
+the top of the list of all fixes.  In those cases an instance of the
+DUMMY fix style may be created by calling <code class="docutils literal notranslate"><span class="pre">Modify::add_fix()</span></code> and then
+later replaced by the intended fix through calling <code class="docutils literal notranslate"><span class="pre">Modify::replace_fix()</span></code>.</p>
+</section>
+<section id="fix-oxdna-lrf">
+<h3>fix OXDNA/LRF<a class="headerlink" href="#fix-oxdna-lrf" title="Link to this heading"></a></h3>
+<p>Fix OXDNA/LRF calculates the local reference frame of ellipsoids from the quaternions.
+All oxDNA bond and pair styles require the Cartesian local reference frame during the force,
+torque and energy calculation. The fix is invoked internally at the pre-force stage
+and not to be used in an input script.</p>
+</section>
+<section id="fix-store-atom">
+<h3>fix STORE/ATOM<a class="headerlink" href="#fix-store-atom" title="Link to this heading"></a></h3>
+<p>Fix STORE/ATOM can be used as persistent storage of per-atom data.</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">STORE</span><span class="o">/</span><span class="n">ATOM</span><span class="w"> </span><span class="n">N1</span><span class="w"> </span><span class="n">N2</span><span class="w"> </span><span class="n">gflag</span><span class="w"> </span><span class="n">rflag</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command, group-ID is <em>ignored</em></p></li>
+<li><p>STORE/ATOM = style name of this fix command</p></li>
+<li><p>N1 = 1, N2 = 0 : data is per-atom vector = single value per atom</p></li>
+<li><p>N1 &gt; 1, N2 = 0 : data is per-atom array = N1 values per atom</p></li>
+<li><p>N1 &gt; 0, N2 &gt; 0 : data is per-atom tensor = N1xN2 values per atom</p></li>
+<li><p>gflag = 1 communicate per-atom values with ghost atoms, 0 do not update ghost atom data</p></li>
+<li><p>rflag = 1 store per-atom value in restart file, 0 do not store data in restart</p></li>
+</ul>
+<p>Similar functionality is also available through using custom per-atom
+properties with <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>.  The
+choice between the two fixes should be based on whether the user should
+be able to access this per-atom data: if yes, then fix property/atom is
+preferred, otherwise fix STORE/ATOM.</p>
+</section>
+<section id="fix-store-global">
+<h3>fix STORE/GLOBAL<a class="headerlink" href="#fix-store-global" title="Link to this heading"></a></h3>
+<p>Fix STORE/GLOBAL can be used as persistent storage of global data with support for restarts</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">STORE</span><span class="o">/</span><span class="n">GLOBAL</span><span class="w"> </span><span class="n">N1</span><span class="w"> </span><span class="n">N2</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command, group-ID is <em>ignored</em></p></li>
+<li><p>STORE/GLOBAL = style name of this fix command</p></li>
+<li><p>N1 &gt;=1 : number of global items to store</p></li>
+<li><p>N2 = 1 : data is global vector of length N1</p></li>
+<li><p>N2 &gt; 1 : data is global N1xN2 array</p></li>
+</ul>
+</section>
+<section id="fix-store-local">
+<h3>fix STORE/LOCAL<a class="headerlink" href="#fix-store-local" title="Link to this heading"></a></h3>
+<p>Fix STORE/LOCAL can be used as persistent storage for local data</p>
+<p><strong>Syntax</strong></p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">STORE</span><span class="o">/</span><span class="n">LOCAL</span><span class="w"> </span><span class="n">Nreset</span><span class="w"> </span><span class="n">Nvalues</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>STORE/LOCAL = style name of this fix command</p></li>
+<li><p>Nreset = frequency at which local data is available</p></li>
+<li><p>Nvalues = number of values per local item, that is the number of columns</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_utils.html" class="btn btn-neutral float-left" title="4.15. Utility functions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_grid.html" class="btn btn-neutral float-right" title="4.26. Use of distributed grids within style classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

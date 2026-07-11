@@ -1,0 +1,180 @@
+LAMMPS (21 Nov 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+variable        trequis equal 750.0
+variable        prequis_low equal 0.0
+variable        prequis_high equal 25.0e4
+variable        equilSteps equal 200
+variable        runSteps equal 2000
+variable        freqdump equal 200
+variable        pstime equal step*dt
+variable        sxx equal 1.e-4*pxx
+variable        syy equal 1.e-4*pyy
+variable        szz equal 1.e-4*pzz
+variable        sxy equal 1.e-4*pxy
+variable        sxz equal 1.e-4*pxz
+variable        syz equal 1.e-4*pyz
+variable        TK  equal temp
+variable        PE  equal pe
+variable        KE  equal ke
+variable        V   equal vol
+
+dimension       3
+boundary        p p p
+units           metal
+atom_style      atomic
+read_data       data.zr_cell
+Reading data file ...
+  orthogonal box = (0 0 0) to (19.374 33.556752 30.846)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  864 atoms
+  read_data CPU = 0.002 seconds
+replicate       1 5 5
+Replication is creating a 1x5x5 = 25 times larger system...
+  orthogonal box = (0 0 0) to (19.374 167.78376 154.23)
+  1 by 1 by 1 MPI processor grid
+  21600 atoms
+  replicate CPU = 0.001 seconds
+
+change_box      all triclinic
+Changing box ...
+  triclinic box = (0 0 0) to (19.374 167.78376 154.23) with tilt (0 0 0)
+
+pair_style      hybrid/overlay zero 9.0 eam/fs
+pair_coeff * *  zero
+pair_coeff * *  eam/fs Zr_mm.eam.fs Zr
+Reading eam/fs potential file Zr_mm.eam.fs with DATE: 2007-06-11
+
+timestep        0.002
+
+thermo          50
+thermo_style    custom step pe ke temp vol pxx pyy pzz pxy pyz pxz
+
+# fix             extra all print 50 "${pstime} ${TK} ${PE} ${KE} ${V} ${sxx} ${syy} ${szz} ${sxy} ${sxz} ${syz}"  file thermo_global_npt_low_temperature_Zr_hcp.dat
+
+velocity        all create ${trequis} 42345 dist gaussian
+velocity        all create 750 42345 dist gaussian
+
+# 1st step : compute the bispectrum on 24 nearest neighbors
+compute         bnnn all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.25
+
+# 2nd step : perform dimension reduction + logistic regression
+compute         slcsa all slcsa/atom 8 4 dir.slcsa/mean_descriptor.dat dir.slcsa/lda_scalings.dat dir.slcsa/lr_decision.dat dir.slcsa/lr_bias.dat dir.slcsa/mahalanobis_file.dat c_bnnn[*]
+Files used:
+  database mean descriptor: dir.slcsa/mean_descriptor.dat
+  lda scalings            : dir.slcsa/lda_scalings.dat
+  lr decision             : dir.slcsa/lr_decision.dat
+  lr bias                 : dir.slcsa/lr_bias.dat
+  maha stats              : dir.slcsa/mahalanobis_file.dat
+For class 0  maha threshold = 5.054
+  mean B:
+      -23.8329
+        4.6638
+        3.9805
+  icov:
+        1.1377      0.1077     -0.0171
+        0.1077      0.8846     -0.2577
+       -0.0171     -0.2577      0.6783
+For class 1  maha threshold = 5.234
+  mean B:
+      -21.2853
+       -6.1583
+        1.7948
+  icov:
+        1.7124      0.0341      0.1966
+        0.0341      0.6453       0.288
+        0.1966       0.288      1.8991
+For class 2  maha threshold = 5.036
+  mean B:
+      -23.1593
+        1.3059
+       -5.7549
+  icov:
+        0.7496     -0.0806     -0.1101
+       -0.0806      1.1178      0.1667
+       -0.1101      0.1667      0.6711
+For class 3  maha threshold = 7.994
+  mean B:
+       68.1971
+        0.1604
+       -0.0067
+  icov:
+        0.9663     -0.1846      0.6622
+       -0.1846      8.2371      0.9841
+        0.6622      0.9841      5.9601
+
+#dump            d1 all custom ${freqdump} slcsa_demo.dump id x y z c_slcsa[*]
+
+# for testing only. in production use dump as shown above
+compute max_slcsa all reduce max c_slcsa[*]
+compute min_slcsa all reduce min c_slcsa[*]
+thermo_style    custom step pe ke temp c_max_slcsa[*] c_min_slcsa[*]
+
+#fix            1 all nvt temp ${trequis} ${trequis} 0.100
+fix             1 all npt temp ${trequis} ${trequis} 0.100 tri ${prequis_low} ${prequis_low} 1.0
+fix             1 all npt temp 750 ${trequis} 0.100 tri ${prequis_low} ${prequis_low} 1.0
+fix             1 all npt temp 750 750 0.100 tri ${prequis_low} ${prequis_low} 1.0
+fix             1 all npt temp 750 750 0.100 tri 0 ${prequis_low} 1.0
+fix             1 all npt temp 750 750 0.100 tri 0 0 1.0
+
+run             ${equilSteps}
+run             200
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11
+  ghost atom cutoff = 11
+  binsize = 5.5, bins = 4 31 29
+  3 neighbor lists, perpetual/occasional/extra = 2 1 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+  (2) pair eam/fs, perpetual, trim from (1)
+      attributes: half, newton on, cut 9.6
+      pair build: trim
+      stencil: none
+      bin: none
+  (3) compute sna/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 31.9 | 31.9 | 31.9 Mbytes
+   Step         PotEng         KinEng          Temp      c_max_slcsa[1] c_max_slcsa[2] c_max_slcsa[3] c_max_slcsa[4] c_max_slcsa[5] c_min_slcsa[1] c_min_slcsa[2] c_min_slcsa[3] c_min_slcsa[4] c_min_slcsa[5]
+         0  -143297.23      2093.9174      750            7.6195146      15.787294      1.2169942      111.01919      2              7.6195146      15.787294      1.2169942      111.01919      2            
+        50  -142154.08      1007.7164      360.9442       8.8091564      19.23244       4.2093382      113.87959      2              5.0327148      9.6817454      0.02610585     106.71863      2            
+       100  -142365.33      1406.6559      503.83647      8.6272189      17.908949      2.9294666      113.75167      2              6.2058895      11.913521      0.033775944    108.66893      2            
+       150  -142188.18      1432.0075      512.91691      8.6441961      18.176321      2.9277374      114.27958      2              5.5899425      10.521867      0.014919473    108.14526      2            
+       200  -142000.4       1481.7247      530.72462      8.5895692      18.65646       3.1725758      114.55015      2              5.5955774      10.776385      0.061469343    108.35384      2            
+Loop time of 36.3759 on 1 procs for 200 steps with 21600 atoms
+
+Performance: 0.950 ns/day, 25.261 hours/ns, 5.498 timesteps/s, 118.760 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 9.0837     | 9.0837     | 9.0837     |   0.0 | 24.97
+Neigh   | 0.52896    | 0.52896    | 0.52896    |   0.0 |  1.45
+Comm    | 0.045416   | 0.045416   | 0.045416   |   0.0 |  0.12
+Output  | 26.548     | 26.548     | 26.548     |   0.0 | 72.98
+Modify  | 0.1493     | 0.1493     | 0.1493     |   0.0 |  0.41
+Other   |            | 0.02088    |            |       |  0.06
+
+Nlocal:          21600 ave       21600 max       21600 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          36674 ave       36674 max       36674 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.61729e+06 ave 2.61729e+06 max 2.61729e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  5.24007e+06 ave 5.24007e+06 max 5.24007e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5240069
+Ave neighs/atom = 242.59579
+Neighbor list builds = 4
+Dangerous builds = 0
+Total wall time: 0:00:43

@@ -1,0 +1,17 @@
+Examples of how to use the rerun and read_dump commands
+
+in.first - run on any number of procs for any size problem
+in.rerun - run on same or different proc count for same size problem
+in.read_dump - ditto to in.rerun
+
+The thermo output on the same timesteps should be identical
+to within round-off errors.
+
+in.rdf.first - produces RDF in rdf.first, 50 bins out to 2.5 sigma
+in.rdf.rerun - produces RDF in rdf.rerun, 100 bins out to 5 sigma
+
+In both bases the time averaged RDF is computed 10x times, every 100
+steps for 1000 total.  In the rerun, the pair style cutoff is changed
+so the RDF can be computed to a longer distance without re-running the
+simulation.  The RDF values in the 2 files should be the same (within
+round-off) for the first 50 bins.

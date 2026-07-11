@@ -1,0 +1,207 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+Basics of Using LAMMPS</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation.</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_931273040">Distribution</A> 
+    <LI>
+    <A HREF="#_cch3_930327142">Making LAMMPS</A> 
+    <LI>
+    <A HREF="#_cch3_930327155">Running LAMMPS</A> 
+    <LI>
+    <A HREF="#_cch3_930759879">Examples</A> 
+    <LI>
+    <A HREF="#_cch3_931282515">Other Tools</A> 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_931273040">Distribution</A></H3>
+<P>
+When you unzip/untar the LAMMPS distribution you should have 5 
+directories: </P>
+<UL>
+    <LI>
+    src = source files for LAMMPS 
+    <LI>
+    doc = HTML documentation 
+    <LI>
+    examples = sample problems with inputs and outputs 
+    <LI>
+    msi2lmp = tool for converting files from DISCOVER to LAMMPS format 
+    (this requires that you have DISCOVER force field files) 
+    <LI>
+    tools = serial program for replicating data files 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930327142">Making LAMMPS</A></H3>
+<P>
+The src directory contains the F77 and C source files for LAMMPS as 
+well as several sample Makefiles for different machines. To make LAMMPS 
+for a specific machine, you simply type</P>
+<P>
+make machine</P>
+<P>
+from within the src directoy. E.g. &quot;make sgi&quot; or &quot;make 
+t3e&quot;. This should create an executable named lmp_sgi or lmp_t3e.</P>
+<P>
+In the src directory, there is one top-level Makefile and several 
+low-level machine-specific files named Makefile.xxx where xxx = the 
+machine name. If a low-level Makefile exists for your platform, you do 
+not need to edit the top-level Makefile. However you should check the 
+system-specific section of the low-level Makefile to make sure the 
+various paths are correct for your environment. If a low-level Makefile 
+does not exist for your platform, you will need to add a suitable 
+target to the top-level Makefile. You will also need to create a new 
+low-level Makefile using one of the existing ones as a template. If you 
+wish to make LAMMPS for a single-processor workstation that doesn't 
+have an installed MPI library, you can specify the serial target which 
+uses a directory of MPI stubs to link against - e.g. &quot;make 
+serial&quot;. You will need to make the stub library (see STUBS 
+directory) on your workstation before doing this.</P>
+<P>
+Note that the two-level Makefile system allows you to make LAMMPS for 
+multiple platforms. Each target creates its own object directory for 
+separate storage of its *.o files.</P>
+<P>
+There are a couple compiler switches of interest which can be specified 
+in the low-level Makefiles. If you use a F77FLAGS switch of -DSYNC then 
+synchronization calls will be made before the timing routines in 
+integrate.f. This may slow down the code slightly, but will make the 
+reported timings at the end of a run more accurate. The CCFLAGS setting 
+in the low-level Makefiles requires a FFT setting, for example 
+-DFFT_SGI or -DFFT_T3E. This is for inclusion of the appropriate 
+machine-specific native 1-d FFT libraries on various platforms. 
+Currently, the supported machines and switches (used in fft_3d.c) are 
+FFT_SGI, FFT_DEC, FFT_INTEL, FFT_T3E, and FFT_FFTW. The latter is a 
+publicly available portable FFT library, <A HREF="http://www.fftw.org">FFTW</A>, 
+which you can install on any machine. If none of these options is 
+suitable for your machine, please contact me, and we'll discuss how to 
+add the capability to call your machine's native FFT library.</P>
+<HR>
+<H3>
+<A NAME="_cch3_930327155">Running LAMMPS</A></H3>
+<P>
+LAMMPS is run by redirecting a file of input commands into it.</P>
+<P>
+lmp_sgi &lt; in.lj</P>
+<P>
+lmp_t3e &lt; in.lj</P>
+<P>
+The input file contains commands that specify the parameters for the 
+simulation as well as read other necessary files such as a data file 
+that describes the initial atom positions, molecular topology, and 
+force-field parameters. The <A HREF="input_commands.html">input_commands</A>
+ page describes all the possible commands that can be used. The <A
+ HREF="data_format.html">data_format</A> page describes the format of 
+the data file. </P>
+<P>
+LAMMPS can be run on any number of processors, including a single 
+processor. In principle you should get identical answers on any number 
+of processors and on any machine. In practice, numerical round-off can 
+cause slight differences and eventual divergence of dynamical 
+trajectories. </P>
+<P>
+When LAMMPS runs, if you get an error message to the screen about 
+&quot;boosting&quot; something, it means one (or more) data arrays are 
+not allocated large enough. Some of these errors are detected at setup, 
+others like neighbor list overflow may not occur until the middle of a 
+run. When the latter happens the program will either gracefully stop 
+(if all processors incurred the same error) or hang (with an error 
+message). Unfortunately in the current version of LAMMPS which uses 
+static memory allocation, changing the array size(s) requires you to 
+edit the appropriate line(s) in the param.h file and recompile the code.</P>
+<P>
+I've tried to be careful about detecting memory-overflow errors in 
+LAMMPS. If the code ever crashes or hangs without spitting out an error 
+message first, it's probably a bug, so let me know about it. Of course 
+this applies to problems due to algorithmic or parallelism issues, not 
+to physics mistkaes, like specifying too big a timestep or putting 2 
+atoms on top of each other! One exception is that different MPI 
+implementations handle buffering of messages differently. If the code 
+hangs without an error message, it may be that you need to specify an 
+MPI setting or two (usually via an environment variable) to enable 
+buffering or boost the sizes of messages that can be buffered. </P>
+<HR>
+<H3>
+<A NAME="_cch3_930759879">Examples</A></H3>
+<P>
+There are several sample problems in the examples directory. All of 
+them use an input file (in.*) of commands and a data file (data.*) of 
+initial atomic coordinates and produce one or more output files. The 
+*.xxx.P files are outputs on P processors on a particular machine which 
+you can compare your answers to.</P>
+<P>
+(1) lj</P>
+<P>
+Simple atomic simulations of Lennard-Jones atoms of 1 or 3 species with 
+various ensembles -- NVE, NVT, NPT.</P>
+<P>
+(2) charge</P>
+<P>
+A few timestep simulation of a box of charged atoms for testing the 
+Coulombic options -- cutoff, Ewald, particle-mesh Ewald (PPPM).</P>
+<P>
+(3) class2</P>
+<P>
+A simple test run of phenyalanine using DISCOVER cff95 class II force 
+fields.</P>
+<P>
+(4) min</P>
+<P>
+An energy minimization of a transcription protein.</P>
+<P>
+(5) lc</P>
+<P>
+Small (250 atom) and large (6750 atom) simulations of liquid crystal 
+molecules with various Coulombic options and periodicity settings. The 
+large-system date file was created by using the &quot;replicate&quot; 
+tool on the small-system data file.</P>
+<P>
+(6) flow</P>
+<P>
+2-d flow of Lennard-Jones atoms in a channel using various constraint
+options.</P>
+<P>
+(7) polymer</P>
+<P>
+Simulations of bead-spring polymer models with one chain type and two 
+chain types (different size monomers). The two-chain system also has 
+freely diffusing monomers. This illustrates use of the setup_chain 
+program in the tools directory and also how to use soft potentials to 
+untangle the initial configurations.</P>
+<HR>
+<H3>
+<A NAME="_cch3_931282515">Other Tools</A></H3>
+<P>
+The msi2lmp directory has source code for a tool that converts MSI 
+Discover files to LAMMPS input data files. This tool requires you to 
+have the Discover force-field description files in order to convert 
+those parameters to LAMMPS parameters. See the README file in the 
+msi2lmp directory for additional information.</P>
+<P>
+The tools directory has a C file called replicate.c which is useful for 
+generating new LAMMPS data files from existing ones - e.g. scaling the 
+atom coordinates, replicating the system to make a larger one, etc. See 
+the comments at the top of replicate.c for instructions on how to use 
+it.</P>
+<P>
+The tools directory has a F77 program called setup_lj (compile and link 
+with print.c) which can be used to generate a 3-d box of Lennard Jones 
+atoms (one or more atom types) like those used in examples/lj.</P>
+<P>
+The tools directory also has a F77 program called setup_chain.f 
+(compile and link with print.c) which can be used to generate random 
+initial polymer configurations for bead-spring models like those used 
+in examples/polymer. It uses an input polymer definition file (see 
+examples/polymer for two sample def files) that specifies how many
+chains of what length, a random number seed, etc.</P>
+</BODY>
+</HTML>

@@ -1,0 +1,19 @@
+These are one-file C programs that generate tabulated embedded atom
+method (EAM) potentials from analytic formulas.  They each write out a
+file in the DYNAMO setfl format which can be input by LAMMPS via the
+pair_style eam/alloy command.
+
+The source files and potentials were provided by Gerolf Ziegenhain
+(gerolf at ziegenhain.com).  You could modify these programs to write
+out your own EAM potentials in LAMMPS-compatible format.
+two_band_fecr.py
+----------------
+
+Python script that writes the "s-band" overlay file (DYNAMO setfl
+Finnis-Sinclair / eam/fs format) for a two-band ("double-band") EAM
+potential, such as the Fe-Cr models of Olsson et al. (Phys. Rev. B 72,
+214119 (2005)) and Bonny et al. (Phil. Mag. 91, 1724 (2011)).  Such a
+model is an ordinary EAM with an extra embedding term and runs in LAMMPS
+as a hybrid/overlay of two eam/fs potentials, without modifying LAMMPS;
+see doc/src/Howto_eam_overlay.rst.  Run with --demo for a self-contained,
+runnable example, or --help for all options.

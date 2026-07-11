@@ -1,0 +1,74 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+/// @Kokkos_Feature_Level_Required:1
+
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
+#include <Kokkos_Core.hpp>
+#endif
+#include <cstdio>
+#include <sstream>
+#include <type_traits>
+#include <gtest/gtest.h>
+
+namespace Test {
+
+// Unit test for Execution Space
+// Test1 - testing for memory_space, execution_space, scratch space and
+// array_layout of an execution space
+// Test2 - Test if the is_execution_space evaluation is working correctly
+
+template <class ExecSpace>
+struct TestIncrExecSpaceTypedef {
+  void testit() {
+    const bool passed =
+        (!std::is_void_v<typename ExecSpace::memory_space>)&&std::is_same_v<
+            ExecSpace, typename ExecSpace::execution_space> &&
+        !std::is_void_v<typename ExecSpace::scratch_memory_space> &&
+        !std::is_void_v<typename ExecSpace::array_layout>;
+    static_assert(passed == true,
+                  "The memory and execution spaces are defined");
+  }
+};
+
+template <class ExecSpace>
+struct TestIncrExecSpace {
+  void testit() {
+    using device_type     = typename ExecSpace::device_type;
+    using memory_space    = typename device_type::memory_space;
+    using execution_space = typename device_type::execution_space;
+
+    const bool passed =
+        std::is_same_v<device_type,
+                       Kokkos::Device<execution_space, memory_space>>;
+
+    static_assert(passed == true,
+                  "Checking if the is_execution_space is evaluated correctly");
+
+    ExecSpace().print_configuration(std::cout);
+    ExecSpace().fence();
+
+    auto concurrency = ExecSpace().concurrency();
+    ASSERT_GT(concurrency, 0);
+
+    const char* name = ExecSpace::name();
+    std::cout << name << std::endl;
+  }
+};
+
+TEST(TEST_CATEGORY, IncrTest_01_execspace_typedef) {
+  TestIncrExecSpaceTypedef<TEST_EXECSPACE> test;
+  test.testit();
+}
+
+TEST(TEST_CATEGORY, IncrTest_01_execspace) {
+  ASSERT_FALSE(!Kokkos::is_execution_space<TEST_EXECSPACE>::value);
+  ASSERT_FALSE(Kokkos::is_execution_space<
+               TestIncrExecSpaceTypedef<TEST_EXECSPACE>>::value);
+  TestIncrExecSpace<TEST_EXECSPACE> test;
+  test.testit();
+}
+}  // namespace Test

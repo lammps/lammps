@@ -1,0 +1,90 @@
+# Squish four pillars with different Poisson's ratios
+#   going from nearly incompressible to auxetic
+#   from left to right, nu ~ 0.5, 0.25, 0, <0
+#   calibration from DOI: 10.1039/d3sm01373a
+
+units           lj
+dimension       3
+boundary        p p s
+atom_style      bond
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+lattice         fcc 1.41
+region          box block 0 20 -10 10 -1 21 units box
+create_box      4 box bond/types 4 extra/bond/per/atom 20 extra/special/per/atom 50
+mass            * 1.0
+
+# Create initial disordered geometry somewhat near jamming
+
+region          pillar cylinder z 10.0 0.0 7.0 0.0 20.0 units box
+region          pillarw cylinder z 10.0 0.0 8.0 -1.0 21.0 units box
+create_atoms    1 region pillar
+
+velocity        all create 0.1 345910
+
+pair_style      bpm/spring
+pair_coeff      * * 1.0 1.0 1.0
+
+fix             1 all nve
+fix             wtemp all wall/region pillarw harmonic 1.0 1.0 1.0
+
+thermo_style    custom step ke pe pxx pyy pzz
+thermo          100
+
+timestep        0.1
+run             20000
+unfix           wtemp
+
+# Replicate cylinder and add bonds
+
+replicate       4 1 1
+
+region          r1 block 0.0  20.0 EDGE EDGE EDGE EDGE side in units box
+region          r2 block 20.0 40.0 EDGE EDGE EDGE EDGE side in units box
+region          r3 block 40.0 60.0 EDGE EDGE EDGE EDGE side in units box
+region          r4 block 60.0 80.0 EDGE EDGE EDGE EDGE side in units box
+
+group           p1 region r1
+group           p2 region r2
+group           p3 region r3
+group           p4 region r4
+
+set             group p2 type 2
+set             group p3 type 3
+set             group p4 type 4
+
+velocity        all set 0.0 0.0 0.0
+neighbor        1.0 bin
+
+create_bonds    many p1 p1 1 0.0 1.5
+create_bonds    many p2 p2 2 0.0 1.5
+create_bonds    many p3 p3 3 0.0 1.5
+create_bonds    many p4 p4 4 0.0 1.5
+
+neighbor        0.3 bin
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/spring break no smooth no volume/factor yes
+bond_coeff      1 1.0 0 1.0 -0.8
+bond_coeff      2 1.0 0 1.0 0.0
+bond_coeff      3 1.0 0 1.0 2.0
+bond_coeff      4 1.0 0 1.0 10.0
+
+# squish
+
+region          b block EDGE EDGE EDGE EDGE -1.0 2.0 units box
+region          t block EDGE EDGE EDGE EDGE 18.0 21.0 units box
+group           bot region b
+group           top region t
+
+velocity        top set 0.0 0.0 -0.0025
+fix             2 bot setforce 0.0 0.0 0.0
+fix             3 top setforce 0.0 0.0 0.0
+
+compute         zmax all reduce max z
+
+thermo_style    custom step ke pe pxx pyy pzz c_zmax
+#dump            1 all custom 100 atomDump id type x y z
+
+run             10000

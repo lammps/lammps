@@ -1,0 +1,11 @@
+boundary p p f
+kspace_style ewald/electrode 1.0e-8
+kspace_modify slab 8.0 # ew3dc
+
+include "settings.mod" # styles, computes, groups and fixes
+
+thermo_style custom step pe c_qbot c_qtop
+fix conp bot electrode/conp 0 2 couple top 1 symm on algo cg 1e-6
+
+run 0
+

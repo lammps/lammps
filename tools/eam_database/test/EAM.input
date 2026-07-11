@@ -1,0 +1,9 @@
+ &funccard
+ atomtype='@ELEM1@'
+ &end
+ &funccard
+ atomtype='@ELEM2@'
+ &end
+ &funccard
+ &end
+

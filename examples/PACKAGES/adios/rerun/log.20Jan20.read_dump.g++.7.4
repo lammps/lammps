@@ -1,0 +1,120 @@
+LAMMPS (09 Jan 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:93)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	xx equal 20*1
+variable	yy equal 20*$y
+variable	yy equal 20*1
+variable	zz equal 20*$z
+variable	zz equal 20*1
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+Lattice spacing in x,y,z = 1.6796 1.6796 1.6796
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+region		box block 0 20 0 ${yy} 0 ${zz}
+region		box block 0 20 0 20 0 ${zz}
+region		box block 0 20 0 20 0 20
+create_box	1 box
+Created orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  1 by 2 by 2 MPI processor grid
+create_atoms	1 box
+Created 32000 atoms
+  create_atoms CPU = 0.00378291 secs
+mass		1 1.0
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+
+thermo          100
+
+read_dump       lj_dump.bp 200 x y z vx vy vz format adios
+  orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  32000 atoms before read
+  32000 atoms in snapshot
+  0 atoms purged
+  32000 atoms replaced
+  0 atoms trimmed
+  0 atoms added
+  32000 atoms after read
+run             0 post no
+WARNING: No fixes defined, atoms won't move (src/verlet.cpp:52)
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 24 24 24
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.841 | 6.843 | 6.846 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     200   0.75953175   -5.7618892            0   -4.6226272   0.20910575 
+Loop time of 2.35651e-06 on 4 procs for 0 steps with 32000 atoms
+
+
+read_dump       lj_dump.bp 800 x y z vx vy vz format adios
+  orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  32000 atoms before read
+  32000 atoms in snapshot
+  0 atoms purged
+  32000 atoms replaced
+  0 atoms trimmed
+  0 atoms added
+  32000 atoms after read
+run             0 post no
+WARNING: No fixes defined, atoms won't move (src/verlet.cpp:52)
+Per MPI rank memory allocation (min/avg/max) = 6.841 | 6.843 | 6.846 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     800   0.70876958   -5.6840594            0   -4.6209382   0.66822293 
+Loop time of 2.1345e-06 on 4 procs for 0 steps with 32000 atoms
+
+
+read_dump       lj_dump.bp 600 x y z vx vy vz format adios
+  orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  32000 atoms before read
+  32000 atoms in snapshot
+  0 atoms purged
+  32000 atoms replaced
+  0 atoms trimmed
+  0 atoms added
+  32000 atoms after read
+run             0 post no
+WARNING: No fixes defined, atoms won't move (src/verlet.cpp:52)
+Per MPI rank memory allocation (min/avg/max) = 6.841 | 6.843 | 6.846 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     600   0.72087255   -5.7029314            0   -4.6216563   0.55730354 
+Loop time of 2.58526e-06 on 4 procs for 0 steps with 32000 atoms
+
+
+read_dump       lj_dump.bp 400 x y z vx vy vz format adios
+  orthogonal box = (0 0 0) to (33.5919 33.5919 33.5919)
+  32000 atoms before read
+  32000 atoms in snapshot
+  0 atoms purged
+  32000 atoms replaced
+  0 atoms trimmed
+  0 atoms added
+  32000 atoms after read
+run             0 post no
+WARNING: No fixes defined, atoms won't move (src/verlet.cpp:52)
+Per MPI rank memory allocation (min/avg/max) = 6.841 | 6.843 | 6.846 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+     400   0.74155675   -5.7343359            0   -4.6220356    0.3777989 
+Loop time of 2.05977e-06 on 4 procs for 0 steps with 32000 atoms
+
+Total wall time: 0:00:00

@@ -1,0 +1,127 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+History of LAMMPS</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation.</P>
+<P>
+This is a brief history of features added to each version of LAMMPS.</P>
+<HR>
+<H3>
+LAMMPS 99 - June 99 </H3>
+<UL>
+    <LI>
+    all-MPI version of code (F77 + C + MPI) for maximum portablility 
+    <LI>
+    only one PPPM choice now, the better of the two earlier ones 
+    <LI>
+    PPPM uses portable FFTs and data remapping routines, written in C w/ 
+    MPI, can now use non-power-of-2 processors and grid sizes 
+    <LI>
+    auto-mapping of simulation box to processors 
+    <LI>
+    removed a few unused/unneeded commands (bdump, log file, id string, 
+    limit) 
+    <LI>
+    changed syntax of some commands for simplicity &amp; consistency (see <A
+     HREF="input_commands.html">input commands</A>) 
+    <LI>
+    changed method of calling/writing user diagnostic routines to be simpler
+    <LI>
+    documentation in HTML format
+</UL>
+<HR>
+<H3>
+Version 5.0 - Oct 1997 </H3>
+<UL>
+    <LI>
+    final version of class II force fields 
+    <LI>
+    new formulation of NVE, NVT, NPT and rRESPA integrators 
+    <LI>
+    new version of msi2lmp pre-processing tool, does not require DISCOVER 
+    to run, only DISCOVER force field files 
+    <LI>
+    energy minimizer, Hessian-free truncated Newton method 
+    <LI>
+    new pressure controllers and constraints 
+    <LI>
+    replicate tool for generating new data files from old ones 
+</UL>
+<HR ALIGN="LEFT">
+<H3>
+Version 4.0 - March 1997 </H3>
+<UL>
+    <LI>
+    1st version of class II force fields 
+    <LI>
+    new, faster PPPM solver (newpppm) 
+    <LI>
+    rRESPA 
+    <LI>
+    new data file format 
+    <LI>
+    new constraints, diagnostics 
+    <LI>
+    msi2lmp pre-processing tool 
+</UL>
+<HR>
+<H3>
+Version 3.0 - March 1996 </H3>
+<UL>
+    <LI>
+    more general force-field formulation 
+    <LI>
+    atom/group constraints 
+    <LI>
+    LJ units and bond potentials 
+    <LI>
+    smoothed LJ potential option 
+    <LI>
+    Langevin thermostat 
+    <LI>
+    Newton's 3rd law option 
+    <LI>
+    hook for user-supplied diagnostic routines 
+</UL>
+<HR>
+<H3>
+Version 2.0 - October 1995 </H3>
+<UL>
+    <LI>
+    bug fix of velocity initialization which caused drift 
+    <LI>
+    PPPM for long-range Coulombic 
+    <LI>
+    constant NPT 
+</UL>
+<HR>
+<H3>
+Version 1.1 - February 1995 </H3>
+<UL>
+    <LI>
+    Ewald for long-range Coulombic 
+    <LI>
+    full Newton's 3rd law (doubled communication) 
+    <LI>
+    dumping of atom positions and velocities 
+    <LI>
+    restart files 
+</UL>
+<HR>
+<H3>
+Version 1.0 - January 1995 </H3>
+<UL>
+    <LI>
+    short-range bonded and non-bonded forces 
+    <LI>
+    partial Newton's 3rd law 
+    <LI>
+    velocity-Verlet integrator 
+</UL>
+</BODY>
+</HTML>

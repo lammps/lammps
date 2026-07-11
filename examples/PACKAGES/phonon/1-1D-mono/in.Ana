@@ -1,0 +1,50 @@
+# 3D simple cubic lattice simulation
+dimension   2
+boundary    p f p
+
+units		   lj
+atom_style	bond
+atom_modify sort 0 1.
+bond_style  harmonic
+pair_style  none
+comm_modify cutoff 2.0
+
+# geometry
+read_data	data.pos
+
+#
+neighbor 0.5 nsq
+neigh_modify delay 0 check no
+
+#Langevin random seed
+variable r equal 571101
+
+#Langevin Temperature
+variable t equal 0.005
+
+# Langevin Damping variable
+variable d equal 0.5
+
+# time step
+timestep  0.005
+
+# Create velocities and equilibrate 
+compute   MyTemp all temp/partial 1 0 0
+velocity  all create $t 28711 mom yes rot yes dist gaussian temp MyTemp
+velocity  all set NULL 0.0 0.0 units box
+#
+fix        1 all langevin $t $t $d $r
+fix_modify 1 temp MyTemp
+fix        2 all setforce NULL 0. 0.
+fix        3 all nve
+fix        4 all phonon 10 50000 500000 map.in phonon sysdim 1
+fix_modify 4 temp MyTemp
+#
+#                    1    2    3  4
+thermo_style  custom step temp pe etotal
+thermo_modify temp MyTemp
+thermo   100
+
+dump    	4 all atom 50000 dump_LJ_ANA.lammpstrj 
+
+run 		2000000

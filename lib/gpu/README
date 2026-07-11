@@ -1,0 +1,240 @@
+                  --------------------------------
+                     LAMMPS ACCELERATOR LIBRARY
+                  --------------------------------
+
+                       W. Michael Brown (ORNL)
+                        Trung Dac Nguyen (ORNL/Northwestern)
+                        Nitin Dhamankar (Intel)
+                       Axel Kohlmeyer (Temple)
+                          Peng Wang (NVIDIA)
+                        Anders Hafreager (UiO)
+                          V. Nikolskiy (HSE)
+                   Maurice de Koning (Unicamp/Brazil)
+                  Rodolfo Paula Leite (Unicamp/Brazil)
+                         Steve Plimpton (SNL)
+                        Inderaj Bains (NVIDIA)
+
+
+------------------------------------------------------------------------------
+
+This directory has source files to build a library that LAMMPS links against
+when using the GPU package.
+
+This library must be built with a C++ compiler along with CUDA, HIP, or OpenCL
+before LAMMPS is built, so LAMMPS can link against it.
+
+This library, libgpu.a, provides routines for acceleration of certain
+LAMMPS styles and neighbor list builds using CUDA, OpenCL, or ROCm HIP.
+
+Pair styles supported by this library are marked in the list of Pair style
+potentials with a "g". See the online version at:
+
+https://docs.lammps.org/Commands_pair.html
+
+In addition the (plain) pppm kspace style is supported as well.
+
+------------------------------------------------------------------------------
+                 Installing oneAPI, OpenCl, CUDA, or ROCm
+------------------------------------------------------------------------------
+The easiest approach is to use the linux package manger to perform the
+installation from Intel, NVIDIA, etc. repositories. All are available for
+free. The oneAPI installation includes Intel optimized MPI and C++ compilers,
+along with many libraries. Alternatively, Intel OpenCL can also be installed
+separately from the Intel repository.
+
+NOTE: Installation of the CUDA SDK is not required, only the CUDA toolkit.
+
+See:
+
+https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit.html
+
+https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html
+
+https://github.com/RadeonOpenCompute/ROCm
+
+------------------------------------------------------------------------------
+                              Build Intro
+------------------------------------------------------------------------------
+
+See the LAMMPS manual:
+  https://docs.lammps.org/Build_extras.html#gpu
+
+------------------------------------------------------------------------------
+                   ALL PREPROCESSOR OPTIONS (For Advanced Users)
+------------------------------------------------------------------------------
+
+The following preprocessor options are available, some of which can be set
+with the CMake build.
+
+_SINGLE_SINGLE          Build library for single precision mode (-DGPU_PREC=single)
+_SINGLE_DOUBLE          Build library for mixed precision mode (-DGPU_PREC=mixed)
+_DOUBLE_DOUBLE          Build library for double precision mode (-DGPU_PREC=double)
+GERYON_NUMA_FISSION     Accelerators with main memory NUMA are split into
+                        multiple virtual accelerators for each NUMA node
+GPU_CAST                Casting performed on GPU, untested recently.
+LAL_DISABLE_PREFETCH    Disable prefetch in kernels
+LAL_NO_BLOCK_REDUCE     Use host for energy/virial accumulation
+LAL_SERIALIZE_INIT      Force serialization of initialization and compilation
+                        for multiple MPI tasks sharing the same accelerator.
+                        Some accelerator API implementations have had issues
+                        with temporary file conflicts in the past.
+LAL_USE_OMP=0           Disable OpenMP in lib, regardless of compiler setting
+LAL_USE_OMP_SIMD=0      Disable OpenMP SIMD in lib, regardless of compiler set
+LAL_USE_OLD_NEIGHBOR    Use old neighbor list algorithm
+MPI_GERYON              Library should use MPI_Abort for unhandled errors
+UCL_NO_EXIT             LAMMPS should handle errors instead of Geryon lib
+UCL_DEBUG               Debug build for Geryon (-DGPU_DEBUG=on)
+USE_CUDPP               Enable GPU binning in neighbor builds (not recommended)
+THREE_CONCURRENT        Concurrent 3-body kernels in separate queues, untested
+
+For CUDA builds:
+
+CUDA_MPS_SUPPORT        Do not generate errors for exclusive mode for CUDA
+                        effectively supporting  CUDA Multi-process service (MPS)
+                        (-DCUDA_MPS_SUPPORT=on)
+
+For OpenCL builds:
+
+GERYON_OCL_FLUSH        For OpenCL, flush queue after every enqueue
+GERYON_KERNEL_DUMP      Dump all compiled OpenCL programs with compiler
+                        flags and build logs (-DGPU_DEBUG=on)
+GERYON_FORCE_SHARED_MAIN_MEM_ON      Should only be used for builds where the
+                                     accelerator is guaranteed to share physical
+                                     main memory with the host (e.g. integrated
+                                     GPU or CPU device). Default behavior is to
+                                     auto-detect. Impacts OpenCL only.
+GERYON_FORCE_SHARED_MAIN_MEM_OFF     Should only be used for builds where the
+                                     accelerator is guaranteed to have discrete
+                                     physical main memory vs the host (discrete
+                                     GPU card). Default behavior is to
+                                     auto-detect. Impacts OpenCL only.
+LAL_NO_OCL_EV_JIT       Turn off JIT specialization for kernels in OpenCL
+LAL_OCL_EXTRA_ARGS      Supply extra args for OpenCL compiler delimited with :
+
+For HIP builds:
+
+USE_HIP_DEVICE_SORT     Enable GPU binning for HIP builds
+                        (-DHIP_USE_DEVICE_SORT=yes)
+
+------------------------------------------------------------------------------
+                              DEVICE QUERY
+------------------------------------------------------------------------------
+The GPU library includes binaries to check for available GPUs and their
+properties. It is a good idea to run this on first use to make sure the
+system and build is setup properly. Additionally, the GPU numbering for
+specific selection of devices should be taking from this output. The GPU
+library may split some accelerators into separate virtual accelerators for
+efficient use with MPI.
+
+After the LAMMPS build succeeds, a binary is generated in the build folder,
+with which one can query the devices for OpenCL:
+  ./ocl_get_devices
+for CUDA:
+  ./nvc_get_devices
+and for ROCm HIP:
+  ./hip_get_devices
+
+------------------------------------------------------------------------------
+                           ADD NEW PAIR STYLES
+------------------------------------------------------------------------------
+
+Suppose that you have already implemented a pair style class named PairFoo.
+Now you want to have a new class PairFooGPU for GPU acceleration.  The following
+steps will guide you through the process of adding a new pair style to
+the GPU package in LAMMPS. There are two places you need to add
+new source files: the Foo class and exported functions the GPU library
+in lib/gpu (i.e. libgpu.a) and the new /gpu styles in src/GPU.
+
+1. Addition to the GPU library under lib/gpu
+
+You will need to add four source files:
+  lal_foo.h:       header of the class Foo
+  lal_foo.cpp:     contains the implementation of the class Foo
+  lal_foo.cu:      contains the GPU kernel(s) for the force compute,
+                   where the computation mirrors what you have in PairFoo.
+  lal_foo_ext.cpp: creates an instance of the Foo class and exports
+                   the necessary functions to be invoked by the GPU
+                   version of the pair style to initialize a Foo instance.
+
+A good start for implementing a new pair style to look at is
+the corresponding files for the Gauss class in lib/gpu. You will see
+how the per-type arrays are declared and allocated (lal_gauss.h and lal_gauss.cpp),
+how the kernels are implemented (lal_gauss.cu) and how the exported functions
+are defined (lal_gauss_ext.cpp).
+
+The class Gauss is derived from BaseAtomic, which handles the host device
+transfers for the atom properties (positions and types) and the force
+computation in two compute() functions.  One compute() function is invoked
+when the atom neighbor lists are copied from the host, the other
+(with the sub-domain coordinates arguments sublo and subhi) when
+the atom neighbor lists are built from the device.  After the neighbor lists
+are ready, both compute() functions invoke the loop() function to launch
+the force compute kernels.  Any child class of BaseAtomic, Gauss in this case,
+needs to override this virtual loop() function. The pair force kernels
+are defined in the .cu file: the _fast kernel is invoked in the cases
+where all the pair coefficients can be loaded in the thread block
+shared memory, i.e., when the number of atom types is smaller than 12.
+
+The Gauss class also needs to allocate and deallocate memory for
+the arrays that store pair coefficients, and transfer them to the device
+in the init() member function. These arrays are data structures provided
+by the Geryon library that allow for efficient memory management and
+data transfer between host and device.
+
+2. Addition to src/GPU
+
+Next, you will create an entry from src/GPU to call the external functions
+defined in lal_foo_ext.cpp. You will need to implement the PairFooGPU class
+derived from your PairFoo class with a header file (pair_foo_gpu.h) and
+a source file (pair_foo_gpu.cpp). Again, pair_gauss_gpu.h and
+pair_gauss_gpu.cpp are good examples to start with.
+
+In the PairFooGPU class, you will invoke the external functions from
+the Gauss class provided by lal_gauss_ext.cpp at the proper place.
+For instance, in the init_style() function, you will call the init()
+function of the Gauss class to allocate memory for the pair coefficients
+and transfer them to the device. In the PairFooGPU::compute() function,
+you will call the corresponding functions: _compute() function for "neigh no"
+(neighbor builds on the host) or _compute_n() for "neigh yes"
+(neighbor builds on the device) to compute the atom forces, potential energy
+and virial. The class destructor will invoke the clear() function to release
+the memory allocated by the GPU library both on host and device.
+
+3. Build LAMMPS with the new pair style
+
+For CMake builds, you may want to modify the file cmake/Module/Packages/GPU.cmake
+if the new pair style depends on certain packages to be installed.
+You then run cmake with the following command to build LAMMPS with
+the GPU package with your new pair style:
+
+  cmake -S cmake -B build -C cmake/presets/basic.cmake -D PKG_GPU=ON
+  cmake --build build -j4
+
+By design, your PairFooGPU class depends on PairFoo, so if PairFoo is
+part of the MISC package, for example, PairFooGPU will be built with
+both -D PKG_MISC=ON and -D PKG_GPU=ON.
+
+Note: It is possible to support fix and compute styles within the GPU package
+using the Geryon library.  You need to perform host-device data transfers and
+computation on the device for each MPI process. The PPPMGPU class is an example
+for this extension.
+
+------------------------------------------------------------------------------
+                           References for Details
+------------------------------------------------------------------------------
+
+Brown, W.M., Wang, P. Plimpton, S.J., Tharrington, A.N. Implementing
+Molecular Dynamics on Hybrid High Performance Computers - Short Range
+Forces. Computer Physics Communications. 2011. 182: p. 898-911.
+
+and
+
+Brown, W.M., Kohlmeyer, A. Plimpton, S.J., Tharrington, A.N. Implementing
+Molecular Dynamics on Hybrid High Performance Computers - Particle-Particle
+Particle-Mesh. Computer Physics Communications. 2012. 183: p. 449-459.
+
+and
+
+Brown, W.M., Masako, Y. Implementing Molecular Dynamics on Hybrid High
+Performance Computers - Three-Body Potentials. Computer Physics Communications.
+2013. 184: p. 2785–2793.

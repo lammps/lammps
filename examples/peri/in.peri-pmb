@@ -1,0 +1,45 @@
+# small Peridynamic cylinder hit by projectile
+
+units		si
+boundary        s s s
+atom_style      peri
+atom_modify	map array
+neighbor        0.0010 bin
+
+# small target
+
+lattice         sc 0.0005
+region          target cylinder y 0.0 0.0 0.0050 -0.0050 0.0 units box
+create_box      1 target
+create_atoms    1 region target
+
+pair_style      peri/pmb
+pair_coeff      * * 1.6863e22 0.0015001 0.0005 0.25
+set             group all density 2200
+set             group all volume 1.25e-10
+velocity        all set 0.0 0.0 0.0 sum no units box
+fix             1 all nve
+
+# spherical indenter to shatter target
+
+variable        y0 equal 0.00155
+variable        vy equal -100
+variable        y equal "v_y0 + step*dt*v_vy"
+
+fix             2 all indent 1e17 sphere 0.0000 v_y 0.0000 0.0015 units box
+
+compute         1 all damage/atom
+timestep        1.0e-7
+thermo          100
+
+#dump            1 all custom 100 dump.peri id type x y z c_1
+
+#dump		2 all image 50 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 80 -30 adiam 0.0006
+#dump_modify	2 pad 4
+
+#dump		3 all movie 50 movie.mpg type type &
+#		axes yes 0.8 0.02 view 80 -30 adiam 0.0006
+#dump_modify	3 pad 4
+
+run             1000

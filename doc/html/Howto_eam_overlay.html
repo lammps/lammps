@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_eam_overlay.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.5.1. Finite-size spherical and aspherical particles" href="Howto_spherical.html" />
+    <link rel="prev" title="10.4.8. SPC and SPC/E water model" href="Howto_spc.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_FFgeneral.html">10.4.1. Some general force field considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bioFF.html">10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amber2lammps.html">10.4.3. AMBER to LAMMPS Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amoeba.html">10.4.4. AMOEBA and HIPPO force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip3p.html">10.4.5. TIP3P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip4p.html">10.4.6. TIP4P and OPC water models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip5p.html">10.4.7. TIP5P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spc.html">10.4.8. SPC and SPC/E water model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.4.9. </span>Two-band (and multi-band) EAM potentials with hybrid/overlay</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_spc.html" class="btn btn-neutral float-left" title="10.4.8. SPC and SPC/E water model" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_spherical.html" class="btn btn-neutral float-right" title="10.5.1. Finite-size spherical and aspherical particles" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="two-band-and-multi-band-eam-potentials-with-hybrid-overlay">
+<h1><span class="section-number">10.4.9. </span>Two-band (and multi-band) EAM potentials with hybrid/overlay<a class="headerlink" href="#two-band-and-multi-band-eam-potentials-with-hybrid-overlay" title="Link to this heading"></a></h1>
+<p>Some embedded-atom-method (EAM) potentials add a <em>second</em> embedding term to
+the standard EAM energy expression in order to capture effects that a single
+density and embedding function cannot.  The best known examples are the
+<em>two-band</em> (or <em>double-band</em>, “2BM”) models for Fe-Cr, which add an
+“s-band” embedding term on top of the usual “d-band” EAM so that the sign of
+the alloy mixing enthalpy changes with chromium concentration
+<a class="reference internal" href="#olsson2band"><span class="std std-ref">(Olsson)</span></a>, <a class="reference internal" href="#bonny2band"><span class="std std-ref">(Bonny)</span></a>.</p>
+<p>This Howto shows that such a model can be run with the existing
+<a class="reference internal" href="pair_eam.html"><span class="doc">pair_style eam/fs</span></a> and
+<a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid/overlay</span></a> commands, <strong>without modifying
+or recompiling LAMMPS</strong>, and how to build the required potential files.</p>
+<section id="the-two-band-energy-expression">
+<h2>The two-band energy expression<a class="headerlink" href="#the-two-band-energy-expression" title="Link to this heading"></a></h2>
+<p>In a two-band model the energy of atom <em>i</em> is</p>
+<div class="math notranslate nohighlight">
+\[E_i = \frac{1}{2} \sum_{j \neq i} V(r_{ij})
+      + F^{d}\!\left(\rho^{d}_i\right)
+      + F^{s}\!\left(\rho^{s}_i\right), \qquad
+\rho^{d}_i = \sum_{j \neq i} \phi^{d}(r_{ij}), \quad
+\rho^{s}_i = \sum_{j \neq i} \phi^{s}(r_{ij}) .\]</div>
+<p>This is an ordinary EAM (pair term <span class="math notranslate nohighlight">\(V\)</span>, d-band density
+<span class="math notranslate nohighlight">\(\phi^{d}\)</span>, d-band embedding <span class="math notranslate nohighlight">\(F^{d}\)</span>) plus one <em>extra</em> embedding
+term <span class="math notranslate nohighlight">\(F^{s}\)</span> acting on a second, independent density
+<span class="math notranslate nohighlight">\(\rho^{s}\)</span>.  Grouping the terms,</p>
+<div class="math notranslate nohighlight">
+\[E_i = \underbrace{\left[\,\frac{1}{2} \sum_{j} V + F^{d}(\rho^{d})\,\right]}_{\text{a standard eam/fs}}
+    + \underbrace{\left[\,F^{s}(\rho^{s})\,\right]}_{\text{eam/fs with }V\equiv 0}\]</div>
+<p>shows that the total energy is the sum of two EAM potentials.  Adding
+energies, forces, and virials of two potentials acting on the same atoms is
+exactly what <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid/overlay</span></a> does.</p>
+</section>
+<section id="why-the-s-band-file-must-be-eam-fs">
+<h2>Why the s-band file must be <em>eam/fs</em><a class="headerlink" href="#why-the-s-band-file-must-be-eam-fs" title="Link to this heading"></a></h2>
+<p>In the two-band models the second (s-band) density is non-zero only between
+<em>unlike</em> atoms; it vanishes between atoms of the same element
+<a class="reference internal" href="#bonny2band"><span class="std std-ref">(Bonny)</span></a>:</p>
+<div class="math notranslate nohighlight">
+\[\phi^{s}_{AA} = \phi^{s}_{BB} = 0, \qquad \phi^{s}_{AB} = \phi^{s}_{BA} \neq 0 .\]</div>
+<p>A density that depends on the element of <em>both</em> the source and the target
+atom can only be expressed in the Finnis-Sinclair form, i.e. with
+<a class="reference internal" href="pair_eam.html"><span class="doc">pair_style eam/fs</span></a>, whose density functions
+<span class="math notranslate nohighlight">\(\rho_{\alpha\beta}(r)\)</span> are indexed per element pair.  It <em>cannot</em> be
+written as an <a class="reference internal" href="pair_eam.html"><span class="doc">eam/alloy</span></a> potential, which has a single
+density per element summed over all neighbors.  Therefore the s-band file is
+always an <em>eam/fs</em> file in which the like-element density functions are set
+to zero and only the unlike-element density is non-zero.  Its pair-potential
+(<span class="math notranslate nohighlight">\(r\,\phi\)</span>) section is set entirely to zero, because the pair term
+belongs to the d-band file.</p>
+<p>The d-band file is an ordinary binary EAM (the pair term plus the d-band
+density and embedding).  Because its density depends only on the neighbor’s
+element it could equally be written as <em>eam/alloy</em>; using <em>eam/fs</em> for both
+files keeps the recipe uniform.</p>
+</section>
+<section id="the-recipe">
+<h2>The recipe<a class="headerlink" href="#the-recipe" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">eam</span><span class="o">/</span><span class="n">fs</span><span class="w"> </span><span class="n">eam</span><span class="o">/</span><span class="n">fs</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">eam</span><span class="o">/</span><span class="n">fs</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">FeCr.dband.eam.fs</span><span class="w"> </span><span class="n">Fe</span><span class="w"> </span><span class="n">Cr</span><span class="w">   </span><span class="c"># pair V + d-band F_d(rho_d)</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">eam</span><span class="o">/</span><span class="n">fs</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">FeCr.sband.eam.fs</span><span class="w"> </span><span class="n">Fe</span><span class="w"> </span><span class="n">Cr</span><span class="w">   </span><span class="c"># s-band F_s(rho_s), no pair</span>
+</pre></div>
+</div>
+<p>The numeric <code class="docutils literal notranslate"><span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">2</span></code> after <code class="docutils literal notranslate"><span class="pre">eam/fs</span></code> are required because the same
+sub-style is used twice; see <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_hybrid</span></a>.  Each
+<em>eam/fs</em> instance keeps its own density and embedding-derivative arrays and
+performs its own communication, so the two densities
+<span class="math notranslate nohighlight">\(\rho^{d}\)</span> and <span class="math notranslate nohighlight">\(\rho^{s}\)</span> never mix.  <code class="docutils literal notranslate"><span class="pre">hybrid/overlay</span></code> sums the
+two contributions, and because the s-band file has no pair term there is no
+double counting: the combined energy is exactly
+<span class="math notranslate nohighlight">\(\tfrac{1}{2}\sum V + F^{d}(\rho^{d}) + F^{s}(\rho^{s})\)</span>.</p>
+<p>The two files are independent <em>eam/fs</em> files and may use different radial
+grids and cutoffs; the neighbor list is built with the larger of the two
+cutoffs.  Because both files store the same element masses, you may also set
+masses explicitly with the <a class="reference internal" href="mass.html"><span class="doc">mass</span></a> command to avoid any ambiguity.</p>
+<p>This generalizes to more than two bands: overlay <em>N</em> <em>eam/fs</em> files to add
+<em>N</em> embedding terms.  The same construction works for any model of the form
+“standard EAM plus one or more additive embedding terms.”</p>
+</section>
+<section id="building-the-s-band-file">
+<h2>Building the s-band file<a class="headerlink" href="#building-the-s-band-file" title="Link to this heading"></a></h2>
+<p>The helper script <code class="docutils literal notranslate"><span class="pre">tools/eam_generate/two_band_fecr.py</span></code> writes the s-band
+<em>eam/fs</em> file (cross-only density, <span class="math notranslate nohighlight">\(F^{s}\)</span> embedding, zero pair term)
+and can also emit an illustrative demo d-band file plus a ready-to-run input
+deck:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>tools/eam_generate
+<span class="c1"># self-contained runnable demo (writes both files + a sample input):</span>
+./two_band_fecr.py<span class="w"> </span>--demo<span class="w"> </span>--prefix<span class="w"> </span>FeCr_demo
+
+<span class="c1"># real use: add an s-band to your own trusted Fe-Cr d-band eam/fs file:</span>
+./two_band_fecr.py<span class="w"> </span>--dband<span class="w"> </span>MyFeCr.eam.fs<span class="w"> </span>--preset<span class="w"> </span>olsson-vasp<span class="w"> </span>--prefix<span class="w"> </span>FeCr_2bm
+</pre></div>
+</div>
+<p>The script implements the s-band density as the square of a 4s Slater
+function with a smooth cutoff and the s-band embedding as
+<span class="math notranslate nohighlight">\(F^{s}(\rho)=c_1\sqrt{\rho}+c_2\rho^2+c_3\rho^4\)</span>, matching the forms
+used in the published models.  It ships parameter presets taken from the
+literature, but note that the absolute normalization of <span class="math notranslate nohighlight">\(\rho^{s}\)</span> and
+the matching <span class="math notranslate nohighlight">\(F^{s}\)</span> coefficients are convention-sensitive: validate a
+preset against a known result (for instance the concentration dependence of
+the mixing enthalpy) before using it for production work.  The default
+<code class="docutils literal notranslate"><span class="pre">--demo</span></code> parameters are self-consistent and illustrative only; they
+exercise the overlay mechanics but are not a published fit.</p>
+</section>
+<section id="a-worked-check">
+<h2>A worked check<a class="headerlink" href="#a-worked-check" title="Link to this heading"></a></h2>
+<p>Running the demo input produced by <code class="docutils literal notranslate"><span class="pre">--demo</span></code> and decomposing the energy with
+<a class="reference internal" href="compute_pair.html"><span class="doc">compute pair</span></a> confirms the construction:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">ed</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="n">eam</span><span class="o">/</span><span class="n">fs</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">epair</span><span class="w">   </span><span class="c"># d-band sub-style energy</span>
+<span class="k">compute </span><span class="nv nv-Identifier">es</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pair</span><span class="w"> </span><span class="n">eam</span><span class="o">/</span><span class="n">fs</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">epair</span><span class="w">   </span><span class="c"># s-band sub-style energy</span>
+<span class="k">thermo_style</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">pe</span><span class="w"> </span><span class="n">c_ed</span><span class="w"> </span><span class="n">c_es</span>
+</pre></div>
+</div>
+<p>The total potential energy is exactly <code class="docutils literal notranslate"><span class="pre">c_ed</span> <span class="pre">+</span> <span class="pre">c_es</span></code>.  For a <em>pure</em> element
+the s-band energy <code class="docutils literal notranslate"><span class="pre">c_es</span></code> is identically zero, because the like-element
+s-density is zero, so <span class="math notranslate nohighlight">\(\rho^{s}=0\)</span> and <span class="math notranslate nohighlight">\(F^{s}(0)=0\)</span>.  Introducing
+unlike neighbors (an alloy) makes <code class="docutils literal notranslate"><span class="pre">c_es</span></code> non-zero: the s-band term samples
+the local concentration, which is the entire purpose of the model.</p>
+</section>
+<section id="restrictions-and-notes">
+<h2>Restrictions and notes<a class="headerlink" href="#restrictions-and-notes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>The s-band embedding of these models typically has a <span class="math notranslate nohighlight">\(\sqrt{\rho}\)</span>
+term, whose slope diverges as <span class="math notranslate nohighlight">\(\rho \to 0\)</span>.  This is harmless here:
+LAMMPS tabulates <span class="math notranslate nohighlight">\(F^{s}\)</span> as a spline (finite at every grid point) and
+the force contribution is multiplied by the s-density derivative, which is
+identically zero for like pairs.  A pure-element atom therefore contributes
+no spurious s-band force.</p></li>
+<li><p>This Howto reproduces the two-band <em>functional form</em> exactly.  Reproducing a
+specific published <em>parameterization</em> additionally requires the correct
+d-band/pair files (for Fe-Cr, the Mendelev iron potential plus the refit
+chromium and cross interactions) and validated s-band coefficients.</p></li>
+</ul>
+<hr class="docutils" />
+<p id="olsson2band"><strong>(Olsson)</strong> Olsson, Wallenius, Domain, Nordlund, Malerba, Physical Review B,
+72, 214119 (2005).</p>
+<p id="bonny2band"><strong>(Bonny)</strong> Bonny, Pasianot, Terentyev, Malerba, Philosophical Magazine, 91,
+1724 (2011).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_spc.html" class="btn btn-neutral float-left" title="10.4.8. SPC and SPC/E water model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_spherical.html" class="btn btn-neutral float-right" title="10.5.1. Finite-size spherical and aspherical particles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

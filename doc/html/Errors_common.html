@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5.1. Common issues that are often regarded as bugs &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Errors_common.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5.2. Errors and warnings details" href="Errors_details.html" />
+    <link rel="prev" title="5. Errors" href="Errors.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Errors.html">5. Errors</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.1. Common issues that are often regarded as bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_details.html">5.2. Errors and warnings details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_bugs.html">5.3. Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_debug.html">5.4. Debugging crashes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_debug.html#debugging-when-lammps-appears-to-be-stuck">5.5. Debugging when LAMMPS appears to be stuck</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_messages.html">5.6. Error messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_warnings.html">5.7. Warning messages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Errors.html"><span class="section-number">5. </span>Errors</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5.1. </span>Common issues that are often regarded as bugs</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Errors.html" class="btn btn-neutral float-left" title="5. Errors" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Errors_details.html" class="btn btn-neutral float-right" title="5.2. Errors and warnings details" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="common-issues-that-are-often-regarded-as-bugs">
+<h1><span class="section-number">5.1. </span>Common issues that are often regarded as bugs<a class="headerlink" href="#common-issues-that-are-often-regarded-as-bugs" title="Link to this heading"></a></h1>
+<p>The list below are some random notes on behavior of LAMMPS that is
+sometimes unexpected or even considered a bug.  Most of the time, these
+are just issues of understanding how LAMMPS is implemented and
+parallelized.  Please also have a look at the <a class="reference internal" href="Errors_details.html"><span class="doc">Error details
+discussions page</span></a> that contains recommendations for
+tracking down issues and explanations for error messages that may
+sometimes be confusing or need additional explanations.</p>
+<ul>
+<li><p>A LAMMPS simulation typically has two stages, 1) issuing commands
+and 2) run or minimize.  Most LAMMPS errors are detected in stage 1),
+others at the beginning of stage 2), and finally others like a bond
+stretching too far may or lost atoms or bonds may not occur until the
+middle of a run.</p></li>
+<li><p>If two LAMMPS runs do not produce the exact same answer on different
+machines or different numbers of processors, this is typically not a
+bug.  In theory you should get identical answers on any number of
+processors and on any machine.  In practice, numerical round-off can
+cause slight differences and eventual divergence of molecular dynamics
+phase space trajectories within a few 100s or few 1000s of timesteps.
+This can be triggered by different ordering of atoms due to different
+domain decompositions, but also through different CPU architectures,
+different operating systems, different compilers or compiler versions,
+different compiler optimization levels, different FFT libraries.
+However, the statistical properties of the two runs (e.g. average
+energy or temperature) should still be the same.</p></li>
+<li><p>If the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command is used to set initial atom
+velocities, a particular atom can be assigned a different velocity
+when the problem is run on a different number of processors or on
+different machines.  If this happens, the phase space trajectories of
+the two simulations will rapidly diverge.  See the discussion of the
+<em>loop</em> option in the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command for details
+and options that avoid this issue.</p></li>
+<li><p>Similarly, the <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> command generates a
+lattice of atoms.  For the same physical system, the ordering and
+numbering of atoms by atom ID may be different depending on the number
+of processors.</p></li>
+<li><p>Some commands use random number generators which may be setup to
+produce different random number streams on each processor and hence
+will produce different effects when run on different numbers of
+processors.  A commonly-used example is the <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> command for thermostatting.</p></li>
+<li><p>LAMMPS tries to flag errors and print informative error messages so
+you can fix the problem.  For most errors it will also print the last
+input script command that it was processing or even point to the
+keyword that is causing troubles.  Of course, LAMMPS cannot figure out
+your physics or numerical mistakes, like choosing too big a timestep,
+specifying erroneous force field coefficients, or putting 2 atoms on
+top of each other!  Also, LAMMPS does not know what you <em>intend</em> to
+do, but very strictly applies the syntax as described in the
+documentation.  If you run into errors that LAMMPS does not catch that
+you think it should flag, please send an email to the <a class="reference external" href="https://www.lammps.org/authors.html">developers</a> or create a new topic on the
+dedicated <a class="reference external" href="https://matsci.org/lammps/">MatSci forum section</a>.</p></li>
+<li><p>If you get an error message about an invalid command in your input
+script, you can determine what command is causing the problem by
+looking in the log.lammps file or using the <a class="reference internal" href="echo.html"><span class="doc">echo command</span></a>
+to see it on the screen.  If you get an error like “Invalid …
+style”, with … being fix, compute, pair, etc, it means that you
+mistyped the style name or that the command is part of an optional
+package which was not compiled into your executable.  The list of
+available styles in your executable can be listed by using
+<a class="reference internal" href="Run_options.html"><span class="doc">the -h command-line switch</span></a>.  The installation and
+compilation of optional packages is explained on the <a class="reference internal" href="Build_package.html"><span class="doc">Build
+packages</span></a> doc page.</p></li>
+<li><p>For a given command, LAMMPS expects certain arguments in a specified
+order.  If you mess this up, LAMMPS will often flag the error, but it
+may also simply read a bogus argument and assign a value that is
+valid, but not what you wanted.  E.g. trying to read the string “abc”
+as an integer value of 0.  Careful reading of the associated doc page
+for the command should allow you to fix these problems. In most cases,
+where LAMMPS expects to read a number, either integer or floating
+point, it performs a stringent test on whether the provided input
+actually is an integer or floating-point number, respectively, and
+reject the input with an error message (for instance, when an integer
+is required, but a floating-point number 1.0 is provided):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Expected integer parameter instead of &#39;1.0&#39; in input script or data file
+</pre></div>
+</div>
+</li>
+<li><p>Some commands allow for using variable references in place of numeric
+constants so that the value can be evaluated and may change over the
+course of a run.  This is typically done with the syntax <em>v_name</em> for
+a parameter, where name is the name of the variable. On the other
+hand, immediate variable expansion with the syntax ${name} is
+performed while reading the input and before parsing commands,</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Using a variable reference (i.e. <em>v_name</em>) is only allowed if
+the documentation of the corresponding command explicitly says it is.
+Otherwise, you will receive an error message of this kind:</p>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Expected floating point parameter instead of &#39;v_name&#39; in input script or data file
+</pre></div>
+</div>
+</li>
+<li><p>Generally, LAMMPS will print a message to the screen and logfile and
+exit gracefully when it encounters a fatal error.  When running in
+parallel this message may be stuck in an I/O buffer and LAMMPS will be
+terminated before that buffer is printed.  In that case you can try
+adding the <code class="docutils literal notranslate"><span class="pre">-nonblock</span></code> or <code class="docutils literal notranslate"><span class="pre">-nb</span></code> command-line flag to turn off that
+buffering.  Please note that this should not be used for production
+runs, since turning off buffering usually has a significant negative
+impact on performance (even worse than <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify flush yes</span></a>).  Sometimes LAMMPS will print a WARNING to the
+screen and logfile and continue on; you can decide if the WARNING is
+important or not, but as a general rule do not ignore warnings that
+you not understand.  A WARNING message that is generated in the middle
+of a run is only printed to the screen, not to the logfile, to avoid
+cluttering up thermodynamic output.  If LAMMPS crashes or hangs
+without generating an error message first then it could be a bug
+(see <a class="reference internal" href="Errors_bugs.html"><span class="doc">this section</span></a>).</p></li>
+<li><p>LAMMPS runs in the available memory a processor allows to be
+allocated.  Most reasonable MD runs are compute limited, not memory
+limited, so this should not be a bottleneck on most platforms.  Almost
+all large memory allocations in the code are done via C-style malloc’s
+which will generate an error message if you run out of memory.
+Smaller chunks of memory are allocated via C++ “new” statements.  If
+you are unlucky you could run out of memory just when one of these
+small requests is made, in which case the code will crash or hang (in
+parallel).</p></li>
+<li><p>Illegal arithmetic can cause LAMMPS to run slow or crash.  This is
+typically due to invalid physics and numerics that your simulation is
+computing.  If you see wild thermodynamic values or NaN values in your
+LAMMPS output, something is wrong with your simulation.  If you
+suspect this is happening, it is a good idea to print out
+thermodynamic info frequently (e.g. every timestep) via the
+<a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a> so you can monitor what is happening.
+Visualizing the atom movement is also a good idea to ensure your model
+is behaving as you expect.</p></li>
+<li><p>When running in parallel with MPI, one way LAMMPS can hang is because
+LAMMPS has come across an error condition, but only on one or a few
+MPI processes and not all of them.  LAMMPS has two different “stop
+with an error message” functions and the correct one has to be called
+or else it will hang.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Errors.html" class="btn btn-neutral float-left" title="5. Errors" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Errors_details.html" class="btn btn-neutral float-right" title="5.2. Errors and warnings details" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

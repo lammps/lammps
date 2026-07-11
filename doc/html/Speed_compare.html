@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7.5. Comparison of various accelerator packages &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Speed_compare.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="8. Optional packages" href="Packages.html" />
+    <link rel="prev" title="7.4.5. OPT package" href="Speed_opt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Speed.html">7. Accelerate performance</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Speed_bench.html">7.1. Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_measure.html">7.2. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_tips.html">7.3. General tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_packages.html">7.4. Accelerator packages</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">7.5. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Speed.html"><span class="section-number">7. </span>Accelerate performance</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">7.5. </span>Comparison of various accelerator packages</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Speed_opt.html" class="btn btn-neutral float-left" title="7.4.5. OPT package" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Packages.html" class="btn btn-neutral float-right" title="8. Optional packages" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="comparison-of-various-accelerator-packages">
+<h1><span class="section-number">7.5. </span>Comparison of various accelerator packages<a class="headerlink" href="#comparison-of-various-accelerator-packages" title="Link to this heading"></a></h1>
+<p>The next section compares and contrasts the various accelerator
+options, since there are multiple ways to perform OpenMP threading,
+run on GPUs, and optimize for vector units on CPUs.</p>
+<p>All of these packages can accelerate a LAMMPS calculation taking
+advantage of hardware features, but they do it in different ways
+and acceleration is not always guaranteed.</p>
+<p>As a consequence, for a particular simulation on specific hardware,
+one package may be faster than the other.  We give some guidelines
+below, but the best way to determine which package is faster for your
+input script is to try multiple of them on your machine and experiment
+with available performance tuning settings.  See the benchmarking
+section below for examples where this has been done.</p>
+<p><strong>Guidelines for using each package optimally:</strong></p>
+<ul class="simple">
+<li><p>Both, the GPU and the KOKKOS package allows you to assign multiple
+MPI ranks (= CPU cores) to the same GPU. For the GPU package, this
+can lead to a speedup through better utilization of the GPU (by
+overlapping computation and data transfer) and more efficient
+computation of the non-GPU accelerated parts of LAMMPS through MPI
+parallelization, as all system data is maintained and updated on
+the host. For KOKKOS, there is less to no benefit from this, due
+to its different memory management model, which tries to retain
+data on the GPU.</p></li>
+<li><p>The GPU package moves per-atom data (coordinates, forces, and
+(optionally) neighbor list data, if not computed on the GPU) between
+the CPU and GPU at every timestep.  The KOKKOS/CUDA package only does
+this on timesteps when a CPU calculation is required (e.g. to invoke
+a fix or compute that is non-GPU-ized). Hence, if you can formulate
+your input script to only use GPU-ized fixes and computes, and avoid
+doing I/O too often (thermo output, dump file snapshots, restart files),
+then the data transfer cost of the KOKKOS/CUDA package can be very low,
+causing it to run faster than the GPU package.</p></li>
+<li><p>The GPU package is often faster than the KOKKOS/CUDA package, when the
+number of atoms per GPU is on the smaller side.  The crossover point,
+in terms of atoms/GPU at which the KOKKOS/CUDA package becomes faster
+depends strongly on the pair style.</p></li>
+<li><p>When using LAMMPS with multiple MPI ranks assigned to the same GPU, its
+performance depends to some extent on the available bandwidth between
+the CPUs and the GPU. This can differ significantly based on the
+available bus technology, capability of the host CPU and mainboard,
+the wiring of the buses and whether switches are used to increase the
+number of available bus slots, or if GPUs are housed in an external
+enclosure.  This can become quite complex.</p></li>
+<li><p>To achieve significant acceleration through GPUs, both KOKKOS and GPU
+package require capable GPUs with fast on-device memory and efficient
+data transfer rates. This requests capable upper mid-level to high-end
+(desktop) GPUs. Using lower performance GPUs (e.g. on laptops) may
+result in a slowdown instead.</p></li>
+<li><p>For the GPU package, specifically when running in parallel with MPI,
+it is often more efficient to exclude the PPPM kspace style from GPU
+acceleration and instead run it - concurrently with a GPU accelerated
+pair style - on the CPU. This can often be easily achieved with placing
+a <em>suffix off</em> command before and a <em>suffix on</em> command after the
+<em>kspace_style pppm</em> command.</p></li>
+<li><p>The KOKKOS/OpenMP and OPENMP package have different thread management
+strategies, which should result in OPENMP being more efficient for a
+small number of threads with increasing overhead as the number of threads
+per MPI rank grows. The KOKKOS/OpenMP kernels have less overhead in that
+case, but have lower performance with few threads.</p></li>
+<li><p>The INTEL package contains many options and settings for achieving
+additional performance on Intel hardware (CPU and accelerator cards), but
+to unlock this potential, an Intel compiler is required. The package code
+will compile with GNU gcc, but it will not be as efficient.</p></li>
+</ul>
+<p><strong>Differences between the GPU and KOKKOS packages:</strong></p>
+<ul class="simple">
+<li><p>The GPU package accelerates only pair force, neighbor list, and (parts
+of) PPPM calculations (and runs the remaining force computations on
+the CPU concurrently).  The KOKKOS package attempts to run most of the
+calculation on the GPU, but can transparently support non-accelerated
+code (with a performance penalty due to having data transfers between
+host and GPU).</p></li>
+<li><p>The list of which styles are accelerated by the GPU or KOKKOS package
+differs with some overlap.</p></li>
+<li><p>The GPU package requires neighbor lists to be built on the CPU when using
+hybrid pair styles, exclusion lists, or a triclinic simulation box.</p></li>
+<li><p>The GPU package benefits from running multiple MPI processes (2-8) per
+GPU to parallelize the non-GPU accelerated styles.  The KOKKOS package
+usually not, especially when all parts of the calculation have KOKKOS
+support.</p></li>
+<li><p>The GPU package can be compiled for CUDA, HIP, or OpenCL and thus
+supports NVIDIA, AMD, and Intel GPUs well. On NVIDIA or AMD hardware,
+using native CUDA or HIP compilation, respectively, with either GPU or
+KOKKOS results in equal or better performance over OpenCL.</p></li>
+<li><p>OpenCL in the GPU package supports NVIDIA, AMD, and Intel GPUs at the
+<em>same time</em> and with the <em>same executable</em>.  KOKKOS currently does not
+support OpenCL.</p></li>
+<li><p>Both the GPU package and the KOKKOS package support single precision
+floating point, mixed precision floating point, and double precision
+floating point math.  This must be chosen at compile time.  Using
+single or mixed precision (recommended) results in significantly
+improved performance on consumer GPUs for some loss in accuracy (which
+is rather small with mixed precision).</p></li>
+<li><p>Some pair styles (for example <a class="reference internal" href="pair_snap.html"><span class="doc">snap</span></a>, <a class="reference internal" href="pair_mliap.html"><span class="doc">mliap</span></a> or <a class="reference internal" href="pair_reaxff.html"><span class="doc">reaxff</span></a> in the KOKKOS package have
+seen extensive optimizations and specializations for GPUs and CPUs.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Speed_opt.html" class="btn btn-neutral float-left" title="7.4.5. OPT package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Packages.html" class="btn btn-neutral float-right" title="8. Optional packages" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

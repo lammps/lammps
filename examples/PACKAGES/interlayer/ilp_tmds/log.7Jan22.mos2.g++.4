@@ -1,0 +1,154 @@
+LAMMPS (7 Jan 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+units           metal
+atom_style      full
+processors      * * 1
+boundary        p p f
+read_data       ./bilayer_MoS2_AAprime_stacking.data
+Reading data file ...
+  triclinic box = (0 0 -100) to (51.15232 44.299209 100) with tilt (25.57616 0 0)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  1536 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.007 seconds
+
+mass            * 32.065  # mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94   # mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
+mass            4 95.94
+
+# Define potentials
+pair_style     	hybrid/overlay sw/mod sw/mod ilp/tmd 16.0
+pair_coeff     	* * sw/mod 1 tmd.sw.mod Mo S S NULL NULL NULL
+Reading sw potential file tmd.sw.mod with DATE: 2018-03-26
+pair_coeff     	* * sw/mod 2 tmd.sw.mod NULL NULL NULL Mo S S
+Reading sw potential file tmd.sw.mod with DATE: 2018-03-26
+pair_coeff     	* * ilp/tmd  MoS2.ILP Mo S S Mo S S
+Reading ilp/tmd potential file MoS2.ILP with DATE: 2021-12-02
+
+# Calculate the pair potential
+compute   	0 all pair ilp/tmd
+compute   	1 all pair sw/mod 1
+compute   	2 all pair sw/mod 2
+variable  	SW1 equal c_1
+variable  	SW2 equal c_2
+variable  	ILP equal c_0
+variable  	Eatt equal c_0[1]
+variable  	Erep equal c_0[2]
+
+thermo_style    custom step etotal pe ke v_SW1 v_SW2 v_ILP v_Erep v_Eatt temp
+
+thermo          100
+thermo_modify   lost error
+
+timestep	1e-3
+
+velocity  	all create 300.0 12345
+fix             intall all nve
+run 		1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848
+@Article{Ouyang2018
+ author = {W. Ouyang, D. Mandelli, M. Urbakh, and O. Hod},
+ title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},
+ journal = {Nano Letters},
+ volume =  18,
+ pages =   {6009}
+ year =    2018,
+}
+
+- ilp/tmd potential doi/10.1021/acs.jctc.1c00782
+@Article{Ouyang2021
+ author = {W. Ouyang, R. Sofer, X. Gao, J. Hermann, A. Tkatchenko, L. Kronik, M. Urbakh, and O. Hod},
+ title = {Anisotropic Interlayer Force Field for Transition Metal Dichalcogenides: The Case of Molybdenum Disulfide},
+ journal = {J. Chem. Theory Comput.},
+ volume =  17,
+ pages =   {7237–7245}
+ year =    2021,
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 9 5 23
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair sw/mod, perpetual, skip from (4)
+      attributes: full, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair sw/mod, perpetual, skip from (4)
+      attributes: full, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) pair ilp/tmd, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (4) neighbor class addition, perpetual, copy from (3)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 17.98 | 17.98 | 17.98 Mbytes
+Step TotEng PotEng KinEng v_SW1 v_SW2 v_ILP v_Erep v_Eatt Temp 
+       0   -1834.4469   -1893.9712    59.524297   -929.02881   -929.02881   -35.913549     63.00343   -98.916979          300 
+     100   -1834.4497   -1883.3105    48.860775   -924.84264   -925.08505   -33.382796     56.58255   -89.965346    246.25629 
+     200   -1834.4381   -1873.7072    39.269085   -922.29961   -922.52535   -28.882252     50.08277   -78.965022    197.91457 
+     300   -1834.4483   -1881.1263    46.678028   -923.39264   -923.65627   -34.077402    51.011967   -85.089369    235.25534 
+     400    -1834.431   -1868.0728     33.64182   -916.85743   -916.27044   -34.944916    50.414038   -85.358954    169.55338 
+     500   -1834.4499   -1881.9059       47.456   -925.22919   -924.29582   -32.380877    44.755168   -77.136045    239.17628 
+     600   -1834.4343   -1869.8642    35.429976   -920.97805   -919.60784   -29.278358    43.270241   -72.548599    178.56562 
+     700    -1834.443    -1878.144    43.700934    -921.8051   -921.55671   -34.782141    49.959943   -84.742084     220.2509 
+     800   -1834.4327    -1869.824    35.391298   -917.19193   -917.91383   -34.718247    55.349728   -90.067976    178.37068 
+     900   -1834.4465   -1877.6741    43.227638   -923.33877   -922.50874   -31.826599    53.965592   -85.792191    217.86551 
+    1000   -1834.4412   -1876.1808    41.739587   -923.17282   -923.49367   -29.514347    55.454643    -84.96899     210.3658 
+Loop time of 24.6309 on 4 procs for 1000 steps with 1536 atoms
+
+Performance: 3.508 ns/day, 6.842 hours/ns, 40.599 timesteps/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 22.906     | 23.627     | 24.36      |  14.0 | 95.92
+Bond    | 0.00010889 | 0.00011572 | 0.00012719 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.25886    | 0.992      | 1.7126     |  68.3 |  4.03
+Output  | 0.00050901 | 0.00054202 | 0.00062029 |   0.0 |  0.00
+Modify  | 0.0030735  | 0.0033236  | 0.0035581  |   0.3 |  0.01
+Other   |            | 0.008194   |            |       |  0.03
+
+Nlocal:            384 ave         387 max         381 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:           2262 ave        2265 max        2259 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:       248064 ave      250002 max      246126 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+
+Total # of neighbors = 992256
+Ave neighs/atom = 646
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:24

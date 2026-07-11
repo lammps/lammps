@@ -1,0 +1,57 @@
+# LJ test of msst shock dynamics
+
+# Energy in eV, time in ps, distance in angstroms.
+units		metal
+boundary        p p p
+
+atom_style	atomic
+timestep        1e-03
+
+lattice		fcc 5.3589
+
+## Specify the box as a given number of unit cells.
+region		box1 block 0 18 0 18 0 18 units lattice
+
+## Instantiate the system.
+create_box	1 box1
+create_atoms    1 region box1
+
+mass		1 40.00
+
+# Initial velocities correspond to around 300K.
+velocity   all create 600.0 9999
+
+pair_style	lj/cut  10 
+pair_coeff	1 1 0.01032 3.405
+
+timestep 2e-3
+
+# Equilibrate the system
+fix	      2 all nve
+thermo		10
+
+run		100
+unfix		 2
+
+# MSST fix
+fix		msst all msst z 28.0 q 200 mu 3e2 tscale 0.01 
+
+variable dhug equal f_msst[1]
+variable dray equal f_msst[2]
+variable lgr_vel equal f_msst[3]
+variable lgr_pos equal f_msst[4]
+
+thermo_style custom step temp ke pe lx ly lz pxx pyy pzz econserve &
+	     v_dhug v_dray v_lgr_vel v_lgr_pos f_msst
+
+#dump		id all atom 50 dump.msst
+
+#dump		2 all image 25 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3
+
+#dump		3 all movie 25 movie.mpg type type &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3
+
+run	        100

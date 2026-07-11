@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.4.4. Long-range interactions &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_par_long.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.4.5. OpenMP Parallelism" href="Developer_par_openmp.html" />
+    <link rel="prev" title="4.4.3. Neighbor lists" href="Developer_par_neigh.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_part.html">4.4.1. Partitioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_comm.html">4.4.2. Communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_neigh.html">4.4.3. Neighbor lists</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.4.4. Long-range interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_openmp.html">4.4.5. OpenMP Parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_parallel.html"><span class="section-number">4.4. </span>Parallel algorithms</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.4.4. </span>Long-range interactions</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_par_neigh.html" class="btn btn-neutral float-left" title="4.4.3. Neighbor lists" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_par_openmp.html" class="btn btn-neutral float-right" title="4.4.5. OpenMP Parallelism" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="long-range-interactions">
+<h1><span class="section-number">4.4.4. </span>Long-range interactions<a class="headerlink" href="#long-range-interactions" title="Link to this heading"></a></h1>
+<p>For charged systems, LAMMPS can compute long-range Coulombic
+interactions via the FFT-based particle-particle/particle-mesh (PPPM)
+method implemented in <a class="reference internal" href="kspace_style.html"><span class="doc">kspace style pppm and its variants</span></a>.  For that Coulombic interactions are partitioned into
+short- and long-range components.  The short-ranged portion is computed
+in real space as a loop over pairs of charges within a cutoff distance,
+using neighbor lists.  The long-range portion is computed in reciprocal
+space using a kspace style.  For the PPPM implementation the simulation
+cell is overlaid with a regular FFT grid in 3d. It proceeds in several stages:</p>
+<ol class="loweralpha simple">
+<li><p>each atom’s point charge is interpolated to nearby FFT grid points,</p></li>
+<li><p>a forward 3d FFT is performed,</p></li>
+<li><p>a convolution operation is performed in reciprocal space,</p></li>
+<li><p>one or more inverse 3d FFTs are performed, and</p></li>
+<li><p>electric field values from grid points near each atom are interpolated to compute
+its forces.</p></li>
+</ol>
+<p>For any of the spatial-decomposition partitioning schemes each processor
+owns the brick-shaped portion of FFT grid points contained within its
+subdomain.  The two interpolation operations use a stencil of grid
+points surrounding each atom.  To accommodate the stencil size, each
+processor also stores a few layers of ghost grid points surrounding its
+brick.  Forward and reverse communication of grid point values is
+performed similar to the corresponding <a class="reference internal" href="Developer_par_comm.html"><span class="doc">atom data communication</span></a>.  In this case, electric field values on owned
+grid points are sent to neighboring processors to become ghost point
+values.  Likewise charge values on ghost points are sent and summed to
+values on owned points.</p>
+<p>For triclinic simulation boxes, the FFT grid planes are parallel to
+the box faces, but the mapping of charge and electric field values
+to/from grid points is done in reduced coordinates where the tilted
+box is conceptually a unit cube, so that the stencil and FFT
+operations are unchanged.  However the FFT grid size required for a
+given accuracy is larger for triclinic domains than it is for
+orthogonal boxes.</p>
+<figure class="align-default" id="id1">
+<span id="fft-parallel"></span><img alt="_images/fft-decomp-parallel.png" src="_images/fft-decomp-parallel.png" />
+<figcaption>
+<p><span class="caption-text">Parallel FFT in PPPM</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<div class="legend">
+<blockquote>
+<div><p>Stages of a parallel FFT for a simulation domain overlaid with an
+8x8x8 3d FFT grid, partitioned across 64 processors.  Within each
+of the 4 diagrams, grid cells of the same color are owned by a
+single processor; for simplicity, only cells owned by 4 or 8 of
+the 64 processors are colored.  The two images on the left
+illustrate brick-to-pencil communication.  The two images on the
+right illustrate pencil-to-pencil communication, which in this
+case transposes the <em>y</em> and <em>z</em> dimensions of the grid.</p>
+</div></blockquote>
+</div>
+</figcaption>
+</figure>
+<p>Parallel 3d FFTs require substantial communication relative to their
+computational cost.  A 3d FFT is implemented by a series of 1d FFTs
+along the <em>x-</em>, <em>y-</em>, and <em>z-</em>direction of the FFT grid.  Thus, the
+FFT grid cannot be decomposed like atoms into 3 dimensions for parallel
+processing of the FFTs but only in 1 (as planes) or 2 (as pencils)
+dimensions and in between the steps the grid needs to be transposed to
+have the FFT grid portion “owned” by each MPI process complete in the
+direction of the 1d FFTs it has to perform. LAMMPS uses the
+pencil-decomposition algorithm as shown in the <a class="reference internal" href="#fft-parallel"><span class="std std-ref">Parallel FFT in PPPM</span></a>
+figure.</p>
+<p>Initially (far left), each processor owns a brick of same-color grid
+cells (actually grid points) contained within in its subdomain.  A
+brick-to-pencil communication operation converts this layout to 1d
+pencils in the <em>x</em>-dimension (center left).  Again, cells of the same
+color are owned by the same processor.  Each processor can then compute
+a 1d FFT on each pencil of data it wholly owns using a call to the
+configured FFT library.  A pencil-to-pencil communication then converts
+this layout to pencils in the <em>y</em> dimension (center right) which
+effectively transposes the <em>x</em> and <em>y</em> dimensions of the grid, followed
+by 1d FFTs in <em>y</em>.  A final transpose of pencils from <em>y</em> to <em>z</em> (far
+right) followed by 1d FFTs in <em>z</em> completes the forward FFT.  The data
+is left in a <em>z</em>-pencil layout for the convolution operation.  One or
+more inverse FFTs then perform the sequence of 1d FFTs and communication
+steps in reverse order; the final layout of resulting grid values is the
+same as the initial brick layout.</p>
+<p>Each communication operation within the FFT (brick-to-pencil or
+pencil-to-pencil or pencil-to-brick) converts one tiling of the 3d grid
+to another, where a tiling in this context means an assignment of a
+small brick-shaped subset of grid points to each processor, the union of
+which comprise the entire grid.  The parallel <a class="reference external" href="https://lammps.github.io/fftmpi/">fftMPI library</a> written for LAMMPS allows arbitrary
+definitions of the tiling so that an irregular partitioning of the
+simulation domain can use it directly.  Transforming data from one
+tiling to another is implemented in <cite>fftMPI</cite> using point-to-point
+communication, where each processor sends data to a few other
+processors, since each tile in the initial tiling overlaps with a
+handful of tiles in the final tiling.</p>
+<p>The transformations could also be done using collective communication
+across all <span class="math notranslate nohighlight">\(P\)</span> processors with a single call to <code class="docutils literal notranslate"><span class="pre">MPI_Alltoall()</span></code>, but
+this is typically much slower.  However, for the specialized brick and
+pencil tiling illustrated in <a class="reference internal" href="#fft-parallel"><span class="std std-ref">Parallel FFT in PPPM</span></a> figure, collective
+communication across the entire MPI communicator is not required.  In
+the example, an <span class="math notranslate nohighlight">\(8^3\)</span> grid with 512 grid cells is partitioned
+across 64 processors; each processor owns a 2x2x2 3d brick of grid
+cells.  The initial brick-to-pencil communication (upper left to upper
+right) only requires collective communication within subgroups of 4
+processors, as illustrated by the 4 colors.  More generally, a
+brick-to-pencil communication can be performed by partitioning <em>P</em>
+processors into <span class="math notranslate nohighlight">\(P^{\frac{2}{3}}\)</span> subgroups of
+<span class="math notranslate nohighlight">\(P^{\frac{1}{3}}\)</span> processors each.  Each subgroup performs
+collective communication only within its subgroup.  Similarly,
+pencil-to-pencil communication can be performed by partitioning <em>P</em>
+processors into <span class="math notranslate nohighlight">\(P^{\frac{1}{2}}\)</span> subgroups of
+<span class="math notranslate nohighlight">\(P^{\frac{1}{2}}\)</span> processors each.  This is illustrated in the
+figure for the <span class="math notranslate nohighlight">\(y \Rightarrow z\)</span> communication (center).  An
+eight-processor subgroup owns the front <em>yz</em> plane of data and performs
+collective communication within the subgroup to transpose from a
+<em>y</em>-pencil to <em>z</em>-pencil layout.</p>
+<p>LAMMPS invokes point-to-point communication by default, but also
+provides the option of partitioned collective communication when using a
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify collective yes</span></a> command to switch to
+that mode.  In the latter case, the code detects the size of the
+disjoint subgroups and partitions the single <em>P</em>-size communicator into
+multiple smaller communicators, each of which invokes collective
+communication.  Testing on a large IBM Blue Gene/Q machine at Argonne
+National Labs showed a significant improvement in FFT performance for
+large processor counts; partitioned collective communication was faster
+than point-to-point communication or global collective communication
+involving all <em>P</em> processors.</p>
+<p>Here are some additional details about FFTs for long-range and related
+grid/particle operations that LAMMPS supports:</p>
+<ul>
+<li><p>The fftMPI library allows each grid dimension to be a multiple of
+small prime factors (2,3,5), and allows any number of processors to
+perform the FFT.  The resulting brick and pencil decompositions are
+thus not always as well-aligned, but the size of subgroups of
+processors for the two modes of communication (brick/pencil and
+pencil/pencil) still scale as <span class="math notranslate nohighlight">\(O(P^{\frac{1}{3}})\)</span> and
+<span class="math notranslate nohighlight">\(O(P^{\frac{1}{2}})\)</span>.</p></li>
+<li><p>For efficiency in performing 1d FFTs, the grid transpose
+operations illustrated in Figure <a class="reference internal" href="#fft-parallel"><span class="std std-ref">Parallel FFT in PPPM</span></a> also involve
+reordering the 3d data so that a different dimension is contiguous
+in memory.  This reordering can be done during the packing or
+unpacking of buffers for MPI communication.</p></li>
+<li><p>For large systems and particularly many MPI processes, the dominant
+cost for parallel FFTs is often the communication, not the computation
+of 1d FFTs, even though the latter scales as <span class="math notranslate nohighlight">\(N \log(N)\)</span> in the
+number of grid points <em>N</em> per grid direction.  This is due to the fact
+that only a 2d decomposition into pencils is possible while atom data
+(and their corresponding short-range force and energy computations)
+can be decomposed efficiently in 3d.</p>
+<p>Reducing the number of MPI processes involved in the MPI communication
+will reduce this kind of overhead.  By using a <a class="reference internal" href="Speed_omp.html"><span class="doc">hybrid MPI +
+OpenMP parallelization</span></a> it is still possible to use all
+processes for parallel computation.  It will use OpenMP
+parallelization inside the MPI domains. While that may have a lower
+parallel efficiency for some part of the computation, that can be less
+than the communication overhead in the 3d FFTs.</p>
+<p>As an alternative, it is also possible to start a <a class="reference internal" href="Run_options.html#partition"><span class="std std-ref">multi-partition</span></a> calculation and then use the <a class="reference internal" href="run_style.html"><span class="doc">verlet/split
+integrator</span></a> to perform the PPPM computation on a
+dedicated, separate partition of MPI processes.  This uses an integer
+“1:<em>p</em>” mapping of <em>p</em> subdomains of the atom decomposition to one
+subdomain of the FFT grid decomposition and where pairwise non-bonded
+and bonded forces and energies are computed on the larger partition
+and the PPPM kspace computation concurrently on the smaller partition.</p>
+</li>
+<li><p>LAMMPS also implements PPPM-based solvers for other long-range
+interactions, dipole and dispersion (Lennard-Jones), which can be used
+in conjunction with long-range  Coulombics for point charges.</p></li>
+<li><p>LAMMPS implements a <code class="docutils literal notranslate"><span class="pre">GridComm</span></code> class which overlays the simulation
+domain with a regular grid, partitions it across processors in a
+manner consistent with processor subdomains, and provides methods for
+forward and reverse communication of owned and ghost grid point
+values.  It is used for PPPM as an FFT grid (as outlined above) and
+also for the MSM algorithm, which uses a cascade of grid sizes from
+fine to coarse to compute long-range Coulombic forces.  The GridComm
+class is also useful for models where continuum fields interact with
+particles.  For example, the two-temperature model (TTM) defines heat
+transfer between atoms (particles) and electrons (continuum gas) where
+spatial variations in the electron temperature are computed by finite
+differences of a discretized heat equation on a regular grid.  The
+<a class="reference internal" href="fix_ttm.html"><span class="doc">fix ttm/grid</span></a> command uses the <code class="docutils literal notranslate"><span class="pre">GridComm</span></code> class
+internally to perform its grid operations on a distributed grid
+instead of the original <a class="reference internal" href="fix_ttm.html"><span class="doc">fix ttm</span></a> which uses a
+replicated grid.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_par_neigh.html" class="btn btn-neutral float-left" title="4.4.3. Neighbor lists" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_par_openmp.html" class="btn btn-neutral float-right" title="4.4.5. OpenMP Parallelism" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

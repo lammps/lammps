@@ -1,0 +1,224 @@
+LAMMPS (17 Apr 2024 - Development - patch_5May2020-18508-g3c0eaf6870-modified)
+# ------ 2D Taylor Green vortex ------ #
+
+dimension          2
+units              lj
+atom_style         rheo
+boundary           p p p
+comm_modify        vel yes
+newton off
+
+# ------ Create simulation box ------ #
+
+variable           n equal 1.0
+variable           cut equal 3.0
+
+region             box block 0 40 0 40 -0.01 0.01
+create_box         1 box
+Created orthogonal box = (0 0 -0.01) to (40 40 0.01)
+  2 by 2 by 1 MPI processor grid
+lattice            sq ${n}
+lattice            sq 1
+Lattice spacing in x,y,z = 1 1 1
+
+create_atoms       1 region box
+Created 1600 atoms
+  using lattice units in orthogonal box = (0 0 -0.01) to (40 40 0.01)
+  create_atoms CPU = 0.001 seconds
+
+displace_atoms     all random 0.1 0.1 0 135414 units box
+Displacing atoms ...
+
+# ------ Model parameters ------ #
+
+variable           rho0 equal 1.0
+variable           mp equal ${rho0}/${n}
+variable           mp equal 1/${n}
+variable           mp equal 1/1
+variable           cs equal 1.0
+variable           eta equal 0.05
+variable           zeta equal 1
+variable           dt_max equal 0.1*${cut}/${cs}/3
+variable           dt_max equal 0.1*3/${cs}/3
+variable           dt_max equal 0.1*3/1/3
+variable           Dr equal 0.1*${cut}*${cs}
+variable           Dr equal 0.1*3*${cs}
+variable           Dr equal 0.1*3*1
+
+mass               * ${mp}
+mass               * 1
+set                group all rheo/rho ${rho0}
+set                group all rheo/rho 1
+Setting atom values ...
+  1600 settings made for rheo/rho
+set                group all rheo/status 0
+Setting atom values ...
+  1600 settings made for rheo/status
+
+variable           u0 equal 0.05
+variable           uy atom  ${u0}*sin(2*PI*x/lx)*cos(2*PI*y/ly)
+variable           uy atom  0.05*sin(2*PI*x/lx)*cos(2*PI*y/ly)
+variable           ux atom -${u0}*sin(2*PI*y/ly)*cos(2*PI*x/ly)
+variable           ux atom -0.05*sin(2*PI*y/ly)*cos(2*PI*x/ly)
+variable           d0 atom ${rho0}-${u0}*${u0}*${rho0}*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/${cs}/${cs}
+variable           d0 atom 1-${u0}*${u0}*${rho0}*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/${cs}/${cs}
+variable           d0 atom 1-0.05*${u0}*${rho0}*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/${cs}/${cs}
+variable           d0 atom 1-0.05*0.05*${rho0}*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/${cs}/${cs}
+variable           d0 atom 1-0.05*0.05*1*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/${cs}/${cs}
+variable           d0 atom 1-0.05*0.05*1*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/1/${cs}
+variable           d0 atom 1-0.05*0.05*1*0.25*(cos(4*PI*x/lx)+cos(4*PI*y/ly))/1/1
+
+velocity           all set v_ux v_uy 0.0 units box
+
+timestep           ${dt_max}
+timestep           0.1
+
+pair_style         rheo ${cut} artificial/visc ${zeta} rho/damp ${Dr}
+pair_style         rheo 3 artificial/visc ${zeta} rho/damp ${Dr}
+pair_style         rheo 3 artificial/visc 1 rho/damp ${Dr}
+pair_style         rheo 3 artificial/visc 1 rho/damp 0.3
+pair_coeff         * *
+
+# ------ Fixes & computes ------ #
+
+fix                1 all rheo ${cut} RK1 8 shift
+fix                1 all rheo 3 RK1 8 shift
+fix                2 all rheo/viscosity * constant ${eta}
+fix                2 all rheo/viscosity * constant 0.05
+fix                3 all rheo/pressure * linear
+fix                4 all enforce2d
+
+compute            rho all rheo/property/atom rho
+
+# ------ Output & Run ------ #
+
+thermo             200
+thermo_style       custom step time ke press
+
+dump               1 all custom 200 atomDump id type x y vx vy fx fy c_rho
+
+run 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- @article{PalermoInPrep,
+ journal = {in prep},
+ title = {RHEO: A Hybrid Mesh-Free Model Framework for Dynamic Multi-Phase Flows},
+ year = {2024},
+ author = {Eric T. Palermo and Ki T. Wolf and Joel T. Clemmer and Thomas C. O'Connor},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 25 25 1
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair rheo, perpetual, half/full from (2)
+      attributes: half, newton off
+      pair build: halffull/newtoff
+      stencil: none
+      bin: none
+  (2) compute RHEO/KERNEL, perpetual
+      attributes: full, newton off
+      pair build: full/bin/atomonly
+      stencil: full/bin/2d
+      bin: standard
+  (3) compute RHEO/GRAD, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) compute RHEO/VSHIFT, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 6.835 | 6.835 | 6.835 Mbytes
+   Step          Time          KinEng         Press     
+         0   0              0.00062497276  0.00062607301
+       200   20             0.00056200647  0.00056633785
+       400   40             0.00050570968  0.00051098771
+       600   60             0.00045586684  0.00046081672
+       800   80             0.00041124523  0.00041549607
+      1000   100            0.00037065341  0.00037412741
+      1200   120            0.00033391585  0.00033580899
+      1400   140            0.00030078316  0.00030057307
+      1600   160            0.00027093231  0.00026842603
+      1800   180            0.00024403239  0.00023839026
+      2000   200            0.0002197865   0.00021148941
+      2200   220            0.0001979269   0.00018659386
+      2400   240            0.00017822267  0.00016430442
+      2600   260            0.00016047141  0.00014408514
+      2800   280            0.00014448504  0.00012574125
+      3000   300            0.00013009159  0.00010869938
+      3200   320            0.00011713578  9.414951e-05 
+      3400   340            0.00010547564  8.1900579e-05
+      3600   360            9.4982139e-05  7.1285649e-05
+      3800   380            8.5538983e-05  6.1571123e-05
+      4000   400            7.7040171e-05  5.3462572e-05
+      4200   420            6.9390317e-05  4.6338308e-05
+      4400   440            6.2503763e-05  3.9697323e-05
+      4600   460            5.6303766e-05  3.4234465e-05
+      4800   480            5.0721595e-05  3.0841338e-05
+      5000   500            4.5695301e-05  2.7788566e-05
+      5200   520            4.1169161e-05  2.5744409e-05
+      5400   540            3.7093059e-05  2.3912739e-05
+      5600   560            3.3421819e-05  2.2494185e-05
+      5800   580            3.0114735e-05  2.1594384e-05
+      6000   600            2.7135224e-05  2.1164421e-05
+      6200   620            2.4450446e-05  2.0979349e-05
+      6400   640            2.2030925e-05  2.0858567e-05
+      6600   660            1.9850196e-05  2.098115e-05 
+      6800   680            1.7884553e-05  2.1134827e-05
+      7000   700            1.6112763e-05  2.1242242e-05
+      7200   720            1.4515783e-05  2.1312763e-05
+      7400   740            1.3076456e-05  2.1370947e-05
+      7600   760            1.1779327e-05  2.1332126e-05
+      7800   780            1.0610469e-05  2.1156562e-05
+      8000   800            9.5573298e-06  2.0898126e-05
+      8200   820            8.6085799e-06  2.0517958e-05
+      8400   840            7.7539888e-06  1.9841551e-05
+      8600   860            6.9843033e-06  1.9114769e-05
+      8800   880            6.2911575e-06  1.8362959e-05
+      9000   900            5.6669785e-06  1.7473404e-05
+      9200   920            5.1049208e-06  1.6452745e-05
+      9400   940            4.5987908e-06  1.5578629e-05
+      9600   960            4.1429972e-06  1.4427274e-05
+      9800   980            3.7324962e-06  1.3169649e-05
+     10000   1000           3.3627455e-06  1.1938723e-05
+Loop time of 38.2006 on 4 procs for 10000 steps with 1600 atoms
+
+Performance: 2261743.875 tau/day, 261.776 timesteps/s, 418.841 katom-step/s
+99.7% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.2958     | 8.7273     | 9.3582     |  15.2 | 22.85
+Neigh   | 0.034282   | 0.035689   | 0.037115   |   0.7 |  0.09
+Comm    | 0.16788    | 0.17018    | 0.17278    |   0.4 |  0.45
+Output  | 0.066977   | 0.06882    | 0.071704   |   0.7 |  0.18
+Modify  | 28.483     | 28.793     | 28.962     |   3.6 | 75.37
+Other   |            | 0.4053     |            |       |  1.06
+
+Nlocal:            400 ave         402 max         399 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Nghost:         307.25 ave         308 max         305 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Neighs:        7618.25 ave        7697 max        7564 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+FullNghs:        13343 ave       13497 max       13258 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 53372
+Ave neighs/atom = 33.3575
+Neighbor list builds = 123
+Dangerous builds = 0
+Total wall time: 0:00:38

@@ -1,0 +1,628 @@
+// **************************************************************************
+//                                dipole_lj.cu
+//                             -------------------
+//                           Trung Dac Nguyen (ORNL)
+//
+//  Device code for acceleration of the dipole/cut pair style
+//
+// __________________________________________________________________________
+//    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+// __________________________________________________________________________
+//
+//    begin                :
+//    email                : nguyentd@ornl.gov
+// ***************************************************************************
+
+#if defined(NV_KERNEL) || defined(USE_HIP)
+#include "lal_aux_fun1.h"
+#ifndef _DOUBLE_DOUBLE
+_texture( pos_tex,float4);
+_texture( q_tex,float);
+_texture( mu_tex,float4);
+#else
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
+_texture_2d( mu_tex,int4);
+#endif
+
+#else
+#define pos_tex x_
+#define q_tex q_
+#define mu_tex mu_
+#endif
+
+#if (SHUFFLE_AVAIL == 0)
+
+#define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
+                         t_per_atom, offset, eflag, vflag, ans, engv)       \
+  if (t_per_atom>1) {                                                       \
+    simd_reduce_add6(t_per_atom, red_acc, offset, tid, f.x, f.y, f.z,       \
+                     tor.x, tor.y, tor.z);                                  \
+    if (EVFLAG && (vflag==2 || eflag==2)) {                                 \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_add2(t_per_atom, red_acc, offset, tid, energy, e_coul); \
+      }                                                                     \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        simd_reduce_arr(6, t_per_atom, red_acc, offset, tid, virial);       \
+      }                                                                     \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    ans[ii]=f;                                                              \
+    ans[ii+inum]=tor;                                                       \
+  }                                                                         \
+  if (EVFLAG && (eflag || vflag)) {                                         \
+    int ei=BLOCK_ID_X;                                                      \
+    if (eflag!=2 && vflag!=2) {                                             \
+      const int ev_stride=NUM_BLOCKS_X;                                     \
+      if (eflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_add2(simd_size(), red_acc, tid, energy, e_coul);       \
+        if (vflag) __syncthreads();                                         \
+        if (tid==0) {                                                       \
+          engv[ei]=energy*(acctyp)0.5;                                      \
+          ei+=ev_stride;                                                    \
+          engv[ei]=e_coul*(acctyp)0.5;                                      \
+          ei+=ev_stride;                                                    \
+        }                                                                   \
+      }                                                                     \
+      if (vflag) {                                                          \
+        simdsync();                                                         \
+        block_reduce_arr(6, simd_size(), red_acc, tid, virial);             \
+        if (tid==0) {                                                       \
+          for (int r=0; r<6; r++) {                                         \
+            engv[ei]=virial[r]*(acctyp)0.5;                                 \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (EVFLAG && eflag) {                                                \
+        engv[ei]=energy*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+        engv[ei]=e_coul*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (EVFLAG && vflag) {                                                \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]=virial[i]*(acctyp)0.5;                                   \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
+  }
+
+#else
+
+#if (EVFLAG == 1)
+
+#define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
+                         t_per_atom, offset, eflag, vflag, ans, engv)       \
+  if (t_per_atom>1) {                                                       \
+    simd_reduce_add6(t_per_atom, f.x, f.y, f.z, tor.x, tor.y, tor.z);       \
+    if (vflag==2 || eflag==2) {                                             \
+      if (eflag)                                                            \
+        simd_reduce_add2(t_per_atom,energy,e_coul);                         \
+      if (vflag)                                                            \
+        simd_reduce_arr(6, t_per_atom,virial);                              \
+    }                                                                       \
+  }                                                                         \
+  if (offset==0 && ii<inum) {                                               \
+    ans[ii]=f;                                                              \
+    ans[ii+inum]=tor;                                                       \
+  }                                                                         \
+  if (eflag || vflag) {                                                     \
+    if (eflag!=2 && vflag!=2) {                                             \
+      const int vwidth = simd_size();                                       \
+      const int voffset = tid & (simd_size() - 1);                          \
+      const int bnum = tid/simd_size();                                     \
+      int active_subgs = BLOCK_SIZE_X/simd_size();                          \
+      for ( ; active_subgs > 1; active_subgs /= vwidth) {                   \
+        if (active_subgs < BLOCK_SIZE_X/simd_size()) __syncthreads();       \
+        if (bnum < active_subgs) {                                          \
+          if (eflag) {                                                      \
+            simd_reduce_add2(vwidth, energy, e_coul);                       \
+            if (voffset==0) {                                               \
+              red_acc[6][bnum] = energy;                                    \
+              red_acc[7][bnum] = e_coul;                                    \
+            }                                                               \
+          }                                                                 \
+          if (vflag) {                                                      \
+            simd_reduce_arr(6, vwidth, virial);                             \
+            if (voffset==0)                                                 \
+              for (int r=0; r<6; r++) red_acc[r][bnum]=virial[r];           \
+          }                                                                 \
+        }                                                                   \
+                                                                            \
+        __syncthreads();                                                    \
+        if (tid < active_subgs) {                                           \
+          if (eflag) {                                                      \
+            energy = red_acc[6][tid];                                       \
+            e_coul = red_acc[7][tid];                                       \
+          }                                                                 \
+          if (vflag)                                                        \
+            for (int r = 0; r < 6; r++) virial[r] = red_acc[r][tid];        \
+        } else {                                                            \
+          if (eflag) energy = e_coul = (acctyp)0;                           \
+          if (vflag) for (int r = 0; r < 6; r++) virial[r] = (acctyp)0;     \
+        }                                                                   \
+      }                                                                     \
+                                                                            \
+      if (bnum == 0) {                                                      \
+        int ei=BLOCK_ID_X;                                                  \
+        const int ev_stride=NUM_BLOCKS_X;                                   \
+        if (eflag) {                                                        \
+          simd_reduce_add2(vwidth, energy, e_coul);                         \
+          if (tid==0) {                                                     \
+            engv[ei]=energy*(acctyp)0.5;                                    \
+            ei+=ev_stride;                                                  \
+            engv[ei]=e_coul*(acctyp)0.5;                                    \
+            ei+=ev_stride;                                                  \
+          }                                                                 \
+        }                                                                   \
+        if (vflag) {                                                        \
+          simd_reduce_arr(6, vwidth, virial);                               \
+          if (tid==0) {                                                     \
+            for (int r=0; r<6; r++) {                                       \
+              engv[ei]=virial[r]*(acctyp)0.5;                               \
+              ei+=ev_stride;                                                \
+            }                                                               \
+          }                                                                 \
+        }                                                                   \
+      }                                                                     \
+    } else if (offset==0 && ii<inum) {                                      \
+      int ei=ii;                                                            \
+      if (eflag) {                                                          \
+        engv[ei]=energy*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+        engv[ei]=e_coul*(acctyp)0.5;                                        \
+        ei+=inum;                                                           \
+      }                                                                     \
+      if (vflag) {                                                          \
+        for (int i=0; i<6; i++) {                                           \
+          engv[ei]=virial[i]*(acctyp)0.5;                                   \
+          ei+=inum;                                                         \
+        }                                                                   \
+      }                                                                     \
+    }                                                                       \
+  }
+
+#else
+
+#define store_answers_tq(f, tor, energy, e_coul, virial, ii, inum, tid,     \
+                        t_per_atom, offset, eflag, vflag, ans, engv)        \
+  if (t_per_atom>1)                                                         \
+    simd_reduce_add6(t_per_atom, f.x, f.y, f.z, tor.x, tor.y, tor.z);       \
+  if (offset==0 && ii<inum) {                                               \
+    ans[ii]=f;                                                              \
+    ans[ii+inum]=tor;                                                       \
+  }
+
+#endif
+#endif
+
+__kernel void k_dipole_lj(const __global numtyp4 *restrict x_,
+                          const __global numtyp4 *restrict lj1,
+                          const __global numtyp4 *restrict lj3,
+                          const int lj_types,
+                          const __global numtyp *restrict sp_lj_in,
+                          const __global int *dev_nbor,
+                          const __global int *dev_packed,
+                          __global acctyp3 *restrict ans,
+                          __global acctyp *restrict engv,
+                          const int eflag, const int vflag, const int inum,
+                          const int nbor_pitch,
+                          const __global numtyp *restrict q_,
+                          const __global numtyp4 *restrict mu_,
+                          const __global numtyp *restrict cutsq,
+                          const numtyp qqrd2e, const int t_per_atom) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
+  sp_lj[0]=sp_lj_in[0];
+  sp_lj[1]=sp_lj_in[1];
+  sp_lj[2]=sp_lj_in[2];
+  sp_lj[3]=sp_lj_in[3];
+  sp_lj[4]=sp_lj_in[4];
+  sp_lj[5]=sp_lj_in[5];
+  sp_lj[6]=sp_lj_in[6];
+  sp_lj[7]=sp_lj_in[7];
+
+  acctyp3 f, tor;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp qtmp; fetch(qtmp,i,q_tex);
+    numtyp4 mui; fetch4(mui,i,mu_tex); //mu_[i];
+    int itype=ix.w;
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
+      int j=dev_packed[nbor];
+
+      numtyp factor_lj, factor_coul;
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      numtyp qj; fetch(qj,j,q_tex);
+      numtyp4 muj; fetch4(muj,j,mu_tex); //mu_[j];
+      int jtype=jx.w;
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      int mtype=itype*lj_types+jtype;
+      if (rsq<cutsq[mtype]) {
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp force_lj, r6inv;
+        numtyp rinv, r3inv, r5inv, r7inv;
+        numtyp pre1, pre2, pre3, pre4;
+        numtyp pdotp, pidotr, pjdotr;
+        acctyp3 forcecoul, ticoul;
+        acctyp3 force;
+
+        forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
+        ticoul.x = ticoul.y = ticoul.z = (acctyp)0;
+
+        if (rsq < lj1[mtype].z) {
+          r6inv = r2inv*r2inv*r2inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y)*r2inv;
+        } else force_lj = (numtyp)0.0;
+
+        if (rsq < lj1[mtype].w) {
+          rinv = ucl_rsqrt(rsq);
+
+          // charge-charge
+          if (qtmp != (numtyp)0.0 && qj != (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            pre1 = qtmp*qj*r3inv;
+
+            forcecoul.x += pre1*delx;
+            forcecoul.y += pre1*dely;
+            forcecoul.z += pre1*delz;
+          }
+
+          // dipole-dipole
+          if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            r5inv = r3inv*r2inv;
+                  r7inv = r5inv*r2inv;
+            pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
+            pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
+            pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
+
+            pre1 = (numtyp)3.0*r5inv*pdotp - (numtyp)15.0*r7inv*pidotr*pjdotr;
+            pre2 = (numtyp)3.0*r5inv*pjdotr;
+            pre3 = (numtyp)3.0*r5inv*pidotr;
+            pre4 = (numtyp)(-1.0)*r3inv;
+
+            forcecoul.x += pre1*delx + pre2*mui.x + pre3*muj.x;
+            forcecoul.y += pre1*dely + pre2*mui.y + pre3*muj.y;
+            forcecoul.z += pre1*delz + pre2*mui.z + pre3*muj.z;
+
+            numtyp crossx = pre4 * (mui.y*muj.z - mui.z*muj.y);
+            numtyp crossy = pre4 * (mui.z*muj.x - mui.x*muj.z);
+            numtyp crossz = pre4 * (mui.x*muj.y - mui.y*muj.x);
+
+            ticoul.x += crossx + pre2 * (mui.y*delz - mui.z*dely);
+            ticoul.y += crossy + pre2 * (mui.z*delx - mui.x*delz);
+            ticoul.z += crossz + pre2 * (mui.x*dely - mui.y*delx);
+          }
+
+          // dipole-charge
+          if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            r5inv = r3inv*r2inv;
+            pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
+            pre1 = (numtyp)3.0*qj*r5inv * pidotr;
+            pre2 = qj*r3inv;
+
+            forcecoul.x += pre2*mui.x - pre1*delx;
+            forcecoul.y += pre2*mui.y - pre1*dely;
+            forcecoul.z += pre2*mui.z - pre1*delz;
+            ticoul.x += pre2 * (mui.y*delz - mui.z*dely);
+            ticoul.y += pre2 * (mui.z*delx - mui.x*delz);
+            ticoul.z += pre2 * (mui.x*dely - mui.y*delx);
+          }
+
+          // charge-dipole
+          if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            r5inv = r3inv*r2inv;
+            pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
+            pre1 = (numtyp)3.0*qtmp*r5inv * pjdotr;
+            pre2 = qtmp*r3inv;
+
+            forcecoul.x += pre1*delx - pre2*muj.x;
+            forcecoul.y += pre1*dely - pre2*muj.y;
+            forcecoul.z += pre1*delz - pre2*muj.z;
+          }
+        } else {
+          forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
+          ticoul.x = ticoul.y = ticoul.z = (acctyp)0;
+        }
+
+        numtyp fq = factor_coul*qqrd2e;
+        force.x = fq*forcecoul.x + delx*force_lj;
+        force.y = fq*forcecoul.y + dely*force_lj;
+        force.z = fq*forcecoul.z + delz*force_lj;
+        f.x+=force.x;
+        f.y+=force.y;
+        f.z+=force.z;
+        tor.x+=fq*ticoul.x;
+        tor.y+=fq*ticoul.y;
+        tor.z+=fq*ticoul.z;
+
+        if (EVFLAG && eflag) {
+          acctyp e = (acctyp)0.0;
+          if (rsq < lj1[mtype].w) {
+            e = qtmp*qj*rinv;
+            if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0)
+              e += r3inv*pdotp - (numtyp)3.0*r5inv*pidotr*pjdotr;
+            if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0)
+              e += -qj*r3inv*pidotr;
+            if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0)
+              e += qtmp*r3inv*pjdotr;
+            e *= fq;
+          } else e = (acctyp)0.0;
+            e_coul += e;
+
+          if (rsq < lj1[mtype].z) {
+            e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+            energy+=factor_lj*(e-lj3[mtype].z);
+          }
+        }
+        if (EVFLAG && vflag) {
+          virial[0] += delx*force.x;
+          virial[1] += dely*force.y;
+          virial[2] += delz*force.z;
+          virial[3] += delx*force.y;
+          virial[4] += delx*force.z;
+          virial[5] += dely*force.z;
+        }
+      }
+
+    } // for nbor
+  } // if ii
+  store_answers_tq(f,tor,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,
+                   eflag,vflag,ans,engv);
+}
+
+__kernel void k_dipole_lj_fast(const __global numtyp4 *restrict x_,
+                               const __global numtyp4 *restrict lj1_in,
+                               const __global numtyp4 *restrict lj3_in,
+                               const __global numtyp *restrict sp_lj_in,
+                               const __global int *dev_nbor,
+                               const __global int *dev_packed,
+                               __global acctyp3 *restrict ans,
+                               __global acctyp *restrict engv,
+                               const int eflag, const int vflag, const int inum,
+                               const int nbor_pitch,
+                               const __global numtyp *restrict q_,
+                               const __global numtyp4 *restrict mu_,
+                               const __global numtyp *restrict _cutsq,
+                               const numtyp qqrd2e, const int t_per_atom) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp cutsq[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
+  if (tid<8)
+    sp_lj[tid]=sp_lj_in[tid];
+  if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+    lj1[tid]=lj1_in[tid];
+    cutsq[tid]=_cutsq[tid];
+    if (EVFLAG && eflag)
+      lj3[tid]=lj3_in[tid];
+  }
+
+  acctyp3 f, tor;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  tor.x=(acctyp)0; tor.y=(acctyp)0; tor.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
+
+  __syncthreads();
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp qtmp; fetch(qtmp,i,q_tex);
+    numtyp4 mui; fetch4(mui,i,mu_tex); //mu_[i];
+    int iw=ix.w;
+    int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
+      int j=dev_packed[nbor];
+
+      numtyp factor_lj, factor_coul;
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      numtyp qj; fetch(qj,j,q_tex);
+      numtyp4 muj; fetch4(muj,j,mu_tex); //mu_[j];
+      int mtype=itype+jx.w;
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<cutsq[mtype]) {
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp force_lj, r6inv;
+        numtyp rinv, r3inv, r5inv, r7inv;
+        numtyp pre1, pre2, pre3, pre4;
+        numtyp pdotp, pidotr, pjdotr;
+        acctyp3 forcecoul, ticoul;
+        acctyp3 force;
+
+        forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
+        ticoul.x = ticoul.y = ticoul.z = (acctyp)0;
+
+        if (rsq < lj1[mtype].z) {
+          r6inv = r2inv*r2inv*r2inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y)*r2inv;
+        } else force_lj = (numtyp)0.0;
+
+        if (rsq < lj1[mtype].w) {
+          rinv = ucl_rsqrt(rsq);
+
+          // charge-charge
+          if (qtmp != (numtyp)0.0 && qj != (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            pre1 = qtmp*qj*r3inv;
+
+            forcecoul.x += pre1*delx;
+            forcecoul.y += pre1*dely;
+            forcecoul.z += pre1*delz;
+          }
+
+          // dipole-dipole
+          if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            r5inv = r3inv*r2inv;
+            r7inv = r5inv*r2inv;
+            pdotp  = mui.x*muj.x + mui.y*muj.y + mui.z*muj.z;
+            pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
+            pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
+
+            pre1 = (numtyp)3.0*r5inv*pdotp - (numtyp)15.0*r7inv*pidotr*pjdotr;
+            pre2 = (numtyp)3.0*r5inv*pjdotr;
+            pre3 = (numtyp)3.0*r5inv*pidotr;
+            pre4 = (numtyp)(-1.0)*r3inv;
+
+            forcecoul.x += pre1*delx + pre2*mui.x + pre3*muj.x;
+            forcecoul.y += pre1*dely + pre2*mui.y + pre3*muj.y;
+            forcecoul.z += pre1*delz + pre2*mui.z + pre3*muj.z;
+
+            numtyp crossx = pre4 * (mui.y*muj.z - mui.z*muj.y);
+            numtyp crossy = pre4 * (mui.z*muj.x - mui.x*muj.z);
+            numtyp crossz = pre4 * (mui.x*muj.y - mui.y*muj.x);
+
+            ticoul.x += crossx + pre2 * (mui.y*delz - mui.z*dely);
+            ticoul.y += crossy + pre2 * (mui.z*delx - mui.x*delz);
+            ticoul.z += crossz + pre2 * (mui.x*dely - mui.y*delx);
+          }
+
+          // dipole-charge
+          if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            r5inv = r3inv*r2inv;
+            pidotr = mui.x*delx + mui.y*dely + mui.z*delz;
+            pre1 = (numtyp)3.0*qj*r5inv * pidotr;
+            pre2 = qj*r3inv;
+
+            forcecoul.x += pre2*mui.x - pre1*delx;
+            forcecoul.y += pre2*mui.y - pre1*dely;
+            forcecoul.z += pre2*mui.z - pre1*delz;
+            ticoul.x += pre2 * (mui.y*delz - mui.z*dely);
+            ticoul.y += pre2 * (mui.z*delx - mui.x*delz);
+            ticoul.z += pre2 * (mui.x*dely - mui.y*delx);
+          }
+
+          // charge-dipole
+          if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0) {
+            r3inv = r2inv*rinv;
+            r5inv = r3inv*r2inv;
+            pjdotr = muj.x*delx + muj.y*dely + muj.z*delz;
+            pre1 = (numtyp)3.0*qtmp*r5inv * pjdotr;
+            pre2 = qtmp*r3inv;
+
+            forcecoul.x += pre1*delx - pre2*muj.x;
+            forcecoul.y += pre1*dely - pre2*muj.y;
+            forcecoul.z += pre1*delz - pre2*muj.z;
+          }
+        } else {
+          forcecoul.x = forcecoul.y = forcecoul.z = (acctyp)0;
+          ticoul.x = ticoul.y = ticoul.z = (acctyp)0;
+        }
+
+        numtyp fq = factor_coul*qqrd2e;
+        force.x = fq*forcecoul.x + delx*force_lj;
+        force.y = fq*forcecoul.y + dely*force_lj;
+        force.z = fq*forcecoul.z + delz*force_lj;
+
+        f.x+=force.x;
+        f.y+=force.y;
+        f.z+=force.z;
+        tor.x+=fq*ticoul.x;
+        tor.y+=fq*ticoul.y;
+        tor.z+=fq*ticoul.z;
+
+        if (EVFLAG && eflag) {
+          acctyp e = (acctyp)0;
+          if (rsq < lj1[mtype].w) {
+            e = qtmp*qj*rinv;
+            if (mui.w > (numtyp)0.0 && muj.w > (numtyp)0.0)
+              e += r3inv*pdotp - (numtyp)3.0*r5inv*pidotr*pjdotr;
+            if (mui.w > (numtyp)0.0 && qj != (numtyp)0.0)
+              e += -qj*r3inv*pidotr;
+            if (muj.w > (numtyp)0.0 && qtmp != (numtyp)0.0)
+              e += qtmp*r3inv*pjdotr;
+            e *= fq;
+          } else e = (acctyp)0;
+          e_coul += e;
+
+          if (rsq < lj1[mtype].z) {
+            e=r6inv*(lj3[mtype].x*r6inv-lj3[mtype].y);
+            energy+=factor_lj*(e-lj3[mtype].z);
+          }
+        }
+        if (EVFLAG && vflag) {
+          virial[0] += delx*force.x;
+          virial[1] += dely*force.y;
+          virial[2] += delz*force.z;
+          virial[3] += delx*force.y;
+          virial[4] += delx*force.z;
+          virial[5] += dely*force.z;
+        }
+      }
+
+    } // for nbor
+  } // if ii
+  store_answers_tq(f,tor,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,
+                   eflag,vflag,ans,engv);
+}

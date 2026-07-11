@@ -1,0 +1,51 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_ASSERT_HPP
+#define KOKKOS_ASSERT_HPP
+
+#include <Kokkos_Macros.hpp>
+#include <Kokkos_Abort.hpp>
+
+#if !defined(NDEBUG) || defined(KOKKOS_ENFORCE_CONTRACTS) || \
+    defined(KOKKOS_ENABLE_DEBUG)
+#define KOKKOS_EXPECTS(...)                                                    \
+  {                                                                            \
+    if (!bool(__VA_ARGS__)) {                                                  \
+      ::Kokkos::abort(                                                         \
+          "Kokkos contract violation:\n  "                                     \
+          "  Expected precondition `" #__VA_ARGS__                             \
+          "` evaluated false.\n"                                               \
+          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
+              __LINE__) " \n");                                                \
+    }                                                                          \
+  }
+#define KOKKOS_ENSURES(...)                                                    \
+  {                                                                            \
+    if (!bool(__VA_ARGS__)) {                                                  \
+      ::Kokkos::abort(                                                         \
+          "Kokkos contract violation:\n  "                                     \
+          "  Ensured postcondition `" #__VA_ARGS__                             \
+          "` evaluated false.\n"                                               \
+          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
+              __LINE__) " \n");                                                \
+    }                                                                          \
+  }
+#define KOKKOS_ASSERT(...)                                                     \
+  {                                                                            \
+    if (!bool(__VA_ARGS__)) {                                                  \
+      ::Kokkos::abort(                                                         \
+          "Kokkos contract violation:\n  "                                     \
+          "  Asserted condition `" #__VA_ARGS__                                \
+          "` evaluated false.\n"                                               \
+          "Error at " KOKKOS_IMPL_TOSTRING(__FILE__) ":" KOKKOS_IMPL_TOSTRING( \
+              __LINE__) " \n");                                                \
+    }                                                                          \
+  }
+#else  // not debug mode
+#define KOKKOS_EXPECTS(...)
+#define KOKKOS_ENSURES(...)
+#define KOKKOS_ASSERT(...)
+#endif  // end debug mode ifdefs
+
+#endif /* #ifndef KOKKOS_ASSERT_HPP */

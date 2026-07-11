@@ -1,0 +1,17 @@
+This package implements the "dump vtk" command which can be used in a
+LAMMPS input script.
+
+This dump allows output of atom data similar to the dump custom
+command, but in VTK format.
+
+This package uses the VTK library (www.vtk.org) which must be
+installed on your system. See the lib/vtk/README file and the LAMMPS
+manual for information on building LAMMPS with external libraries.
+The settings in the Makefile.lammps file in that directory must be
+correct for LAMMPS to build correctly with this package installed.
+
+This code was initially developed for LIGGGHTS by Daniel Queteschiner
+at DCS Computing. This is an effort to integrate it back to LAMMPS.
+
+The person who created this package is Richard Berger at JKU
+(richard.berger@jku.at). Contact him directly if you have questions.

@@ -1,0 +1,9 @@
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+
+#ifndef @HEADER_GUARD_TAG@
+#define @HEADER_GUARD_TAG@
+
+@INCLUDE_NEXT_FILE@
+
+#endif

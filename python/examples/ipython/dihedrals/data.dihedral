@@ -1,0 +1,34 @@
+Comment line
+ 
+4 atoms
+0 bonds
+0 angles
+1 dihedrals
+0 impropers
+ 
+1 atom types
+0 bond types
+0 angle types
+1 dihedral types
+0 improper types
+ 
+-5.0   5.0      xlo xhi
+-5.0   5.0      ylo yhi
+-5.0   5.0      zlo zhi
+0.0   0.0   0.0   xy xz yz
+ 
+Atoms # molecular
+
+1      1   1     -1.00000     1.00000      0.00000
+2      1   1     -0.50000     0.00000      0.00000
+3      1   1      0.50000     0.00000      0.00000
+4      1   1      1.00000     1.00000      0.00000
+
+Dihedral Coeffs
+
+1      80.0   1   2
+
+Dihedrals
+
+1      1   1  2  3  4
+

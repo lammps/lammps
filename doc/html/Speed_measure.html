@@ -1,0 +1,415 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7.2. Measuring performance &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Speed_measure.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="7.3. General tips" href="Speed_tips.html" />
+    <link rel="prev" title="7.1. Benchmarks" href="Speed_bench.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Speed.html">7. Accelerate performance</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Speed_bench.html">7.1. Benchmarks</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">7.2. Measuring performance</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#factors-that-influence-performance">7.2.1. Factors that influence performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples-comparing-serial-performance">7.2.2. Examples comparing serial performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples-comparing-parallel-performance">7.2.3. Examples comparing parallel performance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#measuring-performance-of-your-input-deck">7.2.4. Measuring performance of your input deck</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_tips.html">7.3. General tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_packages.html">7.4. Accelerator packages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_compare.html">7.5. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Speed.html"><span class="section-number">7. </span>Accelerate performance</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">7.2. </span>Measuring performance</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Speed_bench.html" class="btn btn-neutral float-left" title="7.1. Benchmarks" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Speed_tips.html" class="btn btn-neutral float-right" title="7.3. General tips" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="measuring-performance">
+<h1><span class="section-number">7.2. </span>Measuring performance<a class="headerlink" href="#measuring-performance" title="Link to this heading"></a></h1>
+<section id="factors-that-influence-performance">
+<h2><span class="section-number">7.2.1. </span>Factors that influence performance<a class="headerlink" href="#factors-that-influence-performance" title="Link to this heading"></a></h2>
+<p>Before trying to make your simulation run faster, you should understand
+how it currently performs and where the bottlenecks are.  We generally
+distinguish between serial performance (how fast can a single process do
+the calculations?) and parallel efficiency (how much faster does a
+calculation get by using more processes?).  There are many factors
+affecting either and below are some lists discussing some commonly
+known but also some less known factors.</p>
+<p>Factors affecting serial performance (in no specific order):</p>
+<ul class="simple">
+<li><p>CPU hardware: clock rate, cache sizes, CPU architecture (instructions
+per clock, vectorization support, fused multiply-add support and more)</p></li>
+<li><p>RAM speed and number of channels that the CPU can use to access RAM</p></li>
+<li><p>Cooling: CPUs can change the CPU clock based on thermal load, thus the
+degree of cooling can affect the speed of a CPU.  Sometimes even the
+temperature of neighboring compute nodes in a cluster can make a
+difference.</p></li>
+<li><p>Compiler optimization: most of LAMMPS is written to be easy to modify
+and thus compiler optimization can speed up calculations. However, too
+aggressive compiler optimization can produce incorrect results or
+crashes (during compilation or at runtime).</p></li>
+<li><p>Source code improvements: styles in the OPT, OPENMP, and INTEL package
+can be faster than their base implementation due to improved data
+access patterns, cache efficiency, or vectorization. Compiler optimization
+is required to take full advantage of these.</p></li>
+<li><p>Number and kind of fixes, computes, or variables used during a simulation,
+especially if they result in collective communication operations</p></li>
+<li><p>Pair style cutoffs and system density: calculations get slower the more
+neighbors are in the neighbor list and thus for which interactions need
+to be computed.  Force fields with pair styles that compute interactions
+between triples or quadruples of atoms or that use embedding energies or
+charge equilibration will need to walk the neighbor lists multiple times.</p></li>
+<li><p>Neighbor list settings: tradeoff between neighbor list skin (larger
+skin = more neighbors, more distances to compute before applying the
+cutoff) and frequency of neighbor list builds (larger skin = fewer
+neighbor list builds).</p></li>
+<li><p>Proximity of per-atom data in physical memory that for atoms that are
+close in space improves cache efficiency (thus LAMMPS will by default
+sort atoms in local storage accordingly)</p></li>
+<li><p>Using r-RESPA multi-timestepping or a SHAKE or RATTLE fix to constrain
+bonds with higher-frequency vibrations may allow a larger (outer) timestep
+and thus fewer force evaluations (usually the most time consuming step in
+MD) for the same simulated time (with some tradeoff in accuracy).</p></li>
+</ul>
+<p>Factors affecting parallel efficiency (in no specific order):</p>
+<ul class="simple">
+<li><p>Bandwidth and latency of communication between processes. This can vary a
+lot between processes on the same CPU or physical node and processes
+on different physical nodes and there vary between different
+communication technologies (like Ethernet or InfiniBand or other
+high-speed interconnects)</p></li>
+<li><p>Frequency and complexity of communication patterns required</p></li>
+<li><p>Number of “work units” (usually correlated with the number of atoms
+and choice of force field) per MPI-process required for one time step
+(if this number becomes too small, the cost of communication becomes
+dominant).</p></li>
+<li><p>Choice of parallelization method (MPI-only, OpenMP-only, MPI+OpenMP,
+MPI+GPU, MPI+GPU+OpenMP)</p></li>
+<li><p>Algorithmic complexity of the chosen force field (pair-wise vs. many-body
+potential, Ewald vs. PPPM vs. (compensated or smoothed) cutoff-Coulomb)</p></li>
+<li><p>Communication cutoff: a larger cutoff results in more ghost atoms and
+thus more data that needs to be communicated</p></li>
+<li><p>Frequency of neighbor list builds: during a neighbor list build the
+domain decomposition is updated and the list of ghost atoms rebuilt
+which requires multiple global communication steps</p></li>
+<li><p>FFT-grid settings and number of MPI processes for kspace style PPPM:
+PPPM uses parallel 3d FFTs which will drop much faster in parallel
+efficiency with respect to the number of MPI processes than other
+parts of the force computation.  Thus using MPI+OpenMP parallelization
+or <a class="reference internal" href="run_style.html"><span class="doc">run style verlet/split</span></a> can improve parallel
+efficiency by limiting the number of MPI processes used for the FFTs.</p></li>
+<li><p>Load (im-)balance: LAMMPS’ domain decomposition assumes that atoms are
+evenly distributed across the entire simulation box. If there are
+areas of vacuum, this may lead to different amounts of work for
+different MPI processes. Using the <a class="reference internal" href="processors.html"><span class="doc">processors command</span></a> to change the spatial decomposition, or MPI+OpenMP
+parallelization instead of only-MPI to have larger sub-domains, or the
+(fix) balance command (without or with switching to communication style
+tiled) to change the sub-domain volumes are all methods that
+can help to avoid load imbalances.</p></li>
+</ul>
+</section>
+<section id="examples-comparing-serial-performance">
+<h2><span class="section-number">7.2.2. </span>Examples comparing serial performance<a class="headerlink" href="#examples-comparing-serial-performance" title="Link to this heading"></a></h2>
+<p>Before looking at your own input deck(s), you should get some reference
+data from a known input so that you know what kind of performance you
+should expect from your input.  For the following we therefore use the
+<code class="docutils literal notranslate"><span class="pre">in.rhodo.scaled</span></code> input file and <code class="docutils literal notranslate"><span class="pre">data.rhodo</span></code> data file from the
+<code class="docutils literal notranslate"><span class="pre">bench</span></code> folder. This is a system of 32000 atoms using the CHARMM force
+field and long-range electrostatics running for 100 MD steps.  The
+performance data is printed at the end of a run and only measures the
+performance during propagation and excludes the setup phase.</p>
+<p>Running with a single MPI process on an AMD Ryzen Threadripper PRO
+9985WX CPU (64 cores, 128 threads, base clock: 3.2GHz, max. clock
+5.4GHz, L1/L2/L3 cache 5MB/64MB/256MB, 8 DDR5-6400 memory channels) one
+gets the following performance report:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Performance: 1.232 ns/day, 19.476 hours/ns, 7.131 timesteps/s, 228.197 katom-step/s
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+</pre></div>
+</div>
+<p>The %CPU value should be at 100% or very close.  Lower values would
+be an indication that there are <em>other</em> processes also using the same
+CPU core and thus invalidating the performance data.  The katom-step/s
+value is best suited for comparisons, since it is fairly independent
+from the system size. The <cite>in.rhodo.scaled</cite> input can be easily made
+larger through replication in the three dimensions by settings variables
+“x”, “y”, “z” to values other than 1 from the command line with the
+“-var” flag. Example:</p>
+<ul class="simple">
+<li><p>32000 atoms: 228.8 katom-step/s</p></li>
+<li><p>64000 atoms: 231.6 katom-step/s</p></li>
+<li><p>128000 atoms: 231.1 katom-step/s</p></li>
+<li><p>256000 atoms: 226.4 katom-step/s</p></li>
+<li><p>864000 atoms: 229.6 katom-step/s</p></li>
+</ul>
+<p>Comparing to an AMD Ryzen 7 7840HS CPU (8 cores, 16 threads, base clock
+3.8GHz, max. clock 5.1GHz, L1/L2/L3 cache 512kB/8MB/16MB, 2 DDR5-5600
+memory channels), we get similar single core performance (~220
+katom-step/s vs. ~230 katom-step/s) due to the similar clock and
+architecture:</p>
+<ul class="simple">
+<li><p>32000 atoms: 219.8 katom-step/s</p></li>
+<li><p>64000 atoms: 222.5 katom-step/s</p></li>
+<li><p>128000 atoms: 216.8 katom-step/s</p></li>
+<li><p>256000 atoms: 221.0 katom-step/s</p></li>
+<li><p>864000 atoms: 221.1 katom-step/s</p></li>
+</ul>
+<p>Switching to an older Intel Xeon E5-2650 v4 CPU (12 cores, 12 threads,
+base clock 2.2GHz, max. clock 2.9GHz, L1/L2/L3 cache (64kB/256kB/30MB, 4
+DDR4-2400 memory channels) leads to a lower performance of approximately
+109 katom-step/s due to differences in architecture and clock.  In all
+cases, when looking at multiple runs, the katom-step/s property
+fluctuates by approximately 1% around the average.</p>
+<p>From here on we are looking at the performance for the 256000 atom system only
+and change several settings incrementally:</p>
+<ol class="arabic simple">
+<li><p>No compiler optimization GCC (-Og -g): 183.8 katom-step/s</p></li>
+<li><p>Moderate optimization with debug info GCC (-O2 -g): 231.1 katom-step/s</p></li>
+<li><p>Full compiler optimization GCC (-DNDEBUG -O3): 236.0 katom-step/s</p></li>
+<li><p>Aggressive compiler optimization GCC (-O3 -ffast-math -march=native): 239.9 katom-step/s</p></li>
+<li><p>Source code optimization in OPENMP package (1 thread): 266.7 katom-step/s</p></li>
+<li><p>Use <em>fix nvt</em> instead of <em>fix npt</em> (compute virial only every 50 steps): 272.9 katom-step/s</p></li>
+<li><p>Increase pair style cutoff by 2 <span class="math notranslate nohighlight">\(\AA\)</span>: 181.2 katom-step/s</p></li>
+<li><p>Use tight PPPM convergence (1.0e-6 instead of 1.0e-4): 161.9 katom-step/s</p></li>
+<li><p>Use Ewald summation instead of PPPM (at 1.0e-4 convergence): 19.9 katom-step/s</p></li>
+</ol>
+<p>The numbers show that gains from aggressive compiler optimizations are
+rather small in LAMMPS, the data access optimizations in the OPENMP (and
+OPT) packages are more prominent.  On the other side, using more
+accurate force field settings causes, not unexpectedly, a significant
+slowdown (to about half the speed).  Finally, using regular Ewald
+summation causes a massive slowdown due to the bad algorithmic scaling
+with system size.</p>
+</section>
+<section id="examples-comparing-parallel-performance">
+<h2><span class="section-number">7.2.3. </span>Examples comparing parallel performance<a class="headerlink" href="#examples-comparing-parallel-performance" title="Link to this heading"></a></h2>
+<p>The parallel performance usually goes on top of the serial performance.
+Using twice as many processors should increase the performance metric
+by up to a factor of two.  With the number of processors <em>N</em> and the
+serial performance <span class="math notranslate nohighlight">\(p_1\)</span> and the performance for <em>N</em> processors
+<span class="math notranslate nohighlight">\(p_N\)</span> we can define a <em>parallel efficiency</em> in percent as follows:</p>
+<div class="math notranslate nohighlight">
+\[P_{eff} = \frac{p_N}{p_1 \cdot N} \cdot 100\%\]</div>
+<p>For the AMD Ryzen Threadripper PRO 9985WX CPU and the serial
+simulation settings of point 6. from above, we get the following
+parallel efficiency data for the 256000 atom system:</p>
+<ul class="simple">
+<li><p>1 MPI task: 273.6 katom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 100\%\)</span></p></li>
+<li><p>2 MPI tasks: 530.6 katom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 97\%\)</span></p></li>
+<li><p>4 MPI tasks: 1.021 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 93\%\)</span></p></li>
+<li><p>8 MPI tasks: 1.837 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 84\%\)</span></p></li>
+<li><p>16 MPI tasks: 3.574 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 82\%\)</span></p></li>
+<li><p>32 MPI tasks: 6.479 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 74\%\)</span></p></li>
+<li><p>64 MPI tasks: 9.032 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 52\%\)</span></p></li>
+<li><p>128 MPI tasks: 12.03 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 34\%\)</span></p></li>
+</ul>
+<p>The 128 MPI tasks run uses CPU cores from hyper-threading.</p>
+<p>For a small system with only 32000 atoms the parallel efficiency
+drops off earlier when the number of work units is too small relative
+to the communication overhead:</p>
+<ul class="simple">
+<li><p>1 MPI task:  270.8  katom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 100\%\)</span></p></li>
+<li><p>2 MPI tasks: 529.3  katom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 98\%\)</span></p></li>
+<li><p>4 MPI tasks: 989.8  katom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 91\%\)</span></p></li>
+<li><p>8 MPI tasks: 1.832  Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 85\%\)</span></p></li>
+<li><p>16 MPI tasks: 3.463 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 80\%\)</span></p></li>
+<li><p>32 MPI tasks: 5.970 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 69\%\)</span></p></li>
+<li><p>64 MPI tasks: 7.477 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 42\%\)</span></p></li>
+<li><p>128 MPI tasks: 8.069 Matom-step/s, <span class="math notranslate nohighlight">\(P_{eff} = 23\%\)</span></p></li>
+</ul>
+</section>
+<section id="measuring-performance-of-your-input-deck">
+<h2><span class="section-number">7.2.4. </span>Measuring performance of your input deck<a class="headerlink" href="#measuring-performance-of-your-input-deck" title="Link to this heading"></a></h2>
+<p>The best way to do this is run the your system (actual number of atoms)
+for a modest number of timesteps (say 100 steps) on several different
+processor counts, including a single processor if possible.  Do this for
+an equilibrium version of your system, so that the 100-step timings are
+representative of a much longer run.  There is typically no need to run
+for 1000s of timesteps to get accurate timings; you can simply
+extrapolate from short runs.</p>
+<p>For the set of runs, look at the timing data printed to the screen and
+log file at the end of each LAMMPS run.  The
+<a class="reference internal" href="Run_output.html"><span class="doc">screen and logfile output</span></a> page gives an overview.</p>
+<p>Running on one (or a few processors) should give a good estimate of
+the serial performance and what portions of the timestep are taking
+the most time.  Running the same problem on a few different processor
+counts should give an estimate of parallel scalability.  I.e. if the
+simulation runs 16x faster on 16 processors, its 100% parallel
+efficient; if it runs 8x faster on 16 processors, it’s 50% efficient.</p>
+<p>The most important data to look at in the timing info is the timing
+breakdown and relative percentages.  For example, trying different
+options for speeding up the long-range solvers will have little impact
+if they only consume 10% of the run time.  If the pairwise time is
+dominating, you may want to look at GPU or OMP versions of the pair
+style, as discussed below.  Comparing how the percentages change as you
+increase the processor count gives you a sense of how different
+operations within the timestep are scaling.  If you are using PPPM as
+Kspace solver, you can turn on an additional output with
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify fftbench yes</span></a> which measures the
+time spent during PPPM on the 3d FFTs, which can be communication
+intensive for larger processor counts.  This provides an indication
+whether it is worth trying out alternatives to the default FFT settings
+for additional performance.</p>
+<p>Another important detail in the timing info are the histograms of
+atoms counts and neighbor counts.  If these vary widely across
+processors, you have a load-imbalance issue.  This often results in
+inaccurate relative timing data, because processors have to wait when
+communication occurs for other processors to catch up.  Thus the
+reported times for “Communication” or “Other” may be higher than they
+really are, due to load-imbalance.  If this is an issue, you can
+use the <a class="reference internal" href="timer.html"><span class="doc">timer sync</span></a> command to obtain synchronized timings.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Speed_bench.html" class="btn btn-neutral float-left" title="7.1. Benchmarks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Speed_tips.html" class="btn btn-neutral float-right" title="7.3. General tips" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

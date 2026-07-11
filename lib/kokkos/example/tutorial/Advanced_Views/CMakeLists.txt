@@ -1,0 +1,8 @@
+kokkos_add_example_directories(01_data_layouts)
+kokkos_add_example_directories(02_memory_traits)
+kokkos_add_example_directories(03_subviews)
+kokkos_add_example_directories(04_dualviews)
+
+if(Kokkos_ENABLE_CUDA AND Kokkos_ENABLE_OPENMP)
+  kokkos_add_example_directories(07_Overlapping_DeepCopy)
+endif()

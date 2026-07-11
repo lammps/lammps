@@ -1,0 +1,41 @@
+units lj
+dimension 3
+boundary p p p
+atom_style atomic
+
+# truncated and shifted LJ potential
+pair_style lj/cut 2.5
+pair_modify shift yes
+
+# fcc lattice
+lattice	fcc 0.9731
+region my_box block 0 8.0   0 8.0   0 20.0
+create_box 1 my_box
+region particles block 0 8.0 0 8.0 0 20.0
+create_atoms 1 region particles
+pair_coeff 1 1 1.0 1.0 2.5
+mass 1 1.0
+change_box all z final 0.0 34 remap units box
+
+# select particles in one side of the elongated box
+region left plane 0 0 10 0 0 1
+group left region left
+
+velocity left create 6.0 1 mom yes rot yes
+
+# simulation parameters
+neighbor	0.6 bin
+timestep	0.004
+run_style 	verlet
+fix ensemble left nve     # Note: only move particle in left-hand side
+fix langevin left langevin 3.0 0.8 100.0 2017
+
+# outout
+thermo_style custom step temp pzz pe lz
+thermo 100
+# dump dumpXYZ all xyz 100 traj.xyz
+
+# run reduced for demonstration purposes
+# run 10000
+run 5000
+write_data data.halfhalf

@@ -1,0 +1,368 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1.1.2. Executing commands &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Library_execute.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1.1.3. System properties" href="Library_properties.html" />
+    <link rel="prev" title="1.1.1. Creating or deleting a LAMMPS object" href="Library_create.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Library.html#lammps-c-library-api">1.1. LAMMPS C Library API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Library_create.html">1.1.1. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">1.1.2. Executing commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_properties.html">1.1.3. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_atoms.html">1.1.4. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_objects.html">1.1.5. Computes, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_scatter.html">1.1.6. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_neighbor.html">1.1.7. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_config.html">1.1.8. Configuration information</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_utility.html">1.1.9. Utility functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_add.html">1.1.10. Extending the C API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-python-api">1.2. LAMMPS Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-fortran-api">1.3. LAMMPS Fortran API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-cplusplus-api">1.4. LAMMPS C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Library.html"><span class="section-number">1. </span>LAMMPS Library Interfaces</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">1.1.2. </span>Executing commands</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Library_create.html" class="btn btn-neutral float-left" title="1.1.1. Creating or deleting a LAMMPS object" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Library_properties.html" class="btn btn-neutral float-right" title="1.1.3. System properties" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="executing-commands">
+<h1><span class="section-number">1.1.2. </span>Executing commands<a class="headerlink" href="#executing-commands" title="Link to this heading"></a></h1>
+<p>This section documents the following functions:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#_CPPv411lammps_filePvPKc" title="lammps_file"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_file()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv414lammps_commandPvPKc" title="lammps_command"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_command()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_commands_listPviPPKc" title="lammps_commands_list"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_commands_list()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv422lammps_commands_stringPvPKc" title="lammps_commands_string"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_commands_string()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv413lammps_expandPvPKc" title="lammps_expand"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_expand()</span></code></a></p></li>
+</ul>
+<hr class="docutils" />
+<p>Once a LAMMPS instance is created, there are multiple ways to “drive” a
+simulation.  In most cases it is easiest to process single or multiple
+LAMMPS commands like in an input file.  This can be done through reading
+a file or passing single commands or lists of commands or blocks of
+commands with the following functions.</p>
+<p>Via these functions, the calling code can have LAMMPS act on a series
+of <a class="reference internal" href="Commands_all.html"><span class="doc">input file commands</span></a> that are either read from
+a file or passed as strings.  For example, this allows setup of a
+problem from an input script, and then running it in stages while
+performing other operations in between or concurrently.  The caller
+can interleave the LAMMPS function calls with operations it performs,
+such as calls to extract information from or set information within
+LAMMPS, or calls to another code’s library.</p>
+<p>Just as with <a class="reference internal" href="Commands_parse.html"><span class="doc">input script parsing</span></a> comments can
+be included in the file or strings, and expansion of variables with
+<code class="docutils literal notranslate"><span class="pre">${name}</span></code> or <code class="docutils literal notranslate"><span class="pre">$(expression)</span></code> syntax is performed.
+Below is a short example using some of these functions.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cm">/* define to make the otherwise hidden prototype for &quot;lammps_open()&quot; visible */</span>
+<span class="cp">#define LAMMPS_LIB_MPI</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;library.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;mpi.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">MPI_Init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">argv</span><span class="p">);</span>
+<span class="w">  </span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_open</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">  </span><span class="n">lammps_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;in.sysinit&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">lammps_command</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;run 1000 post no&quot;</span><span class="p">);</span>
+
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="o">=</span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">100</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">lammps_commands_string</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="s">&quot;run 100 pre no post no</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">                                  </span><span class="s">&quot;print &#39;PE = $(pe)&#39;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">                                  </span><span class="s">&quot;print &#39;KE = $(ke)&#39;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">lammps_close</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+<span class="w">  </span><span class="n">MPI_Finalize</span><span class="p">();</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv411lammps_filePvPKc">
+<span id="_CPPv311lammps_filePvPKc"></span><span id="_CPPv211lammps_filePvPKc"></span><span id="lammps_file__voidP.cCP"></span><span class="target" id="library_8h_1a76c1ce1af98c09978578c7a94d778c0b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_file</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">file</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411lammps_filePvPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Process <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input from a file.</p>
+<p><p>This function processes commands in the file pointed to by <em>filename</em>
+line by line and thus functions very similar to the <a class="reference internal" href="include.html"><span class="doc">include</span></a> command. The function returns when the end of the file is
+reached and the commands have completed.</p>
+<p>The actual work is done by the functions
+<a class="reference internal" href="Classes_input.html#_CPPv4N9LAMMPS_NS5Input4fileEPKc" title="void LAMMPS_NS::Input::file(const char*)"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">Input::file(const</span> <span class="pre">char</span> <span class="pre">*)</span></code></a>
+and <a class="reference internal" href="Classes_input.html#_CPPv4N9LAMMPS_NS5Input4fileEv" title="void LAMMPS_NS::Input::file()"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">Input::file()</span></code></a>.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>filename</strong> – name of a file with <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414lammps_commandPvPKc">
+<span id="_CPPv314lammps_commandPvPKc"></span><span id="_CPPv214lammps_commandPvPKc"></span><span id="lammps_command__voidP.cCP"></span><span class="target" id="library_8h_1a48721b1903a79541cb680dabea9b84d5"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">lammps_command</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">cmd</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414lammps_commandPvPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Process a single <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input command from a string.</p>
+<p><p>This function tells LAMMPS to execute the single command in the string
+<em>cmd</em>.  The entire string is considered as command and need not have a
+(final) newline character.  Newline characters in the body of the
+string, however, will be treated as part of the command and will <strong>not</strong>
+start a second command.  The function <a class="reference internal" href="#_CPPv422lammps_commands_stringPvPKc" title="lammps_commands_string"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_commands_string()</span></code></a>
+processes a string with multiple command-lines.</p>
+<p>The function returns the name of the command on success or <code class="docutils literal notranslate"><span class="pre">NULL</span></code> when
+passing a string without a command.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>cmd</strong> – string with a single <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> command </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>string with parsed command name or <code class="docutils literal notranslate"><span class="pre">NULL</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_commands_listPviPPKc">
+<span id="_CPPv320lammps_commands_listPviPPKc"></span><span id="_CPPv220lammps_commands_listPviPPKc"></span><span id="lammps_commands_list__voidP.i.cCPP"></span><span class="target" id="library_8h_1ab542f51c42bcf8e39b64722ffa426890"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_commands_list</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ncmd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">cmds</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_commands_listPviPPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Process multiple <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input commands from list of strings.</p>
+<p>This function processes multiple commands from a list of strings by
+first concatenating the individual strings in <em>cmds</em> into a single
+string, inserting newline characters as needed.  The combined string
+is passed to <a class="reference internal" href="#_CPPv422lammps_commands_stringPvPKc" title="lammps_commands_string"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_commands_string()</span></code></a> for processing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>ncmd</strong> – number of lines in <em>cmds</em></p></li>
+<li><p><strong>cmds</strong> – list of strings with <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> commands </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422lammps_commands_stringPvPKc">
+<span id="_CPPv322lammps_commands_stringPvPKc"></span><span id="_CPPv222lammps_commands_stringPvPKc"></span><span id="lammps_commands_string__voidP.cCP"></span><span class="target" id="library_8h_1a82b8d3fb9db7e0a834f6da0996e61d6b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_commands_string</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">str</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422lammps_commands_stringPvPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Process a block of <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input commands from a single string.</p>
+<p><p>This function processes a multi-line string similar to a block of
+commands from a file.  The string may have multiple lines (separated by
+newline characters) and also single commands may be distributed over
+multiple lines with continuation characters (’&amp;’).  Those lines are
+combined by removing the ‘&amp;’ and the following newline character.  After
+this processing the string is handed to LAMMPS for parsing and
+executing.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 21Nov2023: </span>The command is now able to process long strings with triple quotes and
+loops using <a class="reference internal" href="jump.html"><span class="doc">jump SELF &lt;label&gt;</span></a>.</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>str</strong> – string with block of <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input commands </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv413lammps_expandPvPKc">
+<span id="_CPPv313lammps_expandPvPKc"></span><span id="_CPPv213lammps_expandPvPKc"></span><span id="lammps_expand__voidP.cCP"></span><span class="target" id="library_8h_1aeff3ea554b2e172d2caa63304c222f8c"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">lammps_expand</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">line</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413lammps_expandPvPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>expand a single <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input line from a string.</p>
+<p><p>This function tells LAMMPS to expand the string in <em>cmd</em> like it would process
+an input line fed to <a class="reference internal" href="#_CPPv414lammps_commandPvPKc" title="lammps_command"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_command()</span></code></a> <strong>without</strong> executing it.
+The <em>entire</em> string is considered as input and need not have a (final) newline
+character.  Newline characters in the body of the string, however, will be
+treated as part of the command and will <strong>not</strong> start a second command.</p>
+<p>The function returns the expanded string in a new string buffer that
+must be freed with <a class="reference internal" href="Library_utility.html#_CPPv411lammps_freePv" title="lammps_free"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_free()</span></code></a> after use to avoid a memory leak.</p>
+<dl class="simple">
+<dt><em>See also</em></dt><dd><p><a class="reference internal" href="Library_objects.html#_CPPv411lammps_evalPvPKc" title="lammps_eval"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_eval()</span></code></a></p>
+</dd>
+</dl>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>line</strong> – string with a single <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> input line </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>string with expanded line </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Library_create.html" class="btn btn-neutral float-left" title="1.1.1. Creating or deleting a LAMMPS object" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Library_properties.html" class="btn btn-neutral float-right" title="1.1.3. System properties" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

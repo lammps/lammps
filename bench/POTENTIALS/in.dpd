@@ -1,0 +1,24 @@
+# DPD benchmark
+
+units		lj
+atom_style	atomic
+comm_modify     mode single vel yes
+
+lattice		fcc 3.0
+region		box block 0 20 0 20 0 20
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 1.0 87287 loop geom
+
+pair_style	dpd 1.0 1.0 928948
+pair_coeff	1 1 25.0 4.5
+
+neighbor	0.5 bin
+neigh_modify    delay 0 every 1
+
+fix		1 all nve
+timestep	0.04
+
+run		100

@@ -1,0 +1,459 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.4.4. AMOEBA and HIPPO force fields &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_amoeba.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.4.5. TIP3P water model" href="Howto_tip3p.html" />
+    <link rel="prev" title="10.4.3. AMBER to LAMMPS Tutorial" href="Howto_amber2lammps.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_FFgeneral.html">10.4.1. Some general force field considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bioFF.html">10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amber2lammps.html">10.4.3. AMBER to LAMMPS Tutorial</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.4.4. AMOEBA and HIPPO force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip3p.html">10.4.5. TIP3P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip4p.html">10.4.6. TIP4P and OPC water models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip5p.html">10.4.7. TIP5P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spc.html">10.4.8. SPC and SPC/E water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_eam_overlay.html">10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.4.4. </span>AMOEBA and HIPPO force fields</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_amber2lammps.html" class="btn btn-neutral float-left" title="10.4.3. AMBER to LAMMPS Tutorial" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_tip3p.html" class="btn btn-neutral float-right" title="10.4.5. TIP3P water model" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="amoeba-and-hippo-force-fields">
+<h1><span class="section-number">10.4.4. </span>AMOEBA and HIPPO force fields<a class="headerlink" href="#amoeba-and-hippo-force-fields" title="Link to this heading"></a></h1>
+<p>The AMOEBA and HIPPO polarizable force fields were developed by Jay
+Ponder’s group at the U Washington at St Louis.  The LAMMPS
+implementation is based on Fortran 90 code provided by the Ponder
+group in their <a class="reference external" href="https://dasher.wustl.edu/tinker/">Tinker MD software</a>.</p>
+<p>The current implementation (July 2022) of AMOEBA in LAMMPS matches the
+version discussed in <a class="reference internal" href="pair_amoeba.html#amoeba-ponder"><span class="std std-ref">(Ponder)</span></a>, <a class="reference internal" href="pair_amoeba.html#amoeba-ren"><span class="std std-ref">(Ren)</span></a>, and <a class="reference internal" href="pair_amoeba.html#amoeba-shi"><span class="std std-ref">(Shi)</span></a>.  Likewise the current
+implementation of HIPPO in LAMMPS matches the version discussed in
+<a class="reference internal" href="pair_amoeba.html#amoeba-rackers"><span class="std std-ref">(Rackers)</span></a>.</p>
+<p>These force fields can be used when polarization effects are desired
+in simulations of water, organic molecules, and biomolecules including
+proteins, provided that parameterizations (Tinker PRM force field
+files) are available for the systems you are interested in.  Files in
+the LAMMPS potentials directory with a “amoeba” or “hippo” suffix can
+be used.  The Tinker distribution and website have additional force
+field files as well:
+<a class="reference external" href="https://github.com/TinkerTools/tinker/tree/release/params">https://github.com/TinkerTools/tinker/tree/release/params</a>.</p>
+<p>Note that currently, HIPPO can only be used for water systems, but
+HIPPO files for a variety of small organic and biomolecules are in
+preparation by the Ponder group.  Those force field files will be
+included in the LAMMPS distribution when available.</p>
+<p>To use the AMOEBA or HIPPO force fields, a simulation must be 3d, and
+fully periodic or fully non-periodic, and use an orthogonal (not
+triclinic) simulation box.</p>
+<hr class="docutils" />
+<p>The AMOEBA and HIPPO force fields contain the following terms in their
+energy (U) computation.  Further details for AMOEBA equations are in
+<a class="reference internal" href="pair_amoeba.html#amoeba-ponder"><span class="std std-ref">(Ponder)</span></a>, further details for the HIPPO
+equations are in <a class="reference internal" href="pair_amoeba.html#amoeba-rackers"><span class="std std-ref">(Rackers)</span></a>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}U &amp; = U_{intermolecular} + U_{intramolecular} \\
+U_{intermolecular} &amp; = U_{hal} + U_{repulsion} + U_{dispersion} + U_{multipole} + U_{polar} + U_{qxfer} \\
+U_{intramolecular} &amp; = U_{bond} + U_{angle} + U_{torsion} + U_{oop} + U_{b\theta} + U_{UB} + U_{pitorsion} + U_{bitorsion}\end{split}\]</div>
+<p>For intermolecular terms, the AMOEBA force field includes only the
+<span class="math notranslate nohighlight">\(U_{hal}\)</span>, <span class="math notranslate nohighlight">\(U_{multipole}\)</span>, <span class="math notranslate nohighlight">\(U_{polar}\)</span> terms.  The
+HIPPO force field includes all but the <span class="math notranslate nohighlight">\(U_{hal}\)</span> term.  In
+LAMMPS, these are all computed by the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style amoeba or hippo</span></a> command.  Note that the <span class="math notranslate nohighlight">\(U_{multipole}\)</span> and
+<span class="math notranslate nohighlight">\(U_{polar}\)</span> terms in this formula are not the same for the
+AMOEBA and HIPPO force fields.</p>
+<p>For intramolecular terms, the <span class="math notranslate nohighlight">\(U_{bond}\)</span>, <span class="math notranslate nohighlight">\(U_{angle}\)</span>,
+<span class="math notranslate nohighlight">\(U_{torsion}\)</span>, <span class="math notranslate nohighlight">\(U_{oop}\)</span> terms are computed by the
+<a class="reference internal" href="bond_class2.html"><span class="doc">bond_style class2</span></a> <a class="reference internal" href="angle_amoeba.html"><span class="doc">angle_style amoeba</span></a>, <a class="reference internal" href="dihedral_fourier.html"><span class="doc">dihedral_style fourier</span></a>, and
+<a class="reference internal" href="improper_amoeba.html"><span class="doc">improper_style amoeba</span></a> commands respectively.
+The <a class="reference internal" href="angle_amoeba.html"><span class="doc">angle_style amoeba</span></a> command includes the
+<span class="math notranslate nohighlight">\(U_{b\theta}\)</span> bond-angle cross term, and the <span class="math notranslate nohighlight">\(U_{UB}\)</span> term
+for a Urey-Bradley bond contribution between the I,K atoms in the IJK
+angle.</p>
+<p>The <span class="math notranslate nohighlight">\(U_{pitorsion}\)</span> term is computed by the <a class="reference internal" href="fix_amoeba_pitorsion.html"><span class="doc">fix
+amoeba/pitorsion</span></a> command.  It computes 6-body
+interaction between a pair of bonded atoms which each have 2
+additional bond partners.</p>
+<p>The <span class="math notranslate nohighlight">\(U_{bitorsion}\)</span> term is computed by the <a class="reference internal" href="fix_amoeba_bitorsion.html"><span class="doc">fix
+amoeba/bitorsion</span></a> command.  It computes 5-body
+interaction between two 4-body torsions (dihedrals) which overlap,
+having 3 atoms in common.</p>
+<p>These command doc pages have additional details on the terms they
+compute:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pair_amoeba.html"><span class="doc">pair_style amoeba or hippo</span></a></p></li>
+<li><p><a class="reference internal" href="bond_class2.html"><span class="doc">bond_style class2</span></a></p></li>
+<li><p><a class="reference internal" href="angle_amoeba.html"><span class="doc">angle_style amoeba</span></a></p></li>
+<li><p><a class="reference internal" href="dihedral_fourier.html"><span class="doc">dihedral_style fourier</span></a></p></li>
+<li><p><a class="reference internal" href="improper_amoeba.html"><span class="doc">improper_style amoeba</span></a></p></li>
+<li><p><a class="reference internal" href="fix_amoeba_pitorsion.html"><span class="doc">fix amoeba/pitorsion</span></a></p></li>
+<li><p><a class="reference internal" href="fix_amoeba_bitorsion.html"><span class="doc">fix amoeba/bitorsion</span></a></p></li>
+</ul>
+<hr class="docutils" />
+<p>To use the AMOEBA or HIPPO force fields in LAMMPS, use commands like
+the following appropriately in your input script.  The only change
+needed for AMOEBA vs HIPPO simulation is for the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> and <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> commands, as shown
+below.  See examples/amoeba for example input scripts for both AMOEBA
+and HIPPO.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w">              </span><span class="n">real</span><span class="w">                           </span><span class="c"># required</span>
+<span class="k">atom_style</span><span class="w">         </span><span class="n">amoeba</span>
+<span class="k">bond_style</span><span class="w">         </span><span class="n">class2</span><span class="w">                         </span><span class="c"># CLASS2 package</span>
+<span class="k">angle_style</span><span class="w">        </span><span class="n">amoeba</span>
+<span class="k">dihedral_style</span><span class="w">     </span><span class="n">fourier</span><span class="w">                        </span><span class="c"># EXTRA-MOLECULE package</span>
+<span class="k">improper_style</span><span class="w">     </span><span class="n">amoeba</span>
+<span class="w">                                                  </span><span class="c"># required per-atom data</span>
+<span class="k">fix                </span><span class="nv nv-Identifier">amtype</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">i_amtype</span><span class="w"> </span><span class="n">ghost</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">fix                </span><span class="nv nv-Identifier">extra</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="sc"> &amp;</span>
+<span class="w">                   </span><span class="n">i_amgroup</span><span class="w"> </span><span class="n">i_ired</span><span class="w"> </span><span class="n">i_xaxis</span><span class="w"> </span><span class="n">i_yaxis</span><span class="w"> </span><span class="n">i_zaxis</span><span class="w"> </span><span class="n">d_pval</span><span class="w"> </span><span class="n">ghost</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">fix                </span><span class="nv nv-Identifier">polaxe</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">i_polaxe</span>
+
+<span class="k">fix                </span><span class="nv nv-Identifier">pit</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">amoeba</span><span class="o">/</span><span class="n">pitorsion</span><span class="w">       </span><span class="c"># PiTorsion terms in FF</span>
+<span class="k">fix_modify         </span><span class="nv nv-Identifier">pit</span><span class="w"> </span><span class="n">energy</span><span class="w"> </span><span class="n">yes</span>
+<span class="w">                                                  </span><span class="c"># Bitorsion terms in FF</span>
+<span class="k">fix                </span><span class="nv nv-Identifier">bit</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">amoeba</span><span class="o">/</span><span class="n">bitorsion</span><span class="w"> </span><span class="n">bitorsion.ubiquitin.data</span>
+<span class="k">fix_modify         </span><span class="nv nv-Identifier">bit</span><span class="w"> </span><span class="n">energy</span><span class="w"> </span><span class="n">yes</span>
+
+<span class="k">read_data</span><span class="w">          </span><span class="n">data.ubiquitin</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">amtype</span><span class="w"> </span><span class="nv nv-Identifier">NULL</span><span class="w"> </span><span class="s">&quot;Tinker Types&quot;</span><span class="sc"> &amp;</span>
+<span class="w">                   </span><span class="k">fix </span><span class="nv nv-Identifier">pit</span><span class="w"> </span><span class="s">&quot;pitorsion types&quot;</span><span class="w"> </span><span class="s">&quot;PiTorsion Coeffs&quot;</span><span class="sc"> &amp;</span>
+<span class="w">                   </span><span class="k">fix </span><span class="nv nv-Identifier">pit</span><span class="w"> </span><span class="nv nv-Identifier">pitorsions</span><span class="w"> </span><span class="n">PiTorsions</span><span class="sc"> &amp;</span>
+<span class="w">                   </span><span class="k">fix </span><span class="nv nv-Identifier">bit</span><span class="w"> </span><span class="nv nv-Identifier">bitorsions</span><span class="w"> </span><span class="n">BiTorsions</span>
+
+<span class="k">pair_style</span><span class="w">         </span><span class="n">amoeba</span><span class="w">                          </span><span class="c"># AMOEBA FF</span>
+<span class="k">pair_coeff</span><span class="w">         </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">amoeba_ubiquitin.prm</span><span class="w"> </span><span class="n">amoeba_ubiquitin.key</span>
+
+<span class="k">pair_style</span><span class="w">         </span><span class="n">hippo</span><span class="w">                           </span><span class="c"># HIPPO FF</span>
+<span class="k">pair_coeff</span><span class="w">         </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hippo_water.prm</span><span class="w"> </span><span class="n">hippo_water.key</span>
+
+<span class="k">special_bonds</span><span class="w">      </span><span class="n">lj</span><span class="o">/</span><span class="n">coul</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">one</span><span class="o">/</span><span class="n">five</span><span class="w"> </span><span class="n">yes</span><span class="w">     </span><span class="c"># 1-5 neighbors</span>
+</pre></div>
+</div>
+<p>The data file read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command should
+be created by the tools/tinker/tinker2lmp.py conversion program
+described below.  It will create a section in the data file with the
+header “Tinker Types”.  A <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>
+command for the data must be specified before the read_data command.
+In the example above the fix ID is <em>amtype</em>.</p>
+<p>Similarly, if the system you are simulating defines AMOEBA/HIPPO
+pitorsion or bitorsion interactions, there will be entries in the data
+file for those interactions.  They require a <a class="reference internal" href="fix_amoeba_pitorsion.html"><span class="doc">fix
+amoeba/pitortion</span></a> and <a class="reference internal" href="fix_amoeba_bitorsion.html"><span class="doc">fix
+amoeba/bitorsion</span></a> command be defined.  In the
+example above, the IDs for these two fixes are <em>pit</em> and <em>bit</em>.</p>
+<p>Of course, if the system being modeled does not have one or more of
+the following – bond, angle, dihedral, improper, pitorsion,
+bitorsion interactions – then the corresponding style and fix
+commands above do not need to be used.  See the example scripts in
+examples/amoeba for water systems as examples; they are simpler than
+what is listed above.</p>
+<p>The two <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> commands with IDs
+(in the example above) <em>extra</em> and <em>polaxe</em> are also needed to define
+internal per-atom quantities used by the AMOEBA and HIPPO force
+fields.</p>
+<p>The <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command used for either the AMOEBA
+or HIPPO force field takes two arguments for Tinker force field files,
+namely a PRM and KEY file.  The keyfile can be specified as NULL and
+default values for a various settings will be used.  Note that these 2
+files are meant to allow use of native Tinker files as-is.  However
+LAMMPS does not support all the options which can be included
+in a Tinker PRM or KEY file.  See specifics below.</p>
+<p>A <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command with the <em>one/five</em>
+option is required, since the AMOEBA/HIPPO force fields define
+weighting factors for not only 1-2, 1-3, 1-4 interactions, but also
+1-5 interactions.  This command will trigger a per-atom list of 1-5
+neighbors to be generated.  The AMOEBA and HIPPO force fields define
+their own custom weighting factors for all the 1-2, 1-3, 1-4, 1-5
+terms which in the Tinker PRM and KEY files; they can be different for
+different terms in the force field.</p>
+<p>In addition to the list above, these command doc pages have additional
+details:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="atom_style.html"><span class="doc">atom_style amoeba</span></a></p></li>
+<li><p><a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a></p></li>
+<li><p><a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a></p></li>
+</ul>
+<hr class="docutils" />
+<p>Tinker PRM and KEY files</p>
+<p>A Tinker PRM file is composed of sections, each of which has multiple
+lines.  This is the list of PRM sections LAMMPS knows how to parse and
+use.  Any other sections are skipped:</p>
+<ul class="simple">
+<li><p>Angle Bending Parameters</p></li>
+<li><p>Atom Type Definitions</p></li>
+<li><p>Atomic Multipole Parameters</p></li>
+<li><p>Bond Stretching Parameters</p></li>
+<li><p>Charge Penetration Parameters</p></li>
+<li><p>Charge Transfer Parameters</p></li>
+<li><p>Dipole Polarizability Parameters</p></li>
+<li><p>Dispersion Parameters</p></li>
+<li><p>Force Field Definition</p></li>
+<li><p>Literature References</p></li>
+<li><p>Out-of-Plane Bend Parameters</p></li>
+<li><p>Pauli Repulsion Parameters</p></li>
+<li><p>Pi-Torsion Parameters</p></li>
+<li><p>Stretch-Bend Parameters</p></li>
+<li><p>Torsion-Torsion Parameters</p></li>
+<li><p>Torsional Parameters</p></li>
+<li><p>Urey-Bradley Parameters</p></li>
+<li><p>Van der Waals Pair Parameters</p></li>
+<li><p>Van der Waals Parameters</p></li>
+</ul>
+<p>A Tinker KEY file is composed of lines, each of which has a keyword
+followed by zero or more parameters.  This is the list of keywords
+LAMMPS knows how to parse and use in the same manner Tinker does.  Any
+other keywords are skipped.  The value in parenthesis is the default
+value for the keyword if it is not specified, or if the keyfile in the
+<a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command is specified as NULL:</p>
+<ul class="simple">
+<li><p>a-axis (0.0)</p></li>
+<li><p>b-axis (0.0)</p></li>
+<li><p>c-axis (0.0)</p></li>
+<li><p>ctrn-cutoff (6.0)</p></li>
+<li><p>ctrn-taper (0.9 * ctrn-cutoff)</p></li>
+<li><p>cutoff</p></li>
+<li><p>delta-halgren (0.07)</p></li>
+<li><p>dewald (no long-range dispersion unless specified)</p></li>
+<li><p>dewald-alpha (0.4)</p></li>
+<li><p>dewald-cutoff (7.0)</p></li>
+<li><p>dispersion-cutoff (9.0)</p></li>
+<li><p>dispersion-taper (9.0 * dispersion-cutoff)</p></li>
+<li><p>dpme-grid</p></li>
+<li><p>dpme-order (4)</p></li>
+<li><p>ewald (no long-range electrostatics unless specified)</p></li>
+<li><p>ewald-alpha (0.4)</p></li>
+<li><p>ewald-cutoff (7.0)</p></li>
+<li><p>gamma-halgren (0.12)</p></li>
+<li><p>mpole-cutoff (9.0)</p></li>
+<li><p>mpole-taper (0.65 * mpole-cutoff)</p></li>
+<li><p>pcg-guess (enabled by default)</p></li>
+<li><p>pcg-noguess (disable pcg-guess if specified)</p></li>
+<li><p>pcg-noprecond (disable pcg-precond if specified)</p></li>
+<li><p>pcg-peek (1.0)</p></li>
+<li><p>pcg-precond (enabled by default)</p></li>
+<li><p>pewald-alpha (0.4)</p></li>
+<li><p>pme-grid</p></li>
+<li><p>pme-order (5)</p></li>
+<li><p>polar-eps (1.0e-6)</p></li>
+<li><p>polar-iter (100)</p></li>
+<li><p>polar-predict (no prediction operation unless specified)</p></li>
+<li><p>ppme-order (5)</p></li>
+<li><p>repulsion-cutoff (6.0)</p></li>
+<li><p>repulsion-taper (0.9 * repulsion-cutoff)</p></li>
+<li><p>taper</p></li>
+<li><p>usolve-cutoff (4.5)</p></li>
+<li><p>usolve-diag (2.0)</p></li>
+<li><p>vdw-cutoff (9.0)</p></li>
+<li><p>vdw-taper (0.9 * vdw-cutoff)</p></li>
+</ul>
+<hr class="docutils" />
+<p>Tinker2lmp.py tool</p>
+<p>This conversion tool is found in the tools/tinker directory.
+As shown in examples/amoeba/README, these commands produce
+the data files found in examples/amoeba, and also illustrate
+all the options available to use with the tinker2lmp.py script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>tinker2lmp.py<span class="w"> </span>-xyz<span class="w"> </span>water_dimer.xyz<span class="w"> </span>-amoeba<span class="w"> </span>amoeba_water.prm<span class="w"> </span>-data<span class="w"> </span>data.water_dimer.amoeba<span class="w">                </span><span class="c1"># AMOEBA non-periodic system</span>
+python<span class="w"> </span>tinker2lmp.py<span class="w"> </span>-xyz<span class="w"> </span>water_dimer.xyz<span class="w"> </span>-hippo<span class="w"> </span>hippo_water.prm<span class="w"> </span>-data<span class="w"> </span>data.water_dimer.hippo<span class="w">                   </span><span class="c1"># HIPPO non-periodic system</span>
+python<span class="w"> </span>tinker2lmp.py<span class="w"> </span>-xyz<span class="w"> </span>water_box.xyz<span class="w"> </span>-amoeba<span class="w"> </span>amoeba_water.prm<span class="w"> </span>-data<span class="w"> </span>data.water_box.amoeba<span class="w"> </span>-pbc<span class="w"> </span><span class="m">18</span>.643<span class="w"> </span><span class="m">18</span>.643<span class="w"> </span><span class="m">18</span>.643<span class="w">    </span><span class="c1"># AMOEBA periodic system</span>
+python<span class="w"> </span>tinker2lmp.py<span class="w"> </span>-xyz<span class="w"> </span>water_box.xyz<span class="w"> </span>-hippo<span class="w"> </span>hippo_water.prm<span class="w"> </span>-data<span class="w"> </span>data.water_box.hippo<span class="w"> </span>-pbc<span class="w"> </span><span class="m">18</span>.643<span class="w"> </span><span class="m">18</span>.643<span class="w"> </span><span class="m">18</span>.643<span class="w">       </span><span class="c1"># HIPPO periodic system</span>
+python<span class="w"> </span>tinker2lmp.py<span class="w"> </span>-xyz<span class="w"> </span>ubiquitin.xyz<span class="w"> </span>-amoeba<span class="w"> </span>amoeba_ubiquitin.prm<span class="w"> </span>-data<span class="w"> </span>data.ubiquitin.new<span class="w"> </span>-pbc<span class="w"> </span><span class="m">54</span>.99<span class="w"> </span><span class="m">41</span>.91<span class="w"> </span><span class="m">41</span>.91<span class="w"> </span>-bitorsion<span class="w"> </span>bitorsion.ubiquitin.data.new<span class="w">   </span><span class="c1"># system with bitorsions</span>
+</pre></div>
+</div>
+<p>Switches and their arguments may be specified in any order.</p>
+<p>The -xyz switch is required and specifies an input XYZ file as an
+argument.  The format of this file is an extended XYZ format defined
+and used by Tinker for its input.  Example *.xyz files are in the
+examples/amoeba directory.  The file lists the atoms in the system.
+Each atom has the following information: Tinker species name (ignored
+by LAMMPS), xyz coordinates, Tinker numeric type, and a list of atom
+IDs the atom is bonded to.</p>
+<p>Here is more information about the extended XYZ format defined and
+used by Tinker, and links to programs that convert standard PDB files
+to the extended XYZ format:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://dasher.wustl.edu/tinker/distribution/doc/sphinx/tinker/_build/html/text/file-types.html">https://dasher.wustl.edu/tinker/distribution/doc/sphinx/tinker/_build/html/text/file-types.html</a></p></li>
+<li><p><a class="reference external" href="https://openbabel.org/docs/FileFormats/Tinker_XYZ_format.html">https://openbabel.org/docs/FileFormats/Tinker_XYZ_format.html</a></p></li>
+<li><p><a class="reference external" href="https://github.com/emleddin/pdbxyz-xyzpdb">https://github.com/emleddin/pdbxyz-xyzpdb</a></p></li>
+<li><p><a class="reference external" href="https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f">https://github.com/TinkerTools/tinker/blob/release/source/pdbxyz.f</a></p></li>
+</ul>
+<p>The -amoeba or -hippo switch is required.  It specifies an input
+AMOEBA or HIPPO PRM force field file as an argument.  This should be
+the same file used by the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> command in
+the input script.</p>
+<p>The -data switch is required.  It specifies an output file name for
+the LAMMPS data file that will be produced.</p>
+<p>For periodic systems, the -pbc switch is required.  It specifies the
+periodic box size for each dimension (x,y,z).  For a Tinker simulation
+these are specified in the KEY file.</p>
+<p>The -bitorsion switch is only needed if the system contains Tinker
+bitorsion interactions.  The data for each type of bitorsion
+interaction will be written to the specified file, and read by the
+<a class="reference internal" href="fix_amoeba_bitorsion.html"><span class="doc">fix amoeba/bitorsion</span></a> command.  The data
+includes 2d arrays of values to which splines are fit, and thus is not
+compatible with the LAMMPS data file format.</p>
+<hr class="docutils" />
+<p id="howto-ponder"><strong>(Ponder)</strong> Ponder, Wu, Ren, Pande, Chodera, Schnieders, Haque,  Mobley, Lambrecht, DiStasio Jr, M. Head-Gordon, Clark,  Johnson, T. Head-Gordon, J Phys Chem B, 114, 2549-2564 (2010).</p>
+<p id="howto-rackers"><strong>(Rackers)</strong> Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056-7084 (2021).</p>
+<p id="howto-ren"><strong>(Ren)</strong> Ren and Ponder, J Phys Chem B, 107, 5933 (2003).</p>
+<p id="howto-shi"><strong>(Shi)</strong> Shi, Xia, Zhang, Best, Wu, Ponder, Ren, J Chem Theory Comp, 9, 4046, 2013.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_amber2lammps.html" class="btn btn-neutral float-left" title="10.4.3. AMBER to LAMMPS Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_tip3p.html" class="btn btn-neutral float-right" title="10.4.5. TIP3P water model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

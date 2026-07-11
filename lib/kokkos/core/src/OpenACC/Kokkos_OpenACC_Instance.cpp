@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+
+#include <OpenACC/Kokkos_OpenACC.hpp>
+#include <OpenACC/Kokkos_OpenACC_Instance.hpp>
+#include <impl/Kokkos_Profiling.hpp>
+#include <impl/Kokkos_DeviceManagement.hpp>
+
+#include <openacc.h>
+
+#include <iostream>
+
+// Arbitrary value to denote that we don't know yet what device to use.
+int Kokkos::Experimental::Impl::OpenACCInternal::m_acc_device_num = -1;
+int Kokkos::Experimental::Impl::OpenACCInternal::m_concurrency    = -1;
+int Kokkos::Experimental::Impl::OpenACCInternal::m_next_async     = -1;
+
+Kokkos::Impl::HostSharedPtr<Kokkos::Experimental::Impl::OpenACCInternal>
+    Kokkos::Experimental::Impl::OpenACCInternal::default_instance;
+
+Kokkos::Experimental::Impl::OpenACCInternal::OpenACCInternal(int async_arg)
+    : m_async_arg(async_arg) {
+  if ((async_arg < 0) && (async_arg != acc_async_sync) &&
+      (async_arg != acc_async_noval)) {
+    Kokkos::abort((std::string("Kokkos::Experimental::OpenACC::initialize()") +
+                   " : ERROR async_arg should be a non-negative integer" +
+                   " unless being a special value defined in OpenACC\n")
+                      .c_str());
+  }
+}
+
+void Kokkos::Experimental::Impl::OpenACCInternal::print_configuration(
+    std::ostream& os, bool /*verbose*/) const {
+  os << "Using OpenACC\n";  // FIXME_OPENACC
+}
+
+void Kokkos::Experimental::Impl::OpenACCInternal::fence(
+    std::string const& name) const {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<
+      Kokkos::Experimental::OpenACC>(
+      name,
+      Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{instance_id()},
+      [&]() { acc_wait(m_async_arg); });
+}
+
+uint32_t Kokkos::Experimental::Impl::OpenACCInternal::instance_id()
+    const noexcept {
+  return Kokkos::Tools::Experimental::Impl::idForInstance<OpenACC>(
+      reinterpret_cast<uintptr_t>(this));
+}
+
+int Kokkos::Experimental::OpenACC::concurrency() const {
+  return Impl::OpenACCInternal::m_concurrency;
+}

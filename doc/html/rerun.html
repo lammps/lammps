@@ -1,0 +1,503 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>rerun command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/rerun.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="reset_atoms command" href="reset_atoms.html" />
+    <link rel="prev" title="replicate command" href="replicate.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">rerun command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">rerun command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="replicate.html" class="btn btn-neutral float-left" title="replicate command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reset_atoms.html" class="btn btn-neutral float-right" title="reset_atoms command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="rerun-command">
+<span id="index-0"></span><h1>rerun command<a class="headerlink" href="#rerun-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">rerun</span><span class="w"> </span><span class="n">file1</span><span class="w"> </span><span class="n">file2</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">args</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>file1,file2,… = dump file(s) to read</p></li>
+<li><p>one or more keywords may be appended, keyword <em>dump</em> must appear and be last</p>
+<pre class="literal-block">keyword = <em>first</em> or <em>last</em> or <em>every</em> or <em>skip</em> or <em>start</em> or <em>stop</em> or <em>post</em> or <em>dump</em>
+ <em>first</em> args = Nfirst
+   Nfirst = dump timestep to start on
+ <em>last</em> args = Nlast
+   Nlast = dumptimestep to stop on
+ <em>every</em> args = Nevery
+   Nevery = read snapshots matching every this many timesteps
+ <em>skip</em> args = Nskip
+   Nskip = read one out of every Nskip snapshots
+ <em>start</em> args = Nstart
+   Nstart = timestep on which pseudo run will start
+ <em>stop</em> args = Nstop
+   Nstop = timestep to which pseudo run will end
+ <em>post</em> value = <em>yes</em> or <em>no</em>
+ <em>dump</em> args = same as <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> command starting with its field arguments</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">rerun</span><span class="w"> </span><span class="n">dump.file</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span>
+<span class="k">rerun</span><span class="w"> </span><span class="n">dump1.txt</span><span class="w"> </span><span class="n">dump2.txt</span><span class="w"> </span><span class="n">first</span><span class="w"> </span><span class="m">10000</span><span class="w"> </span><span class="n">every</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span>
+<span class="k">rerun</span><span class="w"> </span><span class="n">dump.vels</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">molfile</span><span class="w"> </span><span class="n">lammpstrj</span>
+<span class="k">rerun</span><span class="w"> </span><span class="n">dump.dcd</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">molfile</span><span class="w"> </span><span class="n">dcd</span>
+<span class="k">rerun</span><span class="w"> </span><span class="n">..</span><span class="o">/</span><span class="n">run7</span><span class="o">/</span><span class="n">dump.file.gz</span><span class="w"> </span><span class="n">skip</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">rerun</span><span class="w"> </span><span class="n">dump.bp</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">adios</span>
+<span class="k">rerun</span><span class="w"> </span><span class="n">dump.bp</span><span class="w"> </span><span class="k">dump </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="n">adios</span><span class="w"> </span><span class="n">timeout</span><span class="w"> </span><span class="m">10.0</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Perform a pseudo simulation run where atom information is read one
+snapshot at a time from a dump file(s), and energies and forces are
+computed on the shapshot to produce thermodynamic or other output.</p>
+<p>This can be useful in the following kinds of scenarios, after an
+initial simulation produced the dump file:</p>
+<ul class="simple">
+<li><p>Compute the energy and forces of snapshots using a different potential.</p></li>
+<li><p>Calculate one or more diagnostic quantities on the snapshots that
+were not computed in the initial run.  These can also be computed with
+settings not used in the initial run, e.g. computing an RDF via the
+<a class="reference internal" href="compute_rdf.html"><span class="doc">compute rdf</span></a> command with a longer cutoff than was
+used initially.</p></li>
+<li><p>Calculate the portion of per-atom forces resulting from a subset of
+the potential.  E.g. compute only Coulombic forces.  This can be done
+by only defining only a Coulombic pair style in the rerun script.
+Doing this in the original script would result in different (bad)
+dynamics.</p></li>
+</ul>
+<p>Conceptually, using the rerun command is like running an input script
+that has a loop in it (see the <a class="reference internal" href="next.html"><span class="doc">next</span></a> and <a class="reference internal" href="jump.html"><span class="doc">jump</span></a>
+commands).  Each iteration of the loop reads one snapshot from the
+dump file via the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> command, sets the
+timestep to the appropriate value, and then invokes a <a class="reference internal" href="run.html"><span class="doc">run</span></a>
+command for zero timesteps to simply compute energy and forces, and
+any other <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a> or diagnostic info
+you have defined.  This computation also invokes any fixes you have
+defined that apply constraints to the system, such as <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> or <a class="reference internal" href="fix_indent.html"><span class="doc">fix indent</span></a>.</p>
+<p>Note that a simulation box must already be defined before using the
+rerun command.  This can be done by the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>,
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>, or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+commands.</p>
+<p>Also note that reading per-atom information from dump snapshots is
+limited to the atom coordinates, velocities and image flags as
+explained in the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> command.  Other atom
+properties, which may be necessary to compute energies and forces,
+such as atom charge, or bond topology information for a molecular
+system, are not read from (or even contained in) dump files.  Thus
+this auxiliary information should be defined in the usual way, e.g. in
+a data file read in by a <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command, before
+using the rerun command.</p>
+<p>Also note that the frequency of thermodynamic or dump output from the
+rerun simulation will depend on settings made in the rerun script, the
+same as for output from any LAMMPS simulation.  See further info below
+as to what that means if the timesteps for snapshots read from dump
+files do not match the specified output frequency.</p>
+<hr class="docutils" />
+<p>If more than one dump file is specified, the dump files are read one
+after the other in the order specified.  It is assumed that snapshot
+timesteps will be in ascending order.  If a snapshot is encountered that
+is not in ascending order, it will skip the snapshot until it reads one
+that is.
+This allows skipping of a duplicate snapshot (same timestep),
+e.g. that appeared at the end of one file and beginning of the next.
+However if you specify a series of dump files in an incorrect order
+(with respect to the timesteps they contain), you may skip large
+numbers of snapshots.</p>
+<p>Note that the dump files specified as part of the <em>dump</em> keyword can be
+parallel files, i.e. written as multiple files either per processor
+and/or per snapshot.  If that is the case they will also be read in
+parallel which can make the rerun command operate dramatically faster
+for large systems.  See the page for the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> and <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> commands which describe how to read
+and write parallel dump files.</p>
+<p>The <em>first</em>, <em>last</em>, <em>every</em>, <em>skip</em> keywords determine which
+snapshots are read from the dump file(s).  Snapshots are skipped until
+they have a timestep &gt;= <em>Nfirst</em>.  When a snapshot with a timestep &gt;
+<em>Nlast</em> is encountered, the rerun command finishes.  Note that
+the defaults for <em>first</em> and <em>last</em> are to read all snapshots.  If the
+<em>every</em> keyword is set to a value &gt; 0, then only snapshots with
+timesteps that are a multiple of <em>Nevery</em> are read (the first
+snapshot is always read).  If <em>Nevery</em> = 0, then this criterion is
+ignored, i.e. every snapshot is read that meets the other criteria.
+If the <em>skip</em> keyword is used, then after the first snapshot is read,
+every Nth snapshot is read, where N = <em>Nskip</em>.  E.g. if <em>Nskip</em> = 3,
+then only 1 out of every 3 snapshots is read, assuming the snapshot
+timestep is also consistent with the other criteria.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Not all dump formats contain the timestep and not all dump readers
+support reading it.  In that case individual snapshots are assigned
+consecutive timestep numbers starting at 1.</p>
+</div>
+<p>The <em>start</em> and <em>stop</em> keywords do not affect which snapshots are read
+from the dump file(s).  Rather, they have the same meaning that they
+do for the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  They only need to be defined if
+(a) you are using a <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command that changes some value
+over time, and (b) you want the reference point for elapsed time (from
+start to stop) to be different than the <em>first</em> and <em>last</em> settings.
+See the page for individual fixes to see which ones can be used
+with the <em>start/stop</em> keywords.  Note that if you define neither of
+the <em>start</em>/<em>stop</em> or <em>first</em>/<em>last</em> keywords, then LAMMPS treats the
+pseudo run as going from 0 to a huge value (effectively infinity).
+This means that any quantity that a fix scales as a fraction of
+elapsed time in the run, will essentially remain at its initial value.
+Also note that an error will occur if you read a snapshot from the
+dump file with a timestep value larger than the <em>stop</em> setting you
+have specified.</p>
+<p>The <em>post</em> keyword can be used to minimize the output to the screen that
+happens after a <em>rerun</em> command, similar to the post keyword of the
+<a class="reference internal" href="run.html"><span class="doc">run command</span></a>. It is set to <em>no</em> by default.</p>
+<p>The <em>dump</em> keyword is required and must be the last keyword specified.
+Its arguments are passed internally to the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a>
+command.  The first argument following the <em>dump</em> keyword should be
+the <em>field1</em> argument of the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> command.  See
+the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> page for details on the various
+options it allows for extracting information from the dump file
+snapshots, and for using that information to alter the LAMMPS
+simulation.</p>
+<hr class="docutils" />
+<p>In general, a LAMMPS input script that uses a rerun command can
+include and perform all the usual operations of an input script that
+uses the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  There are a few exceptions and
+points to consider, as discussed here.</p>
+<p>Fixes that perform time integration, such as <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>
+or <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> are not invoked, since no time integration
+is performed.  Fixes that perturb or constrain the forces on atoms
+will be invoked, just as they would during a normal run.  Examples are
+<a class="reference internal" href="fix_indent.html"><span class="doc">fix indent</span></a> and <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>.
+So you should think carefully as to whether that makes sense for the
+manner in which you are reprocessing the dump snapshots.</p>
+<p>If you only want the rerun script to perform an analysis that does not
+involve pair interactions, such as use compute msd to calculated
+displacements over time, you do not need to define a <a class="reference internal" href="pair_style.html"><span class="doc">pair style</span></a>, which may also mean neighbor lists will not need to be
+calculated which saves time.  The <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> command can also be used to ensure ghost atoms are
+acquired from far enough away for operations like bond and angle
+evaluations, if no pair style is being used.</p>
+<p>Every time a snapshot is read, the timestep for the simulation is reset,
+as if the <a class="reference internal" href="reset_timestep.html"><span class="doc">reset_timestep</span></a> command were used.
+This command has some restrictions as to what fixes can be defined.  See
+its documentation page for details.  For example, the <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> and <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a> fixes are in this
+category.  They also make no sense to use with a rerun command.</p>
+<p>If time-averaging fixes like <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> are
+used, they are invoked on timesteps that are a function of their
+<em>Nevery</em>, <em>Nrepeat</em>, and <em>Nfreq</em> settings.  As an example, see the
+<a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> page for details.  You must
+ensure those settings are consistent with the snapshot timestamps that
+are read from the dump file(s).  If an averaging fix is not invoked on
+a timestep it expects to be, LAMMPS will flag an error.</p>
+<p>The various forms of LAMMPS output, as defined by the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a>, <a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a>,
+<a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, and <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> commands occur with
+specified frequency, e.g. every N steps.  If the timestep for a dump
+snapshot is not a multiple of N, then it will be read and processed,
+but no output will be produced.  If you want output for every dump
+snapshot, you can simply use N=1 for an output frequency, e.g. for
+thermodynamic output or new dump file output.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>The <em>rerun</em> command is subject to all restrictions of
+the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a> command.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The option defaults are first = 0, last = a huge value (effectively
+infinity), start = same as first, stop = same as last, every = 0, skip
+= 1, post = no;</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="replicate.html" class="btn btn-neutral float-left" title="replicate command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="reset_atoms.html" class="btn btn-neutral float-right" title="reset_atoms command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

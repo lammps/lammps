@@ -1,0 +1,581 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.4.6. TIP4P and OPC water models &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_tip4p.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.4.7. TIP5P water model" href="Howto_tip5p.html" />
+    <link rel="prev" title="10.4.5. TIP3P water model" href="Howto_tip3p.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_FFgeneral.html">10.4.1. Some general force field considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bioFF.html">10.4.2. CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amber2lammps.html">10.4.3. AMBER to LAMMPS Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_amoeba.html">10.4.4. AMOEBA and HIPPO force fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip3p.html">10.4.5. TIP3P water model</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.4.6. TIP4P and OPC water models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_tip5p.html">10.4.7. TIP5P water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spc.html">10.4.8. SPC and SPC/E water model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_eam_overlay.html">10.4.9. Two-band (and multi-band) EAM potentials with hybrid/overlay</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.4.6. </span>TIP4P and OPC water models</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_tip3p.html" class="btn btn-neutral float-left" title="10.4.5. TIP3P water model" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_tip5p.html" class="btn btn-neutral float-right" title="10.4.7. TIP5P water model" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="tip4p-and-opc-water-models">
+<h1><span class="section-number">10.4.6. </span>TIP4P and OPC water models<a class="headerlink" href="#tip4p-and-opc-water-models" title="Link to this heading"></a></h1>
+<p>The four-point TIP4P rigid water model extends the traditional
+<a class="reference internal" href="Howto_tip3p.html"><span class="doc">three-point TIP3P</span></a> model by adding an additional
+site M, usually massless, where the charge associated with the oxygen
+atom is placed.  This site M is located at a fixed distance away from
+the oxygen along the bisector of the HOH bond angle.  A bond style of
+<a class="reference internal" href="bond_harmonic.html"><span class="doc">harmonic</span></a> and an angle style of <a class="reference internal" href="angle_harmonic.html"><span class="doc">harmonic</span></a> or <a class="reference internal" href="angle_charmm.html"><span class="doc">charmm</span></a> should also be used.
+In case of rigid bonds also bond style <a class="reference internal" href="bond_zero.html"><span class="doc">zero</span></a> and angle
+style <a class="reference internal" href="angle_zero.html"><span class="doc">zero</span></a> can be used.  Very similar to the TIP4P
+model is the OPC water model.  It can be realized the same way as TIP4P
+but has different geometry and force field parameters.</p>
+<p>There are two ways to implement TIP4P-like water in LAMMPS:</p>
+<ol class="arabic">
+<li><p>Use a specially written pair style that uses the <a class="reference internal" href="Howto_tip3p.html#tip3p-molecule"><span class="std std-ref">TIP3P geometry</span></a> without the point M. The point M location is then
+implicitly derived from the other atoms or each water molecule and
+used during the force computation.  The forces on M are then
+projected on the oxygen and the two hydrogen atoms.  This is
+computationally very efficient, but the charge distribution in space
+is only correct within the tip4p labeled styles.  So all other
+computations using charges will “see” the negative charge incorrectly
+located on the oxygen atom unless they are specially written for using
+the TIP4P geometry internally as well, e.g. <a class="reference internal" href="compute_dipole.html"><span class="doc">compute dipole/tip4p</span></a>, <a class="reference internal" href="fix_efield.html"><span class="doc">fix efield/tip4p</span></a>, or
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm/tip4p</span></a>.</p>
+<p>This can be done with the following pair styles for Coulomb with a cutoff:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pair_coul.html"><span class="doc">pair_style tip4p/cut</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_tip4p.html"><span class="doc">pair_style lj/cut/tip4p/cut</span></a></p></li>
+</ul>
+<p>or these commands for a long-range Coulomb treatment:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pair_coul.html"><span class="doc">pair_style tip4p/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_tip4p.html"><span class="doc">pair_style lj/cut/tip4p/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_long.html"><span class="doc">pair_style lj/long/tip4p/long</span></a></p></li>
+<li><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">pair_style tip4p/long/soft</span></a></p></li>
+<li><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">pair_style lj/cut/tip4p/long/soft</span></a></p></li>
+<li><p><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm/tip4p</span></a></p></li>
+<li><p><a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm/disp/tip4p</span></a></p></li>
+</ul>
+<p>The bond lengths and bond angles should be held fixed using the
+<a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> or <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a> command,
+unless a parameterization for a flexible TIP4P model is used.  The
+parameter sets listed below are all for rigid TIP4P model variants and
+thus the bond and angle force constants are not used and can be set to
+any legal value; only equilibrium length and angle are used.</p>
+</li>
+<li><p>Use an <a class="reference internal" href="#tip4p-molecule"><span class="std std-ref">explicit 4 point TIP4P geometry</span></a> where
+the oxygen atom carries no charge and the M point no Lennard-Jones
+interactions.  Since <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> or <a class="reference internal" href="fix_shake.html"><span class="doc">fix rattle</span></a> may not be applied to this kind of geometry, <a class="reference internal" href="fix_rigid.html"><span class="doc">fix
+rigid or fix rigid/small</span></a> or its thermostatted variants
+are required to maintain a rigid geometry.  This avoids some of the
+issues with respect to analysis and non-tip4p styles, but it is a
+more costly force computation (more atoms in the same volume and thus
+more neighbors in the neighbor lists) and requires a much shorter
+timestep for stable integration of the rigid body motion.  Since no
+bonds or angles are required, they do not need to be defined and atom
+style charge would be sufficient for a bulk TIP4P water system.  In
+order to avoid that LAMMPS produces an error due to the massless M
+site a tiny non-zero mass needs to be assigned.</p></li>
+</ol>
+<p>The table below lists the force field parameters (in real <a class="reference internal" href="units.html"><span class="doc">units</span></a>) to for a selection of popular variants of the TIP4P model.
+There is the rigid TIP4P model with a cutoff <a class="reference internal" href="#jorgensen5"><span class="std std-ref">(Jorgensen)</span></a>, the TIP4/Ice model <a class="reference internal" href="#abascal1"><span class="std std-ref">(Abascal1)</span></a>, the
+TIP4P/2005 model <a class="reference internal" href="#abascal2"><span class="std std-ref">(Abascal2)</span></a> and a version of TIP4P
+parameters adjusted for use with a long-range Coulombic solver
+(e.g. Ewald or PPPM in LAMMPS).  Note that for implicit TIP4P models the
+OM distance is specified in the <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> command,
+not as part of the pair coefficients. Also parameters for the OPC
+model (<a class="reference internal" href="#izadi"><span class="std std-ref">Izadi</span></a>) are provided.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 40.0%" />
+<col style="width: 12.0%" />
+<col style="width: 12.0%" />
+<col style="width: 14.0%" />
+<col style="width: 11.0%" />
+<col style="width: 11.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Parameter</p></th>
+<th class="head"><p>TIP4P (original)</p></th>
+<th class="head"><p>TIP4P/Ice</p></th>
+<th class="head"><p>TIP4P/2005</p></th>
+<th class="head"><p>TIP4P (Ewald)</p></th>
+<th class="head"><p>OPC</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>O mass (amu)</p></td>
+<td><p>15.9994</p></td>
+<td><p>15.9994</p></td>
+<td><p>15.9994</p></td>
+<td><p>15.9994</p></td>
+<td><p>15.9994</p></td>
+</tr>
+<tr class="row-odd"><td><p>H mass (amu)</p></td>
+<td><p>1.008</p></td>
+<td><p>1.008</p></td>
+<td><p>1.008</p></td>
+<td><p>1.008</p></td>
+<td><p>1.008</p></td>
+</tr>
+<tr class="row-even"><td><p>O or M charge (<span class="math notranslate nohighlight">\(e\)</span>)</p></td>
+<td><p>-1.040</p></td>
+<td><p>-1.1794</p></td>
+<td><p>-1.1128</p></td>
+<td><p>-1.04844</p></td>
+<td><p>-1.3582</p></td>
+</tr>
+<tr class="row-odd"><td><p>H charge (<span class="math notranslate nohighlight">\(e\)</span>)</p></td>
+<td><p>0.520</p></td>
+<td><p>0.5897</p></td>
+<td><p>0.5564</p></td>
+<td><p>0.52422</p></td>
+<td><p>0.6791</p></td>
+</tr>
+<tr class="row-even"><td><p>LJ <span class="math notranslate nohighlight">\(\epsilon\)</span> of OO (kcal/mole)</p></td>
+<td><p>0.1550</p></td>
+<td><p>0.21084</p></td>
+<td><p>0.1852</p></td>
+<td><p>0.16275</p></td>
+<td><p>0.21280</p></td>
+</tr>
+<tr class="row-odd"><td><p>LJ <span class="math notranslate nohighlight">\(\sigma\)</span> of OO (<span class="math notranslate nohighlight">\(\AA\)</span>)</p></td>
+<td><p>3.1536</p></td>
+<td><p>3.1668</p></td>
+<td><p>3.1589</p></td>
+<td><p>3.16435</p></td>
+<td><p>3.1660</p></td>
+</tr>
+<tr class="row-even"><td><p>LJ <span class="math notranslate nohighlight">\(\epsilon\)</span> of HH, MM, OH, OM, HM (kcal/mole)</p></td>
+<td><p>0.0</p></td>
+<td><p>0.0</p></td>
+<td><p>0.0</p></td>
+<td><p>0.0</p></td>
+<td><p>0.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>LJ <span class="math notranslate nohighlight">\(\sigma\)</span> of HH, MM, OH, OM, HM (<span class="math notranslate nohighlight">\(\AA\)</span>)</p></td>
+<td><p>1.0</p></td>
+<td><p>1.0</p></td>
+<td><p>1.0</p></td>
+<td><p>1.0</p></td>
+<td><p>1.0</p></td>
+</tr>
+<tr class="row-even"><td><p><span class="math notranslate nohighlight">\(r_0\)</span> of OH bond (<span class="math notranslate nohighlight">\(\AA\)</span>)</p></td>
+<td><p>0.9572</p></td>
+<td><p>0.9572</p></td>
+<td><p>0.9572</p></td>
+<td><p>0.9572</p></td>
+<td><p>0.8724</p></td>
+</tr>
+<tr class="row-odd"><td><p><span class="math notranslate nohighlight">\(\theta_0\)</span> of HOH angle</p></td>
+<td><p>104.52<span class="math notranslate nohighlight">\(^{\circ}\)</span></p></td>
+<td><p>104.52<span class="math notranslate nohighlight">\(^{\circ}\)</span></p></td>
+<td><p>104.52<span class="math notranslate nohighlight">\(^{\circ}\)</span></p></td>
+<td><p>104.52<span class="math notranslate nohighlight">\(^{\circ}\)</span></p></td>
+<td><p>103.60<span class="math notranslate nohighlight">\(^{\circ}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>OM distance (<span class="math notranslate nohighlight">\(\AA\)</span>)</p></td>
+<td><p>0.15</p></td>
+<td><p>0.1577</p></td>
+<td><p>0.1546</p></td>
+<td><p>0.1250</p></td>
+<td><p>0.1594</p></td>
+</tr>
+</tbody>
+</table>
+<p>Note that the when using a TIP4P pair style, the neighbor list cutoff
+for Coulomb interactions is effectively extended by a distance 2 * (OM
+distance), to account for the offset distance of the fictitious charges
+on O atoms in water molecules.  Thus, it is typically best in an
+efficiency sense to use a LJ cutoff &gt;= Coulomb cutoff + 2*(OM
+distance), to shrink the size of the neighbor list.  This leads to
+slightly larger cost for the long-range calculation, so you can test the
+trade-off for your model.  The OM distance and the LJ and Coulombic
+cutoffs are set in the <a class="reference internal" href="pair_lj_cut_tip4p.html"><span class="doc">pair_style lj/cut/tip4p/long</span></a> command.</p>
+<p>In addition, each TIP4P water molecule’s O atom and its two H atoms must
+be present within the ghost-atom communication cutoff, so that the
+position of the massless M-site charge can be reconstructed.  This is
+normally ensured automatically by the bond style (which sets a
+bond-length-based communication cutoff) together with the
+<a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a> skin distance.  If you use a no-op bond style
+(e.g. <a class="reference internal" href="bond_zero.html"><span class="doc">bond_style zero</span></a>) or unusually short cutoffs,
+LAMMPS will warn that the communication cutoff is shorter than the
+bond-length-based estimate and the run may abort with an “Out of range
+atoms” error; in that case enlarge the ghost cutoff with
+<a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a>.</p>
+<p>Below is the code for a LAMMPS input file using the implicit method and
+the <a class="reference internal" href="Howto_tip3p.html#tip3p-molecule"><span class="std std-ref">TIP3P molecule file</span></a>.  Because the TIP4P
+charges are different from TIP3P they need to be reset (or the molecule
+file changed).  For simplicity and speed the example uses a cutoff
+Coulomb.  Most production simulations require long-range Coulomb
+instead.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w"> </span><span class="n">real</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">full</span>
+<span class="k">region </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span>
+<span class="k">create_box </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">types</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">angle</span><span class="o">/</span><span class="n">types</span><span class="w"> </span><span class="m">1</span><span class="sc"> &amp;</span>
+<span class="w">            </span><span class="n">extra</span><span class="o">/</span><span class="n">bond</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">extra</span><span class="o">/</span><span class="n">angle</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">extra</span><span class="o">/</span><span class="n">special</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">2</span>
+
+<span class="k">mass</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">15.9994</span>
+<span class="k">mass</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1.008</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.15</span><span class="w"> </span><span class="m">8.0</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.1550</span><span class="w"> </span><span class="m">3.1536</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.0</span><span class="w">    </span><span class="m">1.0</span>
+
+<span class="k">bond_style</span><span class="w"> </span><span class="n">zero</span>
+<span class="k">bond_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.9574</span>
+
+<span class="k">angle_style</span><span class="w"> </span><span class="n">zero</span>
+<span class="k">angle_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">104.52</span>
+
+<span class="k">molecule</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="n">tip3p.mol</span><span class="w">  </span><span class="c"># this uses the TIP3P geometry</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="m">33</span><span class="w"> </span><span class="m">34564</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">mol</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="m">25367</span><span class="w"> </span><span class="n">overlap</span><span class="w"> </span><span class="m">1.33</span>
+<span class="c"># must change charges for TIP4P</span>
+<span class="k">set</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">charge</span><span class="w"> </span><span class="o">-</span><span class="m">1.040</span>
+<span class="k">set</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">charge</span><span class="w">  </span><span class="m">0.520</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">rigid</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">shake</span><span class="w"> </span><span class="m">0.001</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">10000</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="m">1</span>
+<span class="k">minimize</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">10000</span>
+
+<span class="k">reset_timestep</span><span class="w"> </span><span class="m">0</span>
+<span class="k">timestep</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">5463576</span>
+<span class="k">fix </span><span class="nv nv-Identifier">integrate</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">100.0</span>
+
+<span class="k">thermo_style</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">press</span><span class="w"> </span><span class="n">etotal</span><span class="w"> </span><span class="n">pe</span>
+
+<span class="k">thermo</span><span class="w"> </span><span class="m">1000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">20000</span>
+<span class="k">write_data </span><span class="nv nv-Identifier">tip4p-implicit.data</span><span class="w"> </span><span class="n">nocoeff</span>
+</pre></div>
+</div>
+<p>When constructing an OPC model, we cannot use the <code class="docutils literal notranslate"><span class="pre">tip3p.mol</span></code> file due
+to the different geometry.  Below is a molecule file providing the 3
+sites of an implicit OPC geometry for use with TIP4P styles.  Note, that
+the “Shake” and “Special” sections are missing here.  Those will be
+auto-generated by LAMMPS when the molecule file is loaded <em>after</em> the
+simulation box has been created.  These sections are required only when
+the molecule file is loaded <em>before</em>.</p>
+<div class="highlight-none notranslate" id="opc3p-molecule"><div class="highlight"><pre><span></span># Water molecule. 3 point geometry for OPC model
+
+3 atoms
+2 bonds
+1 angles
+
+Coords
+
+1    0.00000  -0.06037   0.00000
+2    0.68558   0.50250   0.00000
+3   -0.68558   0.50250   0.00000
+
+Types
+
+1        1   # O
+2        2   # H
+3        2   # H
+
+Charges
+
+1       -1.3582
+2        0.6791
+3        0.6791
+
+Bonds
+
+1   1      1      2
+2   1      1      3
+
+Angles
+
+1   1      2      1      3
+</pre></div>
+</div>
+<p>Below is a LAMMPS input file using the implicit method to implement
+the OPC model using the molecule file from above and including the
+PPPM long-range Coulomb solver.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w"> </span><span class="n">real</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">full</span>
+<span class="k">region </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span>
+<span class="k">create_box </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">types</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">angle</span><span class="o">/</span><span class="n">types</span><span class="w"> </span><span class="m">1</span><span class="sc"> &amp;</span>
+<span class="w">            </span><span class="n">extra</span><span class="o">/</span><span class="n">bond</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">extra</span><span class="o">/</span><span class="n">angle</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">extra</span><span class="o">/</span><span class="n">special</span><span class="o">/</span><span class="n">per</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="m">2</span>
+
+<span class="k">mass</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">15.9994</span>
+<span class="k">mass</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1.008</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">tip4p</span><span class="o">/</span><span class="n">long</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.1594</span><span class="w"> </span><span class="m">12.0</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.2128</span><span class="w"> </span><span class="m">3.166</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.0</span><span class="w">    </span><span class="m">1.0</span>
+
+<span class="k">bond_style</span><span class="w"> </span><span class="n">zero</span>
+<span class="k">bond_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.8724</span>
+
+<span class="k">angle_style</span><span class="w"> </span><span class="n">zero</span>
+<span class="k">angle_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">103.6</span>
+
+<span class="k">kspace_style</span><span class="w"> </span><span class="n">pppm</span><span class="o">/</span><span class="n">tip4p</span><span class="w"> </span><span class="m">1.0e-5</span>
+
+<span class="k">molecule</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="n">opc3p.mol</span><span class="w">  </span><span class="c"># this file has the OPC geometry but is without M</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="m">33</span><span class="w"> </span><span class="m">34564</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">mol</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="m">25367</span><span class="w"> </span><span class="n">overlap</span><span class="w"> </span><span class="m">1.33</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">rigid</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">shake</span><span class="w"> </span><span class="m">0.001</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">10000</span><span class="w"> </span><span class="n">b</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="m">1</span>
+<span class="k">minimize</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">10000</span>
+
+<span class="k">reset_timestep</span><span class="w"> </span><span class="m">0</span>
+<span class="k">timestep</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">5463576</span>
+<span class="k">fix </span><span class="nv nv-Identifier">integrate</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">300</span><span class="w"> </span><span class="m">100.0</span>
+
+<span class="k">thermo_style</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">press</span><span class="w"> </span><span class="n">etotal</span><span class="w"> </span><span class="n">pe</span>
+
+<span class="k">thermo</span><span class="w"> </span><span class="m">1000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">20000</span>
+<span class="k">write_data </span><span class="nv nv-Identifier">opc-implicit.data</span><span class="w"> </span><span class="n">nocoeff</span>
+</pre></div>
+</div>
+<p>Below is the code for a LAMMPS input file using the explicit method and
+a TIP4P molecule file.  Because of using <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/small</span></a> no bonds need to be defined and thus no extra storage needs
+to be reserved for them, but we need to either switch to atom style full
+or use <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom mol</span></a> so that fix
+rigid/small can identify rigid bodies by their molecule ID.  Also a
+<a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify exclude</span></a> command is added to exclude
+computing intramolecular non-bonded interactions, since those are
+removed by the rigid fix anyway:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w"> </span><span class="n">real</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">charge</span>
+<span class="k">atom_modify</span><span class="w"> </span><span class="n">map</span><span class="w"> </span><span class="n">array</span>
+<span class="k">region </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="o">-</span><span class="m">5</span><span class="w"> </span><span class="m">5</span>
+<span class="k">create_box </span><span class="nv nv-Identifier">3</span><span class="w"> </span><span class="nv nv-Identifier">box</span>
+
+<span class="k">mass</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">15.9994</span>
+<span class="k">mass</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1.008</span>
+<span class="k">mass</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">1.0e-100</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">coul</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="m">8.0</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.1550</span><span class="w"> </span><span class="m">3.1536</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.0</span><span class="w">    </span><span class="m">1.0</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">0.0</span><span class="w">    </span><span class="m">1.0</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">mol</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">mol</span><span class="w"> </span><span class="n">ghost</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="n">tip4p.mol</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="m">33</span><span class="w"> </span><span class="m">34564</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">mol</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="m">25367</span><span class="w"> </span><span class="n">overlap</span><span class="w"> </span><span class="m">1.33</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">exclude</span><span class="w"> </span><span class="n">molecule</span><span class="o">/</span><span class="n">intra</span><span class="w"> </span><span class="n">all</span>
+
+<span class="k">timestep</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">fix </span><span class="nv nv-Identifier">integrate</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">rigid</span><span class="o">/</span><span class="n">small</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">langevin</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">100.0</span><span class="w"> </span><span class="m">2345634</span>
+
+<span class="k">thermo_style</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">press</span><span class="w"> </span><span class="n">etotal</span><span class="w"> </span><span class="n">density</span><span class="w"> </span><span class="n">pe</span><span class="w"> </span><span class="n">ke</span>
+<span class="k">thermo</span><span class="w"> </span><span class="m">2000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">40000</span>
+<span class="k">write_data </span><span class="nv nv-Identifier">tip4p-explicit.data</span><span class="w"> </span><span class="n">nocoeff</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate" id="tip4p-molecule"><div class="highlight"><pre><span></span># Water molecule. Explicit TIP4P geometry for use with fix rigid
+
+4 atoms
+
+Coords
+
+1    0.00000  -0.06556   0.00000
+2    0.75695   0.52032   0.00000
+3   -0.75695   0.52032   0.00000
+4    0.00000   0.08444   0.00000
+
+Types
+
+1        1   # O
+2        2   # H
+3        2   # H
+4        3   # M
+
+Charges
+
+1        0.000
+2        0.520
+3        0.520
+4       -1.040
+</pre></div>
+</div>
+<p>Wikipedia also has a nice article on <a class="reference external" href="https://en.wikipedia.org/wiki/Water_model">water models</a>.</p>
+<hr class="docutils" />
+<p id="jorgensen5"><strong>(Jorgensen)</strong> Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
+Phys, 79, 926 (1983).</p>
+<dl class="simple" id="abascal1">
+<dt><strong>(Abascal1)</strong> Abascal, Sanz, Fernandez, Vega, J Chem Phys, 122, 234511 (2005)</dt><dd><p><a class="reference external" href="https://doi.org/10.1063/1.1931662">https://doi.org/10.1063/1.1931662</a></p>
+</dd>
+</dl>
+<dl class="simple" id="abascal2">
+<dt><strong>(Abascal2)</strong> Abascal, J Chem Phys, 123, 234505 (2005)</dt><dd><p><a class="reference external" href="https://doi.org/10.1063/1.2121687">https://doi.org/10.1063/1.2121687</a></p>
+</dd>
+</dl>
+<dl class="simple" id="izadi">
+<dt><strong>(Izadi)</strong> Izadi, Anandakrishnan, Onufriev, J. Phys. Chem. Lett., 5, 21, 3863 (2014)</dt><dd><p><a class="reference external" href="https://doi.org/10.1021/jz501780a">https://doi.org/10.1021/jz501780a</a></p>
+</dd>
+</dl>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_tip3p.html" class="btn btn-neutral float-left" title="10.4.5. TIP3P water model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_tip5p.html" class="btn btn-neutral float-right" title="10.4.7. TIP5P water model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

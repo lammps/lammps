@@ -1,0 +1,977 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1.1.6. Scatter/gather operations &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Library_scatter.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1.1.7. Neighbor list access" href="Library_neighbor.html" />
+    <link rel="prev" title="1.1.5. Computes, fixes, variables" href="Library_objects.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Library.html#lammps-c-library-api">1.1. LAMMPS C Library API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Library_create.html">1.1.1. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_execute.html">1.1.2. Executing commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_properties.html">1.1.3. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_atoms.html">1.1.4. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_objects.html">1.1.5. Computes, fixes, variables</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">1.1.6. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_neighbor.html">1.1.7. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_config.html">1.1.8. Configuration information</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_utility.html">1.1.9. Utility functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_add.html">1.1.10. Extending the C API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-python-api">1.2. LAMMPS Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-fortran-api">1.3. LAMMPS Fortran API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-cplusplus-api">1.4. LAMMPS C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Library.html"><span class="section-number">1. </span>LAMMPS Library Interfaces</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">1.1.6. </span>Scatter/gather operations</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Library_objects.html" class="btn btn-neutral float-left" title="1.1.5. Computes, fixes, variables" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Library_neighbor.html" class="btn btn-neutral float-right" title="1.1.7. Neighbor list access" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="scatter-gather-operations">
+<h1><span class="section-number">1.1.6. </span>Scatter/gather operations<a class="headerlink" href="#scatter-gather-operations" title="Link to this heading"></a></h1>
+<p>This section has functions which gather per-atom data from one or more
+processors into a contiguous global list ordered by atom ID.  The same
+list is returned to all calling processors.  It also contains
+functions which scatter per-atom data from a contiguous global list
+across the processors that own those atom IDs.  It also has a
+create_atoms() function which can create new atoms by scattering them
+appropriately to owning processors in the LAMMPS spatial
+decomposition.</p>
+<p>It documents the following functions:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#_CPPv419lammps_gather_atomsPvPKciiPv" title="lammps_gather_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv426lammps_gather_atoms_concatPvPKciiPv" title="lammps_gather_atoms_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_concat()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv426lammps_gather_atoms_subsetPvPKciiiPiPv" title="lammps_gather_atoms_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_subset()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_scatter_atomsPvPKciiPv" title="lammps_scatter_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_atoms()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv427lammps_scatter_atoms_subsetPvPKciiiPiPv" title="lammps_scatter_atoms_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_atoms_subset()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv419lammps_gather_bondsPvPv" title="lammps_gather_bonds"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_bonds()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_gather_anglesPvPv" title="lammps_gather_angles"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_angles()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv423lammps_gather_dihedralsPvPv" title="lammps_gather_dihedrals"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_dihedrals()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv423lammps_gather_impropersPvPv" title="lammps_gather_impropers"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_impropers()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv413lammps_gatherPvPKciiPv" title="lammps_gather"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_gather_concatPvPKciiPv" title="lammps_gather_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_concat()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_gather_subsetPvPKciiiPiPv" title="lammps_gather_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_subset()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv414lammps_scatterPvPKciiPv" title="lammps_scatter"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv421lammps_scatter_subsetPvPKciiiPiPv" title="lammps_scatter_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_subset()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv419lammps_create_atomsPviPKiPKiPKdPKdPKii" title="lammps_create_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_create_atoms()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv422lammps_create_moleculePvPKcPKc" title="lammps_create_molecule"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_create_molecule()</span></code></a></p></li>
+</ul>
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv419lammps_gather_atomsPvPKciiPv">
+<span id="_CPPv319lammps_gather_atomsPvPKciiPv"></span><span id="_CPPv219lammps_gather_atomsPvPKciiPv"></span><span id="lammps_gather_atoms__voidP.cCP.i.i.voidP"></span><span class="target" id="library_8h_1ad3208ce7d03d54f74573a80565dc335d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_atoms</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419lammps_gather_atomsPvPKciiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather the named atom-based entity for all atoms across all processes, in order.</p>
+<p><p>This subroutine gathers data for all atoms and stores them in a
+one-dimensional array allocated by the user. The data will be ordered by
+atom ID, which requires consecutive atom IDs (1 to <em>natoms</em>). If you need
+a similar array but have non-consecutive atom IDs, see
+<a class="reference internal" href="#_CPPv426lammps_gather_atoms_concatPvPKciiPv" title="lammps_gather_atoms_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_concat()</span></code></a>; for a similar array but for a subset
+of atoms, see <a class="reference internal" href="#_CPPv426lammps_gather_atoms_subsetPvPKciiiPiPv" title="lammps_gather_atoms_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_subset()</span></code></a>.</p>
+<p>The <em>data</em> array will be ordered in groups of <em>count</em> values, sorted by atom ID
+(e.g., if <em>name</em> is <em>x</em> and <em>count</em> = 3, then <em>data</em> = x[0][0], x[0][1],
+x[0][2], x[1][0], x[1][1], x[1][2], x[2][0], <span class="math notranslate nohighlight">\(\dots\)</span>);
+<em>data</em> must be pre-allocated by the caller to length (<em>count</em> <span class="math notranslate nohighlight">\(\times\)</span>
+<em>natoms</em>), as queried by <a class="reference internal" href="Library_properties.html#_CPPv417lammps_get_natomsPv" title="lammps_get_natoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_natoms()</span></code></a>,
+<a class="reference internal" href="Library_properties.html#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a>, or <a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>.</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined and consecutive.</p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., <em>x</em> or <em>q</em>) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with <em>image</em> if you want a single image flag unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) components. </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a 1-dimensional array of length <em>natoms</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv426lammps_gather_atoms_concatPvPKciiPv">
+<span id="_CPPv326lammps_gather_atoms_concatPvPKciiPv"></span><span id="_CPPv226lammps_gather_atoms_concatPvPKciiPv"></span><span id="lammps_gather_atoms_concat__voidP.cCP.i.i.voidP"></span><span class="target" id="library_8h_1a5e433d99895ca2aa9d87843bc7ee49d5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_atoms_concat</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv426lammps_gather_atoms_concatPvPKciiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather the named atom-based entity for all atoms across all processes, unordered.</p>
+<p><p>This subroutine gathers data for all atoms and stores them in a
+one-dimensional array allocated by the user. The data will be a concatenation
+of chunks from each processor’s owned atoms, in whatever order the atoms are
+in on each processor. This process has no requirement that the atom IDs be
+consecutive. If you need the ID of each atom, you can do another
+<a class="reference internal" href="#_CPPv426lammps_gather_atoms_concatPvPKciiPv" title="lammps_gather_atoms_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_concat()</span></code></a> call with <em>name</em> set to <code class="docutils literal notranslate"><span class="pre">id</span></code>.
+If you have consecutive IDs and want the data to be in order, use
+<a class="reference internal" href="#_CPPv419lammps_gather_atomsPvPKciiPv" title="lammps_gather_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms()</span></code></a>; for a similar array but for a subset
+of atoms, use <a class="reference internal" href="#_CPPv426lammps_gather_atoms_subsetPvPKciiiPiPv" title="lammps_gather_atoms_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_subset()</span></code></a>.</p>
+<p>The <em>data</em> array will be in groups of <em>count</em> values, with <em>natoms</em>
+groups total, but not in order by atom ID (e.g., if <em>name</em> is <em>x</em> and <em>count</em>
+is 3, then <em>data</em> might be something like x[10][0], x[10][1], x[10][2],
+x[2][0], x[2][1], x[2][2], x[4][0], <span class="math notranslate nohighlight">\(\dots\)</span>); <em>data</em> must be
+pre-allocated by the caller to length (<em>count</em> <span class="math notranslate nohighlight">\(\times\)</span> <em>natoms</em>), as
+queried by <a class="reference internal" href="Library_properties.html#_CPPv417lammps_get_natomsPv" title="lammps_get_natoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_natoms()</span></code></a>, <a class="reference internal" href="Library_properties.html#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a>,
+or <a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>.</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined.</p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., <em>x</em> or <em>q</em>\ ) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with “image” if you want single image flags unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a 1-dimensional array of length <em>natoms</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv426lammps_gather_atoms_subsetPvPKciiiPiPv">
+<span id="_CPPv326lammps_gather_atoms_subsetPvPKciiiPiPv"></span><span id="_CPPv226lammps_gather_atoms_subsetPvPKciiiPiPv"></span><span id="lammps_gather_atoms_subset__voidP.cCP.i.i.i.iP.voidP"></span><span class="target" id="library_8h_1adb2aa14375aa277b1c32ad17a5f4a39f"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_atoms_subset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ndata</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ids</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv426lammps_gather_atoms_subsetPvPKciiiPiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather the named atom-based entity for a subset of atoms.</p>
+<p><p>This subroutine gathers data for the requested atom IDs and stores them in a
+one-dimensional array allocated by the user. The data will be ordered by atom
+ID, but there is no requirement that the IDs be consecutive. If you wish to
+return a similar array for <em>all</em> the atoms, use <a class="reference internal" href="#_CPPv419lammps_gather_atomsPvPKciiPv" title="lammps_gather_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms()</span></code></a>
+or <a class="reference internal" href="#_CPPv426lammps_gather_atoms_concatPvPKciiPv" title="lammps_gather_atoms_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_concat()</span></code></a>.</p>
+<p>The <em>data</em> array will be in groups of <em>count</em> values, sorted by atom ID
+in the same order as the array <em>ids</em> (e.g., if <em>name</em> is <em>x</em>, <em>count</em> = 3, and
+<em>ids</em> is {100, 57, 210}, then <em>data</em> might look like {x[100][0], x[100][1],
+x[100][2], x[57][0], x[57][1], x[57][2], x[210][0], <span class="math notranslate nohighlight">\(\dots\)</span>);
+<em>ids</em> must be provided by the user with length <em>ndata</em>, and
+<em>data</em> must be pre-allocated by the caller to length
+(<em>count</em> <span class="math notranslate nohighlight">\(\times\)</span> <em>ndata</em>).</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined and an <a class="reference internal" href="atom_modify.html"><span class="doc">atom map must be enabled</span></a></p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., <em>x</em> or <em>q</em>) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with “image” if you want single image flags unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) </p></li>
+<li><p><strong>ndata</strong> – number of atoms for which to return data (can be all of them) </p></li>
+<li><p><strong>ids</strong> – list of <em>ndata</em> atom IDs for which to return data </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a 1-dimensional array of length <em>ndata</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_scatter_atomsPvPKciiPv">
+<span id="_CPPv320lammps_scatter_atomsPvPKciiPv"></span><span id="_CPPv220lammps_scatter_atomsPvPKciiPv"></span><span id="lammps_scatter_atoms__voidP.cCP.i.i.voidP"></span><span class="target" id="library_8h_1a912e450e211db31d9396ad5f421d500d"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_scatter_atoms</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_scatter_atomsPvPKciiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Scatter the named atom-based entities in <em>data</em> to all processes.</p>
+<p><p>This subroutine takes data stored in a one-dimensional array supplied by the
+user and scatters them to all atoms on all processes. The data must be
+ordered by atom ID, with the requirement that the IDs be consecutive.
+Use <a class="reference internal" href="#_CPPv427lammps_scatter_atoms_subsetPvPKciiiPiPv" title="lammps_scatter_atoms_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_atoms_subset()</span></code></a> to scatter data for some (or all)
+atoms, unordered.</p>
+<p>The <em>data</em> array needs to be ordered in groups of <em>count</em> values, sorted by
+atom ID (e.g., if <em>name</em> is <em>x</em> and <em>count</em> = 3, then
+<em>data</em> = {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0],
+<span class="math notranslate nohighlight">\(\dots\)</span>}); <em>data</em> must be of length (<em>count</em> <span class="math notranslate nohighlight">\(\times\)</span> <em>natoms</em>).</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined, must be consecutive, and an
+<a class="reference internal" href="atom_modify.html"><span class="doc">atom map must be enabled</span></a></p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., <em>x</em> or <em>q</em>) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with <em>image</em> if you have a single image flag packed into (<em>x</em>,<em>y</em>,<em>z</em>) components. </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a one-dimensional array of length <em>natoms</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv427lammps_scatter_atoms_subsetPvPKciiiPiPv">
+<span id="_CPPv327lammps_scatter_atoms_subsetPvPKciiiPiPv"></span><span id="_CPPv227lammps_scatter_atoms_subsetPvPKciiiPiPv"></span><span id="lammps_scatter_atoms_subset__voidP.cCP.i.i.i.iP.voidP"></span><span class="target" id="library_8h_1a42726943d284b0edad9b8f3cd3129398"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_scatter_atoms_subset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ndata</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ids</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv427lammps_scatter_atoms_subsetPvPKciiiPiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Scatter the named atom-based entities in <em>data</em> from a subset of atoms to all processes.</p>
+<p><p>This subroutine takes data stored in a one-dimensional array supplied by the
+user and scatters them to a subset of atoms on all processes. The array
+<em>data</em> contains data associated with atom IDs, but there is no requirement that
+the IDs be consecutive, as they are provided in a separate array.
+Use <a class="reference internal" href="#_CPPv420lammps_scatter_atomsPvPKciiPv" title="lammps_scatter_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_atoms()</span></code></a> to scatter data for all atoms, in order.</p>
+<p>The <em>data</em> array needs to be organized in groups of <em>count</em> values, with the
+groups in the same order as the array <em>ids</em>. For example, if you want <em>data</em>
+to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
+x[57][0], x[57][1], x[57][2]}, then <em>count</em> = 3, <em>ndata</em> = 3, and <em>ids</em> would
+be {1, 100, 57}.</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined and an <a class="reference internal" href="atom_modify.html"><span class="doc">atom map must be enabled</span></a></p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., <em>x</em> or <em>q</em>) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>dtype</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with “image” if you have all the image flags packed into (<em>xyz</em>) </p></li>
+<li><p><strong>ndata</strong> – number of atoms listed in <em>ids</em> and <em>data</em> arrays </p></li>
+<li><p><strong>ids</strong> – list of <em>ndata</em> atom IDs to scatter data to </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a 1-dimensional array of length <em>ndata</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv419lammps_gather_bondsPvPv">
+<span id="_CPPv319lammps_gather_bondsPvPv"></span><span id="_CPPv219lammps_gather_bondsPvPv"></span><span id="lammps_gather_bonds__voidP.voidP"></span><span class="target" id="library_8h_1a360d274b56e28d7a9fd0e195ff2171af"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_bonds</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419lammps_gather_bondsPvPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather type and constituent atom info for all bonds</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This function copies the list of all bonds into a buffer provided by
+the calling code. The buffer will be filled with bond type, bond atom 1,
+bond atom 2 for each bond. Thus the buffer has to be allocated to the
+dimension of 3 times the <strong>total</strong> number of bonds times the size of
+the LAMMPS “tagint” type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+<a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> with the keyword “tagint”.</p>
+<p>When running in parallel, the data buffer must be allocated on <strong>all</strong>
+MPI ranks and will be filled with the information for <strong>all</strong> bonds
+in the system.</p>
+<p>Below is a brief C code demonstrating accessing this collected bond information.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;library.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdint.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">nbonds</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">bonds</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_open_no_mpi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;in.some_input&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">tagintsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;tagint&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="n">nbonds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nbonds&quot;</span><span class="p">);</span>
+<span class="w">     </span><span class="k">else</span>
+<span class="w">        </span><span class="n">nbonds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nbonds&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">bonds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="n">nbonds</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">lammps_gather_bonds</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">bonds</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;world_rank&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="n">bonds_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">bonds</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nbonds</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;bond % 4ld: type = %d, atoms: % 4d  % 4d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">bonds_real</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">bonds_real</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">bonds_real</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="n">bonds_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">bonds</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nbonds</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;bond % 4ld: type = %ld, atoms: % 4ld  % 4ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">bonds_real</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">bonds_real</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">bonds_real</span><span class="p">[</span><span class="mi">3</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">lammps_close</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_mpi_finalize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">free</span><span class="p">(</span><span class="n">bonds</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>data</strong> – pointer to data to copy the result to </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_gather_anglesPvPv">
+<span id="_CPPv320lammps_gather_anglesPvPv"></span><span id="_CPPv220lammps_gather_anglesPvPv"></span><span id="lammps_gather_angles__voidP.voidP"></span><span class="target" id="library_8h_1a6f8c39008d113b5c3450c2cffaadcf3c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_angles</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_gather_anglesPvPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather type and constituent atom info for all angles</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 8Feb2023.</span></p>
+</div>
+<p>This function copies the list of all angles into a buffer provided by
+the calling code. The buffer will be filled with angle type, angle atom 1,
+angle atom 2, angle atom 3 for each angle. Thus the buffer has to be allocated to the
+dimension of 4 times the <strong>total</strong> number of angles times the size of
+the LAMMPS “tagint” type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+<a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> with the keyword “tagint”.</p>
+<p>When running in parallel, the data buffer must be allocated on <strong>all</strong>
+MPI ranks and will be filled with the information for <strong>all</strong> angles
+in the system.</p>
+<p>Below is a brief C code demonstrating accessing this collected angle information.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;library.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdint.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">nangles</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">angles</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_open_no_mpi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;in.some_input&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">tagintsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;tagint&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="n">nangles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nangles&quot;</span><span class="p">);</span>
+<span class="w">     </span><span class="k">else</span>
+<span class="w">        </span><span class="n">nangles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nangles&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">angles</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="n">nangles</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">lammps_gather_angles</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">angles</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;world_rank&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="n">angles_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">angles</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nangles</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;angle % 4ld: type = %d, atoms: % 4d  % 4d  % 4d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="n">angles_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">angles</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nangles</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;angle % 4ld: type = %ld, atoms: % 4ld  % 4ld  % 4ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">angles_real</span><span class="p">[</span><span class="mi">4</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">lammps_close</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_mpi_finalize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">free</span><span class="p">(</span><span class="n">angles</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>data</strong> – pointer to data to copy the result to </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv423lammps_gather_dihedralsPvPv">
+<span id="_CPPv323lammps_gather_dihedralsPvPv"></span><span id="_CPPv223lammps_gather_dihedralsPvPv"></span><span id="lammps_gather_dihedrals__voidP.voidP"></span><span class="target" id="library_8h_1a93dac1f42646ebfa89521fc77a38a785"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_dihedrals</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv423lammps_gather_dihedralsPvPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather type and constituent atom info for all dihedrals</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 8Feb2023.</span></p>
+</div>
+<p>This function copies the list of all dihedrals into a buffer provided by
+the calling code. The buffer will be filled with dihedral type, dihedral atom 1,
+dihedral atom 2, dihedral atom 3, dihedral atom 4 for each dihedral.
+Thus the buffer has to be allocated to the
+dimension of 5 times the <strong>total</strong> number of dihedrals times the size of
+the LAMMPS “tagint” type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+<a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> with the keyword “tagint”.</p>
+<p>When running in parallel, the data buffer must be allocated on <strong>all</strong>
+MPI ranks and will be filled with the information for <strong>all</strong> dihedrals
+in the system.</p>
+<p>Below is a brief C code demonstrating accessing this collected dihedral information.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;library.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdint.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">ndihedrals</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">dihedrals</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_open_no_mpi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;in.some_input&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">tagintsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;tagint&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="n">ndihedrals</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ndihedrals&quot;</span><span class="p">);</span>
+<span class="w">     </span><span class="k">else</span>
+<span class="w">        </span><span class="n">ndihedrals</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;ndihedrals&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">dihedrals</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="n">ndihedrals</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">lammps_gather_dihedrals</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">dihedrals</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;world_rank&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="n">dihedrals_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">dihedrals</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ndihedrals</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;dihedral % 4ld: type = %d, atoms: % 4d  % 4d  % 4d  % 4d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="n">dihedrals_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">dihedrals</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ndihedrals</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;dihedral % 4ld: type = %ld, atoms: % 4ld  % 4ld  % 4ld  % 4ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span><span class="w"> </span><span class="n">dihedrals_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">lammps_close</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_mpi_finalize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">free</span><span class="p">(</span><span class="n">dihedrals</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>data</strong> – pointer to data to copy the result to </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv423lammps_gather_impropersPvPv">
+<span id="_CPPv323lammps_gather_impropersPvPv"></span><span id="_CPPv223lammps_gather_impropersPvPv"></span><span id="lammps_gather_impropers__voidP.voidP"></span><span class="target" id="library_8h_1abf81ea4427e375c6605fb7362e995b92"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_impropers</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv423lammps_gather_impropersPvPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather type and constituent atom info for all impropers</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 8Feb2023.</span></p>
+</div>
+<p>This function copies the list of all impropers into a buffer provided by
+the calling code. The buffer will be filled with improper type, improper atom 1,
+improper atom 2, improper atom 3, improper atom 4 for each improper.
+Thus the buffer has to be allocated to the
+dimension of 5 times the <strong>total</strong> number of impropers times the size of
+the LAMMPS “tagint” type, which is either 4 or 8 bytes depending on
+whether they are stored in 32-bit or 64-bit integers, respectively.
+This size depends on the compile time settings used when compiling
+the LAMMPS library and can be queried by calling
+<a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> with the keyword “tagint”.</p>
+<p>When running in parallel, the data buffer must be allocated on <strong>all</strong>
+MPI ranks and will be filled with the information for <strong>all</strong> impropers
+in the system.</p>
+<p>Below is a brief C code demonstrating accessing this collected improper information.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;library.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdint.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdio.h&gt;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;stdlib.h&gt;</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">nimpropers</span><span class="p">;</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="n">impropers</span><span class="p">;</span>
+
+<span class="w">    </span><span class="n">handle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_open_no_mpi</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_file</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;in.some_input&quot;</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">tagintsize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;tagint&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="n">nimpropers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nimpropers&quot;</span><span class="p">);</span>
+<span class="w">     </span><span class="k">else</span>
+<span class="w">        </span><span class="n">nimpropers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">lammps_extract_global</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;nimpropers&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">impropers</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">malloc</span><span class="p">(</span><span class="n">nimpropers</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tagintsize</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">lammps_gather_impropers</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="n">impropers</span><span class="p">);</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lammps_extract_setting</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;world_rank&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tagintsize</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="n">impropers_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int32_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">impropers</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nimpropers</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;improper % 4ld: type = %d, atoms: % 4d  % 4d  % 4d  % 4d</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="n">impropers_real</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="n">impropers</span><span class="p">;</span>
+<span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nimpropers</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;improper % 4ld: type = %ld, atoms: % 4ld  % 4ld  % 4ld  % 4ld</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span>
+<span class="w">                       </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">3</span><span class="p">],</span><span class="w"> </span><span class="n">impropers_real</span><span class="p">[</span><span class="mi">5</span><span class="o">*</span><span class="n">i</span><span class="o">+</span><span class="mi">4</span><span class="p">]);</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">lammps_close</span><span class="p">(</span><span class="n">handle</span><span class="p">);</span>
+<span class="w">    </span><span class="n">lammps_mpi_finalize</span><span class="p">();</span>
+<span class="w">    </span><span class="n">free</span><span class="p">(</span><span class="n">impropers</span><span class="p">);</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>data</strong> – pointer to data to copy the result to </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv413lammps_gatherPvPKciiPv">
+<span id="_CPPv313lammps_gatherPvPKciiPv"></span><span id="_CPPv213lammps_gatherPvPKciiPv"></span><span id="lammps_gather__voidP.cCP.i.i.voidP"></span><span class="target" id="library_8h_1aeaf5356f9fafd2fd9dbab0958a0a8ac3"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv413lammps_gatherPvPKciiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather the named per-atom, per-atom fix, per-atom compute, or fix property/atom-based entities from all processes, in order by atom ID.</p>
+<p><p>This subroutine gathers data from all processes and stores them in a one-dimensional array
+allocated by the user. The array <em>data</em> will be ordered by atom ID, which requires consecutive IDs
+(1 to <em>natoms</em>). If you need a similar array but for non-consecutive atom IDs, see
+<a class="reference internal" href="#_CPPv420lammps_gather_concatPvPKciiPv" title="lammps_gather_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_concat()</span></code></a>; for a similar array but for a subset of atoms, see
+<a class="reference internal" href="#_CPPv420lammps_gather_subsetPvPKciiiPiPv" title="lammps_gather_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_subset()</span></code></a>.</p>
+<p>The <em>data</em> array will be ordered in groups of <em>count</em> values, sorted by atom ID (e.g., if <em>name</em> is
+<em>x</em>, then <em>data</em> is {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0],
+<span class="math notranslate nohighlight">\(\dots\)</span>}); <em>data</em> must be pre-allocated by the caller to the correct length
+(<em>count</em><span class="math notranslate nohighlight">\({}\times{}\)</span><em>natoms</em>), as queried by <a class="reference internal" href="Library_properties.html#_CPPv417lammps_get_natomsPv" title="lammps_get_natoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_natoms()</span></code></a>,
+<a class="reference internal" href="Library_properties.html#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a>, or <a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>.</p>
+<p>This function will return an error if fix or compute data are requested and the fix or compute ID
+given does not have per-atom data.</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined and must be consecutive.</p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., “x” or “f” for atom properties, “f_id” for per-atom fix data, “c_id” for per-atom compute data, “d_name” or “i_name” for fix property/atom vectors with <em>count</em> = 1, “d2_name” or “i2_name” for fix property/atom vectors with <em>count</em> &gt; 1) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with <em>image</em> if you want the image flags unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) components. </p></li>
+<li><p><strong>data</strong> – per-atom values packed into a one-dimensional array of length <em>natoms</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_gather_concatPvPKciiPv">
+<span id="_CPPv320lammps_gather_concatPvPKciiPv"></span><span id="_CPPv220lammps_gather_concatPvPKciiPv"></span><span id="lammps_gather_concat__voidP.cCP.i.i.voidP"></span><span class="target" id="library_8h_1add32cd75d71123448c752d69d96a9009"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_concat</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_gather_concatPvPKciiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather the named per-atom, per-atom fix, per-atom compute, or fix property/atom-based entities from all processes, unordered.</p>
+<p><p>This subroutine gathers data for all atoms and stores them in a one-dimensional array allocated by
+the user. The data will be a concatenation of chunks from each processor’s owned atoms, in
+whatever order the atoms are in on each processor. This process has no requirement that the atom
+IDs be consecutive. If you need the ID of each atom, you can do another call to either
+<a class="reference internal" href="#_CPPv426lammps_gather_atoms_concatPvPKciiPv" title="lammps_gather_atoms_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_atoms_concat()</span></code></a> or <a class="reference internal" href="#_CPPv420lammps_gather_concatPvPKciiPv" title="lammps_gather_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_concat()</span></code></a> with <em>name</em> set to
+<code class="docutils literal notranslate"><span class="pre">id</span></code>. If you have consecutive IDs and want the data to be in order, use
+<a class="reference internal" href="#_CPPv413lammps_gatherPvPKciiPv" title="lammps_gather"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather()</span></code></a>; for a similar array but for a subset of atoms, use
+<a class="reference internal" href="#_CPPv420lammps_gather_subsetPvPKciiiPiPv" title="lammps_gather_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_subset()</span></code></a>.</p>
+<p>The <em>data</em> array will be in groups of <em>count</em> values, with <em>natoms</em> groups total, but not in order
+by atom ID (e.g., if <em>name</em> is <em>x</em> and <em>count</em> is 3, then <em>data</em> might be something like
+{x[10][0], x[10][1], x[10][2], x[2][0], x[2][1], x[2][2], x[4][0], <span class="math notranslate nohighlight">\(\dots\)</span>}); <em>data</em> must be
+pre-allocated by the caller to length (<em>count</em> <span class="math notranslate nohighlight">\(\times\)</span> <em>natoms</em>), as queried by
+<a class="reference internal" href="Library_properties.html#_CPPv417lammps_get_natomsPv" title="lammps_get_natoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_natoms()</span></code></a>, <a class="reference internal" href="Library_properties.html#_CPPv421lammps_extract_globalPvPKc" title="lammps_extract_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_global()</span></code></a>, or
+<a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a>.</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined.</p>
+<p>The total number of atoms must be less than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., “x” or “f” for atom properties, “f_id” for per-atom fix data, “c_id” for per-atom compute data, “d_name” or “i_name” for fix property/atom vectors with count = 1, “d2_name” or “i2_name” for fix property/atom vectors with count &gt; 1) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with <em>image</em> if you want the image flags unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) components. </p></li>
+<li><p><strong>data</strong> – per-atom values packed into a one-dimensional array of length <em>natoms</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_gather_subsetPvPKciiiPiPv">
+<span id="_CPPv320lammps_gather_subsetPvPKciiiPiPv"></span><span id="_CPPv220lammps_gather_subsetPvPKciiiPiPv"></span><span id="lammps_gather_subset__voidP.cCP.i.i.i.iP.voidP"></span><span class="target" id="library_8h_1ab098fa5d18996508a54430ff5e3a0faf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_gather_subset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ndata</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ids</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_gather_subsetPvPKciiiPiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Gather the named per-atom, per-atom fix, per-atom compute, or fix property/atom-based entities from all processes for a subset of atoms.</p>
+<p><p>This subroutine gathers data for the requested atom IDs and stores them in a one-dimensional array
+allocated by the user. The data will be ordered by atom ID, but there is no requirement that the
+IDs be consecutive. If you wish to return a similar array for <em>all</em> the atoms, use
+<a class="reference internal" href="#_CPPv413lammps_gatherPvPKciiPv" title="lammps_gather"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather()</span></code></a> or <a class="reference internal" href="#_CPPv420lammps_gather_concatPvPKciiPv" title="lammps_gather_concat"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_gather_concat()</span></code></a>.</p>
+<p>The <em>data</em> array will be in groups of <em>count</em> values, sorted by atom ID in the same order as the
+array <em>ids</em> (e.g., if <em>name</em> is <em>x</em>, <em>count</em> = 3, and <em>ids</em> is {100, 57, 210}, then <em>data</em> might
+look like {x[100][0], x[100][1], x[100][2], x[57][0], x[57][1], x[57][2], x[210][0],
+<span class="math notranslate nohighlight">\(\dots\)</span>}); <em>ids</em> must be provided by the user with length <em>ndata</em>, and <em>data</em> must be
+pre-allocated by the caller to length (<em>count</em><span class="math notranslate nohighlight">\({}\times{}\)</span><em>ndata</em>).</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined and an <a class="reference internal" href="atom_modify.html"><span class="doc">atom map must be enabled</span></a></p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., “x” or “f” for atom properties, “f_id” for per-atom fix data, “c_id” for per-atom compute data, “d_name” or “i_name” for fix property/atom vectors with <em>count</em> = 1, “d2_name” or “i2_name” for fix property/atom vectors with <em>count</em> &gt; 1) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with <em>image</em> if you want the image flags unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) components. </p></li>
+<li><p><strong>ndata</strong> – number of atoms for which to return data (can be all of them) </p></li>
+<li><p><strong>ids</strong> – list of <em>ndata</em> atom IDs for which to return data </p></li>
+<li><p><strong>data</strong> – per-atom values packed into a one-dimensional array of length <em>ndata</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv414lammps_scatterPvPKciiPv">
+<span id="_CPPv314lammps_scatterPvPKciiPv"></span><span id="_CPPv214lammps_scatterPvPKciiPv"></span><span id="lammps_scatter__voidP.cCP.i.i.voidP"></span><span class="target" id="library_8h_1a1251a6d15588762a6810ed4021bfce11"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_scatter</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv414lammps_scatterPvPKciiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Scatter the named per-atom, per-atom fix, per-atom compute, or fix property/atom-based entity in <em>data</em> to all processes.</p>
+<p><p>This subroutine takes data stored in a one-dimensional array supplied by the user and scatters
+them to all atoms on all processes. The data must be ordered by atom ID, with the requirement that
+the IDs be consecutive. Use <a class="reference internal" href="#_CPPv421lammps_scatter_subsetPvPKciiiPiPv" title="lammps_scatter_subset"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_subset()</span></code></a> to scatter data for some (or all)
+atoms, unordered.</p>
+<p>The <em>data</em> array needs to be ordered in groups of <em>count</em> values, sorted by atom ID (e.g., if
+<em>name</em> is <em>x</em> and <em>count</em> = 3, then <em>data</em> = {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1],
+x[1][2], x[2][0], <span class="math notranslate nohighlight">\(\dots\)</span>}); <em>data</em> must be of length (<em>count</em> <span class="math notranslate nohighlight">\(\times\)</span> <em>natoms</em>).</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined, must be consecutive, and an
+<a class="reference internal" href="atom_modify.html"><span class="doc">atom map must be enabled</span></a></p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., “x” or “f” for atom properties, “f_id” for per-atom fix data, “c_id” for per-atom compute data, “d_name” or “i_name” for fix property/atom vectors with <em>count</em> = 1, “d2_name” or “i2_name” for fix property/atom vectors with <em>count</em> &gt; 1) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with <em>image</em> if you have a single image flag packed into (<em>x</em>,<em>y</em>,<em>z</em>) components. </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a one-dimensional array of length <em>natoms</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv421lammps_scatter_subsetPvPKciiiPiPv">
+<span id="_CPPv321lammps_scatter_subsetPvPKciiiPiPv"></span><span id="_CPPv221lammps_scatter_subsetPvPKciiiPiPv"></span><span id="lammps_scatter_subset__voidP.cCP.i.i.i.iP.voidP"></span><span class="target" id="library_8h_1ae379c37f2f8136e130030ddbe832695a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_scatter_subset</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">name</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">type</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">count</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ndata</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ids</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">data</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv421lammps_scatter_subsetPvPKciiiPiPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Scatter the named per-atom, per-atom fix, per-atom compute, or fix property/atom-based entities in <em>data</em> from a subset of atoms to all processes.</p>
+<p><p>This subroutine takes data stored in a one-dimensional array supplied by the
+user and scatters them to a subset of atoms on all processes. The array
+<em>data</em> contains data associated with atom IDs, but there is no requirement that
+the IDs be consecutive, as they are provided in a separate array.
+Use <a class="reference internal" href="#_CPPv414lammps_scatterPvPKciiPv" title="lammps_scatter"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter()</span></code></a> to scatter data for all atoms, in order.</p>
+<p>The <em>data</em> array needs to be organized in groups of <em>count</em> values, with the
+groups in the same order as the array <em>ids</em>. For example, if you want <em>data</em>
+to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
+x[57][0], x[57][1], x[57][2]}, then <em>count</em> = 3, <em>ndata</em> = 3, and <em>ids</em> would
+be {1, 100, 57}.</p>
+<div class="warning admonition">
+<p class="admonition-title">Restrictions</p>
+<p>This function is not compatible with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>.</p>
+<p>Atom IDs must be defined and an <a class="reference internal" href="atom_modify.html"><span class="doc">atom map must be enabled</span></a></p>
+<p>The total number of atoms must not be more than 2147483647 (max 32-bit signed int).</p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>name</strong> – desired quantity (e.g., “x” or “f” for atom properties, “f_id” for per-atom fix data, “c_id” for per-atom compute data, “d_name” or “i_name” for fix property/atom vectors with <em>count</em> = 1, “d2_name” or “i2_name” for fix property/atom vectors with <em>count</em> &gt; 1) </p></li>
+<li><p><strong>dtype</strong> – 0 for <code class="docutils literal notranslate"><span class="pre">int</span></code> values, 1 for <code class="docutils literal notranslate"><span class="pre">double</span></code> values </p></li>
+<li><p><strong>count</strong> – number of per-atom values (e.g., 1 for <em>type</em> or <em>q</em>, 3 for <em>x</em> or <em>f</em>); use <em>count</em> = 3 with “image” if you want single image flags unpacked into (<em>x</em>,<em>y</em>,<em>z</em>) </p></li>
+<li><p><strong>ndata</strong> – number of atoms listed in <em>ids</em> and <em>data</em> arrays </p></li>
+<li><p><strong>ids</strong> – list of <em>ndata</em> atom IDs to scatter data to </p></li>
+<li><p><strong>data</strong> – per-atom values packed in a 1-dimensional array of length <em>ndata</em> * <em>count</em>. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv419lammps_create_atomsPviPKiPKiPKdPKdPKii">
+<span id="_CPPv319lammps_create_atomsPviPKiPKiPKdPKdPKii"></span><span id="_CPPv219lammps_create_atomsPviPKiPKiPKdPKdPKii"></span><span id="lammps_create_atoms__voidP.i.iCP.iCP.doubleCP.doubleCP.iCP.i"></span><span class="target" id="library_8h_1aeebd5ebadb0c014f80e2c25dd369ff44"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_create_atoms</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">n</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">type</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">x</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">v</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">bexpand</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv419lammps_create_atomsPviPKiPKiPKdPKdPKii" title="Link to this definition"></a><br /></dt>
+<dd><p>Create N atoms from list of coordinates</p>
+<p><p>The prototype for this function when compiling with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>
+is:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">lammps_create_atoms</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">type</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">v</span><span class="p">,</span><span class="w"> </span><span class="kt">int64_t</span><span class="w"> </span><span class="o">*</span><span class="n">image</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">bexpand</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This function creates additional atoms from a given list of coordinates
+and a list of atom types.  Additionally the atom-IDs, velocities, and
+image flags may be provided.  If atom-IDs are not provided, they will be
+automatically created as a sequence following the largest existing
+atom-ID.</p>
+<p>This function is useful to add atoms to a simulation or - in tandem with
+<a class="reference internal" href="Library_properties.html#_CPPv416lammps_reset_boxPvPdPdddd" title="lammps_reset_box"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_reset_box()</span></code></a> - to restore a previously extracted and
+saved state of a simulation.  Additional properties for the new atoms
+can then be assigned via the <a class="reference internal" href="#_CPPv420lammps_scatter_atomsPvPKciiPv" title="lammps_scatter_atoms"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_scatter_atoms()</span></code></a>
+<a class="reference internal" href="Library_atoms.html#_CPPv419lammps_extract_atomPvPKc" title="lammps_extract_atom"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_atom()</span></code></a> functions.</p>
+<p>For non-periodic boundaries, atoms will <strong>not</strong> be created that have
+coordinates outside the box unless it is a shrink-wrap boundary and the
+shrinkexceed flag has been set to a non-zero value.  For periodic
+boundaries atoms will be wrapped back into the simulation cell and its
+image flags adjusted accordingly, unless explicit image flags are
+provided.</p>
+<p>The function returns the number of atoms created or -1 on failure (e.g.,
+when called before as box has been created).</p>
+<p>Coordinates and velocities have to be given in a 1d-array in the order
+X(1), Y(1), Z(1), X(2), Y(2), Z(2), …, X(N), Y(N), Z(N).</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>n</strong> – number of atoms, N, to be added to the system </p></li>
+<li><p><strong>id</strong> – pointer to N atom IDs; <code class="docutils literal notranslate"><span class="pre">NULL</span></code> will generate IDs </p></li>
+<li><p><strong>type</strong> – pointer to N atom types (required) </p></li>
+<li><p><strong>x</strong> – pointer to 3N doubles with x-,y-,z- positions of the new atoms (required) </p></li>
+<li><p><strong>v</strong> – pointer to 3N doubles with x-,y-,z- velocities of the new atoms (set to 0.0 if <code class="docutils literal notranslate"><span class="pre">NULL</span></code>) </p></li>
+<li><p><strong>image</strong> – pointer to N imageint sets of image flags, or <code class="docutils literal notranslate"><span class="pre">NULL</span></code></p></li>
+<li><p><strong>bexpand</strong> – if 1, atoms outside of shrink-wrap boundaries will still be created and not dropped and the box extended </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of atoms created on success; -1 on failure (no box, no atom IDs, etc.) </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv422lammps_create_moleculePvPKcPKc">
+<span id="_CPPv322lammps_create_moleculePvPKcPKc"></span><span id="_CPPv222lammps_create_moleculePvPKcPKc"></span><span id="lammps_create_molecule__voidP.cCP.cCP"></span><span class="target" id="library_8h_1a7b7caa908362faf8ae99168df2e7420a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_create_molecule</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">json</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv422lammps_create_moleculePvPKcPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Create new molecule template from JSON data provided as C-style string</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 22Jul2025.</span></p>
+</div>
+<p>This function creates a new molecule template similar to the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule command</span></a>, but uses JSON data passed
+as a C-style string instead of reading it from a file.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance </p></li>
+<li><p><strong>id</strong> – molecule-ID </p></li>
+<li><p><strong>jsonstr</strong> – molecule data in JSON format as C-style string </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Library_objects.html" class="btn btn-neutral float-left" title="1.1.5. Computes, fixes, variables" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Library_neighbor.html" class="btn btn-neutral float-right" title="1.1.7. Neighbor list access" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+# 3d Lennard-Jones melt, thermostatted by fix controller
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 10 0 10 0 10
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 20 check no
+
+fix		1 all nve
+
+variable        tcontrol internal 0.5
+fix             tstat all langevin v_tcontrol 0.5 0.5 2938940
+
+# equilibrate
+
+thermo          50
+run		500
+
+# instantaneous temp for control
+
+fix             10 all controller 100 1.0 0.5 0.0 0.0 &
+                c_thermo_temp 1.5 tcontrol
+
+# time-average temp for control
+		
+#fix             ave all ave/time 5 20 100 c_thermo_temp
+#fix             10 all controller 100 1.0 0.5 0.0 0.0 &
+#                f_ave 1.5 tcontrol
+
+# run with controller
+
+run             2500
+

@@ -1,0 +1,63 @@
+#!/bin/sh
+
+if [ ! -f _pylammps.so ]
+then \
+    echo "Need to compile '_pylammps.so' first for this script to work"
+    exit 1
+fi
+
+cat > example.py <<EOF
+from pylammps import *
+
+osinfo = lammps_get_os_info(512)
+print(osinfo)
+
+lmp = lammps_open_no_mpi(0,None,None)
+ver = lammps_version(lmp)
+
+npair_styles = lammps_style_count(lmp, 'pair')
+print("LAMMPS includes %d pair styles" % npair_styles)
+for i in range(10):
+    found, style = lammps_style_name(lmp, 'pair', i, 128)
+    if found == 1: print("Style %d: " % i, style)
+
+lammps_command(lmp, "units real")
+lammps_command(lmp, "lattice fcc 2.5")
+lammps_command(lmp, "region box block -5 5 -5 5 -5 5")
+lammps_command(lmp, "create_box 1 box")
+lammps_command(lmp, "create_atoms 1 box")
+
+boxlo_p = new_double_1d(3)
+boxhi_p = new_double_1d(3)
+xy_p = new_double_p()
+yz_p = new_double_p()
+xz_p = new_double_p()
+pflags_p = new_int_1d(3)
+boxflag_p = new_int_p()
+
+lammps_extract_box(lmp, boxlo_p, boxhi_p, xy_p, yz_p, xz_p, pflags_p, boxflag_p)
+
+print("boxlo:    %g %g %g" % (double_1d_getitem(boxlo_p, 0), double_1d_getitem(boxlo_p, 1), double_1d_getitem(boxlo_p, 2)))
+print("boxhi:    %g %g %g" % (double_1d_getitem(boxhi_p, 0), double_1d_getitem(boxhi_p, 1), double_1d_getitem(boxhi_p, 2)))
+print("xy/yz/xz: %g %g %g" % (double_p_value(xy_p), double_p_value(yz_p), double_p_value(xz_p)))
+print("periodicity: %d %d %d" % (int_1d_getitem(pflags_p, 0), int_1d_getitem(pflags_p, 1), int_1d_getitem(pflags_p, 2)))
+print("boxflag:  %d" % int_p_value(boxflag_p))
+delete_double_1d(boxlo_p)
+delete_double_1d(boxhi_p)
+delete_int_1d(pflags_p)
+delete_double_p(xy_p)
+delete_double_p(yz_p)
+delete_double_p(xz_p)
+delete_int_p(boxflag_p)
+
+print("LAMMPS version ",ver)
+print("Number of created atoms: %g" % lammps_get_natoms(lmp))
+print("Current size of timestep: %g" % double_p_value(void_p_to_double_p(lammps_extract_global(lmp,'dt'))))
+lammps_close(lmp)
+EOF
+
+PYTHONPATH=${PWD}:${PYTHONPATH-${PWD}}
+
+export PYTHONPATH
+
+@Python3_EXECUTABLE@ example.py

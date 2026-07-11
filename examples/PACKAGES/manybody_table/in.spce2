@@ -1,0 +1,22 @@
+units           real
+atom_style      atomic
+
+# data file with two atom types
+read_data       data.spce2
+
+pair_style      hybrid/overlay table linear 1200 threebody/table
+
+#pair coefficients
+pair_coeff      * * table table_CG_CG.txt VOTCA
+pair_coeff      * * threebody/table spce2.3b type1 type2
+
+fix             1 all nvt temp 300.0 300.0 200.0
+
+velocity        all create 300 432567 dist uniform loop geom mom yes
+timestep        2.0
+
+thermo          100
+#dump            2 all custom 100 dump.spce2 id type x y z fx fy fz
+
+run             1000
+

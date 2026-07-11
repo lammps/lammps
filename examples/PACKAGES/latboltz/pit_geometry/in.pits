@@ -1,0 +1,116 @@
+#===========================================================================#
+# Rigid sphere freely moving in a system with pressure driven flow through  #
+#   a pit geometry.                                                         # 
+#                                                                           #
+# If uncommented, the example produces several output files:                # 
+#   'flow.xdmf', 'flow.raw' ... xdmf and accompanying binary file for the   #
+#                               fluid density and velocity which can be read#
+#                               and plotted using Paraview.                 #
+#   'dumpatomsXX.vtp', 'dumpatomsXX_boundingBox.vtr' ... produces by the    #
+#                               dumpvtk routine (requires that lammps be    #
+#                               compiled with the vtk package).  These filed#
+#                               can also be read and plotted using Paraview.#
+#                               XX is the timestep of the dump output.      #
+#===========================================================================# 
+
+units          micro
+dimension      3
+boundary       p p f
+atom_style     atomic
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.    
+#----------------------------------------------------------------------------
+neighbor       1.0 bin
+neigh_modify   delay 0 every 1 
+
+read_data      data.one_radius16d2
+
+#----------------------------------------------------------------------------
+# None of the particles interact with one another.
+#----------------------------------------------------------------------------
+pair_style     lj/cut 2.45
+pair_coeff     * * 0.0 0.0 2.45
+neigh_modify   exclude type 1 1 
+
+mass           * 100.0
+timestep       2.0
+
+group          sphere1 id <> 1 320
+
+#----------------------------------------------------------------------------
+# Colloidal particle is initially stationary.
+#----------------------------------------------------------------------------
+velocity       all set 0.0 0.0 0.0 units box
+
+#----------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# All of the particles in the simulation apply a force to the fluid.
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles...this is accomplished through the use of the lb/viscous fix).
+# Set the fluid density = 1.0, fluid viscosity = 1.0 (water), and lattice
+#    spacing dx=4.0.
+# dumpxdmf is set to output to the xdmf file (fflow.xdmf and fflow.raw) every
+#    2500 steps, indexed by the frame number (rather than timestep).
+# The flow is generated via a pressure jump at the otherwise periodic x-
+#    boundary using the pressurebcx option.
+# The initial conditions are set as linear interpolation between boundary
+#    values using the linearInit option.
+#-----------------------------------------------------------------------------
+fix  1 all lb/fluid 1 1.0 1.0 dx 4.0 linearInit pressurebcx 0.01 npits 2 20 40 5 0 wp 30 # dumpxdmf 2500 fflow 0
+
+#-----------------------------------------------------------------------------
+# You can get some other interesting geometries by replacing the npits options
+#   at the end of the above lb/fluid fix with one of the following:
+#-----------------------------------------------------------------------------
+# Channel with 2 pits placed symmetrically about center in x: 
+#npits 2 20 20 10 5 sw
+
+# Channel with 1 pit placed at center:
+#npits 1 20 20 20 sw
+
+# Full channel with 1 "speedbump" placed in right end of the channel: 
+#npits 2 20 40 5 0 sw  
+
+# Channel with 2 "potholes" placed symmetrically about center in x:
+#npits 2 20 15 10 10 wp 30
+
+# Channel with T-shaped cross-section with a "speedbump" in right end: 
+#npits 2 20 40 5 0 wp 30
+
+# Long rectangular channel (all pit, no slit):
+#npits 1 20 65 5 0 sw
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining them to move and rotate together as a single rigid 
+#   spherical object.  
+#---------------------------------------------------------------------------- 
+fix 2 all lb/viscous
+fix 3 all rigid group 1 sphere1
+
+#----------------------------------------------------------------------------
+# Create variables for the center-of-mass and angular velocities, and output
+#   these quantities to the screen.
+#----------------------------------------------------------------------------
+variable vx equal vcm(all,x)
+variable vy equal vcm(all,y)
+variable vz equal vcm(all,z)
+variable omegax equal omega(all,x)
+variable omegay equal omega(all,y)
+variable omegaz equal omega(all,z)
+
+thermo_style   custom step f_1[2] v_vx v_vy v_vz v_omegax v_omegay v_omegaz
+thermo         500
+
+#dump dumpvtk all vtk 2500 dumpatoms*.vtp vx vy vz
+
+run	       2500

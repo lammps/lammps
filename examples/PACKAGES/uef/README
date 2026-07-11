@@ -1,0 +1,19 @@
+This directory contains two short example scripts for the UEF
+package.
+
+
+nvt_uniaxial:
+  A simulation of a WCA fluid under constant volume uniaxial strain
+  with stretching in the z direction, compression in the x and y
+  directions.The xx, yy and zz components of the pressure tensor are 
+  written to the log file. The simulation conditions are the same 
+  used in the paper by Thomas Hunt [http://arxiv.org/abs/1310.3905]
+  and should yield an zz pressure near 5 and xx/yy pressures near 10.
+
+npt_biaxial:
+  A simulation of a WCA fluid under stress-controlled biaxial strain 
+  with stretching in the x and y directions, compression in the z 
+  direction. The zz stress is controlled using the ext keyword in fix
+  npt/uef. The xx yy and zz components of the pressure tensor are 
+  written to the log file. The simulations conditions should yield 
+  xx/yy pressures near 5 and zz pressure near 10

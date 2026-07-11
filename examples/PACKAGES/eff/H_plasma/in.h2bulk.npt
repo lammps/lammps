@@ -1,0 +1,48 @@
+variable        sname index h2bulk
+
+units 		electron
+newton		on
+boundary	p p p
+
+atom_style	electron
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 30.627847
+pair_coeff	* * 
+
+neigh_modify	one 20000 page 200000
+
+comm_modify	vel yes
+
+compute		effTemp all temp/eff
+
+thermo          100
+thermo_style    custom step pe temp press vol
+thermo_modify	temp effTemp
+
+# structure minimization
+dump            1 all xyz 1 ${sname}.min.xyz
+min_style	cg
+minimize 	0 1.0e-4 1 10000
+undump		1
+
+# create initial velocities according to temp, w/out e radial dof
+velocity 	all create 20000.0 4928459 rot yes dist gaussian
+
+# npt
+fix		1 all npt/eff temp 20000.0 20000.0 1.0 iso 1e9 1e9 1.0
+variable       density equal 11.2058851*mass(all)
+thermo_style    custom step pe temp press vol v_density
+thermo_modify	temp effTemp
+
+dump		2 all xyz 10000 ${sname}.npt.xyz
+compute         1 all property/atom spin eradius
+dump		3 all custom 10000 ${sname}.npt.lammpstrj id type x y z c_1[1] c_1[2]
+
+thermo          1
+run		10
+
+unfix		1
+undump		2
+undump		3

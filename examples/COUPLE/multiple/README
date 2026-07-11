@@ -1,0 +1,35 @@
+This directory has a C++ code multiple.cpp which illustrates how a
+driver code can create multiple instantiations of LAMMPS to run
+independent simulations simultaneously, on a set of processors
+allocated by MPI.
+
+Once you have built LAMMPS as a library (see examples/COUPLE/README),
+you can then build the driver codes with compile lines like these,
+which include paths to the LAMMPS library interface, MPI (an installed
+MPICH in this case), and FFTW (assuming you built LAMMPS as a library
+with its PPPM solver).
+
+g++ -I/home/sjplimp/lammps/src -c multiple.cpp
+g++ -L/home/sjplimp/lammps/src multiple.o \
+    -llammps -lfftw -lmpich -lmpl -lpthread -o multiple
+
+If you then run this command:
+
+% mpirun -np 8 multiple 4 in.chain 1.0 0.5
+
+you will create 4 instances of LAMMPS, each running on 2 of the
+allocated 8 processors.  The final two arguments are the base
+temperature and a delta temperature added by each instance.  The
+provided input script in.chain uses those temperatures, set as a
+variable "t" when each instance of LAMMPS is created.
+
+After a few seconds you should get this output to the screen:
+
+Instance 1, final temp = 1.00469
+Instance 2, final temp = 1.50395
+Instance 3, final temp = 1.99873
+Instance 4, final temp = 2.50862
+
+indicating the runs equilibrated to 4 temperatures separated by 0.5
+(in LJ units).  There should also be 4 screen files (screen.N) and 4
+log files (log.lammps.N) from the individual LAMMPS runs.

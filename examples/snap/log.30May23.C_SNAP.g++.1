@@ -1,0 +1,105 @@
+LAMMPS (28 Mar 2023 - Development)
+  using 1 OpenMP thread(s) per MPI task
+#Carbon SNAP example: 216 atom diamond unit cell simulated NVT at ~1,000GPa and 5,000K
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#      Crystal orientation and MD box creation       #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+lattice diamond 2.845
+Lattice spacing in x,y,z = 2.845 2.845 2.845
+region Bbox block 0 3 0 3 0 3
+create_box 1 Bbox
+Created orthogonal box = (0 0 0) to (8.535 8.535 8.535)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 region Bbox basis 1 1
+Created 216 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8.535 8.535 8.535)
+  create_atoms CPU = 0.000 seconds
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#         Interatomic potential parameters           #
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Specify hybrid with SNAP, ZBL, and long-range C_SNAP_2021.10.15.quadratic.ulomb
+
+pair_style hybrid/overlay zbl 0.1 0.2 snap
+pair_coeff 1 1 zbl 10 10
+pair_coeff * * snap C_SNAP_2021.10.15.quadratic.snapcoeff C_SNAP_2021.10.15.quadratic.snapparam C
+SNAP Element = C, Radius 0.5, Weight 1
+SNAP keyword rcutfac 2.7
+SNAP keyword twojmax 8
+SNAP keyword rfac0 0.99363
+SNAP keyword rmin0 0.0
+SNAP keyword bzeroflag 0
+SNAP keyword quadraticflag 1
+
+mass * 12.01
+velocity all create 8000.0 3412461  loop geom
+
+fix     NVE all nve
+fix     NVT all langevin 5000.0 5000.0 0.1 3216548
+thermo  50
+thermo_style    custom step temp ke pe etotal press pxx pyy pzz
+run 500
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.7
+  ghost atom cutoff = 4.7
+  binsize = 2.35, bins = 4 4 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair zbl, perpetual, half/full trim from (2)
+      attributes: half, newton on, cut 2.2
+      pair build: halffull/newton/trim
+      stencil: none
+      bin: none
+  (2) pair snap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.835 | 4.835 | 4.835 Mbytes
+   Step          Temp          KinEng         PotEng         TotEng         Press           Pxx            Pyy            Pzz      
+         0   8000           222.32745     -846.66062     -624.33318      10234249       10210805       10267435       10224506     
+        50   4199.4229      116.70587     -723.2423      -606.53643      10256033       10157803       10280166       10330129     
+       100   3820.2509      106.16833     -710.43537     -604.26704      10232872       10216484       10241309       10240825     
+       150   4413.2948      122.64957     -710.09702     -587.44745      10254093       10323013       10265454       10173810     
+       200   4688.024       130.28455     -702.26198     -571.97742      10306186       10281632       10342390       10294536     
+       250   4997.165       138.87587     -720.58476     -581.70889      10284438       10220856       10360231       10272226     
+       300   4640.4911      128.96357     -710.75063     -581.78706      10263301       10264007       10290526       10235369     
+       350   4929.5117      136.99572     -707.2526      -570.25688      10290742       10359920       10284236       10228071     
+       400   4700.9354      130.64337     -697.90277     -567.2594       10250682       10277287       10246032       10228729     
+       450   5108.4971      141.96989     -700.57144     -558.60155      10289765       10323648       10306588       10239058     
+       500   5146.7039      143.03169     -700.33221     -557.30052      10334303       10349736       10358785       10294387     
+Loop time of 36.7771 on 1 procs for 500 steps with 216 atoms
+
+Performance: 1.175 ns/day, 20.432 hours/ns, 13.595 timesteps/s, 2.937 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 36.766     | 36.766     | 36.766     |   0.0 | 99.97
+Neigh   | 0.0010226  | 0.0010226  | 0.0010226  |   0.0 |  0.00
+Comm    | 0.0033205  | 0.0033205  | 0.0033205  |   0.0 |  0.01
+Output  | 0.00020657 | 0.00020657 | 0.00020657 |   0.0 |  0.00
+Modify  | 0.0047621  | 0.0047621  | 0.0047621  |   0.0 |  0.01
+Other   |            | 0.001464   |            |       |  0.00
+
+Nlocal:            216 ave         216 max         216 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1746 ave        1746 max        1746 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1767 ave        1767 max        1767 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        32846 ave       32846 max       32846 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 32846
+Ave neighs/atom = 152.06481
+Neighbor list builds = 1
+Dangerous builds = 0
+Total wall time: 0:00:36

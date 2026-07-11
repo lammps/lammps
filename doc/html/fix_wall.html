@@ -1,0 +1,1114 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fix wall/lj93 command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/fix_wall.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix wall/body/polygon command" href="fix_wall_body_polygon.html" />
+    <link rel="prev" title="fix viscous/sphere command" href="fix_viscous_sphere.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fix Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_acks2_reaxff.html">fix acks2/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_add_heat.html">fix add/heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_atom.html">fix addtorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_group.html">fix addtorque/group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_alchemy.html">fix alchemy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_align_self.html">fix align/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_bitorsion.html">fix amoeba/bitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_pitorsion.html">fix amoeba/pitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_weight_apip.html">fix atom_weight/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_grid.html">fix ave/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_moments.html">fix ave/moments command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial.html">fix ave/spatial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial_sphere.html">fix ave/spatial/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_baoab.html">fix baoab command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_react.html">fix bond/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html">fix brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-sphere-command">fix brownian/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-asphere-command">fix brownian/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_charge_regulation.html">fix charge/regulation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_damping_cundall.html">fix damping/cundall command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform.html">fix deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform_pressure.html">fix deform/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html#fix-efield-tip4p-command">fix efield/tip4p command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield_lepton.html">fix efield/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html">fix electrode/conp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-conq-command">fix electrode/conq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-thermo-command">fix electrode/thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gemc.html">fix gemc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gjf.html">fix gjf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_arrows.html">fix graphics/arrows command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_chunk.html">fix graphics/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_isosurface.html">fix graphics/isosurface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_labels.html">fix graphics/labels command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_lines.html">fix graphics/lines command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_objects.html">fix graphics/objects command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_periodic.html">fix graphics/periodic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_replica.html">fix graphics/replica command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat_flow.html">fix heat/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hmc.html">fix hmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ilves.html">fix ilves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_apip.html">fix lambda/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_la_csp_apip.html">fix lambda/la/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_thermostat_apip.html">fix lambda_thermostat/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qm.html">fix mdi/qm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qmmm.html">fix mdi/qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mol_swap.html">fix mol/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neighbor_swap.html">fix neighbor/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nonaffine_displacement.html">fix nonaffine/displacement command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff_virial.html">fix numdiff/virial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_bpm_sphere.html">fix nve/bpm/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pair.html">fix pair command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html">fix pimd/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-nvt-command">fix pimd/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-langevin-bosonic-command">fix pimd/langevin/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-nvt-bosonic-command">fix pimd/nvt/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html">fix polarize/bem/gmres command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-bem-icc-command">fix polarize/bem/icc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-functional-command">fix polarize/functional command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_langevin.html">fix press/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-ctip-command">fix qeq/ctip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reaxff.html">fix qeq/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_rel_reaxff.html">fix qeq/rel/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtpie_reaxff.html">fix qtpie/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_bonds.html">fix reaxff/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_species.html">fix reaxff/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo.html">fix rheo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_oxidation.html">fix rheo/oxidation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_pressure.html">fix rheo/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_thermal.html">fix rheo/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_viscosity.html">fix rheo/viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-small-command">fix rigid/nph/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_set.html">fix set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_settorque_atom.html">fix settorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sgcmc.html">fix sgcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_global.html">fix surface/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_local.html">fix surface/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-grid-command">fix ttm/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-thermal-command">fix ttm/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_nonlinear.html">fix viscous/nonlinear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_sphere.html">fix viscous/sphere command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-harmonic-outside-command">fix wall/harmonic/outside command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-lepton-command">fix wall/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-wall-table-command">fix wall/table command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lepton-expression-syntax-and-features">Lepton expression syntax and features</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#table-file-format">Table file format</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dump-image-info">Dump image info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_flow.html">fix wall/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="fixes.html">Fix Styles</a></li>
+      <li class="breadcrumb-item active">fix wall/lj93 command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="fix_viscous_sphere.html" class="btn btn-neutral float-left" title="fix viscous/sphere command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_wall_body_polygon.html" class="btn btn-neutral float-right" title="fix wall/body/polygon command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="fix-wall-lj93-command">
+<span id="index-13"></span><span id="index-12"></span><span id="index-11"></span><span id="index-10"></span><span id="index-9"></span><span id="index-8"></span><span id="index-7"></span><span id="index-6"></span><span id="index-5"></span><span id="index-4"></span><span id="index-3"></span><span id="index-2"></span><span id="index-1"></span><span id="index-0"></span><h1>fix wall/lj93 command<a class="headerlink" href="#fix-wall-lj93-command" title="Link to this heading"></a></h1>
+<p>Accelerator Variants: <em>wall/lj93/kk</em></p>
+</section>
+<section id="fix-wall-lj126-command">
+<h1>fix wall/lj126 command<a class="headerlink" href="#fix-wall-lj126-command" title="Link to this heading"></a></h1>
+<p>Accelerator Variants: <em>wall/lj126/kk</em></p>
+</section>
+<section id="fix-wall-lj1043-command">
+<h1>fix wall/lj1043 command<a class="headerlink" href="#fix-wall-lj1043-command" title="Link to this heading"></a></h1>
+<p>Accelerator Variants: <em>wall/lj1043/kk</em></p>
+</section>
+<section id="fix-wall-colloid-command">
+<h1>fix wall/colloid command<a class="headerlink" href="#fix-wall-colloid-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-wall-harmonic-command">
+<h1>fix wall/harmonic command<a class="headerlink" href="#fix-wall-harmonic-command" title="Link to this heading"></a></h1>
+<p>Accelerator Variants: <em>wall/harmonic/kk</em></p>
+</section>
+<section id="fix-wall-harmonic-outside-command">
+<h1>fix wall/harmonic/outside command<a class="headerlink" href="#fix-wall-harmonic-outside-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-wall-lepton-command">
+<h1>fix wall/lepton command<a class="headerlink" href="#fix-wall-lepton-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-wall-morse-command">
+<h1>fix wall/morse command<a class="headerlink" href="#fix-wall-morse-command" title="Link to this heading"></a></h1>
+<p>Accelerator Variants: <em>wall/morse/kk</em></p>
+</section>
+<section id="fix-wall-table-command">
+<h1>fix wall/table command<a class="headerlink" href="#fix-wall-table-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">[tabstyle]</span><span class="w"> </span><span class="n">[N]</span><span class="w"> </span><span class="n">face</span><span class="w"> </span><span class="n">args</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>style = <em>wall/lj93</em> or <em>wall/lj126</em> or <em>wall/lj1043</em> or <em>wall/colloid</em> or <em>wall/harmonic</em> or <em>wall/harmonic/outside</em> or <em>wall/lepton</em> or <em>wall/morse</em> or <em>wall/table</em></p></li>
+<li><p>tabstyle = <em>linear</em> or <em>spline</em> = method of table interpolation (only applies to <em>wall/table</em>)</p></li>
+<li><p>N = use N values in <em>linear</em> or <em>spline</em> interpolation (only applies to <em>wall/table</em>)</p></li>
+<li><p>one or more face/arg pairs may be appended</p></li>
+<li><p>face = <em>xlo</em> or <em>xhi</em> or <em>ylo</em> or <em>yhi</em> or <em>zlo</em> or <em>zhi</em></p></li>
+</ul>
+<ul>
+<li><p>args for styles <em>lj93</em> or <em>lj126</em> or <em>lj1043</em> or <em>colloid</em> or <em>harmonic</em></p>
+<pre class="literal-block">args = coord epsilon sigma cutoff
+coord = position of wall = EDGE or constant or variable
+  EDGE = current lo or hi edge of simulation box
+  constant = number like 0.0 or -30.0 (distance units)
+  variable = <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> like v_x or v_wiggle
+epsilon = strength factor for wall-particle interaction (energy or energy/distance^2 units)
+  epsilon can be a variable (see below)
+sigma = size factor for wall-particle interaction (distance units)
+  sigma can be a variable (see below)
+cutoff = distance from wall at which wall-particle interactions are cut off (distance units)</pre>
+</li>
+<li><p>args for style <em>lepton</em></p>
+<pre class="literal-block">args = coord expression cutoff
+coord = position of wall = EDGE or constant or variable
+  EDGE = current lo or hi edge of simulation box
+  constant = number like 0.0 or -30.0 (distance units)
+  variable = <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> like v_x or v_wiggle
+expression = Lepton expression for the potential  (energy units)
+cutoff = distance from wall at which wall-particle interactions are cut off (distance units)</pre>
+</li>
+<li><p>args for style <em>morse</em></p>
+<pre class="literal-block">args = coord D_0 alpha r_0 cutoff
+coord = position of wall = EDGE or constant or variable
+  EDGE = current lo or hi edge of simulation box
+  constant = number like 0.0 or -30.0 (distance units)
+  variable = <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> like v_x or v_wiggle
+D_0 = depth of the potential (energy units)
+  D_0 can be a variable (see below)
+alpha = width factor for wall-particle interaction (1/distance units)
+  alpha can be a variable (see below)
+r_0 = distance of the potential minimum from the face of region (distance units)
+  r_0 can be a variable (see below)
+cutoff = distance from wall at which wall-particle interactions are cut off (distance units)</pre>
+</li>
+<li><p>args for style <em>table</em></p>
+<pre class="literal-block">args = coord filename keyword cutoff
+coord = position of wall = EDGE or constant or variable
+  EDGE = current lo or hi edge of simulation box
+  constant = number like 0.0 or -30.0 (distance units)
+  variable = <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> like v_x or v_wiggle
+filename = file containing tabulated energy and force values
+keyword = section identifier to select a specific table in table file
+cutoff = distance from wall at which wall-particle interactions are cut off (distance units)</pre>
+</li>
+<li><p>zero or more keyword/value pairs may be appended</p></li>
+<li><p>keyword = <em>units</em> or <em>fld</em> or <em>pbc</em></p>
+<pre class="literal-block"><em>units</em> value = <em>lattice</em> or <em>box</em>
+  <em>lattice</em> = the wall position is defined in lattice units
+  <em>box</em> = the wall position is defined in simulation box units
+<em>fld</em> value = <em>yes</em> or <em>no</em>
+  <em>yes</em> = invoke the wall constraint to be compatible with implicit FLD
+  <em>no</em> = invoke the wall constraint in the normal way
+<em>pbc</em> value = <em>yes</em> or <em>no</em>
+  <em>yes</em> = allow periodic boundary in a wall dimension
+  <em>no</em> = require non-perioidic boundaries in any wall dimension</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">wallhi</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">lj93</span><span class="w"> </span><span class="n">xlo</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">fix </span><span class="nv nv-Identifier">wallhi</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">lj93</span><span class="w"> </span><span class="n">xhi</span><span class="w"> </span><span class="n">EDGE</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+<span class="k">fix </span><span class="nv nv-Identifier">wallhi</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">harmonic</span><span class="w"> </span><span class="n">xhi</span><span class="w"> </span><span class="n">EDGE</span><span class="w"> </span><span class="m">100.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">fix </span><span class="nv nv-Identifier">wallhi</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">morse</span><span class="w"> </span><span class="n">xhi</span><span class="w"> </span><span class="n">EDGE</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">fix </span><span class="nv nv-Identifier">wallhi</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">lj126</span><span class="w"> </span><span class="n">v_wiggle</span><span class="w"> </span><span class="m">23.2</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+<span class="k">fix </span><span class="nv nv-Identifier">zwalls</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">colloid</span><span class="w"> </span><span class="n">zlo</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.858</span><span class="w"> </span><span class="n">zhi</span><span class="w"> </span><span class="m">40.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.858</span>
+<span class="k">fix </span><span class="nv nv-Identifier">xwall</span><span class="w"> </span><span class="nv nv-Identifier">mobile</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">table</span><span class="w"> </span><span class="n">spline</span><span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="n">EDGE</span><span class="w"> </span><span class="o">-</span><span class="m">5.0</span><span class="w"> </span><span class="n">walltab.dat</span><span class="w"> </span><span class="n">HARMONIC</span><span class="w"> </span><span class="m">4.0</span>
+<span class="k">fix </span><span class="nv nv-Identifier">xwalls</span><span class="w"> </span><span class="nv nv-Identifier">mobile</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">lepton</span><span class="w"> </span><span class="n">xlo</span><span class="w"> </span><span class="o">-</span><span class="m">5.0</span><span class="w"> </span><span class="s">&quot;k*(r-rc)^2;k=100.0&quot;</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="n">xhi</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="s">&quot;k*(r-rc)^2;k=100.0&quot;</span><span class="w"> </span><span class="m">4.0</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Bound the simulation domain on one or more of its faces with a flat
+wall that interacts with the atoms in the group by generating a force
+on the atom in a direction perpendicular to the wall.  The energy of
+wall-particle interactions depends on the style.</p>
+<p>For style <em>wall/lj93</em>, the energy E is given by the 9-3 Lennard-Jones potential:</p>
+<div class="math notranslate nohighlight">
+\[E = \epsilon \left[ \frac{2}{15} \left(\frac{\sigma}{r}\right)^{9} -
+                      \left(\frac{\sigma}{r}\right)^3 \right]
+                      \qquad r &lt; r_c\]</div>
+<p>For style <em>wall/lj126</em>, the energy E is given by the 12-6 Lennard-Jones potential:</p>
+<div class="math notranslate nohighlight">
+\[E = 4 \epsilon \left[ \left(\frac{\sigma}{r}\right)^{12} -
+                      \left(\frac{\sigma}{r}\right)^6 \right]
+                      \qquad r &lt; r_c\]</div>
+<p>For style <em>wall/lj1043</em>, the energy E is given by the 10-4-3 Lennard-Jones potential:</p>
+<div class="math notranslate nohighlight">
+\[E = 2 \pi \epsilon \left[ \frac{2}{5} \left(\frac{\sigma}{r}\right)^{10} -
+                      \left(\frac{\sigma}{r}\right)^4 -
+                      \frac{\sqrt(2)\sigma^3}{3\left(r+\left(0.61/\sqrt(2)\right)\sigma\right)^3}\right]
+                      \qquad r &lt; r_c\]</div>
+<p>For style <em>wall/colloid</em>, the energy E is given by an integrated form
+of the <a class="reference internal" href="pair_colloid.html"><span class="doc">pair_style colloid</span></a> potential:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}E = &amp; \epsilon \left[ \frac{\sigma^{6}}{7560}
+\left(\frac{6R-D}{D^{7}} + \frac{D+8R}{(D+2R)^{7}} \right) \right. \\
+ &amp; \left. - \frac{1}{6} \left(\frac{2R(D+R) + D(D+2R)
+ \left[ \ln D - \ln (D+2R) \right]}{D(D+2R)} \right) \right] \qquad r &lt; r_c\end{split}\]</div>
+<p>For style <em>wall/harmonic</em>, the energy E is given by a repulsive-only harmonic
+spring potential:</p>
+<div class="math notranslate nohighlight">
+\[E = \epsilon \quad (r - r_c)^2 \qquad r &lt; r_c\]</div>
+<p>For style <em>wall/harmonic/outside</em>,
+the energy E is given by an attractive-only harmonic
+spring potential for selected atoms group passing outside
+the wall placed at <span class="math notranslate nohighlight">\(w_0\)</span> up to a cutoff distance <span class="math notranslate nohighlight">\(r_c\)</span>:
+.. math:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>E = \epsilon \quad (r - w_0)^2 \qquad r &lt; r_c
+</pre></div>
+</div>
+<p>For style <em>wall/morse</em>, the energy E is given by a Morse potential:</p>
+<div class="math notranslate nohighlight">
+\[E = D_0 \left[ e^{- 2 \alpha (r - r_0)} - 2 e^{- \alpha (r - r_0)} \right]
+    \qquad r &lt; r_c\]</div>
+<p>For style <em>wall/harmonic/outside</em>, the formulation avoids the presence
+of repulsive bands inside a controlled volume preventing the definition
+of a precise volumetric concentration (see example scripts for 2D visualization).
+Instead, the particles are allowed to go outside by a small amount,
+getting a finer definition of the concentration inside the controlled
+volume, as employed for the CMC determination in
+Barraud et al <a class="reference internal" href="#barraud"><span class="std std-ref">(Barraud)</span></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Mar2023.</span></p>
+</div>
+<p>For style <em>wall/lepton</em>, the energy E is provided as an Lepton
+expression string using “r” as the distance variable.  The <a class="reference external" href="https://simtk.org/projects/lepton">Lepton
+library</a>, that the <em>wall/lepton</em>
+style interfaces with, evaluates this expression string at run time to
+compute the wall-particle energy.  It also creates an analytical
+representation of the first derivative of this expression with respect
+to “r” and then uses that to compute the force between the wall and
+atoms in the fix group.  The Lepton expression must be either enclosed
+in quotes or must not contain any whitespace so that LAMMPS recognizes
+it as a single keyword.</p>
+<p>Optionally, the expression may use “rc” to refer to the cutoff distance
+for the given wall.  Further constants in the expression can be defined
+in the same string as additional expressions separated by semicolons.
+The expression “k*(r-rc)^2;k=100.0” represents a repulsive-only harmonic
+spring as in fix <em>wall/harmonic</em> or <em>wall/harmonic/outside</em> with a force constant <em>K</em> (same as
+<span class="math notranslate nohighlight">\(\epsilon\)</span> above) of 100 energy units.  More details on the Lepton
+expression strings are given below.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Mar2023.</span></p>
+</div>
+<p>For style <em>wall/table</em>, the energy E and forces are determined from
+interpolation tables listed in one or more files as a function of
+distance.  The interpolation tables are used to evaluate energy and
+forces between particles and the wall similar to how analytic formulas
+are used for the other wall styles.</p>
+<p>The interpolation tables are created as a pre-computation by fitting
+cubic splines to the file values and interpolating energy and force
+values at each of <em>N</em> distances.  During a simulation, the tables are
+used to interpolate energy and force values as needed for each wall and
+particle separated by a distance <em>R</em>.  The interpolation is done in
+one of two styles: <em>linear</em> or <em>spline</em>.</p>
+<p>For the <em>linear</em> style, the distance <em>R</em> is used to find the 2
+surrounding table values from which an energy or force is computed by
+linear interpolation.</p>
+<p>For the <em>spline</em> style, cubic spline coefficients are computed and
+stored for each of the <em>N</em> values in the table, one set of splines for
+energy, another for force.  Note that these splines are different than
+the ones used to pre-compute the <em>N</em> values.  Those splines were fit
+to the <em>Nfile</em> values in the tabulated file, where often <em>Nfile</em> &lt;
+<em>N</em>.  The distance <em>R</em> is used to find the appropriate set of spline
+coefficients which are used to evaluate a cubic polynomial which
+computes the energy or force.</p>
+<p>For each wall a filename and a keyword must be provided as in the
+examples above.  The filename specifies a file containing tabulated
+energy and force values.  The keyword specifies a section of the file.
+The format of this file is described below.</p>
+<p>In all cases, <em>r</em> is the distance from the particle to the wall at
+position <em>coord</em>, and <span class="math notranslate nohighlight">\(r_c\)</span> is the <em>cutoff</em> distance at which the
+particle and wall no longer interact.  The energy of the wall
+potential is shifted so that the wall-particle interaction energy is
+0.0 at the cutoff distance.</p>
+<p>Up to 6 walls or faces can be specified in a single command: <em>xlo</em>,
+<em>xhi</em>, <em>ylo</em>, <em>yhi</em>, <em>zlo</em>, <em>zhi</em>.  A <em>lo</em> face interacts with
+particles near the lower side of the simulation box in that dimension.
+A <em>hi</em> face interacts with particles near the upper side of the
+simulation box in that dimension.</p>
+<p>The position of each wall can be specified in one of 3 ways: as the
+EDGE of the simulation box, as a constant value, or as a variable.  If
+EDGE is used, then the corresponding boundary of the current
+simulation box is used.  If a numeric constant is specified then the
+wall is placed at that position in the appropriate dimension (x, y, or
+z).  In both the EDGE and constant cases, the wall will never move.
+If the wall position is a variable, it should be specified as v_name,
+where name is an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> name.  In this
+case the variable is evaluated each timestep and the result becomes
+the current position of the reflecting wall.  Equal-style variables
+can specify formulas with various mathematical functions, and include
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command keywords for the simulation
+box parameters and timestep and elapsed time.  Thus it is easy to
+specify a time-dependent wall position.  See examples below.</p>
+<p>For the <em>wall/lj93</em> and <em>wall/lj126</em> and <em>wall/lj1043</em> styles,
+<span class="math notranslate nohighlight">\(\epsilon\)</span> and <span class="math notranslate nohighlight">\(\sigma\)</span> are the usual Lennard-Jones
+parameters, which determine the strength and size of the particle as it
+interacts with the wall.  Epsilon has energy units.  Note that this
+<span class="math notranslate nohighlight">\(\epsilon\)</span> and <span class="math notranslate nohighlight">\(\sigma\)</span> may be different than any
+<span class="math notranslate nohighlight">\(\epsilon\)</span> or <span class="math notranslate nohighlight">\(\sigma\)</span> values defined for a pair style that
+computes particle-particle interactions.</p>
+<p>The <em>wall/lj93</em> interaction is derived by integrating over a 3d
+half-lattice of Lennard-Jones 12/6 particles.  The <em>wall/lj126</em>
+interaction is effectively a harder, more repulsive wall interaction.
+The <em>wall/lj1043</em> interaction is yet a different form of wall
+interaction, described in Magda et al in <a class="reference internal" href="#magda"><span class="std std-ref">(Magda)</span></a>.</p>
+<p>For the <em>wall/colloid</em> style, <em>R</em> is the radius of the colloid particle,
+<em>D</em> is the distance from the surface of the colloid particle to the wall
+(r-R), and <span class="math notranslate nohighlight">\(\sigma\)</span> is the size of a constituent LJ particle
+inside the colloid particle and wall.  Note that the cutoff distance Rc
+in this case is the distance from the colloid particle center to the
+wall.  The prefactor <span class="math notranslate nohighlight">\(\epsilon\)</span> can be thought of as an effective
+Hamaker constant with energy units for the strength of the colloid-wall
+interaction.  More specifically, the <span class="math notranslate nohighlight">\(\epsilon\)</span> prefactor is
+<span class="math notranslate nohighlight">\(4\pi^2 \rho_{wall} \rho_{colloid} \epsilon \sigma^6\)</span>, where
+<span class="math notranslate nohighlight">\(\epsilon\)</span> and <span class="math notranslate nohighlight">\(\sigma\)</span> are the LJ parameters for the
+constituent LJ particles. <span class="math notranslate nohighlight">\(\rho_{wall}\)</span> and <span class="math notranslate nohighlight">\(\rho_{colloid}\)</span>
+are the number density of the constituent particles, in the wall and
+colloid respectively, in units of 1/volume.</p>
+<p>The <em>wall/colloid</em> interaction is derived by integrating over
+constituent LJ particles of size <span class="math notranslate nohighlight">\(\sigma\)</span> within the colloid
+particle and a 3d half-lattice of Lennard-Jones 12/6 particles of size
+<span class="math notranslate nohighlight">\(\sigma\)</span> in the wall.  As mentioned in the preceding paragraph,
+the density of particles in the wall and colloid can be different, as
+specified by the <span class="math notranslate nohighlight">\(\epsilon\)</span> prefactor.</p>
+<p>For the <em>wall/harmonic</em> and <em>wall/harmonic/outside</em> style,
+<span class="math notranslate nohighlight">\(\epsilon\)</span> is effectively the spring constant K, and has units
+(energy/distance^2).  The input parameter <span class="math notranslate nohighlight">\(\sigma\)</span> is ignored.
+The minimum energy position of the harmonic spring is at the <em>cutoff</em>.
+This is a repulsive-only spring since the interaction is truncated at
+the <em>cutoff</em></p>
+<p>For the <em>wall/morse</em> style, the three parameters are in this order:
+<span class="math notranslate nohighlight">\(D_0\)</span> the depth of the potential, <span class="math notranslate nohighlight">\(\alpha\)</span> the width
+parameter, and <span class="math notranslate nohighlight">\(r_0\)</span> the location of the minimum.  <span class="math notranslate nohighlight">\(D_0\)</span> has
+energy units, <span class="math notranslate nohighlight">\(\alpha\)</span> inverse distance units, and <span class="math notranslate nohighlight">\(r_0\)</span>
+distance units.</p>
+<p>For any wall that supports them, the <span class="math notranslate nohighlight">\(\epsilon\)</span> and/or
+<span class="math notranslate nohighlight">\(\sigma\)</span> and/or <span class="math notranslate nohighlight">\(\alpha\)</span> parameter can be specified as an
+<a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>, in which case it should be
+specified as v_name, where name is the variable name.  As with a
+variable wall position, the variable is evaluated each timestep and the
+result becomes the current epsilon or sigma of the wall.  Equal-style
+variables can specify formulas with various mathematical functions, and
+include <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command keywords for the
+simulation box parameters and timestep and elapsed time.  Thus it is
+easy to specify a time-dependent wall interaction.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For all of the styles (except wall/harmonic/outside), you must ensure that r is always &gt; 0 for
+all particles in the group, or LAMMPS will generate an error.  This
+means you cannot start your simulation with particles at the wall
+position <em>coord</em> (r = 0) or with particles on the wrong side of the
+wall (r &lt; 0).  For the <em>wall/lj93</em> and <em>wall/lj126</em> styles, the energy
+of the wall/particle interaction (and hence the force on the particle)
+blows up as r -&gt; 0.  The <em>wall/colloid</em> style is even more
+restrictive, since the energy blows up as D = r-R -&gt; 0.  This means
+the finite-size particles of radius R must be a distance larger than R
+from the wall position <em>coord</em>.  The <em>harmonic</em> style is a softer
+potential and does not blow up as r -&gt; 0, but you must use a large
+enough <span class="math notranslate nohighlight">\(\epsilon\)</span> that particles always reamin on the correct side of
+the wall (r &gt; 0).</p>
+</div>
+<p>The <em>units</em> keyword determines the meaning of the distance units used
+to define a wall position, but only when a numeric constant or
+variable is used.  It is not relevant when EDGE is used to specify a
+face position.  In the variable case, the variable is assumed to
+produce a value compatible with the <em>units</em> setting you specify.</p>
+<p>A <em>box</em> value selects standard distance units as defined by the
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> command, e.g. Angstroms for units = real or metal.
+A <em>lattice</em> value means the distance units are in lattice spacings.
+The <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> command must have been previously used to
+define the lattice spacings.</p>
+<p>The <em>fld</em> keyword can be used with a <em>yes</em> setting to invoke the wall
+constraint before pairwise interactions are computed.  This allows an
+implicit FLD model using <a class="reference internal" href="pair_lubricateU.html"><span class="doc">pair_style lubricateU</span></a>
+to include the wall force in its calculations.  If the setting is <em>no</em>,
+wall forces are imposed after pairwise interactions, in the usual
+manner.</p>
+<p>The <em>pbc</em> keyword can be used with a <em>yes</em> setting to allow walls to be
+specified in a periodic dimension.  See the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a>
+command for options on simulation box boundaries.  The default for <em>pbc</em>
+is <em>no</em>, which means the system must be non-periodic when using a wall.
+But you may wish to use a periodic box.  E.g. to allow some particles to
+interact with the wall via the fix group-ID, and others to pass through
+it and wrap around a periodic box.  In this case you should ensure that
+the wall is sufficiently far enough away from the box boundary.  If you
+do not, then particles may interact with both the wall and with periodic
+images on the other side of the box, which is probably not what you
+want.</p>
+<hr class="docutils" />
+<p>Here are examples of variable definitions that move the wall position
+in a time-dependent fashion using equal-style
+<a class="reference internal" href="variable.html"><span class="doc">variables</span></a>.  The wall interaction parameters (epsilon,
+sigma) could be varied with additional variable definitions.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">ramp</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">ramp</span><span class="nv">(0,10)</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="w"> </span><span class="n">xlo</span><span class="w"> </span><span class="n">v_ramp</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+
+<span class="k">variable </span><span class="nv nv-Identifier">linear</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">vdisplace</span><span class="nv">(0,20)</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="w"> </span><span class="n">xlo</span><span class="w"> </span><span class="n">v_linear</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+
+<span class="k">variable </span><span class="nv nv-Identifier">wiggle</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">swiggle</span><span class="nv">(0.0,5.0,3.0)</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="w"> </span><span class="n">xlo</span><span class="w"> </span><span class="n">v_wiggle</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+
+<span class="k">variable </span><span class="nv nv-Identifier">wiggle</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">cwiggle</span><span class="nv">(0.0,5.0,3.0)</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="w"> </span><span class="n">xlo</span><span class="w"> </span><span class="n">v_wiggle</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+</pre></div>
+</div>
+<p>The <em>ramp(lo,hi)</em> function adjusts the wall position linearly from <em>lo</em> to
+<em>hi</em> over the course of a run.  The <em>vdisplace(c0,velocity)</em> function does
+something similar using the equation <em>position = c0 + velocity*delta</em>,
+where <em>delta</em> is the elapsed time.</p>
+<p>The <em>swiggle(c0,A,period)</em> function causes the wall position to
+oscillate sinusoidally according to this equation, where <em>omega = 2 PI
+/ period</em>:</p>
+<pre class="literal-block">position = c0 + A sin(omega*delta)</pre>
+<p>The <em>cwiggle(c0,A,period)</em> function causes the wall position to
+oscillate sinusoidally according to this equation, which will have an
+initial wall velocity of 0.0, and thus may impose a gentler
+perturbation on the particles:</p>
+<pre class="literal-block">position = c0 + A (1 - cos(omega*delta))</pre>
+</section>
+<hr class="docutils" />
+<section id="lepton-expression-syntax-and-features">
+<h2>Lepton expression syntax and features<a class="headerlink" href="#lepton-expression-syntax-and-features" title="Link to this heading"></a></h2>
+<p>Lepton supports the following operators in expressions:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>+</p></td>
+<td><p>Add</p></td>
+<td></td>
+<td><p>-</p></td>
+<td><p>Subtract</p></td>
+<td></td>
+<td><p>*</p></td>
+<td><p>Multiply</p></td>
+<td></td>
+<td><p>/</p></td>
+<td><p>Divide</p></td>
+<td></td>
+<td><p>^</p></td>
+<td><p>Power</p></td>
+</tr>
+</tbody>
+</table>
+<p>The following mathematical functions are available:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>sqrt(x)</p></td>
+<td><p>Square root</p></td>
+<td><p>exp(x)</p></td>
+<td><p>Exponential</p></td>
+</tr>
+<tr class="row-even"><td><p>log(x)</p></td>
+<td><p>Natural logarithm</p></td>
+<td><p>sin(x)</p></td>
+<td><p>Sine (angle in radians)</p></td>
+</tr>
+<tr class="row-odd"><td><p>cos(x)</p></td>
+<td><p>Cosine (angle in radians)</p></td>
+<td><p>sec(x)</p></td>
+<td><p>Secant (angle in radians)</p></td>
+</tr>
+<tr class="row-even"><td><p>csc(x)</p></td>
+<td><p>Cosecant (angle in radians)</p></td>
+<td><p>tan(x)</p></td>
+<td><p>Tangent (angle in radians)</p></td>
+</tr>
+<tr class="row-odd"><td><p>cot(x)</p></td>
+<td><p>Cotangent (angle in radians)</p></td>
+<td><p>asin(x)</p></td>
+<td><p>Inverse sine (in radians)</p></td>
+</tr>
+<tr class="row-even"><td><p>acos(x)</p></td>
+<td><p>Inverse cosine (in radians)</p></td>
+<td><p>atan(x)</p></td>
+<td><p>Inverse tangent (in radians)</p></td>
+</tr>
+<tr class="row-odd"><td><p>sinh(x)</p></td>
+<td><p>Hyperbolic sine</p></td>
+<td><p>cosh(x)</p></td>
+<td><p>Hyperbolic cosine</p></td>
+</tr>
+<tr class="row-even"><td><p>tanh(x)</p></td>
+<td><p>Hyperbolic tangent</p></td>
+<td><p>erf(x)</p></td>
+<td><p>Error function</p></td>
+</tr>
+<tr class="row-odd"><td><p>erfc(x)</p></td>
+<td><p>Complementary Error function</p></td>
+<td><p>abs(x)</p></td>
+<td><p>Absolute value</p></td>
+</tr>
+<tr class="row-even"><td><p>min(x,y)</p></td>
+<td><p>Minimum of two values</p></td>
+<td><p>max(x,y)</p></td>
+<td><p>Maximum of two values</p></td>
+</tr>
+<tr class="row-odd"><td><p>delta(x)</p></td>
+<td><p>delta(x) is 1 for <cite>x = 0</cite>, otherwise 0</p></td>
+<td><p>step(x)</p></td>
+<td><p>step(x) is 0 for <cite>x &lt; 0</cite>, otherwise 1</p></td>
+</tr>
+</tbody>
+</table>
+<p>Numbers may be given in either decimal or exponential form.  All of the
+following are valid numbers: <cite>5</cite>, <cite>-3.1</cite>, <cite>1e6</cite>, and <cite>3.12e-2</cite>.</p>
+<p>As an extension to the standard Lepton syntax, it is also possible to
+use LAMMPS <a class="reference internal" href="variable.html"><span class="doc">variables</span></a> in the format “v_name”.  Before
+evaluating the expression, “v_name” will be replaced with the value of
+the variable “name”.  This is compatible with all kinds of scalar
+variables, but not with vectors, arrays, local, or per-atom
+variables.  If necessary, a custom scalar variable needs to be defined
+that can access the desired (single) item from a non-scalar variable.
+As an example, the following lines will instruct LAMMPS to ramp
+the force constant for a harmonic bond from 100.0 to 200.0 during the
+next run:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">fconst</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">ramp</span><span class="nv">(100.0, 200)</span>
+<span class="k">bond_style</span><span class="w"> </span><span class="n">lepton</span>
+<span class="k">bond_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="s">&quot;v_fconst * (r^2)&quot;</span>
+</pre></div>
+</div>
+<p>An expression may be followed by definitions for intermediate values that appear in the
+expression. A semicolon “;” is used as a delimiter between value definitions. For example,
+the expression:</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="o">^</span><span class="mi">2</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">b</span><span class="o">+</span><span class="n">b</span><span class="o">^</span><span class="mi">2</span><span class="p">;</span><span class="w"> </span><span class="n">a</span><span class="o">=</span><span class="n">a1</span><span class="o">+</span><span class="n">a2</span><span class="p">;</span><span class="w"> </span><span class="n">b</span><span class="o">=</span><span class="n">b1</span><span class="o">+</span><span class="n">b2</span>
+</pre></div>
+</div>
+<p>is exactly equivalent to</p>
+<div class="highlight-C notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">a1</span><span class="o">+</span><span class="n">a2</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span><span class="o">+</span><span class="p">(</span><span class="n">a1</span><span class="o">+</span><span class="n">a2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">b1</span><span class="o">+</span><span class="n">b2</span><span class="p">)</span><span class="o">+</span><span class="p">(</span><span class="n">b1</span><span class="o">+</span><span class="n">b2</span><span class="p">)</span><span class="o">^</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>The definition of an intermediate value may itself involve other
+intermediate values. Whitespace and quotation characters (’'’ and ‘”’)
+are ignored.  All uses of a value must appear <em>before</em> that value’s
+definition.  For efficiency reasons, the expression string is parsed,
+optimized, and then stored in an internal, pre-parsed representation for
+evaluation.</p>
+<p>Evaluating a Lepton expression is typically between 2.5 and 5 times
+slower than the corresponding compiled and optimized C++ code.  If
+additional speed or GPU acceleration (via GPU or KOKKOS) is required,
+the interaction can be represented as a table.  Suitable table files
+can be created either internally using the <a class="reference internal" href="pair_write.html"><span class="doc">pair_write</span></a>
+or <a class="reference internal" href="bond_write.html"><span class="doc">bond_write</span></a> command or through the Python scripts
+in the <a class="reference internal" href="Tools.html#tabulate"><span class="std std-ref">tools/tabulate</span></a> folder.</p>
+</section>
+<hr class="docutils" />
+<section id="table-file-format">
+<h2>Table file format<a class="headerlink" href="#table-file-format" title="Link to this heading"></a></h2>
+<p>Suitable tables for use with fix <em>wall/table</em> can be created by the
+Python code in the <code class="docutils literal notranslate"><span class="pre">tools/tabulate</span></code> folder of the LAMMPS source code
+distribution.</p>
+<p>The format of a tabulated file is as follows (without the parenthesized
+comments):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Tabulated wall potential UNITS: real
+
+HARMONIC                       (keyword is the first text on a line)
+N 100 FP 200 200
+                               (blank line)
+1  0.04    1568.16    792.00   (index, distance to wall, energy, force)
+2  0.08    1536.64    784.00
+3  0.12    1505.44    776.00
+...
+99  3.96      0.16      8.00
+100  4.00     0         0
+</pre></div>
+</div>
+<p>A section begins with a non-blank line whose first character is not a
+“#”; blank lines or lines starting with “#” can be used as comments
+between sections.  The first line begins with a keyword which identifies
+the section.  The line can contain additional text, but the initial text
+must match the argument specified in the fix <em>wall/table</em> command.  The
+next line lists (in any order) one or more parameters for the table.
+Each parameter is a keyword followed by one or more numeric values.</p>
+<p>The parameter “N” is required and its value is the number of table
+entries that follow.  Note that this may be different than the <em>N</em>
+specified in the fix <em>wall/table</em> command.  Let Ntable = <em>N</em> in the fix
+command, and Nfile = “N” in the tabulated file.  What LAMMPS does is a
+preliminary interpolation by creating splines using the Nfile tabulated
+values as nodal points.  It uses these to interpolate as needed to
+generate energy and force values at Ntable different points.  The
+resulting tables of length Ntable are then used as described above, when
+computing energy and force for wall-particle interactions.  This means that
+if you want the interpolation tables of length Ntable to match exactly
+what is in the tabulated file (with effectively no preliminary
+interpolation), you should set Ntable = Nfile.</p>
+</section>
+<hr class="docutils" />
+<section id="dump-image-info">
+<h2>Dump image info<a class="headerlink" href="#dump-image-info" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p>These wall fixes support the <em>fix</em> keyword of <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>.  The fixes will pass geometry information about the walls
+to <em>dump image</em> so that the walls will be included in the rendered
+image.  Please note, that for <a class="reference internal" href="dimension.html"><span class="doc">2d systems</span></a>, a wall
+rendered as a plane would be invisible and it is thus rendered as a
+cylinder.</p>
+<p>The color of the wall is by default that of the first atom type when
+using color styles “type” or “element”.  With color style “const” the
+default value of “white” can be changed using <a class="reference internal" href="dump_image.html"><span class="doc">dump_modify fcolor</span></a>.  The transparency is by default fully opaque and can be
+changed with <em>dump_modify ftrans</em>.</p>
+<p>For 2d systems, the <em>fflag1</em> setting determines whether the cylinder
+representing the wall is capped with a sphere at the ends: 0 means no caps, 1
+means the lower end is capped, 2 means the upper end is capped, and 3
+means both ends are capped.  The <em>fflag2</em> setting allows to adjust the
+radius of the rendered cylinder.  It should be set to a value &gt; 0 or the
+cylinder will not be visible since the diameter is set internally to
+zero due to lack of a suitable heuristic for deriving a meaningful
+diameter for all types of walls and unit settings.</p>
+<p>For 3d systems, both <em>fflag1</em> and <em>fflag2</em> are ignored.</p>
+</section>
+<hr class="docutils" />
+<section id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Link to this heading"></a></h2>
+<p>No information about these fixes are written to <a class="reference internal" href="restart.html"><span class="doc">binary restart
+files</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em> option is supported by these
+fixes to add the energy of interaction between atoms and all the
+specified walls to the global potential energy of the system as part of
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.  The default setting for
+these fixes is <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify energy no</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>virial</em> option is supported by
+these fixes to add the contribution due to the interaction between atoms
+and all the specified walls to both the global pressure and per-atom
+stress of the system via the <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> and <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a> commands.  The former can be accessed by
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>.  The default setting for
+these fixes is <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify virial no</span></a>.</p>
+<p>The <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>respa</em> option is supported by these
+fixes.  This allows to set at which level of the <a class="reference internal" href="run_style.html"><span class="doc">r-RESPA</span></a> integrator a fix is adding its forces.  Default is the
+outermost level.</p>
+<p>These fixes compute a global scalar energy and a global vector of
+forces, which can be accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  Note that the scalar energy is the sum of interactions
+with all defined walls.  If you want the energy on a per-wall basis, you
+need to use multiple fix wall commands.  The length of the vector is
+equal to the number of walls defined by the fix.  Each vector value is
+the normal force on a specific wall.  Note that an outward force on a
+wall will be a negative value for <em>lo</em> walls and a positive value for
+<em>hi</em> walls.  The scalar and vector values calculated by this fix are
+“extensive”.</p>
+<p>No parameter of these fixes can be used with the <em>start/stop</em> keywords
+of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.</p>
+<p>The forces due to these fixes <em>are</em> imposed during an energy
+minimization, invoked by the <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you want the atom/wall interaction energy to be included in
+the total potential energy of the system (the quantity being
+minimized), you MUST enable the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> <em>energy</em>
+option for this fix.</p>
+</div>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the <a class="reference internal" href="Speed_packages.html"><span class="doc">Accelerator packages</span></a>
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the GPU, INTEL, KOKKOS,
+OPENMP, and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Run_options.html"><span class="doc">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can use the
+<a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Accelerator packages</span></a> page for more
+instructions on how to use the accelerated styles effectively.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>Fix <em>wall/lepton</em> is part of the LEPTON package and only enabled if
+LAMMPS was built with this package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="fix_wall_reflect.html"><span class="doc">fix wall/reflect</span></a>,
+<a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a>,
+<a class="reference internal" href="fix_wall_region.html"><span class="doc">fix wall/region</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The option defaults units = lattice, fld = no, and pbc = no.</p>
+<hr class="docutils" />
+<p id="magda"><strong>(Magda)</strong> Magda, Tirrell, Davis, J Chem Phys, 83, 1888-1901 (1985);
+erratum in JCP 84, 2901 (1986).</p>
+<p id="barraud"><strong>(Barraud)</strong> Barraud, Dalmazzone, Moureta, De Bruin, Creton, Pasquier, Lachet and Nieto-Draghi, Langmuir, 41 (11), 7272-7282 (2025).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fix_viscous_sphere.html" class="btn btn-neutral float-left" title="fix viscous/sphere command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_wall_body_polygon.html" class="btn btn-neutral float-right" title="fix wall/body/polygon command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,51 @@
+# sample surface deposition script for atoms
+
+units		lj
+atom_style      atomic
+boundary        p p f
+
+lattice		fcc 1.0
+region          box block 0 5 0 5 0 10
+create_box      2 box
+
+region		substrate block INF INF INF INF INF 3
+create_atoms	1 region substrate
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0
+pair_coeff	1 2 1.0 1.0 5.0
+mass		* 1.0
+
+neigh_modify	delay 0
+
+group		addatoms type 2
+region          mobile block 0 5 0 5 2 INF
+group		mobile region mobile
+
+compute		add addatoms temp
+compute_modify	add dynamic/dof yes extra/dof 0
+
+fix		1 addatoms nve
+fix		2 mobile langevin 1.0 1.0 0.1 587283
+fix		3 mobile nve
+
+region          slab block 0 5 0 5 8 9
+fix		4 addatoms deposit 100 2 100 12345 region slab near 1.0 &
+                vz -1.0 -1.0
+fix		5 addatoms wall/reflect zhi EDGE
+
+thermo_style	custom step atoms temp epair etotal press
+thermo          100
+thermo_modify	temp add
+
+#dump		1 all atom 50 dump.deposit.atom
+
+#dump		2 all image 50 image.*.jpg type type &
+#		axes yes 0.8 0.02 view 80 -30
+#dump_modify	2 pad 5
+
+#dump		3 all movie 50 movie.mpg type type &
+#		axes yes 0.8 0.02 view 80 -30
+#dump_modify	3 pad 5
+
+run             10000

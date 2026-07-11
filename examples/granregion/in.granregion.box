@@ -1,0 +1,66 @@
+# pouring spheres into container box
+
+units		lj
+atom_style      sphere
+boundary        f f f
+dimension	3
+comm_modify     vel yes
+
+region          box block -10 10 -10 10 -10 10 units box
+create_box      2 box
+
+pair_style	hybrid gran/hooke 4000.0 NULL 100.0 NULL 0.5 1
+pair_coeff	* * gran/hooke
+
+region          container block -6 6 -6 6 -6 6 units box
+fix		container all wall/gran/region hooke/history &
+		4000.0 NULL 100.0 NULL 0.5 1 region container
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix             2 all nve/sphere
+fix		3 all gravity 1.0 vector 0 0 -1
+
+region          slab block -2 2 -2 2 -2 2 units box
+fix             ins all pour 100 2 4767548 vol 0.4 10 &
+	        diam one 1.0 region slab ignore
+
+timestep	0.005
+
+compute         1 all temp
+compute_modify  1 dynamic/dof yes
+
+compute         2 all temp/sphere
+compute_modify  2 dynamic/dof yes
+
+thermo		100
+thermo_style	custom step atoms temp c_1 c_2 press
+thermo_modify   lost ignore
+compute_modify  thermo_temp dynamic/dof yes
+
+#dump		2 all image 100 image.*.jpg type type &
+#		zoom 1.4 adiam 1.0 box no 0.0 axes yes 0.9 0.03
+#dump_modify	2 pad 5
+
+run	        5000
+
+region          container delete
+variable        theta equal (step-5000)*(4.0*PI/5000)
+region          container block -6 6 -6 6 -6 6 units box &
+                rotate v_theta 0 0 0 0 0 1
+run	        5000
+
+region          container delete
+region          container block -6 6 -6 6 -6 6 units box
+run             5000
+
+region          container delete
+variable        theta equal (step-15000)*(4.0*PI/5000)
+region          container block -6 6 -6 6 -6 6 units box &
+                rotate v_theta 0 0 0 1 1 1
+run	        5000
+
+region          container delete
+region          container block -6 6 -6 6 -6 6 units box
+run             5000

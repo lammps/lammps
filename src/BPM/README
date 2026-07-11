@@ -1,0 +1,6 @@
+BPM or Bonded Particle Models is a package to model solid mechanical systems.
+The packaged is authored by Joel Clemmer (jtclemm@sandia.gov).
+
+Please see the relevant how to page in the LAMMPS documentation,
+https://docs.lammps.org/Howto_bpm.html
+for more background and details on what's included in the package.

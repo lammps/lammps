@@ -1,0 +1,287 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.5.12. Reproducing hydrodynamics and elastic objects (RHEO) &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_rheo.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.5.13. Magnetic spins" href="Howto_spins.html" />
+    <link rel="prev" title="10.5.11. Manifolds (surfaces)" href="Howto_manifold.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_spherical.html">10.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular.html">10.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular_surfaces.html">10.5.3. Granular surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">10.5.4. Body particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bpm.html">10.5.5. Bonded particle models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">10.5.6. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">10.5.7. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">10.5.8. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_peri.html">10.5.10. Peridynamics with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">10.5.11. Manifolds (surfaces)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.5.12. Reproducing hydrodynamics and elastic objects (RHEO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spins.html">10.5.13. Magnetic spins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_apip.html">10.5.14. Adaptive-precision interatomic potentials (APIP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_ldd.html">10.5.15. Local Density Dependent Potentials via LDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.5.12. </span>Reproducing hydrodynamics and elastic objects (RHEO)</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_manifold.html" class="btn btn-neutral float-left" title="10.5.11. Manifolds (surfaces)" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_spins.html" class="btn btn-neutral float-right" title="10.5.13. Magnetic spins" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="reproducing-hydrodynamics-and-elastic-objects-rheo">
+<h1><span class="section-number">10.5.12. </span>Reproducing hydrodynamics and elastic objects (RHEO)<a class="headerlink" href="#reproducing-hydrodynamics-and-elastic-objects-rheo" title="Link to this heading"></a></h1>
+<p>The RHEO package is a hybrid implementation of smoothed particle
+hydrodynamics (SPH) for fluid flow, which can couple to the <a class="reference internal" href="Howto_bpm.html"><span class="doc">BPM package</span></a> to model solid elements. RHEO combines these methods to enable
+mesh-free modeling of multi-phase material systems. Its SPH solver supports
+many advanced options including reproducing kernels, particle shifting, free
+surface identification, and solid surface reconstruction. To model fluid-solid
+systems, the status of particles can dynamically change between a fluid and
+solid state, e.g. during melting/solidification, which determines how they
+interact and their physical behavior. The package is designed with modularity
+in mind, so one can easily turn various features on/off, adjust physical
+details of the system, or develop new capabilities. For instance, the numerics
+associated with calculating gradients, reproducing kernels, etc. are separated
+into distinct classes to simplify the development of new integration schemes
+which can call these calculations. Additional numerical details can be found in
+<a class="reference internal" href="#howto-rheo-palermo"><span class="std std-ref">(Palermo)</span></a> and <a class="reference internal" href="#howto-rheo-clemmer"><span class="std std-ref">(Clemmer)</span></a>.
+Example movies illustrating some of these capabilities are found at
+<a class="reference external" href="https://www.lammps.org/movies.html#rheopackage">https://www.lammps.org/movies.html#rheopackage</a>.</p>
+<p>Note, if you simply want to run a traditional SPH simulation, the <a class="reference internal" href="Packages_details.html#pkg-sph"><span class="std std-ref">SPH package</span></a> package is likely better suited for your application. It has fewer advanced
+features and therefore benefits from improved performance. The <a class="reference internal" href="Packages_details.html#pkg-machdyn"><span class="std std-ref">MACHDYN</span></a> package for solids may also be relevant for fluid-solid problems.</p>
+<hr class="docutils" />
+<p>At the core of the package is <a class="reference internal" href="fix_rheo.html"><span class="doc">fix rheo</span></a> which integrates
+particle trajectories and controls many optional features (e.g. the use
+of reproducing kernels). In conjunction to fix rheo, one must specify an
+instance of <a class="reference internal" href="fix_rheo_pressure.html"><span class="doc">fix rheo/pressure</span></a> and
+<a class="reference internal" href="fix_rheo_viscosity.html"><span class="doc">fix rheo/viscosity</span></a> to define a pressure equation
+of state and viscosity model, respectively. Optionally, one can model
+a heat equation with <a class="reference internal" href="fix_rheo_thermal.html"><span class="doc">fix rheo/thermal</span></a>, which also
+allows the user to specify equations for a particle’s thermal conductivity,
+specific heat, latent heat, and melting temperature. The ordering of these
+fixes in an an input script matters. Fix rheo must be defined prior to all
+other RHEO fixes.</p>
+<p>Typically, RHEO requires atom style rheo. In addition to typical atom
+properties like positions and forces, particles store a local density,
+viscosity, pressure, and status. If thermal evolution is modeled, one must
+use atom style rheo/thermal which also includes a local energy, temperature, and
+conductivity. Note that the temperature is always derived from the energy.
+This implies the <em>temperature</em> attribute of <a class="reference internal" href="set.html"><span class="doc">the set command</span></a> does not
+affect particles. Instead, one should use the <em>sph/e</em> attribute.</p>
+<p>The status variable uses bit-masking to track various properties of a particle
+such as its current state of matter (fluid or solid) and its location relative
+to a surface. Some of these properties (and others) can be accessed using
+<a class="reference internal" href="compute_rheo_property_atom.html"><span class="doc">compute rheo/property/atom</span></a>. The <em>status</em>
+attribute in <a class="reference internal" href="set.html"><span class="doc">the set command</span></a> only allows control over the first bit
+which sets the state of matter, 0 is fluid and 1 is solid.</p>
+<p>Fluid interactions, including pressure forces, viscous forces, and heat exchange,
+are calculated using <a class="reference internal" href="pair_rheo.html"><span class="doc">pair rheo</span></a>. Unlike typical pair styles,
+pair rheo ignores the <a class="reference internal" href="special_bonds.html"><span class="doc">special bond</span></a> settings. Instead,
+it determines whether to calculate forces based on the status of particles: e.g.,
+hydrodynamic forces are only calculated if a fluid particle is involved.</p>
+<hr class="docutils" />
+<p>To model elastic objects, there are currently two mechanisms in RHEO, one designed
+for bulk solid bodies and the other for thin shells. Both mechanisms rely on
+introducing bonded forces between particles and therefore require a hybrid of atom
+style bond and rheo (or rheo/thermal).</p>
+<p>To create an elastic solid body, one has to (a) change the status of constituent
+particles to solid (e.g. with the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command), (b) create bpm
+bonds between the particles (see the <a class="reference internal" href="Howto_bpm.html"><span class="doc">bpm howto</span></a> page for
+more details), and (c) use <a class="reference internal" href="pair_rheo_solid.html"><span class="doc">pair rheo/solid</span></a> to
+apply repulsive contact forces between distinct solid bodies. Akin to pair rheo,
+pair rheo/solid considers a particle’s fluid/solid phase to determine whether to
+apply forces. However, unlike pair rheo, pair rheo/solid does obey special bond
+settings such that contact forces do not have to be calculated between two bonded
+solid particles in the same elastic body.</p>
+<p>In systems with thermal evolution, fix rheo/thermal can optionally set a
+melting/solidification temperature allowing particles to dynamically swap their
+state between fluid and solid when the temperature exceeds or drops below the
+critical temperature, respectively. Using the <em>react</em> option, one can specify a maximum
+bond length and a bond type. Then, when solidifying, particles search their
+local neighbors and automatically create bonds with any neighboring solid particles
+in range. For BPM bond styles, bonds then use the immediate position of the two
+particles to calculate a reference state. When melting, particles delete any
+bonds of the specified type when reverting to a fluid state. Special bonds are updated
+as bonds are created/broken.</p>
+<p>The other option for elastic objects is an elastic shell that is nominally much
+thinner than a particle diameter, e.g. a oxide skin which gradually forms over time
+on the surface of a fluid. Currently, this is implemented using
+<a class="reference internal" href="fix_rheo_oxidation.html"><span class="doc">fix rheo/oxidation</span></a> and bond style
+<a class="reference internal" href="bond_rheo_shell.html"><span class="doc">rheo/shell</span></a>. Essentially, fix rheo/oxidation creates candidate
+bonds of a specified type between surface fluid particles within a specified distance.
+a newly created rheo/shell bond will then start a timer. While the timer is counting
+down, the bond will delete itself if particles move too far apart or move away from the
+surface. However, if the timer reaches a user-defined threshold, then the bond will
+activate and apply additional forces to the fluid particles. Bond style rheo/shell
+then operates very similarly to a BPM bond style, storing a reference length and
+breaking if stretched too far. Unlike the above method, this option does not remove
+the underlying fluid interactions (although particle shifting is turned off) and does
+not modify special bond settings of particles.</p>
+<p>While these two options are not expected to be appropriate for every system,
+either framework can be modified to create more suitable models (e.g. by changing the
+criteria for creating/deleting a bond or altering force calculations).</p>
+<hr class="docutils" />
+<p id="howto-rheo-palermo"><strong>(Palermo)</strong> Palermo, Wolf, Clemmer, O’Connor, Phys. Fluids, 36, 113337 (2024).</p>
+<p id="howto-rheo-clemmer"><strong>(Clemmer)</strong> Clemmer, Pierce, O’Connor, Nevins, Jones, Lechman, Tencer, Appl. Math. Model., 130, 310-326 (2024).</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_manifold.html" class="btn btn-neutral float-left" title="10.5.11. Manifolds (surfaces)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_spins.html" class="btn btn-neutral float-right" title="10.5.13. Magnetic spins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

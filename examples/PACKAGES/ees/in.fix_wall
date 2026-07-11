@@ -1,0 +1,30 @@
+units lj
+atom_style ellipsoid
+boundary p p f
+read_data Data_wall
+#------------------------------------#
+pair_style resquared 1
+pair_coeff 1 1 10.0 1.0 0.5 0.5 4 0.5 0.5 4 1
+#------------------------------------#
+timestep 0.0002
+#------------------------------------#
+
+compute temp all temp/asphere
+thermo_modify temp temp
+
+fix EES_substrate all wall/ees zhi EDGE 10 1 10 zlo EDGE 10 1 10
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^#
+
+thermo_style custom step temp press etotal f_EES_substrate f_EES_substrate[1]
+
+fix NVE all nve/asphere
+#------------------------------------#
+compute qw all  property/atom quatw
+compute qi all  property/atom quati
+compute qj all  property/atom quatj
+compute qk all  property/atom quatk
+#------------------------------------#
+thermo 500
+#dump 1 all custom 1000 dump_substrate id type x y z c_qw c_qi c_qj c_qk 
+run 40000
+

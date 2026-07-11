@@ -1,0 +1,36 @@
+SWIG generated script library wrappers
+
+The SWIG tool ( http://swig.org ) offers a mostly automated way to
+incorporate compiled code modules into scripting languages.  It
+processes the function prototypes in C and generates wrappers for a wide
+variety of scripting languages from it.
+
+We provide here an "interface file", "lammps.i", that has the content of
+the "library.h" file adapted so SWIG can process it.  Please note that
+not all kinds of C functions can be automatically translated, so you
+would have to add custom functions to be able to utilize them.  A few
+functions for converting pointers and accessing arrays are predefined.
+We provide the files here on an "as is" basis to help people getting
+started, but not as a fully tested and supported feature of the
+distribution.  Any contributions to complete this are, of course,
+welcome.
+
+In the case of Python, a fully supported and complete wrapper already
+exists in the "lammps" module in the "python" folder.  This wrapper is
+based on Ctypes and is object oriented while SWIG will generate a 1:1
+translation of the functions in the interface file.
+
+When using the CMake build system, steps for building wrapper modules
+are integrated for the languages: Java, Lua, Perl5, Python, Ruby, and
+Tcl and can be selected during the configuration step.  These require
+that the LAMMPS library is build as a shared library and all necessary
+development headers and libraries of the selected script languages are
+present.  To demonstrate the resulting wrappers, several example shell
+scripts (run_*_example.sh) are provided that contain commands to create
+an example script file and to demonstrate the use of the wrapped library
+functions in the respective programming language.
+
+For details on how to build and adjust wrappers for individual
+languages please refer to the SWIG documentation at http://swig.org/doc.html
+
+This functionality has been tested on Fedora 32 with SWIG 4.0.1.

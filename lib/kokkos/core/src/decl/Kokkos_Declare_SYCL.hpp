@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_DECLARE_SYCL_HPP
+#define KOKKOS_DECLARE_SYCL_HPP
+
+#if defined(KOKKOS_ENABLE_SYCL)
+#include <SYCL/Kokkos_SYCL.hpp>
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
+#include <SYCL/Kokkos_SYCL_GraphNodeKernel.hpp>
+#endif
+#include <SYCL/Kokkos_SYCL_Half_Impl_Type.hpp>
+#include <SYCL/Kokkos_SYCL_Half_Conversion.hpp>
+#include <SYCL/Kokkos_SYCL_Half_MathematicalFunctions.hpp>
+#include <SYCL/Kokkos_SYCL_DeepCopy.hpp>
+#include <SYCL/Kokkos_SYCL_MDRangePolicy.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelFor_Range.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelFor_MDRange.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelFor_Team.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelReduce_Range.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelReduce_MDRange.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelReduce_Team.hpp>
+#include <SYCL/Kokkos_SYCL_ParallelScan_Range.hpp>
+#include <SYCL/Kokkos_SYCL_UniqueToken.hpp>
+#include <SYCL/Kokkos_SYCL_ZeroMemset.hpp>
+
+namespace Kokkos {
+namespace Experimental {
+using SYCLDeviceUSMSpace = ::Kokkos::SYCLDeviceUSMSpace;
+using SYCLHostUSMSpace   = ::Kokkos::SYCLHostUSMSpace;
+using SYCLSharedUSMSpace = ::Kokkos::SYCLSharedUSMSpace;
+using SYCL               = ::Kokkos::SYCL;
+}  // namespace Experimental
+}  // namespace Kokkos
+
+#endif
+
+#endif

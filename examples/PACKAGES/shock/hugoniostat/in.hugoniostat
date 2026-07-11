@@ -1,0 +1,163 @@
+# This script reproduces stress trajectories from Fig. 1 in
+# Ravelo, Holian, Germann, and Lomdahl, PRB 70 014103 (2004)
+#
+# Three thermostatting scenarios are visited: undamped (nodrag),
+# damped (drag) and Nose-Hoover chain (nhchains).
+#
+# The axial and shear stress trajectories are printed to the
+# file "stress_vs_t.dat". For the damped case, the original figure
+# seems to be a plot of 2*tau, rather than tau.
+#
+# The script also demonstrates how to
+# orient a crystal along <110>,
+# and how to use the lj/cubic pair style.
+
+units           lj
+boundary        p p p
+
+atom_style      atomic
+
+# Set up FCC lattice with z axis along <110>
+
+lattice                fcc 1.4142136 &
+                       orient x 0 0 1 &
+                       orient y 1 -1 0 &
+                       orient z 1 1 0
+
+region         mycell block 0.0 5.0 0.0 5.0 0.0 5.0 units lattice
+create_box     1 mycell
+mass           * 1.0
+create_atoms   1 box
+
+# Using units of Rmin, so sigma = 2^-1/6 = 0.8908987
+
+pair_style lj/cubic
+pair_coeff * * 1.0 0.8908987
+
+# Relax box dimensions
+
+fix             3 all box/relax aniso 0.0 vmax 1.0e-4 nreset 100
+
+thermo          100
+thermo_style    custom step temp pe etotal pxx pyy pzz lx ly lz
+
+min_modify      line quadratic
+minimize        0.0 1.0e-6 10000 100000
+
+# Define initial velocity
+
+velocity        all create 0.01 87287 mom yes rot yes dist gaussian
+write_restart restart.equil
+
+# Start Run #1
+
+clear
+read_restart restart.equil
+
+neighbor        0.2 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+reset_timestep 0
+
+# Pzz = 40.0, drag/damping term off
+
+fix myhug all nphug temp 1.0 1.0 10.0 z 40.0 40.0 70.0 drag 0.0 tchain 1 pchain 0
+
+# Specify reference state from paper, times 1000 atoms
+
+fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
+
+# Define output
+
+variable dele  equal f_myhug[1] # energy delta [temperature]
+variable us    equal f_myhug[2] # shock velocity [distance/time]
+variable up    equal f_myhug[3] # particle velocity [distance/time]
+variable pzz   equal pzz  # axial stress
+variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
+variable time equal dt*step
+
+thermo          1000
+thermo_style custom step temp ke epair econserve pzz v_tau lz f_myhug v_dele v_us v_up
+
+fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (no drag)'
+
+#dump           id all atom 500 dump.hugoniostat
+
+#dump           2 all image 500 image.*.jpg type type &
+#               axes yes 0.8 0.02 view 60 -30
+#dump_modify    2 pad 5
+
+#dump           3 all movie 500 movie.mpg type type &
+#               axes yes 0.8 0.02 view 60 -30
+#dump_modify    3 pad 5
+
+run             10000
+
+# Start Run #2
+
+clear
+read_restart restart.equil
+
+neighbor        0.2 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+reset_timestep 0
+
+# Pzz = 40.0, drag/damping term on
+
+fix myhug all nphug temp 1.0 1.0 1.0 z 40.0 40.0 70.0 drag 200.0 tchain 1 pchain 0
+
+# Specify reference state from paper, times 1000 atoms
+
+fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
+
+# Define output
+
+variable dele  equal f_myhug[1] # energy delta [temperature]
+variable us    equal f_myhug[2] # shock velocity [distance/time]
+variable up    equal f_myhug[3] # particle velocity [distance/time]
+variable pzz   equal pzz  # axial stress
+variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
+variable time equal dt*step
+
+thermo          1000
+thermo_style custom step temp ke epair econserve pzz v_tau lz f_myhug v_dele v_us v_up
+
+fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (with drag)'
+
+run             10000
+
+# Start Run #3
+
+clear
+read_restart restart.equil
+
+neighbor        0.2 bin
+neigh_modify    every 1 delay 0 check yes
+timestep        0.001
+reset_timestep 0
+
+# Pzz = 40.0, drag/damping term off, Nose-Hoover chains
+
+fix myhug all nphug temp 1.0 1.0 1.0 z 40.0 40.0 70.0
+
+# Specify reference state from paper, times 1000 atoms
+
+fix_modify myhug e0 -6334.0 p0 0.0 v0 680.73519
+
+# Define output
+
+variable dele  equal f_myhug[1] # energy delta [temperature]
+variable us    equal f_myhug[2] # shock velocity [distance/time]
+variable up    equal f_myhug[3] # particle velocity [distance/time]
+variable pzz   equal pzz  # axial stress
+variable tau equal 0.5*(pzz-0.5*(pxx+pyy)) # shear stress
+variable time equal dt*step
+
+thermo          1000
+thermo_style custom step temp ke epair econserve pzz v_tau lz f_myhug v_dele v_us v_up
+
+fix stress all print 10 "${time} ${pzz} ${tau} " screen no append stress_vs_t.dat title '#time pzz tau (Nose-Hoover chain)'
+
+run             10000
+

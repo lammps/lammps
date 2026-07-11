@@ -1,0 +1,1139 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.1.2. Visualize LAMMPS snapshots &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_viz.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.1.5. Run multiple simulations from one input script" href="Howto_multiple.html" />
+    <link rel="prev" title="10.1.1. Restart a simulation" href="Howto_restart.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_restart.html">10.1.1. Restart a simulation</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.1.2. Visualize LAMMPS snapshots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#basic-workflow-for-loading-lammps-trajectories-in-vmd">10.1.3. Basic workflow for loading LAMMPS trajectories in VMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#advanced-graphics-features-in-the-dump-image-command">10.1.4. Advanced graphics features in the <em>dump image</em> command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_multiple.html">10.1.5. Run multiple simulations from one input script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_replica.html">10.1.6. Multi-replica simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_library.html">10.1.7. Library interface to LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_couple.html">10.1.8. Coupling LAMMPS to other codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_mdi.html">10.1.9. Using LAMMPS with the MDI library for code coupling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.1.2. </span>Visualize LAMMPS snapshots</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_restart.html" class="btn btn-neutral float-left" title="10.1.1. Restart a simulation" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_multiple.html" class="btn btn-neutral float-right" title="10.1.5. Run multiple simulations from one input script" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="visualize-lammps-snapshots">
+<h1><span class="section-number">10.1.2. </span>Visualize LAMMPS snapshots<a class="headerlink" href="#visualize-lammps-snapshots" title="Link to this heading"></a></h1>
+<p>Snapshots from LAMMPS simulations can be viewed, visualized, and
+analyzed in a variety of ways.</p>
+<p>LAMMPS snapshots are created by the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command, which
+can create files in several formats.  The native LAMMPS dump format is a
+text file (see <code class="code highlight LAMMPS docutils literal highlight-LAMMPS"><span class="k">dump </span><span class="nv nv-Identifier">atom</span></code> or <code class="code highlight LAMMPS docutils literal highlight-LAMMPS"><span class="k">dump </span><span class="nv nv-Identifier">custom</span></code>) which can
+be visualized by <a class="reference external" href="https://www.lammps.org/viz.html">several visualization tools</a> for MD simulation trajectories.
+<a class="reference external" href="https://www.ovito.org">OVITO</a> and <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a> seem to be the most popular
+choices among them.</p>
+<p>The <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> and <a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a>
+styles can output internally rendered images or convert them to a movie
+during the MD run.  It is also possible to create visualizations from
+LAMMPS inputs or restart file with <a class="reference external" href="https://lammps-gui.lammps.org/">LAMMPS-GUI</a>, which uses the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command internally.  If the LAMMPS input already contains
+a <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command, the resulting images will be
+noted by LAMMPS-GUI and can be viewed and animated directly in the
+<code class="docutils literal notranslate"><span class="pre">Slide</span> <span class="pre">Show</span></code> dialog. The images can be transformed (i.e. scaled,
+mirrored, or rotated) and exported into a video, too.  The <code class="docutils literal notranslate"><span class="pre">Image</span>
+<span class="pre">Viewer</span></code> dialog in LAMMPS-GUI can be used to visualize the <em>current</em>
+system, adjust a variety of visualization settings quasi-interactively
+from the GUI.</p>
+<p>Programs included with LAMMPS as auxiliary tools can convert between
+LAMMPS format files and other formats so they can be read by certain
+programs.  See the <a class="reference internal" href="Tools.html"><span class="doc">Tools</span></a> page for details.  These are
+rarely needed these days.</p>
+</section>
+<hr class="docutils" />
+<section id="basic-workflow-for-loading-lammps-trajectories-in-vmd">
+<h1><span class="section-number">10.1.3. </span>Basic workflow for loading LAMMPS trajectories in VMD<a class="headerlink" href="#basic-workflow-for-loading-lammps-trajectories-in-vmd" title="Link to this heading"></a></h1>
+<p>VMD can read native LAMMPS dump files (in text format not binary) and
+several other dump styles.  The native LAMMPS format is preferred since
+it contains simulation box information.  VMD does not support reading
+data files directly, but <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/plugins/topotools/">the TopoTools plugin</a> does.  This
+step is usually necessary, since the LAMMPS dump files do not contain
+information about the molecular topology and elements and that
+information can be obtained from the data file.  There also is the
+<a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/plugins/pbctools/">pbctools plugin</a> that can be
+used for “repairing” bonds that are broken because one of its atom
+passed through a periodic boundary.  Because of using the plugins, the
+following commands need to be typed into the VMD console to read a
+trajectory.  The following commands are based on the <code class="docutils literal notranslate"><span class="pre">peptide</span></code> example
+to which the command <code class="docutils literal notranslate"><span class="pre">dump</span> <span class="pre">1</span> <span class="pre">all</span> <span class="pre">atom</span> <span class="pre">10</span> <span class="pre">dump.peptide</span></code> was added.
+Note the use of the group “all” in contrast to the commented out dump
+commands that use the group “peptide”.  This is to match the number of
+atoms in the data file.  VMD does not support cases where the number of
+atoms change or you are trying to read in a subset of a system unless
+<em>all</em> files contain the same subset.</p>
+<div class="highlight-Tcl notranslate"><div class="highlight"><pre><span></span><span class="c"># load data file including its coordinates</span>
+<span class="nv">topo</span><span class="w"> </span>readlammpsdata<span class="w"> </span>data.peptide<span class="w"> </span>full
+<span class="c"># atom style full is the default ^^^^ and can be omitted</span>
+
+<span class="c"># try to infer missing atom properties from available information</span>
+<span class="nv">topo</span><span class="w"> </span>guessatom<span class="w"> </span>lammps<span class="w"> </span>data
+
+<span class="c"># now add one of more dump files</span>
+<span class="nv">mol</span><span class="w"> </span>addfile<span class="w"> </span>dump.peptide<span class="w"> </span>type<span class="w"> </span>lammpstrj<span class="w"> </span>waitfor<span class="w"> </span>all
+<span class="c"># we tell VMD which file type ^^^^^^^^^ if the filename does not end in .lammpstrj</span>
+
+<span class="c"># jump to the first frame with the data file coordinates</span>
+<span class="nv">animate</span><span class="w"> </span>goto<span class="w"> </span><span class="mi">0</span>
+<span class="c"># if needed  use the following command to try and repair broken bonds</span>
+<span class="c"># pbc join fragment -now</span>
+
+<span class="c"># unwrap the entire trajectory to repair all broken bonds</span>
+<span class="c"># this is faster and more accurate than running `pbc join` for all frames</span>
+<span class="nv">pbc</span><span class="w"> </span>unwrap<span class="w"> </span><span class="o">-</span>all
+<span class="nv">pbc</span><span class="w"> </span>wrap<span class="w"> </span><span class="o">-</span>all<span class="w"> </span><span class="o">-</span>compound<span class="w"> </span>fragment<span class="w"> </span><span class="o">-</span>orthorhombic
+<span class="c">#       remove for triclinic box ^^^^^^^^^^^^^</span>
+
+<span class="c"># delete the coordinate frame from the data file</span>
+<span class="nv">animate</span><span class="w"> </span>delete<span class="w"> </span>beg<span class="w"> </span><span class="mi">0</span><span class="w"> </span>end<span class="w"> </span><span class="mi">0</span><span class="w"> </span>top
+<span class="c"># write out the topology information without coordinates to a PSF file</span>
+<span class="nv">animate</span><span class="w"> </span>write<span class="w"> </span>psf<span class="w"> </span>peptide.psf<span class="w"> </span>top
+<span class="c"># and the processed trajectory data to a DCD file for future use</span>
+<span class="nv">animate</span><span class="w"> </span>write<span class="w"> </span>dcd<span class="w"> </span>peptide.dcd<span class="w"> </span>top<span class="w"> </span>waitfor<span class="w"> </span>all
+
+<span class="c">###############################################################</span>
+<span class="c"># the steps up to this line only need to be run once</span>
+<span class="c">###############################################################</span>
+<span class="c"># set visualization defaults</span>
+<span class="nv">display</span><span class="w"> </span>perspective<span class="w"> </span>orthographic
+<span class="nv">mol</span><span class="w"> </span>default<span class="w"> </span>style<span class="w"> </span>Licorice
+<span class="nv">mol</span><span class="w"> </span>default<span class="w"> </span>material<span class="w"> </span>Diffuse
+<span class="nv">display</span><span class="w"> </span>backgroundgradient<span class="w"> </span>on
+
+<span class="c"># delete molecule and load psf and dcd file</span>
+<span class="nv">mol</span><span class="w"> </span>delete<span class="w"> </span>top
+<span class="nv">mol</span><span class="w"> </span>new<span class="w"> </span>peptide.psf
+<span class="nv">mol</span><span class="w"> </span>addfile<span class="w"> </span>peptide.dcd<span class="w"> </span>waitfor<span class="w"> </span>all
+<span class="nv">pbc</span><span class="w"> </span>box
+</pre></div>
+</div>
+<p>To automate this process, you can also save these commands to a file,
+e.g. <code class="docutils literal notranslate"><span class="pre">peptide.vmd</span></code> and then load this file from the VMD “File” menu
+with “Load Visualization State…”  or type in the command console
+<code class="docutils literal notranslate"><span class="pre">play</span> <span class="pre">peptide.vmd</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="advanced-graphics-features-in-the-dump-image-command">
+<h1><span class="section-number">10.1.4. </span>Advanced graphics features in the <em>dump image</em> command<a class="headerlink" href="#advanced-graphics-features-in-the-dump-image-command" title="Link to this heading"></a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p>The following paragraphs discuss some of the more advanced features in
+the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command in LAMMPS with the help of
+some input file examples.  For exact details of keywords and arguments,
+please refer to the detailed documentation of the respective commands.</p>
+<p>Please note that many of these features were added or significantly
+updated after LAMMPS version 10 Dec 2025 and well into the 2026 stable
+version development cycle.  If you are using an older version of LAMMPS,
+these examples may likely cause errors or look differently.</p>
+<nav class="contents local" id="available-topics">
+<p class="topic-title">Available topics</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#complete-example-inputs" id="id7">Complete example inputs</a></p></li>
+<li><p><a class="reference internal" href="#image-quality-and-resolution" id="id8">Image quality and resolution</a></p></li>
+<li><p><a class="reference internal" href="#color-selection-and-color-management" id="id9">Color selection and color management</a></p></li>
+<li><p><a class="reference internal" href="#transparency" id="id10">Transparency</a></p></li>
+<li><p><a class="reference internal" href="#creating-and-viewing-animated-gifs-and-movie-files" id="id11">Creating and viewing animated GIFs and movie files</a></p></li>
+<li><p><a class="reference internal" href="#prototyping-dump-image-visualizations-with-lammps-gui" id="id12">Prototyping dump image visualizations with LAMMPS-GUI</a></p></li>
+<li><p><a class="reference internal" href="#visualizing-systems-using-potentials-with-implicit-bonds" id="id13">Visualizing systems using potentials with implicit bonds</a></p></li>
+<li><p><a class="reference internal" href="#visualizing-body-particles" id="id14">Visualizing body particles</a></p></li>
+<li><p><a class="reference internal" href="#visualizing-ellipsoid-and-superellipsoid-particles" id="id15">Visualizing ellipsoid and superellipsoid particles</a></p></li>
+<li><p><a class="reference internal" href="#visualizing-regions" id="id16">Visualizing regions</a></p></li>
+<li><p><a class="reference internal" href="#visualizing-graphics-provided-by-compute-or-fix-commands" id="id17">Visualizing graphics provided by compute or fix commands</a></p>
+<ul>
+<li><p><a class="reference internal" href="#fix-graphics-objects" id="id18">Fix graphics/objects</a></p></li>
+<li><p><a class="reference internal" href="#fix-graphics-labels" id="id19">Fix graphics/labels</a></p></li>
+<li><p><a class="reference internal" href="#fix-graphics-arrows" id="id20">Fix graphics/arrows</a></p></li>
+<li><p><a class="reference internal" href="#fix-graphics-isosurface" id="id21">Fix graphics/isosurface</a></p></li>
+<li><p><a class="reference internal" href="#compute-hbond-local" id="id22">Compute hbond/local</a></p></li>
+<li><p><a class="reference internal" href="#fix-reaxff-bonds" id="id23">Fix reaxff/bonds</a></p></li>
+<li><p><a class="reference internal" href="#fix-smd-wall-surface" id="id24">Fix smd/wall_surface</a></p></li>
+<li><p><a class="reference internal" href="#mc-package-fixes" id="id25">MC package fixes</a></p></li>
+</ul>
+</li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="complete-example-inputs">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink">Complete example inputs</a><a class="headerlink" href="#complete-example-inputs" title="Link to this heading"></a></h2>
+<p>The discussions below only quote relevant sections of input files to
+show specifically the commands used in the visualizations.  There are
+complete example files in the <code class="docutils literal notranslate"><span class="pre">examples/GRAPHICS</span></code> folder of the LAMMPS
+source code distribution.</p>
+</section>
+<hr class="docutils" />
+<section id="image-quality-and-resolution">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink">Image quality and resolution</a><a class="headerlink" href="#image-quality-and-resolution" title="Link to this heading"></a></h2>
+<p>The image resolution is determined by the <em>size</em> keyword.  The default
+setting is to create images with 512x512 pixels.  This is rather low
+resolution.  A typical (non-“retina”) computer screen at the time of
+writing this howto has about 100 dpi (= dots per inch) so that this
+image covers an area of a bit over 5x5 inches (or about 135x135
+millimeters).  Images for use in presentations, posters, or publications
+should generally be generated at larger sizes.  When the image is meant
+for printing, one has to consider that a printer may have a resolution
+of 300 dpi or even 600 dpi which means that images should be created 3x3
+or 6x6 times larger to utilize the full resolution of the printer and
+show as much details and be as clean as possible.  Otherwise images have
+to be scaled up which can make them look blurry and with ragged edges.</p>
+<p>The keywords <em>fsaa</em> and <em>ssao</em> can be used to further improve the image
+quality at the expense of significant additional computational cost to
+render the images:</p>
+<ul class="simple">
+<li><p>FSAA stands for <a class="reference external" href="https://en.wikipedia.org/wiki/Spatial_anti-aliasing#Super_sampling_/_full-scene_anti-aliasing">Full Scene Anti-Aliasing</a>
+and means in the case of LAMMPS that the image is rendered at four
+times the size (double the width and double the height) and then the
+pixels in the final image are computed by taking the average of 2x2
+pixel groups.  This will result in smoother, less ragged edges of
+objects in the image.</p></li>
+<li><p>SSAO stands for <a class="reference external" href="https://en.wikipedia.org/wiki/Screen_space_ambient_occlusion">Screen Space Ambient Occlusion</a> and
+is an image enhancement technique that uses intermediate image data
+(like the information of how close or far away a pixel is to the
+camera and its neighboring pixels) and brightens or darkens randomly
+selected pixels in its neighborhood based on that information.  This
+enhances the depth perception of objects in an image.</p></li>
+</ul>
+<p>Both methods are complementary and thus can be combined for additional
+improvement of the image quality.  The images below show from left to
+right the same excerpt of a dump image output with the default settings,
+with <em>fsaa</em> enabled, with <em>ssao</em> enabled, and with both features
+enabled.</p>
+<p><a class="reference internal" href="_images/image.default.png"><img alt="imagequality1" src="_images/image.default.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/image.fsaa.png"><img alt="imagequality2" src="_images/image.fsaa.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/image.ssao.png"><img alt="imagequality3" src="_images/image.ssao.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/image.both.png"><img alt="imagequality4" src="_images/image.both.png" style="width: 24%;" /></a></p>
+<p>The computational cost to create the images with <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> depends on the image size, the number of objects to be
+rendered (this number can grow quickly when using fine triangle meshes),
+and the choice of the <em>fsaa</em> and <em>ssao</em> settings.  For high resolution
+images, a correspondingly large image size has to be chosen.</p>
+<p>Since the simulation has to wait for the dump image command to complete
+its image rendering, creating high resolution, high quality images can
+slow down a simulation significantly with frequent output of images.  On
+the other hand, the image rasterizer in LAMMPS is fairly simple and thus
+fast compared to more advanced image generation tools like ray tracers.
+The method it uses to generate the images allows to have each MPI
+process create image data for the atoms and objects they “own” and then
+this image data is merged for the final output with a procedure that has
+O(log(N)) complexity with the number of MPI processes.  At the moment
+there is no GPU acceleration and only limited multi-threading
+parallelization available (e.g. for SSAO post-processing of image data).</p>
+</section>
+<hr class="docutils" />
+<section id="color-selection-and-color-management">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink">Color selection and color management</a><a class="headerlink" href="#color-selection-and-color-management" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command in LAMMPS has a variety
+of options to assign colors to the rendered graphics.  In most cases
+the color is assigned to atom (or bond) types and uses a default map
+with six colors as follows:</p>
+<ul class="simple">
+<li><p>type 1 = red</p></li>
+<li><p>type 2 = forestgreen</p></li>
+<li><p>type 3 = blue</p></li>
+<li><p>type 4 = gold</p></li>
+<li><p>type 5 = cyan</p></li>
+<li><p>type 6 = magenta</p></li>
+<li><p>type 7 = silver</p></li>
+<li><p>type 8 = orange</p></li>
+<li><p>type 9 = lime</p></li>
+<li><p>type 10 = gray</p></li>
+<li><p>type 11 = darkred</p></li>
+<li><p>type 12 = darkgreen</p></li>
+<li><p>type 13 = darkblue</p></li>
+<li><p>type 14 = darkcyan</p></li>
+<li><p>type 15 = darkmagenta</p></li>
+<li><p>type 16 = darkgray</p></li>
+</ul>
+<p>and repeats itself for types &gt; 16. The default color sequence is thus:
+<img alt="color_red" src="_images/red.png" />       <img alt="color_forestgreen" src="_images/forestgreen.png" />  <img alt="color_blue" src="_images/blue.png" />         <img alt="color_gold" src="_images/gold.png" />
+<img alt="color_cyan" src="_images/cyan.png" />      <img alt="color_magenta" src="_images/magenta.png" />      <img alt="color_silver" src="_images/silver.png" />       <img alt="color_orange" src="_images/orange.png" />
+<img alt="color_lime" src="_images/lime.png" />      <img alt="color_gray" src="_images/gray.png" />         <img alt="color_darkred" src="_images/darkred.png" />      <img alt="color_darkgreen" src="_images/darkgreen.png" />
+<img alt="color_darkblue" src="_images/darkblue.png" />  <img alt="color_darkcyan" src="_images/darkcyan.png" />     <img alt="color_darkmagenta" src="_images/darkmagenta.png" />  <img alt="color_darkgray" src="_images/darkgray.png" /></p>
+<p>This mapping can be changed by the “dump_modify acolor” command, though.
+If you want to change the color of a specific atom type, you can use
+<a class="reference internal" href="dump_image.html"><span class="doc">dump modify acolor</span></a>.  For example to color atoms of
+type 1 in gray and type 2 in white, you would use:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump_modify </span><span class="nv nv-Identifier">img</span><span class="w">  </span><span class="n">acolor</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">gray</span><span class="w"> </span><span class="n">acolor</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">white</span>
+</pre></div>
+</div>
+<p>There are 140 predefined colors, but you can add new colors or modify
+existing ones, too, with the <em>dump_modify color</em> keyword.  The <em>color</em>
+keyword is followed by the name of the color and the intensity of the
+red, green, and blue components (R/G/B) in a range from 0.0 to 1.0. Here
+is an example to create eight new color names followed by the <em>acolor</em>
+keyword with a wildcard to replace the default map of six atom colors
+with a new map of the eight newly defined colors.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map1</span><span class="w"> </span><span class="m">0.012</span><span class="w"> </span><span class="m">0.016</span><span class="w"> </span><span class="m">0.322</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map2</span><span class="w"> </span><span class="m">0.008</span><span class="w"> </span><span class="m">0.243</span><span class="w"> </span><span class="m">0.541</span><span class="sc"> &amp;</span>
+<span class="w">    </span><span class="n">color</span><span class="w"> </span><span class="n">map3</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.467</span><span class="w"> </span><span class="m">0.714</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map4</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.588</span><span class="w"> </span><span class="m">0.780</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.706</span><span class="w"> </span><span class="m">0.847</span><span class="sc"> &amp;</span>
+<span class="w">    </span><span class="n">color</span><span class="w"> </span><span class="n">map6</span><span class="w"> </span><span class="m">0.282</span><span class="w"> </span><span class="m">0.792</span><span class="w"> </span><span class="m">0.894</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map7</span><span class="w"> </span><span class="m">0.565</span><span class="w"> </span><span class="m">0.878</span><span class="w"> </span><span class="m">0.937</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map8</span><span class="w"> </span><span class="m">0.792</span><span class="w"> </span><span class="m">0.941</span><span class="w"> </span><span class="m">0.973</span><span class="sc"> &amp;</span>
+<span class="w">    </span><span class="n">acolor</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">map1</span><span class="o">/</span><span class="n">map2</span><span class="o">/</span><span class="n">map3</span><span class="o">/</span><span class="n">map4</span><span class="o">/</span><span class="n">map5</span><span class="o">/</span><span class="n">map6</span><span class="o">/</span><span class="n">map7</span><span class="o">/</span><span class="n">map8</span>
+</pre></div>
+</div>
+<p>Yet another option is to color the atoms by element.  The per-element
+colors are predefined but LAMMPS does not know which element an atom
+type corresponds to and by default uses carbon for all atom types.  The
+correct element information needs to be provided with a <em>dump_modify
+element</em> command followed by an element name for each atom type. In case
+of the <code class="docutils literal notranslate"><span class="pre">peptide</span></code> example bundled with LAMMPS this would be:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">peptide</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">2.0</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span>
+</pre></div>
+</div>
+<p>Finally, atoms can be colored by the value of a per-atom property using
+a color map.  There are several variants of color maps.  Here is a
+simple example coloring the atoms in the <code class="docutils literal notranslate"><span class="pre">peptide</span></code> example by their
+charge with a continuous color map where white is neutral, red positive,
+blue negative, and the color intensity corresponds to the magnitude of
+the charge:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">peptide</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">q</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">2.0</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">amap</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">ca</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">min</span><span class="w"> </span><span class="n">blue</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="n">red</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="_images/colors-default.png"><img alt="colors1" src="_images/colors-default.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/colors-newmap.png"><img alt="colors2" src="_images/colors-newmap.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/colors-element.png"><img alt="colors3" src="_images/colors-element.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/colors-map.png"><img alt="colors4" src="_images/colors-map.png" style="width: 24%;" /></a></p>
+<center>(Different colorization settings. Left to right: by default
+type map, by custom type map, by element, and by charge. Click to see
+the full-size images)</center><br><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4Jul2026.</span></p>
+</div>
+<p>Similar color selections are available for coloring bonds. The available
+options are: <em>type</em>, <em>atom</em>, <em>c_ID</em> (or <em>c_ID[I]</em>), and <em>none</em>.  With
+<em>type</em> the bonds are colored by having a color assigned to each bond
+type which follows the same color sequence as for atoms but can be set
+for each bond type independent from atom types.  When using the <em>atom</em>
+selection the bond color follows the color of the atoms.  Bonds are
+drawn in two pieces as a cylinder from the center of the bond to each of
+the atoms. Thus if two atoms have different color, the bond also as two
+parts with different colors with this setting.  If the a compute
+reference is used (e.g. <em>c_ID</em> or <em>c_ID[I]</em>) the bond color is taken
+from a colormap and the color depends on the value of the compute for
+the given bond.  An input example for coloring bonds by the force
+magnitude is given below. When the bond color argument is <em>none</em>, no
+bonds are drawn.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute  </span><span class="nv nv-Identifier">bforce</span><span class="w"> </span><span class="nv nv-Identifier">peptide</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">local</span><span class="w"> </span><span class="n">force</span>
+<span class="k">dump     </span><span class="nv nv-Identifier">viz</span><span class="w">    </span><span class="nv nv-Identifier">peptide</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">myimage</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">bond</span><span class="w"> </span><span class="n">c_bforce</span><span class="w"> </span><span class="n">type</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="_images/bondcolor-type.png"><img alt="bcolors1" src="_images/bondcolor-type.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/bondcolor-element.png"><img alt="bcolors2" src="_images/bondcolor-element.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/bondcolor-mapforce.png"><img alt="bcolors3" src="_images/bondcolor-mapforce.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/bondcolor-none.png"><img alt="bcolors4" src="_images/bondcolor-none.png" style="width: 24%;" /></a></p>
+<center>(Different bond colorization settings. Left to right: by type, by element,
+by bond force, and no bonds. Click to see the full-size images)</center></section>
+<hr class="docutils" />
+<section id="transparency">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink">Transparency</a><a class="headerlink" href="#transparency" title="Link to this heading"></a></h2>
+<p>It is now possible to create approximately transparent graphics objects
+using an <a class="reference external" href="https://en.wikipedia.org/wiki/Ordered_dithering">ordered dithering algorithm</a> which results in a
+so-called <em>screen-door transparency</em> effect.  In essence, for a
+transparent object only a part of the pixels are drawn and thus exposing
+any object behind the transparent object where drawing the pixels is
+skipped.  LAMMPS employs a 16x16 Bayer matrix pattern that leads to
+rather regular patterns.  A benefit of this approach is that it does not
+add extra cost to the rendering and for a 25%, 50%, and 75% transparency
+setting, there are no visible pixel patterns when also FSAA is enabled.
+In this case each pixel is the average of a 2x2 block of pixels in an
+image of double the width and height, and thus the transparent object
+will contribute 3, 2, or 1 pixels to the 2x2 block which is averaged.</p>
+<p>Transparency is typically - like the color of objects - associated with
+an atom type and can be modified through the <a class="reference internal" href="dump_image.html"><span class="doc">dump_modify atrans</span></a> command and specified as an opacity ratio, i.e. a number
+between 0 (fully transparent) and 1 (fully opaque).  Other choices are
+available and described in the documentation page.</p>
+<p><a class="reference internal" href="_images/transparent-1.png"><img alt="transparency1" src="_images/transparent-1.png" style="width: 49%;" /></a>  <a class="reference internal" href="_images/transparent-2.png"><img alt="transparency2" src="_images/transparent-2.png" style="width: 49%;" /></a></p>
+<center>(Transparency example with opacity set to 0.25, 0.33, 0.5,
+0.75, and 1.0 (left to right): left: without FSAA, right: with
+FSAA. Click to see the full-size images)</center></section>
+<hr class="docutils" />
+<section id="creating-and-viewing-animated-gifs-and-movie-files">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink">Creating and viewing animated GIFs and movie files</a><a class="headerlink" href="#creating-and-viewing-animated-gifs-and-movie-files" title="Link to this heading"></a></h2>
+<p>A series of JPEG, PNG, or PPM images can be converted into a movie file
+and then played as a movie using commonly available tools.  Using dump
+style <em>movie</em> automates this step <em>and</em> avoids the intermediate step of
+writing (many) image snapshot file.  But LAMMPS has to be compiled with
+<code class="docutils literal notranslate"><span class="pre">-DLAMMPS_FFMPEG</span></code> and a compatible FFmpeg executable has to be
+installed.  When using <a class="reference external" href="https://lammps-gui.lammps.org/">LAMMPS-GUI</a> to
+run LAMMPS, you can run the simulation and LAMMPS-GUI will automatically
+show the created images in its <code class="docutils literal notranslate"><span class="pre">Slideshow</span> <span class="pre">Viewer</span></code> dialog.  From there
+you can animate or single step through them and also export them to a
+movie file via FFMpeg.</p>
+<p>To manually convert JPEG, PNG or PPM files into an animated GIF or
+MPEG or other movie file you can use:</p>
+<ol class="arabic">
+<li><p>Use the ImageMagick <code class="docutils literal notranslate"><span class="pre">convert</span></code> program (called <code class="docutils literal notranslate"><span class="pre">magick</span></code> in recent versions).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>convert<span class="w"> </span>*.jpg<span class="w"> </span>foo.gif
+convert<span class="w"> </span>-loop<span class="w"> </span><span class="m">1</span><span class="w"> </span>*.ppm<span class="w"> </span>foo.mpg
+</pre></div>
+</div>
+<p>Animated GIF files from ImageMagick are not optimized. You can use
+a program like gifsicle to optimize and thus massively shrink them.
+MPEG files created by ImageMagick are in MPEG-1 format with a rather
+inefficient compression and low quality compared to more modern
+compression styles like MPEG-4, H.264, VP8, VP9, H.265 and so on.</p>
+</li>
+<li><p>Use QuickTime.</p>
+<p>Select “Open Image Sequence” under the File menu Load the images into
+QuickTime to animate them Select “Export” under the File menu Save the
+movie as a QuickTime movie (*.mov) or in another format.  QuickTime
+can generate very high quality and efficiently compressed movie
+files. Some of the supported formats require to buy a license and some
+are not readable on all platforms until specific runtime libraries are
+installed.</p>
+</li>
+<li><p>Use FFmpeg</p>
+<p><a class="reference external" href="https://ffmpeg.org/">FFMpeg</a> is a command-line tool that is
+available on many platforms and allows extremely flexible encoding
+and decoding of movies.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>snap.*.jpg<span class="w"> </span><span class="p">|</span><span class="w"> </span>ffmpeg<span class="w"> </span>-y<span class="w"> </span>-f<span class="w"> </span>image2pipe<span class="w"> </span>-c:v<span class="w"> </span>mjpeg<span class="w"> </span>-i<span class="w"> </span>-<span class="w"> </span>-b:v<span class="w"> </span>2000k<span class="w"> </span>movie.m4v
+cat<span class="w"> </span>snap.*.ppm<span class="w"> </span><span class="p">|</span><span class="w"> </span>ffmpeg<span class="w"> </span>-y<span class="w"> </span>-f<span class="w"> </span>image2pipe<span class="w"> </span>-c:v<span class="w"> </span>ppm<span class="w"> </span>-i<span class="w"> </span>-<span class="w"> </span>-b:v<span class="w"> </span>2400k<span class="w"> </span>movie.mp4
+</pre></div>
+</div>
+<p>Front ends for FFmpeg exist for multiple platforms. For more
+information see the <a class="reference external" href="https://ffmpeg.org/">FFmpeg homepage</a></p>
+</li>
+</ol>
+<hr class="docutils" />
+<p>Play the movie:</p>
+<ol class="arabic">
+<li><p>Use your web browser to view an animated GIF or MP4 movie format movie.</p>
+<p>Select “Open File” under the File menu
+Load the animated GIF or MP4 movie file</p>
+</li>
+<li><p>Use the freely available <a class="reference external" href="https://videolan.org">VideoLAN media player (vlc)</a> or <a class="reference external" href="https://ffmpeg.org/">FFMpeg player tool (ffplay)</a> to view a movie.</p>
+<p>Both are available for multiple operating systems and support a large
+variety of file formats and decoders.  There are plenty more media
+player packages available on the different operating systems.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>vlc<span class="w"> </span>foo.mpg
+ffplay<span class="w"> </span>bar.avi
+</pre></div>
+</div>
+</li>
+<li><p>Use the <a class="reference external" href="https://lammps.github.io/pizza/">Pizza.py</a>
+<a class="reference external" href="https://lammps.github.io/pizza/doc/animate.html">animate tool</a>,
+which works directly on a series of image files.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="n">animate</span><span class="p">(</span><span class="s2">&quot;foo*.jpg&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><p>QuickTime and other Windows- or macOS-based media players can
+obviously play movie files directly. Similarly for corresponding tools
+bundled with Linux desktop environments.  However, due to licensing
+issues with some file formats, the formats may require installing
+additional libraries, purchasing a license, or may not be
+supported.</p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="prototyping-dump-image-visualizations-with-lammps-gui">
+<h2><a class="toc-backref" href="#id12" role="doc-backlink">Prototyping dump image visualizations with LAMMPS-GUI</a><a class="headerlink" href="#prototyping-dump-image-visualizations-with-lammps-gui" title="Link to this heading"></a></h2>
+<p>One of the challenges when using <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> for
+creating visualizations compared to the likes of <a class="reference external" href="https://www.ovito.org">OVITO</a> and <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a> is that it is non-interactive
+and it can be tedious and time consuming to find suitable settings for
+camera view or zoom factor and others for a specific system.  You would
+have to run LAMMPS to create an image, then view it in an image viewer
+program, edit the input file and repeat the process until you have found
+settings that you like.</p>
+<p>This process can be streamlined with <a class="reference external" href="https://lammps-gui.lammps.org/">LAMMPS-GUI</a>, which does not contain its own
+visualization code, but rather uses <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>
+through the <a class="reference internal" href="Library.html"><span class="doc">LAMMPS C-language library interface</span></a> and
+displays the resulting images for its <a class="reference external" href="https://lammps-gui.lammps.org/visualization.html">Image Viewer Dialog</a>.  Through the GUI
+elements and dialogs many settings can be adjusted and then the image
+will be recreated with the updated settings and thus allowing to refine
+a visualization in a quasi-interactive fashion.  The resulting command
+lines can be transferred to the cut-n-paste buffer of the windowing
+system and pasted into the input file and then further adjusted.</p>
+<p>Once the input contains a <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command,
+LAMMPS-GUI notices when a new image has been created and loads it into
+the “Slide Show Dialog”.  This streamlines the process of building more
+complex visualizations once you have copied an initial draft created
+with the “Image Viewer Dialog” into the input since you have editor and
+image viewer as part of the same program and can quickly start and stop
+LAMMPS with a mouse click or keystroke.  A large part of the
+visualization examples shown in this Howto page have been created this
+way.</p>
+<p><a class="reference internal" href="_images/lammps-gui-main.png"><img alt="gui1" src="_images/lammps-gui-main.png" style="width: 38%;" /></a>  <a class="reference internal" href="_images/lammps-gui-image.png"><img alt="gui2" src="_images/lammps-gui-image.png" style="width: 32%;" /></a>  <a class="reference internal" href="_images/lammps-gui-slideshow.png"><img alt="gui3" src="_images/lammps-gui-slideshow.png" style="width: 28%;" /></a></p>
+</section>
+<hr class="docutils" />
+<section id="visualizing-systems-using-potentials-with-implicit-bonds">
+<h2><a class="toc-backref" href="#id13" role="doc-backlink">Visualizing systems using potentials with implicit bonds</a><a class="headerlink" href="#visualizing-systems-using-potentials-with-implicit-bonds" title="Link to this heading"></a></h2>
+<p>There are several pair styles available in LAMMPS where the bond
+information is not taken from the bond topology in a data file but the
+potentials first determine a “bond-order” parameter for pairs of atoms
+and - depending on the value of that parameter - apply forces for bonded
+interactions.  This applies to <a class="reference internal" href="pair_reaxff.html"><span class="doc">ReaxFF</span></a>, <a class="reference internal" href="pair_airebo.html"><span class="doc">REBO
+and AIREBO</span></a>, <a class="reference internal" href="pair_bop.html"><span class="doc">BOP</span></a>, and several others
+pair styles.  These implicit bonds will not be shown by <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> since its mechanism for displaying bonds relies on
+explicit bonds being present in the bond topology.</p>
+<p>One can hide the fact that there are no bonds by setting the atom radii
+to the covalent radii of the corresponding elements (see leftmost
+example image below).  This will result in a representation often
+labeled as “VDW” in popular visualization tools.  Otherwise, there are
+currently three approaches to make those bonds visible.</p>
+<ol class="arabic">
+<li><p>Access the (internal) bond order information from the pair style
+through a custom fix and then use the <em>fix</em> keyword of the <a class="reference internal" href="dump_image.html"><span class="doc">dump
+image</span></a> command to use the graphics objects information
+provided by the fix to visualize the bonds (see below for more
+information).  That includes bonds that are broken and formed.  This
+is the most accurate option since it uses the data that is used by
+the computation of the model.  This is currently only available for
+ReaxFF by using <a class="reference internal" href="fix_reaxff_bonds.html"><span class="doc">fix reaxff/bonds</span></a>.</p></li>
+<li><p>Use the <em>autobond</em> keyword of <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> to
+approximate the bonds based on a simple distance heuristic.  This is
+similar to the <em>Dynamic Bonds</em> representation in <a class="reference external" href="https://www.ks.uiuc.edu/Research/vmd/">VMD</a>.  How accurate this option
+will be depends on the complexity of the system and how many
+different bond lengths there are.  For the simple water system shown
+below, there are no significant differences, since there is only one
+type of bond (between oxygen and hydrogen).  The <em>autobond</em> keyword
+uses on top of the distance cutoff between atoms, the heuristic that
+no bonds will be drawn between two hydrogen atoms and thus bogus
+bonds are avoided when using a larger bond cutoff (e.g. suitable for
+carbon-carbon bonds) which is larger than the typical
+hydrogen-hydrogen distance for hydrogen atoms bound to the same atom
+(e.g. in water, methane or hydrocarbon chains).</p></li>
+<li><p>Use a combination of <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a> and
+<a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create/angle</span></a> with <a class="reference internal" href="bond_zero.html"><span class="doc">bond style
+zero</span></a> to dynamically create and remove bonds that do not
+add any forces.  This also requires to tell the neighbor list code to
+not treat any pairs of atoms as special neighbors (otherwise the
+corresponding pairs of atoms could be excluded from the neighbor list
+and thus the forces computed by the pair style incorrect) through
+using the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command.  Unlike the
+two other options, which were added more recently, this method also
+works with older versions of LAMMPS.  Here is an example of the
+necessary commands for a carbon nanotube modeled with the AIREBO
+potential:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">bond_style</span><span class="w"> </span><span class="n">zero</span>
+<span class="k">bond_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.4</span>
+<span class="k">special_bonds</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">coul</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">fix </span><span class="nv nv-Identifier">break</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">break</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2.5</span>
+<span class="k">fix </span><span class="nv nv-Identifier">form</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">create</span><span class="o">/</span><span class="n">angle</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">aconstrain</span><span class="w"> </span><span class="m">90.0</span><span class="w"> </span><span class="m">180</span>
+</pre></div>
+</div>
+<p>This “graphics hack” was originally posted as part of the LAMMPS
+tutorial at
+<a class="reference external" href="https://lammpstutorials.github.io/sphinx/build/html/tutorial2/breaking-a-carbon-nanotube.html">https://lammpstutorials.github.io/sphinx/build/html/tutorial2/breaking-a-carbon-nanotube.html</a></p>
+</li>
+</ol>
+<p><a class="reference internal" href="_images/bonds-vdw.png"><img alt="bonds0" src="_images/bonds-vdw.png" style="width: 18%;" /></a>  <a class="reference internal" href="_images/bonds-fix.png"><img alt="bonds1" src="_images/bonds-fix.png" style="width: 18%;" /></a>  <a class="reference internal" href="_images/bonds-auto.png"><img alt="bonds2" src="_images/bonds-auto.png" style="width: 18%;" /></a>  <a class="reference internal" href="_images/bonds-create.png"><img alt="bonds3" src="_images/bonds-create.png" style="width: 45%;" /></a></p>
+<center>(Visualizing systems with implicit bonds. Left to right:
+using covalent radii, using fix reaxff/bonds, using <i>autobond</i>,
+using fix bond/create/angle. Click to see the full-size
+images)</center><hr class="docutils" />
+</section>
+<section id="visualizing-body-particles">
+<h2><a class="toc-backref" href="#id14" role="doc-backlink">Visualizing body particles</a><a class="headerlink" href="#visualizing-body-particles" title="Link to this heading"></a></h2>
+<p>Body particles are objects formed from either a collection of spherical
+particles, polygons (in 2d), or polyhedra (in 3d) formed from triangular
+or quadrilateral surfaces.  The regular <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command can
+only output the center of those bodies (and their orientation), which
+complicates the visualization with external tools.  In addition, the
+position of the constituent particles of <em>nparticles</em> bodies or the
+positions of the vertices of <em>rounded/polygon</em> or <em>rounded/polyhedron</em>
+bodies, which can be computed with <a class="reference internal" href="compute_body_local.html"><span class="doc">compute body/local</span></a> and output with <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>.</p>
+<p>As an alternative, the bodies can be visualized directly with <a class="reference internal" href="dump_image.html"><span class="doc">dump
+image</span></a> using the <em>body</em> keyword.  Without the <em>body</em>
+keyword the body particles would be visualized like atoms as single
+spheres.  The color and transparency settings can be changed by settings
+those properties for the corresponding atom types.  It is also possible
+to represent the bodies as either wireframes (<em>bflag1</em> value 2), planar
+faces (<em>bflag1</em> value 1), or both (<em>bflag1</em> value 3).</p>
+<p><a class="reference internal" href="_images/body-frames.png"><img alt="body1" src="_images/body-frames.png" style="width: 33%;" /></a>  <a class="reference internal" href="_images/body-faces.png"><img alt="body2" src="_images/body-faces.png" style="width: 33%;" /></a>  <a class="reference internal" href="_images/body-both.png"><img alt="body3" src="_images/body-both.png" style="width: 33%;" /></a></p>
+<center>(Body particle visualization examples for the
+<i>rounded/polyhedron</i> body style left: frames, center: faces,
+right: both. Click to see the full-size images)</center></section>
+<hr class="docutils" />
+<section id="visualizing-ellipsoid-and-superellipsoid-particles">
+<h2><a class="toc-backref" href="#id15" role="doc-backlink">Visualizing ellipsoid and superellipsoid particles</a><a class="headerlink" href="#visualizing-ellipsoid-and-superellipsoid-particles" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p>Ellipsoidal particles are a generalization of spheres that may have
+three different radii to define the shape.  Superellipsoids are in turn
+a generalization of ellipsoids.  They can be modeled using pair styles
+like <a class="reference internal" href="pair_gayberne.html"><span class="doc">gayberne</span></a> or <a class="reference internal" href="pair_resquared.html"><span class="doc">resquared</span></a>.  The regular <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command can
+output the center of those bodies, the shape parameters and the
+orientation as quaternions.  If one follows the required conventions and
+follows the documented steps, those trajectory dump files can be
+<a class="reference external" href="https://www.ovito.org/manual/advanced_topics/aspherical_particles.html">imported and visualized in OVITO</a></p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 30Mar2026: </span>Now uses curved triangles instead of flat ones; “both” option is removed; support for superellipsoids was added</p>
+</div>
+<p>As an alternative, the ellipsoid and superellipsoid particles can be
+visualized directly with <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> using the
+<em>ellipsoid</em> keyword.  The color and transparency settings can be changed
+by setting those properties for the corresponding atom types.  It is
+also possible to represent the ellipsoids via generating a triangle mesh
+and visualizing it as either wireframes (<em>eflag</em> value 2) or rounded
+triangle faces (<em>eflag</em> value 1).  The use of a triangle mesh is
+currently required since the rasterizer built into LAMMPS does not offer
+suitable graphics primitives for ellipsoids or superellipsoids.  The
+mesh is constructed by iteratively refining a triangle mesh representing
+an icosahedron, where each triangle is replaced by four triangles in
+each iteration.  For a smooth representation a refinement level of 4
+seems sufficient, but high resolution images may benefit from a higher
+level (maximum is 6, see example images below).  A high refinement level
+can cause a significant slowdown of the rendering of the image due to
+the large number of triangles that need to be computed and drawn.  This
+slowdown will be more pronounced when enabling FSAA or SSAO or both.</p>
+<p><a class="reference internal" href="_images/ellipsoid-mesh.png"><img alt="ellipsoid1" src="_images/ellipsoid-mesh.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/ellipsoid-level2.png"><img alt="ellipsoid2" src="_images/ellipsoid-level2.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/ellipsoid-level4.png"><img alt="ellipsoid3" src="_images/ellipsoid-level4.png" style="width: 24%;" /></a>  <a class="reference internal" href="_images/ellipsoid-level6.png"><img alt="ellipsoid4" src="_images/ellipsoid-level6.png" style="width: 24%;" /></a></p>
+<center>(Ellipsoid particle visualization examples for different mesh
+      levels.  from left to right: wireframe level 3, triangles level
+      2, triangles level 4, triangles level 6. Click to see the
+      full-size images)</center><br><p>These images were created by adding the following <a class="reference internal" href="dump_image.html"><span class="doc">dump image and dump_modify</span></a>
+commands to the <code class="docutils literal notranslate"><span class="pre">in.ellipse.resquared</span></code> input example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c">#                                                   change /V\ this</span>
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">ellipsoid</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">0.2</span><span class="sc"> &amp;</span>
+<span class="w">     </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.331</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">0.025</span><span class="w"> </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.2</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">goldenrod</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">black</span><span class="w"> </span><span class="n">backcolor2</span><span class="w"> </span><span class="n">white</span><span class="sc"> &amp;</span>
+<span class="w">     </span><span class="n">color</span><span class="w"> </span><span class="n">map1</span><span class="w"> </span><span class="m">0.459</span><span class="w"> </span><span class="m">0.055</span><span class="w"> </span><span class="m">0.075</span><span class="w"> </span><span class="n">color</span><span class="w"> </span><span class="n">map2</span><span class="w"> </span><span class="m">0.000</span><span class="w"> </span><span class="m">0.227</span><span class="w"> </span><span class="m">0.427</span><span class="sc"> &amp;</span>
+<span class="w">     </span><span class="n">amap</span><span class="w"> </span><span class="n">min</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="n">cf</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">min</span><span class="w"> </span><span class="n">map1</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">map1</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="n">map2</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="n">map2</span>
+</pre></div>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The visualization of superellipsoids works exactly the same way as for
+ellipsoids by creating a triangle mesh of an icosahedron and refining
+and deforming it.  The difference is merely internally the applied
+deformation function and the corresponding computation of the surface
+normals.  LAMMPS will auto-detect which function to use.  Some
+visualizations of the <code class="docutils literal notranslate"><span class="pre">in.drop_test</span></code>, the <code class="docutils literal notranslate"><span class="pre">in.bowling</span></code>, and the
+<code class="docutils literal notranslate"><span class="pre">in.super_table</span></code> examples from the
+<code class="docutils literal notranslate"><span class="pre">examples/ASPHERE/superellipsoid_gran</span></code> folder are shown below.</p>
+<p><a class="reference internal" href="_images/superellipsoids-drop.png"><img alt="superellipsoid1" src="_images/superellipsoids-drop.png" style="width: 23%;" /></a>  <a class="reference internal" href="_images/superellipsoids-bowl.png"><img alt="superellipsoid2" src="_images/superellipsoids-bowl.png" style="width: 41%;" /></a>  <a class="reference internal" href="_images/superellipsoids-zoo.png"><img alt="superellipsoid3" src="_images/superellipsoids-zoo.png" style="width: 31%;" /></a></p>
+</section>
+<hr class="docutils" />
+<section id="visualizing-regions">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink">Visualizing regions</a><a class="headerlink" href="#visualizing-regions" title="Link to this heading"></a></h2>
+<p>Since there are several commands that operate on atoms within a specific
+<a class="reference internal" href="region.html"><span class="doc">region</span></a> , it can be helpful to visualize the extent of
+those regions, either for debugging the command settings or for
+visualizing the production simulation.  This is even more useful when
+regions are (dynamically) translated or rotated or both with the
+<em>rotate</em> or <em>move</em> keyword of the <em>region</em> command.  The <a class="reference internal" href="dump_image.html"><span class="doc">dump
+image region</span></a> keyword can be used to enable such
+visualizations.  There are currently four different draw styles
+available:</p>
+<ul class="simple">
+<li><p><em>filled</em>: a mesh of triangles is constructed for the surface of the
+region and then drawn in the selected color.  This draw style accounts
+for the <em>open</em> keyword of the <a class="reference internal" href="region.html"><span class="doc">region</span></a> command and only
+draws the faces of a region that are closed.</p></li>
+<li><p><em>transparent</em>: this is the same visualization as draw style <em>filled</em>,
+but in addition one can set the transparency of that visualization
+through an opacity parameter in the range of 0.0 (invisible) to 1.0
+(fully opaque).</p></li>
+<li><p><em>frame</em>: uses the same mesh of triangles as the two styles above
+above, but renders the region’s surface as a wireframe mesh with a
+given cylinder diameter.</p></li>
+<li><p><em>points</em>: generates a cloud of random points inside the simulation box
+and then only draws a point as a sphere with the given color and
+radius if it is located inside the region.  This is useful to check
+the impact of the <em>side in/out</em> setting of a region, and complementary
+to the other three draw styles, which only show the region surfaces.
+For visualization purposes any open faces of a region are ignored,
+since a region with an open face matches <em>all</em> particles.</p></li>
+</ul>
+<p>It can sometimes be convenient to draw the same region with multiple
+draw styles as can be seen from the example visualization images below.</p>
+<p>Notes on the visualization of individual region styles:</p>
+<ul class="simple">
+<li><p><em>plane</em>: since in theory planes extend infinitely, some form of
+boundary has to be established for the visualization.  Therefore a
+mesh of triangles is constructed and transformed according to the
+region settings and then only those triangles are drawn, where at
+least one corner is inside the simulation box.  For draw style
+<em>points</em> the <em>side in/out</em> setting determines on which side of the
+plane the points are drawn.</p></li>
+<li><p><em>cone</em> and <em>cylinder</em>: use triangle meshes for draw styles <em>filled</em>
+and <em>transparent</em> since there are no equivalent primitives (the
+cylinder primitive only draws half of the cylinder, since it is
+optimized for being capped).  For draw style <em>frame</em>, only the rim
+of the top or bottom is drawn and the side is represented by lines
+from the top to the bottom.</p></li>
+<li><p><em>box</em> and <em>prism</em>: for draw style <em>frame</em> only the edges of the region
+are shown; for draw styles <em>filled</em> and <em>transparent</em>, the faces are
+drawn instead, but only if they are not set as “open” in the
+<a class="reference internal" href="region.html"><span class="doc">region</span></a> command.</p></li>
+</ul>
+<p><a class="reference internal" href="_images/region-plane.png"><img alt="region1" src="_images/region-plane.png" style="width: 33%;" /></a>  <a class="reference internal" href="_images/region-cones.png"><img alt="region2" src="_images/region-cones.png" style="width: 33%;" /></a>  <a class="reference internal" href="_images/region-boxes.png"><img alt="region3" src="_images/region-boxes.png" style="width: 33%;" /></a></p>
+<center>(Region visualization examples. Click to see the full-size images)</center><br><p>Below is an example input deck for visualizing <em>cone</em> and <em>cylinder</em> regions:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">region      </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="o">-</span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">-</span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="o">-</span><span class="m">2</span><span class="w"> </span><span class="m">2</span>
+<span class="k">create_box </span><span class="nv nv-Identifier">0</span><span class="w"> </span><span class="nv nv-Identifier">box</span>
+
+<span class="k">variable </span><span class="nv nv-Identifier">rot</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">PI</span><span class="o">*</span><span class="n">step</span><span class="o">/</span><span class="m">1000.0</span>
+
+<span class="k">region </span><span class="nv nv-Identifier">c1</span><span class="w"> </span><span class="n">cylinder</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="o">-</span><span class="m">1.5</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="n">open</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">open</span><span class="w"> </span><span class="m">2</span>
+<span class="k">region </span><span class="nv nv-Identifier">c2</span><span class="w"> </span><span class="n">cone</span><span class="w"> </span><span class="n">y</span><span class="w">  </span><span class="m">1.0</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="m">0.25</span><span class="w"> </span><span class="m">0.75</span><span class="w"> </span><span class="o">-</span><span class="m">1.5</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="n">open</span><span class="w"> </span><span class="m">3</span>
+<span class="k">region </span><span class="nv nv-Identifier">c3</span><span class="w"> </span><span class="n">cylinder</span><span class="w"> </span><span class="n">z</span><span class="w">  </span><span class="m">0.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.66</span><span class="w"> </span><span class="o">-</span><span class="m">0.1</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="n">open</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">open</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">rotate</span><span class="w"> </span><span class="n">v_rot</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">region </span><span class="nv nv-Identifier">c4</span><span class="w"> </span><span class="n">cone</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span><span class="w"> </span><span class="m">2.0</span>
+
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.4</span><span class="w"> </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="m">20</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">0.025</span><span class="w"> </span><span class="n">axes</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">314123</span><span class="w"> </span><span class="m">0.7</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">region </span><span class="nv nv-Identifier">c1</span><span class="w"> </span><span class="n">forestgreen</span><span class="w"> </span><span class="n">transparent</span><span class="w"> </span><span class="m">0.5</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">region </span><span class="nv nv-Identifier">c2</span><span class="w"> </span><span class="n">goldenrod</span><span class="w"> </span><span class="n">frame</span><span class="w"> </span><span class="m">0.05</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">region </span><span class="nv nv-Identifier">c2</span><span class="w"> </span><span class="n">cadetblue</span><span class="w"> </span><span class="n">points</span><span class="w"> </span><span class="m">10000</span><span class="w"> </span><span class="m">0.15</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">region </span><span class="nv nv-Identifier">c2</span><span class="w"> </span><span class="n">goldenrod</span><span class="w"> </span><span class="n">transparent</span><span class="w"> </span><span class="m">0.5</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">region </span><span class="nv nv-Identifier">c3</span><span class="w"> </span><span class="n">firebrick</span><span class="w"> </span><span class="n">filled</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">region </span><span class="nv nv-Identifier">c4</span><span class="w"> </span><span class="n">skyblue</span><span class="w"> </span><span class="n">filled</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">silver</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span>
+
+<span class="k">run</span><span class="w"> </span><span class="m">500</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="visualizing-graphics-provided-by-compute-or-fix-commands">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink">Visualizing graphics provided by compute or fix commands</a><a class="headerlink" href="#visualizing-graphics-provided-by-compute-or-fix-commands" title="Link to this heading"></a></h2>
+<p>LAMMPS can display additional graphics objects in the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> output that are added by compute or fix styles.  These
+fall in two categories: fixes that were written with the specific
+purpose of adding graphics to the visualization and computes or fixes
+that make objects or data visible that they maintain internally.
+Examples for the latter case are visualizing the indenter object from
+<a class="reference internal" href="fix_indent.html"><span class="doc">fix indent</span></a> or the wall position from one of the wall
+fixes.  The details of what kind of graphics is added and how it can be
+configured is described in a section titled <strong>Dump image info</strong> in the
+documentation of the individual fix commands.</p>
+<p>Below is a table with links to the documentation of supported compute
+and fix styles:</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a></p></td>
+<td><p><a class="reference internal" href="compute_hbond_local.html"><span class="doc">compute hbond/local</span></a></p></td>
+<td><p><a class="reference internal" href="fix_graphics_arrows.html"><span class="doc">fix graphics/arrows</span></a></p></td>
+<td><p><a class="reference internal" href="fix_graphics_chunk.html"><span class="doc">fix graphics/chunk</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="fix_graphics_isosurface.html"><span class="doc">fix graphics/isosurface</span></a></p></td>
+<td><p><a class="reference internal" href="fix_graphics_labels.html"><span class="doc">fix graphics/labels</span></a></p></td>
+<td><p><a class="reference internal" href="fix_graphics_lines.html"><span class="doc">fix graphics/lines</span></a></p></td>
+<td><p><a class="reference internal" href="fix_graphics_objects.html"><span class="doc">fix graphics/objects</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="fix_graphics_periodic.html"><span class="doc">fix graphics/periodic</span></a></p></td>
+<td><p><a class="reference internal" href="fix_graphics_replica.html"><span class="doc">fix graphics/replica</span></a></p></td>
+<td><p><a class="reference internal" href="fix_atom_swap.html"><span class="doc">fix atom/swap</span></a></p></td>
+<td><p><a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create</span></a></p></td>
+<td><p><a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create/angle</span></a></p></td>
+<td><p><a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a></p></td>
+<td><p><a class="reference internal" href="fix_mol_swap.html"><span class="doc">fix mol/swap</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="fix_neighbor_swap.html"><span class="doc">fix neighbor/swap</span></a></p></td>
+<td><p><a class="reference internal" href="fix_indent.html"><span class="doc">fix indent</span></a></p></td>
+<td><p><a class="reference internal" href="fix_reaxff_bonds.html"><span class="doc">fix reaxff/bonds</span></a></p></td>
+<td><p><a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">fix smd/wall_surface</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="fix_surface_global.html"><span class="doc">fix surface/global</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall_body_polygon.html"><span class="doc">fix wall/body/polygon</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall_body_polyhedron.html"><span class="doc">fix wall/body/polyhedron</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall_ees.html"><span class="doc">fix wall/ees</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/lj93</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/lj126</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/lj1043</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/colloid</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/harmonic</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/harmonic/outside</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/lepton</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/morse</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall_reflect.html"><span class="doc">fix wall/reflect</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall_reflect_stochastic.html"><span class="doc">fix wall/reflect/stochastic</span></a></p></td>
+<td><p><a class="reference internal" href="fix_wall_srd.html"><span class="doc">fix wall/srd</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/table</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p>There is no support for <a class="reference internal" href="fix_wall_region.html"><span class="doc">fix wall/region</span></a> and
+<a class="reference internal" href="fix_wall_gran_region.html"><span class="doc">fix wall/gran/region</span></a>, since regions can be
+visualized with the <em>region</em> keyword of <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>
+(see discussion above).</p>
+<p><a class="reference internal" href="_images/fix-graphics.png"><img alt="fix1" src="_images/fix-graphics.png" style="width: 19%;" /></a>  <a class="reference internal" href="_images/fix-arrows.png"><img alt="fix2" src="_images/fix-arrows.png" style="width: 19%;" /></a>  <a class="reference internal" href="_images/fix-dipoles.png"><img alt="fix3" src="_images/fix-dipoles.png" style="width: 19%;" /></a>  <a class="reference internal" href="_images/fix-mesh.png"><img alt="fix4" src="_images/fix-mesh.png" style="width: 19%;" /></a>  <a class="reference internal" href="_images/fix-indent.png"><img alt="fix5" src="_images/fix-indent.png" style="width: 19%;" /></a></p>
+<center>(Fix graphics visualization examples. Click to see the full-size images)</center><br><p>Below are discussions about some aspects of specific fix commands and some input examples.</p>
+<hr class="docutils" />
+<section id="fix-graphics-objects">
+<h3><a class="toc-backref" href="#id18" role="doc-backlink">Fix graphics/objects</a><a class="headerlink" href="#fix-graphics-objects" title="Link to this heading"></a></h3>
+<p>Fix <a class="reference internal" href="fix_graphics_objects.html"><span class="doc">graphics/objects</span></a> adds some graphics
+primitives and more complex objects like a progress bar to the
+visualization where properties of the object(s) are controlled by
+<a class="reference internal" href="variable.html"><span class="doc">equal-style or compatible variables</span></a>.</p>
+</section>
+<section id="fix-graphics-labels">
+<h3><a class="toc-backref" href="#id19" role="doc-backlink">Fix graphics/labels</a><a class="headerlink" href="#fix-graphics-labels" title="Link to this heading"></a></h3>
+<p>Fix <a class="reference internal" href="fix_graphics_labels.html"><span class="doc">graphics/labels</span></a> adds graphics from
+pixmaps to the visualization.  These can be either images or text that
+is rendered internally into a pixmap with a background and a frame.
+Those pixmaps can be scaled, moved, made transparent, and updated during
+the simulation and then integrated into the <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> output.  In both cases a “transparency” color can be
+chosen to skip copying any pixels of that color to make parts of the
+pixmap transparent.  The text labels can contain <a class="reference internal" href="variable.html"><span class="doc">variables</span></a> that will be expanded in the same was as with <a class="reference internal" href="fix_print.html"><span class="doc">fix
+print</span></a> so they can report values of computed properties.
+Label positions are provided in the frame of reference of the simulation
+box and thus they can obscure other objects in then visualization or be
+obscured by objects.</p>
+<figure class="align-center" id="id6">
+<img alt="_images/fix-graphics-labels-objects.png" src="_images/fix-graphics-labels-objects.png" />
+<figcaption>
+<p><span class="caption-text">Example image using graphics objects and labels that are updated during
+the simulation.</span><a class="headerlink" href="#id6" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<hr class="docutils" />
+<section id="fix-graphics-arrows">
+<h3><a class="toc-backref" href="#id20" role="doc-backlink">Fix graphics/arrows</a><a class="headerlink" href="#fix-graphics-arrows" title="Link to this heading"></a></h3>
+<p>Fix <a class="reference internal" href="fix_graphics_arrows.html"><span class="doc">graphics/arrows</span></a> adds per-atom or
+per-chunk arrows to the visualization.  The arrows represent some
+per-atom property or per-chunk 3-vector property.  For atoms, there are
+the pre-defined properties <em>force</em>, <em>velocity</em>, and <em>dipole</em> (requires
+atom style <em>dipole</em>).  Everything else would have to be computed in
+<a class="reference internal" href="variable.html"><span class="doc">atom-style or compatible variables</span></a> and use the
+<em>variable</em> keyword.  For per-chunk properties, one needs to use the
+<em>chunk</em> keyword and provide the IDs of three computes: a
+<a class="reference internal" href="compute_chunk_atom.html"><span class="doc">chunk/atom compute</span></a> and two per-chunk
+computes where the first defines the position of the (middle of the)
+arrow and the second the direction and length of the arrow.  Popular
+choices would create per-molecule or per-bin chunks.  Below is an
+example input section that computes and displays both, the total dipole
+moment (using <a class="reference internal" href="fix_graphics_objects.html"><span class="doc">fix graphics/objects</span></a> and the
+per-molecule dipole moment as arrows in addition to the per-atom
+velocities:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">molchunk</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">chunk</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">molecule</span>
+<span class="k">compute </span><span class="nv nv-Identifier">cpos</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">com</span><span class="o">/</span><span class="n">chunk</span><span class="w"> </span><span class="n">molchunk</span><span class="w"> </span><span class="n">wrap</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">compute </span><span class="nv nv-Identifier">cdip</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">dipole</span><span class="o">/</span><span class="n">chunk</span><span class="w"> </span><span class="n">molchunk</span>
+<span class="k">fix </span><span class="nv nv-Identifier">vel</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">arrows</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="k">velocity </span><span class="nv nv-Identifier">50.0</span><span class="w"> </span><span class="m">0.066</span><span class="w"> </span><span class="n">autoscale</span><span class="w"> </span><span class="m">0.25</span>
+<span class="k">fix </span><span class="nv nv-Identifier">vec</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">arrows</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">chunk</span><span class="w"> </span><span class="n">molchunk</span><span class="w"> </span><span class="n">cpos</span><span class="w"> </span><span class="n">cdip</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">0.1</span>
+
+<span class="k">compute </span><span class="nv nv-Identifier">dip</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">dipole</span>
+<span class="k">variable </span><span class="nv nv-Identifier">scale</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">0.75</span>
+<span class="k">variable </span><span class="nv nv-Identifier">dip1x</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="o">-</span><span class="n">v_scale</span><span class="o">*</span><span class="n">c_dip[1]</span>
+<span class="k">variable </span><span class="nv nv-Identifier">dip1y</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="o">-</span><span class="n">v_scale</span><span class="o">*</span><span class="n">c_dip[2]</span>
+<span class="k">variable </span><span class="nv nv-Identifier">dip1z</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="o">-</span><span class="n">v_scale</span><span class="o">*</span><span class="n">c_dip[3]</span>
+<span class="k">variable </span><span class="nv nv-Identifier">dip2x</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">v_scale</span><span class="o">*</span><span class="n">c_dip[1]</span>
+<span class="k">variable </span><span class="nv nv-Identifier">dip2y</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">v_scale</span><span class="o">*</span><span class="n">c_dip[2]</span>
+<span class="k">variable </span><span class="nv nv-Identifier">dip2z</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">v_scale</span><span class="o">*</span><span class="n">c_dip[3]</span>
+<span class="k">fix </span><span class="nv nv-Identifier">dipole</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">objects</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">arrow</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="n">v_dip1x</span><span class="w"> </span><span class="n">v_dip1y</span><span class="w"> </span><span class="n">v_dip1z</span><span class="w"> </span><span class="n">v_dip2x</span><span class="w"> </span><span class="n">v_dip2y</span><span class="w"> </span><span class="n">v_dip2z</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="m">0.2</span>
+
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.3</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.1</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="n">bond</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">0.2</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">0.025</span><span class="w"> </span><span class="n">axes</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">center</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="k">fix </span><span class="nv nv-Identifier">dipole</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">vec</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">vel</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">315465</span><span class="w"> </span><span class="m">0.8</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">gray</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="w">  </span><span class="n">bdiam</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.2</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="n">adiam</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="n">acolor</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">silver</span><span class="w"> </span><span class="n">acolor</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">red</span><span class="w"> </span><span class="n">fcolor</span><span class="w"> </span><span class="n">vec</span><span class="w"> </span><span class="n">goldenrod</span><span class="sc"> &amp;</span>
+<span class="w">             </span><span class="n">fcolor</span><span class="w"> </span><span class="n">dipole</span><span class="w"> </span><span class="n">forestgreen</span><span class="w"> </span><span class="n">ftrans</span><span class="w"> </span><span class="n">dipole</span><span class="w"> </span><span class="m">0.75</span><span class="w"> </span><span class="n">fcolor</span><span class="w"> </span><span class="n">vel</span><span class="w"> </span><span class="n">cyan</span><span class="w"> </span><span class="n">ftrans</span><span class="w"> </span><span class="n">vel</span><span class="w"> </span><span class="m">0.5</span>
+</pre></div>
+</div>
+</section>
+<section id="fix-graphics-isosurface">
+<h3><a class="toc-backref" href="#id21" role="doc-backlink">Fix graphics/isosurface</a><a class="headerlink" href="#fix-graphics-isosurface" title="Link to this heading"></a></h3>
+<p>Fix <a class="reference internal" href="fix_graphics_isosurface.html"><span class="doc">graphics/isosurface</span></a> adds a
+triangulated surface following a given isovalue through a 3d-grid of
+data of some per-atom property.  The data is spread out using a Gaussian
+distribution with a given width and can be just a value of 1 (leading
+to a grid representing the number density) or mass or some other computed
+per-atom property from a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>, or
+atom-style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.  The isosurface can be represented
+by either a wireframe or a mesh of triangles and there are five choices
+for the resolution of the grid and thus the smoothness of the surface.</p>
+<p>The commands below provide an example for how to use the
+<em>graphics/isosurface</em> fix to visualize the water and lipid bilayer of
+the “rhodo” benchmark example as isosurfaces by using a green wireframe
+and a transparent white triangle surface to represent those molecules.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">group </span><span class="nv nv-Identifier">water</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">33</span>
+<span class="k">group </span><span class="nv nv-Identifier">membrane</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">36</span><span class="w"> </span><span class="m">37</span><span class="w"> </span><span class="m">38</span><span class="w"> </span><span class="m">39</span><span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="m">41</span><span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="m">43</span><span class="w"> </span><span class="m">44</span><span class="w"> </span><span class="m">45</span><span class="w"> </span><span class="m">46</span><span class="w"> </span><span class="m">47</span><span class="w"> </span><span class="m">48</span><span class="w"> </span><span class="m">49</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="m">51</span>
+<span class="k">group </span><span class="nv nv-Identifier">other</span><span class="w"> </span><span class="n">subtract</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="n">membrane</span>
+
+<span class="k">fix </span><span class="nv nv-Identifier">water</span><span class="w"> </span><span class="nv nv-Identifier">water</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">isosurface</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="m">30.0</span><span class="w"> </span><span class="m">3.0</span><span class="w"> </span><span class="n">quality</span><span class="w"> </span><span class="n">high</span><span class="w"> </span><span class="n">property</span><span class="w"> </span><span class="n">mass</span>
+<span class="k">fix </span><span class="nv nv-Identifier">membrane</span><span class="w"> </span><span class="nv nv-Identifier">membrane</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">isosurface</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="m">25.0</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="n">quality</span><span class="w"> </span><span class="n">low</span><span class="w"> </span><span class="n">property</span><span class="w"> </span><span class="n">mass</span>
+
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">other</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">image</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.4641</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="m">10</span><span class="sc"> &amp;</span>
+<span class="w">               </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.2</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">bond</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">0.025</span><span class="w">  </span><span class="o">&amp;</span>
+<span class="w">               </span><span class="k">fix </span><span class="nv nv-Identifier">membrane</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.33</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">water</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.2</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">9</span><span class="w"> </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">silver</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">gray</span><span class="sc"> &amp;</span>
+<span class="w">       </span><span class="n">fcolor</span><span class="w"> </span><span class="n">membrane</span><span class="w"> </span><span class="n">darkgreen</span><span class="w"> </span><span class="n">ftrans</span><span class="w"> </span><span class="n">membrane</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">ftrans</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="m">0.5</span><span class="sc"> &amp;</span>
+<span class="w">       </span><span class="n">element</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="n">S</span><span class="sc"> &amp;</span>
+<span class="w">               </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">P</span><span class="w"> </span><span class="n">Cl</span><span class="w"> </span><span class="n">Na</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="sc"> &amp;</span>
+<span class="w">       </span><span class="n">adiam</span><span class="w"> </span><span class="m">1</span><span class="o">*</span><span class="m">9</span><span class="w"> </span><span class="m">1.92</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">10</span><span class="o">*</span><span class="m">22</span><span class="w"> </span><span class="m">2.72</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">23</span><span class="o">*</span><span class="m">29</span><span class="w"> </span><span class="m">2.48</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">30</span><span class="o">*</span><span class="m">33</span><span class="w"> </span><span class="m">2.432</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">34</span><span class="o">*</span><span class="m">35</span><span class="w"> </span><span class="m">2.88</span><span class="sc"> &amp;</span>
+<span class="w">       </span><span class="n">adiam</span><span class="w"> </span><span class="m">36</span><span class="o">*</span><span class="m">40</span><span class="w"> </span><span class="m">1.92</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">41</span><span class="o">*</span><span class="m">46</span><span class="w"> </span><span class="m">2.72</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">47</span><span class="w"> </span><span class="m">2.48</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">48</span><span class="o">*</span><span class="m">50</span><span class="w"> </span><span class="m">2.432</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">51</span><span class="w"> </span><span class="m">2.88</span><span class="sc"> &amp;</span>
+<span class="w">       </span><span class="n">adiam</span><span class="w"> </span><span class="m">52</span><span class="w"> </span><span class="m">3.632</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">53</span><span class="w"> </span><span class="m">2.176</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">54</span><span class="o">*</span><span class="m">56</span><span class="w"> </span><span class="m">1.92</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">57</span><span class="w"> </span><span class="m">2.48</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">58</span><span class="o">*</span><span class="m">68</span><span class="w"> </span><span class="m">2.72</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="_images/rhodo-all.png"><img alt="isosurface1" src="_images/rhodo-all.png" style="width: 49%;" /></a>  <a class="reference internal" href="_images/rhodo-iso.png"><img alt="isosurface2" src="_images/rhodo-iso.png" style="width: 49%;" /></a></p>
+<center>(Isosurface graphics visualization example. Click to see the full-size images)</center><br></section>
+<hr class="docutils" />
+<section id="compute-hbond-local">
+<h3><a class="toc-backref" href="#id22" role="doc-backlink">Compute hbond/local</a><a class="headerlink" href="#compute-hbond-local" title="Link to this heading"></a></h3>
+<p>Compute <a class="reference internal" href="compute_hbond_local.html"><span class="doc">hbond/local</span></a> of the
+<a class="reference internal" href="Packages_details.html#pkg-extra-compute"><span class="std std-ref">EXTRA-COMPUTE package</span></a> provides access to the
+list of hydrogen bonds as they are dynamically computed by the compute
+style.  These can be added to the <a class="reference internal" href="dump_image.html"><span class="doc">dump image output</span></a>
+as arrows pointing from the hydrogen bond hydrogen atom to the hydrogen
+bond acceptor atom by using the <em>compute</em> keyword.  The compute provides
+a lot of flexibility in which atoms are considered for the hydrogen
+bonds so that the visualization can be rather simple and straightforward
+but also more complex to visualize only selected aspects.</p>
+<p>For a simple bulk water system, one could just show the entire hydrogen
+bond network and consider that the water oxygen atoms function as both,
+hydrogen bond donors and hydrogen bond acceptors.  Here is an example
+input segment that could be added to the <code class="docutils literal notranslate"><span class="pre">examples/rdf-adf/in.spce</span></code>
+input file:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">group       </span><span class="nv nv-Identifier">ogroup</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">1</span>
+<span class="k">group       </span><span class="nv nv-Identifier">hgroup</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">2</span>
+<span class="k">compute     </span><span class="nv nv-Identifier">hb</span><span class="w">     </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">hbond</span><span class="o">/</span><span class="n">local</span><span class="w"> </span><span class="m">3.5</span><span class="w"> </span><span class="m">30.0</span><span class="w"> </span><span class="n">ogroup</span><span class="w"> </span><span class="n">ogroup</span><span class="w"> </span><span class="n">hgroup</span>
+
+<span class="k">dump        </span><span class="nv nv-Identifier">viz</span><span class="w">    </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">water</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.331</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="m">20</span><span class="sc"> &amp;</span>
+<span class="w">                                             </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.2</span><span class="w"> </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">348276</span><span class="w"> </span><span class="m">0.6</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="w">  </span><span class="n">box</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">0.025</span><span class="sc"> &amp;</span>
+<span class="w">                                             </span><span class="n">bond</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">0.35</span><span class="w"> </span><span class="k">compute </span><span class="nv nv-Identifier">hb</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="o">-</span><span class="m">0.5</span><span class="w"> </span><span class="m">0.15</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w">    </span><span class="n">pad</span><span class="w"> </span><span class="m">6</span><span class="w">  </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">cadetblue</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span><span class="w"> </span><span class="n">backcolor2</span><span class="w"> </span><span class="n">silver</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="sc"> &amp;</span>
+<span class="w">                          </span><span class="n">adiam</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="n">ccolor</span><span class="w"> </span><span class="n">hb</span><span class="w"> </span><span class="n">yellow</span>
+</pre></div>
+</div>
+<p>Note how the <em>cflag1</em> parameter is used to shrink the arrows so that
+their tips just touch the hydrogen bond acceptor atoms.</p>
+<p>If one wants to distinguish between donated and accepted hydrogen bonds
+for a subsystem, the input could become more complex and multiple
+computes may be needed.  Below is an input that could be added to
+<code class="docutils literal notranslate"><span class="pre">examples/peptide/in.peptide</span></code> input file.  This selects a group of
+atoms centered on the peptide and containing the peptide and a shell
+of water molecules and uses different groups for hydrogen bond donors
+and acceptors to determine selectively hydrogen bonds between the peptide
+and the surrounding water molecules in both directions.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># select atoms for visualization: peptide and water molecules within 3.5 angstrom</span>
+<span class="k">group     </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">dynamic</span><span class="w"> </span><span class="n">peptide</span><span class="w"> </span><span class="n">within</span><span class="w"> </span><span class="m">3.5</span><span class="w"> </span><span class="n">include</span><span class="w"> </span><span class="n">molecule</span><span class="w"> </span><span class="n">every</span><span class="w"> </span><span class="m">100</span>
+
+<span class="c"># define groups of donor, acceptor, and hydrogen atoms for peptide and water</span>
+<span class="k">group           </span><span class="nv nv-Identifier">pdonor</span><span class="w">    </span><span class="n">type</span><span class="w">  </span><span class="m">5</span><span class="w">  </span><span class="m">9</span><span class="w">        </span><span class="c"># peptide donors : nitrogens and phenol oxygen</span>
+<span class="k">group           </span><span class="nv nv-Identifier">woxygen</span><span class="w">   </span><span class="n">type</span><span class="w"> </span><span class="m">13</span><span class="w">           </span><span class="c"># water oxygens are donor and acceptor</span>
+<span class="k">group           </span><span class="nv nv-Identifier">pacceptor</span><span class="w"> </span><span class="n">type</span><span class="w">  </span><span class="m">3</span><span class="w">  </span><span class="m">5</span><span class="w">  </span><span class="m">9</span><span class="w"> </span><span class="m">12</span><span class="w">  </span><span class="c"># peptide acceptors: oxygens, nitrogens, and sulfur</span>
+<span class="k">group           </span><span class="nv nv-Identifier">hydrogen</span><span class="w">  </span><span class="n">type</span><span class="w">  </span><span class="m">4</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">14</span><span class="w">     </span><span class="c"># hydrogens bonded to oxygens and nitrogens</span>
+
+<span class="c"># peptide-water hydrogen bonds where the peptide is the donor</span>
+<span class="k">compute </span><span class="nv nv-Identifier">hb1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">hbond</span><span class="o">/</span><span class="n">local</span><span class="w"> </span><span class="m">3.5</span><span class="w"> </span><span class="m">30.0</span><span class="w"> </span><span class="n">pdonor</span><span class="w"> </span><span class="n">woxygen</span><span class="w"> </span><span class="n">hydrogen</span>
+<span class="c"># peptide-water hydrogen bonds where the peptide is the acceptor</span>
+<span class="k">compute </span><span class="nv nv-Identifier">hb2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">hbond</span><span class="o">/</span><span class="n">local</span><span class="w"> </span><span class="m">3.7</span><span class="w"> </span><span class="m">30.0</span><span class="w"> </span><span class="n">woxygen</span><span class="w"> </span><span class="n">pacceptor</span><span class="w"> </span><span class="n">hydrogen</span>
+
+<span class="c"># create donor/acceptor hydrogen bond info text</span>
+<span class="k">fix </span><span class="nv nv-Identifier">label</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">text</span><span class="w"> </span><span class="s">&quot;Hydrogen bonds donated:   $(c_hb1:%02.0f)&quot;</span><span class="w"> </span><span class="m">207</span><span class="w"> </span><span class="m">72</span><span class="w"> </span><span class="m">0.0</span><span class="sc"> &amp;</span>
+<span class="w">                                        </span><span class="n">size</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span><span class="sc"> &amp;</span>
+<span class="w">                                  </span><span class="n">text</span><span class="w"> </span><span class="s">&quot;Hydrogen bonds accepted: $(c_hb2:%02.0f)&quot;</span><span class="w"> </span><span class="m">210</span><span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="m">0.0</span><span class="sc"> &amp;</span>
+<span class="w">                                        </span><span class="n">size</span><span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span>
+<span class="c"># create colored arrows to go with text labels</span>
+<span class="k">fix </span><span class="nv nv-Identifier">obj</span><span class="w">   </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">objects</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">arrow</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">80.0</span><span class="w"> </span><span class="m">61.0</span><span class="w"> </span><span class="m">39</span><span class="w"> </span><span class="m">80.0</span><span class="w"> </span><span class="m">67.0</span><span class="w"> </span><span class="m">39</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="m">0.2</span><span class="sc"> &amp;</span>
+<span class="w">                                   </span><span class="n">arrow</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">80.0</span><span class="w"> </span><span class="m">61.0</span><span class="w"> </span><span class="m">37.2</span><span class="w"> </span><span class="m">80.0</span><span class="w"> </span><span class="m">67.0</span><span class="w"> </span><span class="m">37.2</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="m">0.2</span>
+
+<span class="c"># combine the graphics into visualization using only a subset of atom</span>
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">hbonds</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="m">600</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">2.1</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">center</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.52</span><span class="w"> </span><span class="m">0.52</span><span class="sc"> &amp;</span>
+<span class="w">                       </span><span class="n">bond</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">12384</span><span class="w"> </span><span class="m">0.6</span><span class="w"> </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="m">0.1</span><span class="sc"> &amp;</span>
+<span class="w">                       </span><span class="k">compute </span><span class="nv nv-Identifier">hb1</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="o">-</span><span class="m">0.4</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="k">compute </span><span class="nv nv-Identifier">hb2</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="o">-</span><span class="m">0.4</span><span class="w"> </span><span class="m">0.3</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">label</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">obj</span><span class="w"> </span><span class="nv nv-Identifier">type</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">boxcolor</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">darkgray</span><span class="w"> </span><span class="n">backcolor2</span><span class="w"> </span><span class="n">silver</span><span class="sc"> &amp;</span>
+<span class="w">                      </span><span class="n">element</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="n">O</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">ccolor</span><span class="w"> </span><span class="n">hb1</span><span class="w"> </span><span class="n">cyan</span><span class="w"> </span><span class="n">ccolor</span><span class="w"> </span><span class="n">hb2</span><span class="w"> </span><span class="n">magenta</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="_images/hbonds-water.png"><img alt="hbonds1" src="_images/hbonds-water.png" style="width: 49%;" /></a>  <a class="reference internal" href="_images/hbonds-peptide.png"><img alt="hbonds2" src="_images/hbonds-peptide.png" style="width: 49%;" /></a></p>
+<center>(Hydrogen bond graphics visualization example. Click to see the full-size images)</center><br></section>
+<hr class="docutils" />
+<section id="fix-reaxff-bonds">
+<h3><a class="toc-backref" href="#id23" role="doc-backlink">Fix reaxff/bonds</a><a class="headerlink" href="#fix-reaxff-bonds" title="Link to this heading"></a></h3>
+<p>Fix <a class="reference internal" href="fix_reaxff_bonds.html"><span class="doc">reaxff/bonds</span></a> of the <a class="reference internal" href="Packages_details.html#pkg-reaxff"><span class="std std-ref">REAXFF package</span></a> provides access to the list of bonds as they are
+dynamically computed by the <a class="reference internal" href="pair_reaxff.html"><span class="doc">ReaxFF pair style</span></a>.  As
+discussed above, this can be used to visualize bonds for a system where
+there is no explicit bond topology defined.</p>
+</section>
+<section id="fix-smd-wall-surface">
+<h3><a class="toc-backref" href="#id24" role="doc-backlink">Fix smd/wall_surface</a><a class="headerlink" href="#fix-smd-wall-surface" title="Link to this heading"></a></h3>
+<p>Fix <a class="reference internal" href="fix_smd_wall_surface.html"><span class="doc">smd/wall_surface</span></a> of the <a class="reference internal" href="Packages_details.html#pkg-machdyn"><span class="std std-ref">MACHDYN
+package</span></a> creates a custom wall from a mesh of triangles
+that is read from an STL format file.</p>
+</section>
+<section id="mc-package-fixes">
+<h3><a class="toc-backref" href="#id25" role="doc-backlink">MC package fixes</a><a class="headerlink" href="#mc-package-fixes" title="Link to this heading"></a></h3>
+<p>Several fixes from the <a class="reference internal" href="Packages_details.html#pkg-mc"><span class="std std-ref">MC package</span></a> have support for
+adding graphics to a visualization.  These are typically added spheres
+of the atoms that were swapped or involved in a bond that was created or
+broken.  Below is an example for input commands that use both, <a class="reference internal" href="fix_bond_break.html"><span class="doc">fix
+bond/break</span></a> and <a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create/angle</span></a>.  Atoms involved in a created bond are highlighted in
+red while atoms involved in a broken bond in yellow.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">break</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">break</span><span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2.5</span>
+<span class="k">fix </span><span class="nv nv-Identifier">form</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">bond</span><span class="o">/</span><span class="n">create</span><span class="o">/</span><span class="n">angle</span><span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2.2</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">aconstrain</span><span class="w"> </span><span class="m">90.0</span><span class="w"> </span><span class="m">180</span>
+<span class="k">variable </span><span class="nv nv-Identifier">nsteps</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="m">500</span>
+<span class="k">fix </span><span class="nv nv-Identifier">label</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">graphics</span><span class="o">/</span><span class="n">labels</span><span class="w"> </span><span class="nv">${nsteps}</span><span class="w">  </span><span class="o">&amp;</span>
+<span class="w">      </span><span class="n">text</span><span class="w"> </span><span class="s">&quot;Step: $(step:%05.0f)  Bonds created: $(f_form[2]:%02.0f)  Bonds broken: $(f_break[2]:%02.0f)&quot;</span><span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="m">32</span><span class="w"> </span><span class="m">0</span><span class="sc"> &amp;</span>
+<span class="w">      </span><span class="n">fontcolor</span><span class="w"> </span><span class="n">black</span><span class="w"> </span><span class="n">framecolor</span><span class="w"> </span><span class="n">black</span>
+
+<span class="k">dump </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="nv">${nsteps}</span><span class="w"> </span><span class="n">breakable</span><span class="o">-*</span><span class="n">.png</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">400</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="n">shiny</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">fsaa</span><span class="w"> </span><span class="n">yes</span><span class="sc"> &amp;</span>
+<span class="w">            </span><span class="n">bond</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">160</span><span class="w"> </span><span class="m">90</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">238174</span><span class="w"> </span><span class="m">0.6</span><span class="sc"> &amp;</span>
+<span class="w">            </span><span class="k">fix </span><span class="nv nv-Identifier">break</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">form</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">label</span><span class="w"> </span><span class="nv nv-Identifier">const</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0</span>
+<span class="k">dump_modify </span><span class="nv nv-Identifier">viz</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="n">backcolor</span><span class="w"> </span><span class="n">white</span><span class="w"> </span><span class="n">element</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">acolor</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">gray</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">0.5</span><span class="sc"> &amp;</span>
+<span class="w">            </span><span class="n">fcolor</span><span class="w"> </span><span class="n">break</span><span class="w"> </span><span class="n">goldenrod</span><span class="w"> </span><span class="n">fcolor</span><span class="w"> </span><span class="n">form</span><span class="w"> </span><span class="n">firebrick</span>
+</pre></div>
+</div>
+<img alt="_images/break-create.png" src="_images/break-create.png" />
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_restart.html" class="btn btn-neutral float-left" title="10.1.1. Restart a simulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_multiple.html" class="btn btn-neutral float-right" title="10.1.5. Run multiple simulations from one input script" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

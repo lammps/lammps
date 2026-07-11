@@ -1,0 +1,19 @@
+#############################
+#Atoms types - mass - charge#
+#############################
+#@ 1 atom types #!THIS LINE IS NECESSARY DON'T SPEND HOURS FINDING THAT OUT!#
+
+variable Si equal 1
+
+#############
+#Atom Masses#
+#############
+
+mass ${Si}     28.08550 
+
+###########################
+#Pair Potentials - Tersoff#
+###########################
+
+pair_style      tersoff
+pair_coeff      * * SiCGe.tersoff Si(D)

@@ -1,0 +1,444 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5.4. Debugging crashes &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Errors_debug.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5.6. Error messages" href="Errors_messages.html" />
+    <link rel="prev" title="5.3. Reporting bugs" href="Errors_bugs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Errors.html">5. Errors</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Errors_common.html">5.1. Common issues that are often regarded as bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_details.html">5.2. Errors and warnings details</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_bugs.html">5.3. Reporting bugs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.4. Debugging crashes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#using-the-gdb-debugger-to-get-a-stack-trace">5.4.1. Using the GDB debugger to get a stack trace</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-valgrind-to-get-a-stack-trace">5.4.2. Using valgrind to get a stack trace</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#debugging-when-lammps-appears-to-be-stuck">5.5. Debugging when LAMMPS appears to be stuck</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_messages.html">5.6. Error messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_warnings.html">5.7. Warning messages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Errors.html"><span class="section-number">5. </span>Errors</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5.4. </span>Debugging crashes</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Errors_bugs.html" class="btn btn-neutral float-left" title="5.3. Reporting bugs" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Errors_messages.html" class="btn btn-neutral float-right" title="5.6. Error messages" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="debugging-crashes">
+<h1><span class="section-number">5.4. </span>Debugging crashes<a class="headerlink" href="#debugging-crashes" title="Link to this heading"></a></h1>
+<p>If LAMMPS crashes with a “segmentation fault” or a “bus error” or
+similar message, then you can use the following two methods to further
+narrow down the origin of the issue.  This will help the LAMMPS
+developers (or yourself) to understand the reason for the crash and
+apply a fix (either to the input script or the source code).
+This requires that your LAMMPS executable includes the required
+<a class="reference internal" href="Build_basics.html#debug"><span class="std std-ref">debug information</span></a>. Otherwise it is not possible to
+look up the names of functions or variables.</p>
+<p>The following patch will introduce a bug into the code for pair style
+<a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut</span></a> when using the <code class="docutils literal notranslate"><span class="pre">examples/melt/in.melt</span></code> input.
+We use it to show how to identify the origin of a segmentation fault.</p>
+<div class="highlight-diff notranslate"><div class="highlight"><pre><span></span><span class="gd">--- a/src/pair_lj_cut.cpp</span>
+<span class="gi">+++ b/src/pair_lj_cut.cpp</span>
+<span class="gu">@@ -81,6 +81,7 @@ void PairLJCut::compute(int eflag, int vflag)</span>
+<span class="w"> </span>  int nlocal = atom-&gt;nlocal;
+<span class="w"> </span>  double *special_lj = force-&gt;special_lj;
+<span class="w"> </span>  int newton_pair = force-&gt;newton_pair;
+<span class="gi">+  double comx = 0.0;</span>
+
+<span class="w"> </span>  inum = list-&gt;inum;
+<span class="w"> </span>  ilist = list-&gt;ilist;
+<span class="gu">@@ -134,8 +135,10 @@ void PairLJCut::compute(int eflag, int vflag)</span>
+<span class="w"> </span>                             evdwl,0.0,fpair,delx,dely,delz);
+<span class="w"> </span>      }
+<span class="w"> </span>    }
+<span class="gd">-  }</span>
+
+<span class="gi">+    comx += atom-&gt;rmass[i]*x[i][0]; /* BUG */</span>
+<span class="gi">+  }</span>
+<span class="gi">+  printf(&quot;comx = %g\n&quot;,comx);</span>
+<span class="w"> </span>  if (vflag_fdotr) virial_fdotr_compute();
+<span class="w"> </span>}
+</pre></div>
+</div>
+<p>After recompiling LAMMPS and running the input you should get something like this:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>./lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.melt
+<span class="go">LAMMPS (19 Mar 2020)</span>
+<span class="go">  using 1 OpenMP thread(s) per MPI task</span>
+<span class="go">Lattice spacing in x,y,z = 1.6796 1.6796 1.6796</span>
+<span class="go">Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)</span>
+<span class="go">  1 by 1 by 1 MPI processor grid</span>
+<span class="go">Created 4000 atoms</span>
+<span class="go">  create_atoms CPU = 0.000432253 secs</span>
+<span class="go">Neighbor list info ...</span>
+<span class="go">  update every 20 steps, delay 0 steps, check no</span>
+<span class="go">  max neighbors/atom: 2000, page size: 100000</span>
+<span class="go">  master list distance cutoff = 2.8</span>
+<span class="go">  ghost atom cutoff = 2.8</span>
+<span class="go">  binsize = 1.4, bins = 12 12 12</span>
+<span class="go">  1 neighbor lists, perpetual/occasional/extra = 1 0 0</span>
+<span class="go">  (1) pair lj/cut, perpetual</span>
+<span class="go">      attributes: half, newton on</span>
+<span class="go">      pair build: half/bin/atomonly/newton</span>
+<span class="go">      stencil: half/bin/3d/newton</span>
+<span class="go">      bin: standard</span>
+<span class="go">Setting up Verlet run ...</span>
+<span class="go">  Unit style    : lj</span>
+<span class="go">  Current step  : 0</span>
+<span class="go">  Time step     : 0.005</span>
+<span class="go">Segmentation fault (core dumped)</span>
+</pre></div>
+</div>
+<section id="using-the-gdb-debugger-to-get-a-stack-trace">
+<h2><span class="section-number">5.4.1. </span>Using the GDB debugger to get a stack trace<a class="headerlink" href="#using-the-gdb-debugger-to-get-a-stack-trace" title="Link to this heading"></a></h2>
+<p>There are two options to use the GDB debugger for identifying the origin
+of the segmentation fault or similar crash. The GDB debugger has many
+more features and options, as can be seen for example its <a class="reference external" href="https://www.sourceware.org/gdb/documentation/">online
+documentation</a>.</p>
+<section id="run-lammps-from-within-the-debugger">
+<h3>Run LAMMPS from within the debugger<a class="headerlink" href="#run-lammps-from-within-the-debugger" title="Link to this heading"></a></h3>
+<p>Running LAMMPS under the control of the debugger as shown below only
+works for a single MPI rank (for debugging a program running in parallel
+you usually need a parallel debugger program).  A simple way to launch
+GDB is to prefix the LAMMPS command-line with <code class="docutils literal notranslate"><span class="pre">gdb</span> <span class="pre">--args</span></code> and then
+type the command “run” at the GDB prompt.  This will launch the
+debugger, load the LAMMPS executable and its debug info, and then run
+it.  When it reaches the code causing the segmentation fault, it will
+stop with a message why it stopped, print the current line of code, and
+drop back to the GDB prompt.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">run</span>
+<span class="go">[...]</span>
+<span class="go">Setting up Verlet run ...</span>
+<span class="go">  Unit style    : lj</span>
+<span class="go">  Current step  : 0</span>
+<span class="go">  Time step     : 0.005</span>
+
+<span class="go">Program received signal SIGSEGV, Segmentation fault.</span>
+<span class="go">0x00000000006653ab in LAMMPS_NS::PairLJCut::compute (this=0x829740, eflag=1, vflag=&lt;optimized out&gt;) at /home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139</span>
+<span class="go">139      comx += atom-&gt;rmass[i]*x[i][0]; /* BUG */</span>
+<span class="gp gp-VirtualEnv">(gdb)</span>
+</pre></div>
+</div>
+<p>Now typing the command “where” will show the stack of functions starting from
+the current function back to “main()”.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">where</span>
+<span class="gp">#</span><span class="m">0</span><span class="w">  </span>0x00000000006653ab<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::PairLJCut::compute<span class="w"> </span><span class="o">(</span><span class="nv">this</span><span class="o">=</span>0x829740,<span class="w"> </span><span class="nv">eflag</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">vflag</span><span class="o">=</span>&lt;optimized<span class="w"> </span>out&gt;<span class="o">)</span><span class="w"> </span>at<span class="w"> </span>/home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139
+<span class="gp">#</span><span class="m">1</span><span class="w">  </span>0x00000000004cf0a2<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::Verlet::setup<span class="w"> </span><span class="o">(</span><span class="nv">this</span><span class="o">=</span>0x7e6c90,<span class="w"> </span><span class="nv">flag</span><span class="o">=</span><span class="m">1</span><span class="o">)</span><span class="w"> </span>at<span class="w"> </span>/home/akohlmey/compile/lammps/src/verlet.cpp:131
+<span class="gp">#</span><span class="m">2</span><span class="w">  </span>0x000000000049db42<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::Run::command<span class="w"> </span><span class="o">(</span><span class="nv">this</span><span class="o">=</span>this@entry<span class="o">=</span>0x7fffffffcca0,<span class="w"> </span><span class="nv">narg</span><span class="o">=</span>narg@entry<span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">arg</span><span class="o">=</span>arg@entry<span class="o">=</span>0x7e8750<span class="o">)</span>
+<span class="go">    at /home/akohlmey/compile/lammps/src/run.cpp:177</span>
+<span class="gp">#</span><span class="m">3</span><span class="w">  </span>0x000000000041258a<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::Input::command_creator&lt;LAMMPS_NS::Run&gt;<span class="w"> </span><span class="o">(</span><span class="nv">lmp</span><span class="o">=</span>&lt;optimized<span class="w"> </span>out&gt;,<span class="w"> </span><span class="nv">narg</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">arg</span><span class="o">=</span>0x7e8750<span class="o">)</span>
+<span class="go">    at /home/akohlmey/compile/lammps/src/input.cpp:878</span>
+<span class="gp">#</span><span class="m">4</span><span class="w">  </span>0x0000000000410ad3<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::Input::execute_command<span class="w"> </span><span class="o">(</span><span class="nv">this</span><span class="o">=</span>0x7d1410<span class="o">)</span><span class="w"> </span>at<span class="w"> </span>/home/akohlmey/compile/lammps/src/input.cpp:864
+<span class="gp">#</span><span class="m">5</span><span class="w">  </span>0x00000000004111fb<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::Input::file<span class="w"> </span><span class="o">(</span><span class="nv">this</span><span class="o">=</span>0x7d1410<span class="o">)</span><span class="w"> </span>at<span class="w"> </span>/home/akohlmey/compile/lammps/src/input.cpp:229
+<span class="gp">#</span><span class="m">6</span><span class="w">  </span>0x000000000040933a<span class="w"> </span><span class="k">in</span><span class="w"> </span>main<span class="w"> </span><span class="o">(</span><span class="nv">argc</span><span class="o">=</span>&lt;optimized<span class="w"> </span>out&gt;,<span class="w"> </span><span class="nv">argv</span><span class="o">=</span>&lt;optimized<span class="w"> </span>out&gt;<span class="o">)</span><span class="w"> </span>at<span class="w"> </span>/home/akohlmey/compile/lammps/src/main.cpp:65
+<span class="gp gp-VirtualEnv">(gdb)</span>
+</pre></div>
+</div>
+<p>You can also print the value of variables and see if there is anything
+unexpected.  Segmentation faults, for example, commonly happen when a
+pointer variable is not assigned and still initialized to NULL.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">print x</span>
+<span class="gp">$</span><span class="nv">1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">(</span>double<span class="w"> </span>**<span class="o">)</span><span class="w"> </span>0x7ffff7ca1010
+<span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">print i</span>
+<span class="gp">$</span><span class="nv">2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
+<span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">print x[0]</span>
+<span class="gp">$</span><span class="nv">3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">(</span>double<span class="w"> </span>*<span class="o">)</span><span class="w"> </span>0x7ffff6d80010
+<span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">print x[0][0]</span>
+<span class="gp">$</span><span class="nv">4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>
+<span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">print x[1][0]</span>
+<span class="gp">$</span><span class="nv">5</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0</span>.83979809569125363
+<span class="gp gp-VirtualEnv">(gdb)</span> <span class="go">print atom-&gt;rmass</span>
+<span class="gp">$</span><span class="nv">6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">(</span>double<span class="w"> </span>*<span class="o">)</span><span class="w"> </span>0x0
+<span class="gp gp-VirtualEnv">(gdb)</span>
+</pre></div>
+</div>
+</section>
+<section id="inspect-a-core-dump-file-with-the-debugger">
+<h3>Inspect a core dump file with the debugger<a class="headerlink" href="#inspect-a-core-dump-file-with-the-debugger" title="Link to this heading"></a></h3>
+<p>When an executable crashes with a “core dumped” message, it creates a
+file “core” or “core.&lt;PID#&gt;” which contains the information about the
+current state.  This file may be located in the folder where you ran
+LAMMPS or in some hidden folder managed by the systemd daemon.  In the
+latter case, you need to “extract” the core file with the <code class="docutils literal notranslate"><span class="pre">coredumpctl</span></code>
+utility to the current folder. Example: <code class="docutils literal notranslate"><span class="pre">coredumpctl</span> <span class="pre">-o</span> <span class="pre">core</span> <span class="pre">dump</span> <span class="pre">lmp</span></code>.
+Now you can launch the debugger to load the executable, its debug info
+and the core dump and drop you to a prompt like before.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>gdb<span class="w"> </span>lmp<span class="w"> </span>core
+<span class="go">Reading symbols from lmp...</span>
+<span class="go">[New LWP 1928535]</span>
+<span class="go">[Thread debugging using libthread_db enabled]</span>
+<span class="go">Using host libthread_db library &quot;/lib64/libthread_db.so.1&quot;.</span>
+<span class="go">Core was generated by `./lmp -in in.melt&#39;.</span>
+<span class="go">Program terminated with signal SIGSEGV, Segmentation fault.</span>
+<span class="gp">#</span><span class="m">0</span><span class="w">  </span>0x00000000006653ab<span class="w"> </span><span class="k">in</span><span class="w"> </span>LAMMPS_NS::PairLJCut::compute<span class="w"> </span><span class="o">(</span><span class="nv">this</span><span class="o">=</span>0x1b10740,<span class="w"> </span><span class="nv">eflag</span><span class="o">=</span><span class="m">1</span>,<span class="w"> </span><span class="nv">vflag</span><span class="o">=</span>&lt;optimized<span class="w"> </span>out&gt;<span class="o">)</span>
+<span class="go">    at /home/akohlmey/compile/lammps/src/pair_lj_cut.cpp:139</span>
+<span class="go">139      comx += atom-&gt;rmass[i]*x[i][0]; /* BUG */</span>
+<span class="gp gp-VirtualEnv">(gdb)</span>
+</pre></div>
+</div>
+<p>From here on, you use the same commands as shown before to get a stack
+trace and print current values of (pointer) variables.</p>
+</section>
+</section>
+<section id="using-valgrind-to-get-a-stack-trace">
+<h2><span class="section-number">5.4.2. </span>Using valgrind to get a stack trace<a class="headerlink" href="#using-valgrind-to-get-a-stack-trace" title="Link to this heading"></a></h2>
+<p>The <a class="reference external" href="https://valgrind.org">valgrind</a> suite of tools allows to closely
+inspect the behavior of a compiled program by essentially emulating a
+CPU and instrumenting the program while running.  This slows down
+execution quite significantly, but can also report issues that are not
+resulting in a crash.  The default valgrind tool is a memory checker and
+you can use it by prefixing the normal command-line with <code class="docutils literal notranslate"><span class="pre">valgrind</span></code>.
+Unlike GDB, this will also work for parallel execution, but it is
+recommended to redirect the valgrind output to a file (e.g. with
+<code class="docutils literal notranslate"><span class="pre">--log-file=crash-%p.txt</span></code>, the %p will be substituted with the
+process ID) so that the messages of the multiple valgrind instances to
+the console are not mixed.</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="gp">$ </span>valgrind<span class="w"> </span>./lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.melt
+<span class="go">==1933642== Memcheck, a memory error detector</span>
+<span class="go">==1933642== Copyright (C) 2002-2017, and GNU GPL&#39;d, by Julian Seward et al.</span>
+<span class="go">==1933642== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info</span>
+<span class="go">==1933642== Command: ./lmp -in in.melt</span>
+<span class="go">==1933642==</span>
+<span class="go">LAMMPS (19 Mar 2020)</span>
+<span class="go">OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:94)</span>
+<span class="go">  using 1 OpenMP thread(s) per MPI task</span>
+<span class="go">Lattice spacing in x,y,z = 1.6796 1.6796 1.6796</span>
+<span class="go">Created orthogonal box = (0 0 0) to (16.796 16.796 16.796)</span>
+<span class="go">  1 by 1 by 1 MPI processor grid</span>
+<span class="go">Created 4000 atoms</span>
+<span class="go">  create_atoms CPU = 0.032964 secs</span>
+<span class="go">Neighbor list info ...</span>
+<span class="go">  update every 20 steps, delay 0 steps, check no</span>
+<span class="go">  max neighbors/atom: 2000, page size: 100000</span>
+<span class="go">  master list distance cutoff = 2.8</span>
+<span class="go">  ghost atom cutoff = 2.8</span>
+<span class="go">  binsize = 1.4, bins = 12 12 12</span>
+<span class="go">  1 neighbor lists, perpetual/occasional/extra = 1 0 0</span>
+<span class="go">  (1) pair lj/cut, perpetual</span>
+<span class="go">      attributes: half, newton on</span>
+<span class="go">      pair build: half/bin/atomonly/newton</span>
+<span class="go">      stencil: half/bin/3d/newton</span>
+<span class="go">      bin: standard</span>
+<span class="go">Setting up Verlet run ...</span>
+<span class="go">  Unit style    : lj</span>
+<span class="go">  Current step  : 0</span>
+<span class="go">  Time step     : 0.005</span>
+<span class="go">==1933642== Invalid read of size 8</span>
+<span class="go">==1933642==    at 0x6653AB: LAMMPS_NS::PairLJCut::compute(int, int) (pair_lj_cut.cpp:139)</span>
+<span class="go">==1933642==    by 0x4CF0A1: LAMMPS_NS::Verlet::setup(int) (verlet.cpp:131)</span>
+<span class="go">==1933642==    by 0x49DB41: LAMMPS_NS::Run::command(int, char**) (run.cpp:177)</span>
+<span class="go">==1933642==    by 0x412589: void LAMMPS_NS::Input::command_creator&lt;LAMMPS_NS::Run&gt;(LAMMPS_NS::LAMMPS*, int, char**) (input.cpp:881)</span>
+<span class="go">==1933642==    by 0x410AD2: LAMMPS_NS::Input::execute_command() (input.cpp:864)</span>
+<span class="go">==1933642==    by 0x4111FA: LAMMPS_NS::Input::file() (input.cpp:229)</span>
+<span class="go">==1933642==    by 0x409339: main (main.cpp:65)</span>
+<span class="go">==1933642==  Address 0x0 is not stack&#39;d, malloc&#39;d or (recently) free&#39;d</span>
+<span class="go">==1933642==</span>
+</pre></div>
+</div>
+<p>As you can see, the stack trace information is similar to that obtained
+from GDB. In addition you get a more specific hint about what cause the
+segmentation fault, i.e. that it is a NULL pointer dereference.  To find
+out which pointer exactly was NULL, you need to use the debugger, though.</p>
+</section>
+</section>
+<section id="debugging-when-lammps-appears-to-be-stuck">
+<h1><span class="section-number">5.5. </span>Debugging when LAMMPS appears to be stuck<a class="headerlink" href="#debugging-when-lammps-appears-to-be-stuck" title="Link to this heading"></a></h1>
+<p>Sometimes the LAMMPS calculation appears to be stuck, that is the LAMMPS
+process or processes are active, but there is no visible progress.  This
+can have multiple reasons:</p>
+<ul class="simple">
+<li><p>The selected styles are slow and require a lot of CPU time and the
+system is large. When extrapolating the expected speed from smaller
+systems, one has to factor in that not all models scale linearly with
+system size, e.g. <a class="reference internal" href="kspace_style.html"><span class="doc">kspace styles like ewald or pppm</span></a>. There is very little that can be done in this case.</p></li>
+<li><p>The output interval is not set or set to a large value with the
+<a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a> command. In the first case, there will be output
+only at the first and last step.</p></li>
+<li><p>The output is block-buffered and instead of line-buffered. The output
+will only be written to the screen after 4096 or 8192 characters of
+output have accumulated.  This most often happens for files but also
+with MPI parallel executables for output to the screen, since the
+output to the screen is handled by the MPI library so that output from
+all processes can be shown.  This can be suppressed by using the
+<code class="docutils literal notranslate"><span class="pre">-nonblock</span></code> or <code class="docutils literal notranslate"><span class="pre">-nb</span></code> command-line flag, which turns off buffering
+for screen and logfile output.</p></li>
+<li><p>An MPI parallel calculation has a bug where a collective MPI function
+is called (e.g. <code class="docutils literal notranslate"><span class="pre">MPI_Barrier()</span></code>, <code class="docutils literal notranslate"><span class="pre">MPI_Bcast()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">MPI_Allreduce()</span></code> and so on) before pending point-to-point
+communications are completed or when the collective function is only
+called from a subset of the MPI processes.  This also applies to some
+internal LAMMPS functions like <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code> which uses
+<code class="docutils literal notranslate"><span class="pre">MPI_Barrier()</span></code> and thus <code class="docutils literal notranslate"><span class="pre">Error::one()</span></code> must be called, if the
+error condition does not happen on all MPI processes simultaneously.</p></li>
+<li><p>Some function in LAMMPS has a bug where a <code class="docutils literal notranslate"><span class="pre">for</span></code> or <code class="docutils literal notranslate"><span class="pre">while</span></code> loop
+does not trigger the exit condition and thus will loop forever.  This
+can happen when the wrong variable is incremented or when one value in
+a comparison becomes <code class="docutils literal notranslate"><span class="pre">NaN</span></code> due to an overflow.</p></li>
+</ul>
+<p>In the latter two cases, further information and stack traces (see above)
+can be obtain by attaching a debugger to a running process.  For that the
+process ID (PID) is needed; this can be found on Linux machines with the
+<code class="docutils literal notranslate"><span class="pre">top</span></code>, <code class="docutils literal notranslate"><span class="pre">htop</span></code>, <code class="docutils literal notranslate"><span class="pre">ps</span></code>, or <code class="docutils literal notranslate"><span class="pre">pstree</span></code> commands.</p>
+<p>Then running the (GNU) debugger <code class="docutils literal notranslate"><span class="pre">gdb</span></code> with the <code class="docutils literal notranslate"><span class="pre">-p</span></code> flag followed by
+the process id will attach the process to the debugger and stop
+execution of that specific process.  From there on it is possible to
+issue all debugger commands in the same way as when LAMMPS was started
+from the debugger (see above).  Most importantly it is possible to
+obtain a stack trace with the <code class="docutils literal notranslate"><span class="pre">where</span></code> command and thus determine where
+in the execution of a timestep this process is.  Also internal data can
+be printed and execution single stepped or continued.  When the debugger
+is exited, the calculation will resume normally.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Errors_bugs.html" class="btn btn-neutral float-left" title="5.3. Reporting bugs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Errors_messages.html" class="btn btn-neutral float-right" title="5.6. Error messages" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

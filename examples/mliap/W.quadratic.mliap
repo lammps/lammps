@@ -1,0 +1,15 @@
+# DATE: 2020-06-21 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: none
+
+# Definition of SNAP+ZBL potential.
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 74
+
+# Specify hybrid with SNAP and ZBL
+
+pair_style hybrid/overlay &
+zbl ${zblcutinner} ${zblcutouter} &
+mliap model quadratic W.quadratic.mliap.model descriptor sna W.quadratic.mliap.descriptor 
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff * * mliap W
+

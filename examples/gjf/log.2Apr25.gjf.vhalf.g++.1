@@ -1,0 +1,192 @@
+LAMMPS (2 Apr 2025 - Development - d4867ab55e-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+# GJ thermostat
+
+units   	metal
+atom_style      full
+
+boundary 	p p p
+read_data argon.lmp
+Reading data file ...
+  orthogonal box = (0 0 0) to (32.146 32.146 32.146)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  864 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.010 seconds
+include ff-argon.lmp
+#############################
+#Atoms types - mass - charge#
+#############################
+#@ 1 atom types #!THIS LINE IS NECESSARY DON'T SPEND HOURS FINDING THAT OUT!#
+
+variable Ar equal 1
+
+#############
+#Atom Masses#
+#############
+
+mass ${Ar}      39.903
+mass 1      39.903
+
+###########################
+#Pair Potentials - Tersoff#
+###########################
+
+pair_style      lj/cubic
+pair_coeff      * * 0.0102701 3.42
+
+
+velocity all create 10 2357 mom yes dist gaussian
+neighbor 1 bin
+
+timestep 0.1
+
+compute myKE all ke
+compute myPE all pe
+
+fix lang all gjf 10 10 1 26488
+
+run 5000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- GJ methods: doi:10.1080/00268976.2019.1662506
+
+@Article{gronbech-jensen_complete_2020,
+title = {Complete set of stochastic Verlet-type thermostats for correct Langevin simulations},
+volume = {118},
+number = {8},
+url = {https://www.tandfonline.com/doi/full/10.1080/00268976.2019.1662506},
+doi = {10.1080/00268976.2019.1662506},
+journal = {Molecular Physics},
+author = {Grønbech-Jensen, Niels},
+year = {2020}
+}
+
+- GJ-I vhalf method: doi:10.1080/00268976.2019.1570369
+
+@Article{jensen_accurate_2019,
+title = {Accurate configurational and kinetic statistics in discrete-time Langevin systems},
+volume = {117},
+url = {https://www.tandfonline.com/doi/full/10.1080/00268976.2019.1570369},
+doi = {10.1080/00268976.2019.1570369},
+number = {18},
+journal = {Molecular Physics},
+author = {Jensen, Lucas Frese Grønbech and Grønbech-Jensen, Niels},
+year = {2019}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.9407173
+  ghost atom cutoff = 6.9407173
+  binsize = 3.4703587, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cubic, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.481 | 6.481 | 6.481 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   10            -56.207652      0             -55.092137      33.341103    
+      5000   9.7731898     -55.150518      0             -54.060304      322.94195    
+Loop time of 2.28421 on 1 procs for 5000 steps with 864 atoms
+
+Performance: 18912.438 ns/day, 0.001 hours/ns, 2188.940 timesteps/s, 1.891 Matom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.2715     | 1.2715     | 1.2715     |   0.0 | 55.66
+Bond    | 0.00057126 | 0.00057126 | 0.00057126 |   0.0 |  0.03
+Neigh   | 0.27008    | 0.27008    | 0.27008    |   0.0 | 11.82
+Comm    | 0.057938   | 0.057938   | 0.057938   |   0.0 |  2.54
+Output  | 6.1954e-05 | 6.1954e-05 | 6.1954e-05 |   0.0 |  0.00
+Modify  | 0.658      | 0.658      | 0.658      |   0.0 | 28.81
+Other   |            | 0.0261     |            |       |  1.14
+
+Nlocal:            864 ave         864 max         864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1593 ave        1593 max        1593 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          18143 ave       18143 max       18143 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18143
+Ave neighs/atom = 20.998843
+Ave special neighs/atom = 0
+Neighbor list builds = 258
+Dangerous builds = 0
+
+fix energies all ave/time 1 20000 20000 c_myKE c_myPE #file ave.out
+
+thermo 2000
+run 35000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 6.481 | 6.481 | 6.481 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+      5000   9.7731898     -55.150518      0             -54.060304      322.94195    
+      6000   10.024842     -55.108242      0             -53.989956      336.6125     
+      8000   10.118994     -55.092171      0             -53.963382      340.42078    
+     10000   10.541359     -55.100316      0             -53.924412      340.09986    
+     12000   10.023234     -55.07343       0             -53.955323      345.70551    
+     14000   9.5912018     -55.115121      0             -54.045208      333.43739    
+     16000   9.9450498     -55.077813      0             -53.968428      343.49906    
+     18000   10.113744     -55.12201       0             -53.993806      332.32214    
+     20000   9.9345204     -55.176339      0             -54.068128      316.83219    
+     22000   10.585719     -55.110505      0             -53.929652      336.86599    
+     24000   10.024757     -55.120592      0             -54.002315      333.13056    
+     26000   9.7787474     -55.116664      0             -54.02583       332.51437    
+     28000   9.6092087     -55.130413      0             -54.058491      328.69165    
+     30000   9.8245787     -55.057678      0             -53.961731      350.86255    
+     32000   10.066994     -55.08989       0             -53.966902      341.49724    
+     34000   9.5677059     -55.17222       0             -54.104928      316.06902    
+     36000   9.7252627     -55.079475      0             -53.994608      343.13769    
+     38000   10.438984     -55.108991      0             -53.944506      336.32562    
+     40000   10.238268     -55.080817      0             -53.938723      345.13228    
+Loop time of 19.138 on 1 procs for 35000 steps with 864 atoms
+
+Performance: 15801.041 ns/day, 0.002 hours/ns, 1828.824 timesteps/s, 1.580 Matom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 11.568     | 11.568     | 11.568     |   0.0 | 60.44
+Bond    | 0.0042372  | 0.0042372  | 0.0042372  |   0.0 |  0.02
+Neigh   | 2.2577     | 2.2577     | 2.2577     |   0.0 | 11.80
+Comm    | 0.42841    | 0.42841    | 0.42841    |   0.0 |  2.24
+Output  | 0.00060128 | 0.00060128 | 0.00060128 |   0.0 |  0.00
+Modify  | 4.694      | 4.694      | 4.694      |   0.0 | 24.53
+Other   |            | 0.1852     |            |       |  0.97
+
+Nlocal:            864 ave         864 max         864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1592 ave        1592 max        1592 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          18144 ave       18144 max       18144 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18144
+Ave neighs/atom = 21
+Ave special neighs/atom = 0
+Neighbor list builds = 2122
+Dangerous builds = 0
+Total wall time: 0:00:21

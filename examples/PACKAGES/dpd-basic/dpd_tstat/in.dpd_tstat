@@ -1,0 +1,31 @@
+# Coarse-Grained SPC/E Water
+
+variable T   equal 300.0
+variable rc  equal   9.0
+variable rcD equal  10.0
+
+units            real
+boundary     p p p
+atom_style   atomic
+dimension    3
+newton       on
+comm_modify  vel yes
+
+read_data    cg_spce.data
+
+pair_style       hybrid/overlay table spline 1000 dpd/tstat ${T} ${T} ${rc} 385262
+
+pair_coeff   1 1 table cg_spce_table.pot VOTCA ${rc}
+pair_coeff   1 1 dpd/tstat 10.0 ${rcD}
+
+timestep    1.0
+run_style   verlet
+
+velocity all create ${T} 68768932
+
+thermo_style custom step time temp press
+thermo       100
+
+fix 1 all    nve
+
+run          1000

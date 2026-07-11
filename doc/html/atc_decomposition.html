@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="5; url=Commands_removed.html#atc-awpmd-and-poems-packages" http-equiv="Refresh" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fix atc command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/atc_decomposition.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix atc command" href="atc_electron_integration.html" />
+    <link rel="prev" title="fix atc command" href="atc_control_thermal.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Commands.html">6. Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">6.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_parse.html">6.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">6.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_category.html">6.4. Commands by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">6.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">6.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">6.7. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_pair.html">6.8. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html">6.9. Bond styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#angle-styles">6.10. Angle styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#dihedral-styles">6.11. Dihedral styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#improper-styles">6.12. Improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">6.13. KSpace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_dump.html">6.14. Dump styles</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Commands_removed.html">6.15. Removed commands and packages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#amber2lmp-tools">6.15.1. amber2lmp tools</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="Commands_removed.html#atc-awpmd-and-poems-packages">6.15.2. ATC, AWPMD, and POEMS packages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#neighbor-style-and-comm-mode-multi-old">6.15.3. Neighbor style and comm mode multi/old</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#lammps-gui-source-code">6.15.4. LAMMPS-GUI source code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#gjf-formulation-in-fix-langevin">6.15.5. GJF formulation in fix langevin</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#lammps-shell">6.15.6. LAMMPS shell</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#i-pi-tool">6.15.7. i-PI tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#user-reaxc-package">6.15.8. USER-REAXC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#mpiio-package">6.15.9. MPIIO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#mscg-package">6.15.10. MSCG package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#latte-package">6.15.11. LATTE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#minimize-style-fire-old">6.15.12. Minimize style fire/old</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#pair-style-mesont-tpm-compute-style-mesont-atom-style-mesont">6.15.13. Pair style mesont/tpm, compute style mesont, atom style mesont</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#box-command">6.15.14. Box command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#reset-ids-reset-atom-ids-reset-mol-ids-commands">6.15.15. Reset_ids, reset_atom_ids, reset_mol_ids commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#message-package">6.15.16. MESSAGE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#reax-package">6.15.17. REAX package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#meam-package">6.15.18. MEAM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#user-cuda-package">6.15.19. USER-CUDA package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#compute-atom-molecule">6.15.20. Compute atom/molecule</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#fix-ave-spatial-and-fix-ave-spatial-sphere">6.15.21. Fix ave/spatial and fix ave/spatial/sphere</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Commands_removed.html#restart2data-tool">6.15.22. restart2data tool</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Commands.html"><span class="section-number">6. </span>Commands</a></li>
+          <li class="breadcrumb-item"><a href="Commands_removed.html"><span class="section-number">6.15. </span>Removed commands and packages</a></li>
+      <li class="breadcrumb-item active">fix atc command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="atc_control_thermal.html" class="btn btn-neutral float-left" title="fix atc command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="atc_electron_integration.html" class="btn btn-neutral float-right" title="fix atc command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="fix-atc-command">
+<h1>fix atc command<a class="headerlink" href="#fix-atc-command" title="Link to this heading"></a></h1>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 10Sep2025.</span></p>
+</div>
+<p>The ATC package and the <cite>fix atc</cite> command have been removed from LAMMPS.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="atc_control_thermal.html" class="btn btn-neutral float-left" title="fix atc command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="atc_electron_integration.html" class="btn btn-neutral float-right" title="fix atc command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

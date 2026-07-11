@@ -1,0 +1,160 @@
+###############################################################################
+#
+#
+#  This input script is a modified version of the example script spce_ehex.lmp
+#  which is part of the supplementary (open access) material of the paper
+# 
+#  P. Wirnsberger, D. Frenkel and C. Dellago, 
+#  "An enhanced version of the heat exchange algorithm with excellent energy 
+#  conservation properties", J. Chem. Phys. 143, 124104 (2015).
+#
+#  The full article is available on arXiv: http://arxiv.org/pdf/1507.07081.
+#
+#
+#  Description: 
+#  ------------
+# 
+#  This file is a LAMMPS input script for carrying out a NEMD simulation of
+#  SPC/E water using the eHEX/a algorithm. The run produces two files:
+#  "out.Tspce_ehex" contains the temperature profile and "out.Espce_ehex" the time
+#  evolution of the total energy.
+#
+###############################################################################
+
+log                 log.spce_ehex
+
+# energy flux into the reservoir
+ variable F         	equal 0.075
+
+# timestep              
+ variable dt             equal 3.0  
+
+# simulation time for the production run (1 ns)
+ variable tprod      	equal 1000000
+
+# total number of timesteps
+ variable Nprod      	equal floor(${tprod}/${dt})
+
+# parameters for the SPC/E model
+ variable epsOO       	equal 0.15535
+ variable sigOO       	equal 3.166
+ variable theta       	equal 109.47
+
+# long-range and short-range cutoffs, respectively
+ variable cutC        	equal (xhi-xlo)/2.
+ variable cutLJ  	equal 11
+
+# specification of units, spatial dimensions, boundary conditions and atom-style
+ units        real
+ dimension    3
+ boundary     p p p
+ atom_style   full
+ read_data    "data.spce"
+
+# group atoms to molecules
+ group    O type 2
+ group    H type 1
+ group    water type 1 2
+
+# define the pair style with long-range Coulomb interaction
+# and short-range LJ interaction
+ pair_style    	lj/cut/coul/long ${cutLJ} ${cutC}
+ pair_coeff    	2 2 ${epsOO} ${sigOO}
+ pair_coeff    	1 2 0 0
+ pair_coeff    	1 1 0 0
+
+# use Ewald summation with a precision of 1.e-5
+ kspace_style   ewald 1.e-5
+
+# use harmonic bonds between sites of a molecules
+# NOTE: this will not have any effects as we use RATTLE to keep the bonds fixed,
+#       but it is recommended.
+ bond_style    	harmonic              
+ angle_style   	harmonic              
+ bond_coeff    	1 1000.00 1.000
+ angle_coeff   	1 100.0 ${theta}
+
+# increase neigbor skin because of the large timestep
+ neighbor  4.5 bin
+
+# use standard correction terms for the truncated tail of the LJ potential
+ pair_modify tail yes
+
+ variable    Nsamp    equal 10
+ variable    Nrepeat  equal floor(${Nprod}/${Nsamp})
+ variable    Nevery   equal ${Nsamp}*${Nrepeat}
+ 
+# compute the centre of mass velocity of the box (vcmx, vcmy, vcmz)
+ variable vcmx equal "vcm(all,x)"
+ variable vcmy equal "vcm(all,y)"
+ variable vcmz equal "vcm(all,z)"
+ variable vcm2 equal v_vcmx*v_vcmx+v_vcmy*v_vcmy+v_vcmz*v_vcmz
+
+# compute temperature, pressure, potential energy, kinetic energy and total energy
+ compute   cT  all temp
+ compute   cP  all pressure thermo_temp
+ compute   cPe all pe
+ compute   cKe all ke
+ variable  vE  equal c_cKe+c_cPe
+
+# specify the reservoir extents
+ variable Lz          equal zhi-zlo
+ variable delta       equal 4 
+ variable dz          equal ${Lz}/60
+ variable zlo_Thi     equal -${Lz}/4.-${delta}/2.
+ variable zhi_Thi     equal ${zlo_Thi}+${delta}
+ variable zlo_Tlo     equal ${Lz}/4.-${delta}/2.
+ variable zhi_Tlo     equal ${zlo_Tlo}+${delta}
+
+# create regions of low and high temperature and apply thermostats
+ region   Thi_region     block INF INF INF INF ${zlo_Thi} ${zhi_Thi}
+ region   Tlo_region     block INF INF INF INF ${zlo_Tlo} ${zhi_Tlo}
+
+# compute temperature of reservoirs using 3 degrees of freedom for every atom 
+ compute  cTlo   water temp/region Tlo_region
+ compute  cThi   water temp/region Thi_region
+
+# rescale temperature to correct for the constraint bonds (6 instead of 9 degrees of freedom per molecule)
+ variable  Tlo_act    equal c_cTlo/2*3
+ variable  Thi_act    equal c_cThi/2*3
+
+# thermostat the reservoirs using the eHEX algorithm
+# NOTE: add the keyword "hex" at the end of each of the two following lines
+#       if you want to use the HEX algorithm.
+
+ fix fHi all ehex 1  ${F}   region Thi_region com constrain
+ fix fLo all ehex 1 -${F}   region Tlo_region com constrain
+
+# use velocity Verlet integration
+ fix fNVE all nve
+
+# calculate the (kinetic) temperature from the kinetic
+# energy per atom
+# kB is Boltzmann's constant
+# NOTE: For simplicity, we do not subtract the centre of mass
+#       velocity of the individual slabs in this example script. 
+#       However, we did take this into account in the publication. 
+#       (The differences are negligible for our setup.)
+
+ variable  kB  equal  0.001987204
+ compute   ke  water  ke/atom
+ variable  T   atom   c_ke/${kB}
+
+# use RATTLE with a precision of 1.e-10
+ fix    fRattle all rattle 1e-10 400 0 b 1 a 1
+
+# output the timestep, temperatures (average, cold reservoir, hot reservoir), energies (kinetic, potential and total),
+# pressure and squared com velocity every 100 timesteps
+ reset_timestep  0
+ timestep        ${dt}
+
+ thermo_style    custom step temp v_Tlo_act v_Thi_act ke pe etotal press v_vcm2
+ thermo_modify   flush yes
+ thermo          1000
+
+ compute         cchT  all  chunk/atom bin/1d z lower ${dz}
+ fix             fchT  all  ave/chunk  ${Nsamp} ${Nrepeat} ${Nevery} cchT v_T file out.Tspce_ehex
+
+ fix             fE    all  ave/time 10 500 5000 v_vE file out.Espce_ehex
+ run             ${Nprod}
+

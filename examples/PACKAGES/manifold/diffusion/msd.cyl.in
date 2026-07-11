@@ -1,0 +1,30 @@
+dimension 3
+units lj
+boundary f f p
+
+read_data msd.cyl.data
+mass 1 1.0
+
+pair_style none
+atom_modify sort 0 1.0
+
+variable R equal 5
+fix step all nve/manifold/rattle 1e-10 100 cylinder $R
+fix temp all langevin 1.0 1.0 1.0 12321 gjf yes
+velocity all create 1.0 1283
+run 25000
+compute dx2 all msd
+
+variable D equal "1.0"
+variable t equal time
+variable my_msd equal "2*v_D*(v_t-125)+ 2*v_R*v_R*(1.0 - exp(-(v_t-125)*v_D/(v_R*v_R)) )"
+variable msd equal c_dx2[4]
+
+dump traj all custom 100 msd.cyl.gz id type x y zu
+
+fix msd_out all print 250 "$t    ${msd}    ${my_msd}" file msd.cyl.dat screen no
+
+thermo_style custom time step pe ke etotal temp c_dx2[4] v_my_msd
+thermo 1000
+run 25000
+

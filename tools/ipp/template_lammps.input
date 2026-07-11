@@ -1,0 +1,29 @@
+log		relax.log
+
+units		metal
+atom_style      atomic
+
+boundary	p p p
+
+lattice         diamond 4.511
+read_data       rout
+
+pair_style      sw
+pair_coeff      * * /ascldap/users/xzhou/2010/GaN/files/GaN1.sw Ga N Ga N Ga N
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+variable        xlen equal lx
+variable        ylen equal ly
+variable        zlen equal lz
+variable        temper equal temp
+variable        Etot equal etotal
+
+timestep        0.001
+
+fix             temp all temp/rescale 1 {(Tmid+Tbnd)/2} {(Tmid+Tbnd)/2} 0.0 1.0
+fix             int all nph xyz 0.0 0.0 0.1
+fix             ave all ave/time 1 {NPTave} {2*NPTave} v_xlen v_ylen v_zlen v_temper v_Etot file avelen 
+
+run             {2*NPTave}

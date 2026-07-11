@@ -1,0 +1,18 @@
+This package implements the "fix qmmm" command which can be used
+in a LAMMPS input script.
+
+This fix enables LAMMPS to be used in a QM/MM simulation, currently
+only in combination with pw.x code from the Quantum ESPRESSO package.
+
+This package uses an external library in lib/qmmm which must be compiled
+to create the QM/MM capable hybrid executable.  See the lib/qmmm/README
+file and the LAMMPS manual for information on building LAMMPS
+accordingly.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com) with contributions by Mariella Ippolito and
+Carlo Cavazzoni at Cineca, Italy.
+
+---------------------------------
+
+Version: 2025-08-04

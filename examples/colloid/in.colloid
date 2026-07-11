@@ -1,0 +1,51 @@
+# Big colloid particles and small LJ particles
+
+units		lj
+atom_style	sphere
+dimension	2
+
+lattice		sq 0.01
+region		box block 0 30 0 30 -0.5 0.5
+create_box	2 box
+create_atoms	1 box
+
+set		group all type/fraction 2 0.96 23984
+
+set		type 1 mass 9
+set		type 2 mass 1
+
+velocity	all create 1.44 87287 loop geom
+
+# multi neighbor and comm for efficiency
+
+neighbor	1 multi
+neigh_modify	delay 0
+comm_modify     mode multi
+
+# colloid potential
+
+pair_style	colloid 12.5
+pair_coeff	1 1  1.0 1.0 5.0 5.0 12.5
+pair_coeff	1 2  5.0 1.0 5.0 0.0 7.0
+pair_coeff	2 2 10.0 1.0 0.0 0.0 2.5
+
+fix		1 all npt temp 2.0 2.0 1.0 iso 0.0 1.0 10.0 drag 1.0 &
+	        mtk no pchain 0 tchain 1
+fix		2 all enforce2d
+
+#dump		1 all atom 1000 dump.colloid
+
+#dump		2 all image 1000 image.*.jpg type type &
+#		zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify	2 pad 5 adiam 1 5.0 adiam 2 1.5
+
+#dump		3 all movie 1000 movie.mpg type type &
+#		zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify	3 pad 5 adiam 1 5.0 adiam 2 1.5
+
+thermo_style	custom step temp epair etotal press vol
+thermo		1000
+
+timestep	0.005
+
+run		50000

@@ -1,0 +1,7 @@
+# This 1-liner will extract all lines from
+# the 3rd run in a log file and plot 
+# column 8 against column 1 
+#
+# By Karl Hammond  karlh at ugcs.caltech.edu
+
+awk '/Step/ {n++} /Step/,/step/ {if (n==3) print}' log.lammps | grep -iv step | xmgrace -block - -bxy 1:8

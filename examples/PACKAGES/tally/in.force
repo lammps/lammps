@@ -1,0 +1,60 @@
+
+units		real	
+atom_style	full
+
+read_data	data.spce
+
+pair_style	lj/cut/coul/long 12.0 12.0
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000	
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 1.0
+
+neighbor        2.0 bin
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+fix		2 all nvt temp 300.0 300.0 100.0
+
+# make certain that shake constraints are satisfied
+run 0 post no
+
+group		one molecule 1 2
+
+# the following section shows equivalences between using the force/tally compute and other computes and thermo keywords
+
+# compute pairwise force between two molecules and everybody
+compute		fpa one group/group all pair yes kspace no boundary no
+# tally pairwise force between two molecules and the all molecules
+compute		c1 one force/tally all
+# tally the force of all with all (should be zero)
+compute		c2 all force/tally all
+# collect per atom data. only reduce over the first group.
+compute		one one reduce sum c_c1[1] c_c1[2] c_c1[3]
+compute		red all reduce sum c_c2[1] c_c2[2] c_c2[3]
+# determine magnitude of force
+variable	fpa equal sqrt(c_fpa[1]*c_fpa[1]+c_fpa[2]*c_fpa[2]+c_fpa[3]*c_fpa[3])
+variable	for equal sqrt(c_one[1]*c_one[1]+c_one[2]*c_one[2]+c_one[3]*c_one[3])
+# round to 10**-10 absolute precision.
+variable	ref equal round(1e10*sqrt(c_red[1]*c_red[1]+c_red[2]*c_red[2]+c_red[3]*c_red[3]))*1e-10
+variable	all equal round(1e10*c_c2)*1e-10
+
+velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+# v_fpa and v_for and c_c1, c_fpa[] and c_one[] should all each have the same value. v_ref and c_c2 should be zero
+thermo_style    custom step v_fpa v_for c_c1 c_fpa[1] c_one[1] c_fpa[2] c_one[2] c_fpa[3] c_one[3] v_ref v_all
+thermo		10
+
+run 50
+

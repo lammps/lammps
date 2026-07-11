@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.3. Screen and logfile output &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Run_output.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.5. File formats used by LAMMPS" href="Run_formats.html" />
+    <link rel="prev" title="4.2. Command-line options" href="Run_options.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Run_basics.html">4.1. Basics of running LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_options.html">4.2. Command-line options</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.3. Screen and logfile output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-message-output">4.4. Error message output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-single-line">4.4.1. A single line</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#two-lines">4.4.2. Two lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#three-lines">4.4.3. Three lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#four-lines">4.4.4. Four lines</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Run_formats.html">4.5. File formats used by LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_windows.html">4.6. Running LAMMPS on Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Run_head.html"><span class="section-number">4. </span>Run LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.3. </span>Screen and logfile output</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Run_options.html" class="btn btn-neutral float-left" title="4.2. Command-line options" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_formats.html" class="btn btn-neutral float-right" title="4.5. File formats used by LAMMPS" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="screen-and-logfile-output">
+<h1><span class="section-number">4.3. </span>Screen and logfile output<a class="headerlink" href="#screen-and-logfile-output" title="Link to this heading"></a></h1>
+<p>As LAMMPS reads an input script, it prints information to both the
+screen and a log file about significant actions it takes to setup a
+simulation.  When the simulation is ready to begin, LAMMPS performs
+various initializations, and prints info about the run it is about to
+perform, including the amount of memory (in MBytes per processor) that
+the simulation requires.  It also prints details of the initial
+thermodynamic state of the system.  During the run itself,
+thermodynamic information is printed periodically, every few
+timesteps.  When the run concludes, LAMMPS prints the final
+thermodynamic state and a total run time for the simulation.  It also
+appends statistics about the CPU time and storage requirements for the
+simulation.  An example set of statistics is shown here:</p>
+<pre class="literal-block">Loop time of 0.942801 on 4 procs for 300 steps with 2004 atoms
+
+Performance: 54.985 ns/day, 0.436 hours/ns, 318.201 timesteps/s, 637.674 katom-step/s
+195.2% CPU use with 2 MPI tasks x 2 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.61419    | 0.62872    | 0.64325    |   1.8 | 66.69
+Bond    | 0.0028608  | 0.0028899  | 0.002919   |   0.1 |  0.31
+Kspace  | 0.12652    | 0.14048    | 0.15444    |   3.7 | 14.90
+Neigh   | 0.10242    | 0.10242    | 0.10242    |   0.0 | 10.86
+Comm    | 0.026753   | 0.027593   | 0.028434   |   0.5 |  2.93
+Output  | 0.00018341 | 0.00030942 | 0.00043542 |   0.0 |  0.03
+Modify  | 0.039117   | 0.039348   | 0.039579   |   0.1 |  4.17
+Other   |            | 0.001041   |            |       |  0.11
+
+Nlocal:           1002 ave        1006 max         998 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Nghost:         8670.5 ave        8691 max        8650 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+Neighs:         354010 ave      357257 max      350763 min
+Histogram: 1 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 708020
+Ave neighs/atom = 353.30339
+Ave special neighs/atom = 2.3403194
+Neighbor list builds = 26
+Dangerous builds = 0</pre>
+<hr class="docutils" />
+<p>The first section provides a global loop timing summary. The <em>loop time</em>
+is the total wall-clock time for the MD steps of the simulation run,
+excluding the time for initialization and setup (i.e. the parts that may
+be skipped with <a class="reference internal" href="run.html"><span class="doc">run N pre no</span></a>).  The <em>Performance</em> line is
+provided for convenience to help predict how long it will take to run a
+desired physical simulation and to have numbers useful for performance
+comparison between different simulation settings or system sizes.  The
+<em>CPU use</em> line provides the CPU utilization per MPI task; it should be
+close to 100% times the number of OpenMP threads (or 1 if not using
+OpenMP).  Lower numbers correspond to delays due to file I/O or
+insufficient thread utilization from parts of the code that have not
+been multi-threaded.</p>
+<hr class="docutils" />
+<p>The <em>MPI task</em> section gives the breakdown of the CPU run time (in
+seconds) into major categories:</p>
+<ul class="simple">
+<li><p><em>Pair</em> = non-bonded force computations</p></li>
+<li><p><em>Bond</em> = bonded interactions: bonds, angles, dihedrals, impropers</p></li>
+<li><p><em>Kspace</em> = long-range interactions: Ewald, PPPM, MSM</p></li>
+<li><p><em>Neigh</em> = neighbor list construction</p></li>
+<li><p><em>Comm</em> = inter-processor communication of atoms and their properties</p></li>
+<li><p><em>Output</em> = output of thermodynamic info and dump files</p></li>
+<li><p><em>Modify</em> = fixes and computes invoked by fixes</p></li>
+<li><p><em>Other</em> = all the remaining time</p></li>
+</ul>
+<p>For each category, there is a breakdown of the least, average and most
+amount of wall time any processor spent on this category of
+computation.  The “%varavg” is the percentage by which the max or min
+varies from the average.  This is an indication of load imbalance.  A
+percentage close to 0 is perfect load balance.  A large percentage is
+imbalance.  The final “%total” column is the percentage of the total
+loop time is spent in this category.</p>
+<p>When using the <a class="reference internal" href="timer.html"><span class="doc">timer full</span></a> setting, an additional column
+is added that also prints the CPU utilization in percent. In addition,
+when using <em>timer full</em> and the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command are
+active, a similar timing summary of time spent in threaded regions to
+monitor thread utilization and load balance is provided. A new <em>Thread
+timings</em> section is also added, which lists the time spent in reducing
+the per-thread data elements to the storage for non-threaded
+computation. These thread timings are measured for the first MPI rank
+only and thus, because the breakdown for MPI tasks can change from
+MPI rank to MPI rank, this breakdown can be very different for
+individual ranks. Here is an example output for this section:</p>
+<pre class="literal-block">Thread timings breakdown (MPI rank 0):
+Total threaded time 0.6846 / 90.6%
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.5127     | 0.5147     | 0.5167     |   0.3 | 75.18
+Bond    | 0.0043139  | 0.0046779  | 0.0050418  |   0.5 |  0.68
+Kspace  | 0.070572   | 0.074541   | 0.07851    |   1.5 | 10.89
+Neigh   | 0.084778   | 0.086969   | 0.089161   |   0.7 | 12.70
+Reduce  | 0.0036485  | 0.003737   | 0.0038254  |   0.1 |  0.55</pre>
+<hr class="docutils" />
+<p>The third section above lists the number of owned atoms (Nlocal),
+ghost atoms (Nghost), and pairwise neighbors stored per processor.
+The max and min values give the spread of these values across
+processors with a 10-bin histogram showing the distribution. The total
+number of histogram counts is equal to the number of processors.</p>
+<hr class="docutils" />
+<p>The last section gives aggregate statistics (across all processors) for
+pairwise neighbors and special neighbors that LAMMPS keeps track of (see
+the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command).  This section will
+not always contain data, for example when there has not been a neighbor
+rebuild, or the neighbor list was constructed on the GPU or when a
+hybrid pair style was used and LAMMPS cannot determine a suitable (base)
+neighbor list to draw the statistics from.</p>
+<p>The number of times neighbor lists were rebuilt is tallied, as is the
+number of potentially <em>dangerous</em> rebuilds.  If atom movement triggered
+neighbor list rebuilding (see the <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a>
+command), then dangerous reneighborings are those that were triggered on
+the first timestep atom movement was checked for.  If this count is
+non-zero you may wish to reduce the delay factor to ensure no force
+interactions are missed by atoms moving beyond the neighbor skin
+distance before a rebuild takes place.</p>
+<hr class="docutils" />
+<p>If an energy minimization was performed via the
+<a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command, additional information is printed,
+e.g.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final =
+         -6372.3765206     -8328.46998942     -8328.46998942
+  Force two-norm initial, final = 1059.36 5.36874
+  Force max component initial, final = 58.6026 1.46872
+  Final line search alpha, max atom move = 2.7842e-10 4.0892e-10
+  Iterations, force evaluations = 701 1516
+</pre></div>
+</div>
+<p>The first line prints the criterion that determined minimization was
+converged. The next line lists the initial and final energy, as well
+as the energy on the next-to-last iteration.  The next 2 lines give a
+measure of the gradient of the energy (force on all atoms).  The
+2-norm is the “length” of this 3N-component force vector; the largest
+component (x, y, or z) of force (infinity-norm) is also given.  Then
+information is provided about the line search and statistics on how
+many iterations and force-evaluations the minimizer required.
+Multiple force evaluations are typically done at each iteration to
+perform a 1d line minimization in the search direction.  See the
+<a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> page for more details.</p>
+<hr class="docutils" />
+<p>If a <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> long-range Coulombics solver
+that performs FFTs was used during the run (PPPM, Ewald), then
+additional information is printed, e.g.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>FFT time (% of Kspce) = 0.200313 (8.34477)
+FFT Gflps 3d 1d-only = 2.31074 9.19989
+</pre></div>
+</div>
+<p>The first line is the time spent doing 3d FFTs (several per timestep)
+and the fraction it represents of the total KSpace time (listed
+above).  Each 3d FFT requires computation (3 sets of 1d FFTs) and
+communication (transposes).  The total flops performed is 5Nlog_2(N),
+where N is the number of points in the 3d grid.  The FFTs are timed
+with and without the communication and a Gflop rate is computed.  The
+3d rate is with communication; the 1d rate is without (just the 1d
+FFTs).  Thus you can estimate what fraction of your FFT time was spent
+in communication, roughly 75% in the example above.</p>
+</section>
+<section id="error-message-output">
+<h1><span class="section-number">4.4. </span>Error message output<a class="headerlink" href="#error-message-output" title="Link to this heading"></a></h1>
+<p>Depending on the error function arguments when it is called in the
+source code, there will be one to four lines of error output.</p>
+<section id="a-single-line">
+<h2><span class="section-number">4.4.1. </span>A single line<a class="headerlink" href="#a-single-line" title="Link to this heading"></a></h2>
+<p>The line starts with “ERROR: “, followed by the error message and
+information about the location in the source where the error function
+was called in parenthesis on the right (here: line 131 of the file
+src/fix_print.cpp). Example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Fix print timestep variable nevery returned a bad timestep: 9900 (src/fix_print.cpp:131)
+</pre></div>
+</div>
+</section>
+<section id="two-lines">
+<h2><span class="section-number">4.4.2. </span>Two lines<a class="headerlink" href="#two-lines" title="Link to this heading"></a></h2>
+<p>In addition to the single line output, also the last line of the input
+will be repeated.  If a command is spread over multiple lines in the
+input using the continuation character ‘&amp;’, then the error will print
+the entire concatenated line.  For readability all whitespace is
+compressed to single blanks.  Example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Unrecognized fix style &#39;printf&#39; (src/modify.cpp:924)
+Last input line: fix 0 all printf v_nevery &quot;Step: $(step) ${step}&quot;
+</pre></div>
+</div>
+</section>
+<section id="three-lines">
+<h2><span class="section-number">4.4.3. </span>Three lines<a class="headerlink" href="#three-lines" title="Link to this heading"></a></h2>
+<p>In addition to the two line output from above, a third line is added
+that uses caret character markers ‘^’ to indicate which “word” in the
+input failed.  Example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Illegal fix print nevery value -100; must be &gt; 0 (src/fix_print.cpp:41)
+Last input line: fix 0 all print -100 &quot;Step: $(step) ${stepx}&quot;
+                                 ^^^^
+</pre></div>
+</div>
+</section>
+<section id="four-lines">
+<h2><span class="section-number">4.4.4. </span>Four lines<a class="headerlink" href="#four-lines" title="Link to this heading"></a></h2>
+<p>The three line output is expanded to four lines, if the input is
+modified through input pre-processing, e.g. when substituting
+variables. Now the last command is printed once in the original form and
+a second time after substitutions are applied.  The caret character
+markers ‘^’ are applied to the second version.  Example:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Illegal fix print nevery value -100; must be &gt; 0 (src/fix_print.cpp:41)
+Last input line: fix 0 all print ${nevery} &#39;Step: $(step) ${step}&#39;
+--&gt; parsed line: fix 0 all print -100 &quot;Step: $(step) ${step}&quot;
+                                 ^^^^
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Run_options.html" class="btn btn-neutral float-left" title="4.2. Command-line options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_formats.html" class="btn btn-neutral float-right" title="4.5. File formats used by LAMMPS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

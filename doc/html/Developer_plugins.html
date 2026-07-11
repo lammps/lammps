@@ -1,0 +1,518 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.11. Writing plugins &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_plugins.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.12. Adding tests for unit testing" href="Developer_unittest.html" />
+    <link rel="prev" title="4.10. Notes for updating code written for older LAMMPS versions" href="Developer_updating.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.11. Writing plugins</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#members-of-lammpsplugin-t">4.11.1. Members of <code class="docutils literal notranslate"><span class="pre">lammpsplugin_t</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pair-style-example">4.11.2. Pair style example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fix-style-example">4.11.3. Fix style example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-style-example">4.11.4. Command style example</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#additional-details">4.11.5. Additional Details</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compiling-plugins">4.11.6. Compiling plugins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.11. </span>Writing plugins</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_updating.html" class="btn btn-neutral float-left" title="4.10. Notes for updating code written for older LAMMPS versions" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_unittest.html" class="btn btn-neutral float-right" title="4.12. Adding tests for unit testing" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="writing-plugins">
+<h1><span class="section-number">4.11. </span>Writing plugins<a class="headerlink" href="#writing-plugins" title="Link to this heading"></a></h1>
+<p>Plugins provide a mechanism to add functionality to a LAMMPS executable
+without recompiling LAMMPS.  The functionality for this and the
+<a class="reference internal" href="plugin.html"><span class="doc">plugin command</span></a> are implemented in the
+<a class="reference internal" href="Packages_details.html#pkg-plugin"><span class="std std-ref">PLUGIN package</span></a> which must be installed to use plugins.</p>
+<p>Plugins use the operating system’s capability to load dynamic shared
+object (DSO) files in a way similar shared libraries and then reference
+specific functions in those DSOs.  Any DSO file with plugins has to
+include an initialization function with a specific name,
+“lammpsplugin_init”, that has to follow specific rules described below.
+When loading the DSO with the “plugin” command, this function is looked
+up and called and will then register the contained plugin(s) with
+LAMMPS.</p>
+<p>When the environment variable <code class="docutils literal notranslate"><span class="pre">LAMMPS_PLUGIN_PATH</span></code> is set, then LAMMPS
+will search the directory (or directories) listed in this path for files
+with names that end in <code class="docutils literal notranslate"><span class="pre">plugin.so</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">helloplugin.so</span></code>) and will
+try to load the contained plugins automatically at start-up.  For
+plugins that are loaded this way, the behavior of LAMMPS should be
+identical to a binary where the corresponding code was compiled in
+statically as a package.</p>
+<p>From the programmer perspective this can work because of the object
+oriented design of LAMMPS where all pair style commands are derived from
+the class Pair, all fix style commands from the class Fix and so on and
+usually only functions present in those base classes are called
+directly.  When a <a class="reference internal" href="pair_style.html"><span class="doc">pair_style command</span></a> command or <a class="reference internal" href="fix.html"><span class="doc">fix command</span></a> command is
+issued a new instance of such a derived class is created.  This is done
+by a so-called factory function which is mapped to the style name.  Thus
+when, for example, the LAMMPS processes the command <code class="docutils literal notranslate"><span class="pre">pair_style</span> <span class="pre">lj/cut</span>
+<span class="pre">2.5</span></code>, LAMMPS will look up the factory function for creating the
+<code class="docutils literal notranslate"><span class="pre">PairLJCut</span></code> class and then execute it.  The return value of that
+function is a <code class="docutils literal notranslate"><span class="pre">Pair</span> <span class="pre">*</span></code> pointer and the pointer will be assigned to the
+location for the currently active pair style.</p>
+<p>A DSO file with a plugin thus has to implement such a factory function
+and register it with LAMMPS so that it gets added to the map of available
+styles of the given category.  To register a plugin with LAMMPS an
+initialization function has to be present in the DSO file called
+<code class="docutils literal notranslate"><span class="pre">lammpsplugin_init</span></code> which is called with three <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> arguments:
+a pointer to the current LAMMPS instance, a pointer to the opened DSO
+handle, and a pointer to the registration function.  The registration
+function takes two arguments: a pointer to a <code class="docutils literal notranslate"><span class="pre">lammpsplugin_t</span></code> struct
+with information about the plugin and a pointer to the current LAMMPS
+instance.  Please see below for an example of how the registration is
+done.</p>
+<section id="members-of-lammpsplugin-t">
+<h2><span class="section-number">4.11.1. </span>Members of <code class="docutils literal notranslate"><span class="pre">lammpsplugin_t</span></code><a class="headerlink" href="#members-of-lammpsplugin-t" title="Link to this heading"></a></h2>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 15.0%" />
+<col style="width: 85.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Member</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>version</p></td>
+<td><p>LAMMPS Version string the plugin was compiled for</p></td>
+</tr>
+<tr class="row-odd"><td><p>style</p></td>
+<td><p>Style of the plugin (pair, bond, fix, command, etc.)</p></td>
+</tr>
+<tr class="row-even"><td><p>name</p></td>
+<td><p>Name of the plugin style</p></td>
+</tr>
+<tr class="row-odd"><td><p>info</p></td>
+<td><p>String with information about the plugin</p></td>
+</tr>
+<tr class="row-even"><td><p>author</p></td>
+<td><p>String with the name and email of the author</p></td>
+</tr>
+<tr class="row-odd"><td><p>creator.v1</p></td>
+<td><p>Pointer to factory function for pair, bond, angle, dihedral, improper, kspace, command, or minimize styles</p></td>
+</tr>
+<tr class="row-even"><td><p>creator.v2</p></td>
+<td><p>Pointer to factory function for compute, fix, region, or run styles</p></td>
+</tr>
+<tr class="row-odd"><td><p>handle</p></td>
+<td><p>Pointer to the open DSO file handle</p></td>
+</tr>
+</tbody>
+</table>
+<p>Only one of the two alternate creator entries can be used at a time and
+which of those is determined by the style of plugin. The “creator.v1”
+element is for factory functions of supported styles computing forces
+(i.e. pair, bond, angle, dihedral, or improper styles), command styles,
+or minimize styles and the function takes as single argument the pointer
+to the LAMMPS instance. The factory function is cast to the
+<code class="docutils literal notranslate"><span class="pre">lammpsplugin_factory1</span></code> type before assignment.  The “creator.v2”
+element is for factory functions creating an instance of a fix, compute,
+region, or run style and takes three arguments: a pointer to the LAMMPS
+instance, an integer with the length of the argument list and a <code class="docutils literal notranslate"><span class="pre">char</span>
+<span class="pre">**</span></code> pointer to the list of arguments. The factory function pointer
+needs to be cast to the <code class="docutils literal notranslate"><span class="pre">lammpsplugin_factory2</span></code> type before
+assignment.</p>
+</section>
+<section id="pair-style-example">
+<h2><span class="section-number">4.11.2. </span>Pair style example<a class="headerlink" href="#pair-style-example" title="Link to this heading"></a></h2>
+<p>As an example, a hypothetical pair style plugin “morse2” implemented in
+a class <code class="docutils literal notranslate"><span class="pre">PairMorse2</span></code> in the files <code class="docutils literal notranslate"><span class="pre">pair_morse2.h</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pair_morse2.cpp</span></code> with the factory function and initialization
+function would look like this:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;lammpsplugin.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;version.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;pair_morse2.h&quot;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="p">;</span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">Pair</span><span class="w"> </span><span class="o">*</span><span class="nf">morse2creator</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PairMorse2</span><span class="p">(</span><span class="n">lmp</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">lammpsplugin_init</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">regfunc</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">lammpsplugin_regfunc</span><span class="w"> </span><span class="n">register_plugin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lammpsplugin_regfunc</span><span class="p">)</span><span class="w"> </span><span class="n">regfunc</span><span class="p">;</span>
+<span class="w">  </span><span class="n">lammpsplugin_t</span><span class="w"> </span><span class="n">plugin</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LAMMPS_VERSION</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">style</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;pair&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">name</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;morse2&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">info</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Morse2 variant pair style v1.0&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">author</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Axel Kohlmeyer (akohlmey@gmail.com)&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">creator</span><span class="p">.</span><span class="n">v1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lammpsplugin_factory1</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="n">morse2creator</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">handle</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">handle</span><span class="p">;</span>
+<span class="w">  </span><span class="p">(</span><span class="o">*</span><span class="n">register_plugin</span><span class="p">)(</span><span class="o">&amp;</span><span class="n">plugin</span><span class="p">,</span><span class="n">lmp</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The factory function in this example is called <code class="docutils literal notranslate"><span class="pre">morse2creator()</span></code>.  It
+receives a pointer to the LAMMPS class as only argument and thus has to
+be assigned to the <em>creator.v1</em> member of the plugin struct and cast to
+the <code class="docutils literal notranslate"><span class="pre">lammpsplugin_factory1</span></code> function pointer type.  It returns a
+pointer to the allocated class instance derived from the <code class="docutils literal notranslate"><span class="pre">Pair</span></code> class.
+This function may be declared static to avoid clashes with other
+plugins.  The name of the derived class, <code class="docutils literal notranslate"><span class="pre">PairMorse2</span></code>, however must be
+unique inside the entire LAMMPS executable.</p>
+</section>
+<section id="fix-style-example">
+<h2><span class="section-number">4.11.3. </span>Fix style example<a class="headerlink" href="#fix-style-example" title="Link to this heading"></a></h2>
+<p>If the factory function is for a fix or compute, which take three
+arguments (a pointer to the LAMMPS class, the number of arguments and the
+list of argument strings), then the pointer type is <code class="docutils literal notranslate"><span class="pre">lammpsplugin_factory2</span></code>
+and it must be assigned to the <em>creator.v2</em> member of the plugin struct.
+Below is an example for that:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;lammpsplugin.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;version.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;fix_nve2.h&quot;</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="p">;</span>
+
+<span class="k">static</span><span class="w"> </span><span class="n">Fix</span><span class="w"> </span><span class="o">*</span><span class="nf">nve2creator</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">FixNVE2</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="n">argc</span><span class="p">,</span><span class="n">argv</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">lammpsplugin_init</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">regfunc</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">lammpsplugin_regfunc</span><span class="w"> </span><span class="n">register_plugin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lammpsplugin_regfunc</span><span class="p">)</span><span class="w"> </span><span class="n">regfunc</span><span class="p">;</span>
+<span class="w">  </span><span class="n">lammpsplugin_t</span><span class="w"> </span><span class="n">plugin</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LAMMPS_VERSION</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">style</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;fix&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">name</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;nve2&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">info</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;NVE2 variant fix style v1.0&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">author</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Axel Kohlmeyer (akohlmey@gmail.com)&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">creator</span><span class="p">.</span><span class="n">v2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lammpsplugin_factory2</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nve2creator</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">handle</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">handle</span><span class="p">;</span>
+<span class="w">  </span><span class="p">(</span><span class="o">*</span><span class="n">register_plugin</span><span class="p">)(</span><span class="o">&amp;</span><span class="n">plugin</span><span class="p">,</span><span class="n">lmp</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="command-style-example">
+<h2><span class="section-number">4.11.4. </span>Command style example<a class="headerlink" href="#command-style-example" title="Link to this heading"></a></h2>
+<p>Command styles also use the first variant of factory function as
+demonstrated in the following example, which also shows that the
+implementation of the plugin class may be within the same source
+file as the plugin interface code:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;lammpsplugin.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;comm.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;error.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;command.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;version.h&quot;</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;cstring&gt;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">class</span><span class="w"> </span><span class="nc">Hello</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Command</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="k">public</span><span class="o">:</span>
+<span class="w">    </span><span class="n">Hello</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Command</span><span class="p">(</span><span class="n">lmp</span><span class="p">)</span><span class="w"> </span><span class="p">{};</span>
+<span class="w">    </span><span class="kt">void</span><span class="w"> </span><span class="nf">command</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">);</span>
+<span class="w">  </span><span class="p">};</span>
+<span class="p">}</span>
+
+<span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="p">;</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">Hello::command</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">argc</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="s">&quot;Illegal hello command&quot;</span><span class="p">);</span>
+<span class="w">   </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">me</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">     </span><span class="n">utils</span><span class="o">::</span><span class="n">logmesg</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;Hello, {}!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span>
+<span class="p">}</span>
+
+<span class="k">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">hellocreator</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Hello</span><span class="p">(</span><span class="n">lmp</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">lammpsplugin_init</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">handle</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">regfunc</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">lammpsplugin_t</span><span class="w"> </span><span class="n">plugin</span><span class="p">;</span>
+<span class="w">  </span><span class="n">lammpsplugin_regfunc</span><span class="w"> </span><span class="n">register_plugin</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lammpsplugin_regfunc</span><span class="p">)</span><span class="w"> </span><span class="n">regfunc</span><span class="p">;</span>
+
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LAMMPS_VERSION</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">style</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;command&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">name</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;hello&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">info</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Hello world command v1.1&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">author</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Axel Kohlmeyer (akohlmey@gmail.com)&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">creator</span><span class="p">.</span><span class="n">v1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">lammpsplugin_factory1</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="n">hellocreator</span><span class="p">;</span>
+<span class="w">  </span><span class="n">plugin</span><span class="p">.</span><span class="n">handle</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">handle</span><span class="p">;</span>
+<span class="w">  </span><span class="p">(</span><span class="o">*</span><span class="n">register_plugin</span><span class="p">)(</span><span class="o">&amp;</span><span class="n">plugin</span><span class="p">,</span><span class="n">lmp</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="additional-details">
+<h2><span class="section-number">4.11.5. </span>Additional Details<a class="headerlink" href="#additional-details" title="Link to this heading"></a></h2>
+<p>The initialization function <strong>must</strong> be called <code class="docutils literal notranslate"><span class="pre">lammpsplugin_init</span></code>, it
+<strong>must</strong> have C bindings and it takes three void pointers as arguments.
+The first is a pointer to the LAMMPS class that calls it and it needs to
+be passed to the registration function.  The second argument is a
+pointer to the internal handle of the DSO file, this needs to be added
+to the plugin info struct, so that the DSO can be closed and unloaded
+when all its contained plugins are unloaded.  The third argument is a
+function pointer to the registration function and needs to be stored
+in a variable of <code class="docutils literal notranslate"><span class="pre">lammpsplugin_regfunc</span></code> type and then called with a
+pointer to the <code class="docutils literal notranslate"><span class="pre">lammpsplugin_t</span></code> struct and the pointer to the LAMMPS
+instance as arguments to register a single plugin.  There may be multiple
+calls to multiple plugins in the same initialization function.</p>
+<p>To register a plugin a struct of the <code class="docutils literal notranslate"><span class="pre">lammpsplugin_t</span></code> needs to be filled
+with relevant info: current LAMMPS version string, kind of style, name of
+style, info string, author string, pointer to factory function, and the
+DSO handle.  The registration function is called with a pointer to the address
+of this struct and the pointer of the LAMMPS class.  The registration function
+will then add the factory function of the plugin style to the respective
+style map under the provided name.  It will also make a copy of the struct
+in a global list of all loaded plugins and update the reference counter for
+loaded plugins from this specific DSO file.</p>
+<p>The pair style itself (i.e. the PairMorse2 class in this example) can be
+written just like any other pair style that is included in LAMMPS.  For
+a plugin, the use of the <code class="docutils literal notranslate"><span class="pre">PairStyle</span></code> macro in the section encapsulated
+by <code class="docutils literal notranslate"><span class="pre">#ifdef</span> <span class="pre">PAIR_CLASS</span></code> is not needed, since the mapping of the class
+name to the style name is done by the plugin registration function with
+the information from the <code class="docutils literal notranslate"><span class="pre">lammpsplugin_t</span></code> struct.  It may be included
+in case the new code is intended to be later included in LAMMPS directly.</p>
+<p>A plugin may be registered under an existing style name.  In that case
+the plugin will override the existing code.  This can be used to modify
+the behavior of existing styles or to debug new versions of them without
+having to re-compile or re-install all of LAMMPS.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 12Jun2025.</span></p>
+</div>
+<p>When using the <a class="reference internal" href="clear.html"><span class="doc">clear</span></a> command, plugins are not unloaded
+but restored to their respective style maps.  This also applies when
+multiple LAMMPS instances are created and deleted through the library
+interface.  The <a class="reference internal" href="plugin.html"><span class="doc">plugin load</span></a> load command may be issued
+again, but for existing plugins they will be skipped.  To replace
+plugins they must be explicitly unloaded with <a class="reference internal" href="plugin.html"><span class="doc">plugin unload</span></a>.  When multiple LAMMPS instances are created concurrently, any
+loaded plugins will be added to the global list of plugins, but are not
+immediately available to any LAMMPS instance that was created before
+loading the plugin.  To “import” such plugins, the <a class="reference internal" href="plugin.html"><span class="doc">plugin restore</span></a> may be used.  Plugins are only removed when they are explicitly
+unloaded or the LAMMPS interface is “finalized”.</p>
+</section>
+<section id="compiling-plugins">
+<h2><span class="section-number">4.11.6. </span>Compiling plugins<a class="headerlink" href="#compiling-plugins" title="Link to this heading"></a></h2>
+<p>Plugins need to be compiled with the same compilers and libraries
+(e.g. MPI) and compilation settings (MPI on/off, OpenMP, integer sizes)
+as the LAMMPS executable and library.  Otherwise the plugin will likely
+not load due to mismatches in the function signatures (LAMMPS is C++ so
+scope, type, and number of arguments are encoded into the symbol names
+and thus differences in them will lead to failed plugin load commands).
+Compilation of the plugin can be managed via both, CMake or traditional
+GNU makefiles.  Some examples that can be used as a template are in the
+<code class="docutils literal notranslate"><span class="pre">examples/plugins</span></code> folder.  The CMake script code has some small
+adjustments to allow building the plugins for running unit tests with
+them.</p>
+<p>Another example that converts the KIM package into a plugin can be found
+in the <code class="docutils literal notranslate"><span class="pre">examples/kim/plugin</span></code> folder.  No changes to the sources of the
+KIM package themselves are needed; only the plugin interface and loader
+code needs to be added.  This example only supports building with CMake,
+but is probably a more typical example. To compile you need to run CMake
+with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_SOURCE_DIR=&lt;path/to/lammps/src/folder&gt;</span></code>.  Other
+configuration setting are identical to those for compiling LAMMPS.</p>
+<p>A second example for a plugin from a package is in the
+<code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/pace/plugin</span></code> folder that will create a plugin from
+the ML-PACE package.  In this case the bulk of the code is in a static
+external library that is being downloaded and compiled first and then
+combined with the pair style wrapper and the plugin loader.  This
+example also contains a NSIS script that can be used to create an
+Installer package for Windows (the mutual licensing terms of the
+external library and LAMMPS conflict when distributing binaries, so the
+ML-PACE package cannot be linked statically, but the LAMMPS headers
+required to build the plugin are also available under a less restrictive
+license).  This will automatically set the required environment variable
+and launching a (compatible) LAMMPS binary will load and register the
+plugin and the ML-PACE package can then be used as it was linked into
+LAMMPS.</p>
+<hr class="docutils" />
+<p>You can find additional LAMMPS plugins in the <a class="reference external" href="https://github.com/lammps/lammps-plugins">LAMMPS plugins source
+code repository on GitHub</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_updating.html" class="btn btn-neutral float-left" title="4.10. Notes for updating code written for older LAMMPS versions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_unittest.html" class="btn btn-neutral float-right" title="4.12. Adding tests for unit testing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

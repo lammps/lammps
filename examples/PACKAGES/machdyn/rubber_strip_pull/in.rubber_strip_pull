@@ -1,0 +1,108 @@
+####################################################################################################
+#
+# TLSPH example:  elongate a 2d strip of a linear elastic material py pulling its ends apart
+#
+# unit system: GPa / mm / ms
+#
+####################################################################################################
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        E equal 1.0 # Young's modulus
+variable        nu equal 0.3 # Poisson ratio
+variable        rho equal 1 # initial mass density
+variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 10.0 # hourglass control coefficient
+variable        cp equal 1.0 # heat capacity of material -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       2
+units           si
+boundary        sm sm p # simulation box boundaries
+atom_style      smd
+atom_modify     map array
+comm_modify     vel yes
+neigh_modify    every 10 delay 0 check yes # re-build neighbor list every 10 steps
+newton          off
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+variable        l0 equal 1.0 # lattice spacing for creating particles
+lattice         sq ${l0}
+region          box block -10 10 -10 10 -0.1 0.1 units box
+create_box      1 box
+create_atoms    1 box
+group           tlsph type 1
+
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.01*${l0} # SPH smoothing kernel radius
+variable        vol_one equal ${l0}^2 # volume of one particle -- assuming unit thickness
+variable        skin equal ${h} # Verlet list range
+neighbor        ${skin} bin
+set             group all volume ${vol_one}
+set             group all smd/mass/density ${rho}
+set             group all diameter ${h} # set SPH kernel radius
+
+####################################################################################################
+# DEFINE VELOCITY BOUNDARY CONDITIONS
+####################################################################################################
+variable        vel0 equal 0.005 # pull velocity
+region          top block EDGE EDGE 9.0 EDGE EDGE EDGE units box
+region          bot block EDGE EDGE EDGE -9.1 EDGE EDGE units box
+group           top region top
+group           bot region bot
+variable        vel_up equal ${vel0}*(1.0-exp(-0.01*time))
+variable        vel_down equal -v_vel_up
+fix             veltop_fix top smd/setvel 0 v_vel_up 0
+fix             velbot_fix bot smd/setvel 0 v_vel_down 0
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+####################################################################################################
+pair_style      smd/tlsph
+pair_coeff      1 1 *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp} &
+                *STRENGTH_LINEAR &
+                *EOS_LINEAR &
+                *END
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix tlsph smd/integrate_tlsph
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         E all smd/tlsph/strain # Green-Lagrange strain tensor
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
+dump            dump_id all custom 10 dump.LAMMPS id type x y z vx vy vz &
+                c_S[1] c_S[2] c_S[4] c_nn &
+                c_E[1] c_E[2] c_E[4] &
+                vx vy vz
+dump_modify     dump_id first yes
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+variable        stress equal 0.5*(f_velbot_fix[2]-f_veltop_fix[2])/20 # stress = force / initial width
+variable        length equal xcm(top,y)-xcm(bot,y)
+variable        strain equal (v_length-${length})/${length} # engineering strain
+fix             stress_curve all print 10 "${strain} ${stress}" file stress_strain.dat screen no
+
+thermo          100
+thermo_style    custom step dt f_dtfix v_strain
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+run             2500

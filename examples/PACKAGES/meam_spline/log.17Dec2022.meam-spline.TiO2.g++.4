@@ -1,0 +1,253 @@
+LAMMPS (3 Nov 2022)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+#
+
+variable T_depart equal 300
+
+variable dt equal 0.0002
+
+variable a equal 4.5937
+variable c equal 2.9587
+variable ca equal ${c}/${a}
+variable ca equal 2.9587/${a}
+variable ca equal 2.9587/4.5937
+
+variable nx equal 6
+variable ny equal 6
+variable nz equal 11
+
+variable bx equal ${a}*${nx}
+variable bx equal 4.5937*${nx}
+variable bx equal 4.5937*6
+variable by equal ${a}*${ny}
+variable by equal 4.5937*${ny}
+variable by equal 4.5937*6
+variable bz equal ${c}*${nz}
+variable bz equal 2.9587*${nz}
+variable bz equal 2.9587*11
+# =======================================================================
+
+units           metal
+atom_style      atomic
+dimension       3
+boundary        p p p
+
+
+lattice         sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+region          box_vide prism 0 ${bx} 0 ${by} 0 ${bz} 0.0 0.0 0.0
+region          box_vide prism 0 27.5622 0 ${by} 0 ${bz} 0.0 0.0 0.0
+region          box_vide prism 0 27.5622 0 27.5622 0 ${bz} 0.0 0.0 0.0
+region          box_vide prism 0 27.5622 0 27.5622 0 32.5457 0.0 0.0 0.0
+create_box      2 box_vide
+Created triclinic box = (0 0 0) to (27.5622 27.5622 32.5457) with tilt (0 0 0)
+  1 by 2 by 2 MPI processor grid
+
+#lattice         sc 1.0
+#region          box_TiO2 block 0 ${bx} 0 ${by} 0 ${bz}
+
+# titanium atoms
+lattice         custom ${a} origin 0.0 0.0 0.0                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1                             a1 1.0  0.0  0.0                              a2 0.0  1.0  0.0                              a3 0.0  0.0 ${ca}                             basis 0.0    0.0     0.0                             basis 0.5    0.5     0.5
+lattice         custom 4.5937 origin 0.0 0.0 0.0                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1                             a1 1.0  0.0  0.0                              a2 0.0  1.0  0.0                              a3 0.0  0.0 ${ca}                             basis 0.0    0.0     0.0                             basis 0.5    0.5     0.5
+lattice         custom 4.5937 origin 0.0 0.0 0.0                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1                             a1 1.0  0.0  0.0                              a2 0.0  1.0  0.0                              a3 0.0  0.0 0.644077758669482                             basis 0.0    0.0     0.0                             basis 0.5    0.5     0.5
+Lattice spacing in x,y,z = 4.5937 4.5937 2.9587
+
+create_atoms    2 region box_vide
+Created 792 atoms
+  using lattice units in triclinic box = (0 0 0) to (27.5622 27.5622 32.5457) with tilt (0 0 0)
+  create_atoms CPU = 0.000 seconds
+
+# Oxygen atoms
+lattice         custom ${a} origin 0.0 0.0 0.0                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1                             a1 1.0  0.0  0.0                              a2 0.0  1.0  0.0                              a3 0.0  0.0 ${ca}                             basis 0.30478    0.30478     0.0                             basis 0.69522    0.69522     0.0                             basis 0.19522    0.80478     0.5                             basis 0.80478    0.19522     0.5
+lattice         custom 4.5937 origin 0.0 0.0 0.0                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1                             a1 1.0  0.0  0.0                              a2 0.0  1.0  0.0                              a3 0.0  0.0 ${ca}                             basis 0.30478    0.30478     0.0                             basis 0.69522    0.69522     0.0                             basis 0.19522    0.80478     0.5                             basis 0.80478    0.19522     0.5
+lattice         custom 4.5937 origin 0.0 0.0 0.0                             orient x 1 0 0 orient y 0 1 0 orient z 0 0 1                             a1 1.0  0.0  0.0                              a2 0.0  1.0  0.0                              a3 0.0  0.0 0.644077758669482                             basis 0.30478    0.30478     0.0                             basis 0.69522    0.69522     0.0                             basis 0.19522    0.80478     0.5                             basis 0.80478    0.19522     0.5
+Lattice spacing in x,y,z = 4.5937 4.5937 2.9587
+
+create_atoms    1 region box_vide
+Created 1584 atoms
+  using lattice units in triclinic box = (0 0 0) to (27.5622 27.5622 32.5457) with tilt (0 0 0)
+  create_atoms CPU = 0.000 seconds
+
+
+mass            1 16.00
+group           Oxy type 1
+1584 atoms in group Oxy
+
+mass            2 47.867
+group           Ti type 2
+792 atoms in group Ti
+
+velocity        all create ${T_depart} 277387
+velocity        all create 300 277387
+
+pair_style      meam/spline
+pair_coeff      * * TiO.meam.spline O Ti
+Reading meam/spline potential file TiO.meam.spline with DATE: 2016-06-05
+
+neighbor        0.5 bin
+neigh_modify    every 2 delay 0 check yes
+
+timestep        ${dt}
+timestep        0.0002
+
+thermo_style    custom step temp press pe ke etotal lx ly lz vol
+thermo          10
+
+
+#dump            5 all custom 500 boxAlpha_alumina.lammpstrj id type q x y z
+
+fix             3 all nve
+run             100
+Neighbor list info ...
+  update: every = 2 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6
+  ghost atom cutoff = 6
+  binsize = 3, bins = 10 10 11
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam/spline, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam/spline, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 3.934 | 3.934 | 3.934 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng           Lx             Ly             Lz           Volume    
+         0   300            22403.656     -14374.073      92.097853     -14281.975      27.5622        27.5622        32.5457        24724.15     
+        10   301.16725      23582.084     -14374.431      92.456192     -14281.975      27.5622        27.5622        32.5457        24724.15     
+        20   304.58237      25059.749     -14375.479      93.504609     -14281.974      27.5622        27.5622        32.5457        24724.15     
+        30   312.41477      26504.358     -14377.883      95.9091       -14281.974      27.5622        27.5622        32.5457        24724.15     
+        40   327.67099      26687.057     -14382.566      100.59265     -14281.974      27.5622        27.5622        32.5457        24724.15     
+        50   352.32125      22677.292     -14390.134      108.1601      -14281.974      27.5622        27.5622        32.5457        24724.15     
+        60   388.40592      12472.705     -14401.211      119.23784     -14281.973      27.5622        27.5622        32.5457        24724.15     
+        70   439.97199     -1520.4694     -14417.04       135.06825     -14281.972      27.5622        27.5622        32.5457        24724.15     
+        80   513.34361     -16733.316     -14439.564      157.59282     -14281.971      27.5622        27.5622        32.5457        24724.15     
+        90   613.3542      -31099.591     -14470.267      188.29535     -14281.971      27.5622        27.5622        32.5457        24724.15     
+       100   741.02836     -42358.226     -14509.464      227.4904      -14281.973      27.5622        27.5622        32.5457        24724.15     
+Loop time of 6.2168 on 4 procs for 100 steps with 2376 atoms
+
+Performance: 0.278 ns/day, 86.344 hours/ns, 16.085 timesteps/s, 38.219 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.1958     | 6.2012     | 6.2089     |   0.2 | 99.75
+Neigh   | 0.0021079  | 0.0021422  | 0.0021639  |   0.0 |  0.03
+Comm    | 0.0038617  | 0.011586   | 0.017042   |   4.9 |  0.19
+Output  | 0.00027671 | 0.00029064 | 0.00032183 |   0.0 |  0.00
+Modify  | 0.00078288 | 0.0008221  | 0.00085066 |   0.0 |  0.01
+Other   |            | 0.0007406  |            |       |  0.01
+
+Nlocal:            594 ave         599 max         589 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:        2290.25 ave        2296 max        2282 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Neighs:        26671.5 ave       26934 max       26495 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+FullNghs:        53343 ave       53828 max       52922 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+
+Total # of neighbors = 213372
+Ave neighs/atom = 89.80303
+Neighbor list builds = 1
+Dangerous builds = 0
+
+unfix           3
+fix             1 all box/relax tri 0.0 vmax 0.001
+minimize        1.0e-3 1.0e-5 1000 10000
+Switching to 'neigh_modify every 1 delay 0 check yes' setting during minimization
+Per MPI rank memory allocation (min/avg/max) = 5.059 | 5.059 | 5.059 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng           Lx             Ly             Lz           Volume    
+       100   741.02836     -42358.226     -14509.464      227.4904      -14281.973      27.5622        27.5622        32.5457        24724.15     
+       101   741.02836     -39686.588     -14515.398      227.4904      -14287.907      27.569587      27.569656      32.513154      24712.729    
+Loop time of 0.129231 on 4 procs for 1 steps with 2376 atoms
+
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = energy tolerance
+  Energy initial, next-to-last, final = 
+     -14509.4635100091  -14509.4635100091  -14515.3978891321
+  Force two-norm initial, final = 5602.6938 5487.7658
+  Force max component initial, final = 5235.2654 5113.0611
+  Final line search alpha, max atom move = 1.9101228e-07 0.00097665746
+  Iterations, force evaluations = 1 1
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.12891    | 0.12896    | 0.129      |   0.0 | 99.79
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 5.5406e-05 | 9.5992e-05 | 0.00015051 |   0.0 |  0.07
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.0001737  |            |       |  0.13
+
+Nlocal:            594 ave         601 max         586 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Nghost:        2263.25 ave        2271 max        2251 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Neighs:        26425.8 ave       26807 max       26121 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+FullNghs:      52851.5 ave       53580 max       52175 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+
+Total # of neighbors = 211406
+Ave neighs/atom = 88.975589
+Neighbor list builds = 0
+Dangerous builds = 0
+
+unfix           1
+reset_timestep  0
+thermo          50
+fix             3 all npt temp 300 300 0.1 aniso 1.0 1.0 1.0
+run             500
+Per MPI rank memory allocation (min/avg/max) = 3.95 | 3.95 | 3.95 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng           Lx             Ly             Lz           Volume    
+         0   741.02836     -39686.588     -14515.398      227.4904      -14287.907      27.569587      27.569656      32.513154      24712.729    
+        50   1157.3495      29319.762     -14679.318      355.29803     -14324.02       27.609057      27.60935       32.375563      24678.86     
+       100   777.56728      101869.39     -14674.833      238.70759     -14436.125      27.778509      27.77736       32.017401      24705.064    
+       150   945.51255     -18319.494     -14806.675      290.26559     -14516.409      27.998296      27.995331      31.670366      24823.916    
+       200   427.47153     -4045.9984     -14674.872      131.2307      -14543.641      28.130223      28.127085      31.431723      24869.445    
+       250   362.817       -7274.2701     -14669.054      111.38222     -14557.672      28.225123      28.222595      31.238594      24884.233    
+       300   626.29209      7236.0808     -14760.119      192.26719     -14567.852      28.302278      28.299838      31.070157      24885.639    
+       350   859.86407      30087.808     -14845.065      263.97212     -14581.093      28.372301      28.369278      30.934494      24899.226    
+       400   755.2581       54745.968     -14830.701      231.85883     -14598.842      28.450314      28.448368      30.836162      24957.71     
+       450   802.52878      5682.9998     -14860.196      246.37059     -14613.826      28.542362      28.541716      30.773281      25069.392    
+       500   631.84048     -31484.881     -14816.098      193.97051     -14622.127      28.605943      28.605973      30.737856      25152.813    
+Loop time of 27.3207 on 4 procs for 500 steps with 2376 atoms
+
+Performance: 0.316 ns/day, 75.891 hours/ns, 18.301 timesteps/s, 43.484 katom-step/s
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 27.21      | 27.221     | 27.237     |   0.2 | 99.64
+Neigh   | 0.036501   | 0.036849   | 0.037083   |   0.1 |  0.13
+Comm    | 0.02089    | 0.036492   | 0.047866   |   5.1 |  0.13
+Output  | 0.00023096 | 0.00024391 | 0.00027788 |   0.0 |  0.00
+Modify  | 0.022565   | 0.022706   | 0.022764   |   0.1 |  0.08
+Other   |            | 0.003102   |            |       |  0.01
+
+Nlocal:            594 ave         606 max         582 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Nghost:           2226 ave        2238 max        2214 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Neighs:        25652.8 ave       26129 max       25153 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+FullNghs:      51305.5 ave       52398 max       50251 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 205222
+Ave neighs/atom = 86.372896
+Neighbor list builds = 16
+Dangerous builds = 0
+
+Total wall time: 0:00:33

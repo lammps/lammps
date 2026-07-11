@@ -1,0 +1,46 @@
+# Demonstrate SNAP InP potential
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 4
+variable a equal 5.83
+units           metal
+
+# generate the box and atom positions using a FCC lattice
+
+variable nx equal ${nrep}
+variable ny equal ${nrep}
+variable nz equal ${nrep}
+
+boundary        p p p
+
+lattice         diamond $a
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+create_box      2 box
+create_atoms    1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2
+
+mass 1 114.76
+mass 2 30.98
+
+# choose potential
+
+include InP_JCPA2020.snap
+
+# Setup output
+
+thermo          10
+thermo_modify norm yes
+
+# Set up NVE run
+
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify once no every 1 delay 0 check yes
+
+# Run MD
+
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+

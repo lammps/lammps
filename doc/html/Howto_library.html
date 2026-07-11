@@ -1,0 +1,218 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.1.7. Library interface to LAMMPS &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_library.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.1.8. Coupling LAMMPS to other codes" href="Howto_couple.html" />
+    <link rel="prev" title="10.1.6. Multi-replica simulations" href="Howto_replica.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_restart.html">10.1.1. Restart a simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html">10.1.2. Visualize LAMMPS snapshots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html#basic-workflow-for-loading-lammps-trajectories-in-vmd">10.1.3. Basic workflow for loading LAMMPS trajectories in VMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html#advanced-graphics-features-in-the-dump-image-command">10.1.4. Advanced graphics features in the <em>dump image</em> command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_multiple.html">10.1.5. Run multiple simulations from one input script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_replica.html">10.1.6. Multi-replica simulations</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.1.7. Library interface to LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_couple.html">10.1.8. Coupling LAMMPS to other codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_mdi.html">10.1.9. Using LAMMPS with the MDI library for code coupling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.1.7. </span>Library interface to LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_replica.html" class="btn btn-neutral float-left" title="10.1.6. Multi-replica simulations" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_couple.html" class="btn btn-neutral float-right" title="10.1.8. Coupling LAMMPS to other codes" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="library-interface-to-lammps">
+<h1><span class="section-number">10.1.7. </span>Library interface to LAMMPS<a class="headerlink" href="#library-interface-to-lammps" title="Link to this heading"></a></h1>
+<p>As described on the <a class="reference internal" href="Build_basics.html"><span class="doc">Build basics</span></a> doc page, LAMMPS
+can be built as a static or shared library, so that it can be called by
+another code, used in a <a class="reference internal" href="Howto_couple.html"><span class="doc">coupled manner</span></a> with other
+codes, or driven through a <a class="reference internal" href="Python_head.html"><span class="doc">Python interface</span></a>.</p>
+<p>At the core of LAMMPS is the <code class="docutils literal notranslate"><span class="pre">LAMMPS</span></code> class, which encapsulates the
+state of the simulation program through the state of the various class
+instances that it is composed of.  So a calculation using LAMMPS
+requires creating an instance of the <code class="docutils literal notranslate"><span class="pre">LAMMPS</span></code> class and then send it
+(text) commands, either individually or from a file, or perform other
+operations that modify the state stored inside that instance or drive
+simulations.  This is essentially what the <code class="docutils literal notranslate"><span class="pre">src/main.cpp</span></code> file does as
+well for the standalone LAMMPS executable, reading commands either from
+an input file or the standard input.</p>
+<p>Creating a LAMMPS instance can be done by using C++ code directly or
+through a C-style interface library to LAMMPS that is provided in the
+files <code class="docutils literal notranslate"><span class="pre">src/library.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">src/library.h</span></code>.  This <a class="reference internal" href="Library.html#lammps-c-api"><span class="std std-ref">C language
+API</span></a>, can be used from C and C++, and is also the basis
+for the <a class="reference internal" href="Python_module.html"><span class="doc">Python</span></a> and <a class="reference internal" href="Fortran.html"><span class="doc">Fortran</span></a>
+interfaces or the <a class="reference internal" href="Tools.html#swig"><span class="std std-ref">SWIG based wrappers</span></a> included in the
+LAMMPS source code.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">examples/COUPLE</span></code> and <code class="docutils literal notranslate"><span class="pre">python/examples</span></code> directories contain some
+example programs written in C++, C, Fortran, and Python, which show how
+a driver code can link to LAMMPS as a library, run LAMMPS on a subset of
+processors (so the others are available to run some other code
+concurrently), grab data from LAMMPS, change it, and send it back into
+LAMMPS.</p>
+<p>A detailed documentation of the available APIs and examples of how to
+use them can be found in the <a class="reference internal" href="Manual.html#programmer-documentation"><span class="std std-ref">Programmer Guide</span></a>
+section of this manual.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_replica.html" class="btn btn-neutral float-left" title="10.1.6. Multi-replica simulations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_couple.html" class="btn btn-neutral float-right" title="10.1.8. Coupling LAMMPS to other codes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

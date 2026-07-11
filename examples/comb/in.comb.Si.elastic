@@ -1,0 +1,81 @@
+# Pure Si crystal, qeq off, calculates stress-strain, no out.*.cfg
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+lattice  	diamond 5.431
+region		box block 0 4 0 4 0 4
+create_box	1 box
+create_atoms	1 box
+mass		1 29.0
+change_box  	all triclinic
+
+velocity	all create 1.0 277387
+
+pair_style	comb
+pair_coeff	* * ffield.comb Si
+
+neighbor	0.5 bin
+neigh_modify	every 20 delay 0 check no
+
+fix		1 all box/relax aniso 0.0 vmax 0.001
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul &
+		#lx ly lz vol pxx pyy pzz
+thermo_modify	norm yes
+thermo		1
+minimize	1.0e-14  1.0e-20  1000  10000
+min_modify	dmax 0.2 line quadratic
+
+unfix		1
+run		1
+
+### copy lines after this to any input script for elastic calculations ###
+## 		Elastic constants calculations: strain box, measure box stress
+##		strain x, measure s_x, s_y, s_z, s_yz:
+##                calculates C11, C12, C13 and C14
+
+fix  		2 all deform 1 x scale 1.0001 remap x 
+compute   	perfx all stress/atom NULL pair
+compute   	fx all reduce sum &
+		c_perfx[1] c_perfx[2] c_perfx[3] &
+		c_perfx[4] c_perfx[5] c_perfx[6]
+thermo_style	custom step lx ly lz xy xz yz &
+		c_fx[1] c_fx[2] c_fx[3] c_fx[4] c_fx[5] c_fx[6]
+run		10
+
+##		strain z, measure s_z: calculates C33
+
+fix  		2 all deform 1 z scale 1.0001 remap x 
+compute   	perfz all stress/atom NULL pair
+compute   	fz all reduce sum &
+		c_perfz[1] c_perfz[2] c_perfz[3] &
+		c_perfz[4] c_perfz[5] c_perfz[6]
+thermo_style	custom  step lx ly lz xy xz yz &
+		c_fz[1] c_fz[2] c_fz[3] c_fz[4] c_fz[5] c_fz[6]
+run		10
+
+##		strain yz, measure s_yz: calculates C44
+
+fix  		2 all deform 1 yz erate 0.0001 remap x 
+compute   	perfyz all stress/atom NULL pair
+compute   	fyz all reduce sum &
+		c_perfyz[1] c_perfyz[2] c_perfyz[3] &
+		c_perfyz[4] c_perfyz[5] c_perfyz[6]
+thermo_style	custom  step lx ly lz xy xz yz &
+		c_fyz[1] c_fyz[2] c_fyz[3] c_fyz[4] c_fyz[5] c_fyz[6]
+run		10
+
+##		strain xy, measure s_xy: calculates C66
+
+fix  		2 all deform 1 xy erate 0.0001 remap x 
+compute   	perfxy all stress/atom NULL pair
+compute   	fxy all reduce sum &
+		c_perfxy[1] c_perfxy[2] c_perfxy[3] &
+		c_perfxy[4] c_perfxy[5] c_perfxy[6]
+thermo_style	custom  step lx ly lz xy xz yz &
+		c_fxy[1] c_fxy[2] c_fxy[3] c_fxy[4] c_fxy[5] c_fxy[6]
+run		10

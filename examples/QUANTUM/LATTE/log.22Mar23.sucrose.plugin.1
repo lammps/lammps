@@ -1,0 +1,111 @@
+LAMMPS (8 Feb 2023)
+# sucrose model with LATTE
+
+units           metal
+atom_style      full
+
+read_data       data.sucrose
+Reading data file ...
+  orthogonal box = (0 0 0) to (17.203 18.009 21.643)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  45 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.003 seconds
+
+# replicate system if requested
+
+variable        x index 1
+variable        y index 1
+variable        z index 1
+
+variable        nrep equal v_x*v_y*v_z
+if              "${nrep} > 1" then "replicate $x $y $z"
+
+# initialize system
+
+velocity        all create 100.0 87287 loop geom
+
+pair_style      zero 1.0
+pair_coeff      * *
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.00025
+
+fix             1 all nve
+
+fix             2 all mdi/qm virial yes elements O C H
+fix_modify      2 energy yes
+
+thermo_style    custom step temp pe etotal press
+
+# dynamics
+
+thermo          10
+
+mdi             plugin latte_mdi mdi "-role ENGINE -name LATTE -method LINK"                 extra latte.in.generic command "run 100"
+run 100
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2
+  binsize = 1, bins = 18 19 22
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.059 | 6.059 | 6.059 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   100           -251.26616     -250.69742      107.21668    
+        10   66.857941     -251.07691     -250.69666     -492.79612    
+        20   59.63791      -251.03635     -250.69717     -248.43262    
+        30   37.423913     -250.90951     -250.69666      188.29378    
+        40   58.409162     -251.0293      -250.6971      -237.97667    
+        50   59.243304     -251.0339      -250.69695     -638.8034     
+        60   52.981345     -250.99824     -250.69691     -316.59797    
+        70   43.705344     -250.9456      -250.69703      85.920691    
+        80   38.818553     -250.91757     -250.69679     -13.26722     
+        90   53.942805     -251.00391     -250.69711     -245.17309    
+       100   49.969604     -250.98104     -250.69684     -243.79969    
+Loop time of 7.36277 on 1 procs for 100 steps with 45 atoms
+
+Performance: 0.293 ns/day, 81.809 hours/ns, 13.582 timesteps/s, 611.183 atom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.5563e-05 | 2.5563e-05 | 2.5563e-05 |   0.0 |  0.00
+Bond    | 6.88e-06   | 6.88e-06   | 6.88e-06   |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 2.6855e-05 | 2.6855e-05 | 2.6855e-05 |   0.0 |  0.00
+Output  | 0.00012794 | 0.00012794 | 0.00012794 |   0.0 |  0.00
+Modify  | 7.3625     | 7.3625     | 7.3625     |   0.0 |100.00
+Other   |            | 0.0001205  |            |       |  0.00
+
+Nlocal:             45 ave          45 max          45 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             59 ave          59 max          59 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 59
+Ave neighs/atom = 1.3111111
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:07

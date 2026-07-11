@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.3. Code design &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_code_design.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.4. Parallel algorithms" href="Developer_parallel.html" />
+    <link rel="prev" title="4.1. Source files" href="Developer_org.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.3. Code design</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#object-oriented-code">4.3.1. Object-oriented code</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#i-o-and-output-formatting">4.3.2. I/O and output formatting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#json-format-input-and-output">4.3.3. JSON format input and output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-management">4.3.4. Memory management</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.3. </span>Code design</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_org.html" class="btn btn-neutral float-left" title="4.1. Source files" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_parallel.html" class="btn btn-neutral float-right" title="4.4. Parallel algorithms" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="code-design">
+<h1><span class="section-number">4.3. </span>Code design<a class="headerlink" href="#code-design" title="Link to this heading"></a></h1>
+<p>This section explains some code design choices in LAMMPS with the goal
+of helping developers write new code similar to the existing code.
+Please see the section on <a class="reference internal" href="Modify_style.html"><span class="doc">Requirements for contributed code</span></a> for more specific recommendations and guidelines.  While
+that section is organized more in the form of a checklist for code
+contributors, the focus here is on overall code design strategy, choices
+made between possible alternatives, and discussing some relevant C++
+programming language constructs.</p>
+<p>Historically, the basic design philosophy of the LAMMPS C++ code was a
+“C with classes” style.  The motivation was to make it easy to modify
+LAMMPS for people without significant training in C++ programming.  Data
+structures and code constructs were used that resemble the previous
+implementation(s) in Fortran.  A contributing factor to this choice was
+that at the time, C++ compilers were often not mature and some advanced
+features contained bugs or did not function as the standard required.
+There were also disagreements between compiler vendors as to how to
+interpret the C++ standard documents.</p>
+<p>However, C++ compilers and the C++ programming language have advanced
+significantly.  In 2020, the LAMMPS developers decided to require the
+C++11 standard as the minimum C++ language standard for LAMMPS.  Since
+then, we have begun to replace C-style constructs with equivalent C++
+functionality.  This was taken either from the C++ standard library or
+implemented as custom classes or functions.  The goal is to improve
+readability of the code and to increase code reuse through abstraction
+of commonly used functionality. In summer 2025, after the 22 July 2025
+stable release, the minimum required C++ language standard was raised to
+C++17.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Please note that as of summer 2025 there is still a sizable chunk of
+legacy code in LAMMPS that has not yet been refactored to reflect
+these style conventions in full.  LAMMPS has a large code base and
+many contributors.  There is also a hierarchy of precedence in which
+the code is adapted.  Highest priority has been the code in the
+<code class="docutils literal notranslate"><span class="pre">src</span></code> folder, followed by code in packages in order of their
+popularity and complexity (simpler code gets adapted sooner), followed
+by code in the <code class="docutils literal notranslate"><span class="pre">lib</span></code> folder.  Source code that is downloaded from
+external packages or libraries during compilation is not subject to
+the conventions discussed here.</p>
+</div>
+<section id="object-oriented-code">
+<h2><span class="section-number">4.3.1. </span>Object-oriented code<a class="headerlink" href="#object-oriented-code" title="Link to this heading"></a></h2>
+<p>LAMMPS is designed to be an object-oriented code.  Each simulation is
+represented by an instance of the LAMMPS class.  When running in
+parallel, each MPI process creates such an instance.  This can be seen
+in the <code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> file where the core steps of running a LAMMPS
+simulation are the following 3 lines of code:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lammps</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">LAMMPS</span><span class="p">(</span><span class="n">argc</span><span class="p">,</span><span class="w"> </span><span class="n">argv</span><span class="p">,</span><span class="w"> </span><span class="n">lammps_comm</span><span class="p">);</span>
+<span class="n">lammps</span><span class="o">-&gt;</span><span class="n">input</span><span class="o">-&gt;</span><span class="n">file</span><span class="p">();</span>
+<span class="k">delete</span><span class="w"> </span><span class="n">lammps</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>The first line creates a LAMMPS class instance and passes the command
+line arguments and the global communicator to its constructor.  The
+second line triggers the LAMMPS instance to process the input (either
+from standard input or a provided input file) until the simulation
+ends.  The third line deletes the LAMMPS instance.  The remainder of
+the main.cpp file has code for error handling, MPI configuration, and
+other special features.</p>
+<p>The basic LAMMPS class hierarchy which is created by the LAMMPS class
+constructor is shown in <a class="reference internal" href="Developer_org.html#id1"><span class="std std-ref">LAMMPS class topology</span></a>.  When input commands
+are processed, additional class instances are created, or deleted, or
+replaced.  Likewise, specific member functions of specific classes are
+called to trigger actions such as creating atoms, computing forces,
+computing properties, time-propagating the system, or writing output.</p>
+<section id="compositing-and-inheritance">
+<h3>Compositing and Inheritance<a class="headerlink" href="#compositing-and-inheritance" title="Link to this heading"></a></h3>
+<p>LAMMPS makes extensive use of the object-oriented programming (OOP)
+principles of <em>compositing</em> and <em>inheritance</em>. Classes like the
+<code class="docutils literal notranslate"><span class="pre">LAMMPS</span></code> class are a <strong>composite</strong> containing pointers to instances
+of other classes like <code class="docutils literal notranslate"><span class="pre">Atom</span></code>, <code class="docutils literal notranslate"><span class="pre">Comm</span></code>, <code class="docutils literal notranslate"><span class="pre">Force</span></code>, <code class="docutils literal notranslate"><span class="pre">Neighbor</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Modify</span></code>, and so on.  Each of these classes implements certain
+functionality by storing and manipulating data related to the
+simulation and providing member functions that trigger certain
+actions.  Some of those classes like <code class="docutils literal notranslate"><span class="pre">Force</span></code> are themselves
+composites, containing instances of classes describing different force
+interactions.  Similarly, the <code class="docutils literal notranslate"><span class="pre">Modify</span></code> class contains a list of
+<code class="docutils literal notranslate"><span class="pre">Fix</span></code> and <code class="docutils literal notranslate"><span class="pre">Compute</span></code> classes.  If the input commands that
+correspond to these classes include the word <em>style</em>, then LAMMPS
+stores only a single instance of that class.  E.g. <em>atom_style</em>,
+<em>comm_style</em>, <em>pair_style</em>, <em>bond_style</em>.  If the input command does
+<strong>not</strong> include the word <em>style</em>, then there may be many instances of
+that class defined, for example <em>region</em>, <em>fix</em>, <em>compute</em>, <em>dump</em>.</p>
+<p><strong>Inheritance</strong> enables creation of <em>derived</em> classes that can share
+common functionality in their base class while providing a consistent
+interface.  The derived classes replace (dummy or pure) functions in
+the base class.  The higher level classes can then call those methods
+of the instantiated classes without having to know which specific
+derived class variant was instantiated.  In LAMMPS these derived
+classes are often referred to as “styles”, e.g.  pair styles, fix
+styles, atom styles and so on.</p>
+<p>This is the origin of the flexibility of LAMMPS.  For example, pair
+styles implement a variety of different non-bonded interatomic
+potentials functions.  All details for the implementation of a
+potential are stored and executed in a single class.</p>
+<p>As mentioned above, there can be multiple instances of classes derived
+from the <code class="docutils literal notranslate"><span class="pre">Fix</span></code> or <code class="docutils literal notranslate"><span class="pre">Compute</span></code> base classes.  They represent a
+different facet of LAMMPS’ flexibility, as they provide methods which
+can be called at different points within a timestep, as explained in
+the <a class="reference internal" href="Developer_flow.html"><span class="doc">How a timestep works</span></a> doc page.  This allows
+the input script to tailor how a specific simulation is run, what
+diagnostic computations are performed, and how the output of those
+computations is further processed or output.</p>
+<p>Additional code sharing is possible by creating derived classes from the
+derived classes (e.g., to implement an accelerated version of a pair
+style) where only a subset of the derived class methods are replaced
+with accelerated versions.</p>
+</section>
+<section id="polymorphism">
+<h3>Polymorphism<a class="headerlink" href="#polymorphism" title="Link to this heading"></a></h3>
+<p>Polymorphism and dynamic dispatch are another OOP feature that play an
+important role in how LAMMPS selects what code to execute.  In a
+nutshell, this is a mechanism where the decision of which member
+function to call from a class is determined at runtime and not when
+the code is compiled.  To enable it, the function has to be declared
+as <code class="docutils literal notranslate"><span class="pre">virtual</span></code> and all corresponding functions in derived classes
+should use the <code class="docutils literal notranslate"><span class="pre">override</span></code> property. Below is a brief example.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">Base</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">call</span><span class="p">();</span>
+<span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">normal</span><span class="p">();</span>
+<span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">poly</span><span class="p">();</span>
+<span class="p">};</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">Base::call</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="n">normal</span><span class="p">();</span>
+<span class="w"> </span><span class="n">poly</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Derived</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">Base</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w"> </span><span class="o">~</span><span class="n">Derived</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">normal</span><span class="p">();</span>
+<span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">poly</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// [....]</span>
+
+<span class="n">Base</span><span class="w"> </span><span class="o">*</span><span class="n">base1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Base</span><span class="p">();</span>
+<span class="n">Base</span><span class="w"> </span><span class="o">*</span><span class="n">base2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Derived</span><span class="p">();</span>
+
+<span class="n">base1</span><span class="o">-&gt;</span><span class="n">call</span><span class="p">();</span>
+<span class="n">base2</span><span class="o">-&gt;</span><span class="n">call</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>The difference in behavior of the <code class="docutils literal notranslate"><span class="pre">normal()</span></code> and the <code class="docutils literal notranslate"><span class="pre">poly()</span></code> member
+functions is which of the two member functions is called when executing
+<cite>base1-&gt;call()</cite> versus <cite>base2-&gt;call()</cite>.  Without polymorphism, a
+function within the base class can only call member functions within the
+same scope: that is, <code class="docutils literal notranslate"><span class="pre">Base::call()</span></code> will always call
+<code class="docutils literal notranslate"><span class="pre">Base::normal()</span></code>.  But for the <cite>base2-&gt;call()</cite> case, the call of the
+virtual member function will be dispatched to <code class="docutils literal notranslate"><span class="pre">Derived::poly()</span></code>
+instead.  This mechanism results in calling functions that are within
+the scope of the class that was used to <em>create</em> the instance, even if
+they are assigned to a pointer for their base class.  This is the
+desired behavior, and this way LAMMPS can even use styles that are loaded
+at runtime from a shared object file with the <a class="reference internal" href="plugin.html"><span class="doc">plugin command</span></a>.</p>
+<p>A special case of virtual functions are so-called pure functions.  These
+are virtual functions that are initialized to 0 in the class declaration
+(see example below).</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">Base</span><span class="w"> </span><span class="p">{</span>
+<span class="k">public</span><span class="o">:</span>
+<span class="w"> </span><span class="k">virtual</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">pure</span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+<p>This has the effect that an instance of the base class cannot be
+created and that derived classes <strong>must</strong> implement these functions.
+Many of the functions listed with the various class styles in the
+section <a class="reference internal" href="Modify.html"><span class="doc">Modifying &amp; extending LAMMPS</span></a> are pure functions.  The motivation for this is
+to define the interface or API of the functions, but defer their
+implementation to the derived classes.</p>
+<p>However, there are downsides to this. For example, calls to virtual
+functions from within a constructor, will <em>not</em> be in the scope of the
+derived class, and thus it is good practice to either avoid calling them
+or to provide an explicit scope such as <code class="docutils literal notranslate"><span class="pre">Base::poly()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Derived::poly()</span></code>.  Furthermore, any destructors in classes containing
+virtual functions should be declared virtual too, so they will be
+processed in the expected order before types are removed from dynamic
+dispatch.</p>
+<div class="note admonition">
+<p class="admonition-title">Important Notes</p>
+<p>In order to be able to detect incompatibilities at compile time and
+to avoid unexpected behavior, it is crucial that all member functions
+that are intended to replace a virtual or pure function use the
+<code class="docutils literal notranslate"><span class="pre">override</span></code> property keyword.  For the same reason, the use of
+overloads or default arguments for virtual functions should be
+avoided, as they lead to confusion over which function is supposed to
+override which, and which arguments need to be declared.</p>
+</div>
+</section>
+<section id="style-factories">
+<h3>Style Factories<a class="headerlink" href="#style-factories" title="Link to this heading"></a></h3>
+<p>In order to create class instances for different styles, LAMMPS often
+uses a programming pattern called <cite>Factory</cite>.  Those are functions that
+create an instance of a specific derived class, say <code class="docutils literal notranslate"><span class="pre">PairLJCut</span></code> and
+return a pointer to the type of the common base class of that style,
+<code class="docutils literal notranslate"><span class="pre">Pair</span></code> in this case.  To associate the factory function with the
+style keyword, a <code class="docutils literal notranslate"><span class="pre">std::map</span></code> class is used with function pointers
+indexed by their keyword (for example “lj/cut” for <code class="docutils literal notranslate"><span class="pre">PairLJCut</span></code> and
+“morse” for <code class="docutils literal notranslate"><span class="pre">PairMorse</span></code>).  A couple of typedefs help keep the code
+readable, and a template function is used to implement the actual
+factory functions for the individual classes.  Below is an example
+of such a factory function from the <code class="docutils literal notranslate"><span class="pre">Force</span></code> class as declared in
+<code class="docutils literal notranslate"><span class="pre">force.h</span></code> and implemented in <code class="docutils literal notranslate"><span class="pre">force.cpp</span></code>.  The file <code class="docutils literal notranslate"><span class="pre">style_pair.h</span></code>
+is generated during compilation and includes all main header files
+(i.e. those starting with <code class="docutils literal notranslate"><span class="pre">pair_</span></code>) of pair styles and then the
+macro <code class="docutils literal notranslate"><span class="pre">PairStyle()</span></code> will associate the style name “lj/cut”
+with a factory function creating an instance of the <code class="docutils literal notranslate"><span class="pre">PairLJCut</span></code>
+class.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// from force.h</span>
+<span class="k">typedef</span><span class="w"> </span><span class="n">Pair</span><span class="w"> </span><span class="o">*</span><span class="p">(</span><span class="o">*</span><span class="n">PairCreator</span><span class="p">)(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="k">typedef</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="n">PairCreator</span><span class="o">&gt;</span><span class="w"> </span><span class="n">PairCreatorMap</span><span class="p">;</span>
+<span class="n">PairCreatorMap</span><span class="w"> </span><span class="o">*</span><span class="n">pair_map</span><span class="p">;</span>
+
+<span class="c1">// from force.cpp</span>
+<span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">S</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span><span class="w"> </span><span class="k">static</span><span class="w"> </span><span class="n">S</span><span class="w"> </span><span class="o">*</span><span class="n">style_creator</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">T</span><span class="p">(</span><span class="n">lmp</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="c1">// [...]</span>
+
+<span class="n">pair_map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PairCreatorMap</span><span class="p">();</span>
+
+<span class="cp">#define PAIR_CLASS</span>
+<span class="cp">#define PairStyle(key, Class) (*pair_map)[#key] = &amp;style_creator&lt;Pair, Class&gt;;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;style_pair.h&quot;</span>
+<span class="cp">#undef PairStyle</span>
+<span class="cp">#undef PAIR_CLASS</span>
+
+<span class="c1">// from pair_lj_cut.h</span>
+
+<span class="cp">#ifdef PAIR_CLASS</span>
+<span class="n">PairStyle</span><span class="p">(</span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="p">,</span><span class="n">PairLJCut</span><span class="p">);</span>
+<span class="cp">#else</span>
+<span class="c1">// [...]</span>
+</pre></div>
+</div>
+<p>Similar code constructs are present in other files like <code class="docutils literal notranslate"><span class="pre">modify.cpp</span></code> and
+<code class="docutils literal notranslate"><span class="pre">modify.h</span></code> or <code class="docutils literal notranslate"><span class="pre">neighbor.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">neighbor.h</span></code>.  Those contain
+similar macros and include <code class="docutils literal notranslate"><span class="pre">style_*.h</span></code> files for creating class instances
+of styles they manage.</p>
+</section>
+</section>
+<section id="i-o-and-output-formatting">
+<h2><span class="section-number">4.3.2. </span>I/O and output formatting<a class="headerlink" href="#i-o-and-output-formatting" title="Link to this heading"></a></h2>
+<section id="c-style-stdio-versus-c-style-iostreams">
+<h3>C-style stdio versus C++ style iostreams<a class="headerlink" href="#c-style-stdio-versus-c-style-iostreams" title="Link to this heading"></a></h3>
+<p>LAMMPS uses the <cite>stdio &lt;https://cppreference.com/w/cpp/io/c.html&gt;</cite>
+library of the standard C library for reading from and writing to files
+and console instead of C++ <a class="reference external" href="https://cppreference.com/w/cpp/io.html">iostreams</a>.  This is mainly motivated
+by better performance, better control over formatting, and less effort
+to achieve specific formatting.</p>
+<p>Since mixing “stdio” and “iostreams” can lead to unexpected behavior,
+use of the latter is strongly discouraged.  Output to the screen should
+<em>not</em> use the predefined <code class="docutils literal notranslate"><span class="pre">stdout</span></code> FILE pointer, but rather the
+<code class="docutils literal notranslate"><span class="pre">screen</span></code> and <code class="docutils literal notranslate"><span class="pre">logfile</span></code> FILE pointers managed by the LAMMPS class.
+Furthermore, output should generally only be done by MPI rank 0
+(<code class="docutils literal notranslate"><span class="pre">comm-&gt;me</span> <span class="pre">==</span> <span class="pre">0</span></code>).  Output that is sent to both <code class="docutils literal notranslate"><span class="pre">screen</span></code> and
+<code class="docutils literal notranslate"><span class="pre">logfile</span></code> should use the <a class="reference internal" href="Developer_utils.html#_CPPv4IDpEN9LAMMPS_NS5utils7logmesgEvP6LAMMPSRKNSt6stringEDpRR4Args" title="LAMMPS_NS::utils::logmesg"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::logmesg()</span> <span class="pre">convenience</span>
+<span class="pre">function</span></code></a>.</p>
+<p>We strongly discourage the use of <a class="reference external" href="https://cppreference.com/w/cpp/io/basic_stringstream.html">stringstreams</a> because
+the bundled <a class="reference external" href="https://fmt.dev">{fmt} library</a> or the <a class="reference external" href="https://cppreference.com/w/cpp/utility/format.html">C++ format
+library</a> (for
+C++20 and later) and the customized tokenizer classes provide the same
+functionality in a cleaner way with better performance.  This also helps
+maintain a consistent programming syntax with code from many different
+contributors.</p>
+</section>
+<section id="formatting-with-the-fmt-library-and-std-format">
+<h3>Formatting with the {fmt} library and std::format<a class="headerlink" href="#formatting-with-the-fmt-library-and-std-format" title="Link to this heading"></a></h3>
+<p>The LAMMPS source code currently includes a slightly modified copy of
+the <a class="reference external" href="https://fmt.dev">{fmt} library</a>, which is preferred over
+formatting with the “printf()” family of functions.  When compiling for
+C++20 and later we switch to using the <a class="reference external" href="https://cppreference.com/w/cpp/utility/format.html">C++ format library</a>.  The namespace
+prefix currently remains <code class="docutils literal notranslate"><span class="pre">fmt::</span></code> through a small wrapper.  In the
+future, this will be switched to <code class="docutils literal notranslate"><span class="pre">std::</span></code> when LAMMPS requires the
+C++20 standard as the minimum C++ standard.  Thus only functionality
+compatible with the C++ format library for C++20 is accepted.  Using
+<code class="docutils literal notranslate"><span class="pre">std::format</span></code> requires a fully C++20 compatible compiler (e.g. GCC 13
+and later, Clang 14 and later, or MSVC 16.10 and later) and we <a class="reference external" href="https://cppreference.com/w/cpp/utility/feature_test.html">use the
+__cpp_lib_format feature test macro</a> to confirm
+the availability of <code class="docutils literal notranslate"><span class="pre">std::format</span></code>.</p>
+<p>The primary reason for this choice is that it allows a typesafe default
+format for any type of supported data.  This is particularly useful for
+formatting integers of a given size (32-bit or 64-bit) which may require
+different format strings depending on compile time settings or
+compilers/operating systems.  Furthermore, {fmt} gives better
+performance, has more functionality, a familiar formatting syntax that
+has similarities to <code class="docutils literal notranslate"><span class="pre">format()</span></code> in Python, and provides a facility that
+can be used to integrate format strings and a variable number of
+arguments into custom functions in a much simpler way than the varargs
+mechanism of the C library.</p>
+<p>Formatted strings are frequently created by calling the
+<code class="docutils literal notranslate"><span class="pre">fmt::format()</span></code> function, which will return a string as a
+<code class="docutils literal notranslate"><span class="pre">std::string</span></code> class instance.  In contrast to the <code class="docutils literal notranslate"><span class="pre">%</span></code> placeholder in
+<code class="docutils literal notranslate"><span class="pre">printf()</span></code>, the {fmt} library uses <code class="docutils literal notranslate"><span class="pre">{}</span></code> to embed format descriptors.
+In the simplest case, no additional characters are needed, as {fmt} will
+choose the default format based on the data type of the argument.
+Otherwise, the <a class="reference internal" href="Developer_utils.html#_CPPv4IDpEN9LAMMPS_NS5utils5printEvP4FILERKNSt6stringEDpRR4Args" title="LAMMPS_NS::utils::print"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::print()</span></code></a>
+function may be used instead of <code class="docutils literal notranslate"><span class="pre">printf()</span></code> or <code class="docutils literal notranslate"><span class="pre">fprintf()</span></code>.  The
+equivalent <a class="reference external" href="https://cppreference.com/w/cpp/io/print.html">std::print() function</a> will become
+available in C++ 23.  In addition, several LAMMPS output functions, that
+originally accepted a single string as argument have been overloaded to
+accept a format string with optional arguments as well (e.g.,
+<code class="docutils literal notranslate"><span class="pre">Error::all()</span></code>, <code class="docutils literal notranslate"><span class="pre">Error::one()</span></code>, <a class="reference internal" href="Developer_utils.html#_CPPv4IDpEN9LAMMPS_NS5utils7logmesgEvP6LAMMPSRKNSt6stringEDpRR4Args" title="LAMMPS_NS::utils::logmesg"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::logmesg()</span></code></a>).</p>
+</section>
+<section id="summary-of-the-fmt-format-and-std-format-syntax">
+<h3>Summary of the {fmt} format and std::format syntax<a class="headerlink" href="#summary-of-the-fmt-format-and-std-format-syntax" title="Link to this heading"></a></h3>
+<p>The syntax of the format string is “{[&lt;argument id&gt;][:&lt;format spec&gt;]}”,
+where either the argument id or the format spec (separated by a colon
+‘:’) is optional.  The argument id is usually a number starting from 0
+that is the index to the arguments following the format string.  By
+default, these are assigned in order (i.e. 0, 1, 2, 3, 4 etc.).  The
+most common case for using argument id would be to use the same argument
+in multiple places in the format string without having to provide it as
+an argument multiple times. The argument id is rarely used in the LAMMPS
+source code.</p>
+<p>More common is the use of a format specifier, which starts with a colon.
+This may optionally be followed by a fill character (default is ‘ ‘). If
+provided, the fill character <strong>must</strong> be followed by an alignment
+character (‘&lt;’, ‘^’, ‘&gt;’ for left, centered, or right alignment
+(default)).  The alignment character may be used without a fill
+character.  The next important format parameter would be the minimum
+width, which may be followed by a dot ‘.’ and a precision for floating
+point numbers.  The final character in the format string would be an
+indicator for the “presentation”, i.e. ‘d’ for decimal presentation of
+integers, ‘x’ for hexadecimal, ‘o’ for octal, ‘c’ for character etc.
+This mostly follows the “printf()” scheme, but without requiring an
+additional length parameter to distinguish between different integer
+widths.  The {fmt} library will detect those and adapt the formatting
+accordingly.  For floating point numbers there are correspondingly, ‘g’
+for generic presentation, ‘e’ for exponential presentation, and ‘f’ for
+fixed point presentation.</p>
+<p>The format string “{:8}” would thus represent <em>any</em> type argument and be
+replaced by at least 8 characters; “{:&lt;8}” would do this as left
+aligned, “{:^8}” as centered, “{:&gt;8}” as right aligned.  If a specific
+presentation is selected, the argument type must be compatible or else
+the {fmt} formatting code will throw an exception.  Some format string
+examples are given below:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">mesg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;  CPU time: {:4d}:{:02d}:{:02d}</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">cpuh</span><span class="p">,</span><span class="w"> </span><span class="n">cpum</span><span class="p">,</span><span class="w"> </span><span class="n">cpus</span><span class="p">);</span>
+<span class="n">mesg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{:&lt;8s}| {:&lt;10.5g} | {:&lt;10.5g} | {:&lt;10.5g} |{:6.1f} |{:6.2f}</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">                   </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">time_min</span><span class="p">,</span><span class="w"> </span><span class="n">time</span><span class="p">,</span><span class="w"> </span><span class="n">time_max</span><span class="p">,</span><span class="w"> </span><span class="n">time_sq</span><span class="p">,</span><span class="w"> </span><span class="n">tmp</span><span class="p">);</span>
+<span class="n">utils</span><span class="o">::</span><span class="n">logmesg</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="s">&quot;{:&gt;6} = max # of 1-2 neighbors</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="n">maxall</span><span class="p">);</span>
+<span class="n">utils</span><span class="o">::</span><span class="n">logmesg</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="s">&quot;Lattice spacing in x,y,z = {:.8} {:.8} {:.8}</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="n">xlattice</span><span class="p">,</span><span class="n">ylattice</span><span class="p">,</span><span class="n">zlattice</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>which will create the following output lines:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CPU time:    0:02:16
+Pair    | 2.0133     | 2.0133     | 2.0133     |   0.0 | 84.21
+     4 = max # of 1-2 neighbors
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+</pre></div>
+</div>
+<p>Finally, a special feature of the {fmt} library is that format
+parameters like the width or the precision may be also provided as
+arguments. In that case a nested format is used where a pair of curly
+braces (with an optional argument id) “{}” are used instead of the
+value, for example “{:{}d}” will consume two integer arguments, the
+first will be the value shown and the second the minimum width.</p>
+<p>For more details and examples, please consult the <a class="reference external" href="https://fmt.dev/latest/syntax/">{fmt} syntax
+documentation</a> website or the
+<a class="reference external" href="https://cppreference.com/w/cpp/utility/format/spec.html">corresponding C++ syntax reference</a>.  Since
+we plan to eventually transition from {fmt} to using <code class="docutils literal notranslate"><span class="pre">std::format()</span></code>
+of the C++ standard library, it is advisable to avoid using any
+extensions beyond what the <a class="reference external" href="https://cppreference.com/w/cpp/utility/format/format.html">C++20 standard offers</a>.</p>
+</section>
+</section>
+<section id="json-format-input-and-output">
+<h2><span class="section-number">4.3.3. </span>JSON format input and output<a class="headerlink" href="#json-format-input-and-output" title="Link to this heading"></a></h2>
+<p>Since LAMMPS version 12 June 2025, the LAMMPS source code includes a
+copy of the header-only JSON C++ library from <a class="reference external" href="https://json.nlohmann.me/">https://json.nlohmann.me/</a>.
+Same as with the {fmt} library described above some modification to the
+namespace has been made to avoid collisions with other uses of the same
+library, which may use a different, incompatible version.  To have a
+uniform interface with other parts of LAMMPS, you should be using
+<code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;json.h&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;json_fwd.h&quot;</span></code> (in header files).
+See the implementation of the <a class="reference internal" href="molecule.html"><span class="doc">molecule command</span></a> for an
+example of using this library.</p>
+</section>
+<section id="memory-management">
+<h2><span class="section-number">4.3.4. </span>Memory management<a class="headerlink" href="#memory-management" title="Link to this heading"></a></h2>
+<p>Dynamical allocation of small data and objects can be done with the C++
+commands “new” and “delete/delete[]”.  Large data should use the member
+functions of the <code class="docutils literal notranslate"><span class="pre">Memory</span></code> class, most commonly, <code class="docutils literal notranslate"><span class="pre">Memory::create()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Memory::grow()</span></code>, and <code class="docutils literal notranslate"><span class="pre">Memory::destroy()</span></code>, which provide variants
+for vectors, 2d arrays, 3d arrays, etc.  These can also be used for
+small data.</p>
+<p>The use of <code class="docutils literal notranslate"><span class="pre">malloc()</span></code>, <code class="docutils literal notranslate"><span class="pre">calloc()</span></code>, <code class="docutils literal notranslate"><span class="pre">realloc()</span></code> and <code class="docutils literal notranslate"><span class="pre">free()</span></code>
+directly is strongly discouraged.  To simplify adapting legacy code
+into the LAMMPS code base the member functions <code class="docutils literal notranslate"><span class="pre">Memory::smalloc()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">Memory::srealloc()</span></code>, and <code class="docutils literal notranslate"><span class="pre">Memory::sfree()</span></code> are available, which
+perform additional error checks for safety.</p>
+<p>Use of these custom memory allocation functions is motivated by the
+following considerations:</p>
+<ul class="simple">
+<li><p>Memory allocation failures on <em>any</em> MPI rank during a parallel run
+will trigger an immediate abort of the entire parallel calculation.</p></li>
+<li><p>A failing “new” will trigger an exception, which is also captured by
+LAMMPS and triggers a global abort.</p></li>
+<li><p>Allocation of multidimensional arrays will be done in a C compatible
+fashion, but such that the storage of the actual data is stored in one
+large contiguous block.  Thus, when MPI communication is needed,
+the data can be communicated directly (similar to Fortran arrays).</p></li>
+<li><p>The “destroy()” and “sfree()” functions may safely be called on NULL
+pointers.</p></li>
+<li><p>The “destroy()” functions will nullify the pointer variables, thus
+making “use after free” errors easy to detect.</p></li>
+<li><p>It is possible to use a larger than default memory alignment (not on
+all operating systems, since the allocated storage pointers must be
+compatible with <code class="docutils literal notranslate"><span class="pre">free()</span></code> for technical reasons).</p></li>
+</ul>
+<p>In the practical implementation of code this means, that any pointer
+variables, that are class members should be initialized to a <code class="docutils literal notranslate"><span class="pre">nullptr</span></code>
+value in their respective constructors.  That way, it is safe to call
+<code class="docutils literal notranslate"><span class="pre">Memory::destroy()</span></code> or <code class="docutils literal notranslate"><span class="pre">delete[]</span></code> on them before <em>any</em> allocation
+outside the constructor.  This helps prevent memory leaks.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_org.html" class="btn btn-neutral float-left" title="4.1. Source files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_parallel.html" class="btn btn-neutral float-right" title="4.4. Parallel algorithms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

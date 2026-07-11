@@ -1,0 +1,21 @@
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+read_data data.fe
+
+pair_style       meam
+pair_coeff       * * FeTiClibrary.meam   Fe Ti C FeTiC.meam  C Fe
+
+thermo 10
+
+thermo_style custom step pe etotal fmax fnorm temp press
+thermo_modify format 4*6 %14.10f
+
+#dump equilibration all custom 1 dump.equilibration id type xu yu zu #v_Adam_m
+
+min_style fire
+min_modify abcfire yes
+minimize 0 1e-8 2000 2000
+

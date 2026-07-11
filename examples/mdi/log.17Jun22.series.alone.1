@@ -1,0 +1,248 @@
+LAMMPS (2 Jun 2022)
+# 3d Lennard-Jones melt - MDI driver script
+
+variable	x index 5
+variable	y index 5
+variable	z index 5
+
+variable        rho index 0.7 0.8 0.9
+
+label LOOP
+
+  units		lj
+  atom_style	atomic
+
+  read_data     data.series.${rho}
+  read_data     data.series.0.7
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.9390354 8.9390354 8.9390354)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.004 seconds
+
+  displace_atoms all random 0.1 0.1 0.1 48294
+Displacing atoms ...
+
+  pair_style	lj/cut 2.5
+  pair_coeff	1 1 1.0 1.0 2.5
+
+  neighbor	0.3 bin
+  neigh_modify	delay 0 every 1 check yes
+
+  compute       1 all pressure NULL virial
+
+  thermo_style  custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
+
+  run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.137 | 3.137 | 3.137 Mbytes
+   Step          Temp          PotEng          c_1           c_1[1]         c_1[2]         c_1[3]    
+         0   0             -5.200819      -4.5647906     -4.5444385     -4.5699966     -4.5799366    
+Loop time of 2.729e-06 on 1 procs for 0 steps with 500 atoms
+
+109.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 2.729e-06  |            |       |100.00
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1956 ave        1956 max        1956 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          15687 ave       15687 max       15687 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15687
+Ave neighs/atom = 31.374
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  write_dump    all custom dump.series.alone                 id type x y z fx fy fz modify sort id append yes
+
+  clear
+
+next rho
+
+jump SELF LOOP
+
+  units		lj
+  atom_style	atomic
+
+  read_data     data.series.${rho}
+  read_data     data.series.0.8
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.5498797 8.5498797 8.5498797)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.004 seconds
+
+  displace_atoms all random 0.1 0.1 0.1 48294
+Displacing atoms ...
+
+  pair_style	lj/cut 2.5
+  pair_coeff	1 1 1.0 1.0 2.5
+
+  neighbor	0.3 bin
+  neigh_modify	delay 0 every 1 check yes
+
+  compute       1 all pressure NULL virial
+
+  thermo_style  custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
+
+  run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.135 | 3.135 | 3.135 Mbytes
+   Step          Temp          PotEng          c_1           c_1[1]         c_1[2]         c_1[3]    
+         0   0             -6.0419499     -4.2737827     -4.2865535     -4.2176976     -4.3170971    
+Loop time of 1.434e-06 on 1 procs for 0 steps with 500 atoms
+
+139.5% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.434e-06  |            |       |100.00
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1956 ave        1956 max        1956 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          18734 ave       18734 max       18734 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 18734
+Ave neighs/atom = 37.468
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  write_dump    all custom dump.series.alone                 id type x y z fx fy fz modify sort id append yes
+
+  clear
+
+next rho
+
+jump SELF LOOP
+
+  units		lj
+  atom_style	atomic
+
+  read_data     data.series.${rho}
+  read_data     data.series.0.9
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.2207069 8.2207069 8.2207069)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.003 seconds
+
+  displace_atoms all random 0.1 0.1 0.1 48294
+Displacing atoms ...
+
+  pair_style	lj/cut 2.5
+  pair_coeff	1 1 1.0 1.0 2.5
+
+  neighbor	0.3 bin
+  neigh_modify	delay 0 every 1 check yes
+
+  compute       1 all pressure NULL virial
+
+  thermo_style  custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
+
+  run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.134 | 3.134 | 3.134 Mbytes
+   Step          Temp          PotEng          c_1           c_1[1]         c_1[2]         c_1[3]    
+         0   0             -6.4477578     -1.5268553     -1.5717034     -1.568693      -1.4401696    
+Loop time of 1.483e-06 on 1 procs for 0 steps with 500 atoms
+
+134.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.483e-06  |            |       |100.00
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1956 ave        1956 max        1956 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          20023 ave       20023 max       20023 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 20023
+Ave neighs/atom = 40.046
+Neighbor list builds = 0
+Dangerous builds = 0
+
+  write_dump    all custom dump.series.alone                 id type x y z fx fy fz modify sort id append yes
+
+  clear
+
+next rho
+
+jump SELF LOOP
+Total wall time: 0:00:00

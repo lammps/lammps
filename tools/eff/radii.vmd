@@ -1,0 +1,240 @@
+# module radii.vmd
+# December, 2009 -(c)- Andres Jaramillo-Botero
+# Script to load variable changing radii onto a pEFF lammpstrj file
+
+# radii.vmd --
+#    Script to read and change electron radii in vmd dynamics traj
+#
+ 
+# openFile --
+#    Open the file and start looking for data
+#
+# Arguments:
+#    filename    Name of the file to read
+#
+# Result:
+#    infile      Handle to the opened file
+#
+# Side effects:
+#    A file in question is opened. Lines containing a * or# as
+#    the first non-blank character are considered comments. The
+#    first line without this is considered to be a line with the
+#    names of the columns.
+#
+proc openFile {filename} {
+    set infile [open $filename "r"]
+    return $infile
+}
+
+# readNames --
+#    Read the names of the columns
+#
+# Arguments:
+#    infile      Handle to the file
+#
+# Result:
+#    names       List of names, the number indicates the number of
+#                the snapshot frame
+#
+proc readNames {infile} {
+  #
+  # Skip the header - if any
+  #
+    set pos    0
+    while { [gets $infile line] >= 0 } {
+       if { [regexp {[ \t]*[*#]} $line] } {
+          incr pos
+       } else {
+          break
+       }
+    }
+    seek $infile 0 start
+    while { $pos > 0 } {
+       gets $infile line
+       incr pos -1
+    }
+
+  #
+  # Read the line with the column names
+  #
+    gets $infile line
+
+  # Force the line to be interpreted as a list
+    set nocols [llength $line]
+
+    return $line
+}
+
+# readData --
+#    Read the data per line
+#
+# Arguments:
+#    infile      Handle to the file
+#
+# Result:
+#    values      List of values, representing each column.
+#                A list of length zero indicates the end of file
+#
+proc readData {infile} {
+    while { [gets $infile values] == 0 } { ;# Just go on - skip empty lines }
+
+    set nocols [llength $values]
+
+    return $values
+}
+
+# readFile --
+#    Read the file and store the data in a (global) array
+#
+# Arguments:
+#    filename    Name of the file
+#
+# Result:
+#    None
+#
+# Side effects:
+#    Filled array, ready for display
+#
+proc readFile {filename} {
+    global data_array
+
+    set infile [openFile $filename]
+
+    set data_array(names) [readNames $infile]
+    set i 0
+    foreach name $data_array(names) {
+       set data_array($i) {}
+       incr i
+    }
+
+    while 1 {
+       set values [readData $infile]
+       if { [llength $values] > 0 } {
+          set i 0
+          foreach value $values {
+             lappend data_array($i) $value
+             incr i
+          }
+       } else {
+          break
+       }
+    }
+}
+
+# makeXYData --
+#    Make a list useable by frame-electron
+#
+# Arguments:
+#    xindex     Index of frame data
+#    yindex     Index of electron data
+#
+# Result:
+#    None
+#
+# Side effects:
+#    A dataset for changing the electron radii, per trajectory frame
+#
+proc makeXYData {xindex yindex} {
+    global data_array
+
+    set xydata {}
+    foreach x $data_array($xindex) y $data_array($yindex) {
+        lappend xydata $x $y
+    }
+    return $xydata
+}
+
+proc returnXYPair {x y} {
+   global data_array
+
+   return [list $data_array($x) $data_array($y)]
+}
+
+# do_radii --
+#    Changes the radii of electrons per trajectory frame
+#
+# Arguments:
+#    xindex     Index of frame data
+#    yindex     Index of electron data
+#
+# Result:
+#    prints the frame:atomID:radius
+#
+proc do_radii {args} {
+  global molid data_array
+
+  #set n [molinfo $molid get numatoms]
+  set f [molinfo $molid get frame]
+ 
+  set fr [expr {$f+1}]
+
+  foreach elec $data_array(0) r $data_array($fr) {
+    set s [atomselect $molid "index [expr {$elec -1}]"]
+    #set nr [expr {exp($r)}]
+    set nr [expr $r*1.5]
+    $s set radius $nr
+    $s delete
+    #puts stderr "$fr $elec $nr"
+  }
+}
+
+# main --
+#    Main control flow
+#
+
+# Check input arguments
+#for {set i 0} {$i<[llength $argv]} {incr i}
+#  puts " - $i: [lindex $argv $i]"
+
+global data_array molid
+
+# Set input files manually
+set xyz xyzfile
+set data radiifile
+
+# load nuclear and electron xyz trajectory 
+#set xyz [lindex $::argv 0]
+
+# load electron radii information for trajectory
+#set datafile [lindex $::argv 1]
+
+set molid [mol new $xyz waitfor all]
+#mol modstyle 0 [molinfo top] VDW 0.2 32.0
+
+set s [atomselect $molid "all"]
+$s set radius 0.1
+$s delete
+
+color Display Background white
+display projection orthographic
+
+# switch default rep to VDW.
+mol default style VDW
+mol delrep 0 $molid
+mol selection "name H He Li Be B C Si"
+mol addrep $molid
+mol modstyle 0 $molid VDW 2.0 32.0
+# spin +1
+mol material Transparent
+mol selection "name Au"
+mol addrep $molid
+mol modstyle 1 $molid VDW 0.4 32.0
+# spin -1
+#mol material Transparent
+mol selection "name Tl"
+mol addrep $molid
+mol modstyle 2 $molid VDW 0.4 32.0
+mol material Opaque
+mol selection "name H He Li Be B C Si"
+mol addrep $molid
+mol modstyle 3 $molid DynamicBonds 1.6 0.1 32
+
+puts "Starting ..."
+readFile $data
+puts "Read datafile and created array of radii ..."
+
+puts "Visualize trajectory" 
+trace variable vmd_frame($molid) w do_radii
+animate goto start
+do_radii
+  

@@ -1,0 +1,90 @@
+# 2d friction simulation
+
+dimension	2
+boundary	p s p
+
+atom_style	atomic
+neighbor	0.3 bin
+neigh_modify	delay 5
+
+# create geometry
+
+lattice		hex 0.9
+region		box block 0 50 0 22 -0.25 0.25
+create_box	4 box
+
+mass		1 1.0
+mass		2 1.0
+mass		3 1.0
+mass		4 1.0
+
+# atom regions
+
+region          lo-fixed block INF INF INF 1.1 INF INF
+region          lo-slab block INF INF INF 7 INF INF
+region          above-lo block INF INF INF 7 INF INF side out
+region          hi-fixed block INF INF 20.9 INF INF INF
+region          hi-slab block INF INF 15 INF INF INF
+region          below-hi block INF INF 15 INF INF INF side out
+region		lo-asperity sphere 32 7 0 8
+region		hi-asperity sphere 18 15 0 8
+region		lo-half-sphere intersect 2 lo-asperity above-lo
+region		hi-half-sphere intersect 2 hi-asperity below-hi
+
+# create 2 surfaces with asperities
+
+create_atoms	1 region lo-slab
+create_atoms	1 region hi-slab
+create_atoms	2 region lo-half-sphere
+create_atoms	3 region hi-half-sphere
+
+# LJ potentials
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0 2.5
+
+# define groups
+
+group	        lo region lo-slab
+group		lo type 2
+group		hi region hi-slab
+group		hi type 3
+group		lo-fixed region lo-fixed
+group		hi-fixed region hi-fixed
+group		boundary union lo-fixed hi-fixed
+group		mobile subtract all boundary
+
+set		group lo-fixed type 4
+set		group hi-fixed type 4
+
+# initial velocities
+
+compute         new mobile temp/partial 0 1 0
+velocity	mobile create 0.1 482748 temp new
+velocity	hi set 1.0 0.0 0.0 sum yes
+
+# fixes
+
+fix		1 all nve
+fix		2 boundary setforce 0.0 0.0 0.0
+fix		3 mobile temp/rescale 200 0.1 0.1 0.02 1.0
+fix_modify	3 temp new
+fix             4 all enforce2d
+
+# Run
+
+timestep	0.0025
+thermo		1000
+thermo_modify	temp new
+
+#dump		1 all atom 500 dump.friction
+
+#dump		2 all image 500 image.*.jpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	2 pad 5
+
+#dump		3 all movie 500 movie.mpg type type &
+#		zoom 1.6 adiam 1.5
+#dump_modify	3 pad 5
+
+run		20000

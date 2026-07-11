@@ -1,0 +1,51 @@
+
+# Created 2011-01-07
+
+# General parameters
+
+variable	sname index SiH4
+log		${sname}.log
+
+units		electron
+newton		on
+boundary	f f f
+special_bonds 	coul 1 0 0
+
+atom_style      electron
+
+read_data       data.${sname}
+
+pair_style      eff/cut 1000.0 ecp 1 Si
+pair_coeff      * *
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+comm_modify	vel yes
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+thermo          1
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
+thermo_modify   temp effTemp press effPress
+
+# Minimization
+
+min_style       cg
+dump            1 all xyz 1 ${sname}.min.xyz
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom 1 ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+min_modify      line quadratic
+minimize        0 1.0e-5 1000 10000
+
+undump		1
+undump		2
+

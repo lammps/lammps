@@ -1,0 +1,273 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1.2. What does a LAMMPS version mean &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Manual_version.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1.3. LAMMPS features" href="Intro_features.html" />
+    <link rel="prev" title="1.1. Overview of LAMMPS" href="Intro_overview.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Intro.html">1. Introduction</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Intro_overview.html">1.1. Overview of LAMMPS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">1.2. What does a LAMMPS version mean</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#identifying-the-version">1.2.1. Identifying the Version</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lammps-releases-branches-and-tags">1.2.2. LAMMPS releases, branches, and tags</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_features.html">1.3. LAMMPS features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_nonfeatures.html">1.4. LAMMPS non-features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_portability.html">1.5. LAMMPS portability and compatibility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_opensource.html">1.6. LAMMPS open-source license</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_authors.html">1.7. Authors of LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_citing.html">1.8. Citing LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Intro_website.html">1.9. Additional website links</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Intro.html"><span class="section-number">1. </span>Introduction</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">1.2. </span>What does a LAMMPS version mean</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Intro_overview.html" class="btn btn-neutral float-left" title="1.1. Overview of LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Intro_features.html" class="btn btn-neutral float-right" title="1.3. LAMMPS features" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="what-does-a-lammps-version-mean">
+<h1><span class="section-number">1.2. </span>What does a LAMMPS version mean<a class="headerlink" href="#what-does-a-lammps-version-mean" title="Link to this heading"></a></h1>
+<p>The LAMMPS “version” is the date when it was released, such as 1 May
+2014.  LAMMPS is updated continuously, and with the help of extensive
+automated testing (mostly applied <em>before</em> changes are included) we aim
+to keep it working correctly and reliably at all times, but there also
+are regular <em>feature releases</em> with new and expanded functionality, and
+there are designated <em>stable releases</em> that receive updates with bug
+fixes back-ported from the development branch.</p>
+<p>In addition to automated testing, several variants of static code
+analysis are run regularly to maintain or improve the overall code
+quality, consistency, and compliance with programming standards, best
+practices and style conventions.  You can follow its development in a
+public <a class="reference external" href="https://github.com/lammps/lammps">git repository on GitHub</a>.</p>
+<p>Each version of LAMMPS contains all the documented <em>features</em> up to and
+including its version date.  For recently added features, we add markers
+to the documentation at which specific LAMMPS version a feature or
+keyword was added or significantly changed.</p>
+<section id="identifying-the-version">
+<h2><span class="section-number">1.2.1. </span>Identifying the Version<a class="headerlink" href="#identifying-the-version" title="Link to this heading"></a></h2>
+<p>The version date is printed to the screen and log file every time you
+run LAMMPS.  There also is an indication, if a LAMMPS binary was
+compiled from version with modifications <strong>after</strong> a release, either
+from the development version or the maintenance version of the last
+stable release. It is also visible in the file src/version.h and in the
+LAMMPS directory name created when you unpack a downloaded tarball.  And
+it is on the first page of the <a class="reference internal" href="Manual.html"><span class="doc">manual</span></a>.</p>
+<ul class="simple">
+<li><p>If you browse the HTML pages of the online version of the LAMMPS
+manual, they will by default describe the most current feature release
+version of LAMMPS.  In the navigation bar on the bottom left, there is
+the option to view instead the documentation for the most recent
+<em>stable</em> version or the documentation corresponding to the state of
+the development branch <em>develop</em>.</p></li>
+<li><p>If you browse the HTML pages included in your downloaded tarball, they
+describe the version you have, which may be older than the online
+version.</p></li>
+</ul>
+</section>
+<section id="lammps-releases-branches-and-tags">
+<h2><span class="section-number">1.2.2. </span>LAMMPS releases, branches, and tags<a class="headerlink" href="#lammps-releases-branches-and-tags" title="Link to this heading"></a></h2>
+<figure class="align-center align-default" id="id1">
+<img alt="_images/lammps-releases.png" src="_images/lammps-releases.png" />
+<figcaption>
+<p><span class="caption-text">Relations between releases, main branches, and tags in the LAMMPS git repository</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<section id="development">
+<h3>Development<a class="headerlink" href="#development" title="Link to this heading"></a></h3>
+<p>Modifications of the LAMMPS source code (like bug fixes, code
+refactoring, updates to existing features, or addition of new features)
+are organized into pull requests.  Pull requests will be merged into the
+<em>develop</em> branch of the LAMMPS git repository on GitHub after they pass
+automated testing and code review by <a class="reference internal" href="Intro_authors.html"><span class="doc">core LAMMPS developers</span></a>.</p>
+</section>
+<section id="feature-releases">
+<h3>Feature Releases<a class="headerlink" href="#feature-releases" title="Link to this heading"></a></h3>
+<p>When a sufficient number of new features and updates have accumulated
+<em>and</em> the LAMMPS version on the <em>develop</em> branch passes an extended set
+of automated tests, we release it as a <em>feature release</em>, which are
+currently made every 4 to 8 weeks.  The <em>release</em> branch of the git
+repository is updated with every such <em>feature release</em> and a tag in the
+format <code class="docutils literal notranslate"><span class="pre">patch_1May2014</span></code> is added.  A summary of the most important
+changes of these releases for the current year are posted on <a class="reference external" href="https://www.lammps.org/bug.html">this
+website page</a>.  More detailed release
+notes are <a class="reference external" href="https://github.com/lammps/lammps/releases/">available on GitHub</a>.</p>
+</section>
+<section id="stable-releases">
+<h3>Stable Releases<a class="headerlink" href="#stable-releases" title="Link to this heading"></a></h3>
+<p>About once a year, we release a <em>stable release</em> version of LAMMPS.
+This is done after a “stabilization period” where we apply only bug
+fixes and small, non-intrusive changes to the <em>develop</em> branch but no
+new features to the core code.  At the same time, the code is subjected
+to more detailed and thorough manual testing that goes beyond the
+automated testing done by default.  After such a <em>stable release</em>, both
+the <em>release</em> and the <em>stable</em> branches are updated and two tags are
+applied, a <code class="docutils literal notranslate"><span class="pre">patch_1May2014</span></code> format and a <code class="docutils literal notranslate"><span class="pre">stable_1May2014</span></code> format
+tag.</p>
+</section>
+<section id="stable-release-updates">
+<h3>Stable Release Updates<a class="headerlink" href="#stable-release-updates" title="Link to this heading"></a></h3>
+<p>Between <em>stable releases</em>, we collect bug fixes and updates that are
+back-ported from the <em>develop</em> branch in a branch called <em>maintenance</em>.
+From the <em>maintenance</em> branch we make occasional <em>stable update
+releases</em> and update the <em>stable</em> branch accordingly.  The first update
+to the <code class="docutils literal notranslate"><span class="pre">stable_1May2014</span></code> release would be tagged as
+<code class="docutils literal notranslate"><span class="pre">stable_1May2014_update1</span></code>.  These updates contain no new features
+and are intended to be fully backward compatible.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Intro_overview.html" class="btn btn-neutral float-left" title="1.1. Overview of LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Intro_features.html" class="btn btn-neutral float-right" title="1.3. LAMMPS features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

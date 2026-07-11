@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.5. Accessing per-atom data &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_atom.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.6. Communication patterns" href="Developer_comm_ops.html" />
+    <link rel="prev" title="4.4.5. OpenMP Parallelism" href="Developer_par_openmp.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.5. Accessing per-atom data</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#owned-and-ghost-atoms">4.5.1. Owned and ghost atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#atom-indexing">4.5.2. Atom indexing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#atom-class-versus-atomvec-classes">4.5.3. Atom class versus AtomVec classes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.5. </span>Accessing per-atom data</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_par_openmp.html" class="btn btn-neutral float-left" title="4.4.5. OpenMP Parallelism" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_comm_ops.html" class="btn btn-neutral float-right" title="4.6. Communication patterns" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="accessing-per-atom-data">
+<h1><span class="section-number">4.5. </span>Accessing per-atom data<a class="headerlink" href="#accessing-per-atom-data" title="Link to this heading"></a></h1>
+<p>This page discusses how per-atom data is managed in LAMMPS, how it can
+be accessed, what communication patterns apply, and some of the utility
+functions that exist for a variety of purposes.</p>
+<section id="owned-and-ghost-atoms">
+<h2><span class="section-number">4.5.1. </span>Owned and ghost atoms<a class="headerlink" href="#owned-and-ghost-atoms" title="Link to this heading"></a></h2>
+<p>As described on the <a class="reference internal" href="Developer_par_part.html"><span class="doc">parallel partitioning algorithms</span></a> page, LAMMPS uses a domain decomposition of the
+simulation domain, either in a <em>brick</em> or <em>tiled</em> manner.  Each MPI
+process <em>owns</em> exactly one subdomain and the atoms within it. To compute
+forces for tuples of atoms that are spread across sub-domain boundaries,
+also a “halo” of <em>ghost</em> atoms are maintained within the communication
+cutoff distance of its subdomain.</p>
+<p>The total number of atoms is stored in <cite>Atom::natoms</cite> (within any
+typical class this can be referred to at <cite>atom-&gt;natoms</cite>). The number of
+<em>owned</em> (or “local” atoms) are stored in <cite>Atom::nlocal</cite>; the number of
+<em>ghost</em> atoms is stored in <cite>Atom::nghost</cite>.  The sum of <cite>Atom::nlocal</cite>
+over all MPI processes should be <cite>Atom::natoms</cite>. This is by default
+regularly checked by the Thermo class, and if the sum does not match,
+LAMMPS stops with a “lost atoms” error.  For convenience also the
+property <cite>Atom::nmax</cite> is available, this is the maximum of
+<cite>Atom::nlocal + Atom::nghost</cite> across all MPI processes.</p>
+<p>Per-atom properties are either managed by the atom style, individual
+classes,  or as custom arrays by the individual classes. If only access
+to <em>owned</em> atoms is needed, they are usually allocated to be of size
+<cite>Atom::nlocal</cite>, otherwise of size <cite>Atom::nmax</cite>. Please note that not all
+per-atom properties are available or updated on <em>ghost</em> atoms. For
+example, per-atom velocities are only updated with <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel
+yes</span></a>.</p>
+</section>
+<section id="atom-indexing">
+<h2><span class="section-number">4.5.2. </span>Atom indexing<a class="headerlink" href="#atom-indexing" title="Link to this heading"></a></h2>
+<p>When referring to individual atoms, they may be indexed by their local
+<em>index</em>, their index in their <cite>Atom::x</cite> array. This is densely populated
+containing first all <em>owned</em> atoms (index &lt; <cite>Atom::nlocal</cite>) and then all
+<em>ghost</em> atoms.  The order of atoms in these arrays can change due to
+atoms migrating between between subdomains, atoms being added or
+deleted, or atoms being sorted for better cache efficiency.  Atoms are
+globally uniquely identified by their <em>atom ID</em>. There may be multiple
+atoms with the same atom ID present, but only one of them may be an
+<em>owned</em> atom.</p>
+<p>To find the local <em>index</em> of an atom, when the <em>atom ID</em> is known, the
+<cite>Atom::map()</cite> function may be used. It will return the local atom index
+or -1. If the returned value is between 0 (inclusive) and <cite>Atom::nlocal</cite>
+(exclusive) it is an <em>owned</em> or “local” atom; for larger values the atom
+is present as a ghost atom; for a value of -1, the atom is not present
+on the current subdomain at all.</p>
+<p>If multiple atoms with the same tag exist in the same subdomain, they
+can be found via the <cite>Atom::sametag</cite> array. It points to the next atom
+index with the same tag or -1 if there are no more atoms with the same
+tag.  The list will be exhaustive when starting with an index of an
+<em>owned</em> atom, since the atom IDs are unique, so there can only be one
+such atom.  Example code to count atoms with same atom ID in a subdomain:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nlocal</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">sametag</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sametag</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="o">++</span><span class="n">count</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Atom ID: %ld is present %d times</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">tag</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="n">count</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="atom-class-versus-atomvec-classes">
+<h2><span class="section-number">4.5.3. </span>Atom class versus AtomVec classes<a class="headerlink" href="#atom-class-versus-atomvec-classes" title="Link to this heading"></a></h2>
+<p>The <cite>Atom</cite> class contains all kinds of flags and counters about atoms in
+the system and that includes pointers to <strong>all</strong> per-atom properties
+available for atoms.  However, only a subset of these pointers are
+non-NULL and which those are depends on the atom style.  For each atom
+style there is a corresponding <cite>AtomVecXXX</cite> class derived from the
+<cite>AtomVec</cite> base class, where the XXX indicates the atom style.  This
+<cite>AtomVecXXX</cite> class will update the counters and per-atom pointers if
+atoms are added or removed to the system or migrate between subdomains.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_par_openmp.html" class="btn btn-neutral float-left" title="4.4.5. OpenMP Parallelism" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_comm_ops.html" class="btn btn-neutral float-right" title="4.6. Communication patterns" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

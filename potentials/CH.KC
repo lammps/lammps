@@ -1,0 +1,8 @@
+# DATE: 2018-09-12 UNITS: metal CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com CITATION: Ouyang, Mandelli, Urbakh, Hod, Nano Letters 18, 6009-6016 (2018).
+# Refined parameters for Kolmogorov-Crespi Potential without taper function for pair style kolmogorov/crespi/full
+#
+#        z0         C0             C2          C4         C          delta     lambda       A          S    rcut
+C  C  3.328819  21.847167     12.060173     4.711099  6.678908e-4  0.7718101  3.143921  12.660270     1.0   2.0
+C  H  3.156492  37.400478     8.3910462e-3  55.06177  5.176215e-5  0.4437309  2.508847  11.479055     1.0   1.5
+H  H  2.218816  4.5283006e-5  4.8685736e-5  2.027741  1.193945     0.8968523  0.238105  9.2194017e-5  1.0   1.2
+H  C  3.156492  37.400478     8.3910462e-3  55.06177  5.176215e-5  0.4437309  2.508847  11.479055     1.0   2.2

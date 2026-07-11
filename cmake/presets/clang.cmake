@@ -1,0 +1,30 @@
+# preset that will enable clang/clang++ with support for MPI and OpenMP (on Linux boxes)
+
+# prefer flang over gfortran, if available
+find_program(CLANG_FORTRAN NAMES flang-new flang gfortran f95)
+set(ENV{OMPI_FC} ${CLANG_FORTRAN})
+get_filename_component(_tmp_fc ${CLANG_FORTRAN} NAME)
+if ((_tmp_fc STREQUAL "flang") OR (_tmp_fc STREQUAL "flang-new"))
+  set(FC_STD_VERSION "-std=f2018")
+  set(BUILD_MPI OFF)
+else()
+  set(FC_STD_VERSION "-std=f2003")
+endif()
+
+set(CMAKE_CXX_COMPILER "clang++" CACHE STRING "" FORCE)
+set(CMAKE_C_COMPILER "clang" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_COMPILER ${CLANG_FORTRAN} CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -Wextra -Wno-bitwise-instead-of-logical -g" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-Wall -Wextra -Wno-bitwise-instead-of-logical -g -O2 -DNDEBUG" CACHE STRING "" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_DEBUG "-Wall -Wextra -g ${FC_STD_VERSION}" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_RELWITHDEBINFO "-Wall -Wextra -g -O2 -DNDEBUG ${FC_STD_VERSION}" CACHE STRING "" FORCE)
+set(CMAKE_Fortran_FLAGS_RELEASE "-O3 -DNDEBUG ${FC_STD_VERSION}" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS_DEBUG "-Wall -Wextra -Wno-bitwise-instead-of-logical -g" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS_RELWITHDEBINFO "-Wall -Wextra -Wno-bitwise-instead-of-logical -g -O2 -DNDEBUG" CACHE STRING "" FORCE)
+set(CMAKE_C_FLAGS_RELEASE "-O3 -DNDEBUG" CACHE STRING "" FORCE)
+
+set(MPI_CXX "clang++" CACHE STRING "" FORCE)
+set(MPI_CXX_COMPILER "mpicxx" CACHE STRING "" FORCE)
+
+unset(HAVE_OMP_H_INCLUDE CACHE)

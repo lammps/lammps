@@ -1,0 +1,62 @@
+# 20 styrene molecules
+# three reactions defined
+
+units real
+
+boundary p p p
+
+atom_style full
+
+kspace_style pppm 1.0e-4
+
+pair_style lj/class2/coul/long 8.5
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
+variable T equal 530
+
+read_data tiny_polystyrene.data  &
+  extra/bond/per/atom 5 &
+  extra/angle/per/atom 15 &
+  extra/dihedral/per/atom 15 &
+  extra/improper/per/atom 25 &
+  extra/special/per/atom 25
+
+molecule mol1 M-M_pre.mol
+molecule mol2 M-M_post.mol
+molecule mol3 M-P_pre.mol
+molecule mol4 M-P_post.mol
+molecule mol5 P-P_pre.mol
+molecule mol6 P-P_post.mol
+
+# dump 1 all xyz 5 test_vis.xyz
+# dump_modify 1 types labels
+
+# M-M: two styrene monomers dimerizing
+# M-P: a styrene monomer extending a polymer chain
+# P-P: two polymer chains undergoing step-growth polymerization
+fix rxn1 all bond/react stabilization yes statted_grp .03 &
+ react M-M all 1 0 3.0 mol1 mol2 M-M.rxnmap stabilize_steps 100 &
+ react M-P all 1 0 3.0 mol3 mol4 M-P.rxnmap stabilize_steps 100 &
+ react P-P all 1 0 5.0 mol5 mol6 P-P.rxnmap stabilize_steps 100
+
+fix 1 statted_grp_REACT nvt temp $T $T 100
+
+fix 4 bond_react_MASTER_group temp/rescale 1 $T $T 1 1
+
+thermo_style custom step temp press density f_rxn1[*]
+thermo_modify colname auto
+
+run 10000
+
+# write_restart restart_longrun
+# write_data restart_longrun.data nofix

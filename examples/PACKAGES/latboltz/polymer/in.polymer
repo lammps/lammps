@@ -1,0 +1,111 @@
+#===========================================================================#
+# polymer test                                                              #
+#                                                                           #
+# Run consists of a lone 32-bead coarse-grained polymer                     #
+# undergoing Brownian motion in thermal lattice-Boltzmann fluid.            #
+#                                                                           #
+# To run this example, LAMMPS needs to be compiled with a the following     #
+# packages: MOLECULE, RIGID, LATBOTLZ                                       #
+#                                                                           #
+# If uncommented, sample output from this run can be found in the file:     # 
+#   'dump.polymer.lammpstrj'                                                #
+# and viewed using, e.g., the VMD software.                                 #
+#                                                                           #
+#===========================================================================#
+
+units	   	nano
+dimension	3
+boundary	p p f
+atom_style	hybrid molecular
+special_bonds	fene
+read_data	data.polymer
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing   
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid. 
+# The communcation cutoff is set to 2.5 dx to ensure that all particles in the
+#   processor ghost fluid region (of width 2dx) are known to local processor.
+#---------------------------------------------------------------------------- 
+neighbor 0.5 bin
+neigh_modify delay 0 every 1 check yes
+neigh_modify exclude type 2 2
+neigh_modify exclude type 2 1
+comm_modify cutoff 2.5        
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interaction between the particles at the center of 
+#   each monomer (use a truncated and shifted Lennard-Jones potential).
+#----------------------------------------------------------------------------
+bond_style	fene
+bond_coeff	1 60.0 2.25 4.14195 1.5
+pair_style	lj/cut 1.68369
+pair_coeff	1 1 4.14195 1.5 1.68369
+pair_coeff	1 2 4.14195 1.5 1.68369
+pair_coeff	2 2 0 1.0
+
+# The mass is set 4/3 PI r^3 fluid_density/31 , where r=0.617, 31 is number of
+# nodes in a single monomer 
+mass * 0.00000318
+timestep 0.0001
+
+#----------------------------------------------------------------------------
+# ForceAtoms are the particles at the center of each monomer which  
+#   do not interact with the fluid, but are used to implement the hard-sphere
+#   interactions.       
+# FluidAtoms are the particles representing the surface of the monomer
+# which do interact with the fluid.                               
+#----------------------------------------------------------------------------
+group ForceAtoms type 1
+group FluidAtoms type 2
+
+#----------------------------------------------------------------------------
+# Placement of a trap (similar to an 1D optical trap) for the polymer
+# Note that the addforce fix needs to go before the lb/fluid and lb/viscous
+# fix as these fixes rescale the forces to account for the added mass of the
+# fluid that gets dragged around with the particle so need prior knowledge of
+# all forces applied to the particles involved in these fixes before they are
+# called.
+#----------------------------------------------------------------------------
+variable fx atom -(x-20.0)*20.0/31.0
+fix trap all addforce v_fx 0.0 0.0  # call before fix lb/fluid and lb/viscous
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particles specified through FluidAtoms 
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles. This is accomplished through the use of the lb/viscous fix).
+# We set fluid viscosity = 0.1 and fluid density = 0.00009982071 which 
+#   means the kinematic viscosity is idential to that of water but the 
+#   dynamic viscosity is a factor of 10 less than that of water which 
+#   increases the diffusive dynamics by a corresponding factor of 10.
+#   lattice spacing dx=1.0.
+# Use a thermal lattice-Boltzmann fluid (temperature 300K, random number 
+#   seed=15003).  This enables the particles to undergo Brownian motion in 
+#   the fluid.
+#----------------------------------------------------------------------------
+fix 1 all lb/fluid 1 0.1 0.00009982071 dx 1.0 noise 300.0 15003
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining each monomerto move and rotate as a single rigid 
+#   spherical object.  
+# Since both the ForceAtoms (central atoms), and the FluidAtoms (spherical
+#   shell) should move and rotate together, this fix is applied to all of 
+#   the atoms in the system.  
+#----------------------------------------------------------------------------
+fix 2 all lb/viscous
+fix 3 all rigid/small molecule
+
+#----------------------------------------------------------------------------
+# To ensure that numerical errors do not lead to a buildup of momentum in the
+#   system, the momentum_lb fix is used every 100000 timesteps to zero out the
+#   total (particle plus fluid) momentum in the system.
+#----------------------------------------------------------------------------
+fix   4 all lb/momentum 100000 linear 1 1 1
+
+
+#dump  1 ForceAtoms custom 10 trapped_polymer.lammpstrj id x y z vx vy vz
+
+#run		2000001
+run 10000  

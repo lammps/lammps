@@ -1,0 +1,320 @@
+!! DATE: 2022-07-05  UNITS: real
+
+      ##############################
+      ##                          ##
+      ##  Force Field Definition  ##
+      ##                          ##
+      ##############################
+
+
+forcefield              HIPPO-WATER-2019
+
+bond-cubic              -2.55
+bond-quartic            3.793125
+angle-cubic             -0.014
+angle-quartic           0.000056
+angle-pentic            -0.0000007
+angle-sextic            0.000000022
+opbendtype              ALLINGER
+opbend-cubic            -0.014
+opbend-quartic          0.000056
+opbend-pentic           -0.0000007
+opbend-sextic           0.000000022
+torsionunit             0.5
+dielectric              1.0
+polarization            MUTUAL
+rep-12-scale            0.0
+rep-13-scale            0.0
+rep-14-scale            1.0
+rep-15-scale            1.0
+disp-12-scale           0.0
+disp-13-scale           0.0
+disp-14-scale           0.4
+#disp-15-scale           0.8
+mpole-12-scale          0.0
+mpole-13-scale          0.0
+mpole-14-scale          0.4
+#mpole-15-scale          0.8
+polar-12-scale          0.0
+polar-13-scale          0.0
+polar-14-scale          1.0
+polar-15-scale          1.0
+polar-12-intra          0.0
+polar-13-intra          0.0
+polar-14-intra          0.5
+polar-15-intra          1.0
+direct-11-scale         0.0
+direct-12-scale         1.0
+direct-13-scale         1.0
+direct-14-scale         1.0
+mutual-11-scale         1.0
+mutual-12-scale         1.0
+mutual-13-scale         1.0
+mutual-14-scale         1.0
+induce-12-scale         0.2
+induce-13-scale         1.0
+induce-14-scale         1.0
+induce-15-scale         1.0
+
+
+      #############################
+      ##                         ##
+      ##  Literature References  ##
+      ##                         ##
+      #############################
+
+
+This is a preliminary parameter set for water based on the HIPPO
+(Hydrogen-like Intermolecular Polarizable Potential) force field.
+It uses terms describing charge penetration, damped dispersion, and
+anisotropic repulsion as per the papers below. The parameters are as
+of 13 May 2019 and are from Roseane dos Reis Silva and Josh Rackers
+in the Ponder lab at Washington University. These parameter values
+are under development and are subject to change.
+
+J. A. Rackers, Q. Wang, C. Liu, J.-P. Piquemal, P. Ren and J. W. Ponder,
+An Optimized Charge Penetration Model for Use with the AMOEBA Force Field, 
+Physical Chemistry Chemical Physics, 19, 276-291 (2017)
+
+J. A. Rackers, C. Liu, P. Ren and J. W. Ponder, A Physically Grounded
+Damped Dispersion Model with Particle Mesh Ewald  Summation, Journal
+of Chemical Physics, 149, 084115 (2018)
+
+J. A. Rackers and J. W. Ponder, Classical Pauli Repulsion: An Anisotropic,
+Atomic Multipole Model, Journal of Chemical Physics, 150, 084104 (2019)
+
+
+      #############################
+      ##                         ##
+      ##  Atom Type Definitions  ##
+      ##                         ##
+      #############################
+
+
+atom          1    1    O     "HIPPO Water O"                8    15.999    2
+atom          2    2    H     "HIPPO Water H"                1     1.008    1
+
+
+      ##################################
+      ##                              ##
+      ##  Bond Stretching Parameters  ##
+      ##                              ##
+      ##################################
+
+
+bond          1    2          556.85     0.9572   !! all
+
+
+      ################################
+      ##                            ##
+      ##  Angle Bending Parameters  ##
+      ##                            ##
+      ################################
+
+
+#angle         2    1    2      48.70     108.50   !! orig
+#angle         2    1    2      48.70     107.70   !! 13
+#angle         2    1    2      48.70     107.70   !! 12
+#angle         2    1    2      48.70     107.70   !! 16t-i2
+#angle         2    1    2      48.70     107.70   !! 16t-i6
+#angle         2    1    2      48.70     107.70   !! 17t-i3
+angle         2    1    2      48.70     107.70   !! 17t-i6
+
+
+      ##################################
+      ##                              ##
+      ##  Pauli Repulsion Parameters  ##
+      ##                              ##
+      ##################################
+
+
+#repulsion          1          2.8478     4.6069     3.3353   !! orig
+#repulsion          2          2.0560     4.8356     0.7423   !! orig
+#repulsion          1          2.7716     4.4097     3.3789   !! 13
+#repulsion          2          2.0410     4.8567     0.6592   !! 13
+#repulsion          1          2.7875     4.4310     3.3914   !! 12
+#repulsion          2          2.0510     4.8314     0.6557   !! 12
+#repulsion          1          2.8604     4.5590     3.3554   !! t16-i2
+#repulsion          2          2.0508     4.8497     0.7264   !! t16-i2
+#repulsion          1          2.8618     4.4770     3.3790   !! t16-i6
+#repulsion          2          2.0658     4.9052     0.6831   !! t16-i6
+#repulsion          1          2.8644     4.4964     3.3594   !! t17-i3
+#repulsion          2          2.0605     4.8965     0.6958   !! t17-i3
+repulsion          1          2.8758     4.4394     3.3883   !! t17-i6
+repulsion          2          2.0610     4.9367     0.6505   !! t17-i6
+
+
+      #############################
+      ##                         ##
+      ##  Dispersion Parameters  ##
+      ##                         ##
+      #############################
+
+
+#dispersion         1         16.4682     4.4288   !! orig
+#dispersion         2          2.9470     4.9751   !! orig
+#dispersion         1         17.0790     4.3977   !! 13
+#dispersion         2          4.2262     4.9255   !! 13
+#dispersion         1         17.0607     4.3872   !! 12
+#dispersion         2          4.2382     4.9542   !! 12
+#dispersion         1         16.6803     4.4470   !! t16-i2
+#dispersion         2          3.4415     4.9267   !! t16-i2
+#dispersion         1         16.7807     4.4427   !! t16-i6
+#dispersion         2          3.8508     4.9261   !! t16-i6
+#dispersion         1         16.6579     4.2763   !! t17-i3
+#dispersion         2          3.2999     4.9597   !! t17-i3
+dispersion         1         16.7190     4.3418   !! t17-i6
+dispersion         2          3.4239     4.9577   !! t17-i6
+
+
+      ###################################
+      ##                               ##
+      ##  Atomic Multipole Parameters  ##
+      ##                               ##
+      ###################################
+
+
+!! orig
+#multipole     1   -2   -2              -0.38280
+                                        0.00000    0.00000    0.05477
+                                        0.69866
+                                        0.00000   -0.60471
+                                        0.00000    0.00000   -0.09395
+#multipole     2    1    2               0.19140
+                                        0.00000    0.00000   -0.20097
+                                        0.03881
+                                        0.00000    0.02214
+                                        0.00000    0.00000   -0.06095
+!! 13
+#multipole     1   -2   -2              -0.38296
+                                        0.00000    0.00000    0.05086
+                                        0.70053
+                                        0.00000   -0.61138
+                                        0.00000    0.00000   -0.08915
+#multipole     2    1    2               0.19148
+                                        0.00000    0.00000   -0.20142
+                                        0.06672
+                                        0.00000    0.04168
+                                        0.01245    0.00000   -0.10840
+!! 12
+#multipole     1   -2   -2              -0.38468
+                                        0.00000    0.00000    0.05069
+                                        0.70076
+                                        0.00000   -0.61593
+                                        0.00000    0.00000   -0.08483
+#multipole     2    1    2               0.19234
+                                        0.00000    0.00000   -0.20236
+                                        0.06136
+                                        0.00000    0.04166
+                                        0.00591    0.00000   -0.10302
+!! t16-i2
+#multipole     1   -2   -2              -0.38236
+                                        0.00000    0.00000    0.05488
+                                        0.69693
+                                        0.00000   -0.60514
+                                        0.00000    0.00000   -0.09179
+#multipole     2    1    2               0.19118
+                                        0.00000    0.00000   -0.20081
+                                        0.04614
+                                        0.00000    0.02258
+                                        0.00000    0.00000   -0.07172
+!! t16-i6
+#multipole     1   -2   -2              -0.37854
+                                        0.00000    0.00000    0.05439
+                                        0.68442
+                                        0.00000   -0.61857
+                                        0.00000    0.00000   -0.06585
+#multipole     2    1    2               0.18927
+                                        0.00000    0.00000   -0.19918
+                                        0.05839
+                                        0.00000    0.03699
+                                        0.00683    0.00000   -0.09538
+!! t17-i3
+#multipole     1   -2   -2              -0.37944
+                                        0.00000    0.00000    0.05496
+                                        0.69091
+                                        0.00000   -0.60566
+                                        0.00000    0.00000   -0.08525
+#multipole     2    1    2               0.18972
+                                        0.00000    0.00000   -0.20057
+                                        0.05030
+                                        0.00000    0.03290
+                                        0.00187    0.00000   -0.08320
+!! t17-i6
+multipole     1   -2   -2              -0.37724
+                                        0.00000    0.00000    0.05410
+                                        0.68565
+                                        0.00000   -0.60559
+                                        0.00000    0.00000   -0.08006
+multipole     2    1    2               0.18862
+                                        0.00000    0.00000   -0.19902
+                                        0.06206
+                                        0.00000    0.04341
+                                        0.00709    0.00000   -0.10547
+
+
+      #####################################
+      ##                                 ##
+      ##  Charge Penetration Parameters  ##
+      ##                                 ##
+      #####################################
+
+
+#chgpen             1          6.0000     4.4288   !! orig
+#chgpen             2          1.0000     4.9751   !! orig
+#chgpen             1          6.0000     4.3977   !! 13
+#chgpen             2          1.0000     4.9255   !! 13
+#chgpen             1          6.0000     4.3872   !! 12
+#chgpen             2          1.0000     4.9542   !! 12
+#chgpen             1          6.0000     4.4470   !! t16-i2
+#chgpen             2          1.0000     4.9767   !! t16-i2
+#chgpen             1          6.0000     4.4427   !! t16-i6
+#chgpen             2          1.0000     4.9261   !! t16-i6
+#chgpen             1          6.0000     4.3763   !! t17-i3
+#chgpen             2          1.0000     4.9597   !! t17-i3
+chgpen             1          6.0000     4.3418   !! t17-i6
+chgpen             2          1.0000     4.9577   !! t17-i6
+
+
+      ########################################
+      ##                                    ##
+      ##  Dipole Polarizability Parameters  ##
+      ##                                    ##
+      ########################################
+
+
+#polarize           1          0.7482            2   !! orig
+#polarize           2          0.3703            1   !! orig
+#polarize           1          0.7448            2   !! 13
+#polarize           2          0.3897            1   !! 13
+#polarize           1          0.7442            2   !! 12
+#polarize           2          0.3874            1   !! 12
+#polarize           1          0.7499            2   !! t16-i2
+#polarize           2          0.3706            1   !! t16-i2
+#polarize           1          0.7403            2   !! t16-i6
+#polarize           2          0.3774            1   !! t16-i6
+#polarize           1          0.7416            2   !! t17-i3
+#polarize           2          0.3670            1   !! t17-i3
+polarize           1          0.7332            2   !! t17-i6
+polarize           2          0.3691            1   !! t17-i6
+
+
+      ##################################
+      ##                              ##
+      ##  Charge Transfer Parameters  ##
+      ##                              ##
+      ##################################
+
+
+#chgtrn             1          3.5788     0.0000   !! orig
+#chgtrn             2          0.0000     3.3292   !1 orig
+#chgtrn             1          3.5856     0.0000   !! 13
+#chgtrn             2          0.0000     3.3482   !! 13
+#chgtrn             1          3.5867     0.0000   !! t16-i2
+#chgtrn             2          0.0000     3.3105   !! t16-i2
+#chgtrn             1          3.5812     0.0000   !! t16-i6
+#chgtrn             2          0.0000     3.2909   !! t16-i6
+#chgtrn             1          3.5762     0.0000   !! t17-i3
+#chgtrn             2          0.0000     3.2881   !! t17-i3
+chgtrn             1          3.5551     0.0000   !! t17-i6
+chgtrn             2          0.0000     3.2812   !! t17-i6

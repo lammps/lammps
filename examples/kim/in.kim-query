@@ -1,0 +1,76 @@
+# kim query example
+#
+# Requirement:
+#
+# This example requires LAMMPS is built with KIM package. A requirement for
+# the KIM package, is the KIM API library that must be downloaded from the
+# OpenKIM website and installed before LAMMPS is compiled. The 'kim query'
+# command requires the libcurl library to be installed. See the
+# `https://docs.lammps.org/Build_extras.html#kim` doc page for further
+# details
+#
+# This example requires that the KIM Models
+# `EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`
+# and
+# `EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000`
+# are installed.
+#
+# This can be done with the commands
+# `kim-api-collections-management install user `EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005`
+# `kim-api-collections-management install user `EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000`
+#
+# If these commands do not work, you may need to setup your PATH to find the utility.
+# If you installed the kim-api using the LAMMPS CMake build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS build directory)
+#   source ./kim_build-prefix/bin/kim-api-activate
+# If you installed the kim-api using the LAMMPS Make build, you can do the following
+# (where the current working directory is assumed to be the LAMMPS src directory)
+#   source ../lib/kim/installed-kim-api-X.Y.Z/bin/kim-api-activate
+# (where you should relplace X.Y.Z with the appropriate kim-api version number).
+#
+# Or, see https://openkim.org/doc/obtaining-models for alternative options.
+#
+
+# -----------------------------------------------
+# Get an equilibrium fcc crystal lattice constant
+# -----------------------------------------------
+kim   init EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005 metal
+kim   query latconst_1 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom]
+print "FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005) = ${latconst_1}"
+# Get the lattice contant from a different model
+kim   query latconst_2 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005]
+print "FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = ${latconst_2}"
+clear
+
+
+# -----------------------------------------------
+# Get an equilibrium fcc crystal lattice constant
+# -----------------------------------------------
+kim   query latconst_1 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005]
+kim   query latconst_2 get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005]
+print "FCC lattice constant (EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_005)   = ${latconst_1}"
+print "FCC lattice constant (EAM_Dynamo_WineyKubotaGupta_2010_Al__MO_149316865608_005) = ${latconst_2}"
+clear
+
+
+# -----------------------------------------------
+# Get an equilibrium hcp crystal lattice constant
+# -----------------------------------------------
+kim   init EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_000 metal
+kim   query latconst split get_lattice_constant_hexagonal crystal=["hcp"] species=["Zr"] units=["angstrom"]
+print "HCP lattice constants = ${latconst_1}, ${latconst_2}"
+clear
+
+
+# -----------------------------------------------
+# Query for KIM models from openkim.org
+# Get all the EAM models that support Al
+# -----------------------------------------------
+kim   query model index get_available_models species=[Al] potential_type=[eam]
+label model_loop
+kim   query latconst get_lattice_constant_cubic crystal=[fcc] species=[Al] units=[angstrom] model=[${model}]
+print "FCC lattice constant (${model}) = ${latconst}"
+next  model
+jump  SELF model_loop
+clear
+

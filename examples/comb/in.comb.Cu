@@ -1,0 +1,39 @@
+# Pure Cu crystal, structure created by LAMMPS, qeq off
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+lattice  	fcc 3.615
+region		box block 0 4 0 4 0 4
+create_box	1 box
+create_atoms	1 box
+mass		1 63.54
+
+pair_style	comb
+pair_coeff	* * ffield.comb Cu
+
+neighbor	0.5 bin
+neigh_modify	every 1 delay 1 check yes 
+
+fix		1 all nve
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz
+thermo_modify	norm yes
+velocity	all create 10.1 2398378
+thermo	  	1
+
+#dump		1 all custom 10 tmp.dump id type xs ys zs q vx vy vz fx fy fz
+#dump_modify	1 append yes element Cu
+
+#dump		2 all image 10 image.*.jpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 2 element Cu
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 2 element Cu
+
+run  		10

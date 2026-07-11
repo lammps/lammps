@@ -1,0 +1,314 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.1.9. Using LAMMPS with the MDI library for code coupling &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_mdi.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.2.1. 2d simulations" href="Howto_2d.html" />
+    <link rel="prev" title="10.1.8. Coupling LAMMPS to other codes" href="Howto_couple.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_restart.html">10.1.1. Restart a simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html">10.1.2. Visualize LAMMPS snapshots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html#basic-workflow-for-loading-lammps-trajectories-in-vmd">10.1.3. Basic workflow for loading LAMMPS trajectories in VMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html#advanced-graphics-features-in-the-dump-image-command">10.1.4. Advanced graphics features in the <em>dump image</em> command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_multiple.html">10.1.5. Run multiple simulations from one input script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_replica.html">10.1.6. Multi-replica simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_library.html">10.1.7. Library interface to LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_couple.html">10.1.8. Coupling LAMMPS to other codes</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.1.9. Using LAMMPS with the MDI library for code coupling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.1.9. </span>Using LAMMPS with the MDI library for code coupling</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_couple.html" class="btn btn-neutral float-left" title="10.1.8. Coupling LAMMPS to other codes" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_2d.html" class="btn btn-neutral float-right" title="10.2.1. 2d simulations" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="using-lammps-with-the-mdi-library-for-code-coupling">
+<h1><span class="section-number">10.1.9. </span>Using LAMMPS with the MDI library for code coupling<a class="headerlink" href="#using-lammps-with-the-mdi-library-for-code-coupling" title="Link to this heading"></a></h1>
+<p>Client/server coupling of two (or more) codes is where one code is the
+“client” and sends request messages (data) to one (or more) “server”
+code(s).  A server responds to each request with a reply message
+(data).  This enables two (or more) codes to work in tandem to perform
+a simulation.  In this context, LAMMPS can act as either a client or
+server code.  It does this by using the <a class="reference external" href="https://molssi-mdi.github.io/MDI_Library/">MolSSI Driver Interface (MDI)
+library</a>,
+developed by the <a class="reference external" href="https://molssi.org">Molecular Sciences Software Institute (MolSSI)</a>, which is supported by the <a class="reference internal" href="Packages_details.html#pkg-mdi"><span class="std std-ref">MDI</span></a>
+package.</p>
+<p>Alternate methods for coupling codes with LAMMPS are described on the
+<a class="reference internal" href="Howto_couple.html"><span class="doc">Coupling LAMMPS to other codes</span></a> page.</p>
+<p>Some advantages of client/server coupling are that the codes can run
+as stand-alone executables; they need not be linked together.  Thus,
+neither code needs to have a library interface.  This also makes it
+easy to run the two codes on different numbers of processors.  If a
+message protocol (format and content) is defined for a particular kind
+of simulation, then in principle any code which implements the
+client-side protocol can be used in tandem with any code which
+implements the server-side protocol.  Neither code needs to know what
+specific other code it is working with.</p>
+<p>In MDI nomenclature, a client code is the “driver”, and a server code is
+an “engine”.  One driver code can communicate with one or more instances
+of one or more engine codes.  Driver and engine codes can be written in
+any language: C, C++, Fortran, Python, etc.</p>
+<p>In addition to allowing driver and engine(s) to run as stand-alone
+executables, MDI also enables an engine to be a <em>plugin</em> to the client
+code.  In this scenario, server code(s) are compiled as shared
+libraries, and one (or more) instances of the server are instantiated
+by the driver code.  If the driver code runs in parallel, it can split
+its MPI communicator into multiple sub-communicators, and launch each
+plugin engine instance on a sub-communicator.  Driver processors
+within that sub-communicator exchange messages with the corresponding
+engine instance, and can also send MPI messages to other processors in
+the driver.  The driver code can also destroy engine instances and
+re-instantiate them.  LAMMPS can operate as either a stand-alone or
+plugin MDI engine.  When it operates as a driver, it can use either
+stand-alone or plugin MDI engines.</p>
+<p>The way in which an MDI driver communicates with an MDI engine is by
+making MDI_Send() and MDI_Recv() calls, which are conceptually similar
+to MPI_Send() and MPI_Recv() calls.  Each send or receive operation
+uses a string to identify the command name, and optionally some data,
+which can be a single value or vector of values of any data type.
+Inside the MDI library, data is exchanged between the driver and
+engine via MPI calls or sockets.  This is a run-time choice by the user.</p>
+<hr class="docutils" />
+<p>The <a class="reference internal" href="Packages_details.html#pkg-mdi"><span class="std std-ref">MDI</span></a> package provides a <a class="reference internal" href="mdi.html"><span class="doc">mdi engine</span></a>
+command, which enables LAMMPS to operate as an MDI engine.  Its doc
+page explains the variety of standard and custom MDI commands which
+the LAMMPS engine recognizes and can respond to.</p>
+<p>The package also provides a <a class="reference internal" href="mdi.html"><span class="doc">mdi plugin</span></a> command, which
+enables LAMMPS to operate as an MDI driver and load an MDI engine as a
+plugin library.</p>
+<p>The package furthermore includes a <a class="reference internal" href="fix_mdi_qm.html"><span class="doc">fix mdi/qm</span></a>
+command, in which LAMMPS operates as an MDI driver in conjunction with a
+quantum mechanics code as an MDI engine.  The post_force() method of the
+<code class="docutils literal notranslate"><span class="pre">fix_mdi_qm.cpp</span></code> file shows how a driver issues MDI commands to
+another code.  This command can be used to couple to an MDI engine,
+which is either a stand-alone code or a plugin library.</p>
+<p>As explained in the <a class="reference internal" href="fix_mdi_qm.html"><span class="doc">fix mdi/qm</span></a> command
+documentation, it can be used to perform <em>ab initio</em> MD simulations or
+energy minimizations, or to evaluate the quantum energy and forces for a
+series of independent systems.  The <code class="docutils literal notranslate"><span class="pre">examples/mdi</span></code> directory has
+example input scripts for all of these use cases.</p>
+<p>The package also has a <a class="reference internal" href="fix_mdi_qmmm.html"><span class="doc">fix mdi/qmmm</span></a> command in
+which LAMMPS operates as an MDI driver in conjunction with a quantum
+mechanics code as an MDI engine to perform QM/MM simulations.  The
+LAMMPS input script partitions the system into QM and MM (molecular
+mechanics) atoms.  As described below the <code class="docutils literal notranslate"><span class="pre">examples/QUANTUM</span></code> directory
+has examples for coupling to 3 different quantum codes in this manner.</p>
+<hr class="docutils" />
+<p>The <code class="docutils literal notranslate"><span class="pre">examples/mdi</span></code> directory contains Python scripts and LAMMPS input
+script which use LAMMPS as either an MDI driver or engine, or both.
+Currently, 5 example use cases are provided:</p>
+<ul class="simple">
+<li><p>Run ab initio MD (AIMD) using 2 instances of LAMMPS.  As a driver,
+LAMMPS performs the timestepping in either NVE or NPT mode.  As an
+engine, LAMMPS computes forces and is a surrogate for a quantum
+code.</p></li>
+<li><p>LAMMPS runs an MD simulation as a driver.  Every N steps it passes the
+current snapshot to an MDI engine to evaluate the energy, virial, and
+peratom forces.  As the engine, LAMMPS is a surrogate for a quantum
+code.</p></li>
+<li><p>LAMMPS loops over a series of data files and passes the configuration
+to an MDI engine to evaluate the energy, virial, and peratom forces
+and thus acts as a simulation driver.  As the engine, LAMMPS is used
+as a surrogate for a quantum code.</p></li>
+<li><p>A Python script driver invokes a sequence of unrelated LAMMPS
+calculations.  Calculations can be single-point energy/force
+evaluations, MD runs, or energy minimizations.</p></li>
+<li><p>Run AIMD with a Python driver code and 2 LAMMPS instances as engines.
+The first LAMMPS instance performs MD timestepping.  The second LAMMPS
+instance acts as a surrogate QM code to compute forces.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In any of these examples where LAMMPS is used as an engine, an actual
+QM code (provided it has support for MDI) could be used in its place,
+without modifying the input scripts or launch commands, except to
+specify the name of the QM code.</p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">examples/mdi/Run.sh</span></code> file illustrates how to launch both driver
+and engine codes so that they communicate using the MDI library via
+either MPI or sockets, or using the engine as a stand-alone code, or
+as a plugin library.</p>
+<hr class="docutils" />
+<p>As of March 2023, these are quantum codes with MDI support provided via
+Python wrapper scripts included in the LAMMPS distribution.  These can
+be used with the fix mdi/qm and fix mdi/qmmm commands to perform QM
+calculations of an entire system (e.g. AIMD) or QM/MM simulations.  See
+the <code class="docutils literal notranslate"><span class="pre">examples/QUANTUM</span></code> sub-directories for more details:</p>
+<ul class="simple">
+<li><p>LATTE - AIMD only</p></li>
+<li><p>PySCF - QM/MM only</p></li>
+<li><p>NWChem - AIMD or QM/MM</p></li>
+</ul>
+<p>There are also at least two quantum codes which have direct MDI support,
+<a class="reference external" href="https://www.quantum-espresso.org/">Quantum ESPRESSO (QE)</a> and <a class="reference external" href="https://gitlab.com/npneq/inq">INQ</a>.  There are also several QM codes which
+have indirect support through QCEngine or i-PI.  The former means they
+require a wrapper program (QCEngine) with MDI support which writes/read
+files to pass data to the quantum code itself.  The list of
+QCEngine-supported and i-PI-supported quantum codes is on the
+<a class="reference external" href="https://molssi-mdi.github.io/MDI_Library/user_guide/mdi_ecosystem/">MDI webpage</a>.</p>
+<p>These direct- and indirect-support codes should be usable for full
+system calculations (e.g. AIMD).  Whether they support QM/MM models
+depends on the individual QM code.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_couple.html" class="btn btn-neutral float-left" title="10.1.8. Coupling LAMMPS to other codes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_2d.html" class="btn btn-neutral float-right" title="10.2.1. 2d simulations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

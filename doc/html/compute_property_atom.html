@@ -1,0 +1,629 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>compute property/atom command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/compute_property_atom.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="compute property/chunk command" href="compute_property_chunk.html" />
+    <link rel="prev" title="compute pressure/uef command" href="compute_pressure_uef.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="computes.html">Compute Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="compute_ackland_atom.html">compute ackland/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_adf.html">compute adf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_angle.html">compute angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_angle_local.html">compute angle/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_angmom_chunk.html">compute angmom/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ave_sphere_atom.html">compute ave/sphere/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_basal_atom.html">compute basal/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_body_local.html">compute body/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_bond.html">compute bond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_bond_local.html">compute bond/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_born_matrix.html">compute born/matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_centro_atom.html">compute centro/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_chunk_atom.html">compute chunk/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_chunk_spread_atom.html">compute chunk/spread/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cluster_atom.html">compute cluster/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cluster_atom.html#compute-fragment-atom-command">compute fragment/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cluster_atom.html#compute-aggregate-atom-command">compute aggregate/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cna_atom.html">compute cna/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_cnp_atom.html">compute cnp/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_com.html">compute com command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_com_chunk.html">compute com/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_composition_atom.html">compute composition/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_contact_atom.html">compute contact/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_coord_atom.html">compute coord/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_count_type.html">compute count/type command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_damage_atom.html">compute damage/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dihedral.html">compute dihedral command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dihedral_local.html">compute dihedral/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dilatation_atom.html">compute dilatation/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dipole.html">compute dipole command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dipole.html#compute-dipole-tip4p-command">compute dipole/tip4p command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dipole_chunk.html">compute dipole/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dipole_chunk.html#compute-dipole-tip4p-chunk-command">compute dipole/tip4p/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_displace_atom.html">compute displace/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dpd.html">compute dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_dpd_atom.html">compute dpd/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_edpd_temp_atom.html">compute edpd/temp/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_efield_atom.html">compute efield/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_efield_wolf_atom.html">compute efield/wolf/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_entropy_atom.html">compute entropy/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_asphere.html">compute erotate/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_rigid.html">compute erotate/rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_sphere.html">compute erotate/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_erotate_sphere_atom.html">compute erotate/sphere/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_event_displace.html">compute event/displace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_fabric.html">compute fabric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_fep.html">compute fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_fep_ta.html">compute fep/ta command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gaussian_grid_local.html">compute gaussian/grid/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_global_atom.html">compute global/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_group_group.html">compute group/group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration.html">compute gyration command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration_chunk.html">compute gyration/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration_shape.html">compute gyration/shape command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_gyration_shape_chunk.html">compute gyration/shape/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_hbond_local.html">compute hbond/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_heat_flux.html">compute heat/flux command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_hexorder_atom.html">compute hexorder/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_hma.html">compute hma command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_improper.html">compute improper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_improper_local.html">compute improper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_inertia_chunk.html">compute inertia/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke.html">compute ke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_atom.html">compute ke/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_atom_eff.html">compute ke/atom/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_eff.html">compute ke/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ke_rigid.html">compute ke/rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_mliap.html">compute mliap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_momentum.html">compute momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_msd.html">compute msd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_msd_chunk.html">compute msd/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_msd_nongauss.html">compute msd/nongauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_nbond_atom.html">compute nbond/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_omega_chunk.html">compute omega/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_orientorder_atom.html">compute orientorder/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pace.html">compute pace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pair.html">compute pair command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pair_local.html">compute pair/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pe.html">compute pe command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pe_atom.html">compute pe/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_plasticity_atom.html">compute plasticity/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pod_atom.html">compute pod/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pod_atom.html#compute-podd-atom-command">compute podd/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pod_atom.html#compute-pod-local-command">compute pod/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pod_atom.html#compute-pod-global-command">compute pod/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pressure.html">compute pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pressure_alchemy.html">compute pressure/alchemy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_pressure_uef.html">compute pressure/uef command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">compute property/atom command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-info">Output info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="compute_property_chunk.html">compute property/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_property_grid.html">compute property/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_property_local.html">compute property/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ptm_atom.html">compute ptm/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_rattlers_atom.html">compute rattlers/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_rdf.html">compute rdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reaxff_atom.html">compute reaxff/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reduce.html">compute reduce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reduce.html#compute-reduce-region-command">compute reduce/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_reduce_chunk.html">compute reduce/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_rheo_property_atom.html">compute rheo/property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_rigid_local.html">compute rigid/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_saed.html">compute saed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_slcsa_atom.html">compute slcsa/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_slice.html">compute slice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_contact_radius.html">compute smd/contact/radius command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_damage.html">compute smd/damage command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_hourglass_error.html">compute smd/hourglass/error command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_internal_energy.html">compute smd/internal/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_plastic_strain.html">compute smd/plastic/strain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_plastic_strain_rate.html">compute smd/plastic/strain/rate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_rho.html">compute smd/rho command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_defgrad.html">compute smd/tlsph/defgrad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_dt.html">compute smd/tlsph/dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_num_neighs.html">compute smd/tlsph/num/neighs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_shape.html">compute smd/tlsph/shape command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_strain.html">compute smd/tlsph/strain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_strain_rate.html">compute smd/tlsph/strain/rate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_tlsph_stress.html">compute smd/tlsph/stress command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_triangle_vertices.html">compute smd/triangle/vertices command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_effm.html">compute smd/ulsph/effm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_num_neighs.html">compute smd/ulsph/num/neighs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_strain.html">compute smd/ulsph/strain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_strain_rate.html">compute smd/ulsph/strain/rate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_ulsph_stress.html">compute smd/ulsph/stress command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_smd_vol.html">compute smd/vol command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html">compute sna/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-snad-atom-command">compute snad/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-snav-atom-command">compute snav/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-snap-command">compute snap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-sna-grid-command">compute sna/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sna_atom.html#compute-sna-grid-local-command">compute sna/grid/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sph_e_atom.html">compute sph/e/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sph_rho_atom.html">compute sph/rho/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_sph_t_atom.html">compute sph/t/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_spin.html">compute spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_atom.html">compute stress/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_atom.html#compute-centroid-stress-atom-command">compute centroid/stress/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_cartesian.html">compute stress/cartesian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_curvilinear.html">compute stress/cylinder command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_curvilinear.html#compute-stress-spherical-command">compute stress/spherical command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_mop.html">compute stress/mop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_stress_mop.html#compute-stress-mop-profile-command">compute stress/mop/profile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html">compute force/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-heat-flux-tally-command">compute heat/flux/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-heat-flux-virial-tally-command">compute heat/flux/virial/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-pe-tally-command">compute pe/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-pe-mol-tally-command">compute pe/mol/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tally.html#compute-stress-tally-command">compute stress/tally command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_tdpd_cc_atom.html">compute tdpd/cc/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp.html">compute temp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_asphere.html">compute temp/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_body.html">compute temp/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_chunk.html">compute temp/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_com.html">compute temp/com command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_cs.html">compute temp/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_deform.html">compute temp/deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_deform_eff.html">compute temp/deform/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_drude.html">compute temp/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_eff.html">compute temp/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_partial.html">compute temp/partial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_profile.html">compute temp/profile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_ramp.html">compute temp/ramp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_region.html">compute temp/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_region_eff.html">compute temp/region/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_rotate.html">compute temp/rotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_sphere.html">compute temp/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_temp_uef.html">compute temp/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_ti.html">compute ti command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_torque_chunk.html">compute torque/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_vacf.html">compute vacf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_vacf_chunk.html">compute vacf/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_vcm_chunk.html">compute vcm/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_viscosity_cos.html">compute viscosity/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_voronoi_atom.html">compute voronoi/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_xrd.html">compute xrd command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="computes.html">Compute Styles</a></li>
+      <li class="breadcrumb-item active">compute property/atom command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="compute_pressure_uef.html" class="btn btn-neutral float-left" title="compute pressure/uef command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compute_property_chunk.html" class="btn btn-neutral float-right" title="compute property/chunk command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="compute-property-atom-command">
+<span id="index-0"></span><h1>compute property/atom command<a class="headerlink" href="#compute-property-atom-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">input1</span><span class="w"> </span><span class="n">input2</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> command</p></li>
+<li><p>property/atom = style name of this compute command</p></li>
+<li><p>input = one or more atom attributes</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>possible attributes = id, mol, proc, type, mass,
+                      x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+                      vx, vy, vz, fx, fy, fz,
+                      q, mux, muy, muz, mu,
+                      spx, spy, spz, sp, fmx, fmy, fmz,
+                      nbonds,
+                      radius, diameter, omegax, omegay, omegaz,
+                      temperature, heatflow,
+                      angmomx, angmomy, angmomz,
+                      shapex, shapey, shapez,
+                      block1, block2,
+                      inertiax, inertiay, inertiaz,
+                      quatw, quati, quatj, quatk, tqx, tqy, tqz,
+                      end1x, end1y, end1z, end2x, end2y, end2z,
+                      corner1x, corner1y, corner1z,
+                      corner2x, corner2y, corner2z,
+                      corner3x, corner3y, corner3z,
+                      i_name, d_name, i2_name[I], d2_name[I],
+       history[I][J],
+                      vfrac, s0, espin, eradius, ervel, erforce,
+                      rho, drho, e, de, cv, buckling,
+                      apip_lambda, apip_lambda_input, apip_e_fast,
+                      apip_e_precise, apip_la_inp, apip_la_avg,
+                      apip_la_norm
+</pre></div>
+</div>
+<pre class="literal-block"><em>id</em> = atom ID
+<em>mol</em> = molecule ID
+<em>proc</em> = ID of processor that owns atom
+<em>type</em> = atom type
+<em>mass</em> = atom mass
+<em>x,y,z</em> = unscaled atom coordinates
+<em>xs,ys,zs</em> = scaled atom coordinates
+<em>xu,yu,zu</em> = unwrapped atom coordinates
+<em>ix,iy,iz</em> = box image that the atom is in
+<em>vx,vy,vz</em> = atom velocities
+<em>fx,fy,fz</em> = forces on atoms
+<em>q</em> = atom charge
+<em>mux,muy,muz</em> = orientation of dipole moment of atom
+<em>mu</em> = magnitude of dipole moment of atom
+<em>spx, spy, spz</em> = direction of the atomic magnetic spin
+<em>sp</em> = magintude of atomic magnetic spin moment
+<em>fmx, fmy, fmz</em> = magnetic force
+<em>nbonds</em> = number of bonds assigned to an atom
+<em>radius,diameter</em> = radius,diameter of spherical particle
+<em>omegax,omegay,omegaz</em> = angular velocity of spherical particle
+<em>temperature</em> = internal temperature of spherical particle
+<em>heatflow</em> = internal heat flow of spherical particle
+<em>angmomx,angmomy,angmomz</em> = angular momentum of aspherical particle
+<em>shapex,shapey,shapez</em> = 3 diameters of aspherical particle
+<em>block1,block2</em> = 2 blockiness exponents of aspherical (superellipsoid) particle
+<em>inertiax,inertiay,inertiaz</em> = 3 principal moments of inertia of aspherical (superellipsoid) particle
+<em>quatw,quati,quatj,quatk</em> = quaternion components for aspherical or body particles
+<em>tqx,tqy,tqz</em> = torque on finite-size particles
+<em>end12x, end12y, end12z</em> = end points of line segment
+<em>corner123x, corner123y, corner123z</em> = corner points of triangle
+<em>i_name</em> = custom integer vector with name
+<em>d_name</em> = custom floating point vector with name
+<em>i2_name[I]</em> = Ith column of custom integer array with name
+<em>d2_name[I]</em> = Ith column of custom floating-point array with name
+<em>history[I][J]</em> = Ith most recent history frame (1 to Nrepeat) for Jth attribute (1 to Nattribute)</pre>
+<pre class="literal-block">APIP package per-atom properties:
+<em>apip_lambda</em> = switching parameter
+<em>apip_lambda_input</em> = input used to calculate the switching parameter
+<em>apip_e_fast,apip_e_precise</em> = potential energies mixed by the adaptive-precision potential
+<em>apip_la_inp</em> = input used for the local averaging of the descriptor
+<em>apip_la_norm</em> = locally averaged radial weighting function used for normalization
+<em>apip_la_avg</em> = locally averaged descriptor used to calculate the switching parameter</pre>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>PERI package per-atom properties:
+vfrac = volume fraction
+s0 = critical bond stretch (bond-breaking threshold) of a particle
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>EFF package per-atom properties:
+espin = electron spin
+eradius = electron radius
+ervel = electron radial velocity
+erforce = electron radial force
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>SPH package per-atom properties:
+rho = density of SPH particles
+drho = change in density
+e = energy
+de = change in thermal energy
+cv = heat capacity
+</pre></div>
+</div>
+<pre class="literal-block">APIP package per-atom properties:
+<em>apip_lambda</em> = switching parameter
+<em>apip_lambda_input</em> = input used to calculate the switching parameter
+<em>apip_e_fast,apip_e_precise</em> = potential energies mixed by the adaptive-precision potential</pre>
+</li>
+<li><p>zero or more keyword/arg pairs may be appended</p></li>
+<li><p>keyword = <em>history</em></p>
+<pre class="literal-block"><em>history</em> arg = fixID
+  fixID = ID of a <a class="reference internal" href="fix_store_state.html"><span class="doc">fix store/state</span></a> command with history enabled</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">xs</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">fx</span><span class="w"> </span><span class="n">mux</span>
+<span class="k">compute </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">type</span>
+<span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="n">iz</span>
+<span class="k">compute </span><span class="nv nv-Identifier">3</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">sp</span><span class="w"> </span><span class="n">spx</span><span class="w"> </span><span class="n">spy</span><span class="w"> </span><span class="n">spz</span>
+<span class="k">compute </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">i_myFlag</span><span class="w"> </span><span class="n">d_Sxyz[1]</span><span class="w"> </span><span class="n">d_Sxyz[3]</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Define a computation that simply stores atom attributes for each atom
+in the group.  This is useful so that the values can be used by other
+<a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a> that take computes as inputs.
+See for example, the <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a>, <a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix
+ave/atom</span></a>, <a class="reference internal" href="fix_ave_histo.html"><span class="doc">fix ave/histo</span></a>,
+<a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>, and <a class="reference internal" href="variable.html"><span class="doc">atom-style variable</span></a> commands.</p>
+<p>The list of possible attributes is essentially the same as that used
+by the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command, which describes their
+meaning, with some additional quantities that are only defined for
+certain <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a>.  The goal of this augmented
+list gives an input script access to any per-atom quantity stored by
+LAMMPS.</p>
+<p>The values are stored in a per-atom vector or array as discussed
+below.  Zeroes are stored for atoms not in the specified group or for
+quantities that are not defined for a particular particle in the group
+(e.g., <em>shapex</em> if the particle is not an ellipsoid).</p>
+<p>Attributes <em>i_name</em>, <em>d_name</em>, <em>i2_name</em>, <em>d2_name</em> refer to custom
+per-atom integer and floating-point vectors or arrays that have been
+added via the <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> command.
+When that command is used specific names are given to each attribute
+which are the “name” portion of these attributes.  For arrays
+<em>i2_name</em> and <em>d2_name</em>, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[2] or i2_mySpin[3]).</p>
+<p>Attribute <em>history</em> refers to per-atom history values stored by the
+<a class="reference internal" href="fix_store_state.html"><span class="doc">fix store/state</span></a> command using its history
+keyword.  If this attribute is used, the optional <em>history</em> keyword
+must also be used to specify the <em>fixID</em> of the fix store/state
+command.</p>
+<p>The associated <a class="reference internal" href="fix_store_state.html"><span class="doc">fix store/state</span></a> command
+specifies <em>Nattribute</em> per-atom attributes, and its history keyword
+specifies <em>Nrepeat</em> and <em>Nfreq</em>.  <em>Nfreq</em> determines which timesteps
+the history can be accessed, which must be compatible with each
+timestep this compute is invoked.  <em>Nrepeat</em> sets the count of how
+many history values are stored for each attribute.  The first <em>I</em>
+index of attribute <em>history[I][J]</em> must be a value from 1 to
+<em>Nrepeat</em>, where 1 is the most recent history and <em>Nrepeat</em> is the
+oldest history.  If this compute is invoked before all <em>Nrepeat</em>
+history values have been stored (e.g. early in a run), then zeroes
+will be stored by this compute for not-yet-available history.  The
+second <em>J</em> index of attribute <em>history[I][J]</em> must be a value from 1
+to <em>Nattribute</em> for the per-atom attribute to access.  See the
+<a class="reference internal" href="fix_store_state.html"><span class="doc">fix store/state</span></a> doc page for more details.</p>
+<p>The additional per-atom attributes only accessible via this command,
+and not directly via the <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command, are as
+follows.</p>
+<p><em>Nbonds</em> is available for all molecular atom styles and refers to the
+number of explicit bonds assigned to an atom.  Note that if the
+<a class="reference internal" href="newton.html"><span class="doc">newton bond</span></a> command is set to <em>on</em>, which is the
+default, then every bond in the system is assigned to only one of the
+two atoms in the bond.  Thus a bond between atoms <span class="math notranslate nohighlight">\(I\)</span> and <span class="math notranslate nohighlight">\(J\)</span> may
+be tallied for either atom <span class="math notranslate nohighlight">\(I\)</span> or atom <span class="math notranslate nohighlight">\(J\)</span>.
+If <a class="reference internal" href="newton.html"><span class="doc">newton bond off</span></a> is set, it will be tallied with both atom
+<span class="math notranslate nohighlight">\(I\)</span> and atom <span class="math notranslate nohighlight">\(J\)</span>.</p>
+<p>The quantities <em>shapex</em>, <em>shapey</em>, and <em>shapez</em> are defined for ellipsoidal
+particles and define the 3d shape of each particle.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The quantities <em>block1</em>, and <em>block2</em>, are defined for superellipsoidal
+particles and define the blockiness of each superellipsoid particle.
+See the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command for an explanation of the blockiness.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The quantities <em>inertiax</em>, <em>inertiay</em>, and <em>inertiaz</em> are defined for
+superellipsoidal particles and define the 3 principal moments of inertia
+of each particle.  These are with respect to the particle’s center of
+mass and in a reference system aligned with the particle’s principal
+axes.</p>
+<p>The quantities <em>quatw</em>, <em>quati</em>, <em>quatj</em>, and <em>quatk</em> are defined for
+ellipsoidal particles and body particles and store the 4-vector quaternion
+representing the orientation of each particle.  See the <a class="reference internal" href="set.html"><span class="doc">set</span></a>
+command for an explanation of the quaternion vector.</p>
+<p><em>End1x</em>, <em>end1y</em>, <em>end1z</em>, <em>end2x</em>, <em>end2y</em>, <em>end2z</em>, are defined for line
+segment particles and define the end points of each line segment.</p>
+<p><em>Corner1x</em>, <em>corner1y</em>, <em>corner1z</em>, <em>corner2x</em>, <em>corner2y</em>,
+<em>corner2z</em>, <em>corner3x</em>, <em>corner3y</em>, <em>corner3z</em>, are defined for
+triangular particles and define the corner points of each triangle.</p>
+<p>The accessible quantities from the <a class="reference internal" href="Howto_apip.html"><span class="doc">APIP package</span></a>
+are explained in the doc pages of this package in detail.  In short:
+<em>apip_lambda</em> is the switching parameter <span class="math notranslate nohighlight">\(\lambda\in[0,1]\)</span>.  The
+switching parameter can be calculated from <em>apip_lambda_input</em> and
+mixes the energies of a fast (<em>apip_e_fast</em>) and a precise
+(<em>apip_e_precise</em>) potential into an adaptive-precision energy.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4Jul2026.</span></p>
+</div>
+<p>Alternatively, the switching parameter can be calculated from a
+locally averaged descriptor (<em>apip_la_avg</em>) to obtain a conservative
+potential.  The descriptor is calculated from an atomic property
+(<em>apip_la_inp</em>) and normalized with a locally averaged weighting
+function (<em>apip_la_norm</em>).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The energy according to the fast and the precise potential are only
+computed for the subset of atoms, for which it is required, i.e.,
+for an atom <span class="math notranslate nohighlight">\(i\)</span> with <span class="math notranslate nohighlight">\(\lambda_i=1\)</span> one does not need
+<span class="math notranslate nohighlight">\(E_i^\text{precise}\)</span> and with <span class="math notranslate nohighlight">\(\lambda_i=0\)</span> one does
+not need <span class="math notranslate nohighlight">\(E_i^\text{fast}\)</span>.</p>
+</div>
+<p>In addition, the various per-atom quantities listed above for specific
+packages are only accessible by this command.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 15Sep2022: </span>The <em>espin</em> property was previously called <em>spin</em>.</p>
+</div>
+<p>The accessible quantities from the <a class="reference internal" href="Howto_apip.html"><span class="doc">APIP package</span></a>
+are explained in detail in the doc pages for this package’s commands.
+In short: <em>apip_lambda</em> is the switching parameter
+<span class="math notranslate nohighlight">\(\lambda\in[0,1]\)</span>, that is calculated from <em>apip_lambda_input</em>
+and that mixes the energies of a fast (<em>apip_e_fast</em>) and a precise
+(<em>apip_e_precise</em>) potential into an adaptive-precision energy.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The energy according to the fast and the precise potential are only
+computed for the subset of atoms for which it is required.  I.e.,
+for an atom <span class="math notranslate nohighlight">\(i\)</span> with <span class="math notranslate nohighlight">\(\lambda_i=1\)</span>,
+<span class="math notranslate nohighlight">\(E_i^\text{precise}\)</span> is not needed.  And with
+<span class="math notranslate nohighlight">\(\lambda_i=0\)</span>, <span class="math notranslate nohighlight">\(E_i^\text{fast}\)</span>. is not needed.</p>
+</div>
+</section>
+<section id="output-info">
+<h2>Output info<a class="headerlink" href="#output-info" title="Link to this heading"></a></h2>
+<p>This compute calculates a per-atom vector or per-atom array depending
+on the number of input values.  If a single input is specified, a
+per-atom vector is produced.  If two or more inputs are specified, a
+per-atom array is produced where the number of columns = the number of
+inputs.  The vector or array can be accessed by any command that uses
+per-atom values from a compute as input.  See the <a class="reference internal" href="Howto_output.html"><span class="doc">Howto output</span></a> page for an overview of LAMMPS output options.</p>
+<p>The vector or array values will be in whatever <a class="reference internal" href="units.html"><span class="doc">units</span></a> the
+corresponding attribute is in (e.g., velocity units for <em>vx</em>, charge
+units for <em>q</em>).</p>
+<p>For the spin quantities, <em>sp</em> is in the units of the Bohr magneton;
+<em>spx</em>, <em>spy</em>, and <em>spz</em> are unitless quantities; and <em>fmx</em>, <em>fmy</em>, and
+<em>fmz</em> are given in rad/THz.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>none</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a>,
+<a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a>,
+<a class="reference internal" href="fix_ave_atom.html"><span class="doc">fix ave/atom</span></a>,
+<a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a>,
+<a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>,
+<a class="reference internal" href="fix_store_state.html"><span class="doc">fix store/state</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>none</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="compute_pressure_uef.html" class="btn btn-neutral float-left" title="compute pressure/uef command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="compute_property_chunk.html" class="btn btn-neutral float-right" title="compute property/chunk command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

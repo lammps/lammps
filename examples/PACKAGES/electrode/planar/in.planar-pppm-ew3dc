@@ -1,0 +1,15 @@
+boundary p p f
+kspace_style pppm/electrode 1.0e-7
+kspace_modify slab 3.0
+
+include "settings.mod" # styles, computes, groups and fixes
+
+# constant potential electrodes with ramping potential difference
+fix conp bot electrode/conp 0 1.979 couple top v_v symm on
+
+thermo 1
+# thermo: step, imposed potential, bottom charge, top charge, theory charge, percent deviation
+thermo_style custom step v_v c_qbot c_qtop v_qtheory v_percdev
+
+run 10
+

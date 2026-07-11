@@ -1,0 +1,22 @@
+This package provides a C++ interface class to the VMD molfile
+plugins, http://www.ks.uiuc.edu/Research/vmd/plugins/molfile, and a
+set of LAMMPS classes that use this interface.
+
+Molfile plugins provide a consistent programming interface to read
+and write file formats commonly used in molecular simulations.  This
+package only provides the interface code, not the plugins; these can
+be taken as precompiled binaries directly from a VMD installation that
+matches the platform of your LAMMPS executable.  Using the plugin
+interface one can add support for additional file formats to LAMMPS
+simply by telling LAMMPS where to find a suitable plugin without
+having to recompile or change LAMMPS directly.  The plugins bundled
+with VMD are usually installed in a directory inside the VMD
+installation tree named "plugins/<VMDARCH>/molfile".
+
+To be able to dynamically load and execute the plugins from inside
+LAMMPS, you need to link with an appropriate system library, which
+is done using the settings in lib/molfile/Makefile.lammps.  See
+that file and the lib/molfile/README file for more details.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.

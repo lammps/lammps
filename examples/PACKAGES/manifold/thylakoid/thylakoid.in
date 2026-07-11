@@ -1,0 +1,33 @@
+units lj
+dimension 3
+boundary f f p
+
+pair_style lj/cut 1.1225
+read_data thylakoid.data
+
+pair_coeff * * 1.0 1.0
+pair_modify shift yes
+
+# Makes about 100 particles type 2:
+region make_two sphere -29 0 0 6.25
+region everywhere block -25 25 -25 25 -25 25
+group two region make_two
+set group two type 2
+
+# And deletes some of type 1 to allow more movement:
+group one type 1
+set group one type 1
+delete_atoms porosity everywhere 0.2 123
+
+
+# Start run
+variable wB equal 5.0
+variable LB equal 10.0
+variable lB equal 3.0
+fix step all nve/manifold/rattle 1e-4 10 thylakoid ${wB} ${LB} ${lB}
+
+thermo_style custom time step pe ke etotal temp
+thermo 2500
+dump traj all custom 10000 thylakoid.dump id type x y z
+run 25000000
+

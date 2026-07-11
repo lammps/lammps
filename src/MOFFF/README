@@ -1,0 +1,32 @@
+This Package implements pair, angle and improper styles needed to employ
+the MOF-FF force field by Schmid and coworkers with LAMMPS.
+MOF-FF is a first principles derived force field with the primary aim
+to simulate MOFs and related porous framework materials, using spherical
+Gaussian charges. It is described in S. Bureekaew et al., Phys. Stat. Sol. B
+2013, 250, 1128-1141.
+For the usage of MOF-FF see the example in the example directory as
+well as the "MOF+" website (https://www.mofplus.org/content/show/MOF-FF).
+The package provides the following features:
+
+* a dispersion damped Buckhingham potential with spherical Gaussian type
+charges (dsf and long-range treatment of charges)
+
+* a modified angle/class2 including 6th order polynomial
+
+* a modified angle/cosine style which adds a dispersion damped Buckhingham
+1-3 interaction analog to the dihedral/charmm style
+
+* an improper style following the Wilson-Decius definition of the
+out-of-plane angle
+
+See the file doc/drude_tutorial.html for getting started.
+See the doc pages for "pair_style buck6d/coul/gauss", "angle_style class2",
+"angle_style cosine/buck6d", and "improper_style inversion/harmonic"
+commands to get started. Also see the above mentioned website and
+literature for further documentation about the force field.
+
+There are example scripts for using this force field in examples/PACKAGES/mofff.
+
+The creators of this package are Hendrik Heenen (hendrik.heenen at mytum.de)
+and Rochus Schmid (rochus.schmid at rub.de). Contact them directly if you
+have questions.

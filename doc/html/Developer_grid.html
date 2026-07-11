@@ -1,0 +1,935 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.26. Use of distributed grids within style classes &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_grid.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Commands" href="commands_list.html" />
+    <link rel="prev" title="4.25. Internal Styles" href="Developer_internal.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.26. Use of distributed grids within style classes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#style-commands">4.26.1. Style commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-data-allocation-and-access">4.26.2. Grid data allocation and access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-constructors">4.26.3. Grid class constructors</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-set-methods">4.26.4. Grid class set methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-setup-grid-method">4.26.5. Grid class setup_grid method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#more-grid-class-set-methods">4.26.6. More grid class set methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-get-methods">4.26.7. Grid class get methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-owned-ghost-communication">4.26.8. Grid class owned/ghost communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-remap-methods-for-load-balancing">4.26.9. Grid class remap methods for load balancing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grid-class-i-o-methods">4.26.10. Grid class I/O methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#style-class-grid-access-methods">4.26.11. Style class grid access methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#final-notes">4.26.12. Final notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.26. </span>Use of distributed grids within style classes</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_internal.html" class="btn btn-neutral float-left" title="4.25. Internal Styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="commands_list.html" class="btn btn-neutral float-right" title="Commands" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="use-of-distributed-grids-within-style-classes">
+<h1><span class="section-number">4.26. </span>Use of distributed grids within style classes<a class="headerlink" href="#use-of-distributed-grids-within-style-classes" title="Link to this heading"></a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 22Dec2022.</span></p>
+</div>
+<p>The LAMMPS source code includes two classes which facilitate the
+creation and use of distributed grids.  These are the Grid2d and
+Grid3d classes in the src/grid2d.cpp.h and src/grid3d.cpp.h files
+respectively.  As the names imply, they are used for 2d or 3d
+simulations, as defined by the <a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a> command.</p>
+<p>The <a class="reference internal" href="Howto_grid.html"><span class="doc">Howto_grid</span></a> page gives an overview of how
+distributed grids are defined from a user perspective, lists LAMMPS
+commands which use them, and explains how grid cell data is referenced
+from an input script.  Please read that page first as it motivates the
+coding details discussed here.</p>
+<p>This doc page is for users who wish to write new styles (input script
+commands) which use distributed grids.  There are a variety of
+material models and analysis methods which use atoms (or
+coarse-grained particles) and grids in tandem.</p>
+<p>A <em>distributed</em> grid means each processor owns a subset of the grid
+cells.  In LAMMPS, the subset for each processor will be a sub-block
+of grid cells with low and high index bounds in each dimension of the
+grid.  The union of the sub-blocks across all processors is the global
+grid.</p>
+<p>More specifically, a grid point is defined for each cell (by default
+the center point), and a processor owns a grid cell if its point is
+within the processor’s spatial subdomain.  The union of processor
+subdomains is the global simulation box.  If a grid point is on the
+boundary of two subdomains, the lower processor owns the grid cell.  A
+processor may also store copies of ghost cells which surround its
+owned cells.</p>
+<hr class="docutils" />
+<section id="style-commands">
+<h2><span class="section-number">4.26.1. </span>Style commands<a class="headerlink" href="#style-commands" title="Link to this heading"></a></h2>
+<p>Style commands which can define and use distributed grids include the
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>, <a class="reference internal" href="pair_style.html"><span class="doc">pair</span></a>,
+and <a class="reference internal" href="kspace_style.html"><span class="doc">kspace</span></a> styles.  If you wish grid cell data
+to persist across timesteps, then use a fix.  If you wish grid cell
+data to be accessible by other commands, then use a fix or compute.
+Currently in LAMMPS, the <a class="reference internal" href="pair_amoeba.html"><span class="doc">pair_style amoeba</span></a>,
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a>, and <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style msm</span></a> commands use distributed grids but do not require
+either of these capabilities; they thus create and use distributed
+grids internally.  Note that a pair style which needs grid cell data
+to persist could be coded to work in tandem with a fix style which
+provides that capability.</p>
+<p>The <em>size</em> of a grid is specified by the number of grid cells in each
+dimension of the simulation domain.  In any dimension the size can be
+any value &gt;= 1.  Thus a 10x10x1 grid for a 3d simulation is
+effectively a 2d grid, where each grid cell spans the entire
+z-dimension.  A 1x100x1 grid for a 3d simulation is effectively a 1d
+grid, where grid cells are a series of thin xz slabs in the
+y-dimension.  It is even possible to define a 1x1x1 3d grid, though it
+may be inefficient to use it in a computational sense.</p>
+<p>Note that the choice of grid size is independent of the number of
+processors or their layout in a grid of processor subdomains which
+overlays the simulations domain.  Depending on the distributed grid
+size, a single processor may own many 1000s or no grid cells.</p>
+<p>A command can define multiple grids, each of a different size.  Each
+grid is an instantiation of the Grid2d or Grid3d class.</p>
+<p>The command also defines what data it will store for each grid it
+creates and it allocates the multidimensional array(s) needed to
+store the data.  No grid cell data is stored within the Grid2d or
+Grid3d classes.</p>
+<p>If a single value per grid cell is needed, the data array will have
+the same dimension as the grid, i.e. a 2d array for a 2d grid,
+likewise for 3d.  If multiple values per grid cell are needed, the
+data array will have one more dimension than the grid, i.e. a 3d array
+for a 2d grid, or 4d array for a 3d grid.  A command can choose to
+define multiple data arrays for each grid it defines.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-data-allocation-and-access">
+<h2><span class="section-number">4.26.2. </span>Grid data allocation and access<a class="headerlink" href="#grid-data-allocation-and-access" title="Link to this heading"></a></h2>
+<p>The simplest way for a command to allocate and access grid cell data
+is to use the <em>create_offset()</em> methods provided by the Memory class.
+Arguments for these methods can be values returned by the
+<em>setup_grid()</em> method (described below), which define the extent of
+the grid cells (owned+ghost) the processor owns.  These 4 methods
+allocate memory for 2d (first two) and 3d (second two) grid data.  The
+two methods that end in “_offset” allocate an array which stores a single
+value per grid cell.  The two that end in “_last” allocate an array
+which stores <em>Nvalues</em> per grid cell.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// single value per cell for a 2d grid = 2d array</span>
+<span class="n">memory</span><span class="o">-&gt;</span><span class="n">create2d_offset</span><span class="p">(</span><span class="n">data2d_one</span><span class="p">,</span><span class="w"> </span><span class="n">nylo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nyhi_out</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">nxlo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nxhi_out</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data2d_one&quot;</span><span class="p">);</span>
+
+<span class="c1">// nvalues per cell for a 2d grid = 3d array</span>
+<span class="n">memory</span><span class="o">-&gt;</span><span class="n">create3d_offset_last</span><span class="p">(</span><span class="n">data2d_multi</span><span class="p">,</span><span class="w"> </span><span class="n">nylo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nyhi_out</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">nxlo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nxhi_out</span><span class="p">,</span><span class="w"> </span><span class="n">nvalues</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data2d_multi&quot;</span><span class="p">);</span>
+
+<span class="c1">// single value per cell for a 3d grid = 3d array</span>
+<span class="n">memory</span><span class="o">-&gt;</span><span class="n">create3d_offset</span><span class="p">(</span><span class="n">data3d_one</span><span class="p">,</span><span class="w"> </span><span class="n">nzlo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nzhi_out</span><span class="p">,</span><span class="w"> </span><span class="n">nylo_out</span><span class="p">,</span>
+<span class="w">                        </span><span class="n">nyhi_out</span><span class="p">,</span><span class="w"> </span><span class="n">nxlo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nxhi_out</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;data3d_one&quot;</span><span class="p">);</span>
+
+<span class="c1">// nvalues per cell for a 3d grid = 4d array</span>
+<span class="n">memory</span><span class="o">-&gt;</span><span class="n">create4d_offset_last</span><span class="p">(</span><span class="n">data3d_multi</span><span class="p">,</span><span class="w"> </span><span class="n">nzlo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nzhi_out</span><span class="p">,</span><span class="w"> </span><span class="n">nylo_out</span><span class="p">,</span>
+<span class="w">                             </span><span class="n">nyhi_out</span><span class="p">,</span><span class="w"> </span><span class="n">nxlo_out</span><span class="p">,</span><span class="w"> </span><span class="n">nxhi_out</span><span class="p">,</span><span class="w"> </span><span class="n">nvalues</span><span class="p">,</span>
+<span class="w">                             </span><span class="s">&quot;data3d_multi&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Note that these multidimensional arrays are allocated as contiguous
+chunks of memory where the x-index of the grid varies fastest, then y,
+and the z-index slowest.  For multiple values per grid cell, the
+Nvalues are contiguous, so their index varies even faster than the
+x-index.</p>
+<p>The key point is that the “offset” methods create arrays which are
+indexed by the range of indices which are the bounds of the sub-block
+of the global grid owned by this processor.  This means loops like
+these can be written in the caller code to loop over owned grid cells,
+where the “i” loop bounds are the range of owned grid cells for the
+processor.  These are the bounds returned by the <em>setup_grid()</em>
+method:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iylo</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">iyhi</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="o">++</span><span class="p">)</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ixlo</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">ixhi</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="n">data2d_one</span><span class="p">[</span><span class="n">iy</span><span class="p">][</span><span class="n">ix</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iylo</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">iyhi</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="o">++</span><span class="p">)</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ixlo</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">ixhi</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nvalues</span><span class="p">;</span><span class="w"> </span><span class="n">m</span><span class="o">++</span><span class="p">)</span>
+<span class="w">      </span><span class="n">data2d_multi</span><span class="p">[</span><span class="n">iy</span><span class="p">][</span><span class="n">ix</span><span class="p">][</span><span class="n">m</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">iz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">izlo</span><span class="p">;</span><span class="w"> </span><span class="n">iz</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">izhi</span><span class="p">;</span><span class="w"> </span><span class="n">iz</span><span class="o">++</span><span class="p">)</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iylo</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">iyhi</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ixlo</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">ixhi</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="o">++</span><span class="p">)</span>
+<span class="w">      </span><span class="n">data3d_one</span><span class="p">[</span><span class="n">iz</span><span class="p">][</span><span class="n">iy</span><span class="p">][</span><span class="n">ix</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">iz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">izlo</span><span class="p">;</span><span class="w"> </span><span class="n">iz</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">izhi</span><span class="p">;</span><span class="w"> </span><span class="n">iz</span><span class="o">++</span><span class="p">)</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iylo</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">iyhi</span><span class="p">;</span><span class="w"> </span><span class="n">iy</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ixlo</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">ixhi</span><span class="p">;</span><span class="w"> </span><span class="n">ix</span><span class="o">++</span><span class="p">)</span>
+<span class="w">       </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nvalues</span><span class="p">;</span><span class="w"> </span><span class="n">m</span><span class="o">++</span><span class="p">)</span>
+<span class="w">          </span><span class="n">data3d_multi</span><span class="p">[</span><span class="n">iz</span><span class="p">][</span><span class="n">iy</span><span class="p">][</span><span class="n">ix</span><span class="p">][</span><span class="n">m</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>Simply replacing the “i” bounds with “o” bounds, also returned by the
+<em>setup_grid()</em> method, would alter this code to loop over owned+ghost
+cells (the entire allocated grid).</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-constructors">
+<h2><span class="section-number">4.26.3. </span>Grid class constructors<a class="headerlink" href="#grid-class-constructors" title="Link to this heading"></a></h2>
+<p>The following subsections describe the public methods of the Grid3d
+class which a style command can invoke.  The Grid2d methods are
+similar; simply remove arguments which refer to the z-dimension.</p>
+<p>There are 2 constructors which can be used.  They differ in the extra
+i/o xyz lo/hi arguments:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">Grid3d</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">gcomm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">gnx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">gny</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">gnz</span><span class="p">)</span>
+<span class="n">Grid3d</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Comm</span><span class="w"> </span><span class="n">gcomm</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">gnx</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">gny</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">gnz</span><span class="p">,</span>
+<span class="w">       </span><span class="kt">int</span><span class="w"> </span><span class="n">ixlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ixhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">iylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">iyhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">izlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">izhi</span><span class="p">,</span>
+<span class="w">       </span><span class="kt">int</span><span class="w"> </span><span class="n">oxlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">oxhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">oylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">oyhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ozlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ozhi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Both constructors take the LAMMPS instance pointer and a communicator
+over which the grid will be distributed.  Typically this is the
+<em>world</em> communicator the LAMMPS instance is using.  The
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style msm</span></a> command creates a series of
+grids, each of different size, which are partitioned across different
+sub-communicators of processors.  Both constructors are also passed
+the global grid size: <em>gnx</em> by <em>gny</em> by <em>gnz</em>.</p>
+<p>The first constructor is used when the caller wants the Grid class to
+partition the global grid across processors; the Grid class defines
+which grid cells each processor owns and also which it stores as ghost
+cells.  A subsequent call to <em>setup_grid()</em>, discussed below, returns
+this info to the caller.</p>
+<p>The second constructor allows the caller to define the extent of owned
+and ghost cells, and pass them to the Grid class.  The 6 arguments
+which start with “i” are the inclusive lower and upper index bounds of
+the owned (inner) grid cells this processor owns in each of the 3
+dimensions within the global grid.  Owned grid cells are indexed from
+0 to N-1 in each dimension.</p>
+<p>The 6 arguments which start with “o” are the inclusive bounds of the
+owned+ghost (outer) grid cells it stores.  If the ghost cells are on
+the other side of a periodic boundary, then these indices may be &lt; 0
+or &gt;= N in any dimension, so that oxlo &lt;= ixlo and ixhi &gt;= ixhi is
+always the case.</p>
+<p>For example, if Nx = 100, then a processor might pass ixlo=50,
+ixhi=60, oxlo=48, oxhi=62 to the Grid class.  Or ixlo=0, ixhi=10,
+oxlo=-2, oxhi=13.  If a processor owns no grid cells in a dimension,
+then the ihi value should be specified as one less than the ilo value.</p>
+<p>Note that the only reason to use the second constructor is if the
+logic for assigning ghost cells is too complex for the Grid class to
+compute, using the various set() methods described next.  Currently
+only the kspace_style pppm/electrode and kspace_style msm commands use
+the second constructor.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-set-methods">
+<h2><span class="section-number">4.26.4. </span>Grid class set methods<a class="headerlink" href="#grid-class-set-methods" title="Link to this heading"></a></h2>
+<p>The following methods affect how the Grid class computes which owned
+and ghost cells are assigned to each processor.  <em>Set_shift_grid()</em> is
+the only method which influences owned cell assignment; all the rest
+influence ghost cell assignment.  These methods are only used with the
+first constructor; they are ignored if the second constructor is used.
+These methods must be called before the <em>setup_grid()</em> method is
+invoked, because they influence its operation.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">set_shift_grid</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">shift</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">set_distance</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">distance</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">set_stencil_atom</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">lo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">hi</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">set_shift_atom</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">shift_lo</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="n">shift_hi</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">set_stencil_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">lo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">hi</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">set_zfactor</span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="n">factor</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Processors own a grid cell if a point within the grid cell is inside
+the processor’s subdomain.  By default this is the center point of the
+grid cell.  The <em>set_shift_grid()</em> method can change this.  The <em>shift</em>
+argument is a value from 0.0 to 1.0 (inclusive) which is the offset of
+the point within the grid cell in each dimension.  The default is 0.5
+for the center of the cell.  A value of 0.0 is the lower left corner
+point; a value of 1.0 is the upper right corner point.  There is
+typically no need to change the default as it is optimal for
+minimizing the number of ghost cells needed.</p>
+<p>If a processor maps its particles to grid cells, it needs to allow for
+its particles being outside its subdomain between reneighboring.  The
+<em>distance</em> argument of the <em>set_distance()</em> method sets the furthest
+distance outside a processor’s subdomain which a particle can move.
+Typically this is half the neighbor skin distance, assuming
+reneighboring is done appropriately.  This distance is used in
+determining how many ghost cells a processor needs to store to enable
+its particles to be mapped to grid cells.  The default value is 0.0.</p>
+<p>Some commands, like the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a>
+command, map values (charge in the case of PPPM) to a stencil of grid
+cells beyond the grid cell the particle is in.  The stencil extent may
+be different in the low and high directions.  The <em>set_stencil_atom()</em>
+method defines the maximum values of those 2 extents, assumed to be
+the same in each of the 3 dimensions.  Both the lo and hi values are
+specified as positive integers.  The default values are both 0.</p>
+<p>Some commands, like the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a>
+command, shift the position of an atom when mapping it to a grid cell,
+based on the size of the stencil used to map values to the grid
+(charge in the case of PPPM).  The lo and hi arguments of the
+<em>set_shift_atom()</em> method are the minimum shift in the low direction
+and the maximum shift in the high direction, assumed to be the same in
+each of the 3 dimensions.  The shifts should be fractions of a grid
+cell size with values between 0.0 and 1.0 inclusive.  The default
+values are both 0.0.  See the src/pppm.cpp file for examples of these
+lo/hi values for regular and staggered grids.</p>
+<p>Some methods like the <a class="reference internal" href="fix_ttm.html"><span class="doc">fix ttm/grid</span></a> command, perform
+finite difference kinds of operations on the grid, to diffuse electron
+heat in the case of the two-temperature model (TTM).  This operation
+uses ghost grid values beyond the owned grid values the processor
+updates.  The <em>set_stencil_grid()</em> method defines the extent of this
+stencil in both directions, assumed to be the same in each of the 3
+dimensions.  Both the lo and hi values are specified as positive
+integers.  The default values are both 0.</p>
+<p>The kspace_style pppm commands allow a grid to be defined which
+overlays a volume which extends beyond the simulation box in the z
+dimension.  This is for the purpose of modeling a 2d-periodic slab
+(non-periodic in z) as if it were a larger 3d periodic system,
+extended (with empty space) in the z dimension.  The
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify slab</span></a> command is used to specify
+the ratio of the larger volume to the simulation volume; a volume
+ratio of ~3 is typical.  For this kind of model, the PPPM caller sets
+the global grid size <em>gnz</em> ~3x larger than it would be otherwise.
+This same ratio is passed by the PPPM caller as the <em>factor</em> argument
+to the Grid class via the <em>set_zfactor()</em> method (<em>set_yfactor()</em> for
+2d grids).  The Grid class will then assign ownership of the 1/3 of
+grid cells that overlay the simulation box to the processors which
+also overlay the simulation box.  The remaining 2/3 of the grid cells
+are assigned to processors whose subdomains are adjacent to the upper
+z boundary of the simulation box.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-setup-grid-method">
+<h2><span class="section-number">4.26.5. </span>Grid class setup_grid method<a class="headerlink" href="#grid-class-setup-grid-method" title="Link to this heading"></a></h2>
+<p>The <em>setup_grid()</em> method is called after the first constructor
+(above) to partition the grid across processors, which determines
+which grid cells each processor owns.  It also calculates how many
+ghost grid cells in each dimension and each direction each processor
+needs to store.</p>
+<p>Note that this method is NOT called if the second constructor above is
+used.  In that case, the caller assigns owned and ghost cells to each
+processor.</p>
+<p>Also note that this method must be invoked after any <em>set_*()</em> methods have
+been used, since they can influence the assignment of owned and ghost
+cells.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="n">setup_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ixlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ixhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">iyhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">izlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">izhi</span><span class="p">,</span>
+<span class="w">                </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">oxlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">oxhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">oylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">oyhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ozlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ozhi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The 6 return arguments which start with “i” are the inclusive lower
+and upper index bounds of the owned (inner) grid cells this processor
+owns in each of the 3 dimensions within the global grid.  Owned grid
+cells are indexed from 0 to N-1 in each dimension.</p>
+<p>The 6 return arguments which start with “o” are the inclusive bounds of
+the owned+ghost cells it owns.  If the ghost cells are on the other
+side of a periodic boundary, then these indices may be &lt; 0 or &gt;= N in
+any dimension, so that oxlo &lt;= ixlo and ixhi &gt;= ixhi is always the
+case.</p>
+</section>
+<hr class="docutils" />
+<section id="more-grid-class-set-methods">
+<h2><span class="section-number">4.26.6. </span>More grid class set methods<a class="headerlink" href="#more-grid-class-set-methods" title="Link to this heading"></a></h2>
+<p>The following 2 methods can be used to override settings made by the
+constructors above.  If used, they must be called called before the
+<em>setup_comm()</em> method is invoked, since it uses the settings that
+these methods override.  In LAMMPS these methods are called by by the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style msm</span></a> command for the grids it
+instantiates using the 2nd constructor above.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="n">set_proc_neighs</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">pxlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pxhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pyhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pzlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pzhi</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">set_caller_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">fxlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">fxhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">fylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">fyhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">fzlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">fzhi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <em>set_proc_neighs()</em> method sets the processor IDs of the 6
+neighboring processors for each processor.  Normally these would match
+the processor grid neighbors which LAMMPS creates to overlay the
+simulation box (the default).  However, MSM excludes non-participating
+processors from coarse grid communication when less processors are
+used.  This method allows MSM to override the default values.</p>
+<p>The <em>set_caller_grid()</em> method species the size of the data arrays the
+caller allocates.  Normally these would match the extent of the ghost
+grid cells (the default).  However the MSM caller allocates a larger
+data array (more ghost cells) for its finest-level grid, for use in
+other operations besides owned/ghost cell communication.  This method
+allows MSM to override the default values.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-get-methods">
+<h2><span class="section-number">4.26.7. </span>Grid class get methods<a class="headerlink" href="#grid-class-get-methods" title="Link to this heading"></a></h2>
+<p>The following methods allow the caller to query the settings for a
+specific grid, whether it created the grid or another command created
+it.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">get_size</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nxgrid</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nygrid</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nzgrid</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">get_bounds_owned</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">yhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">zlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">zhi</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">get_bounds_ghost</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">xhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ylo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">yhi</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">zlo</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">zhi</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The <em>get_size()</em> method returns the size of the global grid in each dimension.</p>
+<p>The <em>get_bounds_owned()</em> method return the inclusive index bounds of
+the grid cells this processor owns.  The values range from 0 to N-1 in
+each dimension.  These values are the same as the “i” values returned
+by <em>setup_grid()</em>.</p>
+<p>The <em>get_bounds_ghost()</em> method return the inclusive index bounds of
+the owned+ghost grid cells this processor stores.  The owned cell
+indices range from 0 to N-1, so these indices may be less than 0 or
+greater than or equal to N in each dimension.  These values are the
+same as the “o” values returned by <em>setup_grid()</em>.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-owned-ghost-communication">
+<h2><span class="section-number">4.26.8. </span>Grid class owned/ghost communication<a class="headerlink" href="#grid-class-owned-ghost-communication" title="Link to this heading"></a></h2>
+<p>If needed by the command, the following methods setup and perform
+communication of grid data to/from neighboring processors.  The
+<em>forward_comm()</em> method sends owned grid cell data to the
+corresponding ghost grid cells on other processors.  The
+<em>reverse_comm()</em> method sends ghost grid cell data to the
+corresponding owned grid cells on another processor.  The caller can
+choose to sum ghost grid cell data to the owned grid cell or simply
+copy it.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">setup_comm</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nbuf1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nbuf2</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">forward_comm</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nper</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nbyte</span><span class="p">,</span>
+<span class="w">                  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">buf1</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">buf2</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">reverse_comm</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nper</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nbyte</span><span class="p">,</span>
+<span class="w">                  </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">buf1</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">buf2</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">)</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">ghost_adjacent</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>The <em>setup_comm()</em> method must be called one time before performing
+<em>forward</em> or <em>reverse</em> communication (multiple times if needed).  It
+returns two integers, which should be used to allocate two buffers.
+The <em>nbuf1</em> and <em>nbuf2</em> values are the number of grid cells whose data
+will be stored in two buffers by the Grid class when <em>forward</em> or
+<em>reverse</em> communication is performed.  The caller should thus allocate
+them to a size large enough to hold all the data used in any single
+forward or reverse communication operation it performs.  Note that the
+caller may allocate and communicate multiple data arrays for a grid it
+instantiates.  This size includes the bytes needed for the data type
+of the grid data it stores, e.g. double precision values.</p>
+<p>The <em>forward_comm()</em> and <em>reverse_comm()</em> methods send grid cell data
+from owned to ghost cells, or ghost to owned cells, respectively, as
+described above.  The <em>caller</em> argument should be one of these values
+– Grid3d::COMPUTE, Grid3d::FIX, Grid3d::KSPACE, Grid3d::PAIR –
+depending on the style of the caller class.  The <em>ptr</em> argument is the
+“this” pointer to the caller class.  These two arguments are used to
+call back to pack()/unpack() functions in the caller class, as
+explained below.</p>
+<p>The <em>which</em> argument is a flag the caller can set which is passed to
+the caller’s pack()/unpack() methods.  This allows a single callback
+method to pack/unpack data for several different flavors of
+forward/reverse communication, e.g. operating on different grids or
+grid data.</p>
+<p>The <em>nper</em> argument is the number of values per grid cell to be
+communicated.  The <em>nbyte</em> argument is the number of bytes per value,
+e.g. 8 for double-precision values.  The <em>buf1</em> and <em>buf2</em> arguments
+are the two allocated buffers described above.  So long as they are
+allocated for the maximum size communication, they can be re-used for
+any <em>forward_comm()/reverse_comm()</em> call.  The <em>datatype</em> argument is
+the MPI_Datatype setting, which should match the buffer allocation and
+the <em>nbyte</em> argument.  E.g. MPI_DOUBLE for buffers storing double
+precision values.</p>
+<p>To use the <em>forward_grid()</em> method, the caller must provide two
+callback functions; likewise for use of the <em>reverse_grid()</em> methods.
+These are the 4 functions, their arguments are all the same.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">pack_forward_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">unpack_forward_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">pack_reverse_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">unpack_reverse_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The <em>which</em> argument is set to the <em>which</em> value of the
+<em>forward_comm()</em> or <em>reverse_comm()</em> calls.  It allows the pack/unpack
+function to select what data values to pack/unpack.  <em>Vbuf</em> is the
+buffer to pack/unpack the data to/from.  It is a void pointer so that
+the caller can cast it to whatever data type it chooses, e.g. double
+precision values.  <em>Nlist</em> is the number of grid cells to pack/unpack
+and <em>list</em> is a vector (nlist in length) of offsets to where the data
+for each grid cell resides in the caller’s data arrays, which is best
+illustrated with an example from the src/EXTRA-FIX/fix_ttm_grid.cpp
+class which stores the scalar electron temperature for 3d system in a
+3d grid (one value per grid cell):</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">FixTTMGrid::pack_forward_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="cm">/*which*/</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">vbuf</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">T_electron</span><span class="p">[</span><span class="n">nzlo_out</span><span class="p">][</span><span class="n">nylo_out</span><span class="p">][</span><span class="n">nxlo_out</span><span class="p">];</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nlist</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">src</span><span class="p">[</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">]];</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In this case, the <em>which</em> argument is not used, <em>vbuf</em> points to a
+buffer of doubles, and the electron temperature is stored by the
+FixTTMGrid class in a 3d array of owned+ghost cells called T_electron.
+That array is allocated by the <em>memory-&gt;create_3d_offset()</em> method
+described above so that the first grid cell it stores is indexed as
+T_electron[nzlo_out][nylo_out][nxlo_out].  The <em>nlist</em> values in
+<em>list</em> are integer offsets from that first grid cell.  Setting <em>src</em>
+to the address of the first cell allows those offsets to be used to
+access the temperatures to pack into the buffer.</p>
+<p>Here is a similar portion of code from the src/fix_ave_grid.cpp class
+which can store two kinds of data, a scalar count of atoms in a grid
+cell, and one or more grid-cell-averaged atom properties.  The code
+from its <em>unpack_reverse_grid()</em> function for 2d grids and multiple
+per-atom properties per grid cell (<em>nvalues</em>) is shown here:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">FixAveGrid::unpack_reverse_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="cm">/*which*/</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">auto</span><span class="w"> </span><span class="n">buf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">vbuf</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">count</span><span class="p">,</span><span class="o">*</span><span class="n">data</span><span class="p">,</span><span class="o">*</span><span class="n">values</span><span class="p">;</span>
+<span class="w">  </span><span class="n">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">count2d</span><span class="p">[</span><span class="n">nylo_out</span><span class="p">][</span><span class="n">nxlo_out</span><span class="p">];</span>
+<span class="w">  </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">array2d</span><span class="p">[</span><span class="n">nylo_out</span><span class="p">][</span><span class="n">nxlo_out</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">  </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nlist</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">count</span><span class="p">[</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">];</span>
+<span class="w">    </span><span class="n">values</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">&amp;</span><span class="n">data</span><span class="p">[</span><span class="n">nvalues</span><span class="o">*</span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">]];</span>
+<span class="w">    </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nvalues</span><span class="p">;</span><span class="w"> </span><span class="n">j</span><span class="o">++</span><span class="p">)</span>
+<span class="w">     </span><span class="n">values</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">];</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Both the count and the multiple values per grid cell are communicated
+in <em>vbuf</em>.  Note that <em>data</em> is now a pointer to the first value in
+the first grid cell.  And <em>values</em> points to where the first value in
+<em>data</em> is for an offset of grid cells, calculated by multiplying
+<em>nvalues</em> by <em>list[i]</em>.  Finally, because this is reverse
+communication, the communicated buffer values are summed to the caller
+values.</p>
+<p>The <em>ghost_adjacent()</em> method returns a 1 if every processor can
+perform the necessary owned/ghost communication with only its nearest
+neighbor processors (4 in 2d, 6 in 3d).  It returns a 0 if any
+processor’s ghost cells extend further than nearest neighbor
+processors.</p>
+<p>This can be checked by callers who have the option to change the
+global grid size to ensure more efficient nearest-neighbor-only
+communication if they wish.  In this case, they instantiate a grid of
+a given size (resolution), then invoke <em>setup_comm()</em> followed by
+<em>ghost_adjacent()</em>.  If the ghost cells are not adjacent, they destroy
+the grid instance and start over with a higher-resolution grid.
+Several of the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a> command
+variants have this option.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-remap-methods-for-load-balancing">
+<h2><span class="section-number">4.26.9. </span>Grid class remap methods for load balancing<a class="headerlink" href="#grid-class-remap-methods-for-load-balancing" title="Link to this heading"></a></h2>
+<p>The following methods are used when a load-balancing operation,
+triggered by the <a class="reference internal" href="balance.html"><span class="doc">balance</span></a> or <a class="reference internal" href="fix_balance.html"><span class="doc">fix balance</span></a> commands, changes the partitioning of the simulation
+domain into processor subdomains.</p>
+<p>In order to work with load-balancing, any style command (compute, fix,
+pair, or kspace style) which allocates a grid and stores per-grid data
+should define a <em>reset_grid()</em> method; it takes no arguments.  It will
+be called by the two balance commands after they have reset processor
+subdomains and migrated atoms (particles) to new owning processors.
+The <em>reset_grid()</em> method will typically perform some or all of the
+following operations.  See the src/fix_ave_grid.cpp and
+src/EXTRA_FIX/fix_ttm_grid.cpp files for examples of <em>reset_grid()</em>
+methods, as well as the <em>pack_remap_grid()</em> and <em>unpack_remap_grid()</em>
+functions.</p>
+<p>First, the <em>reset_grid()</em> method can instantiate new grid(s) of the
+same global size, then call <em>setup_grid()</em> to partition them via the
+new processor subdomains.  At this point, it can invoke the
+<em>identical()</em> method which compares the owned and ghost grid cell
+index bounds between two grids, the old grid passed as a pointer
+argument, and the new grid whose <em>identical()</em> method is being called.
+It returns 1 if the indices match on all processors, otherwise 0.  If
+they all match, then the new grids can be deleted; the command can
+continue to use the old grids.</p>
+<p>If not, then the command should allocate new grid data array(s) which
+depend on the new partitioning.  If the command does not need to
+persist its grid data from the old partitioning to the new one, then
+the command can simply delete the old data array(s) and grid
+instance(s).  It can then return.</p>
+<p>If the grid data does need to persist, then the data for each grid
+needs to be “remapped” from the old grid partitioning to the new grid
+partitioning.  The <em>setup_remap()</em> and <em>remap()</em> methods are used for
+that purpose.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">identical</span><span class="p">(</span><span class="n">Grid3d</span><span class="w"> </span><span class="o">*</span><span class="n">old</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">setup_remap</span><span class="p">(</span><span class="n">Grid3d</span><span class="w"> </span><span class="o">*</span><span class="n">old</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nremap_buf1</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">nremap_buf2</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">remap</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nper</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nbyte</span><span class="p">,</span>
+<span class="w">           </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">buf1</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">buf2</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The arguments to these methods are identical to those for
+the <em>setup_comm()</em> and <em>forward_comm()</em> or <em>reverse_comm()</em> methods.
+However the returned <em>nremap_buf1</em> and <em>nremap2_buf</em> values will be
+different than the <em>nbuf1</em> and <em>nbuf2</em> values.  They should be used to
+allocate two different remap buffers, separate from the owned/ghost
+communication buffers.</p>
+<p>To use the <em>remap()</em> method, the caller must provide two
+callback functions:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">pack_remap_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlist</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">unpack_remap_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Their arguments are identical to those for the <em>pack_forward_grid()</em>
+and <em>unpack_forward_grid()</em> callback functions (or the reverse
+variants) discussed above.  Normally, both these methods pack/unpack
+all the data arrays for a given grid.  The <em>which</em> argument of the
+<em>remap()</em> method sets the <em>which</em> value for the pack/unpack functions.
+If the command instantiates multiple grids (of different sizes), it
+can be used within the pack/unpack methods to select which grid’s data
+is being remapped.</p>
+<p>Note that the <em>pack_remap_grid()</em> function must copy values from the
+OLD grid data arrays into the <em>vbuf</em> buffer. The <em>unpack_remap_grid()</em>
+function must copy values from the <em>vbuf</em> buffer into the NEW grid
+data arrays.</p>
+<p>After the remap operation for grid cell data has been performed, the
+<em>reset_grid()</em> method can deallocate the two remap buffers it created,
+and can then exit.</p>
+</section>
+<hr class="docutils" />
+<section id="grid-class-i-o-methods">
+<h2><span class="section-number">4.26.10. </span>Grid class I/O methods<a class="headerlink" href="#grid-class-i-o-methods" title="Link to this heading"></a></h2>
+<p>There are two I/O methods in the Grid classes which can be used to
+read and write grid cell data to files.  The caller can decide on the
+precise format of each file, e.g. whether header lines are prepended
+or comment lines are allowed.  Fundamentally, the file should contain
+one line per grid cell for the entire global grid.  Each line should
+contain identifying info as to which grid cell it is, e.g. a unique
+grid cell ID or the ix,iy,iz indices of the cell within a 3d grid.
+The line should also contain one or more data values which are stored
+within the grid data arrays created by the command</p>
+<p>For grid cell IDs, the LAMMPS convention is that the IDs run from 1 to
+N, where N = Nx * Ny for 2d grids and N = Nx * Ny * Nz for 3d grids.
+The x-index of the grid cell varies fastest, then y, and the z-index
+varies slowest.  So for a 10x10x10 grid the cell IDs from 901-1000
+would be in the top xy layer of the z dimension.</p>
+<p>The <em>read_file()</em> method does something simple.  It reads a chunk of
+consecutive lines from the file and passes them back to the caller to
+process.  The caller provides a <em>unpack_read_grid()</em> function for this
+purpose.  The function checks the grid cell ID or indices and only
+stores grid cell data for the grid cells it owns.</p>
+<p>The <em>write_file()</em> method does something slightly more complex.  Each
+processor packs the data for its owned grid cells into a buffer.  The
+caller provides a <em>pack_write_grid()</em> function for this purpose.  The
+<em>write_file()</em> method then loops over all processors and each sends
+its buffer one at a time to processor 0, along with the 3d (or 2d)
+index bounds of its grid cell data within the global grid.  Processor
+0 calls back to the <em>unpack_write_grid()</em> function provided by the
+caller with the buffer.  The function writes one line per grid cell to
+the file.</p>
+<p>See the src/EXTRA_FIX/fix_ttm_grid.cpp file for examples of now both
+these methods are used to read/write electron temperature values
+from/to a file, as well as for implementations of the the pack/unpack
+functions described below.</p>
+<p>Here are the details of the two I/O methods and the 3 callback
+functions.  See the src/fix_ave_grid.cpp file for examples of all of
+them.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="n">read_file</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="kt">FILE</span><span class="w"> </span><span class="o">*</span><span class="n">fp</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nchunk</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">maxline</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">write_file</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">caller</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span>
+<span class="w">                </span><span class="kt">int</span><span class="w"> </span><span class="n">nper</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nbyte</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_Datatype</span><span class="w"> </span><span class="n">datatype</span>
+</pre></div>
+</div>
+<p>The <em>caller</em> argument in both methods should be one of these values –
+Grid3d::COMPUTE, Grid3d::FIX, Grid3d::KSPACE, Grid3d::PAIR –
+depending on the style of the caller class.  The <em>ptr</em> argument in
+both methods is the “this” pointer to the caller class.  These 2
+arguments are used to call back to pack()/unpack() functions in the
+caller class, as explained below.</p>
+<p>For the <em>read_file()</em> method, the <em>fp</em> argument is a file pointer to
+the file to be read from, opened on processor 0 by the caller.
+<em>Nchunk</em> is the number of lines to read per chunk, and <em>maxline</em> is
+the maximum number of characters per line.  The Grid class will
+allocate a buffer for storing chunks of lines based on these values.</p>
+<p>For the <em>write_file()</em> method, the <em>which</em> argument is a flag the
+caller can set which is passed back to the caller’s pack()/unpack()
+methods.  If the command instantiates multiple grids (of different
+sizes), this flag can be used within the pack/unpack methods to select
+which grid’s data is being written out (presumably to different
+files).  the <em>nper</em> argument is the number of values per grid cell to
+be written out.  The <em>nbyte</em> argument is the number of bytes per
+value, e.g. 8 for double-precision values.  The <em>datatype</em> argument is
+the MPI_Datatype setting, which should match the <em>nbyte</em> argument.
+E.g. MPI_DOUBLE for double precision values.</p>
+<p>To use the <em>read_grid()</em> method, the caller must provide one callback
+function.  To use the <em>write_grid()</em> method, it provides two callback
+functions:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">unpack_read_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlines</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="n">buffer</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">pack_write_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">)</span>
+<span class="kt">void</span><span class="w"> </span><span class="n">unpack_write_grid</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">which</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">vbuf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">bounds</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For <em>unpack_read_grid()</em> the <em>nlines</em> argument is the number of lines
+of character data read from the file and contained in <em>buffer</em>.  The
+lines each include a newline character at the end.  When the function
+processes the lines, it may choose to skip some of them (header or
+comment lines).  It returns an integer count of the number of grid
+cell lines it processed.  This enables the Grid class <em>read_file()</em>
+method to know when it has read the correct number of lines.</p>
+<p>For <em>pack_write_grid()</em> and <em>unpack_write_grid()</em>, the <em>vbuf</em> argument
+is the buffer to pack/unpack data to/from.  It is a void pointer so
+that the caller can cast it to whatever data type it chooses,
+e.g. double precision values.  the <em>which</em> argument is set to the
+<em>which</em> value of the <em>write_file()</em> method.  It allows the caller to
+choose which grid data to operate on.</p>
+<p>For <em>unpack_write_grid()</em>, the <em>bounds</em> argument is a vector of 4 or 6
+integer grid indices (4 for 2d, 6 for 3d).  They are the
+xlo,xhi,ylo,yhi,zlo,zhi index bounds of the portion of the global grid
+which the <em>vbuf</em> holds owned grid cell data values for.  The caller
+should loop over the values in <em>vbuf</em> with a double loop (2d) or
+triple loop (3d), similar to the code snippets listed above.  The
+x-index varies fastest, then y, and the z-index slowest.  If there are
+multiple values per grid cell, the index for those values varies
+fastest of all.  The caller can add the x,y,z indices of the grid cell
+(or the corresponding grid cell ID) to the data value(s) written as
+one line to the output file.</p>
+</section>
+<hr class="docutils" />
+<section id="style-class-grid-access-methods">
+<h2><span class="section-number">4.26.11. </span>Style class grid access methods<a class="headerlink" href="#style-class-grid-access-methods" title="Link to this heading"></a></h2>
+<p>A style command can enable its grid cell data to be accessible from
+other commands.  For example <a class="reference internal" href="fix_ave_grid.html"><span class="doc">fix ave/grid</span></a> or
+<a class="reference internal" href="dump.html"><span class="doc">dump grid</span></a> or <a class="reference internal" href="dump.html"><span class="doc">dump grid/vtk</span></a>.  Those
+commands access the grid cell data by using a <em>grid reference</em> in
+their input script syntax, as described on the <a class="reference internal" href="Howto_grid.html"><span class="doc">Howto_grid</span></a> doc page.  They look like this:</p>
+<ul class="simple">
+<li><p>c_ID:gname:dname</p></li>
+<li><p>c_ID:gname:dname[I]</p></li>
+<li><p>f_ID:gname:dname</p></li>
+<li><p>f_ID:gname:dname[I]</p></li>
+</ul>
+<p>Each grid command instantiates has a unique <em>gname</em>, defined by the
+command.  Likewise each grid cell data structure (scalar or vector)
+associated with a grid has a unique <em>dname</em>, also defined by the
+command.</p>
+<p>To provide access to its grid cell data, a style command needs to
+implement the following 4 methods:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">get_grid_by_name</span><span class="p">(</span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">dim</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="nf">get_grid_by_index</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">get_griddata_by_name</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">igrid</span><span class="p">,</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">string</span><span class="w"> </span><span class="o">&amp;</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="n">ncol</span><span class="p">);</span>
+<span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="nf">get_griddata_by_index</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">index</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Currently only computes and fixes can implement these methods.  If it
+does so, the compute of fix should also set the variable
+<em>pergrid_flag</em> to 1.  See any of the compute or fix commands which set
+“pergrid_flag = 1” for examples of how these 4 functions can be
+implemented.</p>
+<p>The <em>get_grid_by_name()</em> method takes a grid name as input and returns
+two values.  The <em>dim</em> argument is returned as 2 or 3 for the
+dimensionality of the grid.  The function return is a grid index from
+0 to G-1 where <em>G</em> is the number of grids the command instantiates.  A
+value of -1 is returned if the grid name is not recognized.</p>
+<p>The <em>get_grid_by_index()</em> method is called after the
+<em>get_grid_by_name()</em> method, using the grid index it returned as its
+argument.  This method will return a pointer to the Grid2d or Grid3d
+class.  The caller can use this to query grid attributes, such as the
+global size of the grid, to ensure it is of the expected size.</p>
+<p>The <em>get_griddata_by_name()</em> method takes a grid index <em>igrid</em> and a
+data name as input.  It returns two values.  The <em>ncol</em> argument is
+returned as a 0 if the grid data is a single value (scalar) per grid
+cell, or an integer M &gt; 0 if there are M values (vector) per grid
+cell.  Note that even if M = 1, it is still a 1-length vector, not a
+scalar.  The function return is a data index from 0 to D-1 where <em>D</em>
+is the number of data sets associated with that grid by the command.
+A value of -1 is returned if the data name is not recognized.</p>
+<p>The <em>get_griddata_by_index()</em> method is called after the
+<em>get_griddata_by_name()</em> method, using the data index it returned as
+its argument.  This method will return a pointer to the
+multidimensional array which stores the requested data.</p>
+<p>As in the discussion above of the Memory class <em>create_offset()</em>
+methods, the dimensionality of the array associated with the returned
+pointer depends on whether it is a 2d or 3d grid and whether there is
+a single or multiple values stored for each grid cell:</p>
+<ul class="simple">
+<li><p>single value per cell for a 2d grid = 2d array pointer</p></li>
+<li><p>multiple values per cell for a 2d grid = 3d array pointer</p></li>
+<li><p>single value per cell for a 3d grid = 3d array pointer</p></li>
+<li><p>multiple values per cell for a 3d grid = 4d array pointer</p></li>
+</ul>
+<p>The caller will typically access the data by casting the void pointer
+to the corresponding array pointer and using nested loops in x,y,z
+between owned or ghost index bounds returned by the
+<em>get_bounds_owned()</em> or <em>get_bounds_ghost()</em> methods to index into the
+array.  Example code snippets with this logic were listed above,</p>
+</section>
+<hr class="docutils" />
+<section id="final-notes">
+<h2><span class="section-number">4.26.12. </span>Final notes<a class="headerlink" href="#final-notes" title="Link to this heading"></a></h2>
+<p>Finally, here are some additional issues to pay attention to for
+writing any style command which uses distributed grids via the Grid2d
+or Grid3d class.</p>
+<p>The command destructor should delete all instances of the Grid class,
+any buffers it allocated for forward/reverse or remap communication,
+and any data arrays it allocated to store grid cell data.</p>
+<p>If a command is intended to work for either 2d or 3d simulations, then
+it should have logic to instantiate either 2d or 3d grids and their
+associated data arrays, depending on the dimension of the simulation
+box.  The <a class="reference internal" href="fix_ave_grid.html"><span class="doc">fix ave/grid</span></a> command is an example of
+such a command.</p>
+<p>When a command maps its particles to the grid and updates grid cell
+values, it should check that it is not updating or accessing a grid
+cell value outside the range of its owned+ghost cells, and generate an
+error message if that is the case.  This could happen, for example, if
+a particle has moved further than half the neighbor skin distance,
+because the neighbor list update criterion are not adequate to prevent
+it from happening.  See the src/KSPACE/pppm.cpp file and its
+<em>particle_map()</em> method for an example of this kind of error check.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_internal.html" class="btn btn-neutral float-left" title="4.25. Internal Styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="commands_list.html" class="btn btn-neutral float-right" title="Commands" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

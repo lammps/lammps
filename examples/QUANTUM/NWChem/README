@@ -1,0 +1,181 @@
+# Test runs with coupling of LAMMPS and NWChem PWDFT
+
+Step 0: What NWChem/PWDF currently supports
+Step 1: Build LAMMPS
+Step 2: Install or download/build MDI code coupling package
+Step 3: Download/build NWChem PWDFT
+Step 4: Perform test runs in any of 3 modes
+
+---------------------------------
+---------------------------------
+
+Step 0: What NWChem/PWDFT currently supports
+
+PWDFT can be used with fix mdi/qm to perform QM calculations of an
+entire system and with fix mdi/qmmm for QMMM simulations.  For QMMM it
+can use the potential mode of fix mdi/qmmm, but not the direct mode.
+PWDFT can calculate a QM energy and QM forces on each atom, but it
+cannot compute a QM stress tensor.
+
+PWDFT supports MPI parallelism, but not threading parallelism.
+
+---------------------------------
+---------------------------------
+
+Step 1: Build LAMMPS
+
+The MDI and molecule packags are needed.  Copy the final LAMMPS
+executable into the examples/QUANTUM/NWChem directory.
+
+Traditional make:
+
+% cd ~/lammps/lib/mdi
+% python Install.py -m mpi
+% cd ~/lammps/src
+% make yes-mdi yes-molecule
+% make -j mpi
+% cp lmp_mpi ~/lammps/examples/QUANTUM/NWChem
+
+CMake:
+
+% cd ~/lammps
+% mkdir build; cd build
+% cmake -DPKG_MDI=yes -DPKG_MOLECULE=yes ../cmake
+% make -j
+% cp lmp ~/lammps/examples/QUANTUM/NWChem/lmp_mpi
+
+---------------------------------
+---------------------------------
+
+Step 2: Install or download/build MDI code coupling package
+
+To simply use the MDI python module for the example scripts in this
+dir, you only need to install the MDI python module in your
+environment.  Alternatively, you can download/build MDI itself, which
+will include its documentation and examples (as well as libraries and
+Python interface).
+
+NOTE: It should be fine to leave off the version number for the python
+module installs, to just grab the latest MDI version.  1.4.16 is the
+version of MDI LAMMPS is currently using.
+
+(option 1) Install MDI python module via pip:
+
+% pip install 'pymdi>=1.4.14'
+
+(option 2) Install MDI python module via conda:
+
+% conda install -c conda-forge pymdi=1.4.16
+
+(option 3) Download/build MDI code coupling package
+
+(a) clone the MDI Git repo
+
+% git clone https://github.com/MolSSI-MDI/MDI_Library.git mdi
+
+(b) build MDI
+
+% cd mdi
+% mkdir build; cd build
+% cmake ..
+% make -j
+
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc file so that
+Python can find MDI:
+
+For bash:
+
+% export PYTHONPATH="${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
+% hash -r
+
+For (t)csh:
+
+% setenv PYTHONPATH "${HOME}/mdi/build/MDI_Library:${PYTHONPATH}"
+% rehash
+
+(d) Check import of 3 Python modules which the script that wraps
+NWChem will need:
+
+% python
+>>> import numpy as np
+>>> from mpi4py import MPI
+>>> import mdi
+
+---------------------------------
+---------------------------------
+
+Step 3: Download/build NWChem PWDFT
+
+NOTE: As of March 2023, this PWDFT-only repo is part of the new
+NWChemEx (exascale) version of NWChem.  It will be included in the
+NWChemEx repo when it is publicly released.  This doc page will be
+updated when that happens.
+
+(a) clone the PWDFT Git repo
+
+% mkdir nwchem; cd nwchem
+% git clone https://github.com/ebylaska/PWDFT.git PWDFT
+
+(b) build PWDFT
+
+% cd ~/nwchem/PWDFT
+% cd build_library; rm -r *
+% cmake -DMAKE_LIBRARY=true -DCMAKE_POSITION_INDEPENDENT_CODE=ON ../Nwpw 
+% make -j        # should produce libpwdft.so in build_library
+
+(c) Add a line like this to your ~/.bashrc or ~/.cshrc
+file so that the libpwdft.so file can be found:
+
+For bash:
+
+% export LD_LIBRARY_PATH="${HOME}/nwchem/PWDFT/build_library:${LD_LIBRARY_PATH}"
+% hash -r
+
+For (t)csh:
+
+% setenv LD_LIBRARY_PATH "${HOME}/nwchem/PWDFT/build_library:${LD_LIBRARY_PATH}"
+% rehash
+
+---------------------------------
+---------------------------------
+
+Step 4: Perform test runs in any of 3 modes
+
+These tests are in lammps/examples/QUANTUM/NWChem
+
+in.series = series of several W conformations
+in.water.qmmm = QMMM of two-water system, 1 QM + 1 MM
+in.zeolite.qmmm = QMMM of zeolite, MM zeolite + QM methane molecule
+
+** run LAMMPS-only versions of water and zeolite problems
+
+lmp_mpi -log log.water.mm.1 < in.water.mm
+
+lmp_mpi -log log.zeolite.mm.1 < in.zeolite.mm
+
+** run LAMMPS and PWDFT with TCP/IP, 1 or more procs each
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.series.tcp.1 -in in.series &
+python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.w.nw w.nw log.series.pwdft.tcp.1
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.water.qmmm.tcp.1 -in in.water.qmmm &
+mpirun -np 2 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.water.nw water.nw log.water.pwdft.qmmm.tcp.2
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method TCP -port 8021" -log log.zeolite.qmmm.tcp.1 -in in.zeolite.qmmm &
+mpirun -np 8 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method TCP -port 8021 -hostname localhost" template.methane.nw methane.nw log.zeolite.pwdft.qmmm.tcp.8
+
+** run LAMMPS and PWDFT with MPI, 1 or more procs each
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.series.mpi.1 -in in.series : -np 1 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.w.nw w.nw log.series.pwdft.mpi.1
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.water.qmmm.mpi.1 -in in.water.qmmm : -np 2 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.water.nw water.nw log.water.pwdft.qmmm.mpi.2
+
+mpirun -np 1 lmp_mpi -mdi "-name LMP -role DRIVER -method MPI" -log log.zeolite.qmmm.mpi.1 -in in.zeolite.qmmm : -np 8 python nwchem_mdi.py -mdi "-name NWChem -role ENGINE -method MPI" template.methane.nw methane.nw log.zeolite.pwdft.qmmm.mpi.8
+
+** run PWDFT as plugin MDI engine, 1 or more procs
+
+lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/NWChem" -log log.series.plugin.1 -in in.series.plugin
+
+mpirun -np 2 lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/NWChem" -log log.water.qmmm.plugin.2 -in in.water.qmmm.plugin
+
+mpirun -np 8 lmp_mpi -mdi "-name LMP -role DRIVER -method LINK -plugin_path ${HOME}/lammps/examples/QUANTUM/NWChem" -log log.zeolite.qmmm.plugin.8 -in in.zeolite.qmmm.plugin

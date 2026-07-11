@@ -1,0 +1,57 @@
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data  	data.m-HfO2
+#read_data  	data.t-HfO2
+#read_data  	data.c-HfO2
+
+mass		1 178.0
+group    	type1 type 1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+mass		2 16.00
+group    	type2 type 2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+
+pair_style	comb
+pair_coeff	* * ffield.comb Hf O
+
+neighbor	0.5 bin
+neigh_modify	every 10 delay 10 check yes 
+
+timestep        0.00020
+
+thermo_style	custom step temp etotal pe evdwl ecoul press vol lx ly lz xz c_q1 c_q2
+thermo_modify	norm yes
+
+fix		1 all nvt temp 300.0 300.0 0.1
+thermo      	1
+run    		1
+fix  		2 all qeq/comb 1 0.003 file fq.out
+run    		5
+
+unfix    	1
+fix		1 all box/relax aniso 0.0 vmax 0.0002
+
+# should minimize to higher tolerance in practice
+
+#minimize	1.0e-12  1.0e-18  1000  10000
+minimize	1.0e-4  1.0e-6  1000  10000
+min_modify	dmax 0.005 line quadratic
+
+#dump		1 all cfg 10 *.cfg id type xs ys zs q vx vy vz fx fy fz
+#dump_modify	1 element Hf O
+
+#dump		2 all image 10 image.*.jpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 2 element Hf O
+
+#dump		3 all movie 10 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 2 element Hf O
+
+velocity	all create 300.1 2398378
+run  		10

@@ -1,0 +1,1003 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fix pimd/langevin command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/fix_pimd.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix planeforce command" href="fix_planeforce.html" />
+    <link rel="prev" title="fix phonon command" href="fix_phonon.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fix Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_acks2_reaxff.html">fix acks2/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_add_heat.html">fix add/heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_atom.html">fix addtorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_group.html">fix addtorque/group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_alchemy.html">fix alchemy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_align_self.html">fix align/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_bitorsion.html">fix amoeba/bitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_pitorsion.html">fix amoeba/pitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_weight_apip.html">fix atom_weight/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_grid.html">fix ave/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_moments.html">fix ave/moments command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial.html">fix ave/spatial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial_sphere.html">fix ave/spatial/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_baoab.html">fix baoab command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_react.html">fix bond/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html">fix brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-sphere-command">fix brownian/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-asphere-command">fix brownian/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_charge_regulation.html">fix charge/regulation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_damping_cundall.html">fix damping/cundall command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform.html">fix deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform_pressure.html">fix deform/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html#fix-efield-tip4p-command">fix efield/tip4p command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield_lepton.html">fix efield/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html">fix electrode/conp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-conq-command">fix electrode/conq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-thermo-command">fix electrode/thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gemc.html">fix gemc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gjf.html">fix gjf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_arrows.html">fix graphics/arrows command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_chunk.html">fix graphics/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_isosurface.html">fix graphics/isosurface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_labels.html">fix graphics/labels command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_lines.html">fix graphics/lines command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_objects.html">fix graphics/objects command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_periodic.html">fix graphics/periodic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_replica.html">fix graphics/replica command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat_flow.html">fix heat/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hmc.html">fix hmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ilves.html">fix ilves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_apip.html">fix lambda/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_la_csp_apip.html">fix lambda/la/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_thermostat_apip.html">fix lambda_thermostat/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qm.html">fix mdi/qm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qmmm.html">fix mdi/qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mol_swap.html">fix mol/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neighbor_swap.html">fix neighbor/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nonaffine_displacement.html">fix nonaffine/displacement command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff_virial.html">fix numdiff/virial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_bpm_sphere.html">fix nve/bpm/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pair.html">fix pair command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix pimd/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-pimd-nvt-command">fix pimd/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-pimd-langevin-bosonic-command">fix pimd/langevin/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-pimd-nvt-bosonic-command">fix pimd/nvt/bosonic command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html">fix polarize/bem/gmres command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-bem-icc-command">fix polarize/bem/icc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-functional-command">fix polarize/functional command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_langevin.html">fix press/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-ctip-command">fix qeq/ctip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reaxff.html">fix qeq/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_rel_reaxff.html">fix qeq/rel/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtpie_reaxff.html">fix qtpie/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_bonds.html">fix reaxff/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_species.html">fix reaxff/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo.html">fix rheo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_oxidation.html">fix rheo/oxidation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_pressure.html">fix rheo/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_thermal.html">fix rheo/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_viscosity.html">fix rheo/viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-small-command">fix rigid/nph/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_set.html">fix set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_settorque_atom.html">fix settorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sgcmc.html">fix sgcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_global.html">fix surface/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_local.html">fix surface/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-grid-command">fix ttm/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ttm.html#fix-ttm-thermal-command">fix ttm/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_nonlinear.html">fix viscous/nonlinear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_sphere.html">fix viscous/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-outside-command">fix wall/harmonic/outside command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lepton-command">fix wall/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-table-command">fix wall/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_flow.html">fix wall/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="fixes.html">Fix Styles</a></li>
+      <li class="breadcrumb-item active">fix pimd/langevin command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="fix_phonon.html" class="btn btn-neutral float-left" title="fix phonon command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_planeforce.html" class="btn btn-neutral float-right" title="fix planeforce command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="fix-pimd-langevin-command">
+<span id="index-3"></span><span id="index-2"></span><span id="index-1"></span><span id="index-0"></span><h1>fix pimd/langevin command<a class="headerlink" href="#fix-pimd-langevin-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-pimd-nvt-command">
+<h1>fix pimd/nvt command<a class="headerlink" href="#fix-pimd-nvt-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-pimd-langevin-bosonic-command">
+<h1>fix pimd/langevin/bosonic command<a class="headerlink" href="#fix-pimd-langevin-bosonic-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-pimd-nvt-bosonic-command">
+<h1>fix pimd/nvt/bosonic command<a class="headerlink" href="#fix-pimd-nvt-bosonic-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>style = <em>pimd/langevin</em> or <em>pimd/nvt</em> or <em>pimd/langevin/bosonic</em> or <em>pimd/nvt/bosonic</em> = style name of this fix command</p></li>
+<li><p>zero or more keyword/value pairs may be appended</p></li>
+<li><p>keywords for style <em>pimd/nvt</em></p>
+<pre class="literal-block"><em>keywords</em> = <em>method</em> or <em>fmass</em> or <em>sp</em> or <em>temp</em> or <em>nhc</em>
+<em>method</em> value = <em>pimd</em> or <em>nmpimd</em> or <em>cmd</em>
+<em>fmass</em> value = scaling factor on mass
+<em>sp</em> value = scaling factor on Planck constant
+<em>temp</em> value = temperature (temperature units)
+<em>nhc</em> value = Nc = number of chains in Nose-Hoover thermostat</pre>
+</li>
+<li><p>keywords for style <em>pimd/langevin</em></p>
+<pre class="literal-block"><em>keywords</em> = <em>method</em> or <em>integrator</em> or <em>ensemble</em> or <em>fmmode</em> or <em>fmass</em> or <em>scale</em> or <em>sp</em> or <em>temp</em> or <em>thermostat</em> or <em>tau</em> or <em>iso</em> or <em>aniso</em> or <em>barostat</em> or <em>taup</em> or <em>fixcom</em> or <em>esynch</em>
+<em>method</em> value = <em>nmpimd</em> (default) or <em>pimd</em>
+<em>integrator</em> value = <em>obabo</em> or <em>baoab</em>
+<em>ensemble</em> value = <em>nvt</em> or <em>nve</em> or <em>nph</em> or <em>npt</em>
+<em>fmmode</em> value = <em>physical</em> or <em>normal</em>
+<em>fmass</em> value = scaling factor on mass
+<em>sp</em> value = scaling factor on Planck constant
+<em>temp</em> value = temperature (temperature unit)
+     temperature = target temperature of the thermostat
+<em>thermostat</em> values = style seed
+     style value = <em>PILE_L</em>
+     seed = random number generator seed
+<em>tau</em> value = thermostat damping parameter (time unit)
+<em>scale</em> value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
+<em>iso</em> or <em>aniso</em> values = pressure (pressure unit)
+    pressure = scalar external pressure of the barostat
+<em>barostat</em> value = <em>BZP</em> or <em>MTTK</em>
+<em>taup</em> value = barostat damping parameter (time unit)
+<em>fixcom</em> value = <em>yes</em> or <em>no</em>
+<em>esynch</em> value = <em>yes</em> or <em>no</em> (only in <em>pimd/langevin/bosonic</em>)</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pimd</span><span class="o">/</span><span class="n">nvt</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="n">nmpimd</span><span class="w"> </span><span class="n">fmass</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">sp</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="n">nhc</span><span class="w"> </span><span class="m">4</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pimd</span><span class="o">/</span><span class="n">langevin</span><span class="w"> </span><span class="n">ensemble</span><span class="w"> </span><span class="n">npt</span><span class="w"> </span><span class="n">integrator</span><span class="w"> </span><span class="n">obabo</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">113.15</span><span class="w"> </span><span class="n">thermostat</span><span class="w"> </span><span class="n">PILE_L</span><span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="n">tau</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">iso</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">barostat</span><span class="w"> </span><span class="n">BZP</span><span class="w"> </span><span class="n">taup</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pimd</span><span class="o">/</span><span class="n">nvt</span><span class="o">/</span><span class="n">bosonic</span><span class="w"> </span><span class="n">method</span><span class="w"> </span><span class="n">pimd</span><span class="w"> </span><span class="n">fmass</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">sp</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="n">nhc</span><span class="w"> </span><span class="m">4</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">pimd</span><span class="o">/</span><span class="n">langevin</span><span class="o">/</span><span class="n">bosonic</span><span class="w"> </span><span class="n">integrator</span><span class="w"> </span><span class="n">obabo</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">113.15</span><span class="w"> </span><span class="n">thermostat</span><span class="w"> </span><span class="n">PILE_L</span><span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="n">tau</span><span class="w"> </span><span class="m">1.0</span>
+</pre></div>
+</div>
+<p>Example input files are provided in the examples/PACKAGES/pimd and examples/PACKAGES/pimd_bosonic directories.</p>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023.</span></p>
+</div>
+<p>Fix pimd was renamed to fix <em>pimd/nvt</em> and fix <em>pimd/langevin</em> was added.</p>
+<p>These fix commands perform quantum molecular dynamics simulations based
+on the Feynman path-integral to include effects of tunneling and
+zero-point motion.  In this formalism, the isomorphism of a quantum
+partition function for the original system to a classical partition
+function for a ring-polymer system is exploited, to efficiently sample
+configurations from the canonical ensemble <a class="reference internal" href="#feynman"><span class="std std-ref">(Feynman)</span></a>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2Apr2025: </span>Fix <em>pimd/langevin/bosonic</em> and <em>pimd/nvt/bosonic</em> were added.</p>
+</div>
+<p>Fix <em>pimd/nvt</em> and fix <em>pimd/langevin</em> simulate <em>distinguishable</em> quantum particles.
+Simulations of bosons, including exchange effects, are supported with the
+fix <em>pimd/langevin/bosonic</em> and the <em>pimd/nvt/bosonic</em> commands.</p>
+<p>For distinguishable particles, the isomorphic classical partition function and its components are given
+by the following equations:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}Z = &amp; \int d\mathbf{q} d\mathbf{p} \cdot \textrm{exp} [ -\beta H_{eff} ] \\
+H_{eff} = &amp; \bigg(\sum_{i=1}^P \frac{p_i^2}{2M_i}\bigg) + V_{eff} \\
+V_{eff} = &amp; \sum_{i=1}^P \bigg[ \frac{mP}{2\beta^2 \hbar^2} (q_i - q_{i+1})^2 + \frac{1}{P} V(q_i)\bigg]\end{split}\]</div>
+<p><span class="math notranslate nohighlight">\(M_i\)</span> is the fictitious mass of the <span class="math notranslate nohighlight">\(i\)</span>-th mode, and m is the actual mass of the atoms.</p>
+<p>The interested user is referred to any of the numerous references on
+this methodology, but briefly, each quantum particle in a path integral
+simulation is represented by a ring-polymer of P quasi-beads, labeled
+from 1 to P.  During the simulation, each quasi-bead interacts with
+beads on the other ring-polymers with the same imaginary time index (the
+second term in the effective potential above).  The quasi-beads also
+interact with the two neighboring quasi-beads through the spring
+potential in imaginary-time space (first term in effective potential).</p>
+<p>For bosons, the method of Hirshberg et. al. <a class="reference internal" href="#hirshberg"><span class="std std-ref">(Hirshberg1)</span></a> is employed, which replaces the spring part of <span class="math notranslate nohighlight">\(V_{eff}\)</span> by the spring potential <span class="math notranslate nohighlight">\(V^{[1,N]}\)</span> defined through recurrence relation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}e ^ { -\beta  V^{[1,N]} } = &amp; \frac{1}{N} \sum_{k=1}^N e ^ { -\beta \left(  V^{[1,N-k]} + E^{[N-K+1,N]} \right)} \\
+e ^ { -\beta  V^{[1,0]}} = &amp; 1\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(E^{[N-K+1,N]}\)</span> is the spring energy of the ring polymer
+obtained by connecting the beads of particles <span class="math notranslate nohighlight">\(N - k + 1, N - k +
+2, ..., N\)</span> in a cycle.
+The implementation of the potential and forces evaluation uses the algorithm developed by Feldman and Hirshberg, which scales like <span class="math notranslate nohighlight">\(N^2+PN\)</span>
+<a class="reference internal" href="#feldman"><span class="std std-ref">(Feldman)</span></a>.
+The minimum-image convention is employed on
+the springs to account for periodic boundary conditions; an elaborate
+discussion of the validity of the approximation is available in
+<a class="reference internal" href="#higerfeldman"><span class="std std-ref">(Higer)</span></a>.</p>
+<p>To sample the canonical ensemble, any thermostat can be applied.</p>
+<p>Fix <em>pimd/nvt</em> applies a Nose-Hoover massive chain thermostat
+<a class="reference internal" href="#pimd-tuckerman"><span class="std std-ref">(Tuckerman)</span></a>.  With the massive chain
+algorithm, a chain of NH thermostats is coupled to each degree of
+freedom for each quasi-bead.  The keyword <em>temp</em> sets the target
+temperature for the system and the keyword <em>nhc</em> sets the number <em>Nc</em> of
+thermostats in each chain.  For example, for a simulation of N particles
+with P beads in each ring-polymer, the total number of NH thermostats
+would be 3 x N x P x Nc.</p>
+<p>Fix <em>pimd/langevin</em> implements a Langevin thermostat in the normal mode
+representation, and also provides a barostat to sample the NPH/NPT ensembles.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Both these <em>fix</em> styles implement a complete velocity-verlet integrator
+combined with a thermostat, so no other time integration fix should be used.</p>
+</div>
+<p>The <em>method</em> keyword determines what style of PIMD is performed.  A
+value of <em>pimd</em> is standard PIMD.  A value of <em>nmpimd</em> is for
+normal-mode PIMD.  A value of <em>cmd</em> is for centroid molecular dynamics
+(CMD).  The difference between the styles is as follows.</p>
+<blockquote>
+<div><p>In standard PIMD, the value used for a bead’s fictitious mass is
+arbitrary.  A common choice is to use <span class="math notranslate nohighlight">\(M_i = m/P\)</span>, which results in the
+mass of the entire ring-polymer being equal to the real quantum
+particle.  But it can be difficult to efficiently integrate the
+equations of motion for the stiff harmonic interactions in the ring
+polymers.</p>
+<p>A useful way to resolve this issue is to integrate the equations of
+motion in a normal mode representation, using Normal Mode
+Path-Integral Molecular Dynamics (NMPIMD) <a class="reference internal" href="#cao1"><span class="std std-ref">(Cao1)</span></a>.  In
+NMPIMD, the NH chains are attached to each normal mode of the
+ring-polymer and the fictitious mass of each mode is chosen as Mk =
+the eigenvalue of the Kth normal mode for k &gt; 0. The k = 0 mode,
+referred to as the zero-frequency mode or centroid, corresponds to
+overall translation of the ring-polymer and is assigned the mass of
+the real particle.</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Motion of the centroid can be effectively uncoupled from the other
+normal modes by scaling the fictitious masses to achieve a partial
+adiabatic separation.  This is called a Centroid Molecular Dynamics
+(CMD) approximation <a class="reference internal" href="#cao2"><span class="std std-ref">(Cao2)</span></a>.  The time-evolution (and
+resulting dynamics) of the quantum particles can be used to obtain
+centroid time correlation functions, which can be further used to
+obtain the true quantum correlation function for the original system.
+The CMD method also uses normal modes to evolve the system, except
+only the k &gt; 0 modes are thermostatted, not the centroid degrees of
+freedom.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 21Nov2023: </span>Mode <em>pimd</em> added to fix pimd/langevin.</p>
+</div>
+<p>Fix pimd/langevin supports the <em>method</em> values <em>nmpimd</em> and <em>pimd</em>. The
+default value is <em>nmpimd</em>.  If <em>method</em> is <em>nmpimd</em>, the normal mode
+representation is used to integrate the equations of motion.  The exact
+solution of harmonic oscillator is used to propagate the free ring
+polymer part of the Hamiltonian.  If <em>method</em> is <em>pimd</em>, the Cartesian
+representation is used to integrate the equations of motion.  The
+harmonic force is added to the total force of the system, and the
+numerical integrator is used to propagate the Hamiltonian.</p>
+<p>Fix <em>pimd/nvt/bosonic</em> only supports the <em>pimd</em> and <em>nmpimd</em>
+methods. Fix <em>pimd/langevin/bosonic</em> only supports the <em>pimd</em> method,
+which is the default in this fix. These restrictions are related to the
+use of normal modes, which change in bosons.</p>
+<p>The keyword <em>integrator</em> specifies the Trotter splitting method used by <em>fix
+pimd/langevin</em>.  See <a class="reference internal" href="pair_hbond_dreiding.html#liu"><span class="std std-ref">(Liu)</span></a> for a discussion on the OBABO and BAOAB
+splitting schemes. Typically either of the two should work fine.</p>
+<p>The keyword <em>fmass</em> sets a further scaling factor for the fictitious
+masses of beads, which can be used for the Partial Adiabatic CMD
+<a class="reference internal" href="#hone"><span class="std std-ref">(Hone)</span></a>, or to be set as P, which results in the fictitious
+masses to be equal to the real particle masses.</p>
+<p>The keyword <em>fmmode</em> of <em>fix pimd/langevin</em> determines the mode of fictitious
+mass preconditioning. There are two options: <em>physical</em> and <em>normal</em>. If <em>fmmode</em> is
+<em>physical</em>, then the physical mass of the particles are used (and then multiplied by
+<em>fmass</em>). If <em>fmmode</em> is <em>normal</em>, then the physical mass is first multiplied by the
+eigenvalue of each normal mode, and then multiplied by <em>fmass</em>. More precisely, the
+fictitious mass of <em>fix pimd/langevin</em> is determined by two factors: <em>fmmode</em> and <em>fmass</em>.
+If <em>fmmode</em> is <em>physical</em>, then the fictitious mass is</p>
+<div class="math notranslate nohighlight">
+\[M_i = \mathrm{fmass} \times m\]</div>
+<p>If <em>fmmode</em> is <em>normal</em>, then the fictitious mass is</p>
+<div class="math notranslate nohighlight">
+\[M_i = \mathrm{fmass} \times \lambda_i \times m\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda_i\)</span> is the eigenvalue of the <span class="math notranslate nohighlight">\(i\)</span>-th normal mode.</p>
+<p>In <em>pimd/langevin/bosonic</em>, <em>fmmode</em> should not be used, and would raise
+an error if set to a value other than <em>physical</em>, due to the lack of
+support for bosonic normal modes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Fictitious mass is only used in the momentum of the equation of motion
+(<span class="math notranslate nohighlight">\(\mathbf{p}_i=M_i\mathbf{v}_i\)</span>), and not used in the spring elastic energy
+(<span class="math notranslate nohighlight">\(\sum_{i=1}^P \frac{1}{2}m\omega_P^2(q_i - q_{i+1})^2\)</span>, <span class="math notranslate nohighlight">\(m\)</span> is always the
+actual mass of the particles).</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Dec2025: </span><em>sp</em> keyword added to <em>fix pimd/langevin</em></p>
+</div>
+<p>The keyword <em>sp</em> is a scaling factor on Planck’s constant. Scaling the
+Planck’s constant means modifying the “quantumness” of the PIMD
+simulation. Using the physical value of Planck’s constant corresponds to
+a fully quantum simulation, and 0 corresponds to the classical limit.
+For unit styles other than <em>lj</em>, the default value of 1.0 is appropriate
+for most situations.  For <em>lj</em> units, a fully quantum simulation
+translates into setting <em>sp</em> to the de Boer quantumness parameter
+<span class="math notranslate nohighlight">\(\Lambda^{\ast}\)</span> (see <a class="reference internal" href="#de-boer"><span class="std std-ref">de Boer</span></a>):</p>
+<div class="math notranslate nohighlight">
+\[\Lambda^{\ast}=h/\sigma\sqrt{m\varepsilon}\]</div>
+<p>where <span class="math notranslate nohighlight">\(h\)</span> is Planck’s constant, <span class="math notranslate nohighlight">\(\sigma\)</span> is the length
+scale, <span class="math notranslate nohighlight">\(\epsilon\)</span> is the energy scale, and <span class="math notranslate nohighlight">\(m\)</span> is the mass
+of the particles.  For example, for Neon, <span class="math notranslate nohighlight">\(m = 20.1797\)</span> Dalton,
+<span class="math notranslate nohighlight">\(\varepsilon = 3.0747 \times 10^{-3}\)</span> eV and <span class="math notranslate nohighlight">\(\sigma =
+2.7616 \AA\)</span>. Then we have</p>
+<div class="math notranslate nohighlight">
+\[\Lambda^{\ast} = \frac{4.135667403\times 10^{-3}\ \mathrm{eV} \cdot\ \mathrm{ps}}{2.7616\ \mathrm{\AA}\times \sqrt{20.1797\ \mathrm{Dalton}\times\ 3.0747\times 10^{-3}\ \mathrm{eV}\times 1.0364269\times 10^{-4}\ \mathrm{eV}\cdot\mathrm{Dalton}^{-1}\cdot\mathrm{\AA}^{-2}\cdot\mathrm{ps}^{2}}} = 0.600.\]</div>
+<p>Thus for a fully quantum simulation of Neon using <em>lj</em> units, <em>sp</em>
+should be set to 0.600.  The modification of the quantumness should be
+done by scaling <span class="math notranslate nohighlight">\(\Lambda^{\ast}\)</span>.</p>
+<p>The keyword <em>ensemble</em> for fix style <em>pimd/langevin</em> determines which
+ensemble is it going to sample. The value can be <em>nve</em> (microcanonical),
+<em>nvt</em> (canonical), <em>nph</em> (isoenthalpic), and <em>npt</em>
+(isothermal-isobaric).  Fix <em>pimd/langevin/bosonic</em> currently does not
+support <em>ensemble</em> other than <em>nve</em>, <em>nvt</em>.</p>
+<p>The keyword <em>temp</em> specifies temperature parameter for fix styles
+<em>pimd/nvt</em> and <em>pimd/langevin</em>. It should read a positive floating-point
+number.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For pimd simulations, a temperature values should be specified even
+for nve ensemble. Temperature will make a difference for nve pimd,
+since the spring elastic frequency between the beads will be affected
+by the temperature.</p>
+</div>
+<p>The keyword <em>thermostat</em> reads <em>style</em> and <em>seed</em> of thermostat for fix
+style <em>pimd/langevin</em>.  <em>style</em> can only be <em>PILE_L</em> (path integral
+Langevin equation local thermostat, as described in <a class="reference internal" href="#ceriotti3"><span class="std std-ref">Ceriotti</span></a>), and <em>seed</em> should a positive integer number, which serves
+as the seed of the pseudo random number generator.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The fix style <em>pimd/langevin</em> uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
+of the ring polymer. The <em>tau</em> parameter controls the centroid mode, and the <em>scale</em> parameter controls the non-centroid modes.</p>
+</div>
+<p>The keyword <em>tau</em> specifies the thermostat damping time parameter for
+fix style <em>pimd/langevin</em>. It is in time unit. It only works on the
+centroid mode.</p>
+<p>The keyword <em>scale</em> specifies a scaling parameter for the damping times
+of the non-centroid modes for fix style <em>pimd/langevin</em>. The default
+damping time of the non-centroid mode <span class="math notranslate nohighlight">\(i\)</span> is
+<span class="math notranslate nohighlight">\(\frac{P}{\beta\hbar}\sqrt{\lambda_i\times\mathrm{fmass}}\)</span>
+(<em>fmmode</em> is <em>physical</em>) or
+<span class="math notranslate nohighlight">\(\frac{P}{\beta\hbar}\sqrt{\mathrm{fmass}}\)</span> (<em>fmmode</em> is
+<em>normal</em>). The damping times of all non-centroid modes are the default
+values divided by <em>scale</em>. This keyword should be used only with
+<em>method*=*nmpimd</em>.</p>
+<p>The barostat parameters for fix style <em>pimd/langevin</em> with <em>npt</em> or
+<em>nph</em> ensemble is specified using one of <em>iso</em> and <em>aniso</em> keywords. A
+<em>pressure</em> value should be given with pressure unit. The keyword <em>iso</em>
+means couple all 3 diagonal components together when pressure is
+computed (hydrostatic pressure), and dilate/contract the dimensions
+together. The keyword <em>aniso</em> means x, y, and z dimensions are
+controlled independently using the Pxx, Pyy, and Pzz components of the
+stress tensor as the driving forces, and the specified scalar external
+pressure.  These parameters are not supported in
+<em>pimd/langevin/bosonic</em>.</p>
+<p>The keyword <em>barostat</em> reads <em>style</em> of barostat for fix style
+<em>pimd/langevin</em>. <em>style</em> can be <em>BZP</em> (Bussi-Zykova-Parrinello, as
+described in <a class="reference internal" href="#bussi"><span class="std std-ref">Bussi</span></a>) or <em>MTTK</em>
+(Martyna-Tuckerman-Tobias-Klein, as described in <a class="reference internal" href="#martyna3"><span class="std std-ref">Martyna1</span></a> and <a class="reference internal" href="#martyna4"><span class="std std-ref">Martyna2</span></a>).</p>
+<p>The keyword <em>taup</em> specifies the barostat damping time parameter for fix
+style <em>pimd/langevin</em>. It is in time unit. It is not supported in
+<em>pimd/langevin/bosonic</em>.</p>
+<p>The keyword <em>fixcom</em> specifies whether the center-of-mass of the
+extended ring-polymer system is fixed during the pimd simulation.  Once
+<em>fixcom</em> is set to be <em>yes</em>, the center-of-mass velocity will be
+distracted from the centroid-mode velocities in each step.</p>
+<p>Fix <em>pimd/langevin/bosonic</em> also has a keyword not available in fix
+<em>pimd/langevin</em>: <em>esynch</em>, with default <em>yes</em>. If set to <em>no</em>, some time
+consuming synchronization of spring energies and the primitive kinetic
+energy estimator between processors is avoided.</p>
+<p>The PIMD algorithm in LAMMPS is implemented as a hyper-parallel scheme
+as described in <a class="reference internal" href="#calhoun"><span class="std std-ref">Calhoun</span></a>.  In LAMMPS this is done by
+using <a class="reference internal" href="Howto_replica.html"><span class="doc">multi-replica feature</span></a> in LAMMPS, where each
+quasi-particle system is stored and simulated on a separate partition of
+processors.  The following diagram illustrates this approach.  The
+original system with 2 ring polymers is shown in red.  Since each ring
+has 4 quasi-beads (imaginary time slices), there are 4 replicas of the
+system, each running on one of the 4 partitions of processors.  Each
+replica (shown in green) owns one quasi-bead in each ring.</p>
+<img alt="_images/pimd.jpg" class="align-center" src="_images/pimd.jpg" />
+<p>To run a PIMD simulation with M quasi-beads in each ring polymer using N
+MPI tasks for each partition’s domain-decomposition, you would use P =
+MxN processors (cores) and run the simulation as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span>P<span class="w"> </span>lmp_mpi<span class="w"> </span>-partition<span class="w"> </span>MxN<span class="w"> </span>-in<span class="w"> </span>script
+</pre></div>
+</div>
+<p>Note that in the LAMMPS input script for a multi-partition simulation,
+it is often very useful to define a <a class="reference internal" href="variable.html"><span class="doc">uloop-style variable</span></a> such as</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">ibead</span><span class="w"> </span><span class="n">uloop</span><span class="w"> </span><span class="n">M</span><span class="w"> </span><span class="n">pad</span>
+</pre></div>
+</div>
+<p>where M is the number of quasi-beads (partitions) used in the
+calculation.  The uloop variable can then be used to manage I/O related
+tasks for each of the partitions, e.g.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">dcd</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">dcd</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">system_</span><span class="nv">${ibead}</span><span class="n">.dcd</span>
+<span class="k">dump </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="nv">${ibead}</span><span class="n">.xyz</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span><span class="w"> </span><span class="n">ix</span><span class="w"> </span><span class="n">iy</span><span class="w"> </span><span class="n">iz</span><span class="w"> </span><span class="n">fx</span><span class="w"> </span><span class="n">fy</span><span class="w"> </span><span class="n">fz</span>
+<span class="k">restart</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">system_</span><span class="nv">${ibead}</span><span class="n">.restart1</span><span class="w"> </span><span class="n">system_</span><span class="nv">${ibead}</span><span class="n">.restart2</span>
+<span class="k">read_restart</span><span class="w"> </span><span class="n">system_</span><span class="nv">${ibead}</span><span class="n">.restart2</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Fix <em>pimd/langevin</em> dumps the Cartesian coordinates, but dumps the
+velocities and forces in the normal mode representation. If the
+Cartesian velocities and forces are needed, it is easy to perform the
+transformation when doing post-processing.</p>
+<p>It is recommended to dump the image flags (<em>ix iy iz</em>) for fix
+<em>pimd/langevin</em>. It will be useful if you want to calculate some
+estimators during post-processing.</p>
+</div>
+<p>Major differences of <em>fix pimd/nvt</em> and <em>fix pimd/langevin</em> are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p><em>Fix pimd/nvt</em> includes Cartesian pimd, normal mode pimd, and centroid md. <em>Fix pimd/langevin</em> only intends to support normal mode pimd, as it is commonly enough for thermodynamic sampling.</p></li>
+<li><p><em>Fix pimd/nvt</em> uses Nose-Hoover chain thermostat. <em>Fix pimd/langevin</em> uses Langevin thermostat.</p></li>
+<li><p><em>Fix pimd/langevin</em> provides barostat, so the npt ensemble can be sampled. <em>Fix pimd/nvt</em> only support nvt ensemble.</p></li>
+<li><p><em>Fix pimd/langevin</em> provides several quantum estimators in output.</p></li>
+<li><p><em>Fix pimd/langevin</em> allows multiple processes for each bead. For <em>fix pimd/nvt</em>, there is a large chance that multi-process tasks for each bead may fail.</p></li>
+<li><p>The dump of <em>fix pimd/nvt</em> are all Cartesian. <em>Fix pimd/langevin</em> dumps normal-mode velocities and forces, and Cartesian coordinates.</p></li>
+</ol>
+</div></blockquote>
+<p>Initially, the inter-replica communication and normal mode
+transformation parts of <em>fix pimd/langevin</em> are written based on those
+of <em>fix pimd/nvt</em>, but are significantly revised.</p>
+</section>
+<section id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Link to this heading"></a></h2>
+<p>Fix <em>pimd/nvt</em> writes the state of the Nose/Hoover thermostat over all
+quasi-beads to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  See the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.</p>
+<p>Fix <em>pimd/langevin</em> writes the state of the barostat overall beads to
+<a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>. Since it uses a stochastic
+thermostat, the state of the thermostat is not written. However, the
+state of the system can be restored by reading the restart file, except
+that it will re-initialize the random number generator.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options are relevant to fix
+pimd/nvt.</p>
+<p>Fix <em>pimd/nvt</em> computes a global 3-vector, which can be accessed by
+various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  The three quantities in
+the global vector are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>the total spring energy of the quasi-beads,</p></li>
+<li><p>the current temperature of the classical system of ring polymers,</p></li>
+<li><p>the current value of the scalar virial estimator for the kinetic
+energy of the quantum system <a class="reference internal" href="#herman"><span class="std std-ref">(Herman)</span></a>.</p></li>
+</ol>
+</div></blockquote>
+<p>The vector values calculated by fix <em>pimd/nvt</em> are “extensive”, except for the
+temperature, which is “intensive”.</p>
+<p>Fix <em>pimd/nvt/bosonic</em> computes a global 4-vector. The first three are
+the same as in <em>pimd/nvt</em> (the justification for the correctness of the
+virial estimator for bosons appears in the supporting information of
+<a class="reference internal" href="#hirshberginvernizzi"><span class="std std-ref">(Hirshberg2)</span></a>). The fourth is the current
+value of the scalar primitive estimator for the kinetic energy of the
+quantum system <a class="reference internal" href="#hirshberg"><span class="std std-ref">(Hirshberg1)</span></a>.</p>
+<p>Fix <em>pimd/langevin</em> computes a global vector of quantities, which can be
+accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>. Note that it
+outputs multiple log files, and different log files contain information
+about different beads or modes (see detailed explanations below). If
+<em>ensemble</em> is <em>nve</em> or <em>nvt</em>, the vector has 10 values:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>kinetic energy of the bead (if <em>method*=*pimd</em>) or normal mode (if <em>method*=*nmpimd</em>)</p></li>
+<li><p>spring elastic energy of the bead (if <em>method*=*pimd</em>) or normal mode (if <em>method*=*nmpimd</em>)</p></li>
+<li><p>potential energy of the bead</p></li>
+<li><p>total energy of all beads (conserved if <em>ensemble</em> is <em>nve</em>)</p></li>
+<li><p>primitive kinetic energy estimator</p></li>
+<li><p>virial energy estimator</p></li>
+<li><p>centroid-virial energy estimator</p></li>
+<li><p>primitive pressure estimator</p></li>
+<li><p>thermodynamic pressure estimator</p></li>
+<li><p>centroid-virial pressure estimator</p></li>
+</ol>
+</div></blockquote>
+<p>The first 3 are different for different log files, and the others are
+the same for different log files.</p>
+<p>If <em>ensemble</em> is <em>nph</em> or <em>npt</em>, the vector stores internal variables of
+the barostat. If <em>iso</em> is used, the vector has 15 values:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>kinetic energy of the normal mode</p></li>
+<li><p>spring elastic energy of the normal mode</p></li>
+<li><p>potential energy of the bead</p></li>
+<li><p>total energy of all beads (conserved if <em>ensemble</em> is <em>nve</em>)</p></li>
+<li><p>primitive kinetic energy estimator</p></li>
+<li><p>virial energy estimator</p></li>
+<li><p>centroid-virial energy estimator</p></li>
+<li><p>primitive pressure estimator</p></li>
+<li><p>thermodynamic pressure estimator</p></li>
+<li><p>centroid-virial pressure estimator</p></li>
+<li><p>barostat velocity</p></li>
+<li><p>barostat kinetic energy</p></li>
+<li><p>barostat potential energy</p></li>
+<li><p>barostat cell Jacobian</p></li>
+<li><p>enthalpy of the extended system (sum of 4, 12, 13, and 14; conserved if <em>ensemble</em> is <em>nph</em>)</p></li>
+</ol>
+</div></blockquote>
+<p>If <em>aniso</em> or <em>x</em> or <em>y</em> or <em>z</em> is used for the barostat, the vector has
+17 values:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>kinetic energy of the normal mode</p></li>
+<li><p>spring elastic energy of the normal mode</p></li>
+<li><p>potential energy of the bead</p></li>
+<li><p>total energy of all beads (conserved if <em>ensemble</em> is <em>nve</em>)</p></li>
+<li><p>primitive kinetic energy estimator</p></li>
+<li><p>virial energy estimator</p></li>
+<li><p>centroid-virial energy estimator</p></li>
+<li><p>primitive pressure estimator</p></li>
+<li><p>thermodynamic pressure estimator</p></li>
+<li><p>centroid-virial pressure estimator</p></li>
+<li><p>x component of barostat velocity</p></li>
+<li><p>y component of barostat velocity</p></li>
+<li><p>z component of barostat velocity</p></li>
+<li><p>barostat kinetic energy</p></li>
+<li><p>barostat potential energy</p></li>
+<li><p>barostat cell Jacobian</p></li>
+<li><p>enthalpy of the extended system (sum of 4, 14, 15, and 16; conserved if <em>ensemble</em> is <em>nph</em>)</p></li>
+</ol>
+</div></blockquote>
+<p>Fix <em>pimd/langevin/bosonic</em> computes a global 6-vector. The quantities
+in the global vector are:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><p>kinetic energy of the beads,</p></li>
+<li><p>spring elastic energy of the beads,</p></li>
+<li><p>potential energy of the bead,</p></li>
+<li><p>total energy of all beads (conserved if <em>ensemble</em> is <em>nve</em>) if <em>esynch</em> is <em>yes</em></p></li>
+<li><p>primitive kinetic energy estimator <a class="reference internal" href="#hirshberg"><span class="std std-ref">(Hirshberg1)</span></a></p></li>
+<li><p>virial energy estimator <a class="reference internal" href="#herman"><span class="std std-ref">(Herman)</span></a> (see the justification in the supporting information of <a class="reference internal" href="#hirshberginvernizzi"><span class="std std-ref">(Hirshberg2)</span></a>).</p></li>
+</ol>
+</div></blockquote>
+<p>The first three are different for different log files, and the others
+are the same for different log files, except for the primitive kinetic
+energy estimator when setting <em>esynch</em> to <em>no</em>. Then, the primitive
+kinetic energy estimator is obtained by summing over all log files.
+Also note that when <em>esynch</em> is set to <em>no</em>, the fourth output gives the
+total energy of all beads excluding the spring elastic energy; the total
+classical energy can then be obtained by adding the sum of second output
+over all log files.  All vector values calculated by fix
+<em>pimd/langevin/bosonic</em> are “extensive”.</p>
+<p>For both <em>pimd/nvt/bosonic</em> and <em>pimd/langevin/bosonic</em>, the
+contribution of the exterior spring to the primitive estimator is
+printed to the first log file.  The contribution of the <span class="math notranslate nohighlight">\(P-1\)</span>
+interior springs is printed to the other <span class="math notranslate nohighlight">\(P-1\)</span> log files.  The
+contribution of the constant <span class="math notranslate nohighlight">\(\frac{PdN}{2 \beta}\)</span> (with <span class="math notranslate nohighlight">\(d\)</span>
+being the dimensionality) is equally divided over log files.</p>
+<p>No parameter of fix <em>pimd/nvt</em> or <em>pimd/langevin</em> can be used with the
+<em>start/stop</em> keywords of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  Fix <em>pimd/nvt</em>
+or <em>pimd/langevin</em> is not invoked during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>These fixes are part of the REPLICA package.  They are only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>Fix <em>pimd/nvt</em> cannot be used with <a class="reference internal" href="units.html"><span class="doc">lj units</span></a>.
+Fix <em>pimd/langevin</em> can be used with <a class="reference internal" href="units.html"><span class="doc">lj units</span></a>.
+See the documentation above for how to use it.</p>
+<p>Only some combinations of fix styles and their options support
+partitions with multiple processors.  LAMMPS will stop with an error if
+multi-processor partitions are not supported.</p>
+<p>A PIMD simulation can be initialized with a single data file read via
+the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  However, this means all
+quasi-beads in a ring polymer will have identical positions and
+velocities, resulting in identical trajectories for all quasi-beads.  To
+avoid this, users can simply initialize velocities with different random
+number seeds assigned to each partition, as defined by the uloop
+variable, e.g.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">1234</span><span class="nv">${ibead}</span><span class="w"> </span><span class="n">rot</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">dist</span><span class="w"> </span><span class="n">gaussian</span>
+</pre></div>
+</div>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="fix_ipi.html"><span class="doc">fix ipi</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The keyword defaults for fix <em>pimd/nvt</em> are method = pimd, fmass = 1.0,
+sp = 1.0, temp = 300.0, and nhc = 2.</p>
+<p>The keyword defaults for fix <em>pimd/langevin</em> are integrator = obabo,
+method = nmpimd, ensemble = nvt, fmmode = physical, fmass = 1.0, scale =
+1, temp = 298.15, thermostat = PILE_L, tau = 1.0, iso = 1.0, taup = 1.0,
+barostat = BZP, fixcom = yes, and sp = 1.0 for all its arguments.</p>
+<hr class="docutils" />
+<p id="feynman"><strong>(Feynman)</strong> R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and
+Path Integrals, McGraw-Hill, New York (1965).</p>
+<p id="pimd-tuckerman"><strong>(Tuckerman)</strong> M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).</p>
+<p id="cao1"><strong>(Cao1)</strong> J. Cao and B. Berne, J Chem Phys, 99, 2902 (1993).</p>
+<p id="cao2"><strong>(Cao2)</strong> J. Cao and G. Voth, J Chem Phys, 100, 5093 (1994).</p>
+<p id="de-boer"><strong>(de Boer)</strong> J. de Boer, “Quantum Effects and Exchange Effects on the Thermodynamic Properties of Liquid Helium,” Progress in Low Temperature Physics, Volume 2, Pages 1-58 (1957).</p>
+<p id="hone"><strong>(Hone)</strong> T. Hone, P. Rossky, G. Voth, J Chem Phys, 124,
+154103 (2006).</p>
+<p id="calhoun"><strong>(Calhoun)</strong> A. Calhoun, M. Pavese, G. Voth, Chem Phys Letters, 262,
+415 (1996).</p>
+<p id="herman"><strong>(Herman)</strong> M. F. Herman, E. J. Bruskin, B. J. Berne, J Chem Phys, 76, 5150 (1982).</p>
+<p id="bussi"><strong>(Bussi)</strong> G. Bussi, T. Zykova-Timan, M. Parrinello, J Chem Phys, 130, 074101 (2009).</p>
+<p id="ceriotti3"><strong>(Ceriotti)</strong> M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).</p>
+<p id="martyna3"><strong>(Martyna1)</strong> G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).</p>
+<p id="martyna4"><strong>(Martyna2)</strong> G. Martyna, A. Hughes, M. Tuckerman, J. Chem. Phys. 110, 3275 (1999).</p>
+<p id="liujian"><strong>(Liu)</strong> J. Liu, D. Li, X. Liu, J. Chem. Phys. 145, 024103 (2016).</p>
+<p id="hirshberg"><strong>(Hirshberg1)</strong> B. Hirshberg, V. Rizzi, and M. Parrinello, “Path integral molecular dynamics for bosons,” Proc. Natl. Acad. Sci. U. S. A. 116, 21445 (2019)</p>
+<p id="hirshberginvernizzi"><strong>(Hirshberg2)</strong> B. Hirshberg, M. Invernizzi, and M. Parrinello, “Path integral molecular dynamics for fermions: Alleviating the sign problem with the Bogoliubov inequality,” J Chem Phys, 152, 171102 (2020)</p>
+<p id="feldman"><strong>(Feldman)</strong> Y. M. Y. Feldman and B. Hirshberg, “Quadratic scaling bosonic path integral molecular dynamics,” J. Chem. Phys. 159, 154107 (2023)</p>
+<p id="higerfeldman"><strong>(Higer)</strong> J. Higer, Y. M. Y. Feldman, and B. Hirshberg, “Periodic Boundary Conditions for Bosonic Path Integral Molecular Dynamics,” J. Chem. Phys. 163, 024101 (2025)</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fix_phonon.html" class="btn btn-neutral float-left" title="fix phonon command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_planeforce.html" class="btn btn-neutral float-right" title="fix planeforce command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

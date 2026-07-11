@@ -1,0 +1,24 @@
+{
+  Run_strdup_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:strdup
+  ...
+}
+{
+  Run_register_state_1
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:register_state
+  ...
+}
+{
+  Run_register_state_2
+  Memcheck:Leak
+  match-leak-kinds: reachable
+  fun:malloc
+  fun:register_state
+  ...
+}

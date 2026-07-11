@@ -1,0 +1,33 @@
+units       lj
+dimension   3
+boundary    p p p
+atom_style  atomic
+
+# truncated and shifted LJ potential
+pair_style  lj/cut 2.5
+pair_modify shift yes
+read_data   data.halfhalf
+pair_coeff  1 1 1.0 1.0 2.5
+mass        1 1.0
+
+# simulation parameters 
+neighbor	0.6 bin
+timestep	0.004
+run_style 	verlet
+
+velocity all create 0.8 1 mom yes rot yes
+fix ensemble all npt temp 0.8 0.8 4.0 z 2.185 2.185 8.0
+fix 100 all momentum 100 linear 1 1 1
+
+# harmonic rho_k bias-field 
+#                 nx ny nz K     a
+fix bias all rhok 16 0  0  4.0   26.00
+
+# output                                U_bias rho_k_RE  rho_k_IM |rho_k| 
+thermo_style custom step temp pzz pe lz f_bias f_bias[1] f_bias[2] f_bias[3]
+thermo 50
+# dump dumpXYZ all xyz 500 traj.xyz
+
+# NOTE: run reduced for demonstration purposes
+# run 50000
+run 5000

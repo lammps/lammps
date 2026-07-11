@@ -1,0 +1,149 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_KOKKOS_HOST_GRAPHNODE_IMPL_HPP
+#define KOKKOS_KOKKOS_HOST_GRAPHNODE_IMPL_HPP
+
+#include <Kokkos_Macros.hpp>
+
+#include <impl/Kokkos_Default_Graph_fwd.hpp>
+
+#include <Kokkos_Graph.hpp>
+
+#include <vector>
+#include <memory>
+
+namespace Kokkos {
+namespace Impl {
+
+//==============================================================================
+// <editor-fold desc="GraphNodeBackendSpecificDetails"> {{{1
+
+template <class ExecutionSpace>
+struct GraphNodeBackendSpecificDetails {
+ private:
+  using execution_space_instance_storage_t = InstanceStorage<ExecutionSpace>;
+  using default_kernel_impl_t = GraphNodeKernelDefaultImpl<ExecutionSpace>;
+  using default_aggregate_impl_t =
+      GraphNodeAggregateDefaultImpl<ExecutionSpace>;
+
+  std::vector<std::shared_ptr<GraphNodeBackendSpecificDetails<ExecutionSpace>>>
+      m_predecessors = {};
+
+  default_kernel_impl_t* m_kernel_ptr = nullptr;
+
+  bool m_has_executed = false;
+  bool m_is_aggregate = false;
+  bool m_is_root      = false;
+
+  template <class>
+  friend struct HostGraphImpl;
+
+ protected:
+  //----------------------------------------------------------------------------
+  // <editor-fold desc="Ctors, destructor, and assignment"> {{{2
+
+  explicit GraphNodeBackendSpecificDetails() = default;
+
+  explicit GraphNodeBackendSpecificDetails(
+      _graph_node_is_root_ctor_tag) noexcept
+      : m_has_executed(true), m_is_root(true) {}
+
+  GraphNodeBackendSpecificDetails(GraphNodeBackendSpecificDetails const&) =
+      delete;
+
+  GraphNodeBackendSpecificDetails(GraphNodeBackendSpecificDetails&&) noexcept =
+      delete;
+
+  GraphNodeBackendSpecificDetails& operator=(
+      GraphNodeBackendSpecificDetails const&) = delete;
+
+  GraphNodeBackendSpecificDetails& operator=(
+      GraphNodeBackendSpecificDetails&&) noexcept = delete;
+
+  ~GraphNodeBackendSpecificDetails() = default;
+
+  // </editor-fold> end Ctors, destructor, and assignment }}}2
+  //----------------------------------------------------------------------------
+
+ public:
+  void set_kernel(default_kernel_impl_t& arg_kernel) {
+    KOKKOS_EXPECTS(m_kernel_ptr == nullptr)
+    m_kernel_ptr = &arg_kernel;
+  }
+
+  void set_kernel(default_aggregate_impl_t& arg_kernel) {
+    KOKKOS_EXPECTS(m_kernel_ptr == nullptr)
+    m_kernel_ptr   = &arg_kernel;
+    m_is_aggregate = true;
+  }
+
+  // A node is awaitable if it is not a root node.
+  // Note that an aggregate node is a when_all event that may be waited for.
+  bool awaitable() const { return !m_is_root; }
+
+  // Retrieve the execution space instance that has been passed to
+  // the kernel at construction phase.
+  const ExecutionSpace& get_execution_space() const {
+    KOKKOS_EXPECTS(m_kernel_ptr != nullptr)
+    return m_kernel_ptr->m_execution_space;
+  }
+
+  void set_predecessor(
+      std::shared_ptr<GraphNodeBackendSpecificDetails<ExecutionSpace>>
+          arg_pred_impl) {
+    // This method delegates responsibility for executing the predecessor to
+    // this node.  Each node can have at most one predecessor (which may be an
+    // aggregate).
+    KOKKOS_EXPECTS(m_predecessors.empty() || m_is_aggregate)
+    KOKKOS_EXPECTS(bool(arg_pred_impl))
+    KOKKOS_EXPECTS(!m_has_executed)
+    m_predecessors.push_back(std::move(arg_pred_impl));
+  }
+
+  void execute_node(const ExecutionSpace& exec) {
+    // This node could have already been executed as the predecessor of some
+    // other
+    KOKKOS_EXPECTS(bool(m_kernel_ptr) || m_has_executed)
+    // Just execute the predecessor here, since calling set_predecessor()
+    // delegates the responsibility for running it to us.
+    if (!m_has_executed) {
+      // I'm pretty sure this doesn't need to be atomic under our current
+      // supported semantics, but instinct I have feels like it should be...
+      m_has_executed = true;
+      for (auto const& predecessor : m_predecessors) {
+        predecessor->execute_node(exec);
+      }
+
+      // Before executing the kernel, be sure to fence the execution space
+      // instance of predecessors.
+      for (const auto& predecessor : m_predecessors) {
+        if (predecessor->awaitable() &&
+            predecessor->get_execution_space() != this->get_execution_space())
+          predecessor->get_execution_space().fence(
+              "Kokkos::DefaultGraphNode::execute_node: sync with predecessors");
+      }
+
+      m_kernel_ptr->execute_kernel();
+    }
+    KOKKOS_ENSURES(m_has_executed)
+  }
+
+  // This is gross, but for the purposes of our simple default implementation...
+  void reset_has_executed() {
+    for (auto const& predecessor : m_predecessors) {
+      predecessor->reset_has_executed();
+    }
+    // more readable, probably:
+    //   if(!m_is_root) m_has_executed = false;
+    m_has_executed = m_is_root;
+  }
+};
+
+// </editor-fold> end GraphNodeBackendSpecificDetails }}}1
+//==============================================================================
+
+}  // end namespace Impl
+}  // end namespace Kokkos
+
+#endif  // KOKKOS_KOKKOS_HOST_GRAPHNODE_IMPL_HPP

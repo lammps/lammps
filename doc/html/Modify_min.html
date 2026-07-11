@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.13. Minimization styles &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Modify_min.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.14. Region styles" href="Modify_region.html" />
+    <link rel="prev" title="3.12. Kspace styles" href="Modify_kspace.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Modify_overview.html">3.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_contribute.html">3.2. Submitting new features for inclusion in LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_requirements.html">3.3. Requirements for contributions to LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_style.html">3.4. LAMMPS programming style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_atom.html">3.5. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_pair.html">3.6. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_bond.html">3.7. Bond, angle, dihedral, improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_compute.html">3.8. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_fix.html">3.9. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_command.html">3.10. Input script command style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_dump.html">3.11. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_kspace.html">3.12. Kspace styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.13. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_region.html">3.14. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_body.html">3.15. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_gran_sub_mod.html">3.16. Granular Sub-Model styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_thermo.html">3.17. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_variable.html">3.18. Variable options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Modify.html"><span class="section-number">3. </span>Modifying &amp; extending LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.13. </span>Minimization styles</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Modify_kspace.html" class="btn btn-neutral float-left" title="3.12. Kspace styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Modify_region.html" class="btn btn-neutral float-right" title="3.14. Region styles" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="minimization-styles">
+<h1><span class="section-number">3.13. </span>Minimization styles<a class="headerlink" href="#minimization-styles" title="Link to this heading"></a></h1>
+<p>Classes that perform energy minimization derived from the Min class.
+New styles can be created to add new minimization algorithms to
+LAMMPS.</p>
+<p><code class="docutils literal notranslate"><span class="pre">src/min_cg.cpp</span></code> is an example of conjugate gradient minimization.</p>
+<p>Here is a brief description of methods you define in your new derived
+class.  See <code class="docutils literal notranslate"><span class="pre">src/min.h</span></code> for details.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Required</p></th>
+<th class="head"><p>“pure” methods that <em>must</em> be overridden</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>setup_style</p></td>
+<td><p>initialize minimizer-specific data structures</p></td>
+</tr>
+<tr class="row-odd"><td><p>reset_vectors</p></td>
+<td><p>connect internal xvec/fvec pointers to atom coordinates</p></td>
+</tr>
+<tr class="row-even"><td><p>iterate</p></td>
+<td><p>perform the minimization iterations; returns stop-code</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Optional</p></th>
+<th class="head"><p>methods that have a default or base-class implementation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>init</p></td>
+<td><p>initialize the minimization before a run</p></td>
+</tr>
+<tr class="row-odd"><td><p>setup</p></td>
+<td><p>called before minimization starts</p></td>
+</tr>
+<tr class="row-even"><td><p>setup_minimal</p></td>
+<td><p>minimal setup variant used for restarts</p></td>
+</tr>
+<tr class="row-odd"><td><p>init_style</p></td>
+<td><p>check style-specific conditions at init time</p></td>
+</tr>
+<tr class="row-even"><td><p>run</p></td>
+<td><p>called by LAMMPS to drive the full minimization</p></td>
+</tr>
+<tr class="row-odd"><td><p>force_clear</p></td>
+<td><p>clear forces; override for GPU/Kokkos variants</p></td>
+</tr>
+<tr class="row-even"><td><p>energy_force</p></td>
+<td><p>evaluate energy and forces; override for Kokkos</p></td>
+</tr>
+<tr class="row-odd"><td><p>fnorm_sqr</p></td>
+<td><p>return the squared force norm; override for spin styles</p></td>
+</tr>
+<tr class="row-even"><td><p>fnorm_inf</p></td>
+<td><p>return the inf-norm of forces; override for spin styles</p></td>
+</tr>
+<tr class="row-odd"><td><p>fnorm_max</p></td>
+<td><p>return the max force norm; override for spin styles</p></td>
+</tr>
+<tr class="row-even"><td><p>modify_param</p></td>
+<td><p>handle arguments from the min_modify command</p></td>
+</tr>
+<tr class="row-odd"><td><p>memory_usage</p></td>
+<td><p>tally of memory usage</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">iterate()</span></code> method must return one of the following integer
+stop-condition codes defined as an enum in <code class="docutils literal notranslate"><span class="pre">src/min.h</span></code>:
+<code class="docutils literal notranslate"><span class="pre">MAXITER</span></code>, <code class="docutils literal notranslate"><span class="pre">MAXEVAL</span></code>, <code class="docutils literal notranslate"><span class="pre">ETOL</span></code>, <code class="docutils literal notranslate"><span class="pre">FTOL</span></code>, <code class="docutils literal notranslate"><span class="pre">DOWNHILL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">ZEROALPHA</span></code>, <code class="docutils literal notranslate"><span class="pre">ZEROFORCE</span></code>, <code class="docutils literal notranslate"><span class="pre">ZEROQUAD</span></code>, <code class="docutils literal notranslate"><span class="pre">TRSMALL</span></code>,
+<code class="docutils literal notranslate"><span class="pre">INTERROR</span></code>, <code class="docutils literal notranslate"><span class="pre">TIMEOUT</span></code>, or <code class="docutils literal notranslate"><span class="pre">MAXVDOTF</span></code>.</p>
+<p>The line-search style used by the minimizer is controlled by the
+<code class="docutils literal notranslate"><span class="pre">linestyle</span></code> member, which takes values from the enum
+<code class="docutils literal notranslate"><span class="pre">{</span> <span class="pre">BACKTRACK,</span> <span class="pre">QUADRATIC,</span> <span class="pre">FORCEZERO,</span> <span class="pre">SPIN_CUBIC,</span> <span class="pre">SPIN_NONE</span> <span class="pre">}</span></code>.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Modify_kspace.html" class="btn btn-neutral float-left" title="3.12. Kspace styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Modify_region.html" class="btn btn-neutral float-right" title="3.14. Region styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,357 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dump vtk command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/dump_vtk.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Bibliography" href="Bibliography.html" />
+    <link rel="prev" title="dump netcdf command" href="dump_netcdf.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="dumps.html">Dump Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dump.html">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-vtk-command"><span class="xref std std-doc">dump vtk</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-h5md-command"><span class="xref std std-doc">dump h5md</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-molfile-command"><span class="xref std std-doc">dump molfile</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-netcdf-command"><span class="xref std std-doc">dump netcdf</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-image-command"><span class="xref std std-doc">dump image</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-movie-command"><span class="xref std std-doc">dump movie</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-atom-adios-command"><span class="xref std std-doc">dump atom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-custom-adios-command"><span class="xref std std-doc">dump custom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-cfg-uef-command"><span class="xref std std-doc">dump cfg/uef</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html">dump atom/adios  command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_adios.html#dump-custom-adios-command">dump custom/adios command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_cfg_uef.html">dump cfg/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-movie-command">dump movie command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-modify-options-for-dump-image-movie">dump_modify options for dump image/movie</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html#dump-modify-command-for-image-movie-options"><span class="xref std std-doc">dump_modify</span> command for image/movie options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html">dump netcdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html#dump-netcdf-mpiio-command">dump netcdf/mpiio command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">dump vtk command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="dumps.html">Dump Styles</a></li>
+      <li class="breadcrumb-item active">dump vtk command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="dump_netcdf.html" class="btn btn-neutral float-left" title="dump netcdf command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Bibliography.html" class="btn btn-neutral float-right" title="Bibliography" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="dump-vtk-command">
+<span id="index-0"></span><h1>dump vtk command<a class="headerlink" href="#dump-vtk-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">vtk</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">args</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID = user-assigned name for the dump</p></li>
+<li><p>group-ID = ID of the group of atoms to be dumped</p></li>
+<li><p>vtk = style of dump command (other styles such as <em>atom</em> or <em>cfg</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>local</em> or <em>custom</em> are discussed on the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> doc page)</p></li>
+<li><p>N = dump every this many timesteps</p></li>
+<li><p>file = name of file to write dump info to</p></li>
+<li><p>args = same as arguments for <a class="reference internal" href="dump.html"><span class="doc">dump_style custom</span></a></p></li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">dmpvtk</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">vtk</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump</span><span class="o">*</span><span class="n">.myforce.vtk</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">fx</span>
+<span class="k">dump </span><span class="nv nv-Identifier">dmpvtp</span><span class="w"> </span><span class="nv nv-Identifier">flow</span><span class="w"> </span><span class="n">vtk</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump</span><span class="o">*</span><span class="n">.</span><span class="o">%</span><span class="n">.displace.vtp</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">c_myD[1]</span><span class="w"> </span><span class="n">c_myD[2]</span><span class="w"> </span><span class="n">c_myD[3]</span><span class="w"> </span><span class="n">v_ke</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Dump a snapshot of atom quantities to one or more files every <span class="math notranslate nohighlight">\(N\)</span>
+timesteps in a format readable by the <a class="reference external" href="https://vtk.org">VTK visualization toolkit</a> or other visualization tools that use it, such
+as <a class="reference external" href="https://www.paraview.org">ParaView</a>.  The time steps on which dump
+output is written can also be controlled by a variable; see the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command for details.</p>
+<p>This dump style is similar to <a class="reference internal" href="dump.html"><span class="doc">dump_style custom</span></a> but uses
+the VTK library to write data to VTK simple legacy or XML format,
+depending on the filename extension specified for the dump file.  This
+can be either <em>*.vtk</em> for the legacy format or <em>*.vtp</em> and <em>*.vtu</em>,
+respectively, for XML format; see the <a class="reference external" href="https://vtk.org/VTK/img/file-formats.pdf">VTK homepage</a> for a detailed
+description of these formats.  Since this naming convention conflicts
+with the way binary output is usually specified (see below), the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify binary</span></a> command allows setting of a
+binary option for this dump style explicitly.</p>
+<p>Only information for atoms in the specified group is dumped.  The
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify thresh and region</span></a> commands can also
+alter what atoms are included; see details below.</p>
+<p>As described below, special characters (”*”, “%”) in the filename
+determine the kind of output.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Because periodic boundary conditions are enforced only
+on timesteps when neighbor lists are rebuilt, the coordinates of an
+atom written to a dump file may be slightly outside the simulation
+box.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Unless the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify sort</span></a> option is invoked,
+the lines of atom information written to dump files will be in an
+indeterminate order for each snapshot.  This is even true when
+running on a single processor, if the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify sort</span></a> option is on, which it is by default.  In this case
+atoms are re-ordered periodically during a simulation, due to spatial
+sorting.  It is also true when running in parallel, because data for
+a single snapshot is collected from multiple processors, each of
+which owns a subset of the atoms.</p>
+</div>
+<p>For the <em>vtk</em> style, sorting is off by default. See the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> page for details.</p>
+<hr class="docutils" />
+<p>The dimensions of the simulation box are written to a separate file
+for each snapshot (either in legacy VTK or XML format depending on the
+format of the main dump file) with the suffix <em>_boundingBox</em> appended
+to the given dump filename.</p>
+<p>For an orthogonal simulation box this information is saved as a
+rectilinear grid (legacy .vtk or .vtr XML format).</p>
+<p>Triclinic simulation boxes (non-orthogonal) are saved as
+hexahedrons in either legacy .vtk or .vtu XML format.</p>
+<p>Style <em>vtk</em> allows you to specify a list of atom attributes to be
+written to the dump file for each atom.  The list of possible attributes
+is the same as for the <a class="reference internal" href="dump.html"><span class="doc">dump_style custom</span></a> command; see its
+documentation page for a listing and an explanation of each attribute.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Since position data is required to write VTK files the atom
+attributes “x y z” do not have to be specified explicitly; they will
+be included in the dump file regardless.  Also, in contrast to the
+<em>custom</em> style, the specified <em>vtk</em> attributes are rearranged to
+ensure correct ordering of vector components (except for computes and
+fixes - these have to be given in the right order) and duplicate
+entries are removed.</p>
+</div>
+<p>The VTK format uses a single snapshot of the system per file, thus
+a wildcard “*” must be included in the filename, as discussed below.
+Otherwise the dump files will get overwritten with the new snapshot
+each time.</p>
+<hr class="docutils" />
+<p>Dumps are performed on timesteps that are a multiple of N (including
+timestep 0) and on the last timestep of a minimization if the
+minimization converges.  Note that this means a dump will not be
+performed on the initial timestep after the dump command is invoked,
+if the current timestep is not a multiple of N.  This behavior can be
+changed via the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command, which
+can also be useful if the dump command is invoked after a minimization
+ended on an arbitrary timestep.  N can be changed between runs by
+using the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command.
+The <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify every</span></a> command
+also allows a variable to be used to determine the sequence of
+timesteps on which dump files are written.  In this mode a dump on the
+first timestep of a run will also not be written unless the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify first</span></a> command is used.</p>
+<p>Dump filenames can contain two wildcard characters.  If a “*”
+character appears in the filename, then one file per snapshot is
+written and the “*” character is replaced with the timestep value.
+For example, tmp.dump*.vtk becomes tmp.dump0.vtk, tmp.dump10000.vtk,
+tmp.dump20000.vtk, etc.  Note that the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify pad</span></a>
+command can be used to ensure all timestep numbers are the same length
+(e.g. 00010), which can make it easier to read a series of dump files
+in order with some post-processing tools.</p>
+<p>If a “%” character appears in the filename, then each of P processors
+writes a portion of the dump file, and the “%” character is replaced
+with the processor ID from 0 to P-1 preceded by an underscore character.
+For example, tmp.dump%.vtp becomes tmp.dump_0.vtp, tmp.dump_1.vtp, …
+tmp.dump_P-1.vtp, etc.  This creates smaller files and can be a fast
+mode of output on parallel machines that support parallel I/O for output.</p>
+<p>By default, P = the number of processors meaning one file per
+processor, but P can be set to a smaller value via the <em>nfile</em> or
+<em>fileper</em> keywords of the <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> command.
+These options can be the most efficient way of writing out dump files
+when running on large numbers of processors.</p>
+<p>For the legacy VTK format “%” is ignored and P = 1, i.e., only
+processor 0 does write files.</p>
+<p>Note that using the “*” and “%” characters together can produce a
+large number of small dump files!</p>
+<p>If <em>dump_modify binary</em> is used, the dump file (or files, if “*” or
+“%” is also used) is written in binary format.  A binary dump file
+will be about the same size as a text version, but will typically
+write out much faster.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>The <em>vtk</em> style does not support writing of gzipped dump files.</p>
+<p>The <em>vtk</em> dump style is part of the VTK package. It is only
+enabled if LAMMPS was built with that package. See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>To use this dump style, you also must link to the VTK library.  See
+the info in lib/vtk/README and ensure the Makefile.lammps file in that
+directory is appropriate for your machine.</p>
+<p>The <em>vtk</em> dump style supports neither buffering or custom format
+strings.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a>,
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a>, <a class="reference internal" href="undump.html"><span class="doc">undump</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>By default, files are written in ASCII format. If the file extension
+is not one of .vtk, .vtp or .vtu, the legacy VTK file format is used.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dump_netcdf.html" class="btn btn-neutral float-left" title="dump netcdf command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Bibliography.html" class="btn btn-neutral float-right" title="Bibliography" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

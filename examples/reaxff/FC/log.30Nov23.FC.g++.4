@@ -1,0 +1,172 @@
+LAMMPS (21 Nov 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# REAX potential for Nitroamines system
+# .....
+
+dimension      3
+boundary       p p p
+units           real
+
+atom_style      charge
+read_data       data.FC
+Reading data file ...
+  orthogonal box = (-82.62 -79.5011 -50) to (82.62 79.5011 50)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  17280 atoms
+  read_data CPU = 0.030 seconds
+
+pair_style      reaxff NULL
+pair_coeff      * * ffield.reax.FC C F
+Reading potential file ffield.reax.FC with DATE: 2013-06-28
+WARNING: Changed valency_val to valency_boc for X (src/REAXFF/reaxff_ffield.cpp:289)
+neighbor        2. bin
+neigh_modify    every 10 delay 0 check no
+fix             2 all qeq/reax 1 0.0 10.0 1e-6 reaxff
+
+# should equilibrate much longer in practice
+
+fix             1 all npt temp 100.0 100.0 10.0 iso 1.0 1. 2000.0
+timestep        0.2
+thermo_style    custom step temp epair etotal press
+thermo          1
+dump            4 all xyz 5000 dumpnpt.xyz
+run             10
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 10 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 28 27 17
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 121.6 | 121.6 | 121.6 Mbytes
+   Step          Temp          E_pair         TotEng         Press     
+         0   0             -808525.04     -808525.04      58194.694    
+         1   4.9935726     -808803.88     -808546.69      58205.825    
+         2   19.98696      -809640.53     -808611.1       58239.155    
+         3   45.012616     -811035.3      -808716.9       58294.499    
+         4   80.103613     -812988.58     -808862.81      58371.548    
+         5   125.26228     -815500.68     -809049         58469.872    
+         6   180.4316      -818571.56     -809278.36      58588.936    
+         7   245.47913     -822200.73     -809557.22      58728.144    
+         8   320.17692     -826387.19     -809896.34      58886.879    
+         9   404.17073     -831129.38     -810312.4       59064.554    
+        10   497.02486     -836425.06     -810825.59      59260.717    
+Loop time of 1.75962 on 4 procs for 10 steps with 17280 atoms
+
+Performance: 0.098 ns/day, 244.392 hours/ns, 5.683 timesteps/s, 98.203 katom-step/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.402      | 1.4417     | 1.4815     |   3.0 | 81.93
+Neigh   | 0.012815   | 0.013047   | 0.01323    |   0.2 |  0.74
+Comm    | 0.0006609  | 0.040482   | 0.080149   |  17.9 |  2.30
+Output  | 0.00028041 | 0.00029538 | 0.00033093 |   0.0 |  0.02
+Modify  | 0.26389    | 0.26407    | 0.26425    |   0.0 | 15.01
+Other   |            | 7.451e-05  |            |       |  0.00
+
+Nlocal:           4320 ave        4320 max        4320 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           2856 ave        2856 max        2856 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         691892 ave      691892 max      691892 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2767568
+Ave neighs/atom = 160.16019
+Neighbor list builds = 1
+Dangerous builds not checked
+
+unfix           1
+
+fix             1  all nvt temp 100.0 100.0 100.0
+thermo_style    custom step temp epair etotal press
+timestep        0.2
+
+#dump           5 all xyz 5000 dumpnvt.xyz
+#dump            6 all custom 5000 dumpidtype.dat id type x y z
+
+run             10
+Per MPI rank memory allocation (min/avg/max) = 123 | 123 | 123 Mbytes
+   Step          Temp          E_pair         TotEng         Press     
+        10   497.02486     -836425.06     -810825.59      59260.717    
+        11   601.6514      -841814.09     -810825.78      59489.425    
+        12   716.37597     -847724.6      -810827.35      59738.298    
+        13   841.27959     -854161.62     -810831.16      60008.164    
+        14   976.4666      -861131.68     -810838.36      60300.364    
+        15   1122.0668     -868642.96     -810850.45      60616.793    
+        16   1278.2373     -876705.43     -810869.28      60959.942    
+        17   1445.1655     -885331.03     -810897.18      61332.932    
+        18   1623.072      -894533.91     -810936.92      61739.541    
+        19   1812.1864     -904337.86     -811000.45      62200.561    
+        20   2011.5898     -915379.05     -811771.28      63361.15     
+Loop time of 1.8322 on 4 procs for 10 steps with 17280 atoms
+
+Performance: 0.094 ns/day, 254.473 hours/ns, 5.458 timesteps/s, 94.313 katom-step/s
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.3846     | 1.4468     | 1.524      |   4.2 | 78.96
+Neigh   | 0.012048   | 0.012239   | 0.012522   |   0.2 |  0.67
+Comm    | 0.00082283 | 0.07804    | 0.14024    |  17.9 |  4.26
+Output  | 0.00029695 | 0.00031243 | 0.00035323 |   0.0 |  0.02
+Modify  | 0.29449    | 0.29478    | 0.29497    |   0.0 | 16.09
+Other   |            | 7.342e-05  |            |       |  0.00
+
+Nlocal:           4320 ave        4320 max        4320 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           2856 ave        2856 max        2856 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         691892 ave      691892 max      691892 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2767568
+Ave neighs/atom = 160.16019
+Neighbor list builds = 1
+Dangerous builds not checked
+Total wall time: 0:00:04

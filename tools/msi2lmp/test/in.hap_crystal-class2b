@@ -1,0 +1,14 @@
+log log.hap_crystal-class2b
+units real
+atom_style full
+pair_style lj/class2/coul/cut 15.0
+bond_style class2
+angle_style class2
+improper_style class2
+
+read_data hap_crystal-class2b.data
+
+thermo_style multi
+minimize 0.0 0.0 100 1000
+
+write_data hap_crystal-class2b.data2

@@ -1,0 +1,12 @@
+This package provides a plugin command that can load LAMMPS
+styles linked into shared object files into a LAMMPS binary
+at run time without having to recompile and relink LAMMPS.
+For more details please see the LAMMPS manual.
+
+To be able to dynamically load and execute the plugins from inside
+LAMMPS, you need to link with an appropriate system library, which
+is done using the settings in lib/plugin/Makefile.lammps.  See
+that file and the lib/plugin/README file for more details.
+
+The person who created this package is Axel Kohlmeyer at Temple U
+(akohlmey at gmail.com).  Contact him directly if you have questions.

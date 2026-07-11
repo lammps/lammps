@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.2.2. Type labels &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_type_labels.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.2.3. Triclinic (non-orthogonal) simulation boxes" href="Howto_triclinic.html" />
+    <link rel="prev" title="10.2.1. 2d simulations" href="Howto_2d.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_2d.html">10.2.1. 2d simulations</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.2.2. Type labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_triclinic.html">10.2.3. Triclinic (non-orthogonal) simulation boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_thermostat.html">10.2.4. Thermostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_barostat.html">10.2.5. Barostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_walls.html">10.2.6. Walls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_nemd.html">10.2.7. NEMD simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_dispersion.html">10.2.8. Long-range dispersion settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bulk2slab.html">10.2.9. Convert bulk system to slab</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_broken_bonds.html">10.2.10. Broken Bonds</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.2.2. </span>Type labels</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_2d.html" class="btn btn-neutral float-left" title="10.2.1. 2d simulations" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_triclinic.html" class="btn btn-neutral float-right" title="10.2.3. Triclinic (non-orthogonal) simulation boxes" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="type-labels">
+<h1><span class="section-number">10.2.2. </span>Type labels<a class="headerlink" href="#type-labels" title="Link to this heading"></a></h1>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 15Sep2022.</span></p>
+</div>
+<p>Each atom in LAMMPS has an associated numeric atom type. Similarly,
+each bond, angle, dihedral, and improper is assigned a bond type,
+angle type, and so on.  The primary use of these types is to map
+potential (force field) parameters to the interactions of the atom,
+bond, angle, dihedral, and improper.</p>
+<p>By default, type values are entered as integers from 1 to Ntypes
+wherever they appear in LAMMPS input or output files.  The total number
+Ntypes for each interaction is “locked in” when the simulation box
+is created.</p>
+<p>A recent addition to LAMMPS is the option to use strings - referred to
+as type labels - as an alternative.  Using type labels instead of
+numeric types can be advantageous in various scenarios.  For example,
+type labels can make inputs more readable and generic (i.e. usable
+through the <a class="reference internal" href="include.html"><span class="doc">include command</span></a> for different systems with
+different numerical values assigned to types.  This generality also
+applies to other inputs like data files read by <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or molecule template files read by the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command.  A discussion of the current type label support can
+be found in <a class="reference internal" href="#typelabel24"><span class="std std-ref">(Gissinger)</span></a>.  See below for a list of
+other commands that can use type labels in different ways.</p>
+<p>LAMMPS will <em>internally</em> continue to use numeric types, which means
+that many previous restrictions still apply.  For example, the total
+number of types is locked in when creating the simulation box, and
+potential parameters for each type must be provided even if not used
+by any interactions.</p>
+<p>A collection of type labels for all type-kinds (atom types, bond types,
+etc.) is stored as a “label map” which is simply a list of numeric types
+and their associated type labels.  Within a type-kind, each type label
+must be unique.  It can be assigned to only one numeric type.  To read
+and write type labels to data files for a given type-kind, <em>all</em>
+associated numeric types need have a type label assigned.  Partial
+maps can be saved with the <a class="reference internal" href="labelmap.html"><span class="doc">labelmap write</span></a> command
+and read back with the <a class="reference internal" href="include.html"><span class="doc">include</span></a> command.</p>
+<p>Valid type labels can contain most ASCII characters, but cannot start
+with a number, a ‘#’, or a ‘*’.  Also, labels must not contain whitespace
+characters.  When using the <a class="reference internal" href="labelmap.html"><span class="doc">labelmap command</span></a> in the
+LAMMPS input, if certain characters appear in the type label, such as
+the single (’) or double (”) quote or the ‘#’ character, the label
+must be put in either double, single, or triple (“””) quotes.  Triple
+quotes allow for the most generic type label strings, but they require
+to have a leading and trailing blank space.  When defining type labels
+the blanks will be ignored. Example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">labelmap</span><span class="w"> </span><span class="n">angle</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="s">&quot;&quot;&quot; C1&#39;-C2&quot;</span><span class="o">-</span><span class="n">C3</span><span class="c"># &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>This command will map the string <code class="docutils literal notranslate"><span class="pre">`C1'-C2&quot;-C3#`</span></code> to the angle type 1.</p>
+<p>There are two ways to define label maps.  One is via the <a class="reference internal" href="labelmap.html"><span class="doc">labelmap</span></a> command.  The other is via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
+command.  A data file can have sections such as <em>Atom Type Labels</em>, <em>Bond
+Type Labels</em>, etc., which assign type labels to numeric types.  The
+label map can be written out to data files by the <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a> command.  This map is also written to and read from
+restart files, by the <a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a> and
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands.</p>
+<hr class="docutils" />
+<section id="use-of-type-labels-in-lammps-input-or-output">
+<h2>Use of type labels in LAMMPS input or output<a class="headerlink" href="#use-of-type-labels-in-lammps-input-or-output" title="Link to this heading"></a></h2>
+<p>Many LAMMPS input script commands that take a numeric type as an
+argument can use the associated type label instead.  If a type label
+is not defined for a particular numeric type, only its numeric type
+can be used.</p>
+<p>This example assigns labels to the atom types, and then uses the type
+labels to redefine the pair coefficients.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w">              </span><span class="c"># numeric types</span>
+<span class="k">labelmap</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">H</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w">              </span><span class="c"># type labels</span>
+</pre></div>
+</div>
+<p>Adding support for type labels to various commands is an ongoing
+project.  If an input script command (or a section in a file read by a
+command) allows substituting a type label for a numeric type argument,
+it will be explicitly mentioned in that command’s documentation page.</p>
+<p>As a temporary measure, input script commands can take advantage of
+variables and how they can be expanded during processing of the input.
+The variables can use functions that will translate type label strings
+to their respective number as defined in the current label map.  See the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for details.</p>
+<p>For example, here is how the pair_coeff command could be used with
+type labels if it did not yet support them, either with an explicit
+variable command or an implicit variable used in the pair_coeff
+command.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">labelmap</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">H</span>
+<span class="k">variable </span><span class="nv nv-Identifier">atom1</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">label2type</span><span class="nv">(atom,C)</span>
+<span class="k">variable </span><span class="nv nv-Identifier">atom2</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">label2type</span><span class="nv">(atom,H)</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="nv">${atom1}</span><span class="w"> </span><span class="nv">${atom2}</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span>
+</pre></div>
+</div>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">labelmap</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">H</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="nv">$(label2type(atom,C))</span><span class="w"> </span><span class="nv">$(label2type(atom,H))</span><span class="w"> </span><span class="m">80.0</span><span class="w"> </span><span class="m">1.2</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="commands-that-can-use-label-types">
+<h2>Commands that can use label types<a class="headerlink" href="#commands-that-can-use-label-types" title="Link to this heading"></a></h2>
+<p>Any workflow that involves reading multiple data files, molecule
+templates or a combination of the two can be streamlined by using type
+labels instead of numeric types, because types are automatically synced
+between the files.  The creation of simulation-ready reaction templates
+for <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a> is much simpler when using
+type labels, and results in templates that can be used without
+modification in multiple simulations or different systems.</p>
+<hr class="docutils" />
+<p id="typelabel24"><strong>(Gissinger)</strong> J. R. Gissinger, I. Nikiforov, Y. Afshar, B. Waters, M. Choi, D. S. Karls, A. Stukowski, W. Im, H. Heinz, A. Kohlmeyer, and E. B. Tadmor, J Phys Chem B, 128, 3282-3297 (2024).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_2d.html" class="btn btn-neutral float-left" title="10.2.1. 2d simulations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_triclinic.html" class="btn btn-neutral float-right" title="10.2.3. Triclinic (non-orthogonal) simulation boxes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

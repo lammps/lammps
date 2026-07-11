@@ -1,0 +1,318 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.6. Download the LAMMPS source with git &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Install_git.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+      <script src="_static/tabs.js?v=3030b3cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3. Build LAMMPS" href="Build.html" />
+    <link rel="prev" title="2.5. Download source and documentation as a tarball" href="Install_tarball.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Install.html">2. Install LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Install_linux.html">2.1. Download an executable for Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_mac.html">2.2. Download an executable for macOS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_windows.html">2.3. Download an executable for Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_conda.html">2.4. Download an executable for Linux or macOS via Conda</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Install_tarball.html">2.5. Download source and documentation as a tarball</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">2.6. Download the LAMMPS source with git</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Install.html"><span class="section-number">2. </span>Install LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.6. </span>Download the LAMMPS source with git</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Install_tarball.html" class="btn btn-neutral float-left" title="2.5. Download source and documentation as a tarball" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build.html" class="btn btn-neutral float-right" title="3. Build LAMMPS" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="download-the-lammps-source-with-git">
+<h1><span class="section-number">2.6. </span>Download the LAMMPS source with git<a class="headerlink" href="#download-the-lammps-source-with-git" title="Link to this heading"></a></h1>
+<p>LAMMPS development is coordinated through the “LAMMPS GitHub site”.
+If you clone the LAMMPS repository onto your local machine, it has
+several advantages:</p>
+<ul class="simple">
+<li><p>You can stay current with changes to LAMMPS with a single git
+command.</p></li>
+<li><p>You can create your own development branches to add code to LAMMPS.</p></li>
+<li><p>You can submit your new features back to GitHub for inclusion in
+LAMMPS.  For that, you should first create your own <a class="reference internal" href="Howto_github.html"><span class="doc">fork on
+GitHub</span></a>, though.</p></li>
+</ul>
+<p>You must have <a class="reference external" href="https://git-scm.com">git</a> installed on your system to use the commands
+explained below to communicate with the git servers on GitHub.</p>
+<p>You can follow the LAMMPS development on 4 different git branches:</p>
+<ul class="simple">
+<li><p><strong>develop</strong> : this branch follows the ongoing development and is
+updated with every merge commit of a pull request</p></li>
+<li><p><strong>release</strong> : this branch is updated with every “feature release”
+and updates are always “fast-forward” merges from <em>develop</em></p></li>
+<li><p><strong>maintenance</strong> : this branch collects back-ported bug fixes from the
+<em>develop</em> branch to the <em>stable</em> branch.  It is used to update the
+<em>stable</em> branch for “stable update releases”.</p></li>
+<li><p><strong>stable</strong> : this branch is updated from the <em>release</em> branch with
+every “stable release” version and also has selected bug fixes with
+every “update release” when the <em>maintenance</em> branch is merged into it</p></li>
+</ul>
+<p>To access the git repository on your box, use the clone command to
+create a local copy of the LAMMPS repository with a command like:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>release<span class="w"> </span>https://github.com/lammps/lammps.git<span class="w"> </span>mylammps
+</pre></div>
+</div>
+<p>where “mylammps” is the name of the directory you wish to create on
+your machine and “release” is one of the 3 branches listed above.
+(Note that you actually download all 3 branches; you can switch
+between them at any time using “git checkout &lt;branch name&gt;”.)</p>
+<div class="note admonition">
+<p class="admonition-title">Saving time and disk space when using <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span></code></p>
+<p>The complete git history of the LAMMPS project is quite large because
+it contains the entire commit history of the project since fall 2006,
+which includes the time when LAMMPS was managed with subversion.
+This includes a few commits that have added and removed some large
+files (mostly by accident).  If you do not need access to the entire
+commit history (most people don’t), you can speed up the “cloning”
+process and reduce local disk space requirements by using the
+<code class="docutils literal notranslate"><span class="pre">--depth</span></code> git command-line flag.  That will create a “shallow clone”
+of the repository, which contains only a subset of the git history.
+Using a depth of 1000 is usually sufficient to include the head
+commits of the <em>develop</em>, the <em>release</em>, and the <em>maintenance</em>
+branches.  To include the head commit of the <em>stable</em> branch you may
+need a depth of up to 10000.  If you later need more of the git
+history, you can always convert the shallow clone into a “full
+clone”.</p>
+</div>
+<p>Once the command completes, your directory will contain the same files
+as if you unpacked a current LAMMPS tarball, with the exception, that
+the HTML documentation files are not included. They can be generated
+from the content provided in <code class="docutils literal notranslate"><span class="pre">doc/src</span></code> by typing <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">html</span></code> from
+the <code class="docutils literal notranslate"><span class="pre">doc</span></code> directory.</p>
+<p>After initial cloning, as bug fixes and new features are added to
+LAMMPS you can stay up-to-date by typing the following git commands
+from within the “mylammps” directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>release<span class="w">      </span><span class="c1"># not needed if you always stay in this branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>stable<span class="w">       </span><span class="c1"># use one of these 4 checkout commands</span>
+git<span class="w"> </span>checkout<span class="w"> </span>develop<span class="w">      </span><span class="c1"># to choose the branch to follow</span>
+git<span class="w"> </span>checkout<span class="w"> </span>maintenance
+git<span class="w"> </span>pull
+</pre></div>
+</div>
+<p>Doing a “pull” will not change any files you have added to the LAMMPS
+directory structure.  It will also not change any existing LAMMPS files
+you have edited, unless those files have changed in the repository.  In
+that case, git will attempt to merge the changes from the repository
+file with your version of the file and tell you if there are any
+conflicts.  See the git documentation for details.</p>
+<p>If you want to access a particular previous release version of LAMMPS,
+you can instead “check out” any version with a published tag. See the
+output of <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">tag</span> <span class="pre">-l</span></code> for the list of tags.  The git command to do
+this is as follows.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>checkout<span class="w"> </span>tagID
+</pre></div>
+</div>
+<p>Stable versions and what tagID to use for a particular stable version
+are discussed on <a class="reference external" href="https://www.lammps.org/bug.html#version">this page</a>.
+Note that this command will print some warnings, because in order to get
+back to the latest revision and to be able to update with <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code>
+again, you will need to do <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">release</span></code> (or
+check out any other desired branch) first.</p>
+<p>Once you have updated your local files with a <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> (or <code class="docutils literal notranslate"><span class="pre">git</span>
+<span class="pre">checkout</span></code>), you still need to re-build LAMMPS if any source files have
+changed.  How to do this depends on the build system you are using.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><p>Change to your build folder and type:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>--build<span class="w"> </span>.
+</pre></div>
+</div>
+<p>CMake should auto-detect whether it needs to re-run the CMake
+configuration step and otherwise redo the build for all files
+that have been changed or files that depend on changed files.
+In case some build options have been changed or renamed, you
+may have to update those by running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>.
+</pre></div>
+</div>
+<p>and then rebuild.</p>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><p>Switch to the src directory and type:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>purge<span class="w">             </span><span class="c1"># remove any deprecated src files</span>
+make<span class="w"> </span>package-update<span class="w">    </span><span class="c1"># sync package files with src files</span>
+make<span class="w"> </span>foo<span class="w">               </span><span class="c1"># re-build for your machine (mpi, serial, etc)</span>
+</pre></div>
+</div>
+<p>to enforce consistency of the source between the src folder
+and package directories.  This is OK to do even if you don’t
+use any packages. The <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">purge</span></code> command removes any deprecated
+src files if they were removed by the update from a package
+subdirectory.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If you wish to edit/change a src file that is from a package,
+you should edit the version of the file inside the package
+subdirectory with src, then re-install the package.  The
+version in the source directory is merely a copy and will be
+wiped out if you type “make package-update”.</p>
+</div>
+</div></div>
+<div class="note admonition">
+<p class="admonition-title">Git protocols</p>
+<p>The servers at github.com support the “https” access protocol for
+anonymous, read-only access.  If you have a suitably configured
+GitHub account, you may also use SSH protocol with the URL
+<code class="docutils literal notranslate"><span class="pre">git&#64;github.com:lammps/lammps.git</span></code>.</p>
+</div>
+<p>The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
+(Temple U, akohlmey at gmail.com), contact him if you have any
+questions or concerns.</p>
+<hr class="docutils" />
+<p>You can find additional LAMMPS features for dynamically loading
+with the <a class="reference internal" href="plugin.html"><span class="doc">plugin command</span></a> in the
+<a class="reference external" href="https://github.com/lammps/lammps-plugins">LAMMPS plugins source code repository on GitHub</a></p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Install_tarball.html" class="btn btn-neutral float-left" title="2.5. Download source and documentation as a tarball" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build.html" class="btn btn-neutral float-right" title="3. Build LAMMPS" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

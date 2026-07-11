@@ -1,0 +1,32 @@
+LAMMPS data file for polygons: squares of edge length L: Izz = 1/6mL^2
+2 atoms
+2 bodies
+1 atom types
+0 12 xlo xhi
+0 12 ylo yhi
+-0.5 0.5 zlo zhi
+
+Atoms
+
+1 1 1 1 4 5 0
+2 1 1 1 9 6 0
+
+Bodies
+
+1 1 19
+4
+1 1 2.67 0 0 0
+-2 -2 0
+-2 2 0
+2 2 0
+2 -2 0
+0.5
+2 1 19
+4
+1 1 2.67 0 0 0
+-2 -2 0
+-2 2 0
+2 2 0
+2 -2 0
+0.5
+

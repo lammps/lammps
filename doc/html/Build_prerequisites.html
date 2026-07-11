@@ -1,0 +1,247 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.1. Prerequisites &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Build_prerequisites.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.2. Build LAMMPS with CMake" href="Build_cmake.html" />
+    <link rel="prev" title="3. Build LAMMPS" href="Build.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.1. Prerequisites</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cmake-build-system">3.1.1. CMake build system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gnu-build-system">3.1.2. GNU build system</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compiler-and-os-compatibility">3.1.3. Compiler and OS compatibility</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.2. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.3. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.4. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.5. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.6. Optional build settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.7. Include packages in build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_extras.html">3.8. Packages with extra build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.9. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.10. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_diskspace.html">3.11. Notes for saving disk space when building LAMMPS from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.12. Development build options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.1. </span>Prerequisites</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Build.html" class="btn btn-neutral float-left" title="3. Build LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_cmake.html" class="btn btn-neutral float-right" title="3.2. Build LAMMPS with CMake" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="prerequisites">
+<h1><span class="section-number">3.1. </span>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h1>
+<p>Which software you need to compile and use LAMMPS strongly depends on
+which <a class="reference internal" href="Build_settings.html"><span class="doc">features and settings</span></a> and which
+<a class="reference internal" href="Packages.html"><span class="doc">optional packages</span></a> you are trying to include.
+Common to all is that you need a C++ and C compiler, where the C++
+compiler has to support at least the C++17 standard (note that some
+compilers require a command-line flag to activate C++17 support).</p>
+<section id="cmake-build-system">
+<h2><span class="section-number">3.1.1. </span>CMake build system<a class="headerlink" href="#cmake-build-system" title="Link to this heading"></a></h2>
+<p>If you are building with CMake, you need at least CMake version 3.20 and
+a compatible build tool (e.g. GNU make or ninja-build on Linux).  The
+CMake scripting includes tests for required software and will
+auto-detect and auto-enable available tools and libraries for optional
+features (of course those can be disabled, if desired).  If required
+software is missing, CMake will try to download the compile the missing
+parts automatically, if possible or stop with an error.</p>
+</section>
+<section id="gnu-build-system">
+<h2><span class="section-number">3.1.2. </span>GNU build system<a class="headerlink" href="#gnu-build-system" title="Link to this heading"></a></h2>
+<p>If you are building LAMMPS with the legacy GNU make based build system
+you need GNU make (other make variants are not going to work since the
+build system uses features unique to GNU make) and a Unix-like build
+environment with a Bourne shell, and shell tools like “sed”, “grep”,
+“touch”, “test”, “tr”, “cp”, “mv”, “rm”, “ln”, “diff” and so on. Parts
+of LAMMPS interface with or use Python version 3.6 or later.</p>
+</section>
+<section id="compiler-and-os-compatibility">
+<h2><span class="section-number">3.1.3. </span>Compiler and OS compatibility<a class="headerlink" href="#compiler-and-os-compatibility" title="Link to this heading"></a></h2>
+<p>The LAMMPS developers aim to keep LAMMPS very portable and usable -
+at least in parts - on most operating systems commonly used for
+running MD simulations.  Please see the <a class="reference internal" href="Intro_portability.html"><span class="doc">section on portability</span></a> for more details.</p>
+<div class="warning admonition">
+<p class="admonition-title">Warning: LLVM based Intel Compilers</p>
+<p>In recent years, Intel switched their compilers from a proprietary
+code base to compilers based on LLVM (which is also the foundation of
+the Clang compilers).  It has since stopped updating their legacy
+compilers.  Some versions of those LLVM compilers creates incorrect
+binary code that results in incorrect behavior of LAMMPS; this is
+particularly common when using high optimization levels and
+vectorization.  There have been several cases where people reported
+bugs in LAMMPS which turned out to be caused by bugs in the Intel
+LLVM compilers.</p>
+<p>Unfortunately there is no simple way to detect whether a binary is
+working correctly outside of running the unit and regression tests,
+but those do not cover all of LAMMPS and would be reliable only for
+no or moderate optimization anyway.  For most of LAMMPS there is not
+much of a benefit (if any) to use the Intel compilers over the GCC or
+Clang compilers, except for the INTEL package (which <em>can</em> be
+compiled with other compilers, but most vectorization directives are
+inactive for those) or KOKKOS with SYCL.</p>
+<p>Our recommendation is thus to compile with GCC or Clang unless you
+are using features that <em>require</em> the Intel compilers.  In that case,
+it is recommended to have a backup GCC/Clang compiled binary
+available to validate correctness of the simulation.  If you have
+access to multiple Intel compiler versions, please try the latest
+version first and avoid “20##.0” versions which seem to have
+problems most often.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Build.html" class="btn btn-neutral float-left" title="3. Build LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_cmake.html" class="btn btn-neutral float-right" title="3.2. Build LAMMPS with CMake" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

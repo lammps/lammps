@@ -1,0 +1,52 @@
+variable        sname index Li-dendritic
+
+units 		electron
+newton		on
+boundary        p p p
+
+atom_style	electron
+
+read_data  	data.${sname}
+#read_restart	${sname}.min.restart
+
+pair_style      eff/cut 50.112
+pair_coeff	* * 
+
+comm_modify	vel yes
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+thermo          10
+thermo_style    custom step pe temp press
+thermo_modify   temp effTemp press effPress
+
+print		"Starting minimizer"
+min_style       cg
+
+compute         1 all property/atom spin eradius
+#dump            1 all custom 100 ${sname}.min.lammpstrj id type x y z q c_1[1] c_1[2]
+#dump            2 all xyz 100 ${sname}.min.xyz
+min_modify      line quadratic dmax 0.05
+minimize        0 1.0e-7 100 100
+
+write_restart	${sname}.min.restart
+
+#undump		1
+#undump		2
+
+# NVT
+reset_timestep	0
+timestep	0.005
+
+print		"Starting nvt"
+fix		1 all nvt/eff temp 300.0 300.0 0.1
+dump            1 all custom 100 ${sname}.nvt.lammpstrj id type x y z c_1[1] c_1[2]
+dump            2 all xyz 100 ${sname}.nvt.xyz
+restart		100 ${sname}.nvt.restart1 ${sname}.nvt.restart2
+
+run		100
+
+undump		1
+undump		2
+

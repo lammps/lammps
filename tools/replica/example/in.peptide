@@ -1,0 +1,50 @@
+# Solvated 5-mer peptide
+
+#---------------------------------- 
+# Taken as is from examples/peptide 
+
+units		    real
+atom_style	    full
+boundary        p p p 
+
+pair_style	    lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style	pppm 0.0001
+
+read_data	    data.peptide
+
+neighbor	    2.0 bin
+neigh_modify	delay 5
+
+timestep	    2.0
+#----------------------------------
+
+
+# temperature schedule for REMD
+variable        idx world 0     1     2     3     4     5     6     7     8     9     10    11    12    13    14    15
+variable        t   world 200.0 209.0 219.0 230.0 241.0 252.0 264.0 276.0 289.0 303.0 317.0 332.0 348.0 365.0 382.0 400.0
+
+# thermostat
+fix             thermostat all langevin $t $t 1000 772530
+
+# log-file output before minimization
+thermo_style	custom step temp ke pe
+thermo		    20
+
+# minimization
+minimize        1e-4 0.0 1000 1000
+
+# change logfile output after minimization
+thermo_style	custom step temp pe
+thermo		    20
+
+# trajectory style
+dump            myDump all atom 20 peptide.${idx}.lammpstrj.gz
+dump_modify     myDump sort id scale no
+
+# run REMD (for realistic results run for 100000000 steps with 10000 frequency) 
+reset_timestep  0
+temper          2000 10 $t thermostat 3847 5382

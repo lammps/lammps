@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>1.1.9. Utility functions &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Library_utility.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="1.1.10. Extending the C API" href="Library_add.html" />
+    <link rel="prev" title="1.1.8. Configuration information" href="Library_config.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Library.html#lammps-c-library-api">1.1. LAMMPS C Library API</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Library_create.html">1.1.1. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_execute.html">1.1.2. Executing commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_properties.html">1.1.3. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_atoms.html">1.1.4. Per-atom properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_objects.html">1.1.5. Computes, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_scatter.html">1.1.6. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_neighbor.html">1.1.7. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_config.html">1.1.8. Configuration information</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">1.1.9. Utility functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Library_add.html">1.1.10. Extending the C API</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-python-api">1.2. LAMMPS Python API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-fortran-api">1.3. LAMMPS Fortran API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Library.html#lammps-cplusplus-api">1.4. LAMMPS C++ API</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Library.html"><span class="section-number">1. </span>LAMMPS Library Interfaces</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">1.1.9. </span>Utility functions</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Library_config.html" class="btn btn-neutral float-left" title="1.1.8. Configuration information" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Library_add.html" class="btn btn-neutral float-right" title="1.1.10. Extending the C API" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="utility-functions">
+<h1><span class="section-number">1.1.9. </span>Utility functions<a class="headerlink" href="#utility-functions" title="Link to this heading"></a></h1>
+<p>To simplify some tasks, the library interface contains these utility
+functions.  They do not directly call the LAMMPS library.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#_CPPv425lammps_encode_image_flagsiii" title="lammps_encode_image_flags"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_encode_image_flags()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv425lammps_decode_image_flagsiPi" title="lammps_decode_image_flags"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_decode_image_flags()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="lammps_fix_external_get_force"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_get_force()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv437lammps_fix_external_set_energy_globalPvPKcd" title="lammps_fix_external_set_energy_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_energy_global()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv438lammps_fix_external_set_energy_peratomPvPKcPd" title="lammps_fix_external_set_energy_peratom"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_energy_peratom()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv437lammps_fix_external_set_virial_globalPvPKcPd" title="lammps_fix_external_set_virial_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_virial_global()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv438lammps_fix_external_set_virial_peratomPvPKcPPd" title="lammps_fix_external_set_virial_peratom"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_virial_peratom()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv437lammps_fix_external_set_vector_lengthPvPKci" title="lammps_fix_external_set_vector_length"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_vector_length()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv430lammps_fix_external_set_vectorPvPKcid" title="lammps_fix_external_set_vector"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_vector()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_flush_buffersPv" title="lammps_flush_buffers"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_flush_buffers()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv411lammps_freePv" title="lammps_free"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_free()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv417lammps_is_runningPv" title="lammps_is_running"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_is_running()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv420lammps_force_timeoutPv" title="lammps_force_timeout"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_force_timeout()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv416lammps_has_errorPv" title="lammps_has_error"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_has_error()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv429lammps_get_last_error_messagePvPci" title="lammps_get_last_error_message"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_last_error_message()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv421lammps_set_show_errorPvKi" title="lammps_set_show_error"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_show_error()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#_CPPv425lammps_python_api_versionv" title="lammps_python_api_version"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_python_api_version()</span></code></a></p></li>
+</ul>
+<p>The <a class="reference internal" href="#_CPPv411lammps_freePv" title="lammps_free"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_free()</span></code></a> function is a clean-up function to free
+memory that the library had allocated previously via other function
+calls.  Look for notes in the descriptions of the individual commands
+where such memory buffers were allocated that require the use of
+<a class="reference internal" href="#_CPPv411lammps_freePv" title="lammps_free"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_free()</span></code></a>.</p>
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv425lammps_encode_image_flagsiii">
+<span id="_CPPv325lammps_encode_image_flagsiii"></span><span id="_CPPv225lammps_encode_image_flagsiii"></span><span id="lammps_encode_image_flags__i.i.i"></span><span class="target" id="library_8h_1ad12aad3df456f3c85418ff8af6e55e10"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_encode_image_flags</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">ix</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">iy</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">iz</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425lammps_encode_image_flagsiii" title="Link to this definition"></a><br /></dt>
+<dd><p>Encode three integer image flags into a single imageint.</p>
+<p><p>The prototype for this function when compiling with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>
+is:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int64_t</span><span class="w"> </span><span class="nf">lammps_encode_image_flags</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ix</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">iy</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">iz</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This function performs the bit-shift, addition, and bit-wise OR
+operations necessary to combine the values of three integers
+representing the image flags in x-, y-, and z-direction.  Unless
+LAMMPS is compiled with -DLAMMPS_BIGBIG, those integers are
+limited 10-bit signed integers [-512, 511].  Otherwise the return
+type changes from <code class="docutils literal notranslate"><span class="pre">int</span></code> to <code class="docutils literal notranslate"><span class="pre">int64_t</span></code> and the valid range for
+the individual image flags becomes [-1048576,1048575],
+i.e. that of a 21-bit signed integer.  There is no check on whether
+the arguments conform to these requirements.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ix</strong> – image flag value in x </p></li>
+<li><p><strong>iy</strong> – image flag value in y </p></li>
+<li><p><strong>iz</strong> – image flag value in z </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>encoded image flag integer </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv425lammps_decode_image_flagsiPi">
+<span id="_CPPv325lammps_decode_image_flagsiPi"></span><span id="_CPPv225lammps_decode_image_flagsiPi"></span><span id="lammps_decode_image_flags__i.iP"></span><span class="target" id="library_8h_1ae774bc2a40ffa11e7a7aecfac7a9c3c6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_decode_image_flags</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">image</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">flags</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425lammps_decode_image_flagsiPi" title="Link to this definition"></a><br /></dt>
+<dd><p>Decode a single image flag integer into three regular integers</p>
+<p><p>The prototype for this function when compiling with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code>
+is:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">lammps_decode_image_flags</span><span class="p">(</span><span class="kt">int64_t</span><span class="w"> </span><span class="n">image</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">flags</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This function does the reverse operation of
+<a class="reference internal" href="#_CPPv425lammps_encode_image_flagsiii" title="lammps_encode_image_flags"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_encode_image_flags()</span></code></a> and takes an image flag integer
+does the bit-shift and bit-masking operations to decode it and stores
+the resulting three regular integers into the buffer pointed to by
+<em>flags</em>.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image</strong> – encoded image flag integer </p></li>
+<li><p><strong>flags</strong> – pointer to storage where the decoded image flags are stored. </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv">
+<span id="_CPPv332lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv"></span><span id="_CPPv232lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv"></span><span id="lammps_set_fix_external_callback__voidP.cCP.FixExternalFnPtr.voidP"></span><span class="target" id="library_8h_1a2b2994fdf05652cb2f3fe2afc4d00d1a"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_set_fix_external_callback</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="n"><span class="pre">FixExternalFnPtr</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">funcptr</span></span>, <span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Set up the callback function for a fix external instance with the given ID.</p>
+<p><p>Fix <a class="reference internal" href="fix_external.html"><span class="doc">external</span></a> allows programs that are running LAMMPS through
+its library interface to modify certain LAMMPS properties on specific
+timesteps, similar to the way other fixes do.</p>
+<p>This function sets the callback function for use with the “pf/callback”
+mode. The function has to have C language bindings with the prototype:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">func</span><span class="p">(</span><span class="kt">void</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">,</span><span class="w"> </span><span class="n">bigint</span><span class="w"> </span><span class="n">timestep</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nlocal</span><span class="p">,</span><span class="w"> </span><span class="n">tagint</span><span class="w"> </span><span class="o">*</span><span class="n">ids</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">**</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">**</span><span class="n">fexternal</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The argument <em>ptr</em> to this function will be stored in fix external and
+the passed as the first argument calling the callback function <cite>func()</cite>.
+This would usually be a pointer to the active LAMMPS instance, i.e. the same
+pointer as the <em>handle</em> argument.  This would be needed to call
+functions that set the global or per-atom energy or virial contributions
+from within the callback function.</p>
+<p>The callback mechanism is one of the two modes of how forces and can be
+applied to a simulation with the help of fix external. The alternative
+is the array mode where you call <a class="reference internal" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="lammps_fix_external_get_force"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_get_force()</span></code></a>.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Jul2021.</span></p>
+</div>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>funcptr</strong> – pointer to callback function </p></li>
+<li><p><strong>ptr</strong> – pointer to object in calling code, passed to callback function as first argument </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv429lammps_fix_external_get_forcePvPKc">
+<span id="_CPPv329lammps_fix_external_get_forcePvPKc"></span><span id="_CPPv229lammps_fix_external_get_forcePvPKc"></span><span id="lammps_fix_external_get_force__voidP.cCP"></span><span class="target" id="library_8h_1a3e5a4c1f126c6b6cdd756f99764e69d7"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_get_force</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Get pointer to the force array storage in a fix external instance with the given ID.</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>Fix <a class="reference internal" href="fix_external.html"><span class="doc">external</span></a> allows programs that are running
+LAMMPS through its library interface to add or modify certain LAMMPS
+properties on specific timesteps, similar to the way other fixes do.</p>
+<p>This function provides access to the per-atom force storage in a fix
+external instance with the given fix-ID to be added to the individual
+atoms when using the “pf/array” mode.  The <em>fexternal</em> array can be
+accessed like other “native” per-atom arrays accessible via the
+<a class="reference internal" href="Library_atoms.html#_CPPv419lammps_extract_atomPvPKc" title="lammps_extract_atom"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_atom()</span></code></a> function.  Please note that the array
+stores holds the forces for <em>local</em> atoms for each MPI ranks, in the
+order determined by the neighbor list build.  Because the underlying
+data structures can change as well as the order of atom as they migrate
+between MPI processes because of the domain decomposition
+parallelization, this function should be always called immediately
+before the forces are going to be set to get an up-to-date pointer.
+You can use, for example, <a class="reference internal" href="Library_properties.html#_CPPv422lammps_extract_settingPvPKc" title="lammps_extract_setting"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_extract_setting()</span></code></a> to obtain
+the number of local atoms <cite>nlocal</cite> and then assume the dimensions of
+the returned force array as <code class="docutils literal notranslate"><span class="pre">double</span> <span class="pre">force[nlocal][3]</span></code>.</p>
+<p>This is an alternative to the callback mechanism in fix external set up
+by <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a>. The main difference is
+that this mechanism can be used when forces are be pre-computed and the
+control alternates between LAMMPS and the external code, while the
+callback mechanism can call the external code to compute the force when
+the fix is triggered and needs them.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a pointer to the per-atom force array allocated by the fix </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv437lammps_fix_external_set_energy_globalPvPKcd">
+<span id="_CPPv337lammps_fix_external_set_energy_globalPvPKcd"></span><span id="_CPPv237lammps_fix_external_set_energy_globalPvPKcd"></span><span id="lammps_fix_external_set_energy_global__voidP.cCP.double"></span><span class="target" id="library_8h_1a6ac4888e2c82846dcb9b1d013ef90f96"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_set_energy_global</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">eng</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv437lammps_fix_external_set_energy_globalPvPKcd" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the global energy contribution for a fix external instance with the given ID.</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This is a companion function to <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a> and
+<a class="reference internal" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="lammps_fix_external_get_force"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_get_force()</span></code></a> to also set the contribution
+to the global energy from the external code.  The value of the <em>eng</em>
+argument will be stored in the fix and applied on the current and all
+following timesteps until changed by another call to this function.
+The energy is in energy units as determined by the current <a class="reference internal" href="units.html"><span class="doc">units</span></a>
+settings and is the <strong>total</strong> energy of the contribution.  Thus when
+running in parallel all MPI processes have to call this function with
+the <strong>same</strong> value and this will be returned as scalar property of the
+fix external instance when accessed in LAMMPS input commands or from
+variables.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>eng</strong> – total energy to be added to the global energy </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv438lammps_fix_external_set_energy_peratomPvPKcPd">
+<span id="_CPPv338lammps_fix_external_set_energy_peratomPvPKcPd"></span><span id="_CPPv238lammps_fix_external_set_energy_peratomPvPKcPd"></span><span id="lammps_fix_external_set_energy_peratom__voidP.cCP.doubleP"></span><span class="target" id="library_8h_1aac2c2027c2779613dfe2ffa47205bbdf"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_set_energy_peratom</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">eng</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv438lammps_fix_external_set_energy_peratomPvPKcPd" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the per-atom energy contribution for a fix external instance with the given ID.</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This is a companion function to <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a>
+to set the per-atom energy contribution due to the fix from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the <em>ptr</em> argument when registering the
+callback function.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is fully independent from <a class="reference internal" href="#_CPPv437lammps_fix_external_set_energy_globalPvPKcd" title="lammps_fix_external_set_energy_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_energy_global()</span></code></a>
+and will <strong>NOT</strong> add any contributions to the global energy tally
+and <strong>NOT</strong> check whether the sum of the contributions added here are
+consistent with the global added energy.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>eng</strong> – pointer to array of length nlocal with the energy to be added to the per-atom energy </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv437lammps_fix_external_set_virial_globalPvPKcPd">
+<span id="_CPPv337lammps_fix_external_set_virial_globalPvPKcPd"></span><span id="_CPPv237lammps_fix_external_set_virial_globalPvPKcPd"></span><span id="lammps_fix_external_set_virial_global__voidP.cCP.doubleP"></span><span class="target" id="library_8h_1af707a45ddf44addec9b8345546deb83e"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_set_virial_global</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">virial</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv437lammps_fix_external_set_virial_globalPvPKcPd" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the global virial contribution for a fix external instance with the given ID.</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This is a companion function to <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a>
+and <a class="reference internal" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="lammps_fix_external_get_force"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_get_force()</span></code></a> to set the contribution to
+the global virial from the external code.</p>
+<p>The 6 values of the <em>virial</em> array will be stored in the fix and applied
+on the current and all following timesteps until changed by another call
+to this function. The components of the virial need to be stored in the
+order: <em>xx</em>, <em>yy</em>, <em>zz</em>, <em>xy</em>, <em>xz</em>, <em>yz</em>.  In LAMMPS the virial is
+stored internally as <cite>stress*volume</cite> in units of <cite>pressure*volume</cite> as
+determined by the current <a class="reference internal" href="units.html"><span class="doc">units</span></a> settings and is the
+<strong>total</strong> contribution.  Thus when running in parallel all MPI processes
+have to call this function with the <strong>same</strong> value and this will then
+be added by fix external.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>virial</strong> – the 6 global stress tensor components to be added to the global virial </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv438lammps_fix_external_set_virial_peratomPvPKcPPd">
+<span id="_CPPv338lammps_fix_external_set_virial_peratomPvPKcPPd"></span><span id="_CPPv238lammps_fix_external_set_virial_peratomPvPKcPPd"></span><span id="lammps_fix_external_set_virial_peratom__voidP.cCP.doublePP"></span><span class="target" id="library_8h_1ae85311d7c556c3c7aace6e329ab352a2"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_set_virial_peratom</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">virial</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv438lammps_fix_external_set_virial_peratomPvPKcPPd" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the per-atom virial contribution for a fix external instance with the given ID.</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This is a companion function to <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a>
+to set the per-atom virial contribution due to the fix from the external code
+as part of the callback function.  For this to work, the handle to the
+LAMMPS object must be passed as the <em>ptr</em> argument when registering the
+callback function.</p>
+<p>The order and units of the per-atom stress tensor elements are the same
+as for the global virial.  The code in fix external assumes the
+dimensions of the per-atom virial array is <code class="docutils literal notranslate"><span class="pre">double</span> <span class="pre">virial[nlocal][6]</span></code>.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This function is fully independent from <a class="reference internal" href="#_CPPv437lammps_fix_external_set_virial_globalPvPKcPd" title="lammps_fix_external_set_virial_global"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_virial_global()</span></code></a>
+and will <strong>NOT</strong> add any contributions to the global virial tally
+and <strong>NOT</strong> check whether the sum of the contributions added here are
+consistent with the global added virial.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>virial</strong> – a list of nlocal entries with the 6 per-atom stress tensor components to be added to the per-atom virial </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv437lammps_fix_external_set_vector_lengthPvPKci">
+<span id="_CPPv337lammps_fix_external_set_vector_lengthPvPKci"></span><span id="_CPPv237lammps_fix_external_set_vector_lengthPvPKci"></span><span id="lammps_fix_external_set_vector_length__voidP.cCP.i"></span><span class="target" id="library_8h_1a65eccbce0a2c1154051c56296acc7598"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_set_vector_length</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">len</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv437lammps_fix_external_set_vector_lengthPvPKci" title="Link to this definition"></a><br /></dt>
+<dd><p>Set the vector length for a global vector stored with fix external for analysis</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This is a companion function to <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a> and
+<a class="reference internal" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="lammps_fix_external_get_force"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_get_force()</span></code></a> to set the length of a global vector of
+properties that will be stored with the fix via
+<a class="reference internal" href="#_CPPv430lammps_fix_external_set_vectorPvPKcid" title="lammps_fix_external_set_vector"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_vector()</span></code></a>.</p>
+<p>This function needs to be called <strong>before</strong> a call to
+<a class="reference internal" href="#_CPPv430lammps_fix_external_set_vectorPvPKcid" title="lammps_fix_external_set_vector"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_vector()</span></code></a> and <strong>before</strong> a run or minimize
+command. When running in parallel it must be called from <strong>all</strong> MPI
+processes and with the same length parameter.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>len</strong> – length of the global vector to be stored with the fix </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv430lammps_fix_external_set_vectorPvPKcid">
+<span id="_CPPv330lammps_fix_external_set_vectorPvPKcid"></span><span id="_CPPv230lammps_fix_external_set_vectorPvPKcid"></span><span id="lammps_fix_external_set_vector__voidP.cCP.i.double"></span><span class="target" id="library_8h_1a627a37da0a0f1cd076cfac35ea488c18"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_fix_external_set_vector</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">id</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">idx</span></span>, <span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">val</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv430lammps_fix_external_set_vectorPvPKcid" title="Link to this definition"></a><br /></dt>
+<dd><p>Store a global vector value for a fix external instance with the given ID.</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 28Jul2021.</span></p>
+</div>
+<p>This is a companion function to <a class="reference internal" href="#_CPPv432lammps_set_fix_external_callbackPvPKc16FixExternalFnPtrPv" title="lammps_set_fix_external_callback"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_set_fix_external_callback()</span></code></a> and
+<a class="reference internal" href="#_CPPv429lammps_fix_external_get_forcePvPKc" title="lammps_fix_external_get_force"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_get_force()</span></code></a> to set the values of a global vector of
+properties that will be stored with the fix.  And can be accessed from
+within LAMMPS input commands (e.g., fix ave/time or variables) when used
+in a vector context.</p>
+<p>This function needs to be called <strong>after</strong> a call to
+<a class="reference internal" href="#_CPPv437lammps_fix_external_set_vector_lengthPvPKci" title="lammps_fix_external_set_vector_length"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_vector_length()</span></code></a> and the  and <strong>before</strong> a run or minimize
+command.  When running in parallel it must be called from <strong>all</strong> MPI
+processes and with the <strong>same</strong> index and value parameters.  The value
+is assumed to be extensive.</p>
+<p>Please see the documentation for <a class="reference internal" href="fix_external.html"><span class="doc">fix external</span></a> for
+more information about how to use the fix and how to couple it with an
+external code.</p>
+</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The index in the <em>idx</em> parameter is 1-based, i.e. the first element
+is set with idx = 1 and the last element of the vector with idx = N,
+where N is the value of the <em>len</em> parameter of the call to
+<a class="reference internal" href="#_CPPv437lammps_fix_external_set_vector_lengthPvPKci" title="lammps_fix_external_set_vector_length"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_fix_external_set_vector_length()</span></code></a>.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p></li>
+<li><p><strong>id</strong> – fix ID of fix external instance </p></li>
+<li><p><strong>idx</strong> – 1-based index of in global vector </p></li>
+<li><p><strong>val</strong> – value to be stored in global vector </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_flush_buffersPv">
+<span id="_CPPv320lammps_flush_buffersPv"></span><span id="_CPPv220lammps_flush_buffersPv"></span><span id="lammps_flush_buffers__voidP"></span><span class="target" id="library_8h_1af54eb973fef3aa2bfe7708a0cf1139ff"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_flush_buffers</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_flush_buffersPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Flush output buffers</p>
+<p>This function can be used to flush buffered output to be written to screen
+and logfile pointers to simplify capturing output from LAMMPS library calls.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv411lammps_freePv">
+<span id="_CPPv311lammps_freePv"></span><span id="_CPPv211lammps_freePv"></span><span id="lammps_free__voidP"></span><span class="target" id="library_8h_1aa521d27718fc92e9a58a255ae9f9cf87"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_free</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">ptr</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv411lammps_freePv" title="Link to this definition"></a><br /></dt>
+<dd><p>Free memory buffer allocated by <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a>.</p>
+<p>Some of the LAMMPS C library interface functions return data as pointer
+to a buffer that has been allocated by LAMMPS or the library interface.
+This function can be used to delete those in order to avoid memory
+leaks.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ptr</strong> – pointer to data allocated by <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv417lammps_is_runningPv">
+<span id="_CPPv317lammps_is_runningPv"></span><span id="_CPPv217lammps_is_runningPv"></span><span id="lammps_is_running__voidP"></span><span class="target" id="library_8h_1a96130bd0ac1fcfbb01f56fe92f8cf7da"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_is_running</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv417lammps_is_runningPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> is currently inside a run or minimization</p>
+<p>This function can be used from signal handlers or multi-threaded applications to determine if the <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance is currently active.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code>. </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if idle or &gt;0 if active </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv420lammps_force_timeoutPv">
+<span id="_CPPv320lammps_force_timeoutPv"></span><span id="_CPPv220lammps_force_timeoutPv"></span><span id="lammps_force_timeout__voidP"></span><span class="target" id="library_8h_1a298dbff8f43185d82bcbf0a8d76b9aa9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_force_timeout</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv420lammps_force_timeoutPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Force a timeout to stop an ongoing run cleanly.</p>
+<p>This function can be used from signal handlers or multi-threaded applications to cleanly terminate an ongoing run.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv416lammps_has_errorPv">
+<span id="_CPPv316lammps_has_errorPv"></span><span id="_CPPv216lammps_has_errorPv"></span><span id="lammps_has_error__voidP"></span><span class="target" id="library_8h_1a6f2f23eeafb8d56983ef90ad55e0c37d"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_has_error</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv416lammps_has_errorPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if there is a (new) error message available</p>
+<p>This function can be used to query if an error inside of LAMMPS
+has thrown a <a class="reference internal" href="Build_settings.html#exceptions"><span class="std std-ref">C++ exception</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2Aug2023.</span></p>
+</div>
+<p>The <em>handle</em> pointer may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for this function, as would be
+the case when a call to create a LAMMPS instance has failed.  Then
+this function will not check the error status inside the LAMMPS
+instance, but instead would check the global error buffer of the
+library interface.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> or NULL </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 on no error, 1 on error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv429lammps_get_last_error_messagePvPci">
+<span id="_CPPv329lammps_get_last_error_messagePvPci"></span><span id="_CPPv229lammps_get_last_error_messagePvPci"></span><span id="lammps_get_last_error_message__voidP.cP.i"></span><span class="target" id="library_8h_1a1900bdb6311f7f9649b5c82e20257cff"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_get_last_error_message</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">buffer</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">buf_size</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv429lammps_get_last_error_messagePvPci" title="Link to this definition"></a><br /></dt>
+<dd><p>Copy the last error message into the provided buffer</p>
+<p>This function can be used to retrieve the error message that was set
+in the event of an error inside of LAMMPS which resulted in a
+<a class="reference internal" href="Build_settings.html#exceptions"><span class="std std-ref">C++ exception</span></a>.  A suitable buffer for a C-style
+string has to be provided and its length.  If the internally stored
+error message is longer, it will be truncated accordingly.  If the
+buffer is a NULL pointer, then nothing will be copied.  The return
+value of the function corresponds to the kind of error: a “1” indicates
+an error that occurred on all MPI ranks and is often recoverable, while
+a “2” indicates an abort that would happen only in a single MPI rank
+and thus may not be recoverable, as other MPI ranks may be waiting on
+the failing MPI ranks to send messages.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2Aug2023.</span></p>
+</div>
+<p>The <em>handle</em> pointer may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code> for this function, as would be
+the case when a call to create a LAMMPS instance has failed.  Then
+this function will not check the error buffer inside the LAMMPS
+instance, but instead would check the global error buffer of the
+library interface.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 21Nov2023.</span></p>
+</div>
+<p>The <em>buffer</em> pointer may be <code class="docutils literal notranslate"><span class="pre">NULL</span></code>.  This will clear any error
+status without copying the error message.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> or NULL. </p></li>
+<li><p><strong>buffer</strong> – string buffer to copy the error message to, may be NULL </p></li>
+<li><p><strong>buf_size</strong> – size of the provided string buffer </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>1 when all ranks had the error, 2 on a single rank error. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv421lammps_set_show_errorPvKi">
+<span id="_CPPv321lammps_set_show_errorPvKi"></span><span id="_CPPv221lammps_set_show_errorPvKi"></span><span id="lammps_set_show_error__voidP.iC"></span><span class="target" id="library_8h_1a169a51e4853a187e9d5f2ebf05f01ca5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_set_show_error</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">flag</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv421lammps_set_show_errorPvKi" title="Link to this definition"></a><br /></dt>
+<dd><p>Enable or disable direct printing of error messages</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 2Apr2025.</span></p>
+</div>
+<p>This function can be used to stop LAMMPS from printing error messages
+<em>before</em> LAMMPS throws a <a class="reference internal" href="Build_settings.html#exceptions"><span class="std std-ref">C++ exception</span></a>.  This is so
+it may be left to the code calling the library interface whether to
+check for them, and retrieve and print error messages using the library
+interface functions <a class="reference internal" href="#_CPPv416lammps_has_errorPv" title="lammps_has_error"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_has_error()</span></code></a> and
+<a class="reference internal" href="#_CPPv429lammps_get_last_error_messagePvPci" title="lammps_get_last_error_message"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">lammps_get_last_error_message()</span></code></a>.  The function returns the
+previous setting so that one can easily override the setting
+temporarily and restore it afterwards.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – pointer to a previously created <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> instance cast to <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">*</span></code> or NULL </p></li>
+<li><p><strong>flag</strong> – enable (not 0) or disable (0) printing error messages before throwing exception </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>previous setting of the flag </p>
+</dd>
+</dl>
+</dd></dl>
+
+<hr class="docutils" />
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv425lammps_python_api_versionv">
+<span id="_CPPv325lammps_python_api_versionv"></span><span id="_CPPv225lammps_python_api_versionv"></span><span id="lammps_python_api_version"></span><span class="target" id="library_8h_1ac696ed37ed39b295adbf05577111da90"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">lammps_python_api_version</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv425lammps_python_api_versionv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return API version of embedded Python interpreter</p>
+<p><div class="versionadded">
+<p><span class="versionmodified added">Added in version 3Nov2022.</span></p>
+</div>
+<p>This function is used by the ML-IAP python code (mliappy) to verify
+the API version of the embedded python interpreter of the PYTHON
+package.  It returns -1 if the PYTHON package is not enabled.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>PYTHON_API_VERSION constant of the python interpreter or -1 </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Library_config.html" class="btn btn-neutral float-left" title="1.1.8. Configuration information" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Library_add.html" class="btn btn-neutral float-right" title="1.1.10. Extending the C API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

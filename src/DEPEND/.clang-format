@@ -1,0 +1,31 @@
+---
+BasedOnStyle:                         LLVM
+AccessModifierOffset:                 -1
+AlignConsecutiveAssignments:          false
+AlignConsecutiveDeclarations:         false
+AlignEscapedNewlines:                 Left
+AlignOperands:                        false
+AllowShortBlocksOnASingleLine:        true
+AllowShortFunctionsOnASingleLine:     Inline
+AllowShortIfStatementsOnASingleLine:  WithoutElse
+AllowShortLambdasOnASingleLine:       None
+AllowShortLoopsOnASingleLine:         true
+BraceWrapping:
+  AfterFunction:                      true
+BreakBeforeBraces:                    Custom
+BreakConstructorInitializers:         AfterColon
+BreakInheritanceList:                 AfterColon
+ColumnLimit:                          80
+IndentCaseLabels:                     true
+IndentWidth:                          4
+NamespaceIndentation:                 Inner
+ObjCBlockIndentWidth:                 2
+PenaltyBreakAssignment:               4
+ReflowComments:                       false
+SpaceAfterCStyleCast:                 false
+SpacesBeforeTrailingComments:         4
+SpacesInContainerLiterals:            false
+Standard:                             Cpp11
+TabWidth:                             2
+UseTab:                               Never
+...

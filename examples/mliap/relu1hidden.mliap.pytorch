@@ -1,0 +1,18 @@
+# DATE: 2014-09-05 UNITS: metal CONTRIBUTOR: Aidan Thompson athomps@sandia.gov CITATION: Thompson, Swiler, Trott, Foiles and Tucker, arxiv.org, 1409.3880 (2014) 
+
+# Definition of SNAP potential Ta_Cand06A
+# Assumes 1 LAMMPS atom type
+ 
+variable zblcutinner equal 4
+variable zblcutouter equal 4.8
+variable zblz equal 73
+
+# Specify hybrid with SNAP, ZBL
+
+pair_style hybrid/overlay &
+zbl ${zblcutinner} ${zblcutouter} &
+mliap model mliappy relu1hidden.mliap.pytorch.model.pt &
+descriptor sna Ta06A.mliap.descriptor
+pair_coeff 1 1 zbl ${zblz} ${zblz}
+pair_coeff * * mliap Ta
+

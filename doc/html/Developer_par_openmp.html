@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.4.5. OpenMP Parallelism &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_par_openmp.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.5. Accessing per-atom data" href="Developer_atom.html" />
+    <link rel="prev" title="4.4.4. Long-range interactions" href="Developer_par_long.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_part.html">4.4.1. Partitioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_comm.html">4.4.2. Communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_neigh.html">4.4.3. Neighbor lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_long.html">4.4.4. Long-range interactions</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.4.5. OpenMP Parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_parallel.html"><span class="section-number">4.4. </span>Parallel algorithms</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.4.5. </span>OpenMP Parallelism</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_par_long.html" class="btn btn-neutral float-left" title="4.4.4. Long-range interactions" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_atom.html" class="btn btn-neutral float-right" title="4.5. Accessing per-atom data" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="openmp-parallelism">
+<span id="id1"></span><h1><span class="section-number">4.4.5. </span>OpenMP Parallelism<a class="headerlink" href="#openmp-parallelism" title="Link to this heading"></a></h1>
+<p>The styles in the INTEL, KOKKOS, and OPENMP packages offer to use OpenMP
+thread parallelism to predominantly distribute loops over local data and
+thus follow an orthogonal parallelization strategy to the decomposition
+into spatial domains used by the <a class="reference internal" href="Developer_par_part.html"><span class="doc">MPI partitioning</span></a>.  For clarity, this section discusses only the
+implementation in the OPENMP package, as it is the simplest. The INTEL
+and KOKKOS packages offer additional options and are significantly more
+complex since they support more features like vectorization, accelerator
+support and a choice of using double, single, and mixed precision
+floating-point math.</p>
+<p>A practical discussion of the actual implementation with source code
+examples can be found in the manual section on <a class="reference internal" href="Developer_write_openmp.html"><span class="doc">writing styles for
+the OPENMP package</span></a>.</p>
+<section id="rationale-for-openmp-integration">
+<span id="openmp-rationale"></span><h2>Rationale for OpenMP Integration<a class="headerlink" href="#rationale-for-openmp-integration" title="Link to this heading"></a></h2>
+<p>While LAMMPS is already well-parallelized using MPI-based domain
+decomposition, OpenMP provides additional benefits, particularly on
+modern multi-core hardware and at high node counts:</p>
+<ul class="simple">
+<li><p><strong>Efficient Resource Utilization</strong>: On multi-core machines, MPI tasks
+can be communication-bandwidth limited because all MPI communication
+has to share the same network link for communication between nodes.
+Running fewer MPI tasks and using OpenMP threads can improve
+performance by reducing communication overhead and memory contention.
+However, the in-node memory bandwidth demands for multi-threading are
+higher, since domain decomposition promotes CPU cache locality, while
+the multi-thread implementation uses replicated per-thread storage to
+avoid data races. This has the additional overhead or requiring a
+reduction, which is most efficient for small numbers of threads.</p></li>
+<li><p><strong>PPPM Scaling</strong>: Long-range electrostatics solvers like PPPM have
+scaling limitations with MPI communication at high node counts because
+the 3d-FFTs require all-to-all communications and with smaller
+domains the ratio of computation versus communication become less
+favorable. Using OpenMP threads can allow running these solvers on a
+subset of MPI tasks, improving overall scaling.</p></li>
+<li><p><strong>Parallelization Granularity</strong>: OpenMP allows parallelization over
+particles/neighbors within a node, providing a finer grain of parallelism
+than domain decomposition alone.</p></li>
+<li><p><strong>Load Balancing Considerations</strong>: The domain decomposition based
+MPI parallelization implicitly assumes that the simulated system is
+homogeneous and thus roughly the same amount of work needs to be done
+by each MPI rank. However, for inhomogeneous systems, this is not
+always the case and the available load-balancing options have limitations, too.
+By shifting the parallelization to OpenMP, the subdomains per MPI
+rank become larger and load balancing is usually more effective then.</p></li>
+<li><p><strong>Capability Computing</strong>: Hybrid MPI+OpenMP is often essential for
+achieving optimal performance on large HPC clusters or supercomputers.</p></li>
+</ul>
+</section>
+<section id="design-of-the-openmp-package">
+<span id="openmp-design"></span><h2>Design of the OPENMP Package<a class="headerlink" href="#design-of-the-openmp-package" title="Link to this heading"></a></h2>
+<p>One of the key decisions when implementing the OPENMP package was to
+keep the changes to the source code small, so that it would be easier to
+maintain the code and keep it in sync with the non-threaded standard
+implementation.  This is achieved by:</p>
+<ul class="simple">
+<li><p><strong>Inheritance</strong>: Making the OPENMP version a derived class from the
+regular version (e.g. <code class="docutils literal notranslate"><span class="pre">PairLJCutOMP</span></code> from <code class="docutils literal notranslate"><span class="pre">PairLJCut</span></code>) and only
+overriding methods that are multi-threaded or need to be modified
+(similar to what was done before in the OPT package).</p></li>
+<li><p><strong>Minimal Modification</strong>: Keeping the structure in the modified code
+very similar so that side-by-side comparisons are still useful.</p></li>
+<li><p><strong>Helper Classes</strong>: Offloading multi-thread support functions into
+three separate classes:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">ThrOMP</span></code>: Provides multi-thread aware functionality like “_thr”
+variants of tally functions via multiple inheritance.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ThrData</span></code>: Manages per-thread data structures to avoid “false
+sharing” slowdowns.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FixOMP</span></code>: Manages the global multi-thread state and settings
+activated by the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="avoiding-data-races">
+<span id="openmp-avoid-races"></span><h2>Avoiding data races<a class="headerlink" href="#avoiding-data-races" title="Link to this heading"></a></h2>
+<p>A key problem when implementing thread parallelism in an MD code is to
+avoid data races when updating accumulated per-atom properties like
+forces, energies, stresses, and torques.  When interactions are
+computed, they always involve multiple atoms and thus there are race
+conditions when multiple threads want to update per-atom data of the
+same atoms.</p>
+<p>Without a significant rewrite of the code, there are three main approaches
+to avoid data races.</p>
+<ul class="simple">
+<li><p>Use locks or <strong>atomic operations</strong> to guarantee that only one thread
+at a time updates per-thread data.  This is most commonly used when
+the access conflicts are rare.</p></li>
+<li><p>Compute per-atom properties <strong>multiple times</strong> for all threads that
+“own” one or more atoms of a tuple and store only the data for those
+“owned” atom.  This is most effective for a large number of threads
+and thus commonly used with GPU acceleration.</p></li>
+<li><p>Have <strong>per-thread copies</strong> of the per-atom data and update them
+independently and use a reduction to combine the per-thread data
+into the regular per-atom storage.  This requires additional steps
+to set up, manage, clear, and combine the collected data.</p></li>
+</ul>
+<p>The OPENMP package uses <strong>replicated per-thread data structures</strong> because
+this approach:</p>
+<ul class="simple">
+<li><p>retains the performance for the single-thread case unlike the other options,</p></li>
+<li><p>keeps the code maintainable and similar to the non-threaded version,</p></li>
+<li><p>and is most efficient for a small number of threads (2-8), which is a
+common use case, since OpenMP is typically the secondary parallelization
+option after MPI.</p></li>
+</ul>
+</section>
+<section id="loop-scheduling">
+<span id="openmp-scheduling"></span><h2>Loop scheduling<a class="headerlink" href="#loop-scheduling" title="Link to this heading"></a></h2>
+<p>Multi-thread parallelization is applied by distributing (outer) loops
+statically across threads.  Typically, this is the loop over local atoms
+<em>i</em> when processing <em>i,j</em> pairs of atoms from a neighbor list or the
+list of bonds, angles, dihedrals, or impropers.  Since neighbor lists
+typically result in a similar number of neighbors per atom (for
+homogeneous systems), significant load imbalances across threads are
+uncommon.</p>
+</section>
+<section id="neighbor-list-parallelization">
+<span id="openmp-neighbor"></span><h2>Neighbor list parallelization<a class="headerlink" href="#neighbor-list-parallelization" title="Link to this heading"></a></h2>
+<p>In addition to force computations, neighbor list generation is
+parallelized. Each thread operates on a different chunk of “owned”
+atoms and manages its own set of neighbor “pages” using an instance
+of the <a class="reference internal" href="Developer_utils.html#_CPPv4I0EN9LAMMPS_NS6MyPageE" title="LAMMPS_NS::MyPage"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">MyPage</span></code></a> page allocator.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_par_long.html" class="btn btn-neutral float-left" title="4.4.4. Long-range interactions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_atom.html" class="btn btn-neutral float-right" title="4.5. Accessing per-atom data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

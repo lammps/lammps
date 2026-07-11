@@ -1,0 +1,149 @@
+LAMMPS (28 Mar 2023 - Development)
+dimension       3
+units           micro
+atom_style      sph
+
+variable        a equal 0.1             # lattice spacing         micrometers
+variable        L equal $a*10
+variable        L equal 0.1*10
+variable        T equal 300.
+variable        kB equal 1.3806504e-8   # picogram-micrometer^2/(microsecond^2-Kelvin)
+variable        rho_0 equal 1.          # density                   picograms/micrometer^3
+variable        c_0 equal 10.           # speed of sound            micrometers/microsecond
+variable        mu equal 1.             # dynamic viscosity         picogram/(micrometer-microsecond)
+variable        h equal $a*4.0          # kernel function cutoff    micrometers
+variable        h equal 0.1*4.0          
+variable        mass equal $a*$a*$a*${rho_0}
+variable        mass equal 0.1*$a*$a*${rho_0}
+variable        mass equal 0.1*0.1*$a*${rho_0}
+variable        mass equal 0.1*0.1*0.1*${rho_0}
+variable        mass equal 0.1*0.1*0.1*1
+variable        dt equal 5e-4           # timestep                  microseconds
+variable        skin equal 0.1*$h
+variable        skin equal 0.1*0.4
+
+region          box block -$L $L -$L $L -$L $L units box
+region          box block -1 $L -$L $L -$L $L units box
+region          box block -1 1 -$L $L -$L $L units box
+region          box block -1 1 -1 $L -$L $L units box
+region          box block -1 1 -1 1 -$L $L units box
+region          box block -1 1 -1 1 -1 $L units box
+region          box block -1 1 -1 1 -1 1 units box
+create_box      1 box
+Created orthogonal box = (-1 -1 -1) to (1 1 1)
+  1 by 2 by 2 MPI processor grid
+lattice         sc $a
+lattice         sc 0.1
+Lattice spacing in x,y,z = 0.1 0.1 0.1
+
+create_atoms    1 box
+Created 8000 atoms
+  using lattice units in orthogonal box = (-1 -1 -1) to (1 1 1)
+  create_atoms CPU = 0.001 seconds
+
+mass            * ${mass}
+mass            * 0.001
+set             group all sph/rho ${rho_0}
+set             group all sph/rho 1
+Setting atom values ...
+  8000 settings made for sph/rho
+
+pair_style      sdpd/taitwater/isothermal $T ${mu} 76787    # temperature viscosity random_seed
+pair_style      sdpd/taitwater/isothermal 300 ${mu} 76787    
+pair_style      sdpd/taitwater/isothermal 300 1 76787    
+pair_coeff      * * ${rho_0} ${c_0} ${h}
+pair_coeff      * * 1 ${c_0} ${h}
+pair_coeff      * * 1 10 ${h}
+pair_coeff      * * 1 10 0.4
+
+variable        vx_sq atom vx*vx
+variable        vy_sq atom vy*vy
+variable        vz_sq atom vz*vz
+compute         v_sq all reduce ave v_vx_sq v_vy_sq v_vz_sq
+variable        vx_sq_check equal c_v_sq[1]*${mass}/${kB}/$T
+variable        vx_sq_check equal c_v_sq[1]*0.001/${kB}/$T
+variable        vx_sq_check equal c_v_sq[1]*0.001/1.3806504e-08/$T
+variable        vx_sq_check equal c_v_sq[1]*0.001/1.3806504e-08/300
+variable        vy_sq_check equal c_v_sq[2]*${mass}/${kB}/$T
+variable        vy_sq_check equal c_v_sq[2]*0.001/${kB}/$T
+variable        vy_sq_check equal c_v_sq[2]*0.001/1.3806504e-08/$T
+variable        vy_sq_check equal c_v_sq[2]*0.001/1.3806504e-08/300
+variable        vz_sq_check equal c_v_sq[3]*${mass}/${kB}/$T
+variable        vz_sq_check equal c_v_sq[3]*0.001/${kB}/$T
+variable        vz_sq_check equal c_v_sq[3]*0.001/1.3806504e-08/$T
+variable        vz_sq_check equal c_v_sq[3]*0.001/1.3806504e-08/300
+
+fix             1 all sph
+
+neighbor        ${skin} bin
+neighbor        0.04 bin
+timestep        ${dt}
+timestep        0.0005
+
+thermo          10
+thermo_style    custom step time v_vx_sq_check v_vy_sq_check v_vz_sq_check
+
+run             200
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.44
+  ghost atom cutoff = 0.44
+  binsize = 0.22, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sdpd/taitwater/isothermal, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.172 | 6.172 | 6.172 Mbytes
+   Step          Time      v_vx_sq_check  v_vy_sq_check  v_vz_sq_check 
+         0   0              0              0              0            
+        10   0.005          0.71224819     0.71470372     0.7008956    
+        20   0.01           0.90627589     0.90683966     0.90116506   
+        30   0.015          0.938505       0.95884272     0.93337542   
+        40   0.02           0.94394649     0.93668038     0.96468004   
+        50   0.025          0.97152309     0.97546161     0.95107762   
+        60   0.03           0.94710871     0.95678322     0.97285504   
+        70   0.035          0.96253148     0.95838642     0.95450883   
+        80   0.04           0.97581495     0.95278681     0.95099478   
+        90   0.045          0.96251614     0.9740684      0.96081505   
+       100   0.05           0.94191275     0.97137523     0.94084858   
+       110   0.055          0.953406       0.95739684     0.98574522   
+       120   0.06           0.99001614     0.99608287     0.9839996    
+       130   0.065          0.96575225     0.94309655     0.92847798   
+       140   0.07           0.97642687     0.97458638     0.94696406   
+       150   0.075          0.99316381     0.96876814     0.95440106   
+       160   0.08           0.94589744     0.95264791     0.95495169   
+       170   0.085          0.97599092     0.95336014     0.97687718   
+       180   0.09           0.97214242     0.9726305      0.9726035    
+       190   0.095          0.97577583     0.96523645     0.9756968    
+       200   0.1            0.96386053     0.97268854     0.94582436   
+Loop time of 9.59181 on 4 procs for 200 steps with 8000 atoms
+
+Performance: 900768.333 ns/day, 0.000 hours/ns, 20.851 timesteps/s, 166.809 katom-step/s
+98.1% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.9729     | 9.2147     | 9.4383     |   5.5 | 96.07
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.13739    | 0.36068    | 0.60216    |  27.6 |  3.76
+Output  | 0.0022724  | 0.002394   | 0.0026506  |   0.3 |  0.02
+Modify  | 0.0068559  | 0.0069926  | 0.0070974  |   0.1 |  0.07
+Other   |            | 0.007004   |            |       |  0.07
+
+Nlocal:           2000 ave        2000 max        2000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           8469 ave        8469 max        8469 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         364000 ave      376628 max      351184 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 1456000
+Ave neighs/atom = 182
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:09

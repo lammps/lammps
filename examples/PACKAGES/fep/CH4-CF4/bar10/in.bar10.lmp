@@ -1,0 +1,78 @@
+# created by fftool
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data.1.lmp
+# read_restart restart.*.lmp
+# reset_timestep 0
+
+pair_style hybrid lj/cut/coul/long 10.0 10.0 lj/cut/coul/long/soft 1 0.5 10.0 10.0 10.0
+pair_modify tail yes
+kspace_style pppm 1.0e-4
+
+pair_coeff    1    1  lj/cut/coul/long    0.0660   3.5000  # CF-C CF-C
+pair_coeff    1    2  lj/cut/coul/long    0.0445   2.9580  # CF-C HD-
+pair_coeff    1    3  lj/cut/coul/long    0.0591   3.2133  # CF-C F-D
+pair_coeff    1    4  lj/cut/coul/long    0.0000   1.8708  # CF-C Hw
+pair_coeff    1    5  lj/cut/coul/long    0.1013   3.3286  # CF-C Ow
+pair_coeff    2    2  lj/cut/coul/long    0.0300   2.5000  # HD- HD-
+pair_coeff    2    3  lj/cut/coul/long    0.0399   2.7157  # HD- F-D
+pair_coeff    2    4  lj/cut/coul/long/soft    0.0000   1.5811  0.0  # HD- Hw
+pair_coeff    2    5  lj/cut/coul/long/soft    0.0683   2.8131  0.0  # HD- Ow
+pair_coeff    3    3  lj/cut/coul/long    0.0530   2.9500  # F-D F-D
+pair_coeff    3    4  lj/cut/coul/long/soft    0.0000   1.7176  1.0  # F-D Hw
+pair_coeff    3    5  lj/cut/coul/long/soft    0.0908   3.0559  1.0  # F-D Ow
+pair_coeff    4    4  lj/cut/coul/long    0.0000   1.0000  # Hw Hw
+pair_coeff    4    5  lj/cut/coul/long    0.0000   1.7792  # Hw Ow
+pair_coeff    5    5  lj/cut/coul/long    0.1554   3.1655  # Ow Ow
+
+variable TK equal 300.0
+variable PBAR equal 1.0
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+velocity all create ${TK} 12345
+
+fix SHAKE all shake 0.0001 20 0 b 3 a 4
+
+fix NPT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 500
+
+thermo_style custom step cpu etotal ke pe evdwl ecoul elong temp press vol density
+thermo 1000
+
+run 200000
+
+reset_timestep 0
+unfix NPT
+fix NVT all nvt temp ${TK} ${TK} 100
+
+variable dlambda equal -1.0
+variable minusdl equal  1.0
+variable dqC equal  (0.48+0.24)*v_dlambda
+variable dqH equal -0.06*v_dlambda
+variable dqF equal -0.12*v_dlambda
+
+compute FEP all fep ${TK} &
+    pair lj/cut/coul/long/soft lambda 2 4*5 v_minusdl &
+    pair lj/cut/coul/long/soft lambda 3 4*5 v_dlambda &
+    atom charge 1 v_dqC &
+    atom charge 2 v_dqH &
+    atom charge 3 v_dqF
+
+fix FEP all ave/time 1 1 100 c_FEP[1] c_FEP[2] file bar10.fep
+
+dump TRAJ all custom 5000 dump.lammpstrj id mol type element xu yu zu
+dump_modify TRAJ element C H F H O
+
+run 500000
+
+# write_restart restart.*.lmp
+write_data data.*.lmp

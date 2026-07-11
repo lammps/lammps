@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.4.3. Neighbor lists &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_par_neigh.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.4.4. Long-range interactions" href="Developer_par_long.html" />
+    <link rel="prev" title="4.4.2. Communication" href="Developer_par_comm.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_part.html">4.4.1. Partitioning</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_comm.html">4.4.2. Communication</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.4.3. Neighbor lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_long.html">4.4.4. Long-range interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_openmp.html">4.4.5. OpenMP Parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_parallel.html"><span class="section-number">4.4. </span>Parallel algorithms</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.4.3. </span>Neighbor lists</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_par_comm.html" class="btn btn-neutral float-left" title="4.4.2. Communication" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_par_long.html" class="btn btn-neutral float-right" title="4.4.4. Long-range interactions" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="neighbor-lists">
+<h1><span class="section-number">4.4.3. </span>Neighbor lists<a class="headerlink" href="#neighbor-lists" title="Link to this heading"></a></h1>
+<p>To compute forces efficiently, each processor creates a Verlet-style
+neighbor list which enumerates all pairs of atoms <em>i,j</em> (<em>i</em> = owned,
+<em>j</em> = owned or ghost) with separation less than the applicable neighbor
+list cutoff distance.  In LAMMPS, the neighbor lists are stored in a
+multiple-page data structure; each page is a contiguous chunk of memory
+which stores vectors of neighbor atoms <em>j</em> for many <em>i</em> atoms.  This
+allows pages to be incrementally allocated or deallocated in blocks as
+needed.  Neighbor lists typically consume the most memory of any data
+structure in LAMMPS.  The neighbor list is rebuilt (from scratch) once
+every few timesteps, then used repeatedly each step for force or other
+computations.  The neighbor cutoff distance is <span class="math notranslate nohighlight">\(R_n = R_f +
+\Delta_s\)</span>, where <span class="math notranslate nohighlight">\(R_f\)</span> is the (largest) force cutoff defined by
+the interatomic potential for computing short-range pairwise or manybody
+forces and <span class="math notranslate nohighlight">\(\Delta_s\)</span> is a “skin” distance that allows the list to
+be used for multiple steps assuming that atoms do not move very far
+between consecutive time steps.  Typically, the code triggers
+reneighboring when any atom has moved half the skin distance since the
+last reneighboring; this and other options of the neighbor list rebuild
+can be adjusted with the <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a> command.</p>
+<p>On steps when reneighboring is performed, atoms which have moved outside
+their owning processor’s subdomain are first migrated to new processors
+via communication.  Periodic boundary conditions are also (only)
+enforced on these steps to ensure each atom is re-assigned to the
+correct processor.  After migration, the atoms owned by each processor
+are stored in a contiguous vector.  Periodically, each processor
+spatially sorts owned atoms within its vector to reorder it for improved
+cache efficiency in force computations and neighbor list building.  For
+that, atoms are spatially binned and then reordered so that atoms in the
+same bin are adjacent in the vector.  Atom sorting can be disabled or
+its settings modified with the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a> command.</p>
+<figure class="align-center" id="id1">
+<span id="neighbor-stencil"></span><img alt="_images/neigh-stencil.png" src="_images/neigh-stencil.png" />
+<figcaption>
+<p><span class="caption-text">neighbor list stencils</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<div class="legend">
+<p>A 2d simulation subdomain (thick black line) and the corresponding
+ghost atom cutoff region (dashed blue line) for both orthogonal
+(left) and triclinic (right) domains.  A regular grid of neighbor
+bins (thin lines) overlays the entire simulation domain and need not
+align with subdomain boundaries; only the portion overlapping the
+augmented subdomain is shown.  In the triclinic case, it overlaps the
+bounding box of the tilted rectangle.  The blue- and red-shaded bins
+represent a stencil of bins searched to find neighbors of a particular
+atom (black dot).</p>
+</div>
+</figcaption>
+</figure>
+<p>To build a local neighbor list in linear time, the simulation domain is
+overlaid (conceptually) with a regular 3d (or 2d) grid of neighbor bins,
+as shown in the <a class="reference internal" href="#neighbor-stencil"><span class="std std-ref">neighbor list stencils</span></a> figure for 2d models and a
+single MPI processor’s subdomain.  Each processor stores a set of
+neighbor bins which overlap its subdomain, extended by the neighbor
+cutoff distance <span class="math notranslate nohighlight">\(R_n\)</span>.  As illustrated, the bins need not align
+with processor boundaries; an integer number in each dimension is fit to
+the size of the entire simulation box.</p>
+<p>Most often, LAMMPS builds what is called a “half” neighbor list where
+each <em>i,j</em> neighbor pair is stored only once, with either atom <em>i</em> or
+<em>j</em> as the central atom.  The build can be done efficiently by using a
+pre-computed “stencil” of bins around a central origin bin which
+contains the atom whose neighbors are being searched for.  A stencil
+is simply a list of integer offsets in <em>x,y,z</em> of nearby bins
+surrounding the origin bin which are close enough to contain any
+neighbor atom <em>j</em> within a distance <span class="math notranslate nohighlight">\(R_n\)</span> from any atom <em>i</em> in the
+origin bin.  Note that for a half neighbor list, the stencil can be
+asymmetric, since each atom only need store half its nearby neighbors.</p>
+<p>These stencils are illustrated in the figure for a half list and a bin
+size of <span class="math notranslate nohighlight">\(\frac{1}{2} R_n\)</span>.  There are 13 red+blue stencil bins in
+2d (for the orthogonal case, 15 for triclinic).  In 3d there would be
+63, 13 in the plane of bins that contain the origin bin and 25 in each
+of the two planes above it in the <em>z</em> direction (75 for triclinic).  The
+triclinic stencil has extra bins because the bins tile the bounding box
+of the entire triclinic domain, and thus are not periodic with respect
+to the simulation box itself.  The stencil and logic for determining
+which <em>i,j</em> pairs to include in the neighbor list are altered slightly
+to account for this.</p>
+<p>To build a neighbor list, a processor first loops over its “owned” plus
+“ghost” atoms and assigns each to a neighbor bin.  This uses an integer
+vector to create a linked list of atom indices within each bin.  It then
+performs a triply-nested loop over its owned atoms <em>i</em>, the stencil of
+bins surrounding atom <em>i</em>’s bin, and the <em>j</em> atoms in each stencil bin
+(including ghost atoms).  If the distance <span class="math notranslate nohighlight">\(r_{ij} &lt; R_n\)</span>, then
+atom <em>j</em> is added to the vector of atom <em>i</em>’s neighbors.</p>
+<p>Here are additional details about neighbor list build options LAMMPS
+supports:</p>
+<ul class="simple">
+<li><p>The choice of bin size is an option; a size half of <span class="math notranslate nohighlight">\(R_n\)</span> has
+been found to be optimal for many typical cases.  Smaller bins incur
+additional overhead to loop over; larger bins require more distance
+calculations.  Note that for smaller bin sizes, the 2d stencil in the
+figure would be of a more semicircular shape (hemispherical in 3d),
+with bins near the corners of the square eliminated due to their
+distance from the origin bin.</p></li>
+<li><p>Depending on the interatomic potential(s) and other commands used in
+an input script, multiple neighbor lists and stencils with different
+attributes may be needed.  This includes lists with different cutoff
+distances, e.g. for force computation versus occasional diagnostic
+computations such as a radial distribution function, or for the
+r-RESPA time integrator which can partition pairwise forces by
+distance into subsets computed at different time intervals.  It
+includes “full” lists (as opposed to half lists) where each <em>i,j</em> pair
+appears twice, stored once with <em>i</em> and <em>j</em>, and which use a larger
+symmetric stencil.  It also includes lists with partial enumeration of
+ghost atom neighbors.  The full and ghost-atom lists are used by
+various manybody interatomic potentials.  Lists may also use different
+criteria for inclusion of a pairwise interaction.  Typically, this
+simply depends only on the distance between two atoms and the cutoff
+distance.  But for finite-size coarse-grained particles with
+individual diameters (e.g. polydisperse granular particles), it can
+also depend on the diameters of the two particles.</p></li>
+<li><p>When using <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair style hybrid</span></a> multiple sub-lists
+of the master neighbor list for the full system need to be generated,
+one for each sub-style, which contains only the <em>i,j</em> pairs needed to
+compute interactions between subsets of atoms for the corresponding
+potential.  This means, not all <em>i</em> or <em>j</em> atoms owned by a processor
+are included in a particular sub-list.</p></li>
+<li><p>Some models use different cutoff lengths for pairwise interactions
+between different kinds of particles, which are stored in a single
+neighbor list.  One example is a solvated colloidal system with large
+colloidal particles where colloid/colloid, colloid/solvent, and
+solvent/solvent interaction cutoffs can be dramatically different.
+Another is a model of polydisperse finite-size granular particles;
+pairs of particles interact only when they are in contact with each
+other.  Mixtures with particle size ratios as high as 10-100x may be
+used to model realistic systems.  Efficient neighbor list building
+algorithms for these kinds of systems are available in LAMMPS.  They
+include a method which uses different stencils for different cutoff
+lengths and trims the stencil to only include bins that straddle the
+cutoff sphere surface.  More recently a method which uses both
+multiple stencils and multiple bin sizes was developed; it builds
+neighbor lists efficiently for systems with particles of any size
+ratio, though other considerations (timestep size, force computations)
+may limit the ability to model systems with huge polydispersity.</p></li>
+<li><p>For small and sparse systems and as a fallback method, LAMMPS also
+supports neighbor list construction without binning by using a full
+<span class="math notranslate nohighlight">\(O(N^2)\)</span> loop over all <em>i,j</em> atom pairs in a subdomain when
+using the <a class="reference internal" href="neighbor.html"><span class="doc">neighbor nsq</span></a> command.</p></li>
+<li><p>Dependent on the “pair” setting of the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> command,
+the “half” neighbor lists may contain <strong>all</strong> pairs of atoms where
+atom <em>j</em> is a ghost atom (i.e. when the newton pair setting is <em>off</em>).
+For the newton pair <em>on</em> setting the atom <em>j</em> is only added to the
+list if its <em>z</em> coordinate is larger, or if equal the <em>y</em> coordinate
+is larger, and that is equal, too, the <em>x</em> coordinate is larger.  For
+homogeneously dense systems, that will result in picking neighbors from
+a same size sector in always the same direction relative to the
+“owned” atom, and thus it should lead to similar length neighbor lists
+and reduce the chance of a load imbalance.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_par_comm.html" class="btn btn-neutral float-left" title="4.4.2. Communication" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_par_long.html" class="btn btn-neutral float-right" title="4.4.4. Long-range interactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

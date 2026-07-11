@@ -1,0 +1,395 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.4. LAMMPS programming style &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Modify_style.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.5. Atom styles" href="Modify_atom.html" />
+    <link rel="prev" title="3.3. Requirements for contributions to LAMMPS" href="Modify_requirements.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Modify_overview.html">3.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_contribute.html">3.2. Submitting new features for inclusion in LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_requirements.html">3.3. Requirements for contributions to LAMMPS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.4. LAMMPS programming style</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#include-files-varied">3.4.1. Include files (varied)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#whitespace-preferred">3.4.2. Whitespace (preferred)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#constants-strongly-preferred">3.4.3. Constants (strongly preferred)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#placement-of-braces-strongly-preferred">3.4.4. Placement of braces (strongly preferred)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#miscellaneous-standards-varied">3.4.5. Miscellaneous standards (varied)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_atom.html">3.5. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_pair.html">3.6. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_bond.html">3.7. Bond, angle, dihedral, improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_compute.html">3.8. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_fix.html">3.9. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_command.html">3.10. Input script command style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_dump.html">3.11. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_kspace.html">3.12. Kspace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_min.html">3.13. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_region.html">3.14. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_body.html">3.15. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_gran_sub_mod.html">3.16. Granular Sub-Model styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_thermo.html">3.17. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_variable.html">3.18. Variable options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Modify.html"><span class="section-number">3. </span>Modifying &amp; extending LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.4. </span>LAMMPS programming style</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Modify_requirements.html" class="btn btn-neutral float-left" title="3.3. Requirements for contributions to LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Modify_atom.html" class="btn btn-neutral float-right" title="3.5. Atom styles" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="lammps-programming-style">
+<h1><span class="section-number">3.4. </span>LAMMPS programming style<a class="headerlink" href="#lammps-programming-style" title="Link to this heading"></a></h1>
+<p>The aim of the LAMMPS developers is to use a consistent programming
+style and naming conventions across the entire code base, as this
+helps with maintenance, debugging, and understanding the code, both
+for developers and users.  This page provides a list of standard style
+choices used in LAMMPS.  Some of these standards are required, while
+others are just preferred.  Following these conventions will make it
+much easier to integrate your contribution.  If you are uncertain,
+please ask.</p>
+<p>The files <cite>pair_lj_cut.h</cite>, <cite>pair_lj_cut.cpp</cite>, <cite>utils.h</cite>, and
+<cite>utils.cpp</cite> may serve as representative examples.</p>
+<section id="include-files-varied">
+<h2><span class="section-number">3.4.1. </span>Include files (varied)<a class="headerlink" href="#include-files-varied" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Header files that define a new LAMMPS style (i.e. that have a
+<code class="docutils literal notranslate"><span class="pre">SomeStyle(some/name,SomeName);</span></code> macro in them) should only use
+the include file for the base class and otherwise use forward
+declarations and pointers; when interfacing to a library use the
+PIMPL (pointer to implementation) approach where you have a pointer
+to a struct that contains all library specific data (and thus
+requires the library header) but use a forward declaration and
+define the struct only in the implementation file. This is a
+<strong>strict</strong> requirement since this is where type clashes between
+packages and hard-to-find bugs have regularly manifested in the
+past.</p></li>
+<li><p>Header files, especially those defining a “style”, should only use the
+absolute minimum number of include files and <strong>must not</strong> contain any
+<code class="docutils literal notranslate"><span class="pre">using</span></code> statements. Typically, that would only be the header for the
+base class.  Instead, any include statements should be put in the
+corresponding implementation files and forward declarations be used.
+For implementation files, the “include what you use” principle should
+be employed.  However, there is the notable exception that when the
+<code class="docutils literal notranslate"><span class="pre">pointers.h</span></code> header is included (or the header of one of the classes
+derived from it), certain headers will <em>always</em> be included and thus
+do not need to be explicitly specified.  These are: <cite>mpi.h</cite>,
+<cite>cstddef</cite>, <cite>cstdio</cite>, <cite>cstdlib</cite>, <cite>string</cite>, <cite>utils.h</cite>, <cite>vector</cite>,
+<cite>fmt/format.h</cite> (or <cite>format</cite> when using C++20 and later), <cite>climits</cite>,
+<cite>cinttypes</cite>.  This also means any such file can assume that <cite>FILE</cite>,
+<cite>NULL</cite>, and <cite>INT_MAX</cite> are defined.</p></li>
+<li><p>Class members variables should not be initialized in the header file,
+but instead should be initialized either in the initializer list of
+the constructor or explicitly assigned in the body of the constructor.
+If the member variable is relevant to the functionality of a class
+(for example when it stores a value from a command-line argument), the
+member variable declaration is followed by a brief comment explaining
+its purpose and what its values can be.  Class members that are
+pointers should always be initialized to <code class="docutils literal notranslate"><span class="pre">nullptr</span></code> in the
+initializer list of the constructor.  This reduces clutter in the
+header and avoids accessing uninitialized pointers, which leads to
+hard to debug issues, class members are often implicitly initialized
+to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> on the first use (but <em>not</em> after a <a class="reference internal" href="clear.html"><span class="doc">clear command</span></a>).  Please see the files <code class="docutils literal notranslate"><span class="pre">reset_atoms_mol.h</span></code> and
+<code class="docutils literal notranslate"><span class="pre">reset_atoms_mol.cpp</span></code> as an example.</p></li>
+<li><p>System headers or headers from installed libraries are included with
+angular brackets (example: <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&lt;vector&gt;</span></code>), while local
+include files use double quotes (example: <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;atom.h&quot;</span></code>)</p></li>
+<li><p>When including system header files from the C library use the
+C++-style names (<code class="docutils literal notranslate"><span class="pre">&lt;cstdlib&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;cstring&gt;</span></code>) instead of the
+C-style names (<code class="docutils literal notranslate"><span class="pre">&lt;stdlib.h&gt;</span></code> or <code class="docutils literal notranslate"><span class="pre">&lt;string.h&gt;</span></code>)</p></li>
+<li><p>The order of <code class="docutils literal notranslate"><span class="pre">#include</span></code> statements in a file <code class="docutils literal notranslate"><span class="pre">some_name.cpp</span></code>
+that implements a class <code class="docutils literal notranslate"><span class="pre">SomeName</span></code> defined in a header file
+<code class="docutils literal notranslate"><span class="pre">some_name.h</span></code> should be as follows:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;some_name.h&quot;</span></code> followed by an empty line</p></li>
+<li><p>LAMMPS include files e.g. <code class="docutils literal notranslate"><span class="pre">#include</span> <span class="pre">&quot;comm.h&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">#include</span>
+<span class="pre">&quot;modify.h&quot;</span></code> in alphabetical order followed by an empty line</p></li>
+<li><p>System header files from the C++ or C standard library followed by
+an empty line</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">using</span> <span class="pre">namespace</span> <span class="pre">LAMMPS_NS</span></code> or other namespace imports.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="whitespace-preferred">
+<h2><span class="section-number">3.4.2. </span>Whitespace (preferred)<a class="headerlink" href="#whitespace-preferred" title="Link to this heading"></a></h2>
+<p>Source files should not contain TAB characters unless required by the
+syntax (e.g. in makefiles) and no trailing whitespace.  Text files
+should have Unix-style line endings (LF-only). Git will automatically
+convert those in both directions when running on Windows; use dos2unix
+on Linux machines to convert files to Unix-style line endings.  The
+last line of text files include a line ending.</p>
+<p>You can check for these issues with the python scripts in the
+<a class="reference internal" href="Tools.html#coding-standard"><span class="std std-ref">“tools/coding_standard”</span></a> folder.  When run
+normally with a source file or a source folder as argument, they will
+list all non-conforming lines.  By adding the <cite>-f</cite> flag to the command
+line, they will modify the flagged files to try to remove the detected
+issues.</p>
+</section>
+<section id="constants-strongly-preferred">
+<h2><span class="section-number">3.4.3. </span>Constants (strongly preferred)<a class="headerlink" href="#constants-strongly-preferred" title="Link to this heading"></a></h2>
+<p>Global or per-file constants should be declared as <cite>static constexpr</cite>
+variables rather than via the pre-processor with <cite>#define</cite>.  The name of
+constants should be all uppercase.  This has multiple advantages:</p>
+<ul class="simple">
+<li><p>constants are easily identified as such by their all upper case name</p></li>
+<li><p>rather than a pure text substitution during pre-processing, <cite>constexpr
+variables</cite> have a type associated with them and are processed later in
+the parsing process where the syntax checks and type specific
+processing (e.g. via overloads) can be applied to them.</p></li>
+<li><p>compilers can emit a warning if the constant is not used and thus can
+be removed (we regularly check for and remove dead code like this)</p></li>
+<li><p>there are no unexpected substitutions and thus confusing syntax errors
+when compiling leading to, for instance, conflicts so that LAMMPS
+cannot be compiled with certain combinations of packages (this <em>has</em>
+happened multiple times in the past).</p></li>
+</ul>
+<p>Pre-processor defines should be limited to macros (but consider C++
+templates) and conditional compilation.  If a per-processor define must
+be used, it should be defined at the top of the .cpp file after the
+include statements and at all cost it should be avoided to put them into
+header files.</p>
+<p>Some sets of commonly used constants are provided in the <code class="docutils literal notranslate"><span class="pre">MathConst</span></code>
+and <code class="docutils literal notranslate"><span class="pre">EwaldConst</span></code> namespaces and implemented in the files
+<code class="docutils literal notranslate"><span class="pre">math_const.h</span></code> and <code class="docutils literal notranslate"><span class="pre">ewald_const.h</span></code>, respectively.</p>
+<p>There are always exceptions, special cases, and legacy code in LAMMPS,
+so please contact the LAMMPS developers if you are not sure.</p>
+</section>
+<section id="placement-of-braces-strongly-preferred">
+<h2><span class="section-number">3.4.4. </span>Placement of braces (strongly preferred)<a class="headerlink" href="#placement-of-braces-strongly-preferred" title="Link to this heading"></a></h2>
+<p>For new files added to the “src” tree, a <a class="reference external" href="https://clang.llvm.org/docs/ClangFormat.html">clang-format</a> configuration file is
+provided under the name <cite>.clang-format</cite>.  This file is compatible with
+clang-format version 8 and later. With that file present, files can be
+reformatted according to the configuration with a command like:
+<cite>clang-format -i new-file.cpp</cite>.  Ideally, this is done while writing
+the code or before a pull request is submitted.  Blocks of code where
+the reformatting from clang-format yields hard-to-read or otherwise
+undesirable output may be protected with placing a pair <cite>//
+clang-format off</cite> and <cite>// clang-format on</cite> comments around that block.</p>
+</section>
+<section id="miscellaneous-standards-varied">
+<h2><span class="section-number">3.4.5. </span>Miscellaneous standards (varied)<a class="headerlink" href="#miscellaneous-standards-varied" title="Link to this heading"></a></h2>
+<ul>
+<li><p>I/O is done via the C-style stdio library and <strong>not</strong> iostreams.</p></li>
+<li><p>Do not use so-called “alternative tokens” like <code class="docutils literal notranslate"><span class="pre">and</span></code>, <code class="docutils literal notranslate"><span class="pre">or</span></code>,
+<code class="docutils literal notranslate"><span class="pre">not</span></code> and similar, but rather use the corresponding operators
+<code class="docutils literal notranslate"><span class="pre">&amp;&amp;</span></code>, <code class="docutils literal notranslate"><span class="pre">||</span></code>, and <code class="docutils literal notranslate"><span class="pre">!</span></code>.  The alternative tokens are not available
+by default on all compilers.</p></li>
+<li><p>Output to the screen and the logfile should use the corresponding FILE
+pointers and only be done on MPI rank 0.  Use the
+<a class="reference internal" href="Developer_utils.html#_CPPv4IDpEN9LAMMPS_NS5utils7logmesgEvP6LAMMPSRKNSt6stringEDpRR4Args" title="LAMMPS_NS::utils::logmesg"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::logmesg()</span></code></a> convenience
+function where possible.</p></li>
+<li><p>Usage of C++ <cite>virtual</cite>, <cite>override</cite>, <cite>final</cite> keywords: Please
+follow the <a class="reference external" href="https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rh-override">C++ Core Guideline C.128</a>.
+That means, you should only use <cite>virtual</cite> to declare a new virtual
+function, <cite>override</cite> to indicate you are overriding an existing
+virtual function, and <cite>final</cite> to prevent any further overriding.</p></li>
+<li><p>Trivial destructors: Do not write destructors when they are empty
+and <cite>default</cite>.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// don&#39;t write destructors for A or B like this</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">protected</span><span class="w"> </span><span class="n">Pointers</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">   </span><span class="n">A</span><span class="p">();</span>
+<span class="w">   </span><span class="o">~</span><span class="n">A</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="p">{}</span>
+<span class="p">};</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">protected</span><span class="w"> </span><span class="n">Pointers</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">   </span><span class="n">B</span><span class="p">();</span>
+<span class="w">   </span><span class="o">~</span><span class="n">B</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="c1">// instead, let the compiler create the implicit default destructor by not writing it</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">A</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">protected</span><span class="w"> </span><span class="n">Pointers</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">   </span><span class="n">A</span><span class="p">();</span>
+<span class="p">};</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">B</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">protected</span><span class="w"> </span><span class="n">Pointers</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">   </span><span class="n">B</span><span class="p">();</span>
+<span class="p">};</span>
+</pre></div>
+</div>
+</li>
+<li><p>Please use clang-format only to reformat files that you have
+contributed.  For header files containing a <code class="docutils literal notranslate"><span class="pre">SomeStyle(keyword,</span>
+<span class="pre">ClassName)</span></code> macros it is required to have this macro embedded with
+a pair of <code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">clang-format</span> <span class="pre">off</span></code>, <code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">clang-format</span> <span class="pre">on</span></code> comments
+and the line must be terminated with a semicolon (;).  Example:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef COMMAND_CLASS</span>
+<span class="c1">// clang-format off</span>
+<span class="n">CommandStyle</span><span class="p">(</span><span class="n">run</span><span class="p">,</span><span class="n">Run</span><span class="p">);</span>
+<span class="c1">// clang-format on</span>
+<span class="cp">#else</span>
+
+<span class="cp">#ifndef LMP_RUN_H</span>
+<span class="p">[...]</span>
+</pre></div>
+</div>
+<p>You may also use <code class="docutils literal notranslate"><span class="pre">//</span> <span class="pre">clang-format</span> <span class="pre">on/off</span></code> throughout your files to
+protect individual sections from being reformatted.</p>
+</li>
+<li><p>All files should have 0644 permissions, i.e. writable by the user
+only and readable by all and no executable permissions.  Executable
+permissions (0755) should only be for shell scripts or python or
+similar scripts for interpreted script languages.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Modify_requirements.html" class="btn btn-neutral float-left" title="3.3. Requirements for contributions to LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Modify_atom.html" class="btn btn-neutral float-right" title="3.5. Atom styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

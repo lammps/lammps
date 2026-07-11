@@ -1,0 +1,617 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.5. File formats used by LAMMPS &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Run_formats.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.6. Running LAMMPS on Windows" href="Run_windows.html" />
+    <link rel="prev" title="4.3. Screen and logfile output" href="Run_output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Run_basics.html">4.1. Basics of running LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_options.html">4.2. Command-line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html">4.3. Screen and logfile output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html#error-message-output">4.4. Error message output</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.5. File formats used by LAMMPS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#character-encoding">4.5.1. Character Encoding</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#number-formatting">4.5.2. Number Formatting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#input-file">4.5.3. Input File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data-file">4.5.4. Data File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molecule-file">4.5.5. Molecule File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-file">4.5.6. Restart File</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#json-dump-files">4.5.7. JSON Dump Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Run_windows.html">4.6. Running LAMMPS on Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Run_head.html"><span class="section-number">4. </span>Run LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.5. </span>File formats used by LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Run_output.html" class="btn btn-neutral float-left" title="4.3. Screen and logfile output" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_windows.html" class="btn btn-neutral float-right" title="4.6. Running LAMMPS on Windows" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="file-formats-used-by-lammps">
+<h1><span class="section-number">4.5. </span>File formats used by LAMMPS<a class="headerlink" href="#file-formats-used-by-lammps" title="Link to this heading"></a></h1>
+<p>This page provides a general overview of the kinds of files and file
+formats that LAMMPS is reading and writing.</p>
+<nav class="contents local" id="on-this-page">
+<p class="topic-title">On this page</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#character-encoding" id="id2">Character Encoding</a></p></li>
+<li><p><a class="reference internal" href="#number-formatting" id="id3">Number Formatting</a></p></li>
+<li><p><a class="reference internal" href="#input-file" id="id4">Input File</a></p></li>
+<li><p><a class="reference internal" href="#data-file" id="id5">Data File</a></p></li>
+<li><p><a class="reference internal" href="#molecule-file" id="id6">Molecule File</a></p></li>
+<li><p><a class="reference internal" href="#restart-file" id="id7">Restart File</a></p></li>
+<li><p><a class="reference internal" href="#json-dump-files" id="id8">JSON Dump Files</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="character-encoding">
+<h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.1. </span>Character Encoding</a><a class="headerlink" href="#character-encoding" title="Link to this heading"></a></h2>
+<p>For processing text files, the LAMMPS source code assumes <a class="reference external" href="https://en.wikipedia.org/wiki/ASCII">ASCII
+character encoding</a> which
+represents the digits 0 to 9, the lower and upper case letters a to z,
+some common punctuation and other symbols and a few whitespace
+characters including a regular “space character”, “line feed”, “carriage
+return”, “tabulator”.  These characters are all represented by single
+bytes with a value smaller than 128 and only 95 of those 128 values
+represent printable characters.  This list is sufficient to represent
+most English text, but misses accented characters or umlauts or Greek
+symbols and more.</p>
+<p>Modern text often uses <a class="reference external" href="https://en.wikipedia.org/wiki/UTF-8">UTF-8 character encoding</a> instead.  This encoding is a way
+to represent many more different characters as defined by the Unicode
+standard.  UTF-8 is compatible with ASCII, since the first 128 values
+are identical with the ASCII encoding.  It is important to note,
+however, that there are Unicode characters that <em>look</em> similar to ASCII
+characters, but have a different binary representation.  As a general
+rule, these characters may not be correctly recognized by LAMMPS.  For
+some parts of LAMMPS’ text processing, translation tables with known
+“lookalike” characters are used.  The tables are used to substitute
+non-ASCII characters with their ASCII equivalents.  Non-ASCII lookalike
+characters are often used by web browsers or PDF viewers to improve the
+readability of text.  Thus, when using copy and paste to transfer text
+from such an application to your input file, you may unintentionally
+create text that is not exclusively using ASCII encoding and may cause
+errors when LAMMPS is trying to read it.</p>
+<p>Lines with non-printable and non-ASCII characters in text files can be
+detected for example with a (Linux) command like the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>env<span class="w"> </span><span class="nv">LC_ALL</span><span class="o">=</span>C<span class="w"> </span>grep<span class="w"> </span>-n<span class="w"> </span><span class="s1">&#39;[^ -~]&#39;</span><span class="w"> </span>some_file.txt
+</pre></div>
+</div>
+</section>
+<section id="number-formatting">
+<h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.2. </span>Number Formatting</a><a class="headerlink" href="#number-formatting" title="Link to this heading"></a></h2>
+<p>Different countries and languages have different conventions to format
+numbers.  While in some regions commas are used for fractions and points
+to indicate thousand, million and so on, this is reversed in other
+regions.  Modern operating systems have facilities to adjust input and
+output accordingly that are collectively referred to as “native language
+support” (NLS).  The exact rules are often applied according to the
+value of the <code class="docutils literal notranslate"><span class="pre">$LANG</span></code> environment variable (e.g. “en_US.utf8” for
+English text in UTF-8 encoding).</p>
+<p>For the sake of simplicity of the implementation and transferability of
+results, LAMMPS does not support this and instead expects numbers being
+formatted in the generic or “C” locale.  The “C” locale has no
+punctuation for thousand, million and so on and uses a decimal point for
+fractions.  One thousand would be represented as “1000.0” and not as
+“1,000.0” nor as “1.000,0”.  Having native language support enabled for
+a locale other than “C” will result in different behavior when
+converting or formatting numbers that can trigger unexpected errors.</p>
+<p>LAMMPS also only accepts integer numbers when an integer is required, so
+using floating point equivalents like “1.0” are not accepted; you <em>must</em>
+use “1” instead.</p>
+<p>For floating point numbers in scientific notation, the Fortran double
+precision notation “1.1d3” is not accepted; you have to use “1100”,
+“1100.0” or “1.1e3”.</p>
+</section>
+<section id="input-file">
+<h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.3. </span>Input File</a><a class="headerlink" href="#input-file" title="Link to this heading"></a></h2>
+<p>A LAMMPS input file is a text file with commands.  It is read
+line-by-line and each line is processed <em>immediately</em>.  Before looking
+for commands and executing them, there is a pre-processing step where
+comments (non-quoted text starting with a pound sign ‘#’) are removed,
+<code class="docutils literal notranslate"><span class="pre">${variable}</span></code> and <code class="docutils literal notranslate"><span class="pre">$(expression)</span></code> constructs are expanded or
+evaluated, and lines that end in the ampersand character ‘&amp;’ are
+combined with the next line (similar to Fortran 90 free-format source
+code).  After the pre-processing, lines are split into “words” and
+evaluated.  The first word must be a <a class="reference internal" href="Commands_all.html"><span class="doc">command</span></a> and
+all following words are arguments.  Below are some example lines:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># full line comment</span>
+
+<span class="c"># some global settings</span>
+<span class="k">units</span><span class="w">           </span><span class="n">lj</span>
+<span class="k">atom_style</span><span class="w">      </span><span class="n">atomic</span>
+<span class="c"># ^^ command    ^^ argument(s)</span>
+
+<span class="k">variable        </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="m">1</span><span class="w">       </span><span class="c"># may be overridden from command line with -var x &lt;value&gt;</span>
+<span class="k">variable        </span><span class="nv nv-Identifier">xx</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">20</span><span class="o">*</span><span class="nv">$x</span><span class="w">  </span><span class="c"># variable &quot;xx&quot; is always 20 times &quot;x&quot;</span>
+
+<span class="k">lattice</span><span class="w">         </span><span class="n">fcc</span><span class="w"> </span><span class="m">0.8442</span>
+
+<span class="c"># example of a command written across multiple lines</span>
+<span class="c"># the &quot;region&quot; command uses spacing from &quot;lattice&quot; command, unless &quot;units box&quot; is specified</span>
+<span class="k">region          </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="nv">${xx}</span><span class="sc"> &amp;</span>
+<span class="w">                          </span><span class="m">0.0</span><span class="w"> </span><span class="m">40.0</span><span class="w">  </span><span class="o">&amp;</span>
+<span class="w">                          </span><span class="m">0.0</span><span class="w"> </span><span class="m">30.0</span>
+<span class="c"># create simulation box and fill with atoms according to lattice setting</span>
+<span class="k">create_box      </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">box</span>
+<span class="k">create_atoms</span><span class="w">    </span><span class="m">1</span><span class="w"> </span><span class="n">box</span>
+
+<span class="c"># set force field and parameters</span>
+<span class="k">mass</span><span class="w">            </span><span class="m">1</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">pair_style</span><span class="w">      </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="m">2.5</span>
+<span class="k">pair_coeff</span><span class="w">      </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+
+<span class="c"># run simulation</span>
+<span class="k">fix             </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nve</span>
+<span class="k">run</span><span class="w">             </span><span class="m">1000</span>
+</pre></div>
+</div>
+<p>The pivotal command in this example input is the <a class="reference internal" href="create_box.html"><span class="doc">create_box
+command</span></a>.  It defines the simulation system and many
+parameters that go with it: units, atom style, number of atom types (and
+other types) and more.  Those settings are <em>locked in</em> after the box is
+created.  Commands that change these kind of settings are only allowed
+<strong>before</strong> a simulation box is created and many other commands are only
+allowed <strong>after</strong> the simulation box is defined (e.g. <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>).  Very few commands (e.g. <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a>)
+may be used in either part of the input.  The <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> and <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> commands also create
+the system box and thus have a similar pivotal function.</p>
+<p>The LAMMPS input syntax has minimal support for conditionals and loops,
+but if more complex operations are required, it is recommended to use
+the library interface, e.g. <a class="reference internal" href="Python_run.html"><span class="doc">from Python using the LAMMPS Python
+module</span></a>.</p>
+<p>There is a frequent misconception about the <a class="reference internal" href="if.html"><span class="doc">if command</span></a>:
+this is a command for conditional execution <strong>outside</strong> a run or
+minimization.  To trigger actions on specific conditions <strong>during</strong>
+a run is a non-trivial operation that usually requires adopting one
+of the available “fix” commands or creating a new “fix” command.</p>
+<p>LAMMPS commands change the internal state and thus the order of commands
+matters and reordering them can produce different results.  For example,
+the region defined by the <a class="reference internal" href="region.html"><span class="doc">region command</span></a> in the example
+above depends on the <a class="reference internal" href="lattice.html"><span class="doc">lattice setting</span></a> and thus its
+dimensions will be different depending on the order of the two commands.</p>
+<p>Each line must have an “end-of-line” character (line feed or carriage
+return plus line feed).  Some text editors do not automatically insert
+one which may cause LAMMPS to ignore the last command.  It is thus
+recommended to always have an empty line at the end of an input file.</p>
+<p>The specific details describing how LAMMPS input is processed and parsed
+are explained in <a class="reference internal" href="Commands_parse.html"><span class="doc">Parsing rules for input scripts</span></a>.</p>
+</section>
+<section id="data-file">
+<h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.4. </span>Data File</a><a class="headerlink" href="#data-file" title="Link to this heading"></a></h2>
+<p>A LAMMPS data file contains a description of a system suitable for
+reading with the <a class="reference internal" href="read_data.html"><span class="doc">read_data command</span></a>.  Data files are
+commonly used for setting up complex molecular systems that can be
+difficult to achieve with the commands <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>
+and <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> alone.  Also, data files can be
+used as a portable alternatives to a <a class="reference internal" href="restart.html"><span class="doc">binary restart file</span></a>.  A restart file can be converted into a data file from the
+<a class="reference internal" href="Run_options.html"><span class="doc">command line</span></a>.</p>
+<p>Data files have a header section at the very beginning of the file and
+multiple titled sections such as “Atoms”, “Masses”, “Pair Coeffs”, and
+so on.  Header keywords can only be used <em>before</em> the first title
+section.</p>
+<p>The data file <strong>always</strong> starts with a “title” line, which will be
+<strong>ignored</strong> by LAMMPS.  Omitting the title line can lead to unexpected
+behavior because a line of the header with an actual setting may be
+ignored.  In this case, the mistakenly ignored line often contains the
+“atoms” keyword, which results in LAMMPS assuming that there are no
+atoms in the data file and thus throwing an error on the contents of the
+“Atoms” section.  The title line may contain some keywords that can be
+used by external programs to convey information about the system
+(included as comments), that is not required and not read by LAMMPS.</p>
+<p>The line following a section title is also <strong>ignored</strong>.  An error will
+occur if an empty line is not placed after a section title.  The number
+of lines in titled sections depends on header keywords, like the number
+of atom types, the number of atoms, the number of bond types, the number
+of bonds, and so on.  The data in those sections has to be complete.  A
+special case are the “Pair Coeffs” and “PairIJ Coeffs” sections; the
+former is for force fields and pair styles that use mixing of non-bonded
+potential parameters, the latter for pair styles and force fields
+requiring explicit coefficients.  Thus with <em>N</em> being the number of atom
+types, the “Pair Coeffs” section has <em>N</em> entries while “PairIJ Coeffs”
+has <span class="math notranslate nohighlight">\(N \cdot (N-1)\)</span> entries.  Internally, these sections will be
+converted to <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> commands.  Thus the
+corresponding <a class="reference internal" href="pair_style.html"><span class="doc">pair style</span></a> must have been set <em>before</em>
+the <a class="reference internal" href="read_data.html"><span class="doc">read_data command</span></a> reads the data file.</p>
+<p>Data files may contain comments, which start with the pound sign ‘#’.
+There must be at least one blank between a valid keyword and the pound
+sign. Below is a simple example case of a data file for <a class="reference internal" href="atom_style.html"><span class="doc">atom style
+full</span></a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>LAMMPS<span class="w"> </span>Title<span class="w"> </span>line<span class="w"> </span><span class="o">(</span>ignored<span class="o">)</span>
+<span class="c1"># full line comment</span>
+
+<span class="w">        </span><span class="m">10</span><span class="w">  </span>atoms<span class="w"> </span><span class="c1"># comment</span>
+<span class="w">         </span><span class="m">4</span><span class="w">  </span>atom<span class="w"> </span>types
+
+<span class="w"> </span>-36.840194<span class="w"> </span><span class="m">64</span>.211560<span class="w"> </span>xlo<span class="w"> </span>xhi
+<span class="w"> </span>-41.013691<span class="w"> </span><span class="m">68</span>.385058<span class="w"> </span>ylo<span class="w"> </span>yhi
+<span class="w"> </span>-29.768095<span class="w"> </span><span class="m">57</span>.139462<span class="w"> </span>zlo<span class="w"> </span>zhi
+
+Masses
+
+<span class="w">  </span><span class="m">1</span><span class="w"> </span><span class="m">12</span>.0110
+<span class="w">  </span><span class="m">2</span><span class="w"> </span><span class="m">12</span>.0110
+<span class="w">  </span><span class="m">3</span><span class="w"> </span><span class="m">15</span>.9990
+<span class="w">  </span><span class="m">4</span><span class="w">  </span><span class="m">1</span>.0080
+
+Pair<span class="w"> </span>Coeffs<span class="w">  </span><span class="c1"># this section is optional</span>
+
+<span class="w">  </span><span class="m">1</span><span class="w">    </span><span class="m">0</span>.110000<span class="w">    </span><span class="m">3</span>.563595<span class="w">    </span><span class="m">0</span>.110000<span class="w">    </span><span class="m">3</span>.563595
+<span class="w">  </span><span class="m">2</span><span class="w">    </span><span class="m">0</span>.080000<span class="w">    </span><span class="m">3</span>.670503<span class="w">    </span><span class="m">0</span>.010000<span class="w">    </span><span class="m">3</span>.385415
+<span class="w">  </span><span class="m">3</span><span class="w">    </span><span class="m">0</span>.120000<span class="w">    </span><span class="m">3</span>.029056<span class="w">    </span><span class="m">0</span>.120000<span class="w">    </span><span class="m">2</span>.494516
+<span class="w">  </span><span class="m">4</span><span class="w">    </span><span class="m">0</span>.022000<span class="w">    </span><span class="m">2</span>.351973<span class="w">    </span><span class="m">0</span>.022000<span class="w">    </span><span class="m">2</span>.351973
+
+Atoms<span class="w"> </span><span class="c1"># full</span>
+
+<span class="w">      </span><span class="m">1</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">0</span>.560<span class="w">   </span><span class="m">43</span>.99993<span class="w">  </span><span class="m">58</span>.52678<span class="w">  </span><span class="m">36</span>.78550<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">2</span><span class="w">      </span>-0.270<span class="w">   </span><span class="m">45</span>.10395<span class="w">  </span><span class="m">58</span>.23499<span class="w">  </span><span class="m">35</span>.86693<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">3</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">3</span><span class="w">      </span>-0.510<span class="w">   </span><span class="m">43</span>.81519<span class="w">  </span><span class="m">59</span>.54928<span class="w">  </span><span class="m">37</span>.43995<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.090<span class="w">   </span><span class="m">45</span>.71714<span class="w">  </span><span class="m">57</span>.34797<span class="w">  </span><span class="m">36</span>.13434<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">5</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.090<span class="w">   </span><span class="m">45</span>.72261<span class="w">  </span><span class="m">59</span>.13657<span class="w">  </span><span class="m">35</span>.67007<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.090<span class="w">   </span><span class="m">44</span>.66624<span class="w">  </span><span class="m">58</span>.09539<span class="w">  </span><span class="m">34</span>.85538<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">7</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">3</span><span class="w">      </span>-0.470<span class="w">   </span><span class="m">43</span>.28193<span class="w">  </span><span class="m">57</span>.47427<span class="w">  </span><span class="m">36</span>.91953<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">8</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.070<span class="w">   </span><span class="m">42</span>.07157<span class="w">  </span><span class="m">57</span>.45486<span class="w">  </span><span class="m">37</span>.62418<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">      </span><span class="m">9</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">0</span>.510<span class="w">   </span><span class="m">42</span>.19985<span class="w">  </span><span class="m">57</span>.57789<span class="w">  </span><span class="m">39</span>.12163<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">1</span><span class="w">       </span><span class="m">0</span>.510<span class="w">   </span><span class="m">41</span>.88641<span class="w">  </span><span class="m">58</span>.62251<span class="w">  </span><span class="m">39</span>.70398<span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span><span class="w">   </span><span class="m">0</span>
+<span class="c1">#  ^^atomID ^^molID ^^type  ^^charge ^^xcoord  ^^ycoord  ^^ycoord  ^^image^^flags (optional)</span>
+
+Velocities<span class="w"> </span><span class="c1"># this section is optional</span>
+
+<span class="w">      </span><span class="m">1</span><span class="w">  </span><span class="m">0</span>.0050731<span class="w">  </span>-0.00398928<span class="w">  </span><span class="m">0</span>.00391473
+<span class="w">      </span><span class="m">2</span><span class="w"> </span>-0.0175184<span class="w">   </span><span class="m">0</span>.0173484<span class="w">  </span>-0.00489207
+<span class="w">      </span><span class="m">3</span><span class="w">  </span><span class="m">0</span>.00597225<span class="w"> </span>-0.00202006<span class="w">  </span><span class="m">0</span>.00166454
+<span class="w">      </span><span class="m">4</span><span class="w"> </span>-0.010395<span class="w">   </span>-0.0082582<span class="w">   </span><span class="m">0</span>.00316419
+<span class="w">      </span><span class="m">5</span><span class="w"> </span>-0.00390877<span class="w">  </span><span class="m">0</span>.00470331<span class="w"> </span>-0.00226911
+<span class="w">      </span><span class="m">6</span><span class="w"> </span>-0.00111157<span class="w"> </span>-0.00374545<span class="w"> </span>-0.0169374
+<span class="w">      </span><span class="m">7</span><span class="w">  </span><span class="m">0</span>.00209054<span class="w"> </span>-0.00594936<span class="w"> </span>-0.000124563
+<span class="w">      </span><span class="m">8</span><span class="w">  </span><span class="m">0</span>.00635002<span class="w"> </span>-0.0120093<span class="w">  </span>-0.0110999
+<span class="w">      </span><span class="m">9</span><span class="w"> </span>-0.004955<span class="w">   </span>-0.0123375<span class="w">   </span><span class="m">0</span>.000403422
+<span class="w">     </span><span class="m">10</span><span class="w">  </span><span class="m">0</span>.00265028<span class="w"> </span>-0.00189329<span class="w"> </span>-0.00293198
+</pre></div>
+</div>
+<p>The common problem is processing the “Atoms” section, since its format
+depends on the <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> used, and that setting
+must be done in the input file <em>before</em> reading the data file.  To
+assist with detecting incompatible data files, a comment is appended to
+the “Atoms” title indicating the atom style used (or intended) when
+<em>writing</em> the data file.  For example, below is an “Atoms” section for
+<a class="reference internal" href="atom_style.html"><span class="doc">atom style charge</span></a>, which omits the molecule ID
+column.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Atoms<span class="w"> </span><span class="c1"># charge</span>
+
+<span class="w">      </span><span class="m">1</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">0</span>.560<span class="w">   </span><span class="m">43</span>.99993<span class="w">  </span><span class="m">58</span>.52678<span class="w">  </span><span class="m">36</span>.78550
+<span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">2</span><span class="w">      </span>-0.270<span class="w">   </span><span class="m">45</span>.10395<span class="w">  </span><span class="m">58</span>.23499<span class="w">  </span><span class="m">35</span>.86693
+<span class="w">      </span><span class="m">3</span><span class="w">      </span><span class="m">3</span><span class="w">      </span>-0.510<span class="w">   </span><span class="m">43</span>.81519<span class="w">  </span><span class="m">59</span>.54928<span class="w">  </span><span class="m">37</span>.43995
+<span class="w">      </span><span class="m">4</span><span class="w">      </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.090<span class="w">   </span><span class="m">45</span>.71714<span class="w">  </span><span class="m">57</span>.34797<span class="w">  </span><span class="m">36</span>.13434
+<span class="w">      </span><span class="m">5</span><span class="w">      </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.090<span class="w">   </span><span class="m">45</span>.72261<span class="w">  </span><span class="m">59</span>.13657<span class="w">  </span><span class="m">35</span>.67007
+<span class="w">      </span><span class="m">6</span><span class="w">      </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.090<span class="w">   </span><span class="m">44</span>.66624<span class="w">  </span><span class="m">58</span>.09539<span class="w">  </span><span class="m">34</span>.85538
+<span class="w">      </span><span class="m">7</span><span class="w">      </span><span class="m">3</span><span class="w">      </span>-0.470<span class="w">   </span><span class="m">43</span>.28193<span class="w">  </span><span class="m">57</span>.47427<span class="w">  </span><span class="m">36</span>.91953
+<span class="w">      </span><span class="m">8</span><span class="w">      </span><span class="m">4</span><span class="w">       </span><span class="m">0</span>.070<span class="w">   </span><span class="m">42</span>.07157<span class="w">  </span><span class="m">57</span>.45486<span class="w">  </span><span class="m">37</span>.62418
+<span class="w">      </span><span class="m">9</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">0</span>.510<span class="w">   </span><span class="m">42</span>.19985<span class="w">  </span><span class="m">57</span>.57789<span class="w">  </span><span class="m">39</span>.12163
+<span class="w">     </span><span class="m">10</span><span class="w">      </span><span class="m">1</span><span class="w">       </span><span class="m">0</span>.510<span class="w">   </span><span class="m">41</span>.88641<span class="w">  </span><span class="m">58</span>.62251<span class="w">  </span><span class="m">39</span>.70398
+<span class="c1">#  ^^atomID ^^type  ^^charge ^^xcoord  ^^ycoord  ^^ycoord</span>
+</pre></div>
+</div>
+<p>Another source of confusion about the “Atoms” section format is the
+ordering of columns.  The three atom style variants <cite>atom_style full</cite>,
+<cite>atom_style hybrid charge molecular</cite>, and <cite>atom_style hybrid molecular
+charge</cite> all carry the same per-atom information. However, in data files,
+the Atoms section has the columns ‘Atom-ID Molecule-ID Atom-type Charge
+X Y Z’ for atom style full, but for hybrid atom styles the first columns
+are always ‘Atom-ID Atom-type X Y Z’ followed by any <em>additional</em> data
+added by the hybrid styles, for example, ‘Charge Molecule-ID’ for the
+first hybrid style and ‘Molecule-ID Charge’ in the second hybrid style
+variant.  Finally, an alternative to a hybrid atom style is to use fix
+property/atom, e.g. to add molecule IDs to atom style charge.  In this
+case the “Atoms” section is formatted according to atom style charge and
+a new section, “Molecules” is added that contains lines with ‘Atom-ID
+Molecule-ID’, one for each atom in the system.  For adding charges to
+atom style molecular with fix property/atom, the “Atoms” section is now
+formatted according to the atom style and a “Charges” section is added.</p>
+</section>
+<section id="molecule-file">
+<h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.5. </span>Molecule File</a><a class="headerlink" href="#molecule-file" title="Link to this heading"></a></h2>
+<p>Molecule files for use with the <a class="reference internal" href="molecule.html"><span class="doc">molecule command</span></a> look
+quite similar to data files but they do not have a compatible format,
+i.e., one cannot use a data file as molecule file and vice versa.  Below
+is a simple example for a water molecule (SPC/E model).  Same as a data
+file, there is an ignored title line and you can use comments.  However,
+there is no information about the number of types or the box dimensions.
+These parameters are set when the simulation box is created.  Thus the
+header only has the count of atoms, bonds, and so on.</p>
+<p>Molecule files have a header followed by sections (just as in data
+files), but the section names are different than those of a data file.
+There is no “Atoms” section and the section formats in molecule files is
+independent of the atom style.  Its information is split across multiple
+sections, like “Coords”, “Types”, and “Charges”.  Note that no “Masses”
+section is needed here.  The atom masses are by default tied to the atom
+type and set with a data file or the <a class="reference internal" href="mass.html"><span class="doc">mass command</span></a>.  A
+“Masses” section would only be required for atom styles with per-atom
+masses, e.g. atom style sphere, where in data files you would provide
+the density and the diameter instead of the mass.</p>
+<p>Since the entire file is a ‘molecule’, LAMMPS will assign a new
+molecule-ID (if supported by the atom style) when atoms are instantiated
+from a molecule file, e.g. with the <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms command</span></a>.  It is possible to include a “Molecules” section to
+indicate that the atoms belong to multiple ‘molecules’.  Atom-IDs and
+molecule-IDs in the molecule file are relative for the file
+(i.e. starting from 1) and will be translated into actual atom-IDs also
+when the atoms from the molecule are created.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Water molecule. SPC/E model.</span>
+
+<span class="m">3</span><span class="w"> </span>atoms
+<span class="m">2</span><span class="w"> </span>bonds
+<span class="m">1</span><span class="w"> </span>angles
+
+Coords
+
+<span class="m">1</span><span class="w">    </span><span class="m">1</span>.12456<span class="w">   </span><span class="m">0</span>.09298<span class="w">   </span><span class="m">1</span>.27452
+<span class="m">2</span><span class="w">    </span><span class="m">1</span>.53683<span class="w">   </span><span class="m">0</span>.75606<span class="w">   </span><span class="m">1</span>.89928
+<span class="m">3</span><span class="w">    </span><span class="m">0</span>.49482<span class="w">   </span><span class="m">0</span>.56390<span class="w">   </span><span class="m">0</span>.65678
+
+Types
+
+<span class="m">1</span><span class="w">        </span><span class="m">1</span>
+<span class="m">2</span><span class="w">        </span><span class="m">2</span>
+<span class="m">3</span><span class="w">        </span><span class="m">2</span>
+
+Charges
+
+<span class="m">1</span><span class="w">       </span>-0.8472
+<span class="m">2</span><span class="w">        </span><span class="m">0</span>.4236
+<span class="m">3</span><span class="w">        </span><span class="m">0</span>.4236
+
+Bonds
+
+<span class="m">1</span><span class="w">   </span><span class="m">1</span><span class="w">      </span><span class="m">1</span><span class="w">      </span><span class="m">2</span>
+<span class="m">2</span><span class="w">   </span><span class="m">1</span><span class="w">      </span><span class="m">1</span><span class="w">      </span><span class="m">3</span>
+
+Angles
+
+<span class="m">1</span><span class="w">   </span><span class="m">1</span><span class="w">      </span><span class="m">2</span><span class="w">      </span><span class="m">1</span><span class="w">      </span><span class="m">3</span>
+</pre></div>
+</div>
+<p>There are also optional sections, e.g. about <a class="reference internal" href="fix_shake.html"><span class="doc">SHAKE</span></a>
+and <a class="reference internal" href="special_bonds.html"><span class="doc">special bonds</span></a>. Those sections are only needed
+if the molecule command is issued <em>before</em> the simulation box is
+defined.  Otherwise, the molecule command can derive the required
+settings internally.</p>
+</section>
+<section id="restart-file">
+<h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.6. </span>Restart File</a><a class="headerlink" href="#restart-file" title="Link to this heading"></a></h2>
+<p>LAMMPS restart files are binary files and not available in text format.
+They can be identified by the first few bytes that contain the (C-style)
+string <code class="docutils literal notranslate"><span class="pre">LammpS</span> <span class="pre">RestartT</span></code> as <a class="reference external" href="https://en.wikipedia.org/wiki/Magic_string">magic string</a>.  This string is followed
+by a 16-bit integer of the number 1 used for detecting whether the
+computer writing the restart has the same <a class="reference external" href="https://en.wikipedia.org/wiki/Endianness">endianness</a> as the computer reading it.
+If not, the file cannot be read correctly.  This integer is followed by
+a 32-bit integer indicating the file format revision (currently 3),
+which can be used to implement backward compatibility for reading older
+revisions.</p>
+<p>This information has been added to the <cite>Unix “file” command’s
+&lt;https://www.darwinsys.com/file/&gt;</cite> “magic” file so that restart files
+can be identified without opening them.  If you have a fairly recent
+version, it should already be included.  If you have an older version,
+the LAMMPS source package <a class="reference internal" href="Tools.html#magic"><span class="std std-ref">contains a file with the necessary
+additions</span></a>.</p>
+<p>The rest of the file is organized in sections of a 32-bit signed integer
+constant indicating the kind of content and the corresponding value (or
+values).  If those values are arrays (including C-style strings), then
+the integer constant is followed by a 32-bit integer indicating the
+length of the array.  This mechanism will read the data regardless of
+the ordering of the sections.  Symbolic names of the section constants
+are in the <code class="docutils literal notranslate"><span class="pre">lmprestart.h</span></code> header file.</p>
+<p>LAMMPS restart files are not expected to be portable between platforms
+or LAMMPS versions, but changes to the file format are rare.</p>
+</section>
+<section id="json-dump-files">
+<span id="id1"></span><h2><a class="toc-backref" href="#on-this-page" role="doc-backlink"><span class="section-number">4.5.7. </span>JSON Dump Files</a><a class="headerlink" href="#json-dump-files" title="Link to this heading"></a></h2>
+<p>LAMMPS can print information about molecules and other sets of atoms during
+a run, in JSON format. Several fixes currently support dumping JSON files
+in the ‘molecules’ style, including <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a>
+and the <em>delete</em> keyword of <a class="reference internal" href="fix_reaxff_species.html"><span class="doc">fix reaxff/species</span></a>.
+The JSON ‘dump molecules’ format lists sets of atoms in the style of the
+<a class="reference internal" href="molecule.html"><span class="doc">JSON molecule file</span></a>, where more discussion of JSON schema
+can be found. Here is an generic example of a JSON output file that dumped
+one water molecule on the first timestep:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LAMMPS&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;units&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;real&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dump&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;style&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;molecules&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;timesteps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;molecules&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                </span><span class="p">{</span>
+<span class="w">                    </span><span class="nt">&quot;types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+<span class="w">                        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1368</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;H&quot;</span><span class="p">],</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1366</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;O&quot;</span><span class="p">],</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1367</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;H&quot;</span><span class="p">]</span>
+<span class="w">                        </span><span class="p">]</span>
+<span class="w">                    </span><span class="p">},</span>
+<span class="w">                    </span><span class="nt">&quot;coords&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;z&quot;</span><span class="p">],</span>
+<span class="w">                        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1368</span><span class="p">,</span><span class="w"> </span><span class="mf">26.787767440427466</span><span class="p">,</span><span class="w"> </span><span class="mf">29.785528640296768</span><span class="p">,</span><span class="w"> </span><span class="mf">25.85197353660144</span><span class="p">],</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1366</span><span class="p">,</span><span class="w"> </span><span class="mf">26.641801222582824</span><span class="p">,</span><span class="w"> </span><span class="mf">29.868106247702887</span><span class="p">,</span><span class="w"> </span><span class="mf">24.91285138212243</span><span class="p">],</span>
+<span class="w">                            </span><span class="p">[</span><span class="mi">1367</span><span class="p">,</span><span class="w"> </span><span class="mf">25.69611192416744</span><span class="p">,</span><span class="w"> </span><span class="mf">30.093425787807448</span><span class="p">,</span><span class="w"> </span><span class="mf">24.914380215672846</span><span class="p">]</span>
+<span class="w">                        </span><span class="p">]</span>
+<span class="w">                    </span><span class="p">}</span>
+<span class="w">                </span><span class="p">}</span>
+<span class="w">            </span><span class="p">]</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The required first-level keys of the JSON format output are “application”,
+“format”, “style”, “revision”, and “timesteps”, and optional keys are
+“units” and “title”.  The value of the “timesteps” key is an array of
+objects that contain data for each timestep on which a molecule was dumped,
+and the other first-level keys identify this JSON schema.  The objects in
+“timesteps” contains two mandatory keys, “timestep” and “molecules”.  The
+“molecules” key is an array of <a class="reference internal" href="molecule.html"><span class="doc">LAMMPS molecule JSON</span></a>
+objects, and may contain other keys that contain metadata for each
+molecule.  The “format” keys within molecule JSON objects are only printed
+once per output file, for brevity.  The “atom-id” values are atom IDs from
+the simulation, and the “type” values are atom types.  In the above
+example, the types were reported as strings corresponding to elements using
+<a class="reference internal" href="labelmap.html"><span class="doc">type labels</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Run_output.html" class="btn btn-neutral float-left" title="4.3. Screen and logfile output" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_windows.html" class="btn btn-neutral float-right" title="4.6. Running LAMMPS on Windows" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

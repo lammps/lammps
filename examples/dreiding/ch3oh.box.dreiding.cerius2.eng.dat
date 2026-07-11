@@ -1,0 +1,56 @@
+Energy expression created for 3D-periodic boundary conditions.
+  Cell information:
+    Density (g/cc):      0.4573
+    Volume  (A**3):   7447.2363
+          A:     19.9969          Alpha:     90.0000
+          B:     19.1282          Beta :     90.0000
+          C:     19.4697          Gamma:     90.0000
+
+  Summary of the energy expression:
+  Movable atoms          :    384     Fixed atoms            :      0
+  Polar atoms            :      0
+  Bonds                  :    320     Angles                 :    448
+  Torsions               :    192     Inversions             :      0
+  Urey-Bradley           :      0     Bend-bend              :      0
+  Stretch-stretch        :      0     Sep-stretch-stretch    :      0
+  Stretch-bend-stretch   :      0     Torsion-stretch        :      0
+  Torsion-bend-bend      :      0     Stretch-torsion-stretch:      0
+  Bend-torsion-bend      :      0
+  Hydrogen-bond acceptors:     64     Hydrogen-bond donors   :     64
+  Nonbond exclusions     :    768     Polar-polar exclusions :      0
+
+  Total charge           :     -0.001 Movable atoms only     :     -0.001
+  Total mass             :   2050.688 Movable atoms only     :   2050.688
+
+Automatically calculating Ewald parameters for Coulomb sum.
+
+Summary of Non-bond set up :- 
+    Non-bond list cutoff radius     :  13.530 (A) 
+    Number of non-bond terms in list : 101788 
+    This has been updated 1 times since the energy expression was created.
+
+  Using Ewald sums for Coulomb terms with: 
+   Eta=3.932,  Rcut=11.530, Kcut=0.298,  Acc.=0.001
+
+VDW terms truncated at : 8.500 (A)
+
+Diagonal VdW parameters combined using the arithmetic combination rule.
+
+Summary of H-bond set up using a h-bond list.
+
+There are 604 interactions within hbond cutoffs of 
+  Donor-acceptor distances less than 6.500 (A) and 
+  Donor-h-acceptor angles greater than 90.000 (degrees) 
+
+************************************************************************
+                        Energy Decomposition
+             Valence Terms                         Nonbond Terms
+  Bonds         :  0.535675            Van der Waals :  -56.0592
+  Angles        :   1.28188            Electrostatic :   234.036
+  Torsions      :   1.23250            Hydrogen Bonds:  -68.7337
+  Inversions    :  0.000000E+00        Restraints    :  0.000000E+00
+  Urey-Bradley  :  0.000000E+00        3-Body        :  0.000000E+00
+  Cross-Terms   :  0.000000E+00
+  Total Energy  :   112.293
+************************************************************************
+

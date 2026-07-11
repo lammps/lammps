@@ -1,0 +1,841 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.14. Platform abstraction functions &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_platform.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.15. Utility functions" href="Developer_utils.html" />
+    <link rel="prev" title="4.13.4. Citation management for contributed features" href="Classes_cite.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.14. Platform abstraction functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#time-functions">4.14.1. Time functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#platform-information-functions">4.14.2. Platform information functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-and-path-functions-and-global-constants">4.14.3. File and path functions and global constants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#standard-i-o-function-wrappers">4.14.4. Standard I/O function wrappers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#environment-variable-functions">4.14.5. Environment variable functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dynamically-loaded-object-or-library-functions">4.14.6. Dynamically loaded object or library functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compressed-file-i-o-functions">4.14.7. Compressed file I/O functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.14. </span>Platform abstraction functions</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Classes_cite.html" class="btn btn-neutral float-left" title="4.13.4. Citation management for contributed features" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_utils.html" class="btn btn-neutral float-right" title="4.15. Utility functions" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="platform-abstraction-functions">
+<h1><span class="section-number">4.14. </span>Platform abstraction functions<a class="headerlink" href="#platform-abstraction-functions" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">platform</span></code> sub-namespace inside the <code class="docutils literal notranslate"><span class="pre">LAMMPS_NS</span></code> namespace
+provides a collection of wrapper and convenience functions and utilities
+that perform common tasks for which platform specific code would be
+required or for which a more high-level abstraction would be convenient
+and reduce duplicated code.  This reduces redundant implementations and
+encourages consistent behavior and thus has some overlap with the
+<a class="reference internal" href="Developer_utils.html"><span class="doc">“utils” sub-namespace</span></a>.</p>
+<section id="time-functions">
+<h2><span class="section-number">4.14.1. </span>Time functions<a class="headerlink" href="#time-functions" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform7cputimeEv">
+<span id="_CPPv3N9LAMMPS_NS8platform7cputimeEv"></span><span id="_CPPv2N9LAMMPS_NS8platform7cputimeEv"></span><span id="LAMMPS_NS::platform::cputime"></span><span class="target" id="platform_8h_1a5f4b3548be5eb5c6ecb125ef68070fba"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">cputime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform7cputimeEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return the consumed CPU time for the current process in seconds</p>
+<p>This is a wrapper around the POSIX function getrusage() and its Windows equivalent. It is to be used in a similar fashion as MPI_Wtime(). Its resolution may be rather low so it can only be trusted when observing processes consuming CPU time of at least a few seconds.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>used CPU time in seconds </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform8walltimeEv">
+<span id="_CPPv3N9LAMMPS_NS8platform8walltimeEv"></span><span id="_CPPv2N9LAMMPS_NS8platform8walltimeEv"></span><span id="LAMMPS_NS::platform::walltime"></span><span class="target" id="platform_8h_1aca5f89d1d77efd166713bf8dd6d7fcd4"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">walltime</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform8walltimeEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return the wall clock state for the current process in seconds</p>
+<p>This clock is counting continuous time and is initialized during load of the executable/library. Its absolute value must be considered arbitrary and thus elapsed wall times are measured in taking differences. It is therefore to be used in a similar fashion as MPI_Wtime() but has a different offset, usually leading to better resolution.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>wall clock time in seconds </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform6usleepEi">
+<span id="_CPPv3N9LAMMPS_NS8platform6usleepEi"></span><span id="_CPPv2N9LAMMPS_NS8platform6usleepEi"></span><span id="LAMMPS_NS::platform::usleep__i"></span><span class="target" id="platform_8h_1afb043f14811cda3d34904e2eec5f07b9"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">usleep</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">usec</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform6usleepEi" title="Link to this definition"></a><br /></dt>
+<dd><p>Suspend execution for a microsecond interval</p>
+<p>This emulates the usleep(3) BSD function call also mentioned in POSIX.1-2001. This is not a precise delay; it may be longer, but not shorter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>usec</strong> – length of delay in microseconds </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="platform-information-functions">
+<h2><span class="section-number">4.14.2. </span>Platform information functions<a class="headerlink" href="#platform-information-functions" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform7os_infoEv">
+<span id="_CPPv3N9LAMMPS_NS8platform7os_infoEv"></span><span id="_CPPv2N9LAMMPS_NS8platform7os_infoEv"></span><span id="LAMMPS_NS::platform::os_info"></span><span class="target" id="platform_8h_1aaf549959ee090489b6146d8918e07d0c"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">os_info</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform7os_infoEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with the operating system version and architecture info</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with info about the OS and the platform is is running on </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform13compiler_infoEv">
+<span id="_CPPv3N9LAMMPS_NS8platform13compiler_infoEv"></span><span id="_CPPv2N9LAMMPS_NS8platform13compiler_infoEv"></span><span id="LAMMPS_NS::platform::compiler_info"></span><span class="target" id="platform_8h_1aff1bead546363da736aa6e7d5a356c8f"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">compiler_info</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform13compiler_infoEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with compiler version info</p>
+<p>This function uses predefined compiler macros to identify Compilers and their version and configuration info.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with the compiler information text </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform12cxx_standardEv">
+<span id="_CPPv3N9LAMMPS_NS8platform12cxx_standardEv"></span><span id="_CPPv2N9LAMMPS_NS8platform12cxx_standardEv"></span><span id="LAMMPS_NS::platform::cxx_standard"></span><span class="target" id="platform_8h_1a6b0cd92425b2ba864c0827aa84634092"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">cxx_standard</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform12cxx_standardEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with C++ standard version used to compile <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a>.</p>
+<p>This function uses predefined compiler macros to identify the C++ standard version used to compile <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> with.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with the C++ standard version or “unknown” </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform15openmp_standardEv">
+<span id="_CPPv3N9LAMMPS_NS8platform15openmp_standardEv"></span><span id="_CPPv2N9LAMMPS_NS8platform15openmp_standardEv"></span><span id="LAMMPS_NS::platform::openmp_standard"></span><span class="target" id="platform_8h_1a9a1ea03475feccb71ba24c81ed47bcbe"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">openmp_standard</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform15openmp_standardEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with OpenMP standard version info</p>
+<p>This function uses predefined compiler macros to identify OpenMP support and the supported version of the standard.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with the openmp information text </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform10mpi_vendorEv">
+<span id="_CPPv3N9LAMMPS_NS8platform10mpi_vendorEv"></span><span id="_CPPv2N9LAMMPS_NS8platform10mpi_vendorEv"></span><span id="LAMMPS_NS::platform::mpi_vendor"></span><span class="target" id="platform_8h_1a91f4f7bc79930f0ced868e82f5a0c85f"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">mpi_vendor</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform10mpi_vendorEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with MPI vendor info</p>
+<p>This function uses predefined macros to identify the vendor of the MPI library used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with the MPI vendor information text </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform8mpi_infoERiRi">
+<span id="_CPPv3N9LAMMPS_NS8platform8mpi_infoERiRi"></span><span id="_CPPv2N9LAMMPS_NS8platform8mpi_infoERiRi"></span><span id="LAMMPS_NS::platform::mpi_info__iR.iR"></span><span class="target" id="platform_8h_1a138dd5b5a0f070a142ae99957f7ba161"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">mpi_info</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">major</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">minor</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform8mpi_infoERiRi" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with MPI version info</p>
+<p>This function uses predefined macros and MPI function calls to identify the version of the MPI library used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>major</strong> – major version of the MPI standard (set on exit) </p></li>
+<li><p><strong>minor</strong> – minor version of the MPI standard (set on exit) </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>string with the MPI version information text </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform13compress_infoEv">
+<span id="_CPPv3N9LAMMPS_NS8platform13compress_infoEv"></span><span id="_CPPv2N9LAMMPS_NS8platform13compress_infoEv"></span><span id="LAMMPS_NS::platform::compress_info"></span><span class="target" id="platform_8h_1aec1a0eb6ddfe528d22869aa0aa1b1004"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">compress_info</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform13compress_infoEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Return string with list of available compression types and executables</p>
+<p>This function tests which of the supported compression executables are available for reading or writing compressed files where supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with list of available compression tools </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="file-and-path-functions-and-global-constants">
+<h2><span class="section-number">4.14.3. </span>File and path functions and global constants<a class="headerlink" href="#file-and-path-functions-and-global-constants" title="Link to this heading"></a></h2>
+<p>Since we are requiring C++17 to compile LAMMPS, you can also make use of
+the functionality of the <a class="reference external" href="https://cppreference.com/w/cpp/filesystem.html">C++ filesystem library</a>.  The following
+functions are in part convenience functions or emulate the behavior of
+similar Python functions or Unix shell commands.  Please note that the
+you need to use the <code class="docutils literal notranslate"><span class="pre">string()</span></code> member function of the
+<a class="reference external" href="https://cppreference.com/w/cpp/filesystem/path.html">std::filesystem::path class</a> to get access
+to the path as a C++ string class instance.</p>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform11filepathsepE">
+<span id="_CPPv3N9LAMMPS_NS8platform11filepathsepE"></span><span id="_CPPv2N9LAMMPS_NS8platform11filepathsepE"></span><span id="LAMMPS_NS::platform::filepathsep__cA"></span><span class="target" id="platform_8h_1a3174b82f12dfbffab20b2b96fbc442f3"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">filepathsep</span></span></span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="s"><span class="pre">&quot;/&quot;</span></span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform11filepathsepE" title="Link to this definition"></a><br /></dt>
+<dd><p>Platform specific file path component separator</p>
+<p>This is a string with the character that separates directories and filename in paths on a platform. If multiple are characters are provided, the first is the preferred one. </p>
+</dd></dl>
+
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform10pathvarsepE">
+<span id="_CPPv3N9LAMMPS_NS8platform10pathvarsepE"></span><span id="_CPPv2N9LAMMPS_NS8platform10pathvarsepE"></span><span id="LAMMPS_NS::platform::pathvarsep__c"></span><span class="target" id="platform_8h_1a0427d2d3074fc8188d6731545bc33855"></span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">pathvarsep</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="sc"><span class="pre">':'</span></span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform10pathvarsepE" title="Link to this definition"></a><br /></dt>
+<dd><p>Platform specific path environment variable component separator</p>
+<p>This is the character that separates entries in “PATH”-style environment variables. </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform9guesspathEP4FILEPci">
+<span id="_CPPv3N9LAMMPS_NS8platform9guesspathEP4FILEPci"></span><span id="_CPPv2N9LAMMPS_NS8platform9guesspathEP4FILEPci"></span><span id="LAMMPS_NS::platform::guesspath__FILEP.cP.i"></span><span class="target" id="platform_8h_1aa344b662f8d3c394089253824eca591d"></span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">guesspath</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">fp</span></span>, <span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">buf</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">len</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform9guesspathEP4FILEPci" title="Link to this definition"></a><br /></dt>
+<dd><p>Try to detect pathname from FILE pointer</p>
+<p>Currently only supported on Linux, MacOS, and Windows. Otherwise will report “(unknown)”.</p>
+<p>
+On Linux the folder /proc/self/fd holds symbolic links to the actual pathnames associated with each open file descriptor of the current process. On MacOS the same kind of information can be obtained using <code class="docutils literal notranslate"><span class="pre">fcntl(fd,F_GETPATH,buf)</span></code>. On Windows we use <code class="docutils literal notranslate"><span class="pre">GetFinalPathNameByHandleA()</span></code> which is available with Windows Vista and later. If the buffer is too small (&lt; 16 bytes) a null pointer is returned.</p>
+<p>This function is used to provide a filename with error messages in functions where the filename is not passed as an argument, but the FILE * pointer. </p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fp</strong> – FILE pointer struct from STDIO library for which we want to detect the name </p></li>
+<li><p><strong>buf</strong> – storage buffer for pathname. output will be truncated if not large enough </p></li>
+<li><p><strong>len</strong> – size of storage buffer. output will be truncated to this length - 1 </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pointer to the storage buffer with path or a NULL pointer if buf is invalid or the buffer size is too small</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform13path_basenameERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform13path_basenameERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform13path_basenameERKNSt6stringE"></span><span id="LAMMPS_NS::platform::path_basename__ssCR"></span><span class="target" id="platform_8h_1af571f031125be18774c73496bf428f1e"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">path_basename</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform13path_basenameERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Strip off leading part of path, return just the filename</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – file path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>file name </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform12path_dirnameERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform12path_dirnameERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform12path_dirnameERKNSt6stringE"></span><span id="LAMMPS_NS::platform::path_dirname__ssCR"></span><span class="target" id="platform_8h_1ab100315d6ea8390c0a3f9678010131ff"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">path_dirname</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform12path_dirnameERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Return the directory part of a path. Return “.” if empty</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – file path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>directory name </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform9path_joinERKNSt6stringERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform9path_joinERKNSt6stringERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform9path_joinERKNSt6stringERKNSt6stringE"></span><span id="LAMMPS_NS::platform::path_join__ssCR.ssCR"></span><span class="target" id="platform_8h_1afdc0fd0cefb9e5241e4ba20852877f4e"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">path_join</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">a</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">b</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform9path_joinERKNSt6stringERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Join two pathname segments</p>
+<p>This uses the forward slash ‘/’ character unless <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> is compiled for Windows where it uses the backward slash ‘'</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>a</strong> – first path </p></li>
+<li><p><strong>b</strong> – second path </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>combined path </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform16file_is_readableERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform16file_is_readableERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform16file_is_readableERKNSt6stringE"></span><span id="LAMMPS_NS::platform::file_is_readable__ssCR"></span><span class="target" id="platform_8h_1a9b6a15dfd00fe9eebeb84f092402b6b1"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">file_is_readable</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform16file_is_readableERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if file exists and is readable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – file path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>true if file exists and is readable </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform16file_is_writableERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform16file_is_writableERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform16file_is_writableERKNSt6stringE"></span><span id="LAMMPS_NS::platform::file_is_writable__ssCR"></span><span class="target" id="platform_8h_1a523f82f0cdb2ec5d7162171a067eeb30"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">file_is_writable</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform16file_is_writableERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if file can be opened for writing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – file path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>true if file can be opened for writing </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform13file_redirectERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform13file_redirectERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform13file_redirectERKNSt6stringE"></span><span id="LAMMPS_NS::platform::file_redirect__ssCR"></span><span class="target" id="platform_8h_1a8afb68742818f797f471b722475bb3bc"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">file_redirect</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform13file_redirectERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Return target path if the file is a ‘redirect file’</p>
+<p>Git uses ‘redirect files’ instead of symbolic links on Windows since the Windows file system has no symbolic links. The redirect file is a text file with just one line: the symbolic link target path. This function opens the path parameter and reads a line. If that line is a readable file, it returns that path, otherwise the original path. The check is only performed when compiled for Windows. Otherwise the original path is always returned.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – file path to check </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the redirected path or the original path </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform10is_consoleEP4FILE">
+<span id="_CPPv3N9LAMMPS_NS8platform10is_consoleEP4FILE"></span><span id="_CPPv2N9LAMMPS_NS8platform10is_consoleEP4FILE"></span><span id="LAMMPS_NS::platform::is_console__FILEP"></span><span class="target" id="platform_8h_1ad3dce4729b475039e1f3cd7ad5dc4cf5"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">is_console</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">fp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform10is_consoleEP4FILE" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if a file pointer may be connected to a console</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fp</strong> – file pointer </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>true if the file pointer is flagged as a TTY </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform9disk_freeERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform9disk_freeERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform9disk_freeERKNSt6stringE"></span><span id="LAMMPS_NS::platform::disk_free__ssCR"></span><span class="target" id="platform_8h_1a6ed051736e3bf0c472eacaa8d7ac86e6"></span><span class="kt"><span class="pre">double</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">disk_free</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform9disk_freeERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Return free disk space in bytes of file system pointed to by path</p>
+<p>Returns -1.0 if the path is invalid or free space reporting not supported.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – file or folder path in file system </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform14list_directoryERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform14list_directoryERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform14list_directoryERKNSt6stringE"></span><span id="LAMMPS_NS::platform::list_directory__ssCR"></span><span class="target" id="platform_8h_1ad9f70de7fed649daa7ef1957c9997e38"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">list_directory</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">dir</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform14list_directoryERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Get list of entries in a directory</p>
+<p>This provides a list of strings of the entries in the directory without the leading path name while also skipping over “..” and “.”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dir</strong> – path to directory </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>vector with strings of all directory entries </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5chdirERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform5chdirERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform5chdirERKNSt6stringE"></span><span id="LAMMPS_NS::platform::chdir__ssCR"></span><span class="target" id="platform_8h_1a8dc97878b620dd294214f33d426b25dd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">chdir</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5chdirERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Change current directory</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – new current working directory path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>-1 if unsuccessful, otherwise &gt;= 0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5mkdirERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform5mkdirERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform5mkdirERKNSt6stringE"></span><span id="LAMMPS_NS::platform::mkdir__ssCR"></span><span class="target" id="platform_8h_1aeacc2f1b5e3104760c86fb4644cb684a"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">mkdir</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5mkdirERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Create a directory or directory path</p>
+<p>Unlike the the <code class="docutils literal notranslate"><span class="pre">mkdir()</span></code> or <code class="docutils literal notranslate"><span class="pre">_mkdir()</span></code> functions of the C library, this function will also try to create non-existing sub-directories in case they don’t exist, and thus it behaves like the <code class="docutils literal notranslate"><span class="pre">mkdir</span> <span class="pre">-p</span></code> command rather than plain <code class="docutils literal notranslate"><span class="pre">mkdir</span></code> or <code class="docutils literal notranslate"><span class="pre">md</span></code> in a Unix or Windows shell, respectively.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – directory path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>-1 if unsuccessful, otherwise &gt;= 0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5rmdirERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform5rmdirERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform5rmdirERKNSt6stringE"></span><span id="LAMMPS_NS::platform::rmdir__ssCR"></span><span class="target" id="platform_8h_1a3302c183fe617ad6bf01e5f1bfff8dd9"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">rmdir</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5rmdirERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Delete a directory</p>
+<p>Unlike the the <code class="docutils literal notranslate"><span class="pre">rmdir()</span></code> or <code class="docutils literal notranslate"><span class="pre">_rmdir()</span></code> functions of the C library, this function will check for the contents of the folder and recurse into any sub-folders, if necessary, and delete all contained folders and their contents before deleting the folder <em>path</em>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – directory path </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>-1 if unsuccessful, otherwise &gt;= 0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform6unlinkERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform6unlinkERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform6unlinkERKNSt6stringE"></span><span id="LAMMPS_NS::platform::unlink__ssCR"></span><span class="target" id="platform_8h_1a6555cc4e8063ed94d56cd815278a9421"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">unlink</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">path</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform6unlinkERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Delete a file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> – path to file to be deleted </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 on success, -1 on error </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="standard-i-o-function-wrappers">
+<h2><span class="section-number">4.14.4. </span>Standard I/O function wrappers<a class="headerlink" href="#standard-i-o-function-wrappers" title="Link to this heading"></a></h2>
+<dl class="cpp var">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform11END_OF_FILEE">
+<span id="_CPPv3N9LAMMPS_NS8platform11END_OF_FILEE"></span><span id="_CPPv2N9LAMMPS_NS8platform11END_OF_FILEE"></span><span id="LAMMPS_NS::platform::END_OF_FILE__bigint"></span><span class="target" id="platform_8h_1aff22a2f6cfc75229f3c6691a64679ab0"></span><span class="n"><span class="pre">bigint</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">END_OF_FILE</span></span></span><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="o"><span class="pre">-</span></span><span class="m"><span class="pre">1</span></span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform11END_OF_FILEE" title="Link to this definition"></a><br /></dt>
+<dd><p>constant to seek to the end of the file </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5ftellEP4FILE">
+<span id="_CPPv3N9LAMMPS_NS8platform5ftellEP4FILE"></span><span id="_CPPv2N9LAMMPS_NS8platform5ftellEP4FILE"></span><span id="LAMMPS_NS::platform::ftell__FILEP"></span><span class="target" id="platform_8h_1afd4bf7f50771420b35850e961c8fa487"></span><span class="n"><span class="pre">bigint</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ftell</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">fp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5ftellEP4FILE" title="Link to this definition"></a><br /></dt>
+<dd><p>Get current file position</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fp</strong> – FILE pointer of the given file </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>current FILE pointer position cast to a bigint </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5fseekEP4FILE6bigint">
+<span id="_CPPv3N9LAMMPS_NS8platform5fseekEP4FILE6bigint"></span><span id="_CPPv2N9LAMMPS_NS8platform5fseekEP4FILE6bigint"></span><span id="LAMMPS_NS::platform::fseek__FILEP.bigint"></span><span class="target" id="platform_8h_1af983f9763b57efcf3888b2a19f9babcd"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">fseek</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">fp</span></span>, <span class="n"><span class="pre">bigint</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">pos</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5fseekEP4FILE6bigint" title="Link to this definition"></a><br /></dt>
+<dd><p>Set absolute file position</p>
+<p>If the absolute position is END_OF_FILE, then position at the end of the file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fp</strong> – FILE pointer of the given file </p></li>
+<li><p><strong>pos</strong> – new position of the FILE pointer </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful, otherwise -1 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform9ftruncateEP4FILE6bigint">
+<span id="_CPPv3N9LAMMPS_NS8platform9ftruncateEP4FILE6bigint"></span><span id="_CPPv2N9LAMMPS_NS8platform9ftruncateEP4FILE6bigint"></span><span id="LAMMPS_NS::platform::ftruncate__FILEP.bigint"></span><span class="target" id="platform_8h_1ad9bfc18919956b05289d2eff3643aff1"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">ftruncate</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">fp</span></span>, <span class="n"><span class="pre">bigint</span></span><span class="w"> </span><span class="n sig-param"><span class="pre">length</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform9ftruncateEP4FILE6bigint" title="Link to this definition"></a><br /></dt>
+<dd><p>Truncate file to a given length and re-position file pointer</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fp</strong> – FILE pointer of the given file </p></li>
+<li><p><strong>length</strong> – length to which the file is being truncated to </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful, otherwise -1 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5popenERKNSt6stringERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform5popenERKNSt6stringERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform5popenERKNSt6stringERKNSt6stringE"></span><span id="LAMMPS_NS::platform::popen__ssCR.ssCR"></span><span class="target" id="platform_8h_1ac811c6a9953c81b80fd6b761701b7bfe"></span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">popen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cmd</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">mode</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5popenERKNSt6stringERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Open a pipe to a command for reading or writing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cmd</strong> – command for the pipe </p></li>
+<li><p><strong>mode</strong> – “r” for reading from <em>cmd</em> or “w” for writing to <em>cmd</em></p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>file pointer to the pipe if successful or null </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform6pcloseEP4FILE">
+<span id="_CPPv3N9LAMMPS_NS8platform6pcloseEP4FILE"></span><span id="_CPPv2N9LAMMPS_NS8platform6pcloseEP4FILE"></span><span id="LAMMPS_NS::platform::pclose__FILEP"></span><span class="target" id="platform_8h_1abca9eaf3eb5f2010062ee8f6a4017733"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">pclose</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">fp</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform6pcloseEP4FILE" title="Link to this definition"></a><br /></dt>
+<dd><p>Close a previously opened pipe</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fp</strong> – FILE pointer for the pipe </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>exit status of the pipe command or -1 in case of errors </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="environment-variable-functions">
+<h2><span class="section-number">4.14.5. </span>Environment variable functions<a class="headerlink" href="#environment-variable-functions" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform6putenvERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform6putenvERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform6putenvERKNSt6stringE"></span><span id="LAMMPS_NS::platform::putenv__ssCR"></span><span class="target" id="platform_8h_1aae6f2f54e54291876e6bbd8f952c9c5f"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">putenv</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">vardef</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform6putenvERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Add variable to the environment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>vardef</strong> – variable name or variable definition (NAME=value) </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>-1 if failure otherwise 0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform8unsetenvERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform8unsetenvERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform8unsetenvERKNSt6stringE"></span><span id="LAMMPS_NS::platform::unsetenv__ssCR"></span><span class="target" id="platform_8h_1add0ec024cf89b7fe7a83b4c54fdf8f94"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">unsetenv</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">variable</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform8unsetenvERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Delete variable from the environment</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>variable</strong> – variable name </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>-1 if failure otherwise 0 </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform12list_pathenvERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform12list_pathenvERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform12list_pathenvERKNSt6stringE"></span><span id="LAMMPS_NS::platform::list_pathenv__ssCR"></span><span class="target" id="platform_8h_1ac52391dc7686d4a9e21b5d6ded324869"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">vector</span></span><span class="p"><span class="pre">&lt;</span></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="p"><span class="pre">&gt;</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">list_pathenv</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">var</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform12list_pathenvERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Get list of entries in a path environment variable</p>
+<p>This provides a list of strings of the entries in an environment variable that is containing a “path” like “PATH” or “LD_LIBRARY_PATH”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>var</strong> – name of the environment variable </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>vector with strings of all entries in that path variable </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform13find_exe_pathERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform13find_exe_pathERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform13find_exe_pathERKNSt6stringE"></span><span id="LAMMPS_NS::platform::find_exe_path__ssCR"></span><span class="target" id="platform_8h_1ac7d2f135d11783248a70f4a66fddf671"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">find_exe_path</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">cmd</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform13find_exe_pathERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Find pathname of an executable in the standard search path</p>
+<p>This function will traverse the list of directories in the PATH environment variable and look for the executable <em>cmd</em>. If the file exists and is executable the full path is returned as string, otherwise an empty string is returned.</p>
+<p>On Windows the <em>cmd</em> string must not include an extension as this function will automatically append the extensions “.exe”, “.com” and “.bat” and look for those paths. On Windows also the current directory is checked (and first), but otherwise is not checked unless “.” exists in the PATH environment variable.</p>
+<p>Because of the nature of the check, this will not detect shell functions built-in command or aliases.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>cmd</strong> – name of command </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>vector with strings of all directory entries </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="dynamically-loaded-object-or-library-functions">
+<h2><span class="section-number">4.14.6. </span>Dynamically loaded object or library functions<a class="headerlink" href="#dynamically-loaded-object-or-library-functions" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform6dlopenERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform6dlopenERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform6dlopenERKNSt6stringE"></span><span id="LAMMPS_NS::platform::dlopen__ssCR"></span><span class="target" id="platform_8h_1acd2e0d5c0aa701ba30307f5dfee05b8c"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">dlopen</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">fname</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform6dlopenERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Open a shared object file or library</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>fname</strong> – name or path of the shared object </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>handle to the shared object or null </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform7dlcloseEPv">
+<span id="_CPPv3N9LAMMPS_NS8platform7dlcloseEPv"></span><span id="_CPPv2N9LAMMPS_NS8platform7dlcloseEPv"></span><span id="LAMMPS_NS::platform::dlclose__voidP"></span><span class="target" id="platform_8h_1af483b6c4400965aa885f9f1a144138a5"></span><span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">dlclose</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform7dlcloseEPv" title="Link to this definition"></a><br /></dt>
+<dd><p>Close a shared object</p>
+<p>This releases the object corresponding to the provided handle. Resolved symbols associated with this handle may not be used after this call</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>handle</strong> – handle to an opened shared object </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>0 if successful, non-zero of not </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform5dlsymEPvRKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform5dlsymEPvRKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform5dlsymEPvRKNSt6stringE"></span><span id="LAMMPS_NS::platform::dlsym__voidP.ssCR"></span><span class="target" id="platform_8h_1ab1b3f356af1d5cbe80f8188b1d63770b"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">dlsym</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n sig-param"><span class="pre">handle</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">symbol</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform5dlsymEPvRKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Resolve a symbol in shared object</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>handle</strong> – handle to an opened shared object </p></li>
+<li><p><strong>symbol</strong> – name of the symbol to extract </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pointer to the resolved symbol or null </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform7dlerrorEv">
+<span id="_CPPv3N9LAMMPS_NS8platform7dlerrorEv"></span><span id="_CPPv2N9LAMMPS_NS8platform7dlerrorEv"></span><span id="LAMMPS_NS::platform::dlerror"></span><span class="target" id="platform_8h_1a5cfc90f8002e180ad96c73a101c6aa23"></span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">dlerror</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform7dlerrorEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Obtain error diagnostic info after dynamic linking function calls</p>
+<p>Return a human-readable string describing the most recent error that occurred when using one of the functions for dynamic loading objects the last call to this function. If there was no error, the string is empty.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>string with error message or empty </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="compressed-file-i-o-functions">
+<h2><span class="section-number">4.14.7. </span>Compressed file I/O functions<a class="headerlink" href="#compressed-file-i-o-functions" title="Link to this heading"></a></h2>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform22has_compress_extensionERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform22has_compress_extensionERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform22has_compress_extensionERKNSt6stringE"></span><span id="LAMMPS_NS::platform::has_compress_extension__ssCR"></span><span class="target" id="platform_8h_1acb172eb1662e351bab844ccfafbd9427"></span><span class="kt"><span class="pre">bool</span></span><span class="w"> </span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">has_compress_extension</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">file</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform22has_compress_extensionERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Check if a file name ends in a known extension for a compressed file format</p>
+<p>Currently supported file extensions are: .gz, .bz2, .zst, .xz, .lzma, .lz4, .br, and .7z</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> – name of the file to check </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>true if the file has a known extension, otherwise false </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform15compressed_readERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform15compressed_readERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform15compressed_readERKNSt6stringE"></span><span id="LAMMPS_NS::platform::compressed_read__ssCR"></span><span class="target" id="platform_8h_1a07977ea469d1405938f4225010fd0a3e"></span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">compressed_read</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">file</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform15compressed_readERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Open pipe to compressed text file for reading</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> – name of the file to open </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FILE pointer to pipe using for reading the compressed file. </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS8platform16compressed_writeERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS8platform16compressed_writeERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS8platform16compressed_writeERKNSt6stringE"></span><span id="LAMMPS_NS::platform::compressed_write__ssCR"></span><span class="target" id="platform_8h_1a6789ec6955f5cbc9555c83bd0b3ef1c1"></span><span class="n"><span class="pre">FILE</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-prename descclassname"><span class="n"><span class="pre">LAMMPS_NS</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">platform</span></span><span class="p"><span class="pre">::</span></span></span><span class="sig-name descname"><span class="n"><span class="pre">compressed_write</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">file</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS8platform16compressed_writeERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Open pipe to compressed text file for writing</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>file</strong> – name of the file to open </p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>FILE pointer to pipe using for reading the compressed file. </p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Classes_cite.html" class="btn btn-neutral float-left" title="4.13.4. Citation management for contributed features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_utils.html" class="btn btn-neutral float-right" title="4.15. Utility functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

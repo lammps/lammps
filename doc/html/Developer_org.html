@@ -1,0 +1,427 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.1. Source files &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_org.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.3. Code design" href="Developer_code_design.html" />
+    <link rel="prev" title="4. Information for Developers" href="Developer.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.1. </span>Source files</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer.html" class="btn btn-neutral float-left" title="4. Information for Developers" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_code_design.html" class="btn btn-neutral float-right" title="4.3. Code design" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="source-files">
+<h1><span class="section-number">4.1. </span>Source files<a class="headerlink" href="#source-files" title="Link to this heading"></a></h1>
+<p>The source files of the LAMMPS code are found in two directories of the
+distribution: <code class="docutils literal notranslate"><span class="pre">src</span></code> and <code class="docutils literal notranslate"><span class="pre">lib</span></code>.  Most of the code is written in C++
+but there are small a number of files in several other languages like C,
+Fortran, Shell script, or Python.</p>
+<p>The core of the code is located in the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder and its
+subdirectories.  A sizable number of these files are in the <code class="docutils literal notranslate"><span class="pre">src</span></code>
+directory itself, but there are plenty of <a class="reference internal" href="Packages.html"><span class="doc">packages</span></a>,
+which can be included or excluded when LAMMPS is built.  See the
+<a class="reference internal" href="Build_package.html"><span class="doc">Include packages in build</span></a> section of the manual
+for more information about that part of the build process.  LAMMPS
+currently supports building with <a class="reference internal" href="Build_make.html"><span class="doc">conventional makefiles</span></a> and through <a class="reference internal" href="Build_cmake.html"><span class="doc">CMake</span></a>.  Those procedures
+differ in how packages are enabled or disabled for inclusion into a
+LAMMPS binary, so they cannot be mixed.  The source files for each
+package are in all-uppercase subdirectories of the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder, for
+example <code class="docutils literal notranslate"><span class="pre">src/MOLECULE</span></code> or <code class="docutils literal notranslate"><span class="pre">src/EXTRA-MOLECULE</span></code>.  The <code class="docutils literal notranslate"><span class="pre">src/STUBS</span></code>
+subdirectory is not a package but contains a dummy MPI library, that is
+used when building a serial version of the code. The <code class="docutils literal notranslate"><span class="pre">src/MAKE</span></code>
+directory and its subdirectories contain makefiles with settings and
+flags for a variety of configuration and machines for the build process
+with traditional makefiles.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">lib</span></code> directory contains the source code for several supporting
+libraries or files with configuration settings to use globally installed
+libraries, that are required by some optional packages.  They may
+include python scripts that can transparently download additional source
+code on request.  Each subdirectory, like <code class="docutils literal notranslate"><span class="pre">lib/colvars</span></code> or <code class="docutils literal notranslate"><span class="pre">lib/gpu</span></code>,
+contains the source files, some of which are in different languages such
+as Fortran or CUDA. These libraries included in the LAMMPS build, if the
+corresponding package is installed.</p>
+<p>LAMMPS C++ source files almost always come in pairs, such as
+<code class="docutils literal notranslate"><span class="pre">src/run.cpp</span></code> (implementation file) and <code class="docutils literal notranslate"><span class="pre">src/run.h</span></code> (header file).
+Each pair of files defines a C++ class, for example the
+<code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Run</span></code> class, which contains the code invoked by
+the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command in a LAMMPS input script.  As this example
+illustrates, source file and class names often have a one-to-one
+correspondence with a command used in a LAMMPS input script.  Some
+source files and classes do not have a corresponding input script
+command, for example <code class="docutils literal notranslate"><span class="pre">src/force.cpp</span></code> and the <code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Force</span></code>
+class.  They are discussed in the next section.</p>
+<p>The names of all source files are in lower case and may use the
+underscore character ‘_’ to separate words. Apart from bundled,
+externally maintained libraries, which may have different conventions,
+all C and C++ header files have a <code class="docutils literal notranslate"><span class="pre">.h</span></code> extension, all C++ files have a
+<code class="docutils literal notranslate"><span class="pre">.cpp</span></code> extension, and C files a <code class="docutils literal notranslate"><span class="pre">.c</span></code> extension.  A few C++ classes
+and utility functions are implemented with only a <code class="docutils literal notranslate"><span class="pre">.h</span></code> file. Examples
+are the Pointers and Commands classes or the MathVec functions.</p>
+</section>
+<section id="class-topology">
+<h1><span class="section-number">4.2. </span>Class topology<a class="headerlink" href="#class-topology" title="Link to this heading"></a></h1>
+<p>Though LAMMPS has a lot of source files and classes, its class topology
+is not very deep, which can be seen from the <a class="reference internal" href="#id1"><span class="std std-ref">LAMMPS class topology</span></a>
+figure.  In that figure, each name refers to a class and has a pair of
+associated source files in the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder, for example the class
+<code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Memory</span></code> corresponds to the files <code class="docutils literal notranslate"><span class="pre">memory.cpp</span></code>
+and <code class="docutils literal notranslate"><span class="pre">memory.h</span></code>, or the class <code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::AtomVec</span></code>
+corresponds to the files <code class="docutils literal notranslate"><span class="pre">atom_vec.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">atom_vec.h</span></code>.  Full
+lines in the figure represent compositing: that is, the class at the
+base of the arrow holds a pointer to an instance of the class at the
+tip.  Dashed lines instead represent inheritance: the class at the tip
+of the arrow is derived from the class at the base.  Classes with a red
+boundary are not instantiated directly, but they represent the base
+classes for “styles”.  Those “styles” make up the bulk of the LAMMPS
+code and only a few representative examples are included in the figure,
+so it remains readable.</p>
+<figure class="align-default" id="id2">
+<span id="id1"></span><img alt="_images/lammps-classes.png" src="_images/lammps-classes.png" />
+<figcaption>
+<p><span class="caption-text">LAMMPS class topology</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+<div class="legend">
+<blockquote>
+<div><p>This figure shows relations of base classes of the LAMMPS
+simulation package.  Full lines indicate that a class holds an
+instance of the class it is pointing to; dashed lines point to
+derived classes that are given as examples of what classes may be
+instantiated during a LAMMPS run based on the input commands and
+accessed through the API define by their respective base classes.
+At the core is the <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS</span></code></a> class,
+which holds pointers to class instances with specific purposes.
+Those may hold instances of other classes, sometimes directly, or
+only temporarily, sometimes as derived classes or derived classes
+of derived classes, which may also hold instances of other
+classes.</p>
+</div></blockquote>
+</div>
+</figcaption>
+</figure>
+<p>The <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::LAMMPS</span></code></a> class is the topmost class and
+represents what is generally referred to as an “instance of LAMMPS”.  It
+is a composite holding pointers to instances of other core classes
+providing the core functionality of the MD engine in LAMMPS and through
+them abstractions of the required operations.  The constructor of the
+LAMMPS class will instantiate those instances, process the command-line
+flags, initialize MPI (if not already done) and set up file pointers for
+input and output.  The destructor will shut everything down and free all
+associated memory.  Thus code for the standalone LAMMPS executable in
+<code class="docutils literal notranslate"><span class="pre">main.cpp</span></code> simply initializes MPI, instantiates a single instance of
+LAMMPS while passing it the command-line flags and input script. It
+deletes the LAMMPS instance after the method reading the input returns
+and shuts down the MPI environment before it exits the executable.</p>
+<p>The <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Pointers</span></code></a> class is not shown in the
+<a class="reference internal" href="#id1"><span class="std std-ref">LAMMPS class topology</span></a> figure for clarity.  It holds references to many
+of the members of the <cite>LAMMPS_NS::LAMMPS</cite>, so that all classes derived
+from <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Pointers</span></code></a> have direct access to those
+references.  From the class topology all classes with blue boundary are
+referenced in the Pointers class and all classes in the second and third
+columns, that are not listed as derived classes, are instead derived
+from <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Pointers</span></code></a>.  To initialize the pointer
+references in Pointers, a pointer to the LAMMPS class instance needs to
+be passed to the constructor. All constructors for classes derived from
+it, must do so and thus pass that pointer to the constructor for
+<a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Pointers</span></code></a>.  The default constructor for
+<a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Pointers</span></code></a> is disabled to enforce this.</p>
+<p>Since all storage is supposed to be encapsulated (there are a few
+exceptions), the LAMMPS class can also be instantiated multiple times by
+a calling code.  Outside the aforementioned exceptions, those LAMMPS
+instances can be used alternately.  As of the time of this writing
+(early 2023) LAMMPS is not yet sufficiently thread-safe for concurrent
+execution.  When running in parallel with MPI, care has to be taken,
+that suitable copies of communicators are used to not create conflicts
+between different instances.</p>
+<p>The LAMMPS class currently holds instances of 19 classes representing
+the core functionality.  There are a handful of virtual parent classes
+in LAMMPS that define what LAMMPS calls <code class="docutils literal notranslate"><span class="pre">styles</span></code>.  These are shaded
+red in the <a class="reference internal" href="#id1"><span class="std std-ref">LAMMPS class topology</span></a> figure.  Each of these are parents of a
+number of child classes that implement the interface defined by the
+parent class.  There are two main categories of these <code class="docutils literal notranslate"><span class="pre">styles</span></code>: some
+may only have one instance active at a time (e.g. atom, pair, bond,
+angle, dihedral, improper, kspace, comm) and there is a dedicated
+pointer variable for each of them in the corresponding composite class.
+Setups that require a mix of different such styles have to use a
+<em>hybrid</em> class instance that acts as a proxy, and manages and forwards
+calls to the corresponding sub-style class instances for the designated
+subset of atoms or data.  The composite class may also have lists of
+class instances, e.g. <code class="docutils literal notranslate"><span class="pre">Modify</span></code> handles lists of compute and fix
+styles, while <code class="docutils literal notranslate"><span class="pre">Output</span></code> handles a list of dump class instances.</p>
+<p>The exception to this scheme are the <code class="docutils literal notranslate"><span class="pre">command</span></code> style classes.  These
+implement specific commands that can be invoked before, after, or in
+between runs.  For these an instance of the class is created, its
+command() method called and then, after completion, the class instance
+deleted.  Examples for this are the create_box, create_atoms, minimize,
+run, set, or velocity command styles.</p>
+<p>For all those <code class="docutils literal notranslate"><span class="pre">styles</span></code>, certain naming conventions are employed: for
+the fix nve command the class is called FixNVE and the source files are
+<code class="docutils literal notranslate"><span class="pre">fix_nve.h</span></code> and <code class="docutils literal notranslate"><span class="pre">fix_nve.cpp</span></code>. Similarly, for fix ave/time we have
+FixAveTime and <code class="docutils literal notranslate"><span class="pre">fix_ave_time.h</span></code> and <code class="docutils literal notranslate"><span class="pre">fix_ave_time.cpp</span></code>.  Style names
+are lower case and without spaces or special characters. A suffix or
+words are appended with a forward slash ‘/’ which denotes a variant of
+the corresponding class without the suffix.  To connect the style name
+and the class name, LAMMPS uses macros like: <code class="docutils literal notranslate"><span class="pre">AtomStyle()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">PairStyle()</span></code>, <code class="docutils literal notranslate"><span class="pre">BondStyle()</span></code>, <code class="docutils literal notranslate"><span class="pre">RegionStyle()</span></code>, and so on in the
+corresponding header file.  During configuration or compilation, files
+with the pattern <code class="docutils literal notranslate"><span class="pre">style_&lt;name&gt;.h</span></code> are created that consist of a list
+of include statements including all headers of all styles of a given
+type that are currently enabled (or “installed”).</p>
+<p>More details on individual classes in the <a class="reference internal" href="#id1"><span class="std std-ref">LAMMPS class topology</span></a> are as
+follows:</p>
+<ul class="simple">
+<li><p>The Memory class handles allocation of all large vectors and arrays.</p></li>
+<li><p>The Error class prints all (terminal) error and warning messages.</p></li>
+<li><p>The Universe class sets up one or more partitions of processors so
+that one or multiple simulations can be run, on the processors
+allocated for a run, e.g. by the mpirun command.</p></li>
+<li><p>The Input class reads and processes input (strings and files), stores
+variables, and invokes <a class="reference internal" href="Commands_all.html"><span class="doc">commands</span></a>.</p></li>
+<li><p>Command style classes are derived from the Command class. They provide
+input script commands that perform one-time operations
+before/after/between simulations or which invoke a simulation.  They
+are usually instantiated from within the Input class, its <code class="docutils literal notranslate"><span class="pre">command</span></code>
+method invoked, and then immediately destructed.</p></li>
+<li><p>The Finish class is instantiated to print statistics to the screen
+after a simulation is performed, by commands like run and minimize.</p></li>
+<li><p>The Special class walks the bond topology of a molecular system to
+find first, second, third neighbors of each atom.  It is invoked by
+several commands, like <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>,
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>, or <a class="reference internal" href="replicate.html"><span class="doc">replicate</span></a>.</p></li>
+<li><p>The Atom class stores per-atom properties associated with atom styles.
+More precisely, they are allocated and managed by a class derived from
+the AtomVec class, and the Atom class simply stores pointers to them.
+The classes derived from AtomVec represent the different atom styles,
+and they are instantiated through the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>
+command.</p></li>
+<li><p>The Update class holds instances of an integrator and a minimizer
+class.  The Integrate class is a parent style for the Verlet and
+r-RESPA time integrators, as defined by the <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a> command.  The Min class is a parent style for various
+energy minimizers.</p></li>
+<li><p>The Neighbor class builds and stores neighbor lists.  The NeighList
+class stores a single list (for all atoms).  A NeighRequest class
+instance is created by pair, fix, or compute styles when they need a
+particular kind of neighbor list and use the NeighRequest properties
+to select the neighbor list settings for the given request.  There can
+be multiple instances of the NeighRequest class. The Neighbor class
+will try to optimize how the requests are processed.  Depending on the
+NeighRequest properties, neighbor lists are constructed from scratch,
+aliased, or constructed by post-processing an existing list into
+sub-lists.</p></li>
+<li><p>The Comm class performs inter-processor communication, typically of
+ghost atom information.  This usually involves MPI message exchanges
+with 6 neighboring processors in the 3d logical grid of processors
+mapped to the simulation box. There are two <a class="reference internal" href="comm_style.html"><span class="doc">communication styles</span></a>, enabling different ways to perform the domain
+decomposition.</p></li>
+<li><p>The Irregular class is used, when atoms may migrate to arbitrary
+processors.</p></li>
+<li><p>The Domain class stores the simulation box geometry, as well as
+geometric Regions and any user definition of a Lattice.  The latter
+are defined by the <a class="reference internal" href="region.html"><span class="doc">region</span></a> and <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>
+commands in an input script.</p></li>
+<li><p>The Force class computes various forces between atoms.  The Pair
+parent class is for non-bonded or pairwise forces, which in LAMMPS
+also includes many-body forces such as the Tersoff 3-body potential if
+those are computed by walking pairwise neighbor lists.  The Bond,
+Angle, Dihedral, Improper parent classes are styles for bonded
+interactions within a static molecular topology.  The KSpace parent
+class is for computing long-range Coulombic interactions.  One of its
+child classes, PPPM, uses the FFT3D and Remap classes to redistribute
+and communicate grid-based information across the parallel processors.</p></li>
+<li><p>The Modify class stores lists of class instances derived from the
+<a class="reference internal" href="fix.html"><span class="doc">Fix</span></a> and <a class="reference internal" href="compute.html"><span class="doc">Compute</span></a> base classes.</p></li>
+<li><p>The Group class manipulates groups that atoms are assigned to via the
+<a class="reference internal" href="group.html"><span class="doc">group</span></a> command.  It also has functions to compute
+various attributes of groups of atoms.</p></li>
+<li><p>The Output class is used to generate 3 kinds of output from a LAMMPS
+simulation: thermodynamic information printed to the screen and log
+file, dump file snapshots, and restart files.  These correspond to the
+<a class="reference internal" href="thermo_style.html"><span class="doc">Thermo</span></a>, <a class="reference internal" href="dump.html"><span class="doc">Dump</span></a>, and
+<a class="reference internal" href="write_restart.html"><span class="doc">WriteRestart</span></a> classes respectively.  The Dump
+class is a base class, with several derived classes implementing
+various dump style variants.</p></li>
+<li><p>The Timer class logs timing information, output at the end
+of a run.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer.html" class="btn btn-neutral float-left" title="4. Information for Developers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_code_design.html" class="btn btn-neutral float-right" title="4.3. Code design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

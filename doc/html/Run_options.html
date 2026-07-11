@@ -1,0 +1,693 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.2. Command-line options &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Run_options.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.3. Screen and logfile output" href="Run_output.html" />
+    <link rel="prev" title="4.1. Basics of running LAMMPS" href="Run_basics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Run_basics.html">4.1. Basics of running LAMMPS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.2. Command-line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html">4.3. Screen and logfile output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html#error-message-output">4.4. Error message output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_formats.html">4.5. File formats used by LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_windows.html">4.6. Running LAMMPS on Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Run_head.html"><span class="section-number">4. </span>Run LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.2. </span>Command-line options</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Run_basics.html" class="btn btn-neutral float-left" title="4.1. Basics of running LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_output.html" class="btn btn-neutral float-right" title="4.3. Screen and logfile output" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="command-line-options">
+<h1><span class="section-number">4.2. </span>Command-line options<a class="headerlink" href="#command-line-options" title="Link to this heading"></a></h1>
+<p>At run time, LAMMPS recognizes several optional command-line switches
+which may be used in any order.  Either the full word or a one or two
+letter abbreviation can be used:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#echo"><span class="std std-ref">-e or -echo</span></a></p></li>
+<li><p><a class="reference internal" href="#help"><span class="std std-ref">-h or -help</span></a></p></li>
+<li><p><a class="reference internal" href="#file"><span class="std std-ref">-i or -in</span></a></p></li>
+<li><p><a class="reference internal" href="#run-kokkos"><span class="std std-ref">-k or -kokkos</span></a></p></li>
+<li><p><a class="reference internal" href="#log"><span class="std std-ref">-l or -log</span></a></p></li>
+<li><p><a class="reference internal" href="#mdi-flags"><span class="std std-ref">-mdi</span></a></p></li>
+<li><p><a class="reference internal" href="#mpicolor"><span class="std std-ref">-m or -mpicolor</span></a></p></li>
+<li><p><a class="reference internal" href="#cite"><span class="std std-ref">-c or -cite</span></a></p></li>
+<li><p><a class="reference internal" href="#nocite"><span class="std std-ref">-nc or -nocite</span></a></p></li>
+<li><p><a class="reference internal" href="#nonbuf"><span class="std std-ref">-nb or -nonbuf</span></a></p></li>
+<li><p><a class="reference internal" href="#package"><span class="std std-ref">-pk or -package</span></a></p></li>
+<li><p><a class="reference internal" href="#partition"><span class="std std-ref">-p or -partition</span></a></p></li>
+<li><p><a class="reference internal" href="#plog"><span class="std std-ref">-pl or -plog</span></a></p></li>
+<li><p><a class="reference internal" href="#pscreen"><span class="std std-ref">-ps or -pscreen</span></a></p></li>
+<li><p><a class="reference internal" href="#reorder"><span class="std std-ref">-ro or -reorder</span></a></p></li>
+<li><p><a class="reference internal" href="#restart2data"><span class="std std-ref">-r2data or -restart2data</span></a></p></li>
+<li><p><a class="reference internal" href="#restart2dump"><span class="std std-ref">-r2dump or -restart2dump</span></a></p></li>
+<li><p><a class="reference internal" href="#restart2info"><span class="std std-ref">-r2info or -restart2info</span></a></p></li>
+<li><p><a class="reference internal" href="#screen"><span class="std std-ref">-sc or -screen</span></a></p></li>
+<li><p><a class="reference internal" href="#skiprun"><span class="std std-ref">-sr or skiprun</span></a></p></li>
+<li><p><a class="reference internal" href="#suffix"><span class="std std-ref">-sf or -suffix</span></a></p></li>
+<li><p><a class="reference internal" href="#var"><span class="std std-ref">-v or -var</span></a></p></li>
+</ul>
+<p>For example, the lmp_mpi executable might be launched as follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">16</span><span class="w"> </span>lmp_mpi<span class="w"> </span>-v<span class="w"> </span>f<span class="w"> </span>tmp.out<span class="w"> </span>-l<span class="w"> </span>my.log<span class="w"> </span>-sc<span class="w"> </span>none<span class="w"> </span>-i<span class="w"> </span><span class="k">in</span>.alloy
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">16</span><span class="w"> </span>lmp_mpi<span class="w"> </span>-var<span class="w"> </span>f<span class="w"> </span>tmp.out<span class="w"> </span>-log<span class="w"> </span>my.log<span class="w"> </span>-screen<span class="w"> </span>none<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.alloy
+</pre></div>
+</div>
+<hr class="docutils" />
+<p id="echo"><strong>-echo style</strong></p>
+<p>Set the style of command echoing.  The style can be <em>none</em> or <em>screen</em>
+or <em>log</em> or <em>both</em>.  Depending on the style, each command read from
+the input script will be echoed to the screen and/or logfile.  This
+can be useful to figure out which line of your script is causing an
+input error.  The default value is <em>log</em>.  The echo style can also be
+set by using the <a class="reference internal" href="echo.html"><span class="doc">echo</span></a> command in the input script itself.</p>
+<hr class="docutils" />
+<p id="help"><strong>-help</strong></p>
+<p>Print a brief help summary and a list of options compiled into this
+executable for each LAMMPS style (atom_style, fix, compute,
+pair_style, bond_style, etc).  This can tell you if the command you
+want to use was included via the appropriate package at compile time.
+LAMMPS will print the info and immediately exit if this switch is
+used.</p>
+<hr class="docutils" />
+<p id="file"><strong>-in file</strong></p>
+<p>Specify a file to use as an input script.  This is currently an optional
+but recommended switch when running LAMMPS in the default one-partition
+mode.  If it is not specified, LAMMPS reads its script from standard
+input, typically from a script via I/O redirection; e.g. <code class="docutils literal notranslate"><span class="pre">lmp_linux</span> <span class="pre">&lt;</span>
+<span class="pre">in.run</span></code>.  With many MPI implementations (but not all of them), I/O
+redirection also works in parallel, but using the <code class="docutils literal notranslate"><span class="pre">-in</span></code> flag will
+<em>always</em> work.</p>
+<p>This is a <strong>required</strong> switch when running LAMMPS in multi-partition
+mode (see below), since multiple pools of MPI processes cannot all read
+from standard input concurrently.  The file name may be “none” for
+starting multi-partition calculations without reading an initial input
+file when using the library interface.</p>
+<hr class="docutils" />
+<p id="run-kokkos"><strong>-kokkos on/off keyword/value …</strong></p>
+<p>Explicitly enable or disable KOKKOS support, as provided by the KOKKOS
+package.  Even if LAMMPS is built with this package, as described in the
+<a class="reference internal" href="Speed_kokkos.html"><span class="doc">the KOKKOS package page</span></a>, this switch must be set
+to enable running with KOKKOS-enabled styles the package provides.  If
+the switch is not set (the default), LAMMPS will operate as if the
+KOKKOS package were not installed; i.e. you can run standard LAMMPS or
+with the GPU or OPENMP packages, for testing or benchmarking purposes.</p>
+<p>Additional optional keyword/value pairs can be specified which determine
+how Kokkos will use the underlying hardware on your platform.  These
+settings apply to each MPI task you launch via the <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> or
+<code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> command.  You may choose to run one or more MPI tasks per
+physical node.  Note that if you are running on a desktop machine, you
+typically have one physical node.  On a cluster or supercomputer there
+may be dozens or 1000s of physical nodes.</p>
+<p>Either the full word or an abbreviation can be used for the keywords.
+Note that the keywords do not use a leading minus sign.  I.e. the
+keyword is “t”, not “-t”.  Also note that each of the keywords has a
+default setting.  Examples of when to use these options and what
+settings to use on different platforms is given on the <a class="reference internal" href="Speed_kokkos.html"><span class="doc">KOKKOS
+package</span></a> doc page.</p>
+<ul class="simple">
+<li><p>d or device</p></li>
+<li><p>g or gpus</p></li>
+<li><p>t or threads</p></li>
+</ul>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>device Nd
+</pre></div>
+</div>
+<p>This option is only relevant if you built LAMMPS with CUDA=yes, you
+have more than one GPU per node, and if you are running with only one
+MPI task per node.  The Nd setting is the ID of the GPU on the node to
+run on.  By default Nd = 0.  If you have multiple GPUs per node, they
+have consecutive IDs numbered as 0,1,2,etc.  This setting allows you
+to launch multiple independent jobs on the node, each with a single
+MPI task per node, and assign each job to run on a different GPU.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>gpus Ng Ns
+</pre></div>
+</div>
+<p>This option is only relevant if you built LAMMPS with CUDA=yes, you
+have more than one GPU per node, and you are running with multiple MPI
+tasks per node (up to one per GPU).  The Ng setting is how many GPUs
+you will use.  The Ns setting is optional.  If set, it is the ID of a
+GPU to skip when assigning MPI tasks to GPUs.  This may be useful if
+your desktop system reserves one GPU to drive the screen and the rest
+are intended for computational work like running LAMMPS.  By default
+Ng = 1 and Ns is not set.</p>
+<p>Depending on which flavor of MPI you are running, LAMMPS will look for
+one of these 4 environment variables</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>SLURM_LOCALID (various MPI variants compiled with SLURM support)
+MPT_LRANK (HPE MPI)
+MV2_COMM_WORLD_LOCAL_RANK (Mvapich)
+OMPI_COMM_WORLD_LOCAL_RANK (OpenMPI)
+</pre></div>
+</div>
+<p>which are initialized by the <code class="docutils literal notranslate"><span class="pre">srun</span></code>, <code class="docutils literal notranslate"><span class="pre">mpirun</span></code>, or <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code>
+commands.  The environment variable setting for each MPI rank is used to
+assign a unique GPU ID to the MPI task.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>threads Nt
+</pre></div>
+</div>
+<p>This option assigns Nt number of threads to each MPI task for
+performing work when Kokkos is executing in OpenMP or pthreads mode.
+The default is Nt = 1, which essentially runs in MPI-only mode.  If
+there are Np MPI tasks per physical node, you generally want Np*Nt =
+the number of physical cores per node, to use your available hardware
+optimally.  This also sets the number of threads used by the host when
+LAMMPS is compiled with CUDA=yes.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 22Dec2022.</span></p>
+</div>
+<p>Support for the “numa” or “n” option was removed as its functionality
+was ignored in Kokkos for some time already.</p>
+<hr class="docutils" />
+<p id="log"><strong>-log file</strong></p>
+<p>Specify a log file for LAMMPS to write status information to.  In
+one-partition mode, if the switch is not used, LAMMPS writes to the
+file log.lammps.  If this switch is used, LAMMPS writes to the
+specified file.  In multi-partition mode, if the switch is not used, a
+log.lammps file is created with high-level status information.  Each
+partition also writes to a log.lammps.N file where N is the partition
+ID.  If the switch is specified in multi-partition mode, the high-level
+logfile is named “file” and each partition also logs information to a
+file.N.  For both one-partition and multi-partition mode, if the
+specified file is “none”, then no log files are created.  Using a
+<a class="reference internal" href="log.html"><span class="doc">log</span></a> command in the input script will override this setting.
+Option -plog will override the name of the partition log files file.N.</p>
+<hr class="docutils" />
+<p id="mdi-flags"><strong>-mdi ‘multiple flags’</strong></p>
+<p>This flag is only recognized and used when LAMMPS has support for the MolSSI
+Driver Interface (MDI) included as part of the <a class="reference internal" href="Packages_details.html#pkg-mdi"><span class="std std-ref">MDI</span></a>
+package.  This flag is specific to the MDI library and controls how LAMMPS
+interacts with MDI.  There are usually multiple flags that have to follow it
+and those have to be placed in quotation marks.  For more information about
+how to launch LAMMPS in MDI client/server mode please refer to the
+<a class="reference internal" href="Howto_mdi.html"><span class="doc">MDI Howto</span></a>.</p>
+<hr class="docutils" />
+<p id="mpicolor"><strong>-mpicolor color</strong></p>
+<p>If used, this must be the first command-line argument after the LAMMPS
+executable name.  It is only used when LAMMPS is launched by an mpirun
+command which also launches another executable(s) at the same time (The
+other executable could be LAMMPS as well.).  The <em>color</em> is an integer
+value which should be different for each executable (another application
+may set this value in a different way).  LAMMPS and the other
+executable(s) perform an <a class="reference external" href="https://docs.open-mpi.org/en/main/man-openmpi/man3/MPI_Comm_split.3.html">MPI_Comm_split()</a>
+with their own colors to replace the <code class="docutils literal notranslate"><span class="pre">MPI_COMM_WORLD</span></code> communicator
+with a new communicator using the subset of MPI processes they are
+actually running on.</p>
+<hr class="docutils" />
+<p id="cite"><strong>-cite style</strong> or <strong>file name</strong></p>
+<p>Select how and where to output a reminder about citing contributions
+to the LAMMPS code that were used during the run. Available keywords
+for styles are “both”, “none”, “screen”, or “log”.  Any other keyword
+will be considered a file name to write the detailed citation info to
+instead of logfile or screen.  Default is the “log” style where there
+is a short summary in the screen output and detailed citations
+in BibTeX format in the logfile.  The option “both” selects the detailed
+output for both, “none”, the short output for both, and “screen” will
+write the detailed info to the screen and the short version to the log
+file.  If a dedicated citation info file is requested, the screen and
+log file output will be in the short format (same as with “none”).</p>
+<p>See the <a class="reference internal" href="Intro_citing.html"><span class="doc">citation page</span></a> for more details on
+how to correctly reference and cite LAMMPS.</p>
+<hr class="docutils" />
+<p id="nocite"><strong>-nocite</strong></p>
+<p>Disable generating a citation reminder (see above) at all.</p>
+<hr class="docutils" />
+<p id="nonbuf"><strong>-nonbuf</strong></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 15Sep2022.</span></p>
+</div>
+<p>Turn off buffering for screen and logfile output.  For performance
+reasons, output to the screen and logfile is usually buffered, i.e.
+output is only written to a file if its buffer - typically 4096 bytes -
+has been filled.  When LAMMPS crashes for some reason, however, that can
+mean that there is important output missing.  With this flag the
+buffering can be turned off (only for screen and logfile output) and any
+output will be committed immediately.  Note that when running in
+parallel with MPI, the screen output may still be buffered by the MPI
+library and this cannot be changed by LAMMPS.  This flag should only be
+used for debugging and not for production simulations as the performance
+impact can be significant, especially for large parallel runs.</p>
+<hr class="docutils" />
+<p id="package"><strong>-package style args ….</strong></p>
+<p>Invoke the <a class="reference internal" href="package.html"><span class="doc">package</span></a> command with style and args.  The
+syntax is the same as if the command appeared at the top of the input
+script.  For example <code class="docutils literal notranslate"><span class="pre">-package</span> <span class="pre">gpu</span> <span class="pre">2</span></code> or <code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">gpu</span> <span class="pre">2</span></code> is the same as
+<a class="reference internal" href="package.html"><span class="doc">package gpu 2</span></a> in the input script.  The possible styles
+and args are documented on the <a class="reference internal" href="package.html"><span class="doc">package</span></a> doc page.  This
+switch can be used multiple times, e.g. to set options for the
+INTEL and OPENMP packages which can be used together.</p>
+<p>Along with the <code class="docutils literal notranslate"><span class="pre">-suffix</span></code> command-line switch, this is a convenient
+mechanism for invoking accelerator packages and their options without
+having to edit an input script.</p>
+<hr class="docutils" />
+<p id="partition"><strong>-partition 8x2 4 5 …</strong></p>
+<p>Invoke LAMMPS in multi-partition mode.  When LAMMPS is run on <em>P</em> MPI
+processes and this switch is not used, LAMMPS runs in <em>one partition</em>,
+i.e. all <em>P</em> MPI processes run a single simulation with the same
+settings.  If this switch <em>is</em> used, the <em>P</em> MPI processes are split
+into separate partitions and each partition runs its own simulation.
+The arguments to the switch specify the number of MPI processes in each
+partition.  Arguments of the form <em>MxN</em> mean <em>M</em> partitions, each with
+<em>N</em> MPI processes.  Arguments of the form <em>N</em> mean a single partition
+with <em>N</em> MPI processes.  The sum of MPI processes in all partitions must
+equal <em>P</em>.  Thus the command <code class="docutils literal notranslate"><span class="pre">-partition</span> <span class="pre">8x2</span> <span class="pre">4</span> <span class="pre">5</span></code> has 10 partitions
+(eight with 2 MPI processes, one with 4 and one with 5) and runs on a
+total of 25 MPI processes.</p>
+<p>Running with multiple partitions can be useful for running
+<a class="reference internal" href="Howto_replica.html"><span class="doc">multi-replica simulations</span></a>, where each replica
+runs on one or a few MPI processes.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With MPI installed on a standalone machine (e.g. your desktop or
+laptop), you can run on more (virtual) MPI processes than you have
+physical processors (for testing purposes), but some MPI
+implementations (for instance <a class="reference external" href="https://www.open-mpi.org/">OpenMPI</a>)
+may require an additional command line flag to enable this so-called
+oversubscription.  You may also have to disable <a class="reference external" href="https://en.wikipedia.org/wiki/Processor_affinity">processor affinity</a> or else the
+performance may be exceptionally bad when oversubscribing processors.</p>
+</div>
+<p>To run multiple independent simulations from one input script, using
+multiple partitions, see the <a class="reference internal" href="Howto_multiple.html"><span class="doc">Howto multiple</span></a>
+page.  World- and universe-style <a class="reference internal" href="variable.html"><span class="doc">variables</span></a> are useful
+in this context.</p>
+<hr class="docutils" />
+<p id="plog"><strong>-plog file</strong></p>
+<p>Specify the base name for the partition log files, so partition <em>N</em>
+writes log information to <code class="docutils literal notranslate"><span class="pre">file.N</span></code>. If <em>file</em> is <em>none</em>, then no
+partition log files are created.  This overrides the filename specified
+in the <em>-log</em> command-line option.  This option is useful when working
+with large numbers of partitions, allowing the partition log files to be
+suppressed (<code class="docutils literal notranslate"><span class="pre">-plog</span> <span class="pre">none</span></code>) or placed in a subdirectory (<code class="docutils literal notranslate"><span class="pre">-plog</span>
+<span class="pre">replica_files/log.lammps</span></code>).  If this option is not used, the log file
+for partition <em>N</em> is <code class="docutils literal notranslate"><span class="pre">log.lammps.N</span></code> or whatever is specified by the
+<em>-log</em> command-line option.</p>
+<hr class="docutils" />
+<p id="pscreen"><strong>-pscreen file</strong></p>
+<p>Specify the base name for the partition screen file, so partition <em>N</em>
+writes screen information to <code class="docutils literal notranslate"><span class="pre">file.N</span></code>. If <em>file</em> is <em>none</em>, then no
+partition screen files are created.  This overrides the filename
+specified in the <em>-screen</em> command-line option.  This option is useful
+when working with large numbers of partitions, allowing the partition
+screen files to be suppressed (<code class="docutils literal notranslate"><span class="pre">-pscreen</span> <span class="pre">none</span></code>) or placed in a
+subdirectory (<code class="docutils literal notranslate"><span class="pre">-pscreen</span> <span class="pre">replica_files/screen</span></code>).  If this option is not
+used, the screen file for partition <em>N</em> is <code class="docutils literal notranslate"><span class="pre">screen.N</span></code> or whatever is
+specified by the <em>-screen</em> command-line option.</p>
+<hr class="docutils" />
+<p id="reorder"><strong>-reorder</strong></p>
+<p>This option has 2 forms:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>-reorder nth N
+-reorder custom filename
+</pre></div>
+</div>
+<p>Reorder the ranks in the MPI communicator used to instantiate LAMMPS, in
+one of several ways.  The original MPI communicator ranks all <em>P</em> MPI
+processes from <em>0</em> to <em>P-1</em>.  The mapping of these ranks to physical
+processors is done by the MPI library before LAMMPS begins.  It may be
+useful in some cases to alter the order of the ranks, for example to
+ensure that cores within each node are ranked in a desired order.  Or
+when using the <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a> command with 2
+partitions to ensure that a specific Kspace processor (in the second
+partition) is matched up with a specific set of processors in the first
+partition.  See the <a class="reference internal" href="Speed_tips.html"><span class="doc">General tips</span></a> page for more
+details.</p>
+<p>If the keyword <em>nth</em> is used with a setting <em>N</em>, then it means every Nth
+processor will be moved to the end of the ranking.  This is useful when
+using the <a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a> command with 2
+partitions via the <em>-partition</em> command-line switch.  The first set of
+processors will be in the first partition, the second set in the second
+partition.  The <em>-reorder</em> command-line switch can alter this so that
+the first <em>N</em> MPI processes in the first partition and one MPI process
+in the second partition will be ordered consecutively, e.g. as the cores
+on one physical node.  This can boost performance.  For example, if you
+use <code class="docutils literal notranslate"><span class="pre">-reorder</span> <span class="pre">nth</span> <span class="pre">4</span></code> and <code class="docutils literal notranslate"><span class="pre">-partition</span> <span class="pre">9</span> <span class="pre">3</span></code> and you are running on 12
+processors, the MPI process ranks will be reordered from</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>0 1 2 3 4 5 6 7 8 9 10 11
+</pre></div>
+</div>
+<p>to</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>0 1 2 4 5 6 8 9 10 3 7 11
+</pre></div>
+</div>
+<p>so that the processors in each partition will be</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>0 1 2 4 5 6 8 9 10
+3 7 11
+</pre></div>
+</div>
+<p>See the “processors” command for how to ensure processors from each
+partition could then be grouped optimally for quad-core nodes.</p>
+<p>If the keyword is <em>custom</em>, then a file that specifies a permutation
+of the processor ranks is also specified.  The format of the reorder
+file is as follows.  Any number of initial blank or comment lines
+(starting with a “#” character) can be present.  These should be
+followed by <em>P</em> lines of the form:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>I J
+</pre></div>
+</div>
+<p>where <em>P</em> is the number of processors LAMMPS was launched with.  Note
+that if running in multi-partition mode (see the -partition switch
+above) <em>P</em> is the total number of MPI processes in all partitions.  The
+<em>I</em> and <em>J</em> values describe a permutation of the <em>P</em> MPI process ranks.
+Every <em>I</em> and <em>J</em> should be values from <em>0</em> to <em>P-1</em> inclusive.  In the
+set of <em>P</em> <em>I</em> values, every MPI rank ID should appear exactly once.
+Ditto for the set of <em>P</em> <em>J</em> values.  A single <em>I</em>, <em>J</em> pairing means
+that the physical processor with MPI rank <em>I</em> in the original MPI
+communicator will have rank <em>J</em> in the reordered MPI communicator.</p>
+<p>Note that rank ordering can also be specified by many MPI
+implementations, either by environment variables that specify how to
+order physical processors, or by config files that specify what physical
+processors to assign to each MPI rank.  The <em>-reorder</em> switch simply
+gives you a portable way to do this without relying on MPI itself.  See
+the <a class="reference internal" href="processors.html"><span class="doc">processors file</span></a> command for how to output info
+on the final assignment of physical processors to the LAMMPS simulation
+domain.</p>
+<hr class="docutils" />
+<p id="restart2data"><strong>-restart2data restartfile datafile keyword value …</strong></p>
+<p>Convert the restart file into a data file and immediately exit.  This
+is the same operation as if the following 2-line input script were
+run:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">read_restart</span><span class="w"> </span><span class="n">restartfile</span>
+<span class="k">write_data </span><span class="nv nv-Identifier">datafile</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<p>The specified restartfile and/or datafile name may contain the wild-card
+character “*”.  The restartfile name may also contain the wild-card
+character “%”.  The meaning of these characters is explained on the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> and <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a> doc
+pages.  The use of “%” means that a parallel restart file can be read.
+Note that a filename such as file.* may need to be enclosed in quotes or
+the “*” character prefixed with a backslash (”&quot;) to avoid shell
+expansion of the “*” character.</p>
+<p>The syntax following restartfile, namely</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>datafile keyword value ...
+</pre></div>
+</div>
+<p>is identical to the arguments of the <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a>
+command.  See its documentation page for details.  This includes its
+optional keyword/value settings.</p>
+<hr class="docutils" />
+<p id="restart2dump"><strong>-restart2dump restartfile group-ID dumpstyle dumpfile arg1 arg2 …</strong></p>
+<p>Convert the restart file into a dump file and immediately exit.  This
+is the same operation as if the following 2-line input script were
+run:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">read_restart</span><span class="w"> </span><span class="n">restartfile</span>
+<span class="k">write_dump </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">dumpstyle</span><span class="w"> </span><span class="n">dumpfile</span><span class="w"> </span><span class="n">arg1</span><span class="w"> </span><span class="n">arg2</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<p>Note that the specified restartfile and dumpfile names may contain
+wild-card characters (”*” or “%”) as explained on the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> and <a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a> doc
+pages.  The use of “%” means that a parallel restart file and/or
+parallel dump file can be read and/or written.  Note that a filename
+such as file.* may need to be enclosed in quotes or the “*” character
+prefixed with a backslash (”&quot;) to avoid shell expansion of the “*”
+character.</p>
+<p>The syntax following restartfile, namely</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="n">group</span><span class="o">-</span><span class="n">ID</span><span class="w"> </span><span class="n">dumpstyle</span><span class="w"> </span><span class="n">dumpfile</span><span class="w"> </span><span class="n">arg1</span><span class="w"> </span><span class="n">arg2</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<p>is identical to the arguments of the <a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a>
+command.  See its documentation page for details.  This includes what
+per-atom fields are written to the dump file and optional dump_modify
+settings, including ones that affect how parallel dump files are written,
+e.g. the <em>nfile</em> and <em>fileper</em> keywords.  See the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a> page for details.</p>
+<hr class="docutils" />
+<p id="restart2info"><strong>-restart2info restartfile keyword …</strong></p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 29Aug2024.</span></p>
+</div>
+<p>Write out some info about the restart file and and immediately exit.
+This is the same operation as if the following 2-line input script were
+run:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">read_restart</span><span class="w"> </span><span class="n">restartfile</span>
+<span class="k">info</span><span class="w"> </span><span class="n">system</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">computes</span><span class="w"> </span><span class="n">fixes</span>
+</pre></div>
+</div>
+<p>The specified restartfile name may contain the wild-card character “*”.
+The restartfile name may also contain the wild-card character “%”.  The
+meaning of these characters is explained on the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> documentation.  The use of “%” means that a parallel
+restart file can be read.  Note that a filename such as file.* may need
+to be enclosed in quotes or the “*” character prefixed with a backslash
+(”&quot;) to avoid shell expansion of the “*” character.</p>
+<p>Optional keywords may follow the restartfile argument.  These must be
+valid keywords for the <a class="reference internal" href="info.html"><span class="doc">info command</span></a>.  The most useful
+ones - <em>system</em>, <em>group</em>, <em>computes</em>, and <em>fixes</em> - are already applied.
+Appending keywords like <em>coeffs</em> or <em>communication</em> may provide
+additional useful information stored in the restart file.</p>
+<hr class="docutils" />
+<p id="screen"><strong>-screen file</strong></p>
+<p>Specify a file for LAMMPS to write its screen information to.  In
+one-partition mode, if the switch is not used, LAMMPS writes to the
+screen.  If this switch is used, LAMMPS writes to the specified file
+instead and you will see no screen output.  In multi-partition mode,
+if the switch is not used, high-level status information is written to
+the screen.  Each partition also writes to a screen.N file where N is
+the partition ID.  If the switch is specified in multi-partition mode,
+the high-level screen dump is named “file” and each partition also
+writes screen information to a file.N.  For both one-partition and
+multi-partition mode, if the specified file is “none”, then no screen
+output is performed. Option -pscreen will override the name of the
+partition screen files file.N.</p>
+<hr class="docutils" />
+<p id="skiprun"><strong>-skiprun</strong></p>
+<p>Insert the command <a class="reference internal" href="timer.html"><span class="doc">timer timeout 0 every 1</span></a> at the
+beginning of an input file or after a <a class="reference internal" href="clear.html"><span class="doc">clear</span></a> command.
+This has the effect that the entire LAMMPS input script is processed
+without executing actual <a class="reference internal" href="run.html"><span class="doc">run</span></a> or <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a>
+and similar commands (their main loops are skipped).  This can be
+helpful and convenient to test input scripts of long running
+calculations for correctness to avoid having them crash after a
+long time due to a typo or syntax error in the middle or at the end.</p>
+<hr class="docutils" />
+<p id="suffix"><strong>-suffix style args</strong></p>
+<p>Use variants of various styles if they exist.  The specified style can
+be <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, <em>opt</em>, or <em>hybrid</em>.  These
+refer to optional packages that LAMMPS can be built with, as described
+in <a class="reference internal" href="Speed.html"><span class="doc">Accelerate performance</span></a>.  The “gpu” style corresponds to the
+GPU package, the “intel” style to the INTEL package, the “kk”
+style to the KOKKOS package, the “opt” style to the OPT package, and
+the “omp” style to the OPENMP package. The hybrid style is the only
+style that accepts arguments. It allows for two packages to be
+specified. The first package specified is the default and will be used
+if it is available. If no style is available for the first package,
+the style for the second package will be used if available. For
+example, <code class="docutils literal notranslate"><span class="pre">-suffix</span> <span class="pre">hybrid</span> <span class="pre">intel</span> <span class="pre">omp</span></code> will use styles from the
+INTEL package if they are installed and available, but styles for
+the OPENMP package otherwise.</p>
+<p>Along with the <code class="docutils literal notranslate"><span class="pre">-package</span></code> command-line switch, this is a convenient
+mechanism for invoking accelerator packages and their options without
+having to edit an input script.</p>
+<p>As an example, all of the packages provide a <a class="reference internal" href="pair_lj.html"><span class="doc">pair_style lj/cut</span></a> variant, with style names lj/cut/gpu,
+lj/cut/intel, lj/cut/kk, lj/cut/omp, and lj/cut/opt.  A variant style
+can be specified explicitly in your input script, e.g. pair_style
+lj/cut/gpu.  If the -suffix switch is used the specified suffix
+(gpu,intel,kk,omp,opt) is automatically appended whenever your input
+script command creates a new <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a>,
+<a class="reference internal" href="pair_style.html"><span class="doc">pair style</span></a>, <a class="reference internal" href="fix.html"><span class="doc">fix</span></a>,
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a>, or <a class="reference internal" href="run_style.html"><span class="doc">run style</span></a>.  If the
+variant version does not exist, the standard version is created.</p>
+<p>For the GPU package, using this command-line switch also invokes the
+default GPU settings, as if the command “package gpu 1” were used at
+the top of your input script.  These settings can be changed by using
+the <code class="docutils literal notranslate"><span class="pre">-package</span> <span class="pre">gpu</span></code> command-line switch or the <a class="reference internal" href="package.html"><span class="doc">package gpu</span></a> command in your script.</p>
+<p>For the INTEL package, using this command-line switch also
+invokes the default INTEL settings, as if the command “package
+intel 1” were used at the top of your input script.  These settings
+can be changed by using the <code class="docutils literal notranslate"><span class="pre">-package</span> <span class="pre">intel</span></code> command-line switch or
+the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command in your script. If the
+OPENMP package is also installed, the hybrid style with “intel omp”
+arguments can be used to make the omp suffix a second choice, if a
+requested style is not available in the INTEL package.  It will
+also invoke the default OPENMP settings, as if the command “package
+omp 0” were used at the top of your input script.  These settings can
+be changed by using the <code class="docutils literal notranslate"><span class="pre">-package</span> <span class="pre">omp</span></code> command-line switch or the
+<a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command in your script.</p>
+<p>For the KOKKOS package, using this command-line switch also invokes
+the default KOKKOS settings, as if the command “package kokkos” were
+used at the top of your input script.  These settings can be changed
+by using the <code class="docutils literal notranslate"><span class="pre">-package</span> <span class="pre">kokkos</span></code> command-line switch or the <a class="reference internal" href="package.html"><span class="doc">package kokkos</span></a> command in your script.</p>
+<p>For the OMP package, using this command-line switch also invokes the
+default OMP settings, as if the command “package omp 0” were used at
+the top of your input script.  These settings can be changed by using
+the <code class="docutils literal notranslate"><span class="pre">-package</span> <span class="pre">omp</span></code> command-line switch or the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command in your script.</p>
+<p>The <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command can also be used within an input
+script to set a suffix, or to turn off or back on any suffix setting
+made via the command-line.</p>
+<hr class="docutils" />
+<p id="var"><strong>-var name value1 value2 …</strong></p>
+<p>Specify a variable that will be defined for substitution purposes when
+the input script is read.  This switch can be used multiple times to
+define multiple variables.  “Name” is the variable name which can be a
+single character (referenced as $x in the input script) or a full
+string (referenced as ${abc}).  An <a class="reference internal" href="variable.html"><span class="doc">index-style variable</span></a> will be created and populated with the
+subsequent values, e.g. a set of filenames.  Using this command-line
+option is equivalent to putting the line “variable name index value1
+value2 …”  at the beginning of the input script.  Defining an index
+variable as a command-line argument overrides any setting for the same
+index variable in the input script, since index variables cannot be
+re-defined.</p>
+<p>See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for more info on defining
+index and other kinds of variables and the <a class="reference internal" href="Commands_parse.html"><span class="doc">Parsing rules</span></a>
+page for more info on using variables in input scripts.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Currently, the command-line parser looks for arguments that
+start with “-” to indicate new switches.  Thus you cannot specify
+multiple variable values if any of them start with a “-”, e.g. a
+negative numeric value.  It is OK if the first value1 starts with a
+“-”, since it is automatically skipped.</p>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Run_basics.html" class="btn btn-neutral float-left" title="4.1. Basics of running LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_output.html" class="btn btn-neutral float-right" title="4.3. Screen and logfile output" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,1444 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>molecule command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/molecule.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="neb command" href="neb.html" />
+    <link rel="prev" title="minimize command" href="minimize.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">molecule command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#format-of-a-native-molecule-file">Format of a native molecule file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#format-of-a-json-molecule-file">Format of a JSON molecule file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">molecule command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="minimize.html" class="btn btn-neutral float-left" title="minimize command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="neb.html" class="btn btn-neutral float-right" title="neb command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="molecule-command">
+<span id="index-0"></span><h1>molecule command<a class="headerlink" href="#molecule-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">molecule</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">file1</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="n">file2</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="n">...</span><span class="w"> </span><span class="n">fileN</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>ID = user-assigned name for the molecule template</p></li>
+<li><p>file1,file2,… = names of files containing molecule descriptions</p></li>
+<li><p>zero or more keyword/value pairs may be appended after each file</p></li>
+<li><p>keyword = <em>offset</em> or <em>toff</em> or <em>boff</em> or <em>aoff</em> or <em>doff</em> or <em>ioff</em> or <em>scale</em> or <em>check_labels</em> or <em>auto</em></p>
+<pre class="literal-block"><em>offset</em> values = Toff Boff Aoff Doff Ioff
+  Toff = offset to add to atom types
+  Boff = offset to add to bond types
+  Aoff = offset to add to angle types
+  Doff = offset to add to dihedral types
+  Ioff = offset to add to improper types
+<em>toff</em> value = Toff
+  Toff = offset to add to atom types
+<em>boff</em> value = Boff
+  Boff = offset to add to bond types
+<em>aoff</em> value = Aoff
+  Aoff = offset to add to angle types
+<em>doff</em> value = Doff
+  Doff = offset to add to dihedral types
+<em>ioff</em> value = Ioff
+  Ioff = offset to add to improper types
+<em>scale</em> value = sfactor
+  sfactor = scale factor to apply to the size, mass, and dipole of the molecule
+<em>check_labels</em> value = string
+  string = string containing any of the following characters: 'b', 'a', 'd', or 'i'
+<em>auto</em> value = string
+  string = string containing any of the following characters:
+   'a', 'd', or 'i', which will autogenerate angles, dihedrals, and
+   impropers, respectively</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">molecule</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">mymol.txt</span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">water</span><span class="w"> </span><span class="n">tip3p.json</span>
+<span class="k">molecule</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">co2.txt</span><span class="w"> </span><span class="n">h2o.txt</span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">CO2</span><span class="w"> </span><span class="n">co2.txt</span><span class="w"> </span><span class="n">boff</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">aoff</span><span class="w"> </span><span class="m">2</span>
+<span class="k">molecule</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">mymol.txt</span><span class="w"> </span><span class="n">offset</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">9</span><span class="w"> </span><span class="m">18</span><span class="w"> </span><span class="m">23</span><span class="w"> </span><span class="m">14</span>
+<span class="k">molecule</span><span class="w"> </span><span class="n">objects</span><span class="w"> </span><span class="n">file.1</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="n">file.1</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="n">file.2</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">1.3</span>
+<span class="k">molecule</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">mymol.txt</span><span class="w"> </span><span class="n">auto</span><span class="w"> </span><span class="n">ad</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Define a molecule template that can be used as part of other LAMMPS
+commands, typically to define a collection of particles as a bonded
+molecule or a rigid body.  Commands that currently use molecule
+templates include:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a></p></li>
+<li><p><a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a></p></li>
+<li><p><a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/small</span></a></p></li>
+<li><p><a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a></p></li>
+<li><p><a class="reference internal" href="fix_gcmc.html"><span class="doc">fix gcmc</span></a></p></li>
+<li><p><a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a></p></li>
+<li><p><a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a></p></li>
+<li><p><a class="reference internal" href="atom_style.html"><span class="doc">atom_style template</span></a></p></li>
+</ul>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4Jul2026.</span></p>
+</div>
+<p>It can also be used to define a collection of line segments (2d) or
+triangles (3d) which define an object’s surface or a boundary
+condition for granular particles to interact with, via these commands:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_surface_global.html"><span class="doc">fix surface/global</span></a></p></li>
+<li><p><a class="reference internal" href="fix_surface_local.html"><span class="doc">fix surface/local</span></a></p></li>
+</ul>
+<p>See the <a class="reference internal" href="Howto_granular_surfaces.html"><span class="doc">Howto granular surfaces</span></a> doc
+page for more details on these kinds of models.</p>
+<p>The ID of a molecule template can only contain alphanumeric characters
+and underscores, same as other IDs in LAMMPS.</p>
+<p>A single template can contain multiple molecules, listed one per file.
+Some of the commands listed above currently use only the first
+molecule in the template, and will issue a warning if the template
+contains multiple molecules.  The <a class="reference internal" href="atom_style.html"><span class="doc">atom_style template</span></a> command allows multiple-molecule templates to define a
+system with more than one templated molecule.</p>
+<p>The molecule file can be either in a <em>native</em> format or in <a class="reference external" href="https://www.json.org/">JSON format</a>.  JSON format filenames <strong>must</strong> have the
+extension “.json”.  Files with any other name will be assumed to be in
+the “native” format.  The details of the two formats are described
+below.  When referencing multiple molecule files in a single <em>molecule</em>
+command, each of those files may be either format.</p>
+<p>Each filename can be followed by optional keywords which are applied
+only to the molecule in the file as used in this template.  This is to
+make it easy to use the same molecule file in different molecule
+templates or in different simulations.  You can specify the same file
+multiple times with different optional keywords.</p>
+<p>The <em>offset</em>, <em>toff</em>, <em>boff</em>, <em>aoff</em>, <em>doff</em>, <em>ioff</em> keywords
+add the specified offset values to the atom types, bond types, angle
+types, dihedral types, and/or improper types as they are read from the
+molecule file.  E.g. if <em>toff</em> = 2, and the file uses atom types
+1,2,3, then each created molecule will have atom types 3,4,5.  For the
+<em>offset</em> keyword, all five offset values must be specified, but
+individual values will be ignored if the molecule template does not
+use that attribute (e.g. no bonds).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Offsets are <strong>ignored</strong> on lines using type labels, as the type
+labels will determine the actual types directly depending on the
+current <a class="reference internal" href="labelmap.html"><span class="doc">labelmap</span></a> settings.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For molecule files defining line segments or triangles, only the
+<em>toff</em> keyword is relevant; the other offset keywords are ignored</p>
+</div>
+<p>The <em>scale</em> keyword scales the size of the molecule.  This can be useful
+for modeling polydisperse granular rigid bodies.  The scale factor is
+applied to each of these properties in the molecule file, if they are
+defined: the individual particle coordinates (Coords or “coords”
+section), the individual mass of each particle (Masses or “masses”
+section), the individual diameters of each particle (Diameters or
+“diameters” section), the per-atom dipoles (Dipoles or “dipoles”
+section) the total mass of the molecule (header keyword = mass), the
+center-of-mass of the molecule (header keyword = com), and the moments
+of inertia of the molecule (header keyword = inertia). For line or tri
+molecules, the scale factor multiplies the line endpoints or triangle
+vertices.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p>The <em>check_labels</em> keyword causes the molecule command to issue a
+warning if the type label of a bond, angle, dihedral, or improper
+defined in the molecule template is not consistent with the atom types
+of its constituent atoms.  The <em>check_labels</em> value is a single string
+that should contain one or more of the characters ‘b’, ‘a’, ‘d’, and
+‘i’, which correspond to bonds, angles, dihedrals, and impropers,
+respectively.  For example, the keyword/value pair <em>check_labels badi</em>
+will check all the type labels of all bonded interactions, while
+<em>check_labels adi</em> will only check type labels for angles, dihedrals,
+and impropers but not for bonds.  The <em>check_labels</em> keyword requires
+using a specific convention for <a class="reference internal" href="Howto_type_labels.html"><span class="doc">type label</span></a> for
+enabling commands in LAMMPS (like <a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a>) to infer the types of bonded interactions.  Bond,
+angle, dihedral, and improper type labels must contain their constituent
+atom types delimited by hyphens. That is, for a dihedral that formed by
+three atoms of type ‘c2’ and one atom of ‘n’, the dihedral type label
+must be ‘c2-c2-c2-n’ .  If the constituent atoms do not have these atom
+types in the proper order, a warning will be generated when using the
+<em>check_labels</em> keyword.  Certain symmetries are considered to account
+for equivalent ways of writing bonded interactions.  Type labels for
+bonds, angles, and dihedrals are assumed to be equivalent to those
+written in reverse order.  For example, an angle with type label
+‘c1-c2-n’ is equivalent to ‘n-c2-c1’.  Symmetries for impropers are more
+complex and are described on the doc page for each improper style in the
+‘Symmetry convention’ section.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The molecule command can be used to define molecules with bonds,
+angles, dihedrals, impropers, and special bond lists of neighbors
+within a molecular topology, so that you can later add the molecules
+to your simulation, via one or more of the commands listed above.
+Since this topology-related information requires that suitable
+storage is reserved when LAMMPS creates the simulation box (e.g. when
+using the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command or the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command) suitable space has to be
+reserved at that step so you do not overflow those pre-allocated data
+structures when adding molecules later.  Both the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command and the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command
+have “extra” options which ensure extra space is allocated for
+storing topology info for molecules that are added later.  This
+feature is <em>not</em> available for the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart command</span></a>, thus binary restart files need to be converted to
+data files first.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The <em>auto</em> keyword allows the molecule command to generate new angles,
+dihedrals, and/or impropers, and assign their angle types, dihedral
+types, and/or improper types.  New interactions are discovered by
+traversing the bond graph defined in the <em>Bonds</em> section, and new types
+are inferred using <a class="reference internal" href="Howto_type_labels.html"><span class="doc">type label</span></a>.  Type labels
+for angle, dihedral, and improper types must already be defined (e.g.,
+by the read_data command), to use the <em>auto</em> keyword, and each of the
+labels must be defined as a list with its constituent atom type labels
+separated by hyphens, as described for the <em>check_labels</em> keyword.  The
+<em>auto</em> value is a single string that should contain one or more of the
+characters ‘a’, ‘d’, and ‘i’, which correspond to angles, dihedrals, and
+impropers, respectively.  For example, the keyword/value pair <em>auto adi</em>
+will generate angle, dihedral, and improper information, while <em>auto di</em>
+will only generate information for dihedrals and impropers but not for
+angles.  Angles are generated from all unique 1-2-3 paths through the
+bond graph.  Dihedrals are generated from all unique 1-2-3-4 paths
+through the bond graph, as long as there are no duplicate atoms in the
+dihedral.  Impropers are generated from all atoms bonded to exactly
+three neighbors.  The type assigned to each generated 2-, 3- and 4-body
+interaction is found by searching the list of type labels for a match,
+e.g., ‘c1-c2-c3’ or ‘c3-c2-c1’ in the case of a 3-atom angle.   If a
+matching type cannot be found, LAMMPS will generate an error.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This command requires <em>Special Bonds</em> data to exist, which are
+generated automatically by default.</p>
+</div>
+</section>
+<hr class="docutils" />
+<section id="format-of-a-native-molecule-file">
+<h2>Format of a native molecule file<a class="headerlink" href="#format-of-a-native-molecule-file" title="Link to this heading"></a></h2>
+<p>The format of an “native” individual molecule file looks similar but is
+<em>different</em> from that of a data file read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> commands.  Here is a simple example for a TIP3P water
+molecule:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Water molecule. TIP3P geometry
+# header section:
+3 atoms
+2 bonds
+1 angles
+
+# body section:
+Coords
+
+1    0.00000  -0.06556   0.00000
+2    0.75695   0.52032   0.00000
+3   -0.75695   0.52032   0.00000
+
+Types
+
+1        1   # O
+2        2   # H
+3        2   # H
+
+Charges
+
+1       -0.834
+2        0.417
+3        0.417
+
+Bonds
+
+1   1      1      2
+2   1      1      3
+
+Angles
+
+1   1      2      1      3
+</pre></div>
+</div>
+<p>A molecule file has a header and a body.  The header appears first.
+The first line of the header and thus of the molecule file is <em>always</em>
+skipped; it typically contains a description of the file or a comment
+from the software that created the file.</p>
+<p>Then lines are read one line at a time.  Lines can have a trailing
+comment starting with ‘#’ that is ignored.  There <em>must</em> be at least
+one blank between any valid content and the comment.  If the line is
+blank (i.e. contains only white-space after comments are deleted), it
+is skipped.  If the line contains a header keyword, the corresponding
+value(s) is/are read from the line.  A line that is <em>not</em> blank and
+does <em>not</em> contains a header keyword begins the body of the file.</p>
+<p>The body of the file contains zero or more sections.  The first line
+of a section has only a keyword.  The next line is skipped.  The
+remaining lines of the section contain values.  The number of lines
+depends on the section keyword as described below.  Zero or more blank
+lines can be used between sections.  Sections can appear in any order,
+with a few exceptions as noted below.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026: </span>New header keywords <em>lines</em> and <em>tris</em></p>
+</div>
+<p>These are the recognized header keywords.  Header lines can come in
+any order.  The numeric value(s) are read from the beginning of the
+line.  The keyword should appear at the end of the line.  All these
+settings have default values, as explained below.  A line need only
+appear if the value(s) are different than the default, except when
+defining a <em>body</em> particle, which requires setting the number of
+<em>atoms</em> to 1, and setting the <em>inertia</em> in a specific section (see
+below).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 21.0%" />
+<col style="width: 12.0%" />
+<col style="width: 47.0%" />
+<col style="width: 20.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Number(s)</p></th>
+<th class="head"><p>Keyword</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Default Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>N</p></td>
+<td><p>atoms</p></td>
+<td><p># of atoms N in molecule</p></td>
+<td><p>keyword is <em>required</em></p></td>
+</tr>
+<tr class="row-odd"><td><p>Nb</p></td>
+<td><p>bonds</p></td>
+<td><p># of bonds Nb in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>Na</p></td>
+<td><p>angles</p></td>
+<td><p># of angles Na in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Nd</p></td>
+<td><p>dihedrals</p></td>
+<td><p># of dihedrals Nd in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>Ni</p></td>
+<td><p>impropers</p></td>
+<td><p># of impropers Ni in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Nf</p></td>
+<td><p>fragments</p></td>
+<td><p># of fragments Nf in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>Ninteger Ndouble</p></td>
+<td><p>body</p></td>
+<td><p># of integer and floating-point values in <a class="reference internal" href="Howto_body.html"><span class="doc">body particle</span></a></p></td>
+<td><p>0 0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Mtotal</p></td>
+<td><p>mass</p></td>
+<td><p>total mass of molecule</p></td>
+<td><p>computed</p></td>
+</tr>
+<tr class="row-even"><td><p>Xc Yc Zc</p></td>
+<td><p>com</p></td>
+<td><p>coordinates of center-of-mass of molecule</p></td>
+<td><p>computed</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ixx Iyy Izz Ixy Ixz Iyz</p></td>
+<td><p>inertia</p></td>
+<td><p>6 components of inertia tensor of molecule</p></td>
+<td><p>computed</p></td>
+</tr>
+<tr class="row-even"><td><p>Nlines</p></td>
+<td><p>lines</p></td>
+<td><p># of lines Nlines in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ntris</p></td>
+<td><p>triangles</p></td>
+<td><p># of triangle Ntris in molecule</p></td>
+<td><p>0</p></td>
+</tr>
+</tbody>
+</table>
+<p>A molecule file can contain only either the <em>atoms</em>, <em>lines</em>, or
+<em>triangles</em> keyword.  All the other keywords can only be used for
+a molecule file containing the <em>atoms</em> keyword.</p>
+<p>For <em>mass</em>, <em>com</em>, and <em>inertia</em>, the default is for LAMMPS to calculate
+this quantity itself if needed, assuming the molecules consist of a set
+of point particles or finite-size particles (with a non-zero diameter)
+that do <strong>not</strong> overlap.  If finite-size particles in the molecule
+<strong>do</strong> overlap, LAMMPS will not account for the overlap effects when
+calculating any of these 3 quantities, so you should pre-compute them
+yourself and list the values in the file.</p>
+<p>The mass and center-of-mass coordinates (Xc,Yc,Zc) are
+self-explanatory.  The 6 moments of inertia (ixx,iyy,izz,ixy,ixz,iyz)
+should be the values consistent with the current orientation of the
+rigid body around its center of mass.  The values are with respect to
+the simulation box XYZ axes, not with respect to the principal axes of
+the rigid body itself.  LAMMPS performs the latter calculation
+internally.</p>
+<p>These are the allowed section keywords for the body of the file.</p>
+<ul class="simple">
+<li><p><em>Coords, Types, Molecules, Fragments, Charges, Diameters, Dipoles, Masses</em> = atom-property sections</p></li>
+<li><p><em>Bonds, Angles, Dihedrals, Impropers</em> = molecular topology sections</p></li>
+<li><p><em>Special Bond Counts, Special Bonds</em> = special neighbor info</p></li>
+<li><p><em>Shake Flags, Shake Atoms, Shake Bond Types</em> = SHAKE info</p></li>
+<li><p><em>Body Integers, Body Doubles</em> = body-property sections</p></li>
+<li><p><em>Lines, Triangles</em> = corner points of lines or triangles</p></li>
+</ul>
+<p>Similar to the corresponding keywords, a molecule file can only
+contain either a Coords, Lines, or Triangles section.  All of the
+other sections can only be used in molecule files for atoms.</p>
+<p>For the Types, Bonds, Angles, Dihedrals, and Impropers sections, each
+atom/bond/angle/etc type can be specified either as a number (numeric
+type) or as an alphanumeric type label.  The latter is only allowed if
+type labels have been defined, either by the <a class="reference internal" href="labelmap.html"><span class="doc">labelmap</span></a> command or in data files read by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command which have sections for Atom Type Labels, Bond
+Type Labels, Angle Type Labels, etc.  See the <a class="reference internal" href="Howto_type_labels.html"><span class="doc">Howto type labels</span></a> doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.
+When using type labels, any values specified as <em>offset</em> are ignored.</p>
+<p>If a Bonds section is specified then the Special Bond Counts and
+Special Bonds sections can also be used, if desired, to explicitly
+list the 1-2, 1-3, 1-4 neighbors within the molecule topology (see
+details below).  This is optional since if these sections are not
+included, LAMMPS will auto-generate this information.  Note that
+LAMMPS uses this info to properly exclude or weight bonded pairwise
+interactions between bonded atoms.  See the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command for more details.  One reason to list the
+special bond info explicitly is for the <a class="reference internal" href="Howto_drude.html"><span class="doc">thermalized Drude
+oscillator model</span></a> which treats the bonds between nuclear
+cores and Drude electrons in a different manner.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Whether a section is required depends on how the molecule template
+is used by other LAMMPS commands.  For example, to add a molecule
+via the <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> command, the Coords and
+Types sections are required.  To add a rigid body via the <a class="reference internal" href="fix_pour.html"><span class="doc">fix
+pour</span></a> command, the Bonds (Angles, etc) sections are not
+required, since the molecule will be treated as a rigid body.  Some
+sections are optional.  For example, the <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>
+command can be used to add “molecules” which are clusters of
+finite-size granular particles.  If the Diameters section is not
+specified, each particle in the molecule will have a default
+diameter of 1.0.  See the doc pages for LAMMPS commands that use
+molecule templates for more details.</p>
+</div>
+<p>Each section is listed below in alphabetic order.  The format of each
+section is described including the number of lines it must contain and
+rules (if any) for whether it can appear in the data file.  For per-
+atom sections, entries should be numbered from 1 to Natoms (where
+Natoms is the number of atoms in the template), indicating which atom
+(or bond, etc) the entry applies to.  Per-atom sections need to
+include a setting for every atom, but the atoms can be listed in any
+order.</p>
+<hr class="docutils" />
+<p><em>Coords</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID x y z</p></li>
+<li><p>x,y,z = coordinate of atom</p></li>
+</ul>
+<hr class="docutils" />
+<p><em>Types</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID type</p></li>
+<li><p>type = atom type of atom (1-Natomtype, or type label)</p></li>
+</ul>
+<hr class="docutils" />
+<p><em>Molecules</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID molecule-ID</p></li>
+<li><p>molecule-ID = molecule ID of atom</p></li>
+</ul>
+<hr class="docutils" />
+<p><em>Fragments</em> section:</p>
+<ul class="simple">
+<li><p>one line per fragment</p></li>
+<li><p>line syntax: ID a b c d …</p></li>
+<li><p>a,b,c,d,… = IDs of atoms in fragment</p></li>
+</ul>
+<p>The ID of a fragment can only contain alphanumeric characters and
+underscores.  The atom IDs should be values from 1 to Natoms, where
+Natoms = # of atoms in the molecule.</p>
+<hr class="docutils" />
+<p><em>Charges</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID q</p></li>
+<li><p>q = charge on atom</p></li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a> that
+support charge.  If this section is not included, the default charge
+on each atom in the molecule is 0.0.</p>
+<hr class="docutils" />
+<p><em>Diameters</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID diam</p></li>
+<li><p>diam = diameter of atom</p></li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a> that
+support finite-size spherical particles, e.g. atom_style sphere.  If
+not listed, the default diameter of each atom in the molecule is 1.0.</p>
+<hr class="docutils" />
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 7Feb2024.</span></p>
+</div>
+<p><em>Dipoles</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID mux muy muz</p></li>
+<li><p>mux,muy,muz = x-, y-, and z-component of point dipole vector of atom</p></li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a> that
+support particles with point dipoles, e.g. atom_style dipole.  If not
+listed, the default dipole component of each atom in the molecule is set
+to 0.0.</p>
+<hr class="docutils" />
+<p><em>Masses</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID mass</p></li>
+<li><p>mass = mass of atom</p></li>
+</ul>
+<p>This section is only allowed for <a class="reference internal" href="atom_style.html"><span class="doc">atom styles</span></a> that
+support per-atom mass, as opposed to per-type mass.  See the
+<a class="reference internal" href="mass.html"><span class="doc">mass</span></a> command for details.  If this section is not
+included, the default mass for each atom is derived from its volume
+(see Diameters section) and a default density of 1.0, in
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> of mass/volume.</p>
+<hr class="docutils" />
+<p><em>Bonds</em> section:</p>
+<ul class="simple">
+<li><p>one line per bond</p></li>
+<li><p>line syntax: ID type atom1 atom2</p></li>
+<li><p>type = bond type (1-Nbondtype, or type label)</p></li>
+<li><p>atom1,atom2 = IDs of atoms in bond</p></li>
+</ul>
+<p>The IDs for the two atoms in each bond should be values
+from 1 to Natoms, where Natoms = # of atoms in the molecule.</p>
+<hr class="docutils" />
+<p><em>Angles</em> section:</p>
+<ul class="simple">
+<li><p>one line per angle</p></li>
+<li><p>line syntax: ID type atom1 atom2 atom3</p></li>
+<li><p>type = angle type (1-Nangletype, or type label)</p></li>
+<li><p>atom1,atom2,atom3 = IDs of atoms in angle</p></li>
+</ul>
+<p>The IDs for the three atoms in each angle should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The three atoms are
+ordered linearly within the angle.  Thus the central atom (around
+which the angle is computed) is the atom2 in the list.</p>
+<hr class="docutils" />
+<p><em>Dihedrals</em> section:</p>
+<ul class="simple">
+<li><p>one line per dihedral</p></li>
+<li><p>line syntax: ID type atom1 atom2 atom3 atom4</p></li>
+<li><p>type = dihedral type (1-Ndihedraltype, or type label)</p></li>
+<li><p>atom1,atom2,atom3,atom4 = IDs of atoms in dihedral</p></li>
+</ul>
+<p>The IDs for the four atoms in each dihedral should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The 4 atoms are
+ordered linearly within the dihedral.</p>
+<hr class="docutils" />
+<p><em>Impropers</em> section:</p>
+<ul class="simple">
+<li><p>one line per improper</p></li>
+<li><p>line syntax: ID type atom1 atom2 atom3 atom4</p></li>
+<li><p>type = improper type (1-Nimpropertype, or type label)</p></li>
+<li><p>atom1,atom2,atom3,atom4 = IDs of atoms in improper</p></li>
+</ul>
+<p>The IDs for the four atoms in each improper should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The ordering of
+the 4 atoms determines the definition of the improper angle used in
+the formula for the defined <a class="reference internal" href="improper_style.html"><span class="doc">improper style</span></a>.  See
+the doc pages for individual styles for details.</p>
+<hr class="docutils" />
+<p><em>Special Bond Counts</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID N1 N2 N3</p></li>
+<li><p>N1 = # of 1-2 bonds</p></li>
+<li><p>N2 = # of 1-3 bonds</p></li>
+<li><p>N3 = # of 1-4 bonds</p></li>
+</ul>
+<p>N1, N2, N3 are the number of 1-2, 1-3, 1-4 neighbors respectively of
+this atom within the topology of the molecule.  See the
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> page for more discussion of
+1-2, 1-3, 1-4 neighbors.  If this section appears, the Special Bonds
+section must also appear.</p>
+<p>As explained above, LAMMPS will auto-generate this information if this
+section is not specified.  If specified, this section will
+override what would be auto-generated.</p>
+<hr class="docutils" />
+<p><em>Special Bonds</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID a b c d …</p></li>
+<li><p>a,b,c,d,… = IDs of atoms in N1+N2+N3 special bonds</p></li>
+</ul>
+<p>A, b, c, d, etc are the IDs of the n1+n2+n3 atoms that are 1-2, 1-3,
+1-4 neighbors of this atom.  The IDs should be values from 1 to
+Natoms, where Natoms = # of atoms in the molecule.  The first N1
+values should be the 1-2 neighbors, the next N2 should be the 1-3
+neighbors, the last N3 should be the 1-4 neighbors.  No atom ID should
+appear more than once.  See the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> doc
+page for more discussion of 1-2, 1-3, 1-4 neighbors.  If this section
+appears, the Special Bond Counts section must also appear.</p>
+<p>As explained above, LAMMPS will auto-generate this information if this
+section is not specified.  If specified, this section will override
+what would be auto-generated.</p>
+<hr class="docutils" />
+<p><em>Shake Flags</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID flag</p></li>
+<li><p>flag = 0,1,2,3,4</p></li>
+</ul>
+<p>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the “fix shake” command.  The other
+two Shake sections must also appear in the file, following this one.</p>
+<p>The meaning of the flag for each atom is as follows.  See the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> page for a further description of SHAKE
+clusters.</p>
+<ul class="simple">
+<li><p>0 = not part of a SHAKE cluster</p></li>
+<li><p>1 = part of a SHAKE angle cluster (two bonds and the angle they form)</p></li>
+<li><p>2 = part of a 2-atom SHAKE cluster with a single bond</p></li>
+<li><p>3 = part of a 3-atom SHAKE cluster with two bonds</p></li>
+<li><p>4 = part of a 4-atom SHAKE cluster with three bonds</p></li>
+</ul>
+<hr class="docutils" />
+<p><em>Shake Atoms</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID a b c d</p></li>
+<li><p>a,b,c,d = IDs of atoms in cluster</p></li>
+</ul>
+<p>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the “fix shake” command.  The other
+two Shake sections must also appear in the file.</p>
+<p>The a,b,c,d values are atom IDs (from 1 to Natoms) for all the atoms
+in the SHAKE cluster that this atom belongs to.  The number of values
+that must appear is determined by the shake flag for the atom (see the
+Shake Flags section above).  All atoms in a particular cluster should
+list their a,b,c,d values identically.</p>
+<p>If flag = 0, no a,b,c,d values are listed on the line, just the
+(ignored) ID.</p>
+<p>If flag = 1, a,b,c are listed, where a = ID of central atom in the
+angle, and b,c the other two atoms in the angle.</p>
+<p>If flag = 2, a,b are listed, where a = ID of atom in bond with the
+lowest ID, and b = ID of atom in bond with the highest ID.</p>
+<p>If flag = 3, a,b,c are listed, where a = ID of central atom,
+and b,c = IDs of other two atoms bonded to the central atom.</p>
+<p>If flag = 4, a,b,c,d are listed, where a = ID of central atom,
+and b,c,d = IDs of other three atoms bonded to the central atom.</p>
+<p>See the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> page for a further description
+of SHAKE clusters.</p>
+<hr class="docutils" />
+<p><em>Shake Bond Types</em> section:</p>
+<ul class="simple">
+<li><p>one line per atom</p></li>
+<li><p>line syntax: ID a b c</p></li>
+<li><p>a,b,c = bond types (or angle type) of bonds (or angle) in cluster</p></li>
+</ul>
+<p>This section is only needed when molecules created using the template
+will be constrained by SHAKE via the “fix shake” command.  The other
+two Shake sections must also appear in the file.</p>
+<p>The a,b,c values are bond types for all bonds in the SHAKE cluster that
+this atom belongs to.  Bond types may be either numbers (from 1 to Nbondtypes)
+or bond type labels as defined by the <a class="reference internal" href="labelmap.html"><span class="doc">labelmap</span></a> command
+or a “Bond Type Labels” section of a data file.</p>
+<p>The number of values that must appear is determined by the shake flag
+for the atom (see the Shake Flags section above).  All atoms in a
+particular cluster should list their a,b,c values identically.</p>
+<p>If flag = 0, no a,b,c values are listed on the line, just the
+(ignored) ID.</p>
+<p>If flag = 1, a,b,c are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), b = bondtype of the bond between the central atom and
+the second non-central atom (value c in the Shake Atoms section), and c
+= the angle type (1 to Nangletypes, or angle type label) of the angle
+between the three atoms.</p>
+<p>If flag = 2, only a is listed, where a = bondtype of the bond between
+the two atoms in the cluster.</p>
+<p>If flag = 3, a,b are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), and b = bondtype of the bond between the central atom
+and the second non-central atom (value c in the Shake Atoms section).</p>
+<p>If flag = 4, a,b,c are listed, where a = bondtype of the bond between
+the central atom and the first non-central atom (value b in the Shake
+Atoms section), b = bondtype of the bond between the central atom and
+the second non-central atom (value c in the Shake Atoms section), and c
+= bondtype of the bond between the central atom and the third
+non-central atom (value d in the Shake Atoms section).</p>
+<p>See the <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> page for a further description
+of SHAKE clusters.</p>
+<hr class="docutils" />
+<p><em>Body Integers</em> section:</p>
+<ul class="simple">
+<li><p>one line</p></li>
+<li><p>line syntax: N E F</p></li>
+<li><p>N = number of sub-particles or number of vertices</p></li>
+<li><p>E,F = number of edges and faces</p></li>
+</ul>
+<p>This section is only needed when the molecule is a body particle. the other
+Body section must also appear in the file.</p>
+<p>The total number of values that must appear is determined by the body style, and
+must be equal to the Ninteger value given in the <em>body</em> header.</p>
+<p>For <em>nparticle</em> and <em>rounded/polygon</em>, only the number of sub-particles or
+vertices N is required, and Ninteger should have a value of 1.</p>
+<p>For <em>rounded/polyhedron</em>, the number of edges E and faces F is required, and
+Ninteger should have a value of 3.</p>
+<p>See the <a class="reference internal" href="Howto_body.html"><span class="doc">Howto body</span></a> page for a further description of
+the file format.</p>
+<hr class="docutils" />
+<p><em>Body Doubles</em> section:</p>
+<ul class="simple">
+<li><p>first line</p></li>
+<li><p>line syntax: Ixx Iyy Izz Ixy Ixz Iyz</p></li>
+<li><p>Ixx Iyy Izz Ixy Ixz Iyz = 6 components of inertia tensor of body particle</p></li>
+<li><p>one line per sub-particle or vertex</p></li>
+<li><p>line syntax: x y z</p></li>
+<li><p>x, y, z = coordinates of sub-particle or vertex</p></li>
+<li><p>one line per edge</p></li>
+<li><p>line syntax: N1 N2</p></li>
+<li><p>N1, N2 = vertex indices</p></li>
+<li><p>one line per face</p></li>
+<li><p>line syntax: N1 N2 N3 N4</p></li>
+<li><p>N1, N2, N3, N4 = vertex indices</p></li>
+<li><p>last line</p></li>
+<li><p>line syntax: diam</p></li>
+<li><p>diam = rounded diameter that surrounds each vertex</p></li>
+</ul>
+<p>This section is only needed when the molecule is a body particle. the other
+Body section must also appear in the file.</p>
+<p>The total number of values that must appear is determined by the body style, and
+must be equal to the Ndouble value given in the <em>body</em> header. The 6 moments of
+inertia and the 3N coordinates of the sub-particles or vertices are required
+for all body styles.</p>
+<p>For <em>rounded/polygon</em>, the E = 6 + 3*N + 1 edges are automatically determined
+from the vertices.</p>
+<p>For <em>rounded/polyhedron</em>, the 2E vertex indices for the end points of the edges
+and 4F vertex indices defining the faces are required.</p>
+<p>See the <a class="reference internal" href="Howto_body.html"><span class="doc">Howto body</span></a> page for a further description of
+the file format.</p>
+<hr class="docutils" />
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p><em>Lines</em> section:</p>
+<ul class="simple">
+<li><p>one line per line segment</p></li>
+<li><p>line syntax: ID molecule-ID type x1 y1 x2 y2</p></li>
+<li><p>molecule-ID = molecule-ID of the line segment</p></li>
+<li><p>type = type of the line segment</p></li>
+<li><p>x1,y1,x2,y2 = coords of two endpoints of line segment</p></li>
+</ul>
+<p>Each line segment is assigned a molecule-ID and type, similar to an
+atom type.  This allows a collection of lines to represent multiple 2d
+bodies, e.g. a collection of squares.  Line-segments in each could
+have a different molecule-ID, or the left-facing edges could have a
+unique atom type.</p>
+<p>The coords of two different line segments which are connected by a
+common point should list the exact same coordinates for the common
+point.  This allows a command like <a class="reference internal" href="fix_surface_local.html"><span class="doc">fix surface/local</span></a> to infer connectivity of the two line segments.</p>
+<p>The ordering of the two points defines the direction of an outward
+normal for the line segment.  This is defined by a right-hand rule.
+The outward normal N = (0,0,1) x (p2-p1), where p1 and p2 are the 2
+points.  In other words, a unit z-direction vector is crossed into the
+vector from p1 to p2 to determine the normal.</p>
+<p>It depends on how the line segments are used by other commands in
+LAMMPS whether the normal direction matters or not.</p>
+<hr class="docutils" />
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p><em>Triangles</em> section:</p>
+<ul class="simple">
+<li><p>one line per triangle</p></li>
+<li><p>line syntax: ID molecule-ID type x1 y1 z1 x2 y2 z2 x3 y3 z3</p></li>
+<li><p>molecule-ID = molecule-ID assigned triangle</p></li>
+<li><p>type = type assigned to triangle</p></li>
+<li><p>x1,y1,z1,x2,y2,z2,x3,y3,z3 = coords of three corner points of triangle</p></li>
+</ul>
+<p>Each triangle is assigned a molecule-ID and type, similar to an atom
+type.  This allows a collection of triangles to represent multiple 3d
+objects, e.g. a curved surface on the left and right of the simulation
+box.  Triangles in each could have a different molecule-ID, or the the
+triangles in the upper half could have a different type than those in
+the lower half.</p>
+<p>The coords of two different triangles which share a common edge (2
+points) or corner point (single point) should list the exact same
+coordinates for the common points.  This allows a command like
+<a class="reference internal" href="fix_surface_local.html"><span class="doc">fix surface/local</span></a> to infer connectivity of
+the two triangles.</p>
+<p>The ordering of the three points defines the direction of the outward
+normal for the triangle. This is defined by a right-hand rule.  The
+outward normal N = (p2-p1) x (p3-p1), where p1, p2, p3 are the 3
+points.  In other words, the edge from p1 to p2 is crossed into the
+edge from p1 to p3 to determine the normal.</p>
+<p>It depends on how the triangles are used by other commands in LAMMPS
+whether the normal direction matters or not.</p>
+</section>
+<section id="format-of-a-json-molecule-file">
+<h2>Format of a JSON molecule file<a class="headerlink" href="#format-of-a-json-molecule-file" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 12Jun2025.</span></p>
+</div>
+<p>The format of a JSON format individual molecule file must follow the
+<a class="reference external" href="https://www.json.org/">JSON format</a>, which evolved from the
+JavaScript programming language as a programming-language-neutral data
+interchange language.  The JSON syntax is independent of its content,
+and thus the data in the file must follow suitable conventions to be
+correctly processed.  LAMMPS provides a <a class="reference external" href="https://json-schema.org/">JSON schema file</a> for JSON format molecule files in the
+<a class="reference internal" href="Tools.html#json"><span class="std std-ref">tools/json folder</span></a> to represent those conventions.  Using
+the schema file any JSON format molecule files can be validated.  Please
+note that the format requirement for JSON are very strict and the JSON
+reader in LAMMPS does not accept files with extensions like comments.
+Validating a particular JSON format molecule file against this schema
+ensures that both, the JSON syntax requirement <em>and</em> the LAMMPS
+conventions for molecule template files are followed.  LAMMPS should be
+able to read and parse any JSON file that passes the schema check.  This
+is a formal check only and thus it <strong>cannot</strong> check whether the file
+contents are consistent or physically meaningful.</p>
+<p>Here is a simple example for the same TIP3P water molecule from above in
+JSON format and also using <a class="reference internal" href="labelmap.html"><span class="doc">type labels</span></a> instead of
+numeric types:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LAMMPS&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;molecule&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Water molecule. TIP3P geometry&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://download.lammps.org/json/molecule-schema.json&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;units&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;real&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;coords&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;z&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.06556</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="mf">0.75695</span><span class="p">,</span><span class="w">  </span><span class="mf">0.52032</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.75695</span><span class="p">,</span><span class="w">  </span><span class="mf">0.52032</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;OW&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;HO1&quot;</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;HO1&quot;</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;charges&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;charge&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.834</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="mf">0.417</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w">  </span><span class="mf">0.417</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;bonds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;bond-type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom2&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">2</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;angles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;angle-type&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom2&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom3&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="s2">&quot;HO1-OW-HO1&quot;</span><span class="p">,</span><span class="w">  </span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Unlike with the native molecule file format, there are no header or body
+sections, just a list of keywords with associated data.  JSON format
+data is read, parsed, and stored in an internal dictionary data
+structure in one step and thus the order of keywords is not relevant.</p>
+<p>Data for keywords is either provided directly following the keyword or
+as a <em>data block</em>.  A <em>data block</em> is a list that has to include two
+keywords, “format” and “data”, where the former lists keywords of the
+properties that are stored in the columns of the “data” lists.  The
+names and order of entries in the “format” list (and thus how the data
+is interpreted) are currently fixed.</p>
+<p>Since the length of the various lists can be easily obtained from the
+internal data structure, several header keywords of the “native” molecule
+file are not needed.  On the other hand, some additional keywords are
+required to identify the conventions applied to the generic JSON file
+format.  The structure of the data itself mostly follows what is used
+for the “native” molecule file format.</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword</p></th>
+<th class="head"><p>Argument(s)</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>application</p></td>
+<td><p>“LAMMPS”</p></td>
+<td><p>yes</p></td>
+<td><p>indicates a LAMMPS JSON file; files from other applications may be accepted in the future</p></td>
+</tr>
+<tr class="row-odd"><td><p>format</p></td>
+<td><p>“molecule”</p></td>
+<td><p>yes</p></td>
+<td><p>indicates a molecule template file</p></td>
+</tr>
+<tr class="row-even"><td><p>revision</p></td>
+<td><p>an integer</p></td>
+<td><p>yes</p></td>
+<td><p>currently 1, to facility backward compatibility on changes to the conventions</p></td>
+</tr>
+<tr class="row-odd"><td><p>title</p></td>
+<td><p>a string</p></td>
+<td><p>no</p></td>
+<td><p>information about the template which will echoed to the screen and log</p></td>
+</tr>
+<tr class="row-even"><td><p>schema</p></td>
+<td><p>URL as string</p></td>
+<td><p>no</p></td>
+<td><p>location of a JSON schema file for validating the molecule file format</p></td>
+</tr>
+<tr class="row-odd"><td><p>units</p></td>
+<td><p>a string</p></td>
+<td><p>no</p></td>
+<td><p>indicates <a class="reference internal" href="units.html"><span class="doc">units settings</span></a> for this molecule template</p></td>
+</tr>
+<tr class="row-even"><td><p>com</p></td>
+<td><p>list with 3 doubles</p></td>
+<td><p>no</p></td>
+<td><p>overrides the auto-computed center-of-mass for the template</p></td>
+</tr>
+<tr class="row-odd"><td><p>masstotal</p></td>
+<td><p>double</p></td>
+<td><p>no</p></td>
+<td><p>overrides the auto-computed total mass for the template</p></td>
+</tr>
+<tr class="row-even"><td><p>inertia</p></td>
+<td><p>list with 6 doubles</p></td>
+<td><p>no</p></td>
+<td><p>overrides the auto-computed moments of inertia</p></td>
+</tr>
+<tr class="row-odd"><td><p>coords</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>contains atom positions with the format “atom-id”, “x”, “y”, “z” (same as Coords)</p></td>
+</tr>
+<tr class="row-even"><td><p>types</p></td>
+<td><p>a data block</p></td>
+<td><p>yes</p></td>
+<td><p>assigns atom types to atoms with the format “atom-id”, “type” (same as Types)</p></td>
+</tr>
+<tr class="row-odd"><td><p>molecule</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>assigns molecule-IDs to atoms with the format “atom-id”, “molecule-id” (same as Molecules)</p></td>
+</tr>
+<tr class="row-even"><td><p>fragments</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>assigns atom-ids to fragment-IDs with the format “fragment-id”, “atom-id-list” (same as Fragments)</p></td>
+</tr>
+<tr class="row-odd"><td><p>charges</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>assigns charges to atoms with the format “atom-id”, “charge” (same as Charges)</p></td>
+</tr>
+<tr class="row-even"><td><p>dipoles</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>assigns point dipoles to atoms with the format “atom-id”, “mux”, “muy”, “muz” (same as Dipoles)</p></td>
+</tr>
+<tr class="row-odd"><td><p>diameters</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>assigns diameters to atoms with the format “atom-id”, “diameter” (same as Diameters)</p></td>
+</tr>
+<tr class="row-even"><td><p>masses</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>assigns per-atom masses to atoms with the format “atom-id”, “mass” (same as Masses)</p></td>
+</tr>
+<tr class="row-odd"><td><p>bonds</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>defines bonds in the molecule template with the format “bond-type”, “atom1”, “atom2” (same as Bonds without bond-ID)</p></td>
+</tr>
+<tr class="row-even"><td><p>angles</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>defines angles in the molecule template with the format “angle-type”, “atom1”, “atom2”, “atom3” (same as Angles without angle-ID)</p></td>
+</tr>
+<tr class="row-odd"><td><p>dihedrals</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>defines dihedrals in the molecule template with the format “dihedral-type”, “atom1”, “atom2”, “atom3”, “atom4” (same as Dihedrals without dihedral-ID)</p></td>
+</tr>
+<tr class="row-even"><td><p>impropers</p></td>
+<td><p>a data block</p></td>
+<td><p>no</p></td>
+<td><p>defines impropers in the molecule template with the format “improper-type”, “atom1”, “atom2”, “atom3”, “atom4” (same as Impropers without improper-ID)</p></td>
+</tr>
+<tr class="row-odd"><td><p>shake</p></td>
+<td><p>3 JSON objects</p></td>
+<td><p>no</p></td>
+<td><p>contains the sub-sections “flags”, “atoms”, “bonds” described below</p></td>
+</tr>
+<tr class="row-even"><td><p>special</p></td>
+<td><p>2 JSON objects</p></td>
+<td><p>no</p></td>
+<td><p>contains the sub-sections “counts” and “bonds” described below</p></td>
+</tr>
+<tr class="row-odd"><td><p>body</p></td>
+<td><p>2 JSON objects</p></td>
+<td><p>no</p></td>
+<td><p>contains the “integers” and “doubles” sub-sections with arrays with the same data as Body Integers and Body Doubles, respectively</p></td>
+</tr>
+</tbody>
+</table>
+<p>The following table describes the sub-sections for the “special” entry from above:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Subsection</p></th>
+<th class="head"><p>Argument(s)</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>counts</p></td>
+<td><p>a data block</p></td>
+<td><p>yes</p></td>
+<td><p>contains the counts of 1-2, 1-3, and 1-4 special neighbors with the format “atom-id”, “n12”, “n13”, “n14” (same as Special Bond Counts)</p></td>
+</tr>
+<tr class="row-odd"><td><p>bonds</p></td>
+<td><p>a data block</p></td>
+<td><p>yes</p></td>
+<td><p>contains the lists of special neighbors to atoms with the format “atom-id”, “atom-id-list” (same as Special Bonds)</p></td>
+</tr>
+</tbody>
+</table>
+<p>The following table describes the sub-sections for the “shake” entry from above:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Subsection</p></th>
+<th class="head"><p>Argument(s)</p></th>
+<th class="head"><p>Required</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>flags</p></td>
+<td><p>a data block</p></td>
+<td><p>yes</p></td>
+<td><p>contains the counts shake flags for atoms with the format “atom-id”, “flag” (same as Shake Flags)</p></td>
+</tr>
+<tr class="row-odd"><td><p>atoms</p></td>
+<td><p>a data block</p></td>
+<td><p>yes</p></td>
+<td><p>contains the lists of shake cluster atom-ids for atoms with the format “atom-id”, “atom-id-list” (same as Shake Atoms)</p></td>
+</tr>
+<tr class="row-even"><td><p>bonds</p></td>
+<td><p>a data block</p></td>
+<td><p>yes</p></td>
+<td><p>contains the lists of shake bond or angle types for atoms with the format “atom-id”, “type-list” (same as Shake Bonds)</p></td>
+</tr>
+</tbody>
+</table>
+<p>The “special” and “shake” sections are usually not needed, since the
+data can be auto-generated as soon as the simulation box is defined.
+Below is an example for what would have to be <em>added</em> to the example
+JSON file above in case the molecule command needs to be issued earlier.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="nt">&quot;special&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;counts&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;n12&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;n13&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;n14&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;bonds&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom-id-list&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">]]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">},</span>
+<span class="nt">&quot;shake&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;flags&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;flag&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;atoms&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;atom-id-list&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">]]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;type-list&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;HO1-OW-HO1&quot;</span><span class="p">]],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;HO1-OW-HO1&quot;</span><span class="p">]],</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="w">  </span><span class="p">[</span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w">  </span><span class="s2">&quot;OW-HO1&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;HO1-OW-HO1&quot;</span><span class="p">]]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Below is a minimal example of a JSON format molecule template for a body
+particle for <a class="reference internal" href="pair_body_nparticle.html"><span class="doc">pair style body/nparticle</span></a>. Molecule templates for body particles must
+contain only one atom:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;application&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LAMMPS&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;molecule&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Square body for body/nparticles&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;schema&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://download.lammps.org/json/molecule-schema.json&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;units&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;real&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;coords&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;x&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;y&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;z&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">,</span><span class="w">  </span><span class="mf">0.00000</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;types&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;type&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;masses&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;atom-id&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;mass&quot;</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;data&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="w">  </span><span class="mf">1.0</span><span class="p">]</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;body&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;integers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+<span class="w">        </span><span class="nt">&quot;doubles&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0</span><span class="p">,</span><span class="w"> </span><span class="mf">4.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="mf">-0.70710678118654752440</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.70710678118654752440</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="mf">-0.70710678118654752440</span><span class="p">,</span><span class="w">  </span><span class="mf">0.70710678118654752440</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="mf">0.70710678118654752440</span><span class="p">,</span><span class="w">  </span><span class="mf">0.70710678118654752440</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">            </span><span class="mf">0.70710678118654752440</span><span class="p">,</span><span class="w"> </span><span class="mf">-0.70710678118654752440</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>The <em>lines</em> and <em>tris</em> keywords and corresponding sections are currently
+not (yet) supported with molecule files in JSON format.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="write_molecule.html"><span class="doc">write_molecule</span></a>, <a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a>,
+<a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, <a class="reference internal" href="fix_gcmc.html"><span class="doc">fix gcmc</span></a>,
+<a class="reference internal" href="fix_bond_react.html"><span class="doc">fix bond/react</span></a>, <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The default keywords values are offset 0 0 0 0 0 and scale = 1.0.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="minimize.html" class="btn btn-neutral float-left" title="minimize command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="neb.html" class="btn btn-neutral float-right" title="neb command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

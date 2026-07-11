@@ -1,0 +1,42 @@
+variable	sname index SiC
+variable        nstep equal 100
+
+units		electron
+newton		on
+boundary	p p p
+
+atom_style      electron
+
+read_data       data.${sname}
+
+pair_style      eff/cut 20.0 limit/eradius pressure/evirials ecp 1 Si 2 C
+pair_coeff	* *
+pair_coeff	1 s 0.320852 2.283269 0.814857 
+pair_coeff	2 p 22.721015 0.728733 1.103199 17.695345 6.693621
+
+comm_modify	vel yes
+
+neigh_modify    one 4000 page 40000
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        ecoul equal c_energies[3]
+variable        erres equal c_energies[4]
+variable        etotalnew equal c_energies[1]+c_energies[2]+c_energies[3]+c_energies[4]
+
+thermo          ${nstep}
+thermo_style    custom step etotal pe ke v_etotalnew v_eke v_epauli v_ecoul v_erres
+thermo_modify   format float %16.8f
+thermo_modify   lost warn norm yes flush yes
+
+# Minimization
+
+min_style       cg
+dump            1 all xyz ${nstep} ${sname}.min.xyz 
+compute         1 all property/atom spin eradius erforce
+dump            2 all custom ${nstep} ${sname}.min.lammpstrj id type q c_1[1] c_1[2] x y z fx fy fz c_1[3]
+dump            3 all custom ${nstep} ${sname}.data.restart id type q c_1[1] c_1[2] x y z
+min_modify      line quadratic
+minimize        0 1e-8 100000 1000000
+

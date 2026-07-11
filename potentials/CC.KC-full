@@ -1,0 +1,5 @@
+# DATE: 2018-03-23  UNITS: metal  CONTRIBUTOR: Wengen Ouyang w.g.ouyang@gmail.com  CITATION: Kolmogorov,  Crespi, Physical Review B 71, 235415 (2005)
+# Kolmogorov-Crespi Potential
+#
+#      z0     C0     C2      C4       C    delta  lambda      A     S	rcut
+C  C  3.34  15.71  12.29   4.933   3.030   0.578   3.629   10.238  1.0  2.0

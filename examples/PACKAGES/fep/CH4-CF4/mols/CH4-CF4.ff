@@ -1,0 +1,28 @@
+# oplsaa.ff (kJ/mol, A, deg) version 2013/12/07
+
+ATOMS
+#   type  m/uma    q/e    pot   pars
+# alkanes JACS 118(1996)11225, JPC 100(1996)18010
+C-CF  CT  12.011  -0.24   lj    3.50   0.27614
+H-D   HC   6.008   0.06   lj    2.50   0.12552
+HD-   HC   6.008   0.00   lj    2.50   0.12552
+# perfluoroalkanes JPCA105:4118(2001) 
+CF-C  CT  12.011   0.48   lj    3.50   0.27614
+FD-   F   18.998   0.00   lj    2.95   0.22175
+F-D   F   18.998  -0.12   lj    2.95   0.22175
+
+BONDS
+# i j    pot    re/A    ka/kJmol-1
+# alkanes OPLS-AA JACS 118(1996)11225, JPC 100(1996)18010
+HC  CT   harm   1.090   2845.12
+# perfluoroalkanes JPCA105(2001)4118
+F   CT   harm   1.332   3071.1
+
+ANGLES
+# i  j  k    pot    th/deg   ka/kjmol-1
+# alkanes JACS 118(1996)11225, JPC 100(1996)18010
+HC  CT  HC   harm   107.80  276.14
+# perfluorocarbons JPCA105(2001)4118
+F   CT  F    harm   109.1   644.3
+# special
+HC  CT  F    harm     0.0     0.0

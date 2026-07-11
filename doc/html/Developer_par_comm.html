@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.4.2. Communication &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_par_comm.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.4.3. Neighbor lists" href="Developer_par_neigh.html" />
+    <link rel="prev" title="4.4.1. Partitioning" href="Developer_par_part.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_part.html">4.4.1. Partitioning</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.4.2. Communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_neigh.html">4.4.3. Neighbor lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_long.html">4.4.4. Long-range interactions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_par_openmp.html">4.4.5. OpenMP Parallelism</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_parallel.html"><span class="section-number">4.4. </span>Parallel algorithms</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.4.2. </span>Communication</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_par_part.html" class="btn btn-neutral float-left" title="4.4.1. Partitioning" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_par_neigh.html" class="btn btn-neutral float-right" title="4.4.3. Neighbor lists" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="communication">
+<h1><span class="section-number">4.4.2. </span>Communication<a class="headerlink" href="#communication" title="Link to this heading"></a></h1>
+<p>Following the selected partitioning scheme, all per-atom data is
+distributed across the MPI processes, which allows LAMMPS to handle very
+large systems provided it uses a correspondingly large number of MPI
+processes.  To be able to compute the short-range interactions, MPI
+processes need not only access to the data of atoms they “own” but also
+information about atoms from neighboring subdomains, in LAMMPS referred
+to as “ghost” atoms.  These are copies of atoms storing required
+per-atom data for up to the communication cutoff distance. The green
+dashed-line boxes in the <a class="reference internal" href="Developer_par_part.html#domain-decomposition"><span class="std std-ref">Domain decomposition schemes</span></a> figure illustrate
+the extended ghost-atom subdomain for one processor.</p>
+<p>This approach is also used to implement periodic boundary
+conditions: atoms that lie within the cutoff distance across a periodic
+boundary are also stored as ghost atoms and taken from the periodic
+replication of the subdomain, which may be the same subdomain, e.g. if
+running in serial.  As a consequence of this, force computation in
+LAMMPS is not subject to minimum image conventions and thus cutoffs may
+be larger than half the simulation domain.</p>
+<figure class="align-center" id="id1">
+<span id="ghost-atom-comm"></span><img alt="_images/ghost-comm.png" src="_images/ghost-comm.png" />
+<figcaption>
+<p><span class="caption-text">ghost atom communication</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+<div class="legend">
+<p>This figure shows the ghost atom communication patterns between
+subdomains for “brick” (left) and “tiled” communication styles for
+2d simulations.  The numbers indicate MPI process ranks.  Here the
+subdomains are drawn spatially separated for clarity.  The
+dashed-line box is the extended subdomain of processor 0 which
+includes its ghost atoms.  The red- and blue-shaded boxes are the
+regions of communicated ghost atoms.</p>
+</div>
+</figcaption>
+</figure>
+<p>Efficient communication patterns are needed to update the “ghost” atom
+data, since that needs to be done at every MD time step or minimization
+step.  The diagrams of the <a class="reference internal" href="#ghost-atom-comm"><span class="std std-ref">ghost atom communication</span></a> figure illustrate how ghost
+atom communication is performed in two stages for a 2d simulation (three
+in 3d) for both a regular and irregular partitioning of the simulation
+box.  For the regular case (left) atoms are exchanged first in the
+<em>x</em>-direction, then in <em>y</em>, with four neighbors in the grid of processor
+subdomains.</p>
+<p>In the <em>x</em> stage, processor ranks 1 and 2 send owned atoms in their
+red-shaded regions to rank 0 (and vice versa).  Then in the <em>y</em> stage,
+ranks 3 and 4 send atoms in their blue-shaded regions to rank 0, which
+includes ghost atoms they received in the <em>x</em> stage.  Rank 0 thus
+acquires all its ghost atoms; atoms in the solid blue corner regions
+are communicated twice before rank 0 receives them.</p>
+<p>For the irregular case (right) the two stages are similar, but a
+processor can have more than one neighbor in each direction.  In the
+<em>x</em> stage, MPI ranks 1,2,3 send owned atoms in their red-shaded regions to
+rank 0 (and vice versa).  These include only atoms between the lower
+and upper <em>y</em>-boundary of rank 0’s subdomain.  In the <em>y</em> stage, ranks
+4,5,6 send atoms in their blue-shaded regions to rank 0.  This may
+include ghost atoms they received in the <em>x</em> stage, but only if they
+are needed by rank 0 to fill its extended ghost atom regions in the
++/-<em>y</em> directions (blue rectangles).  Thus, in this case, ranks 5 and
+6 do not include ghost atoms they received from each other (in the <em>x</em>
+stage) in the atoms they send to rank 0.  The key point is that while
+the pattern of communication is more complex in the irregular
+partitioning case, it can still proceed in two stages (three in 3d)
+via atom exchanges with only neighboring processors.</p>
+<p>When attributes of owned atoms are sent to neighboring processors to
+become attributes of their ghost atoms, LAMMPS calls this a “forward”
+communication.  On timesteps when atoms migrate to new owning processors
+and neighbor lists are rebuilt, each processor creates a list of its
+owned atoms which are ghost atoms in each of its neighbor processors.
+These lists are used to pack per-atom coordinates (for example) into
+message buffers in subsequent steps until the next reneighboring.</p>
+<p>A “reverse” communication is when computed ghost atom attributes are
+sent back to the processor who owns the atom.  This is used (for
+example) to sum partial forces on ghost atoms to the complete force on
+owned atoms.  The order of the two stages described in the
+<a class="reference internal" href="#ghost-atom-comm"><span class="std std-ref">ghost atom communication</span></a> figure is inverted, and the same lists of atoms
+are used to pack and unpack message buffers with per-atom forces.  When
+a received buffer is unpacked, the ghost forces are summed to owned atom
+forces.  As in forward communication, forces on atoms in the four blue
+corners of the diagrams are sent, received, and summed twice (once at
+each stage) before owning processors have the full force.</p>
+<p>These two operations are used in many places within LAMMPS aside from
+exchange of coordinates and forces, for example by manybody potentials
+to share intermediate per-atom values, or by rigid-body integrators to
+enable each atom in a body to access body properties.  Here are
+additional details about how these communication operations are
+performed in LAMMPS:</p>
+<ul class="simple">
+<li><p>When exchanging data with different processors, forward and reverse
+communication is done using <code class="docutils literal notranslate"><span class="pre">MPI_Send()</span></code> and <code class="docutils literal notranslate"><span class="pre">MPI_IRecv()</span></code> calls.
+If a processor is “exchanging” atoms with itself, only the pack and
+unpack operations are performed, e.g. to create ghost atoms across
+periodic boundaries when running on a single processor.</p></li>
+<li><p>For forward communication of owned atom coordinates, periodic box
+lengths are added and subtracted when the receiving processor is
+across a periodic boundary from the sender.  There is then no need to
+apply a minimum image convention when calculating distances between
+atom pairs when building neighbor lists or computing forces.</p></li>
+<li><p>The cutoff distance for exchanging ghost atoms is typically equal to
+the neighbor cutoff.  But it can also set to a larger value if needed,
+e.g. half the diameter of a rigid body composed of multiple atoms or
+over 3x the length of a stretched bond for dihedral interactions.  It
+can also exceed the periodic box size.  For the regular communication
+pattern (left), if the cutoff distance extends beyond a neighbor
+processor’s subdomain, then multiple exchanges are performed in the
+same direction.  Each exchange is with the same neighbor processor,
+but buffers are packed/unpacked using a different list of atoms. For
+forward communication, in the first exchange, a processor sends only
+owned atoms.  In subsequent exchanges, it sends ghost atoms received
+in previous exchanges.  For the irregular pattern (right) overlaps of
+a processor’s extended ghost-atom subdomain with all other processors
+in each dimension are detected.</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_par_part.html" class="btn btn-neutral float-left" title="4.4.1. Partitioning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_par_neigh.html" class="btn btn-neutral float-right" title="4.4.3. Neighbor lists" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

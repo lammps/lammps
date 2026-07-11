@@ -1,0 +1,447 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.8.12. Writing a new fix style &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_write_fix.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.8.13. Writing new compute styles" href="Developer_write_compute.html" />
+    <link rel="prev" title="4.8.7. Writing new bond, angle, dihedral, and improper styles" href="Developer_write_bond.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html">4.8.1. Writing new pair styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#package-and-build-system-considerations">4.8.2. Package and build system considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-1-a-pairwise-additive-model">4.8.3. Case 1: a pairwise additive model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-2-a-many-body-potential">4.8.4. Case 2: a many-body potential</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-3-a-potential-requiring-communication">4.8.5. Case 3: a potential requiring communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-4-potentials-without-a-compute-function">4.8.6. Case 4: potentials without a compute() function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html">4.8.7. Writing new bond, angle, dihedral, and improper styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-1-implementing-a-bond-style">4.8.8. Case 1: Implementing a bond style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-2-implementing-an-angle-style">4.8.9. Case 2: Implementing an angle style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-3-implementing-a-dihedral-style">4.8.10. Case 3: Implementing a dihedral style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-4-implementing-an-improper-style">4.8.11. Case 4: Implementing an improper style</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.8.12. Writing a new fix style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html">4.8.13. Writing new compute styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-1-a-global-scalar-compute">4.8.14. Case 1: A global scalar compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-2-a-per-atom-compute">4.8.15. Case 2: A per-atom compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#notes-on-flags-and-output-types">4.8.16. Notes on flags and output types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html">4.8.17. Writing a new command style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html#case-1-implementing-the-geturl-command">4.8.18. Case 1: Implementing the geturl command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_openmp.html">4.8.19. Creating styles for the OPENMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html">4.8.20. Writing or updating documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#anatomy-of-a-style-documentation-page">4.8.21. Anatomy of a style documentation page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#integrating-a-new-style-into-the-command-lists">4.8.22. Integrating a new style into the command lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#documenting-an-accelerated-variant-of-an-existing-style">4.8.23. Documenting an accelerated variant of an existing style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#adding-and-referencing-example-inputs">4.8.24. Adding and referencing example inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#other-documentation-that-may-need-updating">4.8.25. Other documentation that may need updating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#building-and-checking-the-documentation">4.8.26. Building and checking the documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_write.html"><span class="section-number">4.8. </span>Writing new styles</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.8.12. </span>Writing a new fix style</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_write_bond.html" class="btn btn-neutral float-left" title="4.8.7. Writing new bond, angle, dihedral, and improper styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_write_compute.html" class="btn btn-neutral float-right" title="4.8.13. Writing new compute styles" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="writing-a-new-fix-style">
+<h1><span class="section-number">4.8.12. </span>Writing a new fix style<a class="headerlink" href="#writing-a-new-fix-style" title="Link to this heading"></a></h1>
+<p>Writing fix styles is a flexible way of extending LAMMPS.  Users can
+implement many things using fixes.  Some fix styles are only used
+internally to support compute styles or pair styles:</p>
+<ul class="simple">
+<li><p>change particles attributes (positions, velocities, forces, etc.). Examples: <code class="docutils literal notranslate"><span class="pre">FixNVE</span></code>, <code class="docutils literal notranslate"><span class="pre">FixFreeze</span></code>.</p></li>
+<li><p>read or write data.  Example: <code class="docutils literal notranslate"><span class="pre">FixRestart</span></code>.</p></li>
+<li><p>adding or modifying properties due to geometry. Example: <code class="docutils literal notranslate"><span class="pre">FixWall</span></code>.</p></li>
+<li><p>interacting with other subsystems or external code: Examples: <code class="docutils literal notranslate"><span class="pre">FixTTM</span></code>, <code class="docutils literal notranslate"><span class="pre">FixExternal</span></code>, <code class="docutils literal notranslate"><span class="pre">FixMDI</span></code></p></li>
+<li><p>saving information for analysis or future use (previous positions,
+for instance). Examples: <code class="docutils literal notranslate"><span class="pre">FixAveTime</span></code>, <code class="docutils literal notranslate"><span class="pre">FixStoreState</span></code>.</p></li>
+</ul>
+<p>All fixes are derived from the <code class="docutils literal notranslate"><span class="pre">Fix</span></code> base class and must have a
+constructor with the signature: <code class="docutils literal notranslate"><span class="pre">FixPrintVel(class</span> <span class="pre">LAMMPS</span> <span class="pre">*,</span> <span class="pre">int,</span> <span class="pre">char</span> <span class="pre">**)</span></code>.</p>
+<p>Every fix must be registered in LAMMPS by writing the following lines
+of code in the header before include guards:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifdef FIX_CLASS</span>
+<span class="c1">// clang-format off</span>
+<span class="n">FixStyle</span><span class="p">(</span><span class="n">print</span><span class="o">/</span><span class="n">vel</span><span class="p">,</span><span class="n">FixPrintVel</span><span class="p">);</span>
+<span class="c1">// clang-format on</span>
+<span class="cp">#else</span>
+<span class="cm">/* the definition of the FixPrintVel class comes here */</span>
+<span class="p">...</span>
+<span class="cp">#endif</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">print/vel</span></code> is the style name of your fix in the input script and
+<code class="docutils literal notranslate"><span class="pre">FixPrintVel</span></code> is the name of the class. The header file would be called
+<code class="docutils literal notranslate"><span class="pre">fix_print_vel.h</span></code> and the implementation file <code class="docutils literal notranslate"><span class="pre">fix_print_vel.cpp</span></code>.
+These conventions allow LAMMPS to automatically integrate it into the
+executable when compiling and associate your new fix class with the designated
+keyword when it parses the input script.</p>
+<p>Let’s write a simple fix which will print the average velocity at the end
+of each timestep. First of all, implement a constructor:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">FixPrintVel</span><span class="o">::</span><span class="n">FixPrintVel</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">narg</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">arg</span><span class="p">)</span>
+<span class="o">:</span><span class="w"> </span><span class="n">Fix</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="n">narg</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">narg</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">missing_cmd_args</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;fix print/vel&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">error</span><span class="p">);</span>
+
+<span class="w">  </span><span class="n">nevery</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">inumeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="n">arg</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="nb">false</span><span class="p">,</span><span class="n">lmp</span><span class="p">);</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nevery</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">    </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="s">&quot;Illegal fix print/vel nevery value: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">nevery</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the constructor you should parse the fix arguments which are
+specified in the script.  All fixes have pretty much the same syntax:
+<code class="docutils literal notranslate"><span class="pre">fix</span> <span class="pre">&lt;fix-ID&gt;</span> <span class="pre">&lt;fix</span> <span class="pre">group&gt;</span> <span class="pre">&lt;fix</span> <span class="pre">name&gt;</span> <span class="pre">&lt;fix</span> <span class="pre">arguments</span> <span class="pre">...&gt;</span></code>. The first 3
+parameters are parsed by Fix base class constructor, while <code class="docutils literal notranslate"><span class="pre">&lt;fix</span>
+<span class="pre">arguments&gt;</span></code> should be parsed by you.  In our case, we need to specify
+how often we want to print an average velocity. For instance, once in 50
+timesteps: <code class="docutils literal notranslate"><span class="pre">fix</span> <span class="pre">1</span> <span class="pre">print/vel</span> <span class="pre">50</span></code>. There is a special variable in the
+Fix class called <code class="docutils literal notranslate"><span class="pre">nevery</span></code> which specifies how often the method
+<code class="docutils literal notranslate"><span class="pre">end_of_step()</span></code> is called.  Thus all we need to do is just set it up.</p>
+<p>The next method we need to implement is <code class="docutils literal notranslate"><span class="pre">setmask()</span></code>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">FixPrintVel::setmask</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">mask</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="n">mask</span><span class="w"> </span><span class="o">|=</span><span class="w"> </span><span class="n">FixConst</span><span class="o">::</span><span class="n">END_OF_STEP</span><span class="p">;</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">mask</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Here the we specify which methods of the fix should be called during
+<a class="reference internal" href="Developer_flow.html"><span class="doc">execution of a timestep</span></a>.  The constant
+<code class="docutils literal notranslate"><span class="pre">END_OF_STEP</span></code> corresponds to the <code class="docutils literal notranslate"><span class="pre">end_of_step()</span></code> method.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">FixPrintVel::end_of_step</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// for add3, scale3</span>
+<span class="w">  </span><span class="k">using</span><span class="w"> </span><span class="k">namespace</span><span class="w"> </span><span class="nn">MathExtra</span><span class="p">;</span>
+
+<span class="w">  </span><span class="kt">double</span><span class="o">**</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">v</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">nlocal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nlocal</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">localAvgVel</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span><span class="w"> </span><span class="c1">// 4th element for particles count</span>
+<span class="w">  </span><span class="n">memset</span><span class="p">(</span><span class="n">localAvgVel</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">particleInd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">particleInd</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nlocal</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">particleInd</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">add3</span><span class="p">(</span><span class="n">localAvgVel</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">[</span><span class="n">particleInd</span><span class="p">],</span><span class="w"> </span><span class="n">localAvgVel</span><span class="p">);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">localAvgVel</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nlocal</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">globalAvgVel</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span>
+<span class="w">  </span><span class="n">memset</span><span class="p">(</span><span class="n">globalAvgVel</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">));</span>
+<span class="w">  </span><span class="n">MPI_Allreduce</span><span class="p">(</span><span class="n">localAvgVel</span><span class="p">,</span><span class="w"> </span><span class="n">globalAvgVel</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_DOUBLE</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_SUM</span><span class="p">,</span><span class="w"> </span><span class="n">world</span><span class="p">);</span>
+<span class="w">  </span><span class="n">scale3</span><span class="p">(</span><span class="mf">1.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">globalAvgVel</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span><span class="w"> </span><span class="n">globalAvgVel</span><span class="p">);</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">me</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">screen</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">utils</span><span class="o">::</span><span class="n">print</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;{}, {}, {}</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span>
+<span class="w">                 </span><span class="n">globalAvgVel</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="n">globalAvgVel</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">globalAvgVel</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>In the code above, we use MathExtra routines defined in
+<code class="docutils literal notranslate"><span class="pre">math_extra.h</span></code>.  There are bunch of math functions to work with
+arrays of doubles as with math vectors.  It is also important to note
+that LAMMPS code should always assume to be run in parallel and that
+atom data is thus distributed across the MPI ranks.  Thus you can
+only process data from local atoms directly and need to use MPI library
+calls to combine or exchange data.  For serial execution, LAMMPS
+comes bundled with the MPI STUBS library that contains the MPI library
+function calls in dummy versions that only work for a single MPI rank.</p>
+<p>In this code we use an instance of Atom class. This object is stored
+in the Pointers class (see <code class="docutils literal notranslate"><span class="pre">pointers.h</span></code>) which is the base class of
+the Fix base class. This object contains references to various class
+instances (the original instances are created and held by the LAMMPS
+class) with all global information about the simulation system.
+Data from the Pointers class is available to all classes inherited from
+it using protected inheritance. Hence when you write you own class,
+which is going to use LAMMPS data, don’t forget to inherit from Pointers
+or pass a Pointer to it to all functions that need access. When writing
+fixes we inherit from class Fix which is inherited from Pointers so
+there is no need to inherit from it directly.</p>
+<p>The code above computes average velocity for all particles in the
+simulation.  Yet you have one unused parameter in fix call from the
+script: <code class="docutils literal notranslate"><span class="pre">group_name</span></code>.  This parameter specifies the group of atoms
+used in the fix. So we should compute the average for all particles in the
+simulation only if <code class="docutils literal notranslate"><span class="pre">group_name</span> <span class="pre">==</span> <span class="pre">&quot;all&quot;</span></code>, but it can be any group.
+The group membership information of an atom is contained in the <em>mask</em>
+property of an atom and the bit corresponding to a given group is
+stored in the groupbit variable which is defined in Fix base class:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">nlocal</span><span class="p">;</span><span class="w"> </span><span class="o">++</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">mask</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">groupbit</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// Do all job here</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Class Atom encapsulates atoms positions, velocities, forces, etc. Users
+can access them using the particle index. Note, that particle indexes are
+usually changed every few timesteps because of neighbor list rebuilds
+and spatial sorting (to improve cache efficiency).</p>
+<p>Let us consider another Fix example: We want to have a fix which stores
+atoms position from the previous time step in your fix. The local atoms
+indexes may not be valid on the next iteration. In order to handle
+this situation there are several methods which should be implemented:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">double</span> <span class="pre">memory_usage()</span></code>: return how much memory the fix uses (optional)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">grow_arrays(int)</span></code>: do reallocation of the per-particle arrays in your fix</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">copy_arrays(int</span> <span class="pre">i,</span> <span class="pre">int</span> <span class="pre">j,</span> <span class="pre">int</span> <span class="pre">delflag)</span></code>: copy i-th per-particle
+information to j-th particle position. Used when atom sorting is performed.
+if delflag is set and atom j owns a body, move the body information to atom i.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">set_arrays(int</span> <span class="pre">i)</span></code>: sets i-th particle related information to zero</p></li>
+</ul>
+<p>Note, that if your class implements these methods, it must add calls of
+add_callback and delete_callback to the constructor and destructor. Since we want
+to store positions of atoms from the previous timestep, we need to add
+<code class="docutils literal notranslate"><span class="pre">double**</span> <span class="pre">xold</span></code> to the header file. Than add allocation code
+to the constructor:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">FixSavePos</span><span class="o">::</span><span class="n">FixSavePos</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">narg</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="n">arg</span><span class="p">),</span><span class="w"> </span><span class="n">xold</span><span class="p">(</span><span class="nb">nullptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="c1">//...</span>
+<span class="w">  </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">create</span><span class="p">(</span><span class="n">xold</span><span class="p">,</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nmax</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;FixSavePos:x&quot;</span><span class="p">);</span>
+<span class="w">  </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">add_callback</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">FixSavePos</span><span class="o">::~</span><span class="n">FixSavePos</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">delete_callback</span><span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="w">  </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">destroy</span><span class="p">(</span><span class="n">xold</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Implement the aforementioned methods:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="nf">FixSavePos::memory_usage</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">nmax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">nmax</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="n">bytes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0</span><span class="p">;</span>
+<span class="w">  </span><span class="n">bytes</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">nmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">);</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">bytes</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">FixSavePos::grow_arrays</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nmax</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">memory</span><span class="o">-&gt;</span><span class="n">grow</span><span class="p">(</span><span class="n">xold</span><span class="p">,</span><span class="w"> </span><span class="n">nmax</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;FixSavePos:xold&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">FixSavePos::copy_arrays</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">delflag</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">memcpy</span><span class="p">(</span><span class="n">xold</span><span class="p">[</span><span class="n">j</span><span class="p">],</span><span class="w"> </span><span class="n">xold</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">FixSavePos::set_arrays</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">memset</span><span class="p">(</span><span class="n">xold</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="k">sizeof</span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">FixSavePos::pack_exchange</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xold</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="w">  </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xold</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="w">  </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xold</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">m</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">int</span><span class="w"> </span><span class="nf">FixSavePos::unpack_exchange</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">nlocal</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="n">xold</span><span class="p">[</span><span class="n">nlocal</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">];</span>
+<span class="w">  </span><span class="n">xold</span><span class="p">[</span><span class="n">nlocal</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">];</span>
+<span class="w">  </span><span class="n">xold</span><span class="p">[</span><span class="n">nlocal</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">];</span>
+
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">m</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Now, a little bit about memory allocation. We use the Memory class which
+is just a bunch of template functions for allocating 1D and 2D
+arrays. So you need to add include <code class="docutils literal notranslate"><span class="pre">memory.h</span></code> to have access to them.</p>
+<p>Finally, if you need to write/read some global information used in
+your fix to the restart file, you might do it by setting the flag
+<code class="docutils literal notranslate"><span class="pre">restart_global</span> <span class="pre">=</span> <span class="pre">1</span></code> in the constructor and implementing methods
+<code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">write_restart(FILE</span> <span class="pre">*fp)</span></code> and <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">restart(char</span> <span class="pre">*buf)</span></code>.
+If, in addition, you want to write the per-atom property to restart
+files then these additional settings and functions are needed:</p>
+<ul class="simple">
+<li><p>a fix flag indicating this needs to be set <code class="docutils literal notranslate"><span class="pre">restart_peratom</span> <span class="pre">=</span> <span class="pre">1;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">atom-&gt;add_callback()</span></code> and <code class="docutils literal notranslate"><span class="pre">atom-&gt;delete_callback()</span></code> must be called
+a second time with the final argument set to 1 instead of 0 (indicating
+restart processing instead of per-atom data memory management).</p></li>
+<li><p>the functions <code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">pack_restart(int</span> <span class="pre">i,</span> <span class="pre">double</span> <span class="pre">*buf)</span></code> and
+<code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">unpack_restart(int</span> <span class="pre">nlocal,</span> <span class="pre">int</span> <span class="pre">nth)</span></code> need to be implemented</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_write_bond.html" class="btn btn-neutral float-left" title="4.8.7. Writing new bond, angle, dihedral, and improper styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_write_compute.html" class="btn btn-neutral float-right" title="4.8.13. Writing new compute styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

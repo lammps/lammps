@@ -1,0 +1,90 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-836-ge548c656ce)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+variable        sname index Be-solid
+
+units           electron
+newton          on
+boundary        p p p
+
+atom_style      electron
+
+read_data       data.${sname}
+read_data       data.Be-solid
+Reading data file ...
+  orthogonal box = (0 0 0) to (64.288 63.628618 63.225)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  20160 atoms
+  read_data CPU = 0.060 seconds
+
+pair_style      eff/cut 31.6125
+pair_coeff      * *
+
+comm_modify	vel yes
+
+neigh_modify	one 10000 page 100000
+
+compute		effTemp all temp/eff
+
+thermo		10
+thermo_style	custom step etotal pe ke temp press
+thermo_modify	temp effTemp
+
+compute         1 all property/atom spin eradius
+dump            1 all custom 1 ${sname}.spe.lammpstrj id type x y z c_1[1] c_1[2]
+dump            1 all custom 1 Be-solid.spe.lammpstrj id type x y z c_1[1] c_1[2]
+
+fix		1 all nve/eff
+
+run 		0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- EFF package: doi:10.1002/jcc.21637
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 33.6125
+  ghost atom cutoff = 33.6125
+  binsize = 16.80625, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eff/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 152.2 | 157 | 161.7 Mbytes
+   Step         TotEng         PotEng         KinEng          Temp          Press     
+         0  -49308.807     -49308.807      0              0              1.7906684e+11
+Loop time of 2.49575e-06 on 4 procs for 0 steps with 20160 atoms
+
+140.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 2.496e-06  |            |       |100.00
+
+Nlocal:           5040 ave        5040 max        5040 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          97370 ave       97370 max       97370 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3.11643e+07 ave   3.241e+07 max 2.99372e+07 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 1.2465734e+08
+Ave neighs/atom = 6183.4
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:03

@@ -1,0 +1,37 @@
+# Makefile for MPI stubs - edit this for your platform
+
+SHELL = /bin/sh
+.IGNORE:
+
+# Files
+
+SRC =		mpi.cpp
+INC =		mpi.h
+
+# Definitions
+
+EXE =		libmpi_mingw32.a
+OBJ = 		$(SRC:%.cpp=%_mingw32.o)
+
+# System-specific settings
+
+CC =	        i686-w64-mingw32-g++
+CCFLAGS =	-O2 -Wall -march=i686 -mtune=generic -mfpmath=387 -mpc64 -I.
+ARCHIVE =	i686-w64-mingw32-ar
+ARCHFLAG =	rs
+
+# Target
+
+$(EXE):	$(OBJ)
+	$(ARCHIVE) $(ARCHFLAG) $(EXE) $(OBJ)
+
+# Clean
+
+clean:
+	rm $(EXE) $(OBJ)
+
+# Compilation rules
+
+$(OBJ): $(SRC) $(INC)
+	$(CC) $(CCFLAGS) -c $< -o $@
+

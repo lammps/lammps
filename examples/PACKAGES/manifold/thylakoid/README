@@ -1,0 +1,1 @@
+This example simulates particles on a complex manifold that consists of pieces of cylinder, plane and sphere. By keeping track of when the blue particles reach the other compartment, information about mean escape times can be obtained. 

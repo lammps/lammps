@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.3.6. Calculate elastic constants &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_elastic.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.3.7. Calculate thermal conductivity" href="Howto_kappa.html" />
+    <link rel="prev" title="10.3.5. Calculate temperature" href="Howto_temperature.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_output.html">10.3.1. Output from LAMMPS (thermo, dumps, computes, fixes, variables)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_structured_data.html">10.3.2. Output structured data from LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_chunk.html">10.3.3. Use chunks to calculate system properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_grid.html">10.3.4. Using distributed grids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_temperature.html">10.3.5. Calculate temperature</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.3.6. Calculate elastic constants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_kappa.html">10.3.7. Calculate thermal conductivity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viscosity.html">10.3.8. Calculate viscosity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_diffusion.html">10.3.9. Calculate diffusion coefficients</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.3.6. </span>Calculate elastic constants</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_temperature.html" class="btn btn-neutral float-left" title="10.3.5. Calculate temperature" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_kappa.html" class="btn btn-neutral float-right" title="10.3.7. Calculate thermal conductivity" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="calculate-elastic-constants">
+<h1><span class="section-number">10.3.6. </span>Calculate elastic constants<a class="headerlink" href="#calculate-elastic-constants" title="Link to this heading"></a></h1>
+<p>Elastic constants characterize the stiffness of a material. The formal
+definition is provided by the linear relation that holds between the
+stress and strain tensors in the limit of infinitesimal deformation.
+In tensor notation, this is expressed as</p>
+<div class="math notranslate nohighlight">
+\[s_{ij} = C_{ijkl} e_{kl}\]</div>
+<p>where
+the repeated indices imply summation. <span class="math notranslate nohighlight">\(s_{ij}\)</span> are the elements of the
+symmetric stress tensor. <span class="math notranslate nohighlight">\(e_{kl}\)</span> are the elements of the symmetric strain
+tensor. <span class="math notranslate nohighlight">\(C_{ijkl}\)</span> are the elements of the fourth rank tensor of elastic
+constants. In three dimensions, this tensor has <span class="math notranslate nohighlight">\(3^4=81\)</span> elements. Using
+Voigt notation, the tensor can be written as a 6x6 matrix, where <span class="math notranslate nohighlight">\(C_{ij}\)</span>
+is now the derivative of <span class="math notranslate nohighlight">\(s_i\)</span> w.r.t. <span class="math notranslate nohighlight">\(e_j\)</span>. Because <span class="math notranslate nohighlight">\(s_i\)</span> is itself a
+derivative w.r.t. <span class="math notranslate nohighlight">\(e_i\)</span>, it follows that <span class="math notranslate nohighlight">\(C_{ij}\)</span> is also symmetric, with at
+most <span class="math notranslate nohighlight">\(\frac{7 \times 6}{2}\)</span> = 21 distinct elements.</p>
+<p>At zero temperature, it is easy to estimate these derivatives by
+deforming the simulation box in one of the six directions using the
+<a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a> command and measuring the change in the
+stress tensor. A general-purpose script that does this is given in the
+<code class="docutils literal notranslate"><span class="pre">examples/ELASTIC</span></code> directory described on the <a class="reference internal" href="Examples.html"><span class="doc">Examples</span></a>
+doc page.</p>
+<p>Calculating elastic constants at finite temperature is more
+challenging, because it is necessary to run a simulation that performs
+time averages of differential properties. There are at least
+3 ways to do this in LAMMPS. The most reliable way to do this is
+by exploiting the relationship between elastic constants, stress
+fluctuations, and the Born matrix, the second derivatives of energy
+w.r.t. strain <a class="reference internal" href="#ray"><span class="std std-ref">(Ray)</span></a>.
+The Born matrix calculation has been enabled by
+the <a class="reference internal" href="compute_born_matrix.html"><span class="doc">compute born/matrix</span></a> command,
+which works for any bonded or non-bonded potential in LAMMPS.
+The most expensive part of the calculation is the sampling of
+the stress fluctuations. Several examples of this method are
+provided in the <code class="docutils literal notranslate"><span class="pre">examples/ELASTIC_T/BORN_MATRIX</span></code> directory
+described on the <a class="reference internal" href="Examples.html"><span class="doc">Examples</span></a> doc page.</p>
+<p>A second way is to measure
+the change in average stress tensor in an NVT simulations when
+the cell volume undergoes a finite deformation. In order to balance
+the systematic and statistical errors in this method, the magnitude of
+the deformation must be chosen judiciously, and care must be taken to
+fully equilibrate the deformed cell before sampling the stress
+tensor. An example of this method is provided in the
+<code class="docutils literal notranslate"><span class="pre">examples/ELASTIC_T/DEFORMATION</span></code> directory
+described on the <a class="reference internal" href="Examples.html"><span class="doc">Examples</span></a> doc page.</p>
+<p>Another approach is to sample the triclinic cell fluctuations
+that occur in an NPT simulation. This method can also be slow to
+converge and requires careful post-processing <a class="reference internal" href="#shinoda1"><span class="std std-ref">(Shinoda)</span></a>.
+We do not provide an example of this method.</p>
+<p>A nice review of the advantages and disadvantages of all of these methods
+is provided in the paper by Clavier et al. <a class="reference internal" href="#clavier"><span class="std std-ref">(Clavier)</span></a>.</p>
+<hr class="docutils" />
+<p id="ray"><strong>(Ray)</strong> J. R. Ray and A. Rahman, J Chem Phys, 80, 4423 (1984).</p>
+<p id="shinoda1"><strong>(Shinoda)</strong> Shinoda, Shiga, and Mikami, Phys Rev B, 69, 134103 (2004).</p>
+<p id="clavier"><strong>(Clavier)</strong> G. Clavier, N. Desbiens, E. Bourasseau, V. Lachet, N. Brusselle-Dupend and B. Rousseau, Mol Sim, 43, 1413 (2017).</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_temperature.html" class="btn btn-neutral float-left" title="10.3.5. Calculate temperature" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_kappa.html" class="btn btn-neutral float-right" title="10.3.7. Calculate thermal conductivity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

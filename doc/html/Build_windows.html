@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.10. Notes for building LAMMPS on Windows &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Build_windows.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.11. Notes for saving disk space when building LAMMPS from source" href="Build_diskspace.html" />
+    <link rel="prev" title="3.9. Build the LAMMPS documentation" href="Build_manual.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Build_prerequisites.html">3.1. Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.2. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.3. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.4. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.5. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.6. Optional build settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.7. Include packages in build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_extras.html">3.8. Packages with extra build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.9. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.10. Notes for building LAMMPS on Windows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general-remarks">3.10.1. General remarks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-linux-on-windows">3.10.2. Running Linux on Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-a-gnu-gcc-ported-to-windows">3.10.3. Using a GNU GCC ported to Windows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-microsoft-visual-studio">3.10.4. Using Microsoft Visual Studio</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-intel-oneapi-compilers-and-libraries">3.10.5. Using Intel oneAPI Compilers and Libraries</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-a-cross-compiler">3.10.6. Using a cross-compiler</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_diskspace.html">3.11. Notes for saving disk space when building LAMMPS from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.12. Development build options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.10. </span>Notes for building LAMMPS on Windows</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Build_manual.html" class="btn btn-neutral float-left" title="3.9. Build the LAMMPS documentation" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_diskspace.html" class="btn btn-neutral float-right" title="3.11. Notes for saving disk space when building LAMMPS from source" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="notes-for-building-lammps-on-windows">
+<h1><span class="section-number">3.10. </span>Notes for building LAMMPS on Windows<a class="headerlink" href="#notes-for-building-lammps-on-windows" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="#generic"><span class="std std-ref">General remarks</span></a></p></li>
+<li><p><a class="reference internal" href="#linux"><span class="std std-ref">Running Linux on Windows</span></a></p></li>
+<li><p><a class="reference internal" href="#gnu"><span class="std std-ref">Using GNU GCC ported to Windows</span></a></p></li>
+<li><p><a class="reference internal" href="#msvc"><span class="std std-ref">Using Visual Studio</span></a></p></li>
+<li><p><a class="reference internal" href="#oneapi"><span class="std std-ref">Using Intel oneAPI compilers and libraries</span></a></p></li>
+<li><p><a class="reference internal" href="#cross"><span class="std std-ref">Using a cross-compiler</span></a></p></li>
+</ul>
+<hr class="docutils" />
+<section id="general-remarks">
+<span id="generic"></span><h2><span class="section-number">3.10.1. </span>General remarks<a class="headerlink" href="#general-remarks" title="Link to this heading"></a></h2>
+<p>LAMMPS is developed and tested primarily on Linux machines.  The vast
+majority of HPC clusters and supercomputers today run on Linux as well.
+While portability to other platforms is desired, it is not always
+achieved.  That is sometimes due to non-portable code in LAMMPS itself,
+but more often due to portability limitations of external libraries and
+tools required to build a specific feature or package.  The LAMMPS
+developers are dependent on LAMMPS users giving feedback and providing
+assistance in resolving portability issues.  This is particularly true
+for compiling LAMMPS on Windows, since this platform has significant
+differences in some low-level functionality.  As of LAMMPS version 14
+December 2021, large parts of LAMMPS can be compiled natively with the
+Microsoft Visual C++ Compilers.  As of LAMMPS version 31 May 2022, also
+the Intel oneAPI compilers can compile large parts of LAMMPS natively on
+Windows.  This is mostly facilitated by using the
+<a class="reference internal" href="Developer_platform.html"><span class="doc">Platform abstraction functions</span></a> in the <code class="docutils literal notranslate"><span class="pre">platform</span></code> namespace and CMake.</p>
+<p>Before trying to build LAMMPS on Windows yourself, please consider the
+<a class="reference external" href="https://packages.lammps.org/windows.html">pre-compiled Windows installer packages</a>
+and see if they are sufficient for your needs.</p>
+</section>
+<section id="running-linux-on-windows">
+<span id="linux"></span><h2><span class="section-number">3.10.2. </span>Running Linux on Windows<a class="headerlink" href="#running-linux-on-windows" title="Link to this heading"></a></h2>
+<p>If it is necessary for you to compile LAMMPS on a Windows machine
+(e.g. because it is your main desktop), please also consider using a
+virtual machine software and compile and run LAMMPS in a Linux virtual
+machine, or - if you have a sufficiently up-to-date Windows 10 or
+Windows 11 installation - consider using the Windows subsystem for
+Linux.  This optional Windows feature allows you to run the bash shell
+of a Linux system (Ubuntu by default) from within Windows and from there
+on, you can pretty much use that shell like you are running on a regular
+Ubuntu Linux machine (e.g. installing software via apt-get and more).
+For more details on that, please see <a class="reference internal" href="Howto_wsl.html"><span class="doc">this tutorial</span></a>.</p>
+</section>
+<section id="using-a-gnu-gcc-ported-to-windows">
+<span id="gnu"></span><h2><span class="section-number">3.10.3. </span>Using a GNU GCC ported to Windows<a class="headerlink" href="#using-a-gnu-gcc-ported-to-windows" title="Link to this heading"></a></h2>
+<p>One option for compiling LAMMPS on Windows natively is to install a Bash
+shell, Unix shell utilities, Perl, Python, GNU make, and a GNU compiler
+ported to Windows.  The Cygwin package provides a unix/linux interface
+to low-level Windows functions, so LAMMPS can be compiled on Windows.
+The necessary (minor) modifications to LAMMPS are included, but may not
+always up-to-date for recently added functionality and the corresponding
+new code.  A machine makefile for using cygwin for the old build system
+is provided.  Using CMake for this mode of compilation is untested and
+not likely to work.</p>
+<p>When compiling for Windows do <strong>not</strong> set the <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_MEMALIGN</span></code>
+define in the LMP_INC makefile variable and add <code class="docutils literal notranslate"><span class="pre">-lwsock32</span> <span class="pre">-lpsapi</span></code> to
+the linker flags in LIB makefile variable. Try adding <code class="docutils literal notranslate"><span class="pre">-static-libgcc</span></code>
+or <code class="docutils literal notranslate"><span class="pre">-static</span></code> or both to the linker flags when your resulting LAMMPS
+Windows executable complains about missing .dll files. The CMake
+configuration should set this up automatically, but is untested.</p>
+<p>In case of problems, you are recommended to contact somebody with
+experience in using Cygwin.  If you do come across portability problems
+requiring changes to the LAMMPS source code, or figure out corrections
+yourself, please report them on the
+<a class="reference external" href="https://matsci.org/c/lammps/lammps-development/">LAMMPS forum at MatSci</a>,
+or file them as an issue or pull request on the LAMMPS GitHub project.</p>
+</section>
+<section id="using-microsoft-visual-studio">
+<span id="msvc"></span><h2><span class="section-number">3.10.4. </span>Using Microsoft Visual Studio<a class="headerlink" href="#using-microsoft-visual-studio" title="Link to this heading"></a></h2>
+<p>Following the integration of the <a class="reference internal" href="Developer_platform.html"><span class="doc">platform namespace</span></a> into the LAMMPS code base, portability of LAMMPS
+for native compilation on Windows using Visual Studio has been
+significantly improved.  This has been tested with Visual Studio 2019
+(aka version 16) and Visual Studio 2022 (aka version 17).  We strongly
+recommend using Visual Studio 2022 version 17.1 or later.  Not all
+features and packages in LAMMPS are currently supported out of the box,
+but a preset <code class="docutils literal notranslate"><span class="pre">cmake/presets/windows.cmake</span></code> is provided that contains
+the packages that have been compiled successfully so far.  You <strong>must</strong>
+use the CMake based build procedure, since there is no support for GNU
+make or the Unix shell utilities required for the GNU make build
+procedure.</p>
+<p>It is possible to use both the integrated CMake support of the Visual
+Studio IDE or use an external CMake installation (e.g. downloaded from
+cmake.org) to create build files and compile LAMMPS from the command-line.</p>
+<p>Compilation via command-line and unit tests are checked automatically
+for the LAMMPS development branch through
+<a class="reference external" href="https://github.com/lammps/lammps/actions/workflows/compile-msvc.yml">GitHub Actions</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Versions of Visual Studio before version 17.1 may scan the entire
+LAMMPS source tree and likely miss the correct master
+<code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> and get confused since there are multiple files
+of that name in different folders but none in top level folder.</p>
+</div>
+<p>Please note, that for either approach CMake will create a so-called
+<a class="reference internal" href="Build_cmake.html#cmake-multiconfig"><span class="std std-ref">“multi-configuration” build environment</span></a>, and
+the commands for building and testing LAMMPS must be adjusted
+accordingly.</p>
+<p>The LAMMPS cmake folder contains a <code class="docutils literal notranslate"><span class="pre">CMakeSettings.json</span></code> file with
+build configurations for MSVC compilers and the MS provided Clang
+compiler package in Debug and Release mode.</p>
+<p>To support running in parallel you can compile with OpenMP enabled using
+the OPENMP package or install Microsoft MPI (including the SDK) and compile
+LAMMPS with MPI enabled.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is work in progress and you should contact the LAMMPS developers
+via GitHub or the <a class="reference external" href="https://matsci.org/c/lammps/lammps-development/">LAMMPS forum at MatSci</a>,
+if you have questions or LAMMPS specific problems.</p>
+</div>
+</section>
+<section id="using-intel-oneapi-compilers-and-libraries">
+<span id="oneapi"></span><h2><span class="section-number">3.10.5. </span>Using Intel oneAPI Compilers and Libraries<a class="headerlink" href="#using-intel-oneapi-compilers-and-libraries" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 31May2022.</span></p>
+</div>
+<p>After installing the <a class="reference external" href="https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html">Intel oneAPI</a>
+base toolkit and the HPC toolkit, it is also possible to compile large
+parts of LAMMPS natively on Windows using Intel compilers.  The HPC
+toolkit provides two sets of C/C++ and Fortran compilers: the so-called
+“classic” compilers (<code class="docutils literal notranslate"><span class="pre">icl.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">ifort.exe</span></code>) and newer, LLVM
+based compilers (<code class="docutils literal notranslate"><span class="pre">icx.exe</span></code> and <code class="docutils literal notranslate"><span class="pre">ifx.exe</span></code>).  In addition to the
+compilers and their dependent modules, also the thread building blocks
+(TBB) and the math kernel library (MKL) need to be installed.  Two
+presets (<code class="docutils literal notranslate"><span class="pre">cmake/presets/windows-intel-llvm.cmake</span></code> and
+<code class="docutils literal notranslate"><span class="pre">cmake/presets/windows-intel-classic.cmake</span></code>) are provided for
+selecting the LLVM based or classic compilers, respectively. The preset
+<code class="docutils literal notranslate"><span class="pre">cmake/presets/windows.cmake</span></code> enables compatible packages that are not
+dependent on additional features or libraries.  You <strong>must</strong> use the
+CMake based build procedure and use Ninja as build tool.  For compiling
+from the command prompt, thus both <a class="reference external" href="https://cmake.org">CMake</a> and
+<a class="reference external" href="https://ninja-build.org">Ninja-build</a> binaries must be installed.  It
+is also possible to use Visual Studio, if it is started (<code class="docutils literal notranslate"><span class="pre">devenv.exe</span></code>)
+from a command prompt that has the Intel oneAPI compilers enabled.  The
+Visual Studio settings file in the <code class="docutils literal notranslate"><span class="pre">cmake</span></code> folder contains
+configurations for both compiler variants in debug and release settings.
+Those will use the CMake and Ninja binaries bundled with Visual Studio,
+thus a separate installation is not required.</p>
+<div class="note admonition">
+<p class="admonition-title">Known Limitations</p>
+<p>In addition to portability issues with several packages and external
+libraries, the classic Intel compilers are currently not able to
+compile the googletest libraries and thus enabling the <code class="docutils literal notranslate"><span class="pre">-DENABLE_TESTING</span></code>
+option will result in compilation failure.  The LLVM based compilers
+are compatible.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is work in progress and you should contact the LAMMPS developers
+via GitHub or the <a class="reference external" href="https://matsci.org/c/lammps/lammps-development/">LAMMPS forum at MatSci</a>,
+if you have questions or LAMMPS specific problems.</p>
+</div>
+</section>
+<section id="using-a-cross-compiler">
+<span id="cross"></span><h2><span class="section-number">3.10.6. </span>Using a cross-compiler<a class="headerlink" href="#using-a-cross-compiler" title="Link to this heading"></a></h2>
+<p>If you need to provide custom LAMMPS binaries for Windows, but do not
+need to do the compilation on Windows, please consider using a Linux to
+Windows cross-compiler.  This is how currently the Windows binary
+packages are created by the LAMMPS developers.  Because of that, this is
+probably the currently best tested and supported way to build LAMMPS
+executables for Windows.  A CMake preset selecting all packages
+compatible with this cross-compilation build is provided.  The GPU
+package can only be compiled with OpenCL support.  To compile with MPI
+support, a pre-compiled library and the corresponding header files are
+required.  When building with CMake the matching package will be
+downloaded automatically, but MPI support has to be explicitly enabled
+with <code class="docutils literal notranslate"><span class="pre">-DBUILD_MPI=on</span></code>.</p>
+<p>Please keep in mind, though, that this only applies to <strong>compiling</strong> LAMMPS.
+Whether the resulting binaries do work correctly is rarely tested by the
+LAMMPS developers.  We instead rely on the feedback of the users
+of these pre-compiled LAMMPS packages for Windows.  We will try to resolve
+issues to the best of our abilities if we become aware of them. However
+this is subject to time constraints and focus on HPC platforms.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Build_manual.html" class="btn btn-neutral float-left" title="3.9. Build the LAMMPS documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_diskspace.html" class="btn btn-neutral float-right" title="3.11. Notes for saving disk space when building LAMMPS from source" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

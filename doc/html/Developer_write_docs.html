@@ -1,0 +1,685 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.8.20. Writing or updating documentation &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_write_docs.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.9. Notes for developers and code maintainers" href="Developer_notes.html" />
+    <link rel="prev" title="4.8.19. Creating styles for the OPENMP package" href="Developer_write_openmp.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html">4.8.1. Writing new pair styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#package-and-build-system-considerations">4.8.2. Package and build system considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-1-a-pairwise-additive-model">4.8.3. Case 1: a pairwise additive model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-2-a-many-body-potential">4.8.4. Case 2: a many-body potential</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-3-a-potential-requiring-communication">4.8.5. Case 3: a potential requiring communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-4-potentials-without-a-compute-function">4.8.6. Case 4: potentials without a compute() function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html">4.8.7. Writing new bond, angle, dihedral, and improper styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-1-implementing-a-bond-style">4.8.8. Case 1: Implementing a bond style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-2-implementing-an-angle-style">4.8.9. Case 2: Implementing an angle style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-3-implementing-a-dihedral-style">4.8.10. Case 3: Implementing a dihedral style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-4-implementing-an-improper-style">4.8.11. Case 4: Implementing an improper style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_fix.html">4.8.12. Writing a new fix style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html">4.8.13. Writing new compute styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-1-a-global-scalar-compute">4.8.14. Case 1: A global scalar compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-2-a-per-atom-compute">4.8.15. Case 2: A per-atom compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#notes-on-flags-and-output-types">4.8.16. Notes on flags and output types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html">4.8.17. Writing a new command style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html#case-1-implementing-the-geturl-command">4.8.18. Case 1: Implementing the geturl command</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_openmp.html">4.8.19. Creating styles for the OPENMP package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.8.20. Writing or updating documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#anatomy-of-a-style-documentation-page">4.8.21. Anatomy of a style documentation page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integrating-a-new-style-into-the-command-lists">4.8.22. Integrating a new style into the command lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documenting-an-accelerated-variant-of-an-existing-style">4.8.23. Documenting an accelerated variant of an existing style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adding-and-referencing-example-inputs">4.8.24. Adding and referencing example inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-documentation-that-may-need-updating">4.8.25. Other documentation that may need updating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#building-and-checking-the-documentation">4.8.26. Building and checking the documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_write.html"><span class="section-number">4.8. </span>Writing new styles</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.8.20. </span>Writing or updating documentation</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_write_openmp.html" class="btn btn-neutral float-left" title="4.8.19. Creating styles for the OPENMP package" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_notes.html" class="btn btn-neutral float-right" title="4.9. Notes for developers and code maintainers" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="writing-or-updating-documentation">
+<h1><span class="section-number">4.8.20. </span>Writing or updating documentation<a class="headerlink" href="#writing-or-updating-documentation" title="Link to this heading"></a></h1>
+<p>Every contribution that adds a new style or command, or that changes the
+behavior or the arguments of an existing one, <strong>must</strong> come with matching
+documentation.  This is a <a class="reference internal" href="Modify_requirements.html#reqdocumentation"><span class="std std-ref">strict requirement</span></a>
+for inclusion into the LAMMPS distribution.  The documentation sources
+are written in <a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">reStructuredText</a> (files with a <code class="docutils literal notranslate"><span class="pre">.rst</span></code> suffix
+in the <code class="docutils literal notranslate"><span class="pre">doc/src/</span></code> folder) and translated to HTML and PDF with <a class="reference external" href="https://www.sphinx-doc.org">Sphinx</a>.  All text must be written in American
+English and the <code class="docutils literal notranslate"><span class="pre">.rst</span></code> files may only contain 7-bit ASCII characters,
+so they can be cleanly converted to PDF via PDFLaTeX.  Special characters
+and formulas can be included as embedded math typeset in a LaTeX subset.</p>
+<p>This page complements the previous sections on <a class="reference internal" href="Developer_write.html"><span class="doc">writing new styles</span></a>: where those describe the <em>C++ code</em> of a style, this
+one describes the <em>documentation</em> that has to accompany it.  We use the
+<a class="reference internal" href="pair_born_gauss.html"><span class="doc">pair_style born/gauss</span></a> page (file
+<code class="docutils literal notranslate"><span class="pre">doc/src/pair_born_gauss.rst</span></code>) and the <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> page
+(file <code class="docutils literal notranslate"><span class="pre">doc/src/fix_nve.rst</span></code>) as running examples, since both follow the
+established conventions closely and are short enough to quote in full.</p>
+<p>A documentation page is not complete by itself: a new style also has to
+be registered in the corresponding command tables and overview lists, and
+the build and consistency checks described at the <a class="reference internal" href="#doc-checks"><span class="std std-ref">bottom of this
+page</span></a> must pass without errors or warnings.</p>
+</section>
+<section id="anatomy-of-a-style-documentation-page">
+<h1><span class="section-number">4.8.21. </span>Anatomy of a style documentation page<a class="headerlink" href="#anatomy-of-a-style-documentation-page" title="Link to this heading"></a></h1>
+<p>A typical per-style documentation page is built from a fixed sequence of
+elements.  The order and the exact wording of the section headers matter,
+because several of them are verified by automated checks and because
+common include files (like <code class="docutils literal notranslate"><span class="pre">accel_styles.rst</span></code>) are shared across all
+pages.  The most reliable way to create a new page is to copy the page of
+a similar, existing style and adapt it.</p>
+<section id="index-entries">
+<h2>Index entries<a class="headerlink" href="#index-entries" title="Link to this heading"></a></h2>
+<p>The very first lines of a documentation page are the Sphinx index
+directives.  There must be one <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">index::</span></code> entry for <strong>every</strong> style
+that is documented on the page, <em>including every accelerated variant</em>
+(<code class="docutils literal notranslate"><span class="pre">/gpu</span></code>, <code class="docutils literal notranslate"><span class="pre">/intel</span></code>, <code class="docutils literal notranslate"><span class="pre">/kk</span></code>, <code class="docutils literal notranslate"><span class="pre">/omp</span></code>, <code class="docutils literal notranslate"><span class="pre">/opt</span></code>).</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="p">..</span> <span class="ow">index</span><span class="p">::</span> pair_style born/gauss
+<span class="p">..</span> <span class="ow">index</span><span class="p">::</span> pair_style born/gauss/kk
+<span class="p">..</span> <span class="ow">index</span><span class="p">::</span> pair_style born/gauss/omp
+</pre></div>
+</div>
+<p>A single documentation file may describe several closely related styles
+(for example <code class="docutils literal notranslate"><span class="pre">doc/src/pair_born.rst</span></code> documents <code class="docutils literal notranslate"><span class="pre">born</span></code>,
+<code class="docutils literal notranslate"><span class="pre">born/coul/long</span></code>, <code class="docutils literal notranslate"><span class="pre">born/coul/msm</span></code>, and <code class="docutils literal notranslate"><span class="pre">born/coul/wolf</span></code>).  In that
+case each of those styles, and each of their accelerated variants, needs
+its own <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">index::</span></code> line.  The completeness of these index entries is
+verified by <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">style_check</span></code> (see <a class="reference internal" href="#doc-checks"><span class="std std-ref">below</span></a>), which
+parses the <code class="docutils literal notranslate"><span class="pre">...Style(name,class)</span></code> macros from the C++ headers and
+reports any style or accelerated variant whose index entry is missing.</p>
+</section>
+<section id="title-and-command-heading">
+<h2>Title and command heading<a class="headerlink" href="#title-and-command-heading" title="Link to this heading"></a></h2>
+<p>The page title is the name of the command followed by the word
+“command”, underlined with a row of <code class="docutils literal notranslate"><span class="pre">=</span></code> characters that must be at
+least as long as the title text.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">pair_style born/gauss command</span>
+<span class="gh">=============================</span>
+</pre></div>
+</div>
+<p>When a page documents multiple styles, it is customary to list the
+primary style in the title (or to use a more generic title), and to make
+sure each documented style has an index entry and is reachable through
+the command tables.</p>
+<p>In reStructuredText a heading is indicated by underlining it with
+characters and the the level of a heading is set by kind of character
+used.  The underline must be <strong>at least as long</strong> as the heading text; a
+shorter underline will trigger an error message, and the convention is
+to match the length exactly.  LAMMPS uses a fixed set of characters for
+the heading levels so that pages nest consistently.  This matters in
+particular for the combined PDF/LaTeX manual, where all pages are
+concatenated into a single document and therefore have to share one
+global hierarchy.  From the outermost to the innermost level the
+characters are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">======</span></code> – the title of an individual page</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">------</span></code> – a section</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">^^^^^^</span></code> – a subsection</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;&quot;&quot;&quot;&quot;&quot;</span></code> – a subsubsection</p></li>
+</ul>
+<p>A per-style reference page needs only two of these levels: <code class="docutils literal notranslate"><span class="pre">======</span></code>
+for the page title (the line ending in “command”) and <code class="docutils literal notranslate"><span class="pre">&quot;&quot;&quot;&quot;&quot;&quot;</span></code> for
+each of the standard section headers (Syntax, Examples, Description,
+…).  Pages with a deeper structure – such as Howto or Programmer
+Guide pages, and this developer page – additionally use <code class="docutils literal notranslate"><span class="pre">------</span></code> and
+<code class="docutils literal notranslate"><span class="pre">^^^^^^</span></code> for the intermediate levels.</p>
+<p>The page title and the section headers show up as collapsible,
+expandable entries in the navigation sidebar of the HTML manual (the
+theme is configured with a navigation depth of three levels) and in the
+table of contents of the PDF manual.</p>
+</section>
+<section id="accelerator-variants-line">
+<h2>Accelerator Variants line<a class="headerlink" href="#accelerator-variants-line" title="Link to this heading"></a></h2>
+<p>If, and only if, one or more accelerated variants of the style exist,
+an “Accelerator Variants:” line follows the title.  It lists the full
+names of the accelerated styles in italics.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>Accelerator Variants: <span class="ge">*born/gauss/kk*</span>, <span class="ge">*born/gauss/omp*</span>
+</pre></div>
+</div>
+<p>This line and the <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">index::</span></code> entries for the accelerated variants
+must be kept consistent with each other and with the actual
+accelerated styles present in the source tree.  Further down the page,
+the shared file <code class="docutils literal notranslate"><span class="pre">accel_styles.rst</span></code> is included (see <a class="reference internal" href="#doc-accel-include"><span class="std std-ref">below</span></a>); <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">style_check</span></code> enforces that a page which
+lists accelerated index entries also includes <code class="docutils literal notranslate"><span class="pre">accel_styles.rst</span></code> and,
+conversely, that a page without accelerated styles does not.</p>
+</section>
+<section id="syntax-examples-and-description">
+<h2>Syntax, Examples, and Description<a class="headerlink" href="#syntax-examples-and-description" title="Link to this heading"></a></h2>
+<p>The body of the page begins with a “Syntax” section.  It shows the
+command in a <code class="docutils literal notranslate"><span class="pre">LAMMPS</span></code> code block and then explains each argument with
+a bullet list.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Syntax</span>
+<span class="gh">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+
+<span class="p">..</span> <span class="ow">code-block</span><span class="p">::</span> <span class="k">LAMMPS</span>
+
+<span class="s">   pair_style born/gauss cutoff</span>
+
+<span class="m">*</span> born/gauss = name of the pair style
+<span class="m">*</span> cutoff = global cutoff (distance units)
+</pre></div>
+</div>
+<p>The “Examples” section gives one or more short, realistic command
+sequences, again in a <code class="docutils literal notranslate"><span class="pre">LAMMPS</span></code> code block.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Examples</span>
+<span class="gh">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
+
+<span class="p">..</span> <span class="ow">code-block</span><span class="p">::</span> <span class="k">LAMMPS</span>
+
+<span class="s">   pair_style born/gauss 10.0</span>
+<span class="s">   pair_coeff 1 1 8.2464e13 12.48 0.042644277 0.44 3.56</span>
+</pre></div>
+</div>
+<p>The “Description” section is the main explanatory text.  It describes
+the model or behavior, typically including the functional form as a
+<code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">math::</span></code> block and a list of the coefficients with their units.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Description</span>
+<span class="gh">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
+
+<span class="p">..</span> <span class="ow">versionadded</span><span class="p">::</span> 4Jul2026
+
+Pair style <span class="ge">*born/gauss*</span> computes pairwise interactions ...
+
+<span class="p">..</span> <span class="ow">math</span><span class="p">::</span>
+
+   E = A_0 \exp \left( -\alpha r \right) - A_1 \exp\left[ -\beta \left(r - r_0 \right)^2 \right]
+</pre></div>
+</div>
+</section>
+<section id="version-markers">
+<h2>Version markers<a class="headerlink" href="#version-markers" title="Link to this heading"></a></h2>
+<p>New publicly visible commands or newly added keywords must be marked
+with <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">versionadded::</span> <span class="pre">TBD</span></code>; behavior that changed for an existing
+command uses <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">versionchanged::</span> <span class="pre">TBD</span></code>.  The literal text <code class="docutils literal notranslate"><span class="pre">TBD</span></code> is
+replaced automatically with the upcoming version date at release time.
+These directives are standalone markers: any explanatory text follows
+as an ordinary, <em>unindented</em> paragraph below the directive, <strong>not</strong> as
+the indented body of the directive.  Version markers do not apply to
+internal (uppercase) style names.</p>
+</section>
+<section id="accelerator-styles-include">
+<h2>Accelerator styles include<a class="headerlink" href="#accelerator-styles-include" title="Link to this heading"></a></h2>
+<p id="doc-accel-include">For any page that has accelerated variants, a standard block describing
+how to use accelerated styles is pulled in from the shared file
+<code class="docutils literal notranslate"><span class="pre">accel_styles.rst</span></code>, set off by horizontal rules:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>----------
+
+<span class="p">..</span> <span class="ow">include</span><span class="p">::</span> accel_styles.rst
+
+----------
+</pre></div>
+</div>
+<p>Using the shared include keeps the description of the accelerator
+suffixes uniform across all pages, so this text should never be written
+out by hand.</p>
+</section>
+<section id="category-specific-information-sections">
+<h2>Category-specific information sections<a class="headerlink" href="#category-specific-information-sections" title="Link to this heading"></a></h2>
+<p>After the description, most styles have one or more information sections
+whose header and content are largely standardized per style category.
+Copy the wording from a closely related style and adjust it for the
+behavior of your style.  Common examples are:</p>
+<ul class="simple">
+<li><p>For <strong>pair styles</strong>: a section titled “Mixing, shift, table, tail
+correction, restart, rRESPA info” describing whether the style
+supports <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> mixing, the shift, table,
+and tail options, whether it writes to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, and which <a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> keywords it
+supports.</p></li>
+<li><p>For <strong>fix styles</strong>: a section titled “Restart, fix_modify, output, run
+start/stop, minimize info” describing what (if anything) the fix
+writes to restart files, which <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options
+it honors, what global or per-atom quantities it makes available to
+<a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>, and whether it is invoked
+during <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p></li>
+<li><p>For <strong>compute styles</strong>: an “Output info” section describing the shape
+and meaning of the computed scalar, vector, or array and its units.</p></li>
+</ul>
+<p>These sections should be present even when the answer is “none” or “not
+supported”; the <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> page is a good template for the
+minimal case.</p>
+</section>
+<section id="restrictions-related-commands-and-defaults">
+<h2>Restrictions, related commands, and defaults<a class="headerlink" href="#restrictions-related-commands-and-defaults" title="Link to this heading"></a></h2>
+<p>Three short sections close out the page.</p>
+<p>The “Restrictions” section documents any conditions that must be met for
+the style to be usable.  The most common one is a <strong>package
+requirement</strong>: the style is only available when LAMMPS was built with a
+particular package, with a pointer to the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="gh">Restrictions</span>
+<span class="gh">&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;</span>
+
+This pair style is only enabled if LAMMPS was built with the EXTRA-PAIR
+package.  See the <span class="na">:doc:</span><span class="nv">`Build package &lt;Build_package&gt;`</span> page for more
+info.
+</pre></div>
+</div>
+<p>Restrictions are <em>not</em> limited to package membership, however.  Many
+styles impose additional conditions; copy the exact wording from the
+page of a similar style.  The most common categories are:</p>
+<ul class="simple">
+<li><p><strong>Package requirement:</strong> only enabled when built with a given package
+(almost all styles outside the core); always link to <a class="reference internal" href="Build_package.html"><span class="doc">Build
+package</span></a>.</p></li>
+<li><p><strong>Newton setting:</strong> the style requires the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>
+setting to be “on” (common for many-body and communication-heavy pair
+styles) or, more rarely, “off”.</p></li>
+<li><p><strong>Command ordering:</strong> the command must appear before or after another
+command – for example before the simulation box is defined by
+<a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> or <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>, after
+a prerequisite fix, or before any <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>
+commands.</p></li>
+<li><p><strong>Atom style requirement:</strong> the style needs an <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> that stores particular per-atom data (e.g. charge,
+finite size/radius, torque and angular momentum, density or
+temperature, or support for bonds and angles).</p></li>
+<li><p><strong>Dependency on another command:</strong> the style only works in conjunction
+with a specific fix, pair style, bond style, or
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a>.</p></li>
+<li><p><strong>Uniqueness or mutual exclusivity:</strong> only a single instance of the
+style may be defined, or certain keyword combinations cannot be used
+together.</p></li>
+<li><p><strong>Geometry and dimensionality:</strong> the style only works for 2d or only
+for 3d systems, or only for orthogonal (not triclinic) simulation
+boxes.</p></li>
+<li><p><strong>Integrator and parallel constraints:</strong> the style is incompatible
+with <a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a>, is not invoked during
+<a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>, or has limitations under MPI
+domain decomposition.</p></li>
+</ul>
+<p>If there are no restrictions at all, the section contains only the
+single word <code class="docutils literal notranslate"><span class="pre">none</span></code>.</p>
+<p>The “Related commands” section is a comma-separated list of links
+(<code class="docutils literal notranslate"><span class="pre">:doc:</span></code> roles) to closely related commands.  The “Default” section
+describes the default settings of any optional keywords, or the single
+word <code class="docutils literal notranslate"><span class="pre">none</span></code> if there are none.</p>
+</section>
+<section id="typical-section-order">
+<h2>Typical section order<a class="headerlink" href="#typical-section-order" title="Link to this heading"></a></h2>
+<p>Putting it together, the canonical order of a per-style page is:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">index::</span></code> entries (one per documented style and accelerated variant)</p></li>
+<li><p>title with the <code class="docutils literal notranslate"><span class="pre">command</span></code> suffix</p></li>
+<li><p>“Accelerator Variants:” line (only if accelerated styles exist)</p></li>
+<li><p>Syntax</p></li>
+<li><p>Examples</p></li>
+<li><p>Description (with a <code class="docutils literal notranslate"><span class="pre">versionadded</span></code>/<code class="docutils literal notranslate"><span class="pre">versionchanged</span></code> marker if applicable)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">include::</span> <span class="pre">accel_styles.rst</span></code> block (only if accelerated styles exist)</p></li>
+<li><p>category-specific info section(s) (Mixing… / Restart… / Output info / …)</p></li>
+<li><p>Restrictions</p></li>
+<li><p>Related commands</p></li>
+<li><p>Default</p></li>
+<li><p>literature citations (if any)</p></li>
+</ol>
+</section>
+<section id="literature-citations">
+<h2>Literature citations<a class="headerlink" href="#literature-citations" title="Link to this heading"></a></h2>
+<p>If the page cites publications, the citations are placed at the very
+bottom of the file behind a horizontal rule, each with a unique anchor
+label and a bold key.</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span>----------
+
+<span class="p">..</span> <span class="nt">_Bomont:</span>
+
+<span class="gs">**(Bomont)**</span> Bomont, Bretonnet, J. Chem. Phys. 124, 054504 (2006)
+</pre></div>
+</div>
+<p>The in-text reference then uses <code class="docutils literal notranslate"><span class="pre">:ref:`(Bomont)</span> <span class="pre">&lt;Bomont&gt;`</span></code>.  Citation
+anchor labels must be <strong>unique across all</strong> <code class="docutils literal notranslate"><span class="pre">.rst</span></code> files, so a
+distinctive label (often including a number or the style name) is
+needed; <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">anchor_check</span></code> reports duplicate labels.  See the bottom
+of <code class="docutils literal notranslate"><span class="pre">doc/fix_nh.rst</span></code> for more elaborate examples of citation
+formatting.</p>
+</section>
+</section>
+<section id="integrating-a-new-style-into-the-command-lists">
+<h1><span class="section-number">4.8.22. </span>Integrating a new style into the command lists<a class="headerlink" href="#integrating-a-new-style-into-the-command-lists" title="Link to this heading"></a></h1>
+<p>Creating the per-style page is not enough: a new style must also be
+added to the compact command table and to the alphabetical overview
+list for its category, or the documentation will build with warnings and
+<code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">style_check</span></code> will fail.  For a pair style, two files need an
+entry:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">Commands_pair.rst</span></code> contains a multi-column table.  Add the style in
+alphabetical order; the accelerator suffix letters are appended in
+parentheses (<code class="docutils literal notranslate"><span class="pre">g</span></code> = GPU, <code class="docutils literal notranslate"><span class="pre">i</span></code> = INTEL, <code class="docutils literal notranslate"><span class="pre">k</span></code> = KOKKOS, <code class="docutils literal notranslate"><span class="pre">o</span></code> =
+OPENMP, <code class="docutils literal notranslate"><span class="pre">t</span></code> = OPT) and the link target is the documentation file:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="m">*</span> <span class="na">:doc:</span><span class="nv">`born/gauss (ko) &lt;pair_born_gauss&gt;`</span>
+</pre></div>
+</div>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pair_style.rst</span></code> contains the alphabetical overview list with a
+short, one-line description after the link:</p>
+<div class="highlight-rst notranslate"><div class="highlight"><pre><span></span><span class="m">*</span> <span class="na">:doc:</span><span class="nv">`born/gauss &lt;pair_born_gauss&gt;`</span> - Born-Mayer / Gaussian potential
+</pre></div>
+</div>
+</li>
+</ul>
+<p>The other style categories follow the same pattern with different
+files.  <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">style_check</span></code> (via <code class="docutils literal notranslate"><span class="pre">utils/check-styles.py</span></code>) checks
+exactly these files for completeness:</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 39.0%" />
+<col style="width: 39.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Category</p></th>
+<th class="head"><p>Compact table file</p></th>
+<th class="head"><p>Overview list file</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>pair</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_pair.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pair_style.rst</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>bond</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_bond.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bond_style.rst</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>angle</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_bond.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">angle_style.rst</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>dihedral</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_bond.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">dihedral_style.rst</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>improper</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_bond.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">improper_style.rst</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>compute</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_compute.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">compute.rst</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>fix</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_fix.rst</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fix.rst</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>kspace</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_kspace.rst</span></code></p></td>
+<td><p>(none)</p></td>
+</tr>
+<tr class="row-even"><td><p>dump</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_dump.rst</span></code></p></td>
+<td><p>(none)</p></td>
+</tr>
+<tr class="row-odd"><td><p>command</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Commands_all.rst</span></code></p></td>
+<td><p>(none)</p></td>
+</tr>
+</tbody>
+</table>
+<p>The suffix letters in the compact table must be listed in the canonical
+order <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">i</span> <span class="pre">k</span> <span class="pre">o</span> <span class="pre">t</span></code>, with no separators (for example <code class="docutils literal notranslate"><span class="pre">ko</span></code>, never
+<code class="docutils literal notranslate"><span class="pre">ok</span></code> or <code class="docutils literal notranslate"><span class="pre">o,k</span></code>).</p>
+</section>
+<section id="documenting-an-accelerated-variant-of-an-existing-style">
+<h1><span class="section-number">4.8.23. </span>Documenting an accelerated variant of an existing style<a class="headerlink" href="#documenting-an-accelerated-variant-of-an-existing-style" title="Link to this heading"></a></h1>
+<p>When a new accelerated variant (e.g. a <code class="docutils literal notranslate"><span class="pre">/kk</span></code> or <code class="docutils literal notranslate"><span class="pre">/omp</span></code> version) is
+added for a style that already exists and is already documented, several
+small edits are required rather than a new page:</p>
+<ol class="arabic simple">
+<li><p>Add a <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">index::</span></code> line for the new accelerated style near the top
+of the existing page.</p></li>
+<li><p>Add or extend the “Accelerator Variants:” line below the title so it
+lists the new variant.</p></li>
+<li><p>Make sure the page includes the shared <code class="docutils literal notranslate"><span class="pre">accel_styles.rst</span></code> block; if
+the style previously had no accelerated variants, add that include
+(with surrounding horizontal rules).</p></li>
+<li><p>Add the corresponding suffix <strong>letter</strong> to the style’s entry in the
+compact command table (<code class="docutils literal notranslate"><span class="pre">Commands_pair.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">Commands_fix.rst</span></code>,
+…), keeping the canonical <code class="docutils literal notranslate"><span class="pre">g</span> <span class="pre">i</span> <span class="pre">k</span> <span class="pre">o</span> <span class="pre">t</span></code> letter order.</p></li>
+</ol>
+<p>The overview list file (<code class="docutils literal notranslate"><span class="pre">pair_style.rst</span></code>, <code class="docutils literal notranslate"><span class="pre">fix.rst</span></code>, …) does not
+encode the suffix letters and therefore does not need to change for a
+new accelerated variant.</p>
+</section>
+<section id="adding-and-referencing-example-inputs">
+<h1><span class="section-number">4.8.24. </span>Adding and referencing example inputs<a class="headerlink" href="#adding-and-referencing-example-inputs" title="Link to this heading"></a></h1>
+<p>For most new features it is preferred (see <a class="reference internal" href="Modify_requirements.html#reqexamples"><span class="std std-ref">the examples
+requirement</span></a>) to add a small, fast example input under the
+<code class="docutils literal notranslate"><span class="pre">examples</span></code> or <code class="docutils literal notranslate"><span class="pre">examples/PACKAGES</span></code> directory.  The documentation page
+should point the reader to it.  Two conventions are in common use; both
+are acceptable:</p>
+<ul class="simple">
+<li><p>mention the directory inside the “Description” or “Examples” section,
+for instance a line like <code class="docutils literal notranslate"><span class="pre">Example</span> <span class="pre">input</span> <span class="pre">scripts</span> <span class="pre">available:</span>
+<span class="pre">examples/PACKAGES/foo</span></code>;</p></li>
+<li><p>reference specific input files by their path in the relevant
+discussion.</p></li>
+</ul>
+</section>
+<section id="other-documentation-that-may-need-updating">
+<h1><span class="section-number">4.8.25. </span>Other documentation that may need updating<a class="headerlink" href="#other-documentation-that-may-need-updating" title="Link to this heading"></a></h1>
+<p>Depending on the nature of the contribution, additional documentation
+may have to be created or updated:</p>
+<ul class="simple">
+<li><p><strong>New package:</strong> add a description to <code class="docutils literal notranslate"><span class="pre">Packages_details.rst</span></code> and an
+entry to the package list, and, if the package needs special build
+steps, add the corresponding build instructions.</p></li>
+<li><p><strong>Complex features:</strong> if a feature needs more background or a
+multi-command workflow to be used correctly, contribute a
+<a class="reference internal" href="Howto.html"><span class="doc">Howto document</span></a> and add it to the toctree in
+<code class="docutils literal notranslate"><span class="pre">Howto.rst</span></code>.</p></li>
+<li><p><strong>Library or API changes:</strong> additions or changes to the C++ library
+interface or the Fortran module require doxygen comments in the source
+and matching updates to the “Programmer Guide” section of the manual.</p></li>
+<li><p><strong>Error explanations:</strong> errors with multiple possible causes can be
+given a detailed explanation on the <code class="docutils literal notranslate"><span class="pre">Error_details</span></code> page with an
+error code anchor, referenced from the code via
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils8errorurlEi" title="LAMMPS_NS::utils::errorurl"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::errorurl()</span></code></a> (see the
+<a class="reference internal" href="Modify_requirements.html#reqerrormessages"><span class="std std-ref">error message requirements</span></a>).</p></li>
+<li><p><strong>Figures and PDFs:</strong> inline figures live in <code class="docutils literal notranslate"><span class="pre">doc/JPG</span></code> and
+supplementary PDF files in <code class="docutils literal notranslate"><span class="pre">doc/PDF</span></code>; see existing pages for how to
+embed them.</p></li>
+</ul>
+</section>
+<section id="building-and-checking-the-documentation">
+<h1><span class="section-number">4.8.26. </span>Building and checking the documentation<a class="headerlink" href="#building-and-checking-the-documentation" title="Link to this heading"></a></h1>
+<p id="doc-checks">Before submitting, build and proofread the documentation from within the
+<code class="docutils literal notranslate"><span class="pre">doc</span></code> directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>html<span class="w">          </span><span class="c1"># build the HTML manual; there should be no warnings</span>
+make<span class="w"> </span>spelling<span class="w">      </span><span class="c1"># run the spell checker</span>
+make<span class="w"> </span>anchor_check<span class="w">  </span><span class="c1"># check for duplicate anchors and labels</span>
+make<span class="w"> </span>style_check<span class="w">   </span><span class="c1"># check completeness of style tables and index entries</span>
+make<span class="w"> </span>check<span class="w">         </span><span class="c1"># run all consistency checks at once</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">check</span></code> target bundles <code class="docutils literal notranslate"><span class="pre">anchor_check</span></code>, <code class="docutils literal notranslate"><span class="pre">style_check</span></code>,
+<code class="docutils literal notranslate"><span class="pre">package_check</span></code>, <code class="docutils literal notranslate"><span class="pre">char_check</span></code>, and <code class="docutils literal notranslate"><span class="pre">role_check</span></code>.  The <code class="docutils literal notranslate"><span class="pre">char_check</span></code>
+target rejects any non-ASCII character in the <code class="docutils literal notranslate"><span class="pre">.rst</span></code> files, and the
+<code class="docutils literal notranslate"><span class="pre">role_check</span></code> target catches malformed roles and directives (for
+example a <code class="docutils literal notranslate"><span class="pre">:doc:</span></code> or <code class="docutils literal notranslate"><span class="pre">:ref:</span></code> role not immediately followed by a
+backtick, a <code class="docutils literal notranslate"><span class="pre">text</span> <span class="pre">&lt;target&gt;</span></code> hyperlink missing its role, or a directive
+written with a single colon instead of <code class="docutils literal notranslate"><span class="pre">::</span></code>).  Carefully read and
+proofread the generated HTML page before opening the pull request.</p>
+<p>If the spell checker reports a false positive (such as an author surname
+or an established acronym), add it to
+<code class="docutils literal notranslate"><span class="pre">doc/utils/sphinx-config/false_positives.txt</span></code>.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_write_openmp.html" class="btn btn-neutral float-left" title="4.8.19. Creating styles for the OPENMP package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_notes.html" class="btn btn-neutral float-right" title="4.9. Notes for developers and code maintainers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

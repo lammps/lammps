@@ -1,0 +1,12 @@
+This directory contains input files for DPD simulations under
+isothermal, isoenergetic, isobaric and isoenthalpic conditions.  In
+addition, there is also an example for a reaction DPD simulation under
+isoenergetic conditions.  All the DPD scenarios that are named with 
+*-shardlow use the Shardlow splitting algorithm to integrate the 
+equations of motion.  All the DPD scenarious that are named with  
+*-vv utilize the velocity-Verlet integration scheme.  The compute dpd 
+command is used in the isoenergetic and isenthalpic case to
+demonstrate how one can access the particle internal energies.
+
+
+

@@ -1,0 +1,24 @@
+#!/usr/bin/gnuplot
+
+# compare sph/heatconduction output with analytic solution to diffusion equation
+
+alpha = 1.0e-4
+time = 4.0
+
+analytic_profile(x) = 1.5 + 0.5*erf((x-49.5e-2)/sqrt(4.0*alpha*time))
+
+set ylabel "internal energy per particle"
+set xlabel "x position [m]"
+
+plot [][0.5:2.5]'dump.last' u 3:6 ti "SPH simulation", analytic_profile(x) ti "analytic solution"
+
+pause -1
+#set terminal postscript color enhanced lw 2
+#set out "heat_profile.ps"
+set table "simu.dat"
+plot [0:1][0.5:2.5]'dump.last' u 3:6
+
+set table "analytic.dat"
+set samples 1000
+plot [0:1][0.5:2.5] analytic_profile(x)
+#replot

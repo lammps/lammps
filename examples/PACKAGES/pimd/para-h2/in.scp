@@ -1,0 +1,30 @@
+variable ibead uloop 32 pad
+variable out_freq string 100
+variable job_name string H2
+
+units      real
+atom_style full
+pair_style table linear 10000
+
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check no
+
+read_data H2.data
+
+pair_coeff 1 * pair.table PAIR_H2
+
+timestep        0.001
+
+velocity all create 1.0 1985 rot yes dist gaussian
+
+fix 1 all pimd/nvt method nmpimd fmass 1.0 temp 25.0 nhc 4
+
+thermo_style    custom step temp pe etotal pzz f_1[1] f_1[2] f_1[3]
+thermo_modify   colname f_1[1] espring colname f_1[2] T_ring colname f_1[3] virial
+thermo          ${out_freq}
+
+#dump dcd all dcd ${out_freq} ${job_name}_${ibead}.dcd
+
+#restart ${out_freq} ${job_name}_${ibead}.restart1 ${job_name}_${ibead}.restart2
+
+run 10000

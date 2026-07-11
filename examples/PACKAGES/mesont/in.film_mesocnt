@@ -1,0 +1,46 @@
+# initialisation
+
+units             metal
+dimension         3
+boundary          p p s
+atom_style        full
+special_bonds     lj 1 1 1
+neigh_modify      every 5 delay 0 check yes
+newton            on
+
+read_data         data.film_mesocnt
+
+# force field
+
+bond_style        mesocnt
+bond_coeff        1 C 10 10 10
+
+angle_style       mesocnt
+angle_coeff       1 buckling C 10 10 10
+
+pair_style        mesocnt 40 chain
+pair_coeff        * * C_10_10.mesocnt 1
+
+# output
+
+compute         epair all pe pair
+compute         ebond all pe bond
+compute         eangle all pe angle
+
+compute         epair_atom all pe/atom pair
+compute         ebond_atom all pe/atom bond
+compute         eangle_atom all pe/atom angle
+
+fix             angle_mesocnt_buckled all property/atom i_buckled ghost yes
+
+thermo_style    custom step temp etotal ke pe c_ebond c_eangle c_epair
+thermo 10
+#dump            custom all custom 100 film_mesocnt.lmp id mol type x y z c_ebond_atom c_eangle_atom c_epair_atom i_buckled
+
+# simulation setup
+
+velocity        all create 600.0 2022 loop geom
+timestep        0.01
+fix             nvt all nvt temp 300.0 300.0 1
+
+run             100

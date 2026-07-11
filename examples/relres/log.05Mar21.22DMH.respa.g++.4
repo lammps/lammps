@@ -1,0 +1,170 @@
+LAMMPS (10 Feb 2021)
+  using 1 OpenMP thread(s) per MPI task
+units           si
+atom_style      molecular
+boundary        p p p
+dielectric      1
+special_bonds   lj/coul 0.0 0.0 0.5
+
+pair_style      hybrid lj/relres 0.675e-9 0.725e-9 1.2e-9 1.4e-9 lj/relres 0.675e-9 .725e-9 1.2e-9 1.4e-9
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  fourier
+read_data       Data.22DMH.in.relres
+Reading data file ...
+  orthogonal box = (3.7421629e-10 3.7421629e-10 3.7421629e-10) to (6.8257837e-09 6.8257837e-09 6.8257837e-09)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  8000 atoms
+  reading velocities ...
+  8000 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  3 = max dihedrals/atom
+  reading bonds ...
+  7000 bonds
+  reading angles ...
+  9000 angles
+  reading dihedrals ...
+  5000 dihedrals
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.5     
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     5 = max # of 1-4 neighbors
+     7 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.036 seconds
+pair_coeff 1 1 lj/relres 1 3.47385e-22 3.8e-10 2.02372e-20 3.9309e-10 6.75e-10 7.25e-10 1.2e-09 1.4e-09
+pair_coeff 1 2 lj/relres 1 5.33663e-22 3.85214e-10 1.31068e-20 3.91793e-10 6.22997e-10 6.73146e-10 1.2e-09 1.4e-09
+pair_coeff 1 3 lj/relres 2 5.33663e-22 3.85214e-10 0 3.91793e-10 6.75e-10 7.25e-10 7.25e-10 7.25e-10
+pair_coeff 1 4 lj/relres 2 5.33663e-22 3.85214e-10 0 3.91793e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 1 5 lj/relres 2 5.91576e-22 3.87918e-10 0 3.94542e-10 6.75e-10 7.25e-10 7.25e-10 7.25e-10
+pair_coeff 1 6 lj/relres 2 6.49898e-22 3.85214e-10 0 3.91793e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 2 2 lj/relres 1 8.19828e-22 3.905e-10 8.48872e-21 3.905e-10 5.75e-10 6.25e-10 1.2e-09 1.4e-09
+pair_coeff 2 3 lj/relres 2 8.19828e-22 3.905e-10 0 3.905e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 2 4 lj/relres 2 8.19828e-22 3.905e-10 0 3.905e-10 5.75e-10 6.25e-10 6.25e-10 6.25e-10
+pair_coeff 2 5 lj/relres 2 9.08797e-22 3.9324e-10 0 3.9324e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 2 6 lj/relres 2 9.98393e-22 3.905e-10 0 3.905e-10 5.75e-10 6.25e-10 6.25e-10 6.25e-10
+pair_coeff 3 3 lj/relres 2 8.19828e-22 3.905e-10 0 3.905e-10 6.75e-10 7.25e-10 7.25e-10 7.25e-10
+pair_coeff 3 4 lj/relres 2 8.19828e-22 3.905e-10 0 3.905e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 3 5 lj/relres 2 9.08797e-22 3.9324e-10 0 3.9324e-10 6.75e-10 7.25e-10 7.25e-10 7.25e-10
+pair_coeff 3 6 lj/relres 2 9.98393e-22 3.905e-10 0 3.905e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 4 4 lj/relres 2 8.19828e-22 3.905e-10 0 3.905e-10 5.75e-10 6.25e-10 6.25e-10 6.25e-10
+pair_coeff 4 5 lj/relres 2 9.08797e-22 3.9324e-10 0 3.9324e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 4 6 lj/relres 2 9.98393e-22 3.905e-10 0 3.905e-10 5.75e-10 6.25e-10 6.25e-10 6.25e-10
+pair_coeff 5 5 lj/relres 2 1.00742e-21 3.96e-10 0 3.96e-10 6.75e-10 7.25e-10 7.25e-10 7.25e-10
+pair_coeff 5 6 lj/relres 2 1.10674e-21 3.9324e-10 0 3.9324e-10 6.22997e-10 6.73146e-10 6.73146e-10 6.73146e-10
+pair_coeff 6 6 lj/relres 2 1.21585e-21 3.905e-10 0 3.905e-10 5.75e-10 6.25e-10 6.25e-10 6.25e-10
+
+pair_modify     shift yes
+neighbor        2.0e-10 bin
+neigh_modify    every 2 delay 4 check yes
+
+timestep 2.0e-15
+thermo 50
+thermo_style custom step temp press pe ke etotal epair emol vol
+fix 2 all nvt temp 290 290 2.0e-13
+
+run_style respa 2 2 hybrid 1 2
+Respa levels:
+  1 = bond angle dihedral improper hybrid-1
+  2 = hybrid-2 kspace
+
+run 500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Pair style lj/relres: doi:10.1021/acs.jctc.0c01003
+
+@Article{Chaimovich1,
+ author = {A. Chaimovich, C. Peter, K. Kremer},
+ title = {Relative resolution: A hybrid formalism for fluid mixtures},
+ journal = {J.~Chem.~Phys.},
+ year =    2015,
+ volume =  143,
+ pages =   {243107}
+@Article{Chaimovich2,
+ author = {M. Chaimovich, A. Chaimovich},
+ title = {Relative Resolution: A Computationally Efficient Implementation in LAMMPS},
+ journal = {J.~Chem.~Theory~Comput.},
+ year =    2021,
+ volume =  17,
+ pages =   {1045--1059}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update every 2 steps, delay 4 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.6e-09
+  ghost atom cutoff = 1.6e-09
+  binsize = 8e-10, bins = 9 9 9
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/relres, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/relres, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.35 | 12.35 | 12.35 Mbytes
+Step Temp Press PotEng KinEng TotEng E_pair E_mol Volume 
+       0    286.85659    -21399113 2.6345159e-17 4.7519899e-17 7.3865059e-17 -3.3260563e-17 5.9605722e-17 2.685318e-25 
+      50    292.22255     10509008 2.525105e-17 4.840881e-17 7.3659861e-17 -3.2554301e-17 5.7805351e-17 2.685318e-25 
+     100    291.58497     48053357 2.4902763e-17 4.8303191e-17 7.3205953e-17 -3.325361e-17 5.8156373e-17 2.685318e-25 
+     150    291.49413     37394583 2.4391667e-17 4.8288142e-17 7.2679809e-17 -3.3414422e-17 5.7806089e-17 2.685318e-25 
+     200    287.20382     26161531 2.4752701e-17 4.7577421e-17 7.2330122e-17 -3.3050943e-17 5.7803644e-17 2.685318e-25 
+     250    288.54952     -9191037 2.4382928e-17 4.7800345e-17 7.2183273e-17 -3.3506471e-17  5.78894e-17 2.685318e-25 
+     300    291.83353     19619708 2.369006e-17 4.8344366e-17 7.2034426e-17 -3.3461257e-17 5.7151317e-17 2.685318e-25 
+     350    290.64842     60193012 2.3711746e-17 4.8148044e-17 7.185979e-17 -3.3286381e-17 5.6998127e-17 2.685318e-25 
+     400     293.0168     38268765 2.3173289e-17 4.8540384e-17 7.1713672e-17 -3.3633853e-17 5.6807142e-17 2.685318e-25 
+     450    289.19195     33053376  2.36093e-17 4.7906769e-17 7.151607e-17 -3.3774223e-17 5.7383524e-17 2.685318e-25 
+     500    292.43942   -684078.27 2.2898459e-17 4.8444735e-17 7.1343194e-17 -3.3856946e-17 5.6755405e-17 2.685318e-25 
+Loop time of 1.76801 on 4 procs for 500 steps with 8000 atoms
+
+91.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.93397    | 0.97055    | 1.0377     |   4.0 | 54.89
+Bond    | 0.18914    | 0.19729    | 0.20727    |   1.5 | 11.16
+Neigh   | 0.12623    | 0.12644    | 0.12663    |   0.1 |  7.15
+Comm    | 0.31509    | 0.39593    | 0.44272    |   7.7 | 22.39
+Output  | 0.00031866 | 0.00034685 | 0.00041755 |   0.0 |  0.02
+Modify  | 0.035567   | 0.037833   | 0.039797   |   0.8 |  2.14
+Other   |            | 0.03963    |            |       |  2.24
+
+Nlocal:        2000.00 ave        2016 max        1985 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+Nghost:        9883.00 ave        9895 max        9866 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Neighs:         0.00000 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0.0000000
+Ave special neighs/atom = 5.2500000
+Neighbor list builds = 13
+Dangerous builds = 0
+#write_data Data.22DMH.out.relres pair ij
+#pair_write 1 1 1201 r 0.2e-9 1.4e-9  potential.relres LJ11
+#pair_write 2 2 1201 r 0.2e-9 1.4e-9  potential.relres LJ22
+#pair_write 1 2 1201 r 0.2e-9 1.4e-9  potential.relres LJ12
+Total wall time: 0:00:01

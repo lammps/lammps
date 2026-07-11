@@ -1,0 +1,150 @@
+LAMMPS (23 Jun 2022)
+# water hexamer with AMOEBA or HIPPO
+
+units           real
+boundary        s s s
+
+atom_style      amoeba
+bond_style      class2
+angle_style     amoeba
+dihedral_style  none
+
+# per-atom properties required by AMOEBA or HIPPO
+
+fix             amtype all property/atom i_amtype ghost yes
+fix             extra all property/atom i_amgroup d_redID d_pval ghost yes
+fix             extra2 all property/atom i_polaxe d2_xyzaxis 3
+
+# read data file
+
+read_data       data.water_hexamer.hippo fix amtype NULL "Tinker Types"
+Reading data file ...
+  orthogonal box = (-2.517835 -1.523041 -1.734766) to (2.675716 2.01883 2.220847)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  18 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  12 bonds
+  reading angles ...
+  6 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.007 seconds
+
+# force field
+
+pair_style      hippo
+pair_coeff      * * hippo_water.prm hippo_water.key
+Reading potential file hippo_water.prm with DATE: 2022-07-05
+Reading potential file hippo_water.key with DATE: 2022-07-05
+
+special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0.5      0.5      0.5     
+  special bond factors coul:  0.5      0.5      0.5     
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of 1-5 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# thermo output
+
+compute         virial all pressure NULL virial
+
+thermo_style    custom step temp epair ebond eangle edihed eimp                 emol etotal press c_virial[*]
+
+#dump            1 all custom 10 dump.water_hexamer id type x y z fx fy fz
+#dump_modify     1 sort id
+
+# dynamics
+
+fix             1 all nve
+
+thermo          10
+run             100
+HIPPO force field settings
+  repulsion: cut 10 taper 8 rscale 0 0 1 1
+  qxfer: cut 10 taper 8 mscale 0 0 0.4 1
+  dispersion: cut 10 aewald 0 dspscale 0 0 0.4 1
+  multipole: cut 10 aewald 0 mscale 0 0 0.4 1
+  polar: cut 10 aewald 0
+         pscale 0 0 1 1 piscale 0 0 0.5 1 wscale 0.2 1 1 1 d/u scale 0 1
+  precondition: cut 4.5
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 1 1 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair hippo, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  HIPPO group count: 6
+Per MPI rank memory allocation (min/avg/max) = 47.84 | 47.84 | 47.84 Mbytes
+   Step          Temp          E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          TotEng         Press       c_virial[1]    c_virial[2]    c_virial[3]    c_virial[4]    c_virial[5]    c_virial[6]  
+         0   0             -47.362156      1.9820353      1.6634749      0              0              3.6455102     -43.716646     -34513.768     -42206.078     -31383.641     -29951.584      2850.1184      3579.9253      5768.3698    
+        10   11.52238      -45.959856      1.53397        0.085100522    0              0              1.6190706     -43.756903     -28644.676     -34867.94      -19324.955     -32842.522     -370.63233     -6452.0859     -4002.3535    
+        20   20.237283     -46.772008      0.54762833     1.3835192      0              0              1.9311476     -43.815361     -10546.356     -10116.359     -17063.425     -6393.701      -1166.7608      4243.6327      3493.9596    
+        30   20.666374     -45.011106      0.086797459    0.071122604    0              0              0.15792006    -43.805943      13150.762      15882.022      10964.553      10630.278     -6754.7642     -432.29165     -3783.115     
+        40   10.639014     -45.430939      0.18926921     0.96410995     0              0              1.1533792     -43.738441      33402.664      41252.58       19726.586      38211.875     -6166.03        6081.5692      1815.7739    
+        50   10.992432     -44.741108      0.19575431     0.25851128     0              0              0.45426559    -43.729815      37696.923      41572.466      33299.43       37168.141     -3254.5134      2.9639226     -1017.3669    
+        60   19.748633     -45.461264      0.035287281    0.63217389     0              0              0.66746117    -43.793065      26212.839      28825.788      16048.096      31876.925      3504.5461      135.3505       420.28566    
+        70   26.129957     -46.022729      0.30434543     0.56770169     0              0              0.87204711    -43.826579      3919.9866     -2755.6905      11500.428      517.54333      5626.9543     -2238.5786      86.305984    
+        80   17.768494     -46.309777      1.1680612      0.45551823     0              0              1.6235794     -43.785801     -18335.898     -22168.789     -14488.992     -20048.346      7343.173      -2646.2196     -2525.6625    
+        90   8.3822494     -47.063502      2.0182644      0.88875358     0              0              2.9070179     -43.731724     -33693.203     -43487.996     -15178.35      -43214.494      2412.6411      1993.0113      1780.7512    
+       100   8.6486333     -46.517402      1.9551958      0.38696887     0              0              2.3421647     -43.736979     -34734.97      -34372.659     -28372.146     -42286.799      226.18821      40.353457     -755.93912    
+Loop time of 0.0384281 on 1 procs for 100 steps with 18 atoms
+
+Performance: 224.836 ns/day, 0.107 hours/ns, 2602.266 timesteps/s
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+HIPPO timing breakdown:
+  Init    time: 0.000296169    0.79%
+  Repulse time: 0.00605807    16.08%
+  Disp    time: 0.00222186     5.90%
+  Mpole   time: 0.00734879    19.51%
+  Induce  time: 0.0128126     34.02%
+  Polar   time: 0.00749189    19.89%
+  Qxfer   time: 0.00142542     3.78%
+  Total   time: 0.0376635   
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.037703   | 0.037703   | 0.037703   |   0.0 | 98.11
+Bond    | 0.00016755 | 0.00016755 | 0.00016755 |   0.0 |  0.44
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 2.4711e-05 | 2.4711e-05 | 2.4711e-05 |   0.0 |  0.06
+Output  | 0.00038288 | 0.00038288 | 0.00038288 |   0.0 |  1.00
+Modify  | 6.4863e-05 | 6.4863e-05 | 6.4863e-05 |   0.0 |  0.17
+Other   |            | 8.521e-05  |            |       |  0.22
+
+Nlocal:             18 ave          18 max          18 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            153 ave         153 max         153 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 153
+Ave neighs/atom = 8.5
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

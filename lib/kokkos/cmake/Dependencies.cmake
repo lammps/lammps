@@ -1,0 +1,3 @@
+tribits_package_define_dependencies(LIB_OPTIONAL_TPLS Pthread CUDA HWLOC DLlib)
+
+tribits_tpl_tentatively_enable(DLlib)

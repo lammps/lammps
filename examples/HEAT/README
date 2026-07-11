@@ -1,0 +1,40 @@
+This directory contains 4 input scripts for carrying out NEMD
+simulations of thermal gradients for a Lennard-Jones fluid and SPC/E
+water using the HEX/a (fix ehex w/ hex option) and eHEX/a (fix ehex) algorithms.
+
+All input scripts are part of the supplementary (open access) material
+supporting the publication of Wirnsberger et al. [J. Chem. Phys. 143,
+124104 (2015)] and allow one to reproduce the key results reported in
+that paper. The full article is available for download under
+https://doi.org/10.1063/1.4931597 or http://arxiv.org/pdf/1507.07081
+and the supplementary material is available under
+https://www.repository.cam.ac.uk/handle/1810/250539.
+
+Each input script in.X produces two output files: 
+==================================================
+
+-> The file out.TX contains the temperature profile. Plotting coloumn
+   4 against column 2 yields the results shown in Fig. 5
+   (Lennard-Jones) or Fig. 6 (SPC/E).
+ 
+-> The file out.EX contains the time evolution of the total
+   energy. The difference between the initial and final values of the
+   total energy in the second column corresponds to a single point in
+   Fig. 2 (Lennard-Jones) or Fig. 3 (SPC/E).
+
+The input files data.lj and data.spce contain input configurations
+which were previously prepared in a non-equilibrium steady-state
+(NESS).
+
+For the Lennard-Jones system, the box contains 2000 atoms at a density
+of rho*=0.8444 (reduced units). The equilibrium temperature was
+T*=0.72 in reduced units. After switching on the thermostat, a
+temperature gradient of about -0.02 was generated between the
+reservoirs in the reference box. The SPC/E configuration contains 1024
+molecules at a density of 0.95 g/cm^3. The equilibrium temperature was
+about 400 K, and after switching on the thermostat a temperature
+gradient of about -4.9 K/‎Å was generated.
+
+More details can be found in the publication.
+
+

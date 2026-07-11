@@ -1,0 +1,203 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
+#include <Kokkos_Core.hpp>
+#endif
+#include <HIP/Kokkos_HIP.hpp>
+#include <HIP/Kokkos_HIP_Instance.hpp>
+#include <HIP/Kokkos_HIP_IsXnack.hpp>
+
+#include <impl/Kokkos_CheckUsage.hpp>
+#include <impl/Kokkos_DeviceManagement.hpp>
+#include <impl/Kokkos_ExecSpaceManager.hpp>
+
+#include <hip/hip_runtime_api.h>
+
+#include <iostream>
+
+namespace {
+
+struct {
+  void operator()(Kokkos::Impl::HIPInternal* ptr) const {
+    hipStream_t stream = ptr->m_stream;
+    delete ptr;
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamDestroy(stream));
+  }
+} customDeleterManagesStream;
+
+}  // namespace
+
+namespace Kokkos {
+
+int HIP::concurrency() const { return Impl::HIPInternal::concurrency(); }
+
+void HIP::impl_initialize(InitializationSettings const& settings) {
+  const std::vector<int>& visible_devices = Impl::get_visible_devices();
+  const int hip_device_id =
+      Impl::get_gpu(settings).value_or(visible_devices[0]);
+
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      hipGetDeviceProperties(&Impl::HIPInternal::m_deviceProp, hip_device_id));
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(hip_device_id));
+
+  // Check that we are running on the expected architecture. We print a warning
+  // instead of erroring out because AMD does not guarantee that gcnArchName
+  // will always contain the gfx flag.
+  if (Kokkos::show_warnings()) {
+    if (std::string_view arch_name =
+            Impl::HIPInternal::m_deviceProp.gcnArchName;
+        arch_name.find(KOKKOS_ARCH_AMD_GPU) != 0) {
+      std::cerr
+          << "Kokkos::HIP::initialize WARNING: running kernels compiled for "
+          << KOKKOS_ARCH_AMD_GPU << " on " << arch_name << " device.\n";
+    }
+  }
+
+  // Print a warning if the user did not select the right GFX942 architecture
+#ifdef KOKKOS_ARCH_AMD_GFX942
+  if ((Kokkos::show_warnings()) &&
+      (Impl::HIPInternal::m_deviceProp.integrated == 1)) {
+    std::cerr << "Kokkos::HIP::initialize WARNING: running kernels for MI300X "
+                 "(discrete GPU) on a MI300A (APU).\n";
+  }
+#endif
+#ifdef KOKKOS_ARCH_AMD_GFX942_APU
+  if (!Kokkos::Impl::xnack_environment_enabled()) {
+    std::cerr << R"warning(
+Kokkos::HIP::initialize WARNING: Could not determine that xnack is enabled.
+                                 Kokkos requires xnack to be enabled for
+                                 ARCH_AMD_GFX942_APU (MI300A) to access host
+                                 allocations from the device. Set HSA_XNACK=1
+                                 in your environment. For further information
+                                 on HMM support call `Kokkos::print_configuration`,
+                                 or run with KOKKOS_PRINT_CONFIGURATION=1 in your
+                                 environment.
+)warning";
+  }
+
+  if ((Kokkos::show_warnings()) &&
+      (Impl::HIPInternal::m_deviceProp.integrated == 0)) {
+    std::cerr << "Kokkos::HIP::initialize WARNING: running kernels for MI300A "
+                 "(APU) on a MI300X (discrete GPU).\n";
+  }
+#endif
+
+  // theoretically on GFX 9XX GPUs, we can get 40 WF's / CU, but only can
+  // sustain 32 see
+  // https://github.com/ROCm/clr/blob/4d0b815d06751735e6a50fa46e913fdf85f751f0/hipamd/src/hip_platform.cpp#L362-L366
+  const int maxWavesPerCU =
+      Impl::HIPInternal::m_deviceProp.major <= 9 ? 32 : 64;
+  Impl::HIPInternal::m_maxThreadsPerSM =
+      maxWavesPerCU * Impl::HIPTraits::WarpSize;
+
+  // Init the array for used for arbitrarily sized atomics
+  desul::Impl::init_lock_arrays();  // FIXME
+
+  // Create the default instance.
+  hipStream_t stream;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipStreamCreate(&stream));
+  Impl::HIPInternal::default_instance = Impl::HostSharedPtr(
+      new Impl::HIPInternal(stream), customDeleterManagesStream);
+}
+
+void HIP::impl_finalize() {
+  (void)Impl::hip_global_unique_token_locks(true);
+
+  desul::Impl::finalize_lock_arrays();  // FIXME
+
+  // TODO C++20 Use std::views::values.
+  for (const auto [_, ptr] : Impl::HIPInternal::constantMemHostStaging) {
+    KOKKOS_IMPL_HIP_SAFE_CALL(hipHostFree(ptr));
+  }
+
+  // TODO C++20 Use std::views::values.
+  for (auto& [_, lock] : Impl::HIPInternal::constantMemReusable) {
+    lock.finalize();
+  }
+
+  // Destroy the default instance.
+  Impl::HIPInternal::default_instance = nullptr;
+}
+
+HIP::~HIP() { Impl::check_execution_space_destructor_precondition(name()); }
+
+HIP::HIP()
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           Impl::HIPInternal::default_instance)) {}
+
+HIP::HIP(hipStream_t const stream, Impl::ManageStream manage_stream)
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           static_cast<bool>(manage_stream)
+               ? Impl::HostSharedPtr(new Impl::HIPInternal(stream),
+                                     customDeleterManagesStream)
+               : Impl::HostSharedPtr(new Impl::HIPInternal(stream)))) {}
+
+void HIP::print_configuration(std::ostream& os, bool /*verbose*/) const {
+  os << "Device Execution Space:\n";
+  os << "  KOKKOS_ENABLE_HIP: yes\n";
+
+  os << "HIP Options:\n";
+  os << "  KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE: ";
+#ifdef KOKKOS_ENABLE_HIP_RELOCATABLE_DEVICE_CODE
+  os << "yes\n";
+#else
+  os << "no\n";
+#endif
+
+  os << "\nRuntime Configuration:\n";
+  os << "  XNACK environment variable set: ";
+  os << (Kokkos::Impl::xnack_environment_enabled() ? "yes\n" : "no\n");
+  os << "  Kernel reports HMM module via `CONFIG_HMM_MIRROR=y` in "
+        "`/boot/config`: ";
+  os << (Kokkos::Impl::xnack_boot_config_has_hmm_mirror() ? "yes\n" : "no\n");
+
+  m_space_instance->print_configuration(os);
+}
+
+uint32_t HIP::impl_instance_id() const noexcept {
+  return m_space_instance->impl_get_instance_id();
+}
+void HIP::impl_static_fence(const std::string& name) {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<HIP>(
+      name,
+      Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+          GlobalDeviceSynchronization,
+      [&]() {
+        for (const auto hip_device : Impl::HIPInternal::hip_devices) {
+          KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(hip_device));
+          KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize());
+        }
+      });
+}
+
+void HIP::fence(const std::string& name) const {
+  m_space_instance->fence(name);
+}
+
+hipStream_t HIP::hip_stream() const { return m_space_instance->m_stream; }
+
+int HIP::hip_device() const { return impl_internal_space_instance()->m_hipDev; }
+
+hipDeviceProp_t const& HIP::hip_device_prop() {
+  return Impl::HIPInternal::default_instance->m_deviceProp;
+}
+
+const char* HIP::name() { return "HIP"; }
+
+namespace Impl {
+
+int g_hip_space_factory_initialized = initialize_space_factory<HIP>("150_HIP");
+
+}  // namespace Impl
+
+}  // namespace Kokkos

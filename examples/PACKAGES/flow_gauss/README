@@ -1,0 +1,45 @@
+The input script in.GD is an example simulation using Gaussian dynamics (GD).
+The simulation is of a simple 2d Lennard-Jones fluid flowing through a pipe.
+For details see online LAMMPS documentation and
+Strong and Eaves, J. Phys. Chem. Lett. 7(10) 2016, p. 1907.
+
+Note that the run times and box size are chosen to allow a fast example run.
+They are not adequate for a real simulation.
+
+The script has the following parts:
+1) initialize variables
+    These can be modified to customize the simulation. Note that if the
+    pipe dimensions L or d are changed, the geometry should be checked
+    by visualizing the coordinates in all.init.lammpstrj.
+
+2) create box
+
+3) set up potential
+
+4) create atoms
+
+5) set up profile-unbiased thermostat (PUT)
+    see Evans and Morriss, Phys. Rev. Lett. 56(20) 1986, p. 2172
+    By default, this uses boxes which contain on average 8 molecules.
+
+6) equilibrate without GD
+
+7) initialize the center-of-mass velocity and run to achieve steady-state
+    The system is initialized with a uniform velocity profile, which
+    relaxes over the course of the simulation.
+
+8) collect data
+    The data is output in several files:
+    GD.out contains the force that GD applies, and the flux in the x- and
+        y- directions. The output Jx should be equal to the value of
+        J set in section 1, which is 0.1 by default.
+    x_profiles contains the velocity, density, and pressure profiles in
+        the x-direction. The pressure profile is given by
+        (-1/2V)*(c_spa[1] + c_spa[2]), where V is the volume of a
+        slice. The pressure profile is computed with IK1, see
+        Todd, Evans, and Davis, Phys. Rev. E 52(2) 1995, p. 1627.
+        Note that to compare with the pump method, or to
+        compute a pressure drop, you must correct this pressure
+        profile as described in Strong 2016 above.
+    Vy_profile is the velocity profile inside the pipe along the
+        y-direction, u_x(y).

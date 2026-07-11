@@ -1,0 +1,45 @@
+# Initialization
+units           metal
+boundary        p p p
+atom_style      atomic
+processors      * * 1     # domain decomposition over x and y
+
+# System and atom definition
+# we use 2 atom types so that inter- and intra-layer
+# interactions can be specified separately
+read_data       data.bilayer-graphene # read lammps data file
+mass            1 12.0107   # carbon mass (g/mole) | membrane
+mass            2 12.0107   # carbon mass (g/mole) | adsorbate
+# Neighbor update settings
+neighbor        2.0 bin
+neigh_modify    every 1
+neigh_modify    delay 0
+neigh_modify    check yes
+# Separate atom groups
+group membrane  type 1
+group adsorbant type 2
+
+######################## Potential defition ########################
+pair_style  hybrid/overlay  rebo  kolmogorov/crespi/z 14.0
+####################################################################
+pair_coeff * * rebo                 CH.rebo  C C  # chemical
+pair_coeff 1 2 kolmogorov/crespi/z  CC.KC      C C  # long-range
+####################################################################
+
+#### Simulation settings ####
+timestep  0.0001
+velocity  all create 300.0 12345
+fix       thermostat all nve
+compute   COM1 membrane  com
+compute   COM2 adsorbant com
+############################
+
+# Output
+#dump            1 all xyz 100 trajec.xyz
+#dump_modify     1 format line "%s %12.6f %12.6f %12.6f" element "C" "C"
+thermo          10
+thermo_style    custom step time etotal pe temp c_COM1[3] c_COM2[3] # spcpu
+thermo_modify   line one format float %14.8f
+
+###### Run molecular dynamics ######
+run 1000

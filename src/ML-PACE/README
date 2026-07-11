@@ -1,0 +1,19 @@
+The ML-PACE package provides the pace pair style,
+an efficient implementation of the Atomic Cluster Expansion
+potential (ACE).
+
+ACE is a methodology for deriving a highly accurate classical
+potential fit to a large archive of quantum mechanical (DFT) data.
+This package was written by Yury Lysogorskiy and others
+at ICAMS, the Interdisciplinary Centre for Advanced Materials Simulation,
+Ruhr University Bochum, Germany (http://www.icams.de).
+
+This package requires a library that can be downloaded and built
+separately or while building LAMMPS with CMake. See the LAMMPS manual
+more information on building LAMMPS with external libraries
+using CMake.
+
+More information about the ML-PACE implementation of ACE
+is available here:
+
+https://github.com/ICAMS/lammps-user-pace

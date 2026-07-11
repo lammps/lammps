@@ -1,0 +1,141 @@
+#===========================================================================#
+# single particle drag tests                                                #
+#                                                                           #
+# Run consists of a colloidal particle being dragged with a constant force  #
+# through an LB-fluid.  The colloidal particle could be single atom or      #
+# be a composite particle.  Composite particles could be bonded or just     #
+# rigidly constrained to stay together. You can set flags in the script to  #
+# change these.                                                             #
+#                                                                           #
+# Sample output from this run can be found in the files with "log."         #
+# located in the same directory.     	      	                            # 
+#===========================================================================#
+
+units          nano
+dimension      3
+boundary       p p f
+atom_style     molecular
+
+region mydomain block -24.0 24.0 -24.0 24.0 -24.0 24.0
+
+#----------------------------------------------------------------------------
+# Set up particles with n_nodes and decide if bonded or rigid
+#----------------------------------------------------------------------------
+variable n_nodes equal 4     # 1, 4, 6 are options with definitions below
+variable is_bonded equal 0   # 0 or 1 (1 only if n_nodes > 1,
+                             #    bond parameters set for n_node = 4 case)
+variable stpts equal 3       # 2, 3, 4 number of stencil points in any direction.
+
+variable tstep equal 0.00025
+
+if "${is_bonded} == 1" then &
+   "create_box 1 mydomain bond/types 1 extra/bond/per/atom 6" &
+else &
+   "create_box 1 mydomain"
+
+if "${n_nodes} == 1" then &
+      "create_atoms 1 single 0.0 0.0 0.0" &
+elif "${n_nodes} == 4" &
+      "create_atoms 1 single 0.0 0.0 0.204124" &
+      "create_atoms 1 single -0.096225 -0.166667 -0.0680414" &
+      "create_atoms 1 single -0.096225 0.166667 -0.0680414" &
+      "create_atoms 1 single 0.19245 0. -0.0680414" &
+elif "${n_nodes} == 6" &
+      "create_atoms 1 single 0.204124  0.0000000  0.0000000"  &
+      "create_atoms 1 single -0.204124  0.0000000  0.0000000" &
+      "create_atoms 1 single 0.0000000  0.204124  0.0000000"  &
+      "create_atoms 1 single 0.0000000  -0.204124  0.0000000" &
+      "create_atoms 1 single 0.0000000  0.0000000  0.204124"  &
+      "create_atoms 1 single 0.0000000  0.0000000  -0.204124"
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing   
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid. 
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and 
+#   the simulation is terminated.                                 
+#---------------------------------------------------------------------------- 
+neighbor 0.3 bin
+neigh_modify delay 0 every 1 check yes
+
+comm_modify cutoff 2.5       # cutoff for communcation shoud be at least 2 dx
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interactions between particles & create bonds
+#----------------------------------------------------------------------------
+pair_style	lj/cut 5.88
+pair_coeff	* * 0.0 0.0 5.88
+
+variable total_mass equal 0.002398       # particle mass
+variable node_mass equal "v_total_mass / v_n_nodes"
+mass * ${node_mass}
+
+if "${is_bonded} == 1" then &
+   "bond_style harmonic" &
+   "bond_coeff 1 1.0 0.333333333" &
+   "create_bonds many all all 1 0.3 0.35"
+
+#velocity all set 0.02 0.0 0.0       
+
+#----------------------------------------------------------------------------
+# Define external forces (SHOULD COME BEFORE lb/fluid and lb/viscous FIXes) 
+# to drag particles through the fluid.
+#----------------------------------------------------------------------------
+variable total_force equal 1.0        # total external force on the particle
+variable node_force equal "v_total_force / v_n_nodes"
+variable oscillateY equal cos(step*0.0005)/(-0.03+400*v_tstep)/v_n_nodes
+variable oscillateZ equal cos(step*0.0003)/(-0.03+400*v_tstep)/v_n_nodes
+fix drag all addforce ${node_force} v_oscillateY v_oscillateZ
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particle (group all here)
+#   (however, this fix does not explicity apply a force back on to these 
+#    particles...this is accomplished through the use of the lb/viscous fix).
+# Use a fluid viscosity = 1.0, fluid density= 0.0009982071,(i.e. water) and
+# lattice spacing dx=1.2.
+# Different ".log" files in this directory show the output with the stencil
+# option being stencil 2, stencil 3, and stencil 4 (triliner, IBM, Key's).
+#----------------------------------------------------------------------------
+timestep ${tstep}
+fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2
+#dumpxdmf 1000 fflow
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their 
+#   motion, constraining them to move and rotate together as a single rigid 
+#   spherical object or an elastically bonded object 
+#----------------------------------------------------------------------------
+fix   2 all lb/viscous
+
+if "${n_nodes} == 1 || ${is_bonded} == 1" then &
+   "fix   3 all nve" &
+else & 
+   "fix   3 all rigid group 1 all" 
+
+#----------------------------------------------------------------------------
+# Create variables containing the positions/velocity of the colloids center 
+#   of mass.
+#----------------------------------------------------------------------------
+variable cmx equal xcm(all,x)
+variable cmy equal xcm(all,y)
+variable cmz equal xcm(all,z)
+
+variable vcmx equal vcm(all,x)
+variable vcmy equal vcm(all,y)
+variable vcmz equal vcm(all,z)
+
+if "${is_bonded} == 1" then &
+   "variable comdatafile string drag_nb${n_nodes}_st${stpts}_dt${tstep}.out" &
+else &
+   "variable comdatafile string drag_n${n_nodes}_st${stpts}_dt${tstep}.out" 
+
+#fix printCM all print 100 "$(step) ${cmx} ${cmy} ${cmz} ${vcmx} ${vcmy} ${vcmz}" file ${comdatafile} screen no
+
+run    10000
+#run   100000
+

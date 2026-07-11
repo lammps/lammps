@@ -1,0 +1,315 @@
+.. index:: compute property/atom
+
+compute property/atom command
+=============================
+
+Syntax
+""""""
+
+.. code-block:: LAMMPS
+
+   compute ID group-ID property/atom input1 input2 ...
+
+* ID, group-ID are documented in :doc:`compute <compute>` command
+* property/atom = style name of this compute command
+* input = one or more atom attributes
+
+  .. parsed-literal::
+
+       possible attributes = id, mol, proc, type, mass,
+                             x, y, z, xs, ys, zs, xu, yu, zu, ix, iy, iz,
+                             vx, vy, vz, fx, fy, fz,
+                             q, mux, muy, muz, mu,
+                             spx, spy, spz, sp, fmx, fmy, fmz,
+                             nbonds,
+                             radius, diameter, omegax, omegay, omegaz,
+                             temperature, heatflow,
+                             angmomx, angmomy, angmomz,
+                             shapex, shapey, shapez,
+                             block1, block2,
+                             inertiax, inertiay, inertiaz,
+                             quatw, quati, quatj, quatk, tqx, tqy, tqz,
+                             end1x, end1y, end1z, end2x, end2y, end2z,
+                             corner1x, corner1y, corner1z,
+                             corner2x, corner2y, corner2z,
+                             corner3x, corner3y, corner3z,
+                             i_name, d_name, i2_name[I], d2_name[I],
+              history[I][J],
+                             vfrac, s0, espin, eradius, ervel, erforce,
+                             rho, drho, e, de, cv, buckling,
+                             apip_lambda, apip_lambda_input, apip_e_fast,
+                             apip_e_precise, apip_la_inp, apip_la_avg,
+                             apip_la_norm
+
+  .. parsed-literal::
+
+           *id* = atom ID
+           *mol* = molecule ID
+           *proc* = ID of processor that owns atom
+           *type* = atom type
+           *mass* = atom mass
+           *x,y,z* = unscaled atom coordinates
+           *xs,ys,zs* = scaled atom coordinates
+           *xu,yu,zu* = unwrapped atom coordinates
+           *ix,iy,iz* = box image that the atom is in
+           *vx,vy,vz* = atom velocities
+           *fx,fy,fz* = forces on atoms
+           *q* = atom charge
+           *mux,muy,muz* = orientation of dipole moment of atom
+           *mu* = magnitude of dipole moment of atom
+           *spx, spy, spz* = direction of the atomic magnetic spin
+           *sp* = magintude of atomic magnetic spin moment
+           *fmx, fmy, fmz* = magnetic force
+           *nbonds* = number of bonds assigned to an atom
+           *radius,diameter* = radius,diameter of spherical particle
+           *omegax,omegay,omegaz* = angular velocity of spherical particle
+           *temperature* = internal temperature of spherical particle
+           *heatflow* = internal heat flow of spherical particle
+           *angmomx,angmomy,angmomz* = angular momentum of aspherical particle
+           *shapex,shapey,shapez* = 3 diameters of aspherical particle
+           *block1,block2* = 2 blockiness exponents of aspherical (superellipsoid) particle
+           *inertiax,inertiay,inertiaz* = 3 principal moments of inertia of aspherical (superellipsoid) particle
+           *quatw,quati,quatj,quatk* = quaternion components for aspherical or body particles
+           *tqx,tqy,tqz* = torque on finite-size particles
+           *end12x, end12y, end12z* = end points of line segment
+           *corner123x, corner123y, corner123z* = corner points of triangle
+           *i_name* = custom integer vector with name
+           *d_name* = custom floating point vector with name
+           *i2_name[I]* = Ith column of custom integer array with name
+           *d2_name[I]* = Ith column of custom floating-point array with name
+           *history[I][J]* = Ith most recent history frame (1 to Nrepeat) for Jth attribute (1 to Nattribute)
+
+  .. parsed-literal::
+
+           APIP package per-atom properties:
+           *apip_lambda* = switching parameter
+           *apip_lambda_input* = input used to calculate the switching parameter
+           *apip_e_fast,apip_e_precise* = potential energies mixed by the adaptive-precision potential
+           *apip_la_inp* = input used for the local averaging of the descriptor
+           *apip_la_norm* = locally averaged radial weighting function used for normalization
+           *apip_la_avg* = locally averaged descriptor used to calculate the switching parameter
+
+  .. parsed-literal::
+
+           PERI package per-atom properties:
+           vfrac = volume fraction
+           s0 = critical bond stretch (bond-breaking threshold) of a particle
+
+  .. parsed-literal::
+
+           EFF package per-atom properties:
+           espin = electron spin
+           eradius = electron radius
+           ervel = electron radial velocity
+           erforce = electron radial force
+
+  .. parsed-literal::
+
+           SPH package per-atom properties:
+           rho = density of SPH particles
+           drho = change in density
+           e = energy
+           de = change in thermal energy
+           cv = heat capacity
+
+  .. parsed-literal::
+
+           APIP package per-atom properties:
+           *apip_lambda* = switching parameter
+           *apip_lambda_input* = input used to calculate the switching parameter
+           *apip_e_fast,apip_e_precise* = potential energies mixed by the adaptive-precision potential
+
+* zero or more keyword/arg pairs may be appended
+* keyword = *history*
+
+  .. parsed-literal::
+       *history* arg = fixID
+         fixID = ID of a :doc:`fix store/state <fix_store_state>` command with history enabled
+
+Examples
+""""""""
+
+.. code-block:: LAMMPS
+
+   compute 1 all property/atom xs vx fx mux
+   compute 2 all property/atom type
+   compute 1 all property/atom ix iy iz
+   compute 3 all property/atom sp spx spy spz
+   compute 1 all property/atom i_myFlag d_Sxyz[1] d_Sxyz[3]
+
+Description
+"""""""""""
+
+Define a computation that simply stores atom attributes for each atom
+in the group.  This is useful so that the values can be used by other
+:doc:`output commands <Howto_output>` that take computes as inputs.
+See for example, the :doc:`compute reduce <compute_reduce>`, :doc:`fix
+ave/atom <fix_ave_atom>`, :doc:`fix ave/histo <fix_ave_histo>`,
+:doc:`fix ave/chunk <fix_ave_chunk>`, and :doc:`atom-style variable
+<variable>` commands.
+
+The list of possible attributes is essentially the same as that used
+by the :doc:`dump custom <dump>` command, which describes their
+meaning, with some additional quantities that are only defined for
+certain :doc:`atom styles <atom_style>`.  The goal of this augmented
+list gives an input script access to any per-atom quantity stored by
+LAMMPS.
+
+The values are stored in a per-atom vector or array as discussed
+below.  Zeroes are stored for atoms not in the specified group or for
+quantities that are not defined for a particular particle in the group
+(e.g., *shapex* if the particle is not an ellipsoid).
+
+Attributes *i_name*, *d_name*, *i2_name*, *d2_name* refer to custom
+per-atom integer and floating-point vectors or arrays that have been
+added via the :doc:`fix property/atom <fix_property_atom>` command.
+When that command is used specific names are given to each attribute
+which are the "name" portion of these attributes.  For arrays
+*i2_name* and *d2_name*, the column of the array must also be included
+following the name in brackets (e.g., d2_xyz[2] or i2_mySpin[3]).
+
+Attribute *history* refers to per-atom history values stored by the
+:doc:`fix store/state <fix_store_state>` command using its history
+keyword.  If this attribute is used, the optional *history* keyword
+must also be used to specify the *fixID* of the fix store/state
+command.
+
+The associated :doc:`fix store/state <fix_store_state>` command
+specifies *Nattribute* per-atom attributes, and its history keyword
+specifies *Nrepeat* and *Nfreq*.  *Nfreq* determines which timesteps
+the history can be accessed, which must be compatible with each
+timestep this compute is invoked.  *Nrepeat* sets the count of how
+many history values are stored for each attribute.  The first *I*
+index of attribute *history[I][J]* must be a value from 1 to
+*Nrepeat*, where 1 is the most recent history and *Nrepeat* is the
+oldest history.  If this compute is invoked before all *Nrepeat*
+history values have been stored (e.g. early in a run), then zeroes
+will be stored by this compute for not-yet-available history.  The
+second *J* index of attribute *history[I][J]* must be a value from 1
+to *Nattribute* for the per-atom attribute to access.  See the
+:doc:`fix store/state <fix_store_state>` doc page for more details.
+
+The additional per-atom attributes only accessible via this command,
+and not directly via the :doc:`dump custom <dump>` command, are as
+follows.
+
+*Nbonds* is available for all molecular atom styles and refers to the
+number of explicit bonds assigned to an atom.  Note that if the
+:doc:`newton bond <newton>` command is set to *on*\ , which is the
+default, then every bond in the system is assigned to only one of the
+two atoms in the bond.  Thus a bond between atoms :math:`I` and :math:`J` may
+be tallied for either atom :math:`I` or atom :math:`J`.
+If :doc:`newton bond off <newton>` is set, it will be tallied with both atom
+:math:`I` and atom :math:`J`.
+
+The quantities *shapex*, *shapey*, and *shapez* are defined for ellipsoidal
+particles and define the 3d shape of each particle.
+
+.. versionadded:: 30Mar2026
+
+The quantities *block1*, and *block2*, are defined for superellipsoidal
+particles and define the blockiness of each superellipsoid particle.
+See the :doc:`set <set>` command for an explanation of the blockiness.
+
+.. versionadded:: 30Mar2026
+
+The quantities *inertiax*, *inertiay*, and *inertiaz* are defined for
+superellipsoidal particles and define the 3 principal moments of inertia
+of each particle.  These are with respect to the particle's center of
+mass and in a reference system aligned with the particle's principal
+axes.
+
+The quantities *quatw*, *quati*, *quatj*, and *quatk* are defined for
+ellipsoidal particles and body particles and store the 4-vector quaternion
+representing the orientation of each particle.  See the :doc:`set <set>`
+command for an explanation of the quaternion vector.
+
+*End1x*, *end1y*, *end1z*, *end2x*, *end2y*, *end2z*, are defined for line
+segment particles and define the end points of each line segment.
+
+*Corner1x*, *corner1y*, *corner1z*, *corner2x*, *corner2y*,
+*corner2z*, *corner3x*, *corner3y*, *corner3z*, are defined for
+triangular particles and define the corner points of each triangle.
+
+The accessible quantities from the :doc:`APIP package <Howto_apip>`
+are explained in the doc pages of this package in detail.  In short:
+*apip_lambda* is the switching parameter :math:`\lambda\in[0,1]`.  The
+switching parameter can be calculated from *apip_lambda_input* and
+mixes the energies of a fast (*apip_e_fast*) and a precise
+(*apip_e_precise*) potential into an adaptive-precision energy.
+
+.. versionchanged:: 4Jul2026
+
+Alternatively, the switching parameter can be calculated from a
+locally averaged descriptor (*apip_la_avg*) to obtain a conservative
+potential.  The descriptor is calculated from an atomic property
+(*apip_la_inp*) and normalized with a locally averaged weighting
+function (*apip_la_norm*).
+
+.. note::
+
+   The energy according to the fast and the precise potential are only
+   computed for the subset of atoms, for which it is required, i.e.,
+   for an atom :math:`i` with :math:`\lambda_i=1` one does not need
+   :math:`E_i^\text{precise}` and with :math:`\lambda_i=0` one does
+   not need :math:`E_i^\text{fast}`.
+
+In addition, the various per-atom quantities listed above for specific
+packages are only accessible by this command.
+
+.. versionchanged:: 15Sep2022
+
+  The *espin* property was previously called *spin*.
+
+The accessible quantities from the :doc:`APIP package <Howto_apip>`
+are explained in detail in the doc pages for this package's commands.
+In short: *apip_lambda* is the switching parameter
+:math:`\lambda\in[0,1]`, that is calculated from *apip_lambda_input*
+and that mixes the energies of a fast (*apip_e_fast*) and a precise
+(*apip_e_precise*) potential into an adaptive-precision energy.
+
+.. note::
+
+   The energy according to the fast and the precise potential are only
+   computed for the subset of atoms for which it is required.  I.e.,
+   for an atom :math:`i` with :math:`\lambda_i=1`,
+   :math:`E_i^\text{precise}` is not needed.  And with
+   :math:`\lambda_i=0`, :math:`E_i^\text{fast}`. is not needed.
+
+Output info
+"""""""""""
+
+This compute calculates a per-atom vector or per-atom array depending
+on the number of input values.  If a single input is specified, a
+per-atom vector is produced.  If two or more inputs are specified, a
+per-atom array is produced where the number of columns = the number of
+inputs.  The vector or array can be accessed by any command that uses
+per-atom values from a compute as input.  See the :doc:`Howto output
+<Howto_output>` page for an overview of LAMMPS output options.
+
+The vector or array values will be in whatever :doc:`units <units>` the
+corresponding attribute is in (e.g., velocity units for *vx*, charge
+units for *q*).
+
+For the spin quantities, *sp* is in the units of the Bohr magneton;
+*spx*, *spy*, and *spz* are unitless quantities; and *fmx*, *fmy*, and
+*fmz* are given in rad/THz.
+
+Restrictions
+""""""""""""
+none
+
+Related commands
+""""""""""""""""
+
+:doc:`dump custom <dump>`,
+:doc:`compute reduce <compute_reduce>`,
+:doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`fix ave/chunk <fix_ave_chunk>`,
+:doc:`fix property/atom <fix_property_atom>`,
+:doc:`fix store/state <fix_store_state>`
+
+Default
+"""""""
+
+none

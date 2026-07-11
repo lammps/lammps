@@ -1,0 +1,33 @@
+Run these examples as:
+
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop1
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop2
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.neb.hop1.end
+mpirun -np 3 lmp_g++ -partition 3x1 -in in.neb.sivac
+
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop2
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.hop1.end
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.neb.sivac
+
+Note that more than 4 replicas should be used for a precise estimate 
+of the activation energy corresponding to a transition.
+
+If you uncomment the dump command lines in the input scripts, you can
+create dump files to do visualization from via Python tools: (see
+lammps/tools/README and lammps/tools/python/README for more info on
+these Python scripts)
+
+python ~/lammps/tools/python/neb_combine.py -o dump.hop1.combine
+					    -b dump.nonneb.1 
+					    -r dump.neb.*
+python ~/lammps/tools/python/neb_final.py -o dump.hop1.final 
+					  -b dump.nonneb.1	
+					  -r dump.neb.*
+
+produces:
+
+dump.hop1.combine = series of snapshots for all replicas together
+		    time = progression of NEB calculation
+dump.hop1.final = series of snapshots for final state of all replicas
+		  time = replica #

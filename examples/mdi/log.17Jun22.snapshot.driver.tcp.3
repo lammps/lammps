@@ -1,0 +1,105 @@
+LAMMPS (2 Jun 2022)
+# 3d Lennard-Jones melt - MDI driver script
+
+units		lj
+atom_style	atomic
+
+read_data       data.snapshot
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.397981 8.397981 8.397981)
+  1 by 1 by 3 MPI processor grid
+  reading atoms ...
+  500 atoms
+  reading velocities ...
+  500 velocities
+  read_data CPU = 0.005 seconds
+
+velocity	all create 1.44 87287 loop geom
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 all nve
+
+fix             2 all mdi/qm add no every 100 virial yes
+
+compute         1 all pressure NULL virial
+variable        evirial equal (f_2[1]+f_2[2]+f_2[3])/3
+
+thermo_style    custom step temp pe c_1 c_1[1] c_1[2] c_1[3]
+
+thermo          100
+
+dump            1 all custom 100 dump.snapshot.driver                 id type x y z f_2[1] f_2[2] f_2[3]
+dump_modify     1 sort id
+
+run             300 pre no post no every 100                 "print 'QM eng = $(f_2/atoms)'"                 "print 'QM virial = $(v_evirial) $(f_2[1]) $(f_2[2]) $(f_2[3])'"
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.417 | 4.422 | 4.425 Mbytes
+   Step          Temp          PotEng          c_1           c_1[1]         c_1[2]         c_1[3]    
+         0   1.44          -6.7733681     -6.2353173     -6.2353173     -6.2353173     -6.2353173    
+       100   0.75627629    -5.7579933     -0.4184022     -0.48020229    -0.33571704    -0.43928726   
+Loop time of 0.271725 on 3 procs for 100 steps with 500 atoms
+
+print 'QM eng = $(f_2/atoms)'
+QM eng = -5.7579933325734558025
+print 'QM virial = $(v_evirial) $(f_2[1]) $(f_2[2]) $(f_2[3])'
+QM virial = -0.41840219542566797761 -0.4802022860820577832 -0.33571704057970208623 -0.43928725961524273114
+   Step          Temp          PotEng          c_1           c_1[1]         c_1[2]         c_1[3]    
+       100   0.75627629    -5.7579933     -0.4184022     -0.48020229    -0.33571704    -0.43928726   
+       200   0.75199164    -5.752864      -0.40524506    -0.51524578    -0.27940441    -0.42108499   
+Loop time of 0.275711 on 3 procs for 100 steps with 500 atoms
+
+print 'QM eng = $(f_2/atoms)'
+QM eng = -5.752864010326673494
+print 'QM virial = $(v_evirial) $(f_2[1]) $(f_2[2]) $(f_2[3])'
+QM virial = -0.40524505957305401171 -0.51524577748319133619 -0.27940441114042008364 -0.4210849900955495051
+   Step          Temp          PotEng          c_1           c_1[1]         c_1[2]         c_1[3]    
+       200   0.75199164    -5.752864      -0.40524506    -0.51524578    -0.27940441    -0.42108499   
+       300   0.75219392    -5.7527975     -0.41843911    -0.24280603    -0.42189159    -0.59061972   
+Loop time of 0.27674 on 3 procs for 100 steps with 500 atoms
+
+Performance: 156103.145 tau/day, 361.350 timesteps/s
+71.1% CPU use with 3 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0086137  | 0.01236    | 0.019756   |   4.7 |  4.47
+Neigh   | 0.003253   | 0.0047355  | 0.0075676  |   2.9 |  1.71
+Comm    | 0.0065383  | 0.016521   | 0.021738   |   5.5 |  5.97
+Output  | 0.0011823  | 0.0011972  | 0.0012111  |   0.0 |  0.43
+Modify  | 0.24066    | 0.24076    | 0.24093    |   0.0 | 87.00
+Other   |            | 0.001171   |            |       |  0.42
+
+Nlocal:        166.667 ave         175 max         157 min
+Histogram: 1 0 0 0 0 0 1 0 0 1
+Nghost:        1254.33 ave        1264 max        1246 min
+Histogram: 1 0 0 1 0 0 0 0 0 1
+Neighs:           6248 ave        6632 max        5774 min
+Histogram: 1 0 0 0 0 0 1 0 0 1
+
+Total # of neighbors = 18744
+Ave neighs/atom = 37.488
+Neighbor list builds = 31
+Dangerous builds = 0
+print 'QM eng = $(f_2/atoms)'
+QM eng = -5.752797469732716884
+print 'QM virial = $(v_evirial) $(f_2[1]) $(f_2[2]) $(f_2[3])'
+QM virial = -0.41843911315521897798 -0.24280603320323970729 -0.42189158691169792448 -0.590619719350719663
+Total wall time: 0:00:01

@@ -1,0 +1,57 @@
+# 2d rounded polygon bodies
+
+variable    r     index 4
+variable    steps index 100000
+variable    T     index 0.5
+variable    P     index 0.1
+variable    seed  index 980411
+
+units       lj
+dimension   2
+
+atom_style  body rounded/polygon 1 6
+atom_modify map array
+read_data   data.squares
+
+replicate   $r $r 1
+
+velocity    all create $T ${seed} dist gaussian mom yes rot yes
+
+change_box  all boundary p f p
+
+variable cut_inner  equal 0.5
+variable k_n        equal 100
+variable k_na       equal 2
+variable c_n        equal 0.1
+variable c_t        equal 0.1
+variable mu         equal 0.1
+variable delta_ua   equal 0.5
+
+pair_style body/rounded/polygon ${c_n} ${c_t} ${mu} ${delta_ua} ${cut_inner}
+pair_coeff * * ${k_n} ${k_na}
+
+comm_modify vel yes
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.001
+
+#fix         1 all nve/body
+#fix         1 all nvt/body temp $T $T 1.0
+fix          1 all npt/body temp $T $T 1.0 x 0.001 $P 1.0 fixedpoint 0 0 0
+
+fix          2 all enforce2d
+fix          3 all wall/body/polygon 2000 50 50 yplane 0.0 48.0
+
+#compute      1 all body/local id 1 2 3
+#dump         1 all local 100000 dump.polygon.* index c_1[1] c_1[2] c_1[3] c_1[4]
+
+thermo_style custom step ke pe etotal press
+thermo       1000
+
+#dump	     2 all image 10000 image.*.jpg type type zoom 2.0 &
+#             adiam 1.5 body type 0 0
+#dump_modify  2 pad 6
+
+run          ${steps}

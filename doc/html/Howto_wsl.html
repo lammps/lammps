@@ -1,0 +1,461 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.6.6. Using LAMMPS on Windows 10 with WSL &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_wsl.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="11. Example scripts" href="Examples.html" />
+    <link rel="prev" title="10.6.5. LAMMPS Python Tutorial" href="Howto_python.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_cmake.html">10.6.1. Using CMake with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_github.html">10.6.2. LAMMPS GitHub tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_lammps_gui.html">10.6.3. Using LAMMPS-GUI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_moltemplate.html">10.6.4. Moltemplate Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_python.html">10.6.5. LAMMPS Python Tutorial</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.6.6. Using LAMMPS on Windows 10 with WSL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.6.6. </span>Using LAMMPS on Windows 10 with WSL</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_python.html" class="btn btn-neutral float-left" title="10.6.5. LAMMPS Python Tutorial" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Examples.html" class="btn btn-neutral float-right" title="11. Example scripts" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="using-lammps-on-windows-10-with-wsl">
+<h1><span class="section-number">10.6.6. </span>Using LAMMPS on Windows 10 with WSL<a class="headerlink" href="#using-lammps-on-windows-10-with-wsl" title="Link to this heading"></a></h1>
+<p><strong>written by Richard Berger</strong></p>
+<hr class="docutils" />
+<p>It’s always been tricky for us to have LAMMPS users and developers work on
+Windows. We primarily develop LAMMPS to run on Linux clusters. To teach
+LAMMPS in workshop settings, we had to redirect Windows users to
+Linux Virtual Machines such as VirtualBox or Unix-like compilation with
+Cygwin.</p>
+<p>With the latest updates in Windows 10 (Version 2004, Build 19041 or
+higher), Microsoft has added a new way to work on Linux-based code. The
+<a class="reference external" href="https://learn.microsoft.com/en-us/windows/wsl/">Windows Subsystem for Linux (WSL)</a>.  With WSL Version 2,
+you now get a Linux Virtual Machine that transparently integrates into
+Windows.  All you need is to ensure you have the latest Windows updates
+installed and enable this new feature.  Linux VMs are then easily
+installed using the Microsoft Store.</p>
+<p>In this tutorial, I’ll show you how to set up and compile LAMMPS for both serial
+and MPI usage in WSL2.</p>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<section id="upgrade-to-the-latest-windows-10">
+<h3>Upgrade to the latest Windows 10<a class="headerlink" href="#upgrade-to-the-latest-windows-10" title="Link to this heading"></a></h3>
+<p>Type “Updates” in Windows Start and select “Check for Updates”.</p>
+<a class="reference internal image-reference" href="_images/updates.png"><img alt="_images/updates.png" height="318" src="_images/updates.png" width="442" />
+</a>
+<p>Install all pending updates and reboot your system as many times as
+necessary. Continue until your Windows installation is updated.</p>
+<a class="reference internal image-reference" href="_images/windows_update.png"><img alt="_images/windows_update.png" height="467" src="_images/windows_update.png" width="601" />
+</a>
+<p>Verify your system has at least <strong>version 2004 and build 19041 or later</strong>. You
+can find this information by clicking on “OS build info”.</p>
+<a class="reference internal image-reference" href="_images/osinfo.png"><img alt="_images/osinfo.png" height="467" src="_images/osinfo.png" width="601" />
+</a>
+</section>
+<section id="enable-wsl">
+<h3>Enable WSL<a class="headerlink" href="#enable-wsl" title="Link to this heading"></a></h3>
+<p>Next, we must install two additional Windows features to enable WSL support.
+Open a PowerShell window as an administrator. Type “PowerShell” in Windows
+Start and select “Run as Administrator”.</p>
+<a class="reference internal image-reference" href="_images/powershell.png"><img alt="_images/powershell.png" height="316" src="_images/powershell.png" width="422" />
+</a>
+<p>Windows will ask you for administrator access. After you accept a new command
+line window will appear. Type in the following command to install WSL:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+</pre></div>
+</div>
+<img alt="_images/wsl_install1.png" src="_images/wsl_install1.png" />
+<p>Next, enable the VirtualMachinePlatform feature using the following command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+</pre></div>
+</div>
+<img alt="_images/wsl_install2.png" src="_images/wsl_install2.png" />
+<p>Finally, reboot your system.</p>
+</section>
+<section id="update-wsl-kernel-component">
+<h3>Update WSL kernel component<a class="headerlink" href="#update-wsl-kernel-component" title="Link to this heading"></a></h3>
+<p>Download and install the <a class="reference download external" download="" href="https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi"><code class="xref download docutils literal notranslate"><span class="pre">WSL</span> <span class="pre">Kernel</span> <span class="pre">Component</span> <span class="pre">Update</span></code></a>.
+Afterwards, reboot your system.</p>
+</section>
+<section id="set-wsl2-as-default">
+<h3>Set WSL2 as default<a class="headerlink" href="#set-wsl2-as-default" title="Link to this heading"></a></h3>
+<p>Again, open PowerShell as administrator and run the following command:</p>
+<div class="highlight-powershell notranslate"><div class="highlight"><pre><span></span><span class="n">wsl</span> <span class="p">-</span><span class="n">-set-default-version</span> <span class="n">2</span>
+</pre></div>
+</div>
+<p>This command ensures that all future Linux installations will use WSL version 2.</p>
+<img alt="_images/wsl_install3.png" src="_images/wsl_install3.png" />
+</section>
+<section id="install-a-linux-distribution">
+<h3>Install a Linux Distribution<a class="headerlink" href="#install-a-linux-distribution" title="Link to this heading"></a></h3>
+<p>Next, we need to install a Linux distribution via the Microsoft Store.
+Install <a class="reference external" href="ms-windows-store://pdp/?ProductId=9n6svws3rx71">Ubuntu 20.04 LTS</a>.
+Once installed, you can launch it like any other application from the Start
+Menu.</p>
+<a class="reference internal image-reference" href="_images/ubuntu_in_store.png"><img alt="_images/ubuntu_in_store.png" height="400" src="_images/ubuntu_in_store.png" width="572" />
+</a>
+<section id="initial-setup">
+<h4>Initial Setup<a class="headerlink" href="#initial-setup" title="Link to this heading"></a></h4>
+<p>The first time you launch the Ubuntu Linux console, it will prompt you for a
+UNIX username and password. You will need this password to perform <code class="code docutils literal notranslate"><span class="pre">sudo</span></code>
+commands later. Once completed, your Linux shell is ready for use. All your
+actions and commands will run as the Linux user you specified.</p>
+<a class="reference internal image-reference" href="_images/first_login.png"><img alt="_images/first_login.png" height="256" src="_images/first_login.png" width="490" />
+</a>
+</section>
+</section>
+</section>
+<section id="windows-explorer-wsl-integration">
+<h2>Windows Explorer / WSL integration<a class="headerlink" href="#windows-explorer-wsl-integration" title="Link to this heading"></a></h2>
+<p>Your Linux installation will have its own Linux filesystem, which contains
+the Ubuntu files. Your Linux user will have a regular Linux home directory in
+<code class="code docutils literal notranslate"><span class="pre">/home/&lt;USERNAME&gt;</span></code>. This directory is different from your Windows User
+directory. Windows and Linux filesystems are connected through WSL.</p>
+<p>All hard drives in Windows are accessible in the <code class="code docutils literal notranslate"><span class="pre">/mnt</span></code> directory in Linux.
+E.g., WSL maps the <code class="code docutils literal notranslate"><span class="pre">C</span></code> hard drive to the <code class="code docutils literal notranslate"><span class="pre">/mnt/c</span></code> directory. That means you
+can access your Windows User directory in <code class="code docutils literal notranslate"><span class="pre">/mnt/c/Users/&lt;WINDOWS_USERNAME&gt;</span></code>.</p>
+<p>The Windows Explorer can also access the Linux filesystem. To illustrate this
+integration, open an Ubuntu console and navigate to a directory of your
+choice. To view this location in Windows Explorer, use the <code class="code docutils literal notranslate"><span class="pre">explorer.exe</span> <span class="pre">.</span></code>
+command (do not forget the final dot!).</p>
+<a class="reference internal image-reference" href="_images/wsl_integration.png"><img alt="_images/wsl_integration.png" height="262" src="_images/wsl_integration.png" width="496" />
+</a>
+</section>
+<hr class="docutils" />
+<section id="compiling-lammps">
+<h2>Compiling LAMMPS<a class="headerlink" href="#compiling-lammps" title="Link to this heading"></a></h2>
+<p>You now have a fully functioning Ubuntu installation and can follow most
+guides to install LAMMPS on a Linux system. Here are some of the essential
+steps to follow:</p>
+<section id="install-prerequisite-packages">
+<h3>Install prerequisite packages<a class="headerlink" href="#install-prerequisite-packages" title="Link to this heading"></a></h3>
+<p>Before we can begin, we need to download the necessary compiler tool chain and
+libraries to compile LAMMPS. In our Ubuntu-based Linux installation, we will
+use the <code class="code docutils literal notranslate"><span class="pre">apt</span></code> package manager to install additional packages.</p>
+<p>First, upgrade all existing packages using <code class="code docutils literal notranslate"><span class="pre">apt</span> <span class="pre">update</span></code> and <code class="code docutils literal notranslate"><span class="pre">apt</span> <span class="pre">upgrade</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>update
+sudo<span class="w"> </span>apt<span class="w"> </span>upgrade<span class="w"> </span>-y
+</pre></div>
+</div>
+<p>Next, install the following packages with <code class="code docutils literal notranslate"><span class="pre">apt</span> <span class="pre">install</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>cmake<span class="w"> </span>build-essential<span class="w"> </span>ccache<span class="w"> </span>gfortran<span class="w"> </span>openmpi-bin<span class="w"> </span>libopenmpi-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">                    </span>libfftw3-dev<span class="w"> </span>libjpeg-dev<span class="w"> </span>libpng-dev<span class="w"> </span>python3-dev<span class="w"> </span>python3-pip<span class="w"> </span><span class="se">\</span>
+<span class="w">                    </span>python3-virtualenv<span class="w"> </span>libblas-dev<span class="w"> </span>liblapack-dev<span class="w"> </span>libhdf5-serial-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">                    </span>hdf5-tools
+</pre></div>
+</div>
+</section>
+<section id="download-lammps">
+<h3>Download LAMMPS<a class="headerlink" href="#download-lammps" title="Link to this heading"></a></h3>
+<p>Obtain a copy of the LAMMPS source code and go into it using the <code class="code docutils literal notranslate"><span class="pre">cd</span></code> command.</p>
+<section id="option-1-download-a-lammps-tarball-using-wget">
+<h4>Option 1: Download a LAMMPS tarball using wget<a class="headerlink" href="#option-1-download-a-lammps-tarball-using-wget" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>wget<span class="w"> </span>https://github.com/lammps/lammps/archive/stable_3Mar2020.tar.gz
+tar<span class="w"> </span>xvzf<span class="w"> </span>stable_3Mar2020.tar.gz
+<span class="nb">cd</span><span class="w"> </span>lammps
+</pre></div>
+</div>
+</section>
+<section id="option-2-download-a-lammps-development-version-from-github">
+<h4>Option 2: Download a LAMMPS development version from GitHub<a class="headerlink" href="#option-2-download-a-lammps-development-version-from-github" title="Link to this heading"></a></h4>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="o">=</span><span class="m">1</span><span class="w"> </span>https://github.com/lammps/lammps.git
+<span class="nb">cd</span><span class="w"> </span>lammps
+</pre></div>
+</div>
+</section>
+</section>
+<section id="configure-and-compile-lammps-with-cmake">
+<h3>Configure and Compile LAMMPS with CMake<a class="headerlink" href="#configure-and-compile-lammps-with-cmake" title="Link to this heading"></a></h3>
+<p>A beginner-friendly way to compile LAMMPS is to use CMake. Create a <code class="code docutils literal notranslate"><span class="pre">build</span></code>
+directory to compile LAMMPS and move into it. This directory will store the
+build configuration and any binaries generated during compilation.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build
+<span class="nb">cd</span><span class="w"> </span>build
+</pre></div>
+</div>
+<p>There are countless ways to compile LAMMPS. It is beyond the scope of this
+tutorial. If you want to find out more about what can be enabled, please
+consult the extensive <a class="reference external" href="https://docs.lammps.org/Build_cmake.html">documentation</a>.</p>
+<p>To compile a minimal version of LAMMPS, we’re going to use a preset.
+Presets are a way to specify a collection of CMake options using a file.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>../cmake/presets/basic.cmake<span class="w"> </span>../cmake
+</pre></div>
+</div>
+<p>This command configures the build and generates the necessary Makefiles. To compile the binary, run the make command.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<p>The <code class="code docutils literal notranslate"><span class="pre">-j</span></code> option specifies how many parallel processes will perform the
+compilation. This option can significantly speed up compilation times. Use a
+number that corresponds to the number of processors in your system.</p>
+<p>After the compilation completes successfully, you will have an executable
+called <code class="code docutils literal notranslate"><span class="pre">lmp</span></code> in the <code class="code docutils literal notranslate"><span class="pre">build</span></code> directory.</p>
+<a class="reference internal image-reference" href="_images/compilation_result.png"><img alt="_images/compilation_result.png" height="146" src="_images/compilation_result.png" width="490" />
+</a>
+<p>Please take note of the absolute path of your <code class="code docutils literal notranslate"><span class="pre">build</span></code> directory. You will
+need to know the location to execute the LAMMPS binary later.</p>
+<p>One way of getting the absolute path of the current directory is through the
+<code class="code docutils literal notranslate"><span class="pre">$PWD</span></code> variable:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># prints out the current value of the PWD variable</span>
+<span class="nb">echo</span><span class="w"> </span><span class="nv">$PWD</span>
+</pre></div>
+</div>
+<p>Let us save this value in a temporary variable <code class="code docutils literal notranslate"><span class="pre">LAMMPS_BUILD_DIR</span></code> for future use:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">LAMMPS_BUILD_DIR</span><span class="o">=</span><span class="nv">$PWD</span>
+</pre></div>
+</div>
+<p>The full path of the LAMMPS binary then is <code class="code docutils literal notranslate"><span class="pre">$LAMMPS_BUILD_DIR/lmp</span></code>.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="running-an-example-script">
+<h2>Running an example script<a class="headerlink" href="#running-an-example-script" title="Link to this heading"></a></h2>
+<p>Now that we have a LAMMPS binary, we will run a script from the examples folder.</p>
+<p>Switch into the <code class="code docutils literal notranslate"><span class="pre">examples/melt</span></code> folder:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>cd ../examples/melt
+</pre></div>
+</div>
+<p>To run this example in serial, use the following command:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$LAMMPS_BUILD_DIR/lmp -in in.melt
+</pre></div>
+</div>
+<p>To run the same script in parallel using MPI with 4 processes, do the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="nv">$LAMMPS_BUILD_DIR</span>/lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.melt
+</pre></div>
+</div>
+<p>If you run LAMMPS for the first time, the Windows Firewall might prompt you
+to confirm access. LAMMPS is accessing the network stack to enable parallel
+computation. Allow the access.</p>
+<a class="reference internal image-reference" href="_images/windows_firewall.png"><img alt="_images/windows_firewall.png" height="284" src="_images/windows_firewall.png" width="807" />
+</a>
+<p>In either serial or MPI case, LAMMPS executes and will output something similar to this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>LAMMPS (30 Jun 2020)
+...
+...
+...
+Total # of neighbors = 151513
+Ave neighs/atom = 37.878250
+Neighbor list builds = 12
+Dangerous builds not checked
+Total wall time: 0:00:00
+</pre></div>
+</div>
+<p><strong>Congratulations! You’ve successfully compiled and executed LAMMPS on WSL!</strong></p>
+</section>
+<section id="final-steps">
+<h2>Final steps<a class="headerlink" href="#final-steps" title="Link to this heading"></a></h2>
+<p>It is cumbersome to always specify the path of your LAMMPS binary. You can
+avoid this by adding the absolute path of your <code class="code docutils literal notranslate"><span class="pre">build</span></code> directory to your PATH
+environment variable.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span><span class="nv">$LAMMPS_BUILD_DIR</span>:<span class="nv">$PATH</span>
+</pre></div>
+</div>
+<p>You can then run LAMMPS input scripts like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.melt
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.melt
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The value of this <code class="code docutils literal notranslate"><span class="pre">PATH</span></code> variable will disappear once you close your
+console window. To persist this setting edit the <code class="code docutils literal notranslate"><span class="pre">$HOME/.bashrc</span></code> file using your
+favorite text editor and add this line:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span>/full/path/to/your/lammps/build:<span class="nv">$PATH</span>
+</pre></div>
+</div>
+<p><strong>Example:</strong>
+If the LAMMPS executable <cite>lmp</cite> has the following absolute path:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>/home/&lt;USERNAME&gt;/lammps/build/lmp
+</pre></div>
+</div>
+<p>the <code class="code docutils literal notranslate"><span class="pre">PATH</span></code> variable should be:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">PATH</span><span class="o">=</span>/home/&lt;USERNAME&gt;/lammps/build:<span class="nv">$PATH</span>
+</pre></div>
+</div>
+<p>Once set up, all your Ubuntu consoles will always have access to your <code class="code docutils literal notranslate"><span class="pre">lmp</span></code>
+binary without having to specify its location.</p>
+</div>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading"></a></h2>
+<p>I hope this gives you good overview on how to start compiling and running LAMMPS on
+Windows. WSL makes preparing and running scripts on Windows a much better
+experience.</p>
+<p>If you are completely new to Linux, I highly recommend investing some time in
+studying Linux online tutorials. E.g., tutorials about Bash Shell and Basic
+Unix commands (e.g., <a class="reference external" href="https://linuxjourney.com/">Linux Journey</a>). Acquiring
+these skills will make you much more productive in this environment.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://learn.microsoft.com/en-us/windows/wsl/">Windows Subsystem for Linux Documentation</a></p></li>
+</ul>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_python.html" class="btn btn-neutral float-left" title="10.6.5. LAMMPS Python Tutorial" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Examples.html" class="btn btn-neutral float-right" title="11. Example scripts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

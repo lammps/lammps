@@ -1,0 +1,590 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>neigh_modify command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/neigh_modify.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="neighbor command" href="neighbor.html" />
+    <link rel="prev" title="neb/spin command" href="neb_spin.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">neigh_modify command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">neigh_modify command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="neb_spin.html" class="btn btn-neutral float-left" title="neb/spin command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="neighbor.html" class="btn btn-neutral float-right" title="neighbor command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="neigh-modify-command">
+<span id="index-0"></span><h1>neigh_modify command<a class="headerlink" href="#neigh-modify-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">neigh_modify</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>one or more keyword/value pairs may be listed</p>
+<pre class="literal-block">keyword = <em>delay</em> or <em>every</em> or <em>check</em> or <em>once</em> or <em>cluster</em> or <em>include</em> or <em>exclude</em> or <em>page</em> or <em>one</em> or <em>binsize</em> or <em>collection/type</em> or <em>collection/interval</em>
+  <em>delay</em> value = N
+    N = delay building neighbor lists until this many steps since last build
+  <em>every</em> value = M
+    M = consider building neighbor lists every this many steps
+  <em>check</em> value = <em>yes</em> or <em>no</em>
+    <em>yes</em> = only build if at least one atom has moved half the skin distance or more
+    <em>no</em> = always build on 1st step where <em>every</em> and <em>delay</em> are conditions are satisfied
+  <em>once</em> value = <em>yes</em> or <em>no</em>
+    <em>yes</em> = only build neighbor list once at start of run and never rebuild
+    <em>no</em> = rebuild neighbor list according to other settings
+  <em>cluster</em> value = <em>yes</em> or <em>no</em>
+    <em>yes</em> = check bond,angle,etc neighbor list for nearby clusters
+    <em>no</em> = do not check bond,angle,etc neighbor list for nearby clusters
+  <em>include</em> value = group-ID
+    group-ID = only build pair neighbor lists for atoms in this group
+  <em>exclude</em> values:
+    <em>type</em> M N
+      M,N = exclude if one atom in pair is type M, other is type N (M and N may be type labels)
+    <em>group</em> group1-ID group2-ID
+      group1-ID,group2-ID = exclude if one atom is in 1st group, other in 2nd
+    <em>molecule/intra</em> group-ID
+      group-ID = exclude if both atoms are in the same molecule and in group
+    <em>molecule/inter</em> group-ID
+      group-ID = exclude if both atoms are in different molecules and in group
+    <em>none</em>
+      delete all exclude settings
+  <em>page</em> value = N
+    N = number of pairs stored in a single neighbor page
+  <em>one</em> value = N
+    N = max number of neighbors of one atom
+  <em>binsize</em> value = size
+    size = bin size for neighbor list construction (distance units)
+  <em>collection/type</em> values = N arg1 ... argN
+    N = number of custom collections
+    arg = N separate lists of types (see below)
+  <em>collection/interval</em> values = N arg1 ... argN
+    N = number of custom collections
+    arg = N separate cutoffs for intervals (see below)
+  <em>bin/hash</em> value = <em>yes</em> or <em>no</em>
+    <em>yes</em> = use a hash table to store atoms in bins
+    <em>no</em> = use a linked list to store atoms in bins</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">neigh_modify</span><span class="w"> </span><span class="n">every</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">delay</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">page</span><span class="w"> </span><span class="m">100000</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">exclude</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">exclude</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">frozen</span><span class="w"> </span><span class="n">frozen</span><span class="w"> </span><span class="n">check</span><span class="w"> </span><span class="n">no</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">exclude</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">residue1</span><span class="w"> </span><span class="n">chain3</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">exclude</span><span class="w"> </span><span class="n">molecule</span><span class="o">/</span><span class="n">intra</span><span class="w"> </span><span class="n">rigid</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">collection</span><span class="o">/</span><span class="n">type</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1</span><span class="o">*</span><span class="m">2</span>,5<span class="w"> </span><span class="m">3</span><span class="o">*</span><span class="m">4</span>
+<span class="k">neigh_modify</span><span class="w"> </span><span class="n">collection</span><span class="o">/</span><span class="n">interval</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">10.0</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>This command sets parameters that affect the building and use of
+pairwise neighbor lists.  Depending on what pair interactions and other
+commands are defined, a simulation may require one or more neighbor
+lists.</p>
+<p>The <em>every</em>, <em>delay</em>, <em>check</em>, and <em>once</em> options affect how often lists
+are built as a simulation runs.  The <em>delay</em> setting means never build
+new lists until at least N steps after the previous build.  The <em>every</em>
+setting means attempt to build lists every M steps (after the delay has
+passed).  If the <em>check</em> setting is <em>no</em>, the lists are built on the
+first step that satisfies the <em>delay</em> and <em>every</em> settings.  If the
+<em>check</em> setting is <em>yes</em>, then the <em>every</em> and <em>delay</em> settings
+determine when a build may possibly be performed, but an actual build
+only occurs if at least one atom has moved more than half the neighbor
+skin distance (specified in the <a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a> command)
+since the last neighbor list build.</p>
+<p>Regardless of the <em>every</em>, <em>delay</em>, <em>check</em>, and <em>once</em> settings, a
+neighbor list rebuild is always forced on any timestep when a
+<a class="reference internal" href="restart.html"><span class="doc">restart</span></a> file is written, and on timesteps when a fix
+requests reneighboring (e.g. fixes that create or delete atoms, such as
+<a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_evaporate.html"><span class="doc">fix evaporate</span></a>).  This ensures that all atoms are correctly assigned
+to their owning subdomains before the operation is performed.  A
+consequence is that enabling <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> output can change
+the total number of neighbor list builds reported at the end of a run
+(and thus, as noted below, subtly alter the trajectory) relative to an
+otherwise identical run without restart output.</p>
+<div class="note admonition">
+<p class="admonition-title">Impact of neighbor list settings</p>
+<p>The choice of neighbor list settings can have a significant impact on
+the (parallel) performance of LAMMPS and the correctness of the
+simulation results.  Since building the neighbor lists is time
+consuming, doing it less frequently can speed up a calculation.  If
+the lists are rebuilt too infrequently, however, interacting pairs
+may be missing and thus the resulting pairwise interactions
+incorrect.  The optimal settings depend on many factors like the
+properties of the simulated system (density, geometry, topology,
+temperature, pressure), the force field parameters and settings, the
+size of the timestep, neighbor list skin distance and more.  The
+default settings are chosen to be very conservative to guarantee
+correctness of the simulation.  They depend on the <em>check</em> flag
+heuristics to reduce the number of neighbor list rebuilds at a minor
+expense for executing the check.  Determining the correctness of a
+specific choice of neighbor list settings is complicated by the fact
+that a neighbor list rebuild changes the order in which pairwise
+interactions are computed and thus
+- due to the limitations of floating-point math - the trajectory.</p>
+</div>
+<p>If the <em>once</em> setting is yes, then the neighbor list is only built once
+at the beginning of each run, and never rebuilt, except for the forced
+rebuilds described above (when a restart file is written or a fix
+requests reneighboring).  This setting
+should only be made if you are certain atoms will not move far enough
+that the neighbor list should be rebuilt, e.g. running a simulation of a
+cold crystal.  Note that it is not that expensive to check if neighbor
+lists should be rebuilt.</p>
+<p>When the rRESPA integrator is used (see the <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a>
+command), the <em>every</em> and <em>delay</em> parameters refer to the longest
+(outermost) timestep.</p>
+<p>The <em>cluster</em> option does a sanity test every time neighbor lists are
+built for bond, angle, dihedral, and improper interactions, to check
+that each set of 2, 3, or 4 atoms is a cluster of nearby atoms.  It
+does this by computing the distance between pairs of atoms in the
+interaction and ensuring they are not further apart than half the
+periodic box length.  If they are, an error is generated, since the
+interaction would be computed between far-away atoms instead of their
+nearby periodic images.  The only way this should happen is if the
+pairwise cutoff is so short that atoms that are part of the same
+interaction are not communicated as ghost atoms.  This is an unusual
+model (e.g. no pair interactions at all) and the problem can be fixed
+by use of the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify cutoff</span></a> command.  Note
+that to save time, the default <em>cluster</em> setting is <em>no</em>, so that this
+check is not performed.</p>
+<p>The <em>include</em> option limits the building of pairwise neighbor lists to
+atoms in the specified group.  This can be useful for models where a
+large portion of the simulation is particles that do not interact with
+other particles or with each other via pairwise interactions.  The
+group specified with this option must also be specified via the
+<a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify first</span></a> command.  Note that specifying
+“all” as the group-ID effectively turns off the <em>include</em> option.</p>
+<p>The <em>exclude</em> option turns off pairwise interactions between certain
+pairs of atoms, by not including them in the neighbor list.  These are
+sample scenarios where this is useful:</p>
+<ul class="simple">
+<li><p>In crack simulations, pairwise interactions can be shut off between 2
+slabs of atoms to effectively create a crack.</p></li>
+<li><p>When a large collection of atoms is treated as frozen, interactions
+between those atoms can be turned off to save needless
+computation. E.g. Using the <a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a> command
+to freeze a wall or portion of a bio-molecule.</p></li>
+<li><p>When one or more rigid bodies are specified, interactions within each
+body can be turned off to save needless computation.  See the <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a> command for more details.</p></li>
+</ul>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 29Aug2024: </span>Support for type labels was added.</p>
+</div>
+<p>The <em>exclude type</em> option turns off the pairwise interaction if one atom
+is of type M and the other of type N.  M can equal N.  The <em>exclude
+group</em> option turns off the interaction if one atom is in the first
+group and the other is the second.  Group1-ID can equal group2-ID.  The
+<em>exclude molecule/intra</em> option turns off the interaction if both atoms
+are in the specified group and in the same molecule, as determined by
+their molecule ID.  The <em>exclude molecule/inter</em> turns off the
+interaction between pairs of atoms that have different molecule IDs and
+are both in the specified group.</p>
+<p>Each of the exclude options can be specified multiple times.  The
+<em>exclude type</em> option is the most efficient option to use; it requires
+only a single check, no matter how many times it has been specified.
+The other exclude options are more expensive if specified multiple
+times; they require one check for each time they have been specified.</p>
+<p>Note that the exclude options only affect pairwise interactions; see
+the <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a> command for information on
+turning off bond interactions.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Excluding pairwise interactions will not work correctly when
+also using a long-range solver via the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command.  LAMMPS will give a warning
+to this effect.  This is because the short-range pairwise interaction
+needs to subtract off a term from the total energy for pairs whose
+short-range interaction is excluded, to compensate for how the
+long-range solver treats the interaction.  This is done correctly for
+pairwise interactions that are excluded (or weighted) via the
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command.  But it is not done for
+interactions that are excluded via these neigh_modify exclude options.</p>
+</div>
+<p>The <em>page</em> and <em>one</em> options affect how memory is allocated for the
+neighbor lists.  For most simulations the default settings for these
+options are fine, but if a very large problem is being run or a very
+long cutoff is being used, these parameters can be tuned.  The indices
+of neighboring atoms are stored in “pages”, which are allocated one
+after another as they fill up.  The size of each page is set by the
+<em>page</em> value.  A new page is allocated when the next atom’s neighbors
+could potentially overflow the list.  This threshold is set by the
+<em>one</em> value which tells LAMMPS the maximum number of neighbor’s one
+atom can have.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LAMMPS can crash without an error message if the number of
+neighbors for a single particle is larger than the <em>page</em> setting,
+which means it is much, much larger than the <em>one</em> setting.  This is
+because LAMMPS does not error check these limits for every pairwise
+interaction (too costly), but only after all the particle’s neighbors
+have been found.  This problem usually means something is very wrong
+with the way you have setup your problem (particle spacing, cutoff
+length, neighbor skin distance, etc).  If you really expect that many
+neighbors per particle, then boost the <em>one</em> and <em>page</em> settings
+accordingly.</p>
+</div>
+<p>The <em>binsize</em> option allows you to specify what size of bins will be
+used in neighbor list construction to sort and find neighboring atoms.
+By default, for <a class="reference internal" href="neighbor.html"><span class="doc">neighbor style bin</span></a>, LAMMPS uses bins
+that are 1/2 the size of the maximum pair cutoff.  For <a class="reference internal" href="neighbor.html"><span class="doc">neighbor
+style multi</span></a>, the bins are 1/2 the size of the collection
+interaction cutoff.  Typically these are good values for minimizing the
+time for neighbor list construction.  This setting overrides the
+default.  If you make it too big, there is little overhead due to
+looping over bins, but more atoms are checked.  If you make it too
+small, the optimal number of atoms is checked, but bin overhead goes up.
+If you set the binsize to 0.0, LAMMPS will use the default binsize of
+1/2 the cutoff.</p>
+<p>The <em>collection/type</em> option allows you to define collections of atom
+types, used by the <em>multi</em> neighbor mode.  By grouping atom types with
+similar physical size or interaction cutoff lengths, one may be able to
+improve performance by reducing overhead.  You must first specify the
+number of collections N to be defined followed by N lists of types.
+Each list consists of a series of type ranges separated by commas. The
+range can be specified as a single numeric value, or a wildcard asterisk
+can be used to specify a range of values.  This takes the form “*” or
+“*n” or “n*” or “m*n”.  For example, if M = the number of atom types,
+then an asterisk with no numeric values means all types from 1 to M.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to M (inclusive).  A middle asterisk
+means all types from m to n (inclusive).  Note that all atom types must
+be included in exactly one of the N collections.</p>
+<p>The <em>collection/interval</em> option provides a similar capability.  This
+command allows a user to define collections by specifying a series of
+cutoff intervals.  LAMMPS will automatically sort atoms into these
+intervals based on their type-dependent cutoffs or their finite size.
+You must first specify the number of collections N to be defined
+followed by N values representing the upper cutoff of each interval.
+This command is particularly useful for granular pair styles where the
+interaction distance of particles depends on their radius and may not
+depend on their atom type.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p>The <em>bin/hash</em> option toggles whether the atoms in a bin are stored in
+a linked list (default) or a hash table where each bin is a key that
+maps to a set of all atoms contained in that bin. This may be required
+when the simulation box is too large relative to the size of a neighbor
+bin (which will cause LAMMPS to error), but will also reduce memory usage
+and can improve performance in systems with lots of bins that do not
+contain atoms. For instance, in a binary system with a large disparity
+in atom sizes/cutoffs. Here, the total number of bins will be determined
+by the size of the smallest particle. However, almost all bins that lie
+within the span of the largest particle will be empty. The hash option
+is only available for the <em>multi</em> neighbor mode.</p>
+<p>If this option is used to avoid errors regarding the number of bins used
+to construct neighbor lists, one may need to additionally increase the
+size of the bin used to sort atoms using the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a> command. If adjusted, it is recommended to keep the increase
+conservative such that bins are still reasonably small to preserve
+performance.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>If the <em>delay</em> setting is non-zero, then it must be a multiple of the
+<em>every</em> setting.</p>
+<p>The <em>molecule/intra</em> and <em>molecule/inter</em> exclusion options can only
+be used with atom styles that define molecule IDs.</p>
+<p>The value of the <em>page</em> setting must be at least 10x larger than the
+<em>one</em> setting.  This ensures neighbor pages are not mostly empty
+space.</p>
+<p>The <em>exclude group</em> setting is currently not compatible with dynamic groups.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a>, <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The option defaults are delay = 0, every = 1, check = yes, once = no,
+cluster = no, include = all (same as no include option defined),
+exclude = none, page = 100000, one = 2000, bin/hash no, and binsize = 0.0.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="neb_spin.html" class="btn btn-neutral float-left" title="neb/spin command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="neighbor.html" class="btn btn-neutral float-right" title="neighbor command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

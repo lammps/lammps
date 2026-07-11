@@ -1,0 +1,178 @@
+LAMMPS (28 Mar 2023 - Development)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+########################################################################
+### Heat conduction analog of periodic Poiseuille flow problem       ###
+### using energy-conserving DPD (eDPD) simulation                    ###
+###                                                                  ###
+### Created  : Zhen Li (zhen_li@brown.edu)                           ###
+###            Division of Applied Mathematics, Brown University.    ###
+###                                                                  ###
+### mDPD system setup follows Fig.12 in the publication:             ###
+### Z. Li, Y.-H. Tang, H. Lei, B. Caswell and G.E. Karniadakis.      ###
+### "Energy-conserving dissipative particle dynamics with            ###
+### temperature-dependent properties". J. Comput. Phys.,             ###
+### 2014, 265: 113-127. DOI: 10.1016/j.jcp.2014.02.003               ###
+########################################################################
+units                   lj
+dimension               3
+boundary                p p p
+neighbor                0.2 bin
+neigh_modify        every 1 delay 0 check yes
+
+atom_style              edpd
+comm_modify vel yes
+
+region     edpd     block -10 10 -10 10 -5 5 units box
+create_box          1 edpd
+Created orthogonal box = (-10 -10 -5) to (10 10 5)
+  1 by 1 by 1 MPI processor grid
+create_atoms        1 random 16000 276438 NULL
+Created 16000 atoms
+  using lattice units in orthogonal box = (-10 -10 -5) to (10 10 5)
+  create_atoms CPU = 0.002 seconds
+mass                1 1.0
+set                 atom * edpd/temp 1.0
+Setting atom values ...
+  16000 settings made for edpd/temp
+set                 atom * edpd/cv 1.0E5
+Setting atom values ...
+  16000 settings made for edpd/cv
+
+pair_style          edpd 1.58 9872598
+#pair_coeff          1 1 18.75 4.5 0.41 1.58 1.45E-5 2.0 1.58
+pair_coeff          1 1 18.75 4.5 0.41 1.58 1.41E-5 2.0 1.58                         power 10.54 -3.66 3.44 -4.10                         kappa -0.44 -3.21 5.04  0.00
+
+compute             mythermo all temp
+thermo              100
+thermo_modify       temp mythermo
+thermo_modify       flush yes
+
+velocity            all create 1.0 432982 loop local dist gaussian
+
+region upper block -10.0  10.0   0.0 10.0 -5.0 5.0
+region lower block -10.0  10.0 -10.0  0.0 -5.0 5.0
+
+fix         mvv     all mvv/edpd 0.5
+fix         upper   all edpd/source region upper  0.01
+fix         lower   all edpd/source region lower -0.01
+
+timestep            0.01
+run                 500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair edpd command: doi:10.1016/j.jcp.2014.02.003
+
+@Article{ZLi2014_JCP,
+ author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G. E.},
+ title = {Energy-Conserving Dissipative Particle Dynamics with Temperature-Dependent Properties},
+ journal = {Journal of Computational Physics},
+ year =    {2014},
+ volume =  {265},
+ pages =   {113--127}
+}
+
+@Article{ZLi2015_CC,
+ author = {Li, Z. and Tang, Y.-H. and Li, X. and Karniadakis, G. E.},
+ title = {Mesoscale Modeling of Phase Transition Dynamics of Thermoresponsive Polymers},
+ journal = {Chemical Communications},
+ year =    {2015},
+ volume =  {51},
+ pages =   {11038--11040}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.78
+  ghost atom cutoff = 1.78
+  binsize = 0.89, bins = 23 23 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair edpd, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.1 | 12.1 | 12.1 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1              48.942039      0              50.441946      201.43068    
+       100   0.99644296     43.749732      0              45.244303      200.44316    
+       200   0.98985852     43.699081      0              45.183776      197.29314    
+       300   1.0062075      43.708406      0              45.217622      194.61595    
+       400   0.99858259     43.69758       0              45.19536       196.87253    
+       500   0.99991379     43.677571      0              45.177348      194.59785    
+Loop time of 50.3705 on 1 procs for 500 steps with 16000 atoms
+
+Performance: 8576.445 tau/day, 9.926 timesteps/s, 158.823 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 44.879     | 44.879     | 44.879     |   0.0 | 89.10
+Neigh   | 4.8096     | 4.8096     | 4.8096     |   0.0 |  9.55
+Comm    | 0.31711    | 0.31711    | 0.31711    |   0.0 |  0.63
+Output  | 0.0005095  | 0.0005095  | 0.0005095  |   0.0 |  0.00
+Modify  | 0.29611    | 0.29611    | 0.29611    |   0.0 |  0.59
+Other   |            | 0.06781    |            |       |  0.13
+
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          14106 ave       14106 max       14106 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         749963 ave      749963 max      749963 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 749963
+Ave neighs/atom = 46.872687
+Neighbor list builds = 181
+Dangerous builds = 0
+reset_timestep      0
+
+compute     temp    all edpd/temp/atom
+compute     ccT     all chunk/atom bin/1d y 0.0 1.0
+fix         stat    all ave/chunk 1 500 500 ccT c_temp density/number norm sample file temp.profile
+
+run                 500
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 12.6 | 12.6 | 12.6 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0.99991379     43.67752       0              45.177297      195.4932     
+       100   1.0053402      43.685038      0              45.192954      196.73683    
+       200   1.0052797      43.665955      0              45.173781      198.60396    
+       300   0.98694632     43.650877      0              45.131204      199.11464    
+       400   1.003189       43.639966      0              45.144655      196.20663    
+       500   1.008172       43.625425      0              45.137589      196.69792    
+Loop time of 48.7446 on 1 procs for 500 steps with 16000 atoms
+
+Performance: 8862.512 tau/day, 10.258 timesteps/s, 164.121 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 43.362     | 43.362     | 43.362     |   0.0 | 88.96
+Neigh   | 4.6255     | 4.6255     | 4.6255     |   0.0 |  9.49
+Comm    | 0.30073    | 0.30073    | 0.30073    |   0.0 |  0.62
+Output  | 0.00039502 | 0.00039502 | 0.00039502 |   0.0 |  0.00
+Modify  | 0.39271    | 0.39271    | 0.39271    |   0.0 |  0.81
+Other   |            | 0.06321    |            |       |  0.13
+
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          14131 ave       14131 max       14131 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         749932 ave      749932 max      749932 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 749932
+Ave neighs/atom = 46.87075
+Neighbor list builds = 182
+Dangerous builds = 0
+Total wall time: 0:01:39

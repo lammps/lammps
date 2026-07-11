@@ -1,0 +1,57 @@
+variable        trequis equal 750.0
+variable        prequis_low equal 0.0
+variable        prequis_high equal 25.0e4
+variable        equilSteps equal 200
+variable        runSteps equal 2000
+variable        freqdump equal 200
+variable        pstime equal step*dt
+variable        sxx equal 1.e-4*pxx
+variable        syy equal 1.e-4*pyy
+variable        szz equal 1.e-4*pzz
+variable        sxy equal 1.e-4*pxy
+variable        sxz equal 1.e-4*pxz
+variable        syz equal 1.e-4*pyz
+variable        TK  equal temp
+variable        PE  equal pe
+variable        KE  equal ke
+variable        V   equal vol
+
+dimension       3
+boundary        p p p
+units           metal
+atom_style      atomic
+read_data       data.zr_cell
+replicate       1 5 5
+
+change_box      all triclinic
+
+pair_style      hybrid/overlay zero 9.0 eam/fs
+pair_coeff * *  zero
+pair_coeff * *  eam/fs Zr_mm.eam.fs Zr
+
+timestep        0.002
+
+thermo          50
+thermo_style    custom step pe ke temp vol pxx pyy pzz pxy pyz pxz
+
+# fix             extra all print 50 "${pstime} ${TK} ${PE} ${KE} ${V} ${sxx} ${syy} ${szz} ${sxy} ${sxz} ${syz}"  file thermo_global_npt_low_temperature_Zr_hcp.dat
+
+velocity        all create ${trequis} 42345 dist gaussian
+
+# 1st step : compute the bispectrum on 24 nearest neighbors
+compute         bnnn all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.25
+
+# 2nd step : perform dimension reduction + logistic regression
+compute         slcsa all slcsa/atom 8 4 dir.slcsa/mean_descriptor.dat dir.slcsa/lda_scalings.dat dir.slcsa/lr_decision.dat dir.slcsa/lr_bias.dat dir.slcsa/mahalanobis_file.dat c_bnnn[*]
+
+#dump            d1 all custom ${freqdump} slcsa_demo.dump id x y z c_slcsa[*]
+
+# for testing only. in production use dump as shown above
+compute max_slcsa all reduce max c_slcsa[*]
+compute min_slcsa all reduce min c_slcsa[*]
+thermo_style    custom step pe ke temp c_max_slcsa[*] c_min_slcsa[*]
+
+#fix            1 all nvt temp ${trequis} ${trequis} 0.100
+fix             1 all npt temp ${trequis} ${trequis} 0.100 tri ${prequis_low} ${prequis_low} 1.0
+
+run             ${equilSteps}

@@ -1,0 +1,37 @@
+# 3d Lennard-Jones melt
+
+variable	x index 1
+variable	y index 1
+variable	z index 1
+
+variable	xx equal 20*$x
+variable	yy equal 20*$y
+variable	zz equal 20*$z
+
+units		lj
+atom_style	atomic
+
+lattice		fcc 0.8442
+region		box block 0 ${xx} 0 ${yy} 0 ${zz}
+create_box	1 box
+create_atoms	1 box
+mass		1 1.0
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0 2.5
+
+neighbor	0.3 bin
+
+thermo          100
+
+read_dump       lj_dump.bp 200 x y z vx vy vz format adios
+run             0 post no
+
+read_dump       lj_dump.bp 800 x y z vx vy vz format adios
+run             0 post no
+
+read_dump       lj_dump.bp 600 x y z vx vy vz format adios
+run             0 post no
+
+read_dump       lj_dump.bp 400 x y z vx vy vz format adios
+run             0 post no

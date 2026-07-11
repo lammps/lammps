@@ -1,0 +1,925 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>set command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/set.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="shell command" href="shell.html" />
+    <link rel="prev" title="run_style command" href="run_style.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">set command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">set command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="run_style.html" class="btn btn-neutral float-left" title="run_style command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="shell.html" class="btn btn-neutral float-right" title="shell command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="set-command">
+<span id="index-0"></span><h1>set command<a class="headerlink" href="#set-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">ID</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>style = <em>atom</em> or <em>type</em> or <em>mol</em> or <em>group</em> or <em>region</em></p></li>
+<li><p>ID = depends on style</p></li>
+</ul>
+<pre class="literal-block">for style = <em>atom</em>, ID = a range of atom IDs
+for style = <em>type</em>, ID = a range of numeric types or a single type label
+for style = <em>mol</em>, ID = a range of molecule IDs
+for style = <em>group</em>, ID = a group ID
+for style = <em>region</em>, ID = a region ID</pre>
+<ul>
+<li><p>one or more keyword/value pairs may be appended</p></li>
+<li><p>keyword = <em>angle</em> or <em>angmom</em> or <em>apip/lambda</em> or <em>block</em> or <em>bond</em> or <em>cc</em> or <em>charge</em>
+or <em>density</em> or <em>density/disc</em> or <em>diameter</em> or <em>dihedral</em> or <em>dipole</em>
+or <em>dipole/random</em> or <em>dpd/theta</em> or <em>edpd/cv</em> or <em>edpd/temp</em> or
+<em>epsilon</em> or <em>image</em> or <em>improper</em> or <em>length</em> or <em>mass</em> or <em>mol</em> or
+<em>omega</em> or <em>quat</em> or <em>quat/random</em> or <em>radius/electron</em> or <em>rheo/rho</em> or
+<em>rheo/status</em> or <em>shape</em> or <em>smd/contact/radius</em> or <em>smd/mass/density</em> or
+<em>sph/cv</em> or <em>sph/e</em> or <em>sph/rho</em> or <em>spin/atom</em> or <em>spin/atom/random</em> or
+<em>spin/electron</em> or <em>temperature</em> or <em>theta</em> or <em>theta/random</em> or <em>tri</em> or
+<em>type</em> or <em>type/fraction</em> or <em>type/ratio</em> or <em>type/subset</em> or <em>volume</em> or
+<em>vx</em> or <em>vy</em> or <em>vz</em> or <em>x</em> or <em>y</em> or <em>z</em> or <em>i_name</em> or <em>d_name</em> or
+<em>i2_name</em> or <em>d2_name</em></p>
+<pre class="literal-block"><em>angle</em> value = numeric angle type or angle type label, for all angles between selected atoms
+<em>angmom</em> values = Lx Ly Lz
+  Lx,Ly,Lz = components of angular momentum vector (distance-mass-velocity units)
+  any of Lx,Ly,Lz can be an atom-style variable (see below)
+<em>apip/lambda</em> value = fast or precise or float
+  fast = switching parameter of fast potential (1)
+  precise = switching parameter of fast potential (0)
+  float = constant float or atom-style variable (between 0 and 1)
+<em>block</em> value = block1, block2
+  block1,block2 = 2 blockiness parameters for superellipsoids
+<em>bond</em> value = numeric bond type or bond type label, for all bonds between selected atoms
+<em>cc</em> values = index cc
+  index = index of a chemical species (1 to Nspecies)
+  cc = chemical concentration of tDPD particles for a species (mole/volume units)
+  cc can be an atom-style variable (see below)
+<em>charge</em> value = atomic charge (charge units)
+  value can be an atom-style variable (see below)
+<em>density</em> value = particle density for a sphere or ellipsoid (mass/distance^3 units), or for a triangle (mass/distance^2 units) or line (mass/distance units) particle
+  value can be an atom-style variable (see below)
+<em>density/disc</em> value = particle density for a 2d disc or ellipse (mass/distance^2 units)
+  value can be an atom-style variable (see below)
+<em>diameter</em> value = diameter of spherical particle (distance units)
+  value can be an atom-style variable (see below)
+<em>dihedral</em> value = numeric dihedral type or dihedral type label, for all dihedrals between selected atoms
+<em>dipole</em> values = x y z
+  x,y,z = orientation of dipole moment vector
+  any of x,y,z can be an atom-style variable (see below)
+<em>dipole/random</em> values = seed Dlen
+  seed = random # seed (positive integer) for dipole moment orientations
+  Dlen = magnitude of dipole moment (dipole units)
+<em>dpd/theta</em> value = internal temperature of DPD particles (temperature units)
+  value can be an atom-style variable (see below)
+  value can be NULL which sets internal temp of each particle to KE temp
+<em>edpd/cv</em> value = volumetric heat capacity of eDPD particles (energy/temperature/volume units)
+  value can be an atom-style variable (see below)
+<em>edpd/temp</em> value = temperature of eDPD particles (temperature units)
+  value can be an atom-style variable (see below)
+<em>epsilon</em> value = dielectric constant of the medium where the atoms reside
+  value can be an atom-style variable (see below)
+<em>image</em> values = nx ny nz
+  nx,ny,nz = which periodic image of the simulation box the atom is in
+  any of nx,ny,nz can be an atom-style variable (see below)
+<em>improper</em> value = numeric improper type or improper type label, for all impropers between selected atoms
+<em>length</em> value = len
+  len = length of line segment (distance units)
+  len can be an atom-style variable (see below)
+<em>mass</em> value = per-atom mass (mass units)
+  value can be an atom-style variable (see below)
+<em>mol</em> value = molecule ID
+  the moleclue ID can be an atom-style variable (see below)
+<em>omega</em> values = Wx Wy Wz
+  Wx,Wy,Wz = components of angular velocity vector (radians/time units)
+  any of Wx,Wy,Wz can be an atom-style variable (see below)
+<em>quat</em> values = a b c theta
+  a,b,c = unit vector to rotate particle around via right-hand rule
+  theta = rotation angle (degrees)
+  any of a,b,c,theta values can be an atom-style variable (see below)
+<em>quat/random</em> value = seed
+  seed = random # seed (positive integer) for quaternion orientations
+<em>radius/electron</em> value = eradius
+  eradius = electron radius (or fixed-core radius) (distance units)
+  value can be an atom-style variable (see below)
+<em>rheo/rho</em> value = density of RHEO particles (mass/distance^3)
+  value can be an atom-style variable (see below)
+<em>rheo/status</em> value = status or phase of RHEO particles (unitless)
+  value can be an atom-style variable (see below)
+<em>shape</em> values = Sx Sy Sz
+  Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
+  any of Sx,Sy,Sz can be an atom-style variable (see below)
+<em>smd/contact/radius</em> value = radius for short range interactions, i.e. contact and friction
+  value can be an atom-style variable (see below)
+<em>smd/mass/density</em> value = set particle mass based on volume by providing a mass density
+  value can be an atom-style variable (see below)
+<em>sph/cv</em> value = heat capacity of SPH particles (need units)
+  value can be an atom-style variable (see below)
+<em>sph/e</em> value = energy of SPH particles (need units)
+  value can be an atom-style variable (see below)
+<em>sph/rho</em> value = density of SPH particles (need units)
+  value can be an atom-style variable (see below)
+<em>spin/atom</em> values = g x y z
+  g = magnitude of magnetic spin vector (in Bohr magneton's unit)
+  x,y,z = orientation of magnetic spin vector
+  any of x,y,z can be an atom-style variable (see below)
+<em>spin/atom/random</em> values = seed Dlen
+  seed = random # seed (positive integer) for magnetic spin orientations
+  Dlen = magnitude of magnetic spin vector (in Bohr magneton's unit)
+<em>spin/electron</em> value = espin
+  espin = electron spin (+1/-1), 0 = nuclei, 2 = fixed-core, 3 = pseudo-cores (i.e. ECP)
+  value can be an atom-style variable (see below)
+<em>temperature</em> value = temperature for finite-size particles (temperature units)
+  value can be an atom-style variable (see below)
+<em>theta</em> value = angle (degrees)
+  angle = orientation of line segment with respect to x-axis
+  value can be an atom-style variable (see below)
+<em>theta/random</em> value = seed
+  seed = random # seed (positive integer) for line segment orienations
+<em>tri</em> value = side
+  side = side length of equilateral triangle (distance units)
+  value can be an atom-style variable (see below)
+<em>type</em> value = numeric atom type or type label
+  value can be an atom-style variable (see below)
+<em>type/fraction</em> values = type fraction seed
+  type = numeric atom type or type label
+  fraction = approximate fraction of selected atoms to set to new atom type
+  seed = random # seed (positive integer)
+<em>type/ratio</em> values = type fraction seed
+  type = numeric atom type or type label
+  fraction = exact fraction of selected atoms to set to new atom type
+  seed = random # seed (positive integer)
+<em>type/subset</em> values = type Nsubset seed
+  type = numeric atom type or type label
+  Nsubset = exact number of selected atoms to set to new atom type
+  seed = random # seed (positive integer)
+<em>volume</em> value = particle volume for Peridynamic particle (distance^3 units)
+  value can be an atom-style variable (see below)
+<em>vx</em>,<em>vy</em>,<em>vz</em> value = atom velocity (velocity units)
+  value can be an atom-style variable (see below)
+<em>x</em>,<em>y</em>,<em>z</em> value = atom coordinate (distance units)
+  value can be an atom-style variable (see below)
+<em>i_name</em> value = custom integer vector with name
+  value can be an atom-style variable (see below)
+<em>d_name</em> value = custom floating-point vector with name
+  value can be an atom-style variable (see below)
+<em>i2_name</em> value = custom integer array with name
+                  column specified as i2_name[N] where N is 1 to Ncol
+  value can be an atom-style variable (see below)
+<em>d2_name</em> value = custom floating-point array with name
+                  column specified as d2_name[N] where N is 1 to Ncol
+  value can be an atom-style variable (see below)</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">set</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">solvent</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">2</span>
+<span class="k">set</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">solvent</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">C</span>
+<span class="k">set</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">solvent</span><span class="w"> </span><span class="n">type</span><span class="o">/</span><span class="n">fraction</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">12393</span>
+<span class="k">set</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">solvent</span><span class="w"> </span><span class="n">type</span><span class="o">/</span><span class="n">fraction</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">12393</span>
+<span class="k">set</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">edge</span><span class="w"> </span><span class="n">bond</span><span class="w"> </span><span class="m">4</span>
+<span class="k">set</span><span class="w"> </span><span class="k">region </span><span class="nv nv-Identifier">half</span><span class="w"> </span><span class="n">charge</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">set</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">charge</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">set</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">H</span><span class="w"> </span><span class="n">charge</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">set</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">1</span><span class="o">*</span><span class="m">3</span><span class="w"> </span><span class="n">charge</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">charge</span><span class="w"> </span><span class="n">v_atomfile</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">100</span><span class="o">*</span><span class="m">200</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="m">1.0</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">vz</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="n">shape</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">4.0</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1492</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="m">3</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1492</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">H</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">i_myVal</span><span class="w"> </span><span class="m">5</span>
+<span class="k">set</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">d2_Sxyz[1]</span><span class="w"> </span><span class="m">6.4</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Set one or more properties of one or more atoms.  Since atom
+properties are initially assigned by the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>,
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> or <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> commands, this command changes those assignments.
+This can be useful for overriding the default values assigned by the
+<a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> command (e.g. charge = 0.0).  It
+can be useful for altering pairwise and molecular force interactions,
+since force-field coefficients are defined in terms of types.  It can
+be used to change the labeling of atoms by atom type or molecule ID
+when they are output in <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> files.  It can also be
+useful for debugging purposes; i.e. positioning an atom at a precise
+location to compute subsequent forces or energy.</p>
+<p>Note that the <em>style</em> and <em>ID</em> arguments determine which atoms have
+their properties reset.  The remaining keywords specify which
+properties to reset and what the new values are.  Some strings like
+<em>type</em> or <em>mol</em> can be used as a style and/or a keyword.</p>
+<p>The <a class="reference internal" href="fix_set.html"><span class="doc">fix set</span></a> command can be used with similar syntax
+to this command to reset atom properties once every <em>N</em> steps during a
+simulation using via atom-style variables.</p>
+<hr class="docutils" />
+<p>This section describes how to select which atoms to change
+the properties of, via the <em>style</em> and <em>ID</em> arguments.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023: </span>Support for type labels was added for selecting atoms by type</p>
+</div>
+<p>The style <em>atom</em> selects all the atoms in a range of atom IDs.</p>
+<p>The style <em>type</em> selects all the atoms in a range of types or type
+labels.  The style <em>type</em> selects atoms in one of two ways.  A range
+of numeric atom types can be specified.  Or a single atom type label
+can be specified, e.g. “C”.  The style <em>mol</em> selects all the atoms in
+a range of molecule IDs.</p>
+<p>In each of the range cases, the range can be specified as a single
+numeric value, or with a wildcard asterisk to specify a range of
+values.  This takes the form “*” or “*n” or “n*” or “m*n”.  For
+example, for the style <em>type</em>, if N = the number of atom types, then
+an asterisk with no numeric values means all types from 1 to N.  A
+leading asterisk means all types from 1 to n (inclusive).  A trailing
+asterisk means all types from n to N (inclusive).  A middle asterisk
+means all types from m to n (inclusive).  For all the styles except
+<em>mol</em>, the lowest value for the wildcard is 1; for <em>mol</em> it is 0.</p>
+<p>The style <em>group</em> selects all the atoms in the specified group.  The
+style <em>region</em> selects all the atoms in the specified geometric
+region.  See the <a class="reference internal" href="group.html"><span class="doc">group</span></a> and <a class="reference internal" href="region.html"><span class="doc">region</span></a>
+commands for details of how to specify a group or region.</p>
+<hr class="docutils" />
+<p>The next section describes the keyword options for which properties to
+change, for the selected atoms.</p>
+<p>Note that except where explicitly prohibited below, all of the
+keywords allow an <a class="reference internal" href="variable.html"><span class="doc">atom-style or atomfile-style variable</span></a> to be used as the specified value(s).  If the value is a
+variable, it should be specified as v_name, where name is the variable
+name.  In this case, the variable will be evaluated, and its resulting
+per-atom value used to determine the value assigned to each selected
+atom.  Note that the per-atom value from the variable will be ignored
+for atoms that are not selected via the <em>style</em> and <em>ID</em> settings
+explained above.  A simple way to use per-atom values from the
+variable to reset a property for all atoms is to use style <em>atom</em> with
+<em>ID</em> = “*”; this selects all atom IDs.</p>
+<p>Atom-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command
+keywords for the simulation box parameters and timestep and elapsed
+time.  They can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a time-dependent or
+spatially-dependent set of per-atom values.  As explained on the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> doc page, atomfile-style variables can be
+used in place of atom-style variables, and thus as arguments to the
+set command.  Atomfile-style variables read their per-atoms values
+from a file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Atom-style and atomfile-style variables return floating point
+per-atom values.  If the values are assigned to an integer
+variable, such as the molecule ID, then the floating point value is
+truncated to its integer portion, e.g. a value of 2.6 would
+become 2.</p>
+</div>
+<hr class="docutils" />
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023: </span>Support for type labels was added for setting angle types</p>
+</div>
+<p>Keyword <em>angle</em> sets the angle type of all angles of selected atoms to
+the specified value.  The value can be a numeric type from 1 to
+nangletypes.  Or it can be a angle type label.  See the <a class="reference internal" href="Howto_type_labels.html"><span class="doc">Howto
+type labels</span></a> doc page for the allowed syntax of
+type labels and a general discussion of how type labels can be used.
+All atoms in a particular angle must be selected atoms in order for
+the change to be made.  The value of nangletypes was set by the <em>angle
+types</em> field in the header of the data file read by the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  This keyword does NOT allow use
+of an atom-style variable.</p>
+<p>Keyword <em>angmom</em> sets the angular momentum of selected atoms.  The
+particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style
+ellipsoid</span></a> command or triangles as defined by the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style tri</span></a> command.  The angular momentum
+vector of the particles is set to the 3 specified components.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023: </span>Support for type labels was added for setting bond types</p>
+</div>
+<p>Keyword <em>bond</em> sets the bond type of all bonds of selected atoms to
+the specified value.  The value can be a numeric type from 1 to
+nbondtypes.  Or it can be a bond type label.  See the <a class="reference internal" href="Howto_type_labels.html"><span class="doc">Howto type
+labels</span></a> doc page for the allowed syntax of type
+labels and a general discussion of how type labels can be used.  All
+atoms in a particular bond must be selected atoms in order for the
+change to be made.  The value of nbondtypes was set by the <em>bond
+types</em> field in the header of the data file read by the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  This keyword does NOT allow use
+of an atom-style variable.</p>
+<p>Keyword <em>cc</em> sets the chemical concentration of a tDPD particle for a
+specified species as defined by the DPD-MESO package. Currently, only
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style tdpd</span></a> defines particles with this
+attribute. An integer for “index” selects a chemical species (1 to
+Nspecies) where Nspecies is set by the atom_style command. The value
+for the chemical concentration must be &gt;= 0.0.</p>
+<p>Keyword <em>charge</em> set the charge of all selected atoms.  The <a class="reference internal" href="atom_style.html"><span class="doc">atom
+style</span></a> being used must support the use of atomic charge.</p>
+<p>Keyword <em>density</em> or <em>density/disc</em> also sets the mass of all selected
+particles, but in a different way.  The particles must have a per-atom
+mass attribute, as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>
+command.  If the atom has a radius attribute (see <a class="reference internal" href="atom_style.html"><span class="doc">atom_style
+sphere</span></a>) and its radius is non-zero, its mass is set from
+the density and particle volume for 3d systems (the input density is
+assumed to be in mass/distance^3 units).  For 2d, the default is for
+LAMMPS to model particles with a radius attribute as spheres.
+However, if the <em>density/disc</em> keyword is used, then they can be
+modeled as 2d discs (circles).  Their mass is set from the density and
+particle area (the input density is assumed to be in mass/distance^2
+units).</p>
+<p>If the atom has a shape attribute (see <a class="reference internal" href="atom_style.html"><span class="doc">atom_style ellipsoid</span></a>) and its 3 shape parameters are non-zero, then its mass
+is set from the density and particle volume (the input density is
+assumed to be in mass/distance^3 units).  The <em>density/disc</em> keyword
+has no effect; it does not (yet) treat 3d ellipsoids as 2d ellipses.</p>
+<p>If the atom has a length attribute (see <a class="reference internal" href="atom_style.html"><span class="doc">atom_style line</span></a>) and its length is non-zero, then its mass is set from
+the density and line segment length (the input density is assumed to
+be in mass/distance units).  If the atom has an area attribute (see
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style tri</span></a>) and its area is non-zero, then its
+mass is set from the density and triangle area (the input density is
+assumed to be in mass/distance^2 units).</p>
+<p>If none of these cases are valid, then the mass is set to the density
+value directly (the input density is assumed to be in mass units).</p>
+<p>Keyword <em>diameter</em> sets the size of the selected atoms.  The particles
+must be finite-size spheres as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style sphere</span></a> command.  The diameter of a particle can be set to 0.0,
+which means they will be treated as point particles.  Note that this
+command does not adjust the particle mass, even if it was defined with
+a density, e.g. via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023: </span>Support for type labels was added for setting dihedral types</p>
+</div>
+<p>Keyword <em>dihedral</em> sets the dihedral type of all dihedrals of selected
+atoms to the specified value.  The value can be a numeric type from 1
+to ndihedraltypes.  Or it can be a dihedral type label.  See the
+<a class="reference internal" href="Howto_type_labels.html"><span class="doc">Howto type labels</span></a> doc page for the allowed
+syntax of type labels and a general discussion of how type labels can
+be used.  All atoms in a particular dihedral must be selected atoms in
+order for the change to be made.  The value of ndihedraltypes was set
+by the <em>dihedral types</em> field in the header of the data file read by
+the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  This keyword does NOT allow
+use of an atom-style variable.</p>
+<p>Keyword <em>dipole</em> uses the specified x,y,z values as components of a
+vector to set as the orientation of the dipole moment vectors of the
+selected atoms.  The magnitude of the dipole moment is set by the
+length of this orientation vector.</p>
+<p>Keyword <em>dipole/random</em> randomizes the orientation of the dipole
+moment vectors for the selected atoms and sets the magnitude of each
+to the specified <em>Dlen</em> value.  For 2d systems, the z component of the
+orientation is set to 0.0.  Random numbers are used in such a way that
+the orientation of a particular atom is the same, regardless of how
+many processors are being used.  This keyword does NOT allow use of an
+atom-style variable.</p>
+<p>Keyword <em>dpd/theta</em> sets the internal temperature of a DPD particle as
+defined by the DPD-REACT package.  If the specified value is a number
+it must be &gt;= 0.0.  If the specified value is NULL, then the kinetic
+temperature Tkin of each particle is computed as 3/2 k Tkin = KE = 1/2
+m v^2 = 1/2 m (vx*vx+vy*vy+vz*vz).  Each particle’s internal
+temperature is set to Tkin.  If the specified value is an atom-style
+variable, then the variable is evaluated for each particle.  If a
+value &gt;= 0.0, the internal temperature is set to that value.  If it is
+&lt; 0.0, the computation of Tkin is performed and the internal
+temperature is set to that value.</p>
+<p>Keywords <em>edpd/temp</em> and <em>edpd/cv</em> set the temperature and volumetric
+heat capacity of an eDPD particle as defined by the DPD-MESO package.
+Currently, only <a class="reference internal" href="atom_style.html"><span class="doc">atom_style edpd</span></a> defines particles
+with these attributes. The values for the temperature and heat
+capacity must be positive.</p>
+<p>Keyword <em>epsilon</em> sets the dielectric constant of a particle to be
+that of the medium where the particle resides as defined by the
+DIELECTRIC package. Currently, only <a class="reference internal" href="atom_style.html"><span class="doc">atom_style dielectric</span></a> defines particles with this attribute. The value for the
+dielectric constant must be &gt;= 0.0.  Note that the set command with
+this keyword will rescale the particle charge accordingly so that the
+real charge (e.g., as read from a data file) stays intact. To change
+the real charges, one needs to use the set command with the <em>charge</em>
+keyword. Care must be taken to ensure that the real and scaled charges
+and the dielectric constants are consistent.</p>
+<p>Keyword <em>image</em> sets which image of the simulation box the atom is
+considered to be in.  An image of 0 means it is inside the box as
+defined.  A value of 2 means add 2 box lengths to get the true value.
+A value of -1 means subtract 1 box length to get the true value.
+LAMMPS updates these flags as atoms cross periodic boundaries during
+the simulation.  The flags can be output with atom snapshots via the
+<a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command.  If a value of NULL is specified for any
+of nx,ny,nz, then the current image value for that dimension is
+unchanged.  For non-periodic dimensions only a value of 0 can be
+specified.  This command can be useful after a system has been
+equilibrated and atoms have diffused one or more box lengths in
+various directions.  This command can then reset the image values for
+atoms so that they are effectively inside the simulation box, e.g if a
+diffusion coefficient is about to be measured via the <a class="reference internal" href="compute_msd.html"><span class="doc">compute
+msd</span></a> command.  Care should be taken not to reset the
+image flags of two atoms in a bond to the same value if the bond
+straddles a periodic boundary (rather they should be different by +/-
+1).  This will not affect the dynamics of a simulation, but may mess
+up analysis of the trajectories if a LAMMPS diagnostic or your own
+analysis relies on the image flags to unwrap a molecule which
+straddles the periodic box.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023: </span>Support for type labels was added for setting improper types</p>
+</div>
+<p>Keyword <em>improper</em> sets the improper type of all impropers of selected
+atoms to the specified value.  The value can be a numeric type from 1
+to nimpropertypes.  Or it can be a improper type label.  See the
+<a class="reference internal" href="Howto_type_labels.html"><span class="doc">Howto type labels</span></a> doc page for the allowed
+syntax of type labels and a general discussion of how type labels can
+be used.  All atoms in a particular improper must be selected atoms in
+order for the change to be made.  The value of nimpropertypes was set
+by the <em>improper types</em> field in the header of the data file read by
+the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  This keyword does NOT allow
+use of an atom-style variable.</p>
+<p>Keyword <em>length</em> sets the length of selected atoms.  The particles
+must be line segments as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style line</span></a> command.  If the specified value is non-zero the line
+segment is (re)set to a length = the specified value, centered around
+the particle position, with an orientation along the x-axis.  If the
+specified value is 0.0, the particle will become a point particle.
+Note that this command does not adjust the particle mass, even if it
+was defined with a density, e.g. via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
+command.</p>
+<p>Keyword <em>mass</em> sets the mass of all selected particles.  The particles
+must have a per-atom mass attribute, as defined by the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> command.  See the “mass” command for
+how to set mass values on a per-type basis.</p>
+<p>Keyword <em>mol</em> sets the molecule ID for all selected atoms.  The
+<a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> being used must support the use of
+molecule IDs.</p>
+<p>Keyword <em>omega</em> sets the angular velocity of selected atoms.  The
+particles must be spheres as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style sphere</span></a> command.  The angular velocity vector of the particles
+is set to the 3 specified components.</p>
+<p>Keyword <em>quat</em> uses the specified values to create a quaternion
+(4-vector) that represents the orientation of the selected atoms.  The
+particles must define a quaternion for their orientation
+(e.g. ellipsoids, triangles, body particles) as defined by the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> command.  Note that particles defined
+by <a class="reference internal" href="atom_style.html"><span class="doc">atom_style ellipsoid</span></a> have 3 shape parameters.
+The 3 values must be non-zero for each particle set by this command.
+They are used to specify the aspect ratios of an ellipsoidal particle,
+which is oriented by default with its x-axis along the simulation
+box’s x-axis, and similarly for y and z.  If this body is rotated (via
+the right-hand rule) by an angle theta around a unit rotation vector
+(a,b,c), then the quaternion that represents its new orientation is
+given by (cos(theta/2), a*sin(theta/2), b*sin(theta/2),
+c*sin(theta/2)).  The theta and a,b,c values are the arguments to the
+<em>quat</em> keyword.  LAMMPS normalizes the quaternion in case (a,b,c) was
+not specified as a unit vector.  For 2d systems, the a,b,c values are
+ignored, since a rotation vector of (0,0,1) is the only valid choice.</p>
+<p>Keyword <em>quat/random</em> randomizes the orientation of the quaternion for
+the selected atoms.  The particles must define a quaternion for their
+orientation (e.g. ellipsoids, triangles, body particles) as defined by
+the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> command.  Random numbers are used
+in such a way that the orientation of a particular atom is the same,
+regardless of how many processors are being used.  For 2d systems,
+only orientations in the xy plane are generated.  As with keyword
+<em>quat</em>, for ellipsoidal particles, the 3 shape values must be non-zero
+for each particle set by this command.  This keyword does NOT allow
+use of an atom-style variable.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 15Sep2022.</span></p>
+</div>
+<p>Keyword <em>radius/electron</em> uses the specified value to set the radius
+of electrons or fixed cores.</p>
+<p>Keywords <em>rheo/rho</em> and <em>rheo/status</em> set the density and the status of
+rheo particles. In particular, one can only set the phase in the status
+as described by the <a class="reference internal" href="Howto_rheo.html"><span class="doc">RHEO howto page</span></a>.</p>
+<p>Keyword <em>shape</em> sets the size and shape of the selected atoms.  The
+particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style
+ellipsoid</span></a> command.  The <em>Sx</em>, <em>Sy</em>, <em>Sz</em> settings are
+the 3 diameters of the ellipsoid in each direction.  All 3 can be set
+to the same value, which means the ellipsoid is effectively a sphere.
+They can also all be set to 0.0 which means the particle will be
+treated as a point particle.  Note that this command does not adjust
+the particle mass, even if it was defined with a density, e.g. via the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+<p>Keyword <em>smd/contact/radius</em> only applies to simulations with the
+Smooth Mach Dynamics package MACHDYN.  Itsets an interaction radius
+for computing short-range interactions, e.g. repulsive forces to
+prevent different individual physical bodies from penetrating each
+other. Note that the SPH smoothing kernel diameter used for computing
+long range, nonlocal interactions, is set using the <em>diameter</em>
+keyword.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>Keyword <em>block</em> sets the blockiness of the selected atoms.  The
+particles must be ellipsoids as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style
+ellipsoid</span></a> command.  This command is used to define
+superellipsoid particle shapes for use in granular simulations.  The
+<em>block1</em>, <em>block2</em> settings are the 2 exponents of the superellipsoid in
+the vertical and horizontal directions.  Vertical sections through the
+center are superellipses with squareness <em>block1</em> and horizontal
+sections are superellipses with squareness <em>block2</em>.  If both parameters
+are set to a value of 2 (the default), the atom is a regular ellipsoid.
+The keyword <em>block</em> should be used together with the keyword <em>shape</em> to
+give the particle the desired shape.  If the keyword <em>block</em> is given
+alone, and the <em>shape</em> has not been defined, e.g., in a previous <em>set</em>
+command, the 3 diameters would be set to a value of 1 internally.  Note
+that this command does not adjust the particle mass, even if it was
+defined with a density, e.g. via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>
+command.</p>
+<p>Keyword <em>smd/mass/density</em> sets the mass of all selected particles,
+but it is only applicable to the Smooth Mach Dynamics package MACHDYN.
+It assumes that the particle volume has already been correctly set and
+calculates particle mass from the provided mass density value.</p>
+<p>Keywords <em>sph/cv</em>, <em>sph/e</em>, and <em>sph/rho</em> set the heat capacity,
+energy, and density of smoothed particle hydrodynamics (SPH)
+particles.  See <a class="reference external" href="PDF/SPH_LAMMPS_userguide.pdf">this PDF guide</a> to
+using SPH in LAMMPS.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Note that the SPH PDF guide file has not been updated for many
+years and thus does not reflect the current <em>syntax</em> of the SPH
+package commands. For that, please refer to the LAMMPS manual.</p>
+</div>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 15Sep2022.</span></p>
+</div>
+<p>Keyword <em>spin/atom</em> uses the specified g value to set the magnitude of
+the magnetic spin vectors, and the x,y,z values as components of a
+vector to set as the orientation of the magnetic spin vectors of the
+selected atoms.  This keyword was previously called <em>spin</em>.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 15Sep2022.</span></p>
+</div>
+<p>Keyword <em>spin/atom/random</em> randomizes the orientation of the magnetic
+spin vectors for the selected atoms and sets the magnitude of each to
+the specified <em>Dlen</em> value.  This keyword does NOT allow use of an
+atom-style variable.  This keyword was previously called
+<em>spin/random</em>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 15Sep2022.</span></p>
+</div>
+<p>Keyword <em>spin/electron</em> sets the spin of an electron (+/- 1) or
+indicates nuclei (=0), fixed-cores (=2), or pseudo-cores (= 3).</p>
+<p>Keyword <em>temperature</em> sets the temperature of a finite-size particle.
+Currently, only the GRANULAR package supports this attribute. The
+temperature must be added using an instance of <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> The values for the temperature must be positive.</p>
+<p>Keyword <em>theta</em> sets the orientation of selected atoms.  The particles
+must be line segments as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style line</span></a> command.  The specified value is used to set the
+orientation angle of the line segments with respect to the x axis.</p>
+<p>Keyword <em>theta/random</em> randomizes the orientation of theta for the
+selected atoms.  The particles must be line segments as defined by the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style line</span></a> command.  Random numbers are used
+in such a way that the orientation of a particular atom is the same,
+regardless of how many processors are being used.  This keyword does
+NOT allow use of an atom-style variable.</p>
+<p>Keyword <em>tri</em> sets the size of selected atoms.  The particles must be
+triangles as defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style tri</span></a>
+command.  If the specified value is non-zero the triangle is (re)set
+to be an equilateral triangle in the xy plane with side length = the
+specified value, with a centroid at the particle position, with its
+base parallel to the x axis, and the y-axis running from the center of
+the base to the top point of the triangle.  If the specified value is
+0.0, the particle will become a point particle.  Note that this
+command does not adjust the particle mass, even if it was defined with
+a density, e.g. via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023: </span>Support for type labels was added for setting atom types</p>
+</div>
+<p>Keyword <em>type</em> sets the atom type for all selected atoms.  A specified
+value can be either a numeric atom type or an atom type label. When
+using a numeric type, the specified value must be from 1 to ntypes,
+where ntypes was set by the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command or
+the <em>atom types</em> field in the header of the data file read by the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.  When using a type label it must
+have been defined previously.  See the <a class="reference internal" href="Howto_type_labels.html"><span class="doc">Howto type labels</span></a> doc page for the allowed syntax of type labels
+and a general discussion of how type labels can be used.</p>
+<p>Keyword <em>type/fraction</em> sets the atom type for a fraction of the
+selected atoms.  The actual number of atoms changed is not guaranteed
+to be exactly the specified fraction (0 &lt;= <em>fraction</em> &lt;= 1), but
+should be statistically close.  Random numbers are used in such a way
+that a particular atom is changed or not changed, regardless of how
+many processors are being used.  This keyword does NOT allow use of an
+atom-style variable.</p>
+<p>Keywords <em>type/ratio</em> and <em>type/subset</em> also set the atom type for a
+fraction of the selected atoms.  The actual number of atoms changed
+will be exactly the requested number.  For <em>type/ratio</em> the specified
+fraction (0 &lt;= <em>fraction</em> &lt;= 1) determines the number.  For
+<em>type/subset</em>, the specified <em>Nsubset</em> is the number.  An iterative
+algorithm is used which ensures the correct number of atoms are
+selected, in a perfectly random fashion.  Which atoms are selected
+will change with the number of processors used.  These keywords do not
+allow use of an atom-style variable.</p>
+<p>Keyword <em>volume</em> sets the volume of all selected particles.
+Currently, only the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style peri</span></a> command
+defines particles with a volume attribute.  Note that this command
+does not adjust the particle mass.</p>
+<p>Keywords <em>vx</em>, <em>vy</em>, and <em>vz</em> set the velocities of all selected
+atoms.</p>
+<p>Keywords <em>x</em>, <em>y</em>, <em>z</em> set the coordinates of all selected atoms.</p>
+<p>Keyword <em>apip/lambda</em> sets the switching parameter of an
+adaptive-precision interatomic potential (<a class="reference internal" href="Howto_apip.html"><span class="doc">APIP</span></a>).
+The precise potential is used for an atom when its switching parameter
+<span class="math notranslate nohighlight">\(\lambda\)</span> is 0. The fast potential is used for an atom when its
+switching parameter <span class="math notranslate nohighlight">\(\lambda\)</span> is 1. Both potentials are partially
+used for <span class="math notranslate nohighlight">\(\lambda\in(0,1)\)</span>.</p>
+<p>Keywords <em>i_name</em>, <em>d_name</em>, <em>i2_name</em>, <em>d2_name</em> refer to custom
+per-atom integer and floating-point vectors or arrays that have been
+added via the <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> command.
+When that command is used specific names are given to each attribute
+which are the “name” portion of these keywords.  For arrays <em>i2_name</em>
+and <em>d2_name</em>, the column of the array to set must also be included
+following the name in brackets: e.g. d2_xyz[2] or i2_mySpin[3].</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>You cannot set an atom attribute (e.g. <em>mol</em> or <em>q</em> or <em>volume</em>) if
+the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> does not have that attribute.</p>
+<p>This command requires inter-processor communication to coordinate the
+setting of bond types (angle types, etc).  This means that the system
+must be ready to perform a simulation before using one of these
+keywords (force fields set, atom mass set, etc).  This is not
+necessary for other keywords.</p>
+<p>Using the <em>region</em> style with the bond (angle, etc) keywords can give
+unpredictable results if there are bonds (angles, etc) that straddle
+periodic boundaries.  This is because the region may only extend up to
+the boundary and partner atoms in the bond (angle, etc) may have
+coordinates outside the simulation box if they are ghost atoms.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>, <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a>,
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>, <a class="reference internal" href="fix_set.html"><span class="doc">fix set</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>none</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="run_style.html" class="btn btn-neutral float-left" title="run_style command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="shell.html" class="btn btn-neutral float-right" title="shell command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

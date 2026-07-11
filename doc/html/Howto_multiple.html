@@ -1,0 +1,268 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.1.5. Run multiple simulations from one input script &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_multiple.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.1.6. Multi-replica simulations" href="Howto_replica.html" />
+    <link rel="prev" title="10.1.2. Visualize LAMMPS snapshots" href="Howto_viz.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_restart.html">10.1.1. Restart a simulation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html">10.1.2. Visualize LAMMPS snapshots</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html#basic-workflow-for-loading-lammps-trajectories-in-vmd">10.1.3. Basic workflow for loading LAMMPS trajectories in VMD</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viz.html#advanced-graphics-features-in-the-dump-image-command">10.1.4. Advanced graphics features in the <em>dump image</em> command</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.1.5. Run multiple simulations from one input script</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_replica.html">10.1.6. Multi-replica simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_library.html">10.1.7. Library interface to LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_couple.html">10.1.8. Coupling LAMMPS to other codes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_mdi.html">10.1.9. Using LAMMPS with the MDI library for code coupling</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.1.5. </span>Run multiple simulations from one input script</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_viz.html" class="btn btn-neutral float-left" title="10.1.2. Visualize LAMMPS snapshots" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_replica.html" class="btn btn-neutral float-right" title="10.1.6. Multi-replica simulations" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="run-multiple-simulations-from-one-input-script">
+<h1><span class="section-number">10.1.5. </span>Run multiple simulations from one input script<a class="headerlink" href="#run-multiple-simulations-from-one-input-script" title="Link to this heading"></a></h1>
+<p>This can be done in several ways.  See the documentation for
+individual commands for more details on how these examples work.</p>
+<p>If “multiple simulations” means to continue a previous simulation for
+more timesteps, then you simply use the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command
+multiple times.  For example, this script</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w"> </span><span class="n">lj</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">atomic</span>
+<span class="k">read_data</span><span class="w"> </span><span class="n">data.lj</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+</pre></div>
+</div>
+<p>would run 5 successive simulations of the same system for a total of
+50,000 timesteps.</p>
+<p>If you wish to run totally different simulations, one after the other,
+the <a class="reference internal" href="clear.html"><span class="doc">clear</span></a> command can be used in between them to
+re-initialize LAMMPS.  For example, this script</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w"> </span><span class="n">lj</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">atomic</span>
+<span class="k">read_data</span><span class="w"> </span><span class="n">data.lj</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+<span class="k">clear</span>
+<span class="k">units</span><span class="w"> </span><span class="n">lj</span>
+<span class="k">atom_style</span><span class="w"> </span><span class="n">atomic</span>
+<span class="k">read_data</span><span class="w"> </span><span class="n">data.lj.new</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+</pre></div>
+</div>
+<p>would run 2 independent simulations, one after the other.</p>
+<p>For large numbers of independent simulations, you can use
+<a class="reference internal" href="variable.html"><span class="doc">variables</span></a> and the <a class="reference internal" href="next.html"><span class="doc">next</span></a> and
+<a class="reference internal" href="jump.html"><span class="doc">jump</span></a> commands to loop over the same input script
+multiple times with different settings.  For example, this
+script, named <code class="docutils literal notranslate"><span class="pre">in.polymer</span></code></p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">d</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="n">run1</span><span class="w"> </span><span class="n">run2</span><span class="w"> </span><span class="n">run3</span><span class="w"> </span><span class="n">run4</span><span class="w"> </span><span class="n">run5</span><span class="w"> </span><span class="n">run6</span><span class="w"> </span><span class="n">run7</span><span class="w"> </span><span class="n">run8</span>
+<span class="k">shell</span><span class="w"> </span><span class="n">cd</span><span class="w"> </span><span class="nv">$d</span>
+<span class="k">read_data</span><span class="w"> </span><span class="n">data.polymer</span>
+<span class="k">run</span><span class="w"> </span><span class="m">10000</span>
+<span class="k">shell</span><span class="w"> </span><span class="n">cd</span><span class="w"> </span><span class="n">..</span>
+<span class="k">clear</span>
+<span class="k">next </span><span class="nv nv-Identifier">d</span>
+<span class="k">jump </span><span class="sc">in.polymer</span>
+</pre></div>
+</div>
+<p>would run 8 simulations in different directories, using a <code class="docutils literal notranslate"><span class="pre">data.polymer</span></code>
+file in each directory.  The same concept could be used to run the
+same system at 8 different temperatures, using a temperature variable
+and storing the output in different log and dump files, for example</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">loop</span><span class="w"> </span><span class="m">8</span>
+<span class="k">variable </span><span class="nv nv-Identifier">t</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="m">0.8</span><span class="w"> </span><span class="m">0.85</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.05</span><span class="w"> </span><span class="m">1.1</span><span class="w"> </span><span class="m">1.15</span>
+<span class="k">log</span><span class="w"> </span><span class="n">log.</span><span class="nv">$a</span>
+<span class="n">read</span><span class="w"> </span><span class="n">data.polymer</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="nv">$t</span><span class="w"> </span><span class="m">352839</span>
+<span class="k">fix </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="nv">$t</span><span class="w"> </span><span class="nv">$t</span><span class="w"> </span><span class="m">100.0</span>
+<span class="k">dump </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">dump.</span><span class="nv">$a</span>
+<span class="k">run</span><span class="w"> </span><span class="m">100000</span>
+<span class="k">clear</span>
+<span class="k">next </span><span class="nv nv-Identifier">t</span>
+<span class="k">next </span><span class="nv nv-Identifier">a</span>
+<span class="k">jump </span><span class="sc">in.polymer</span>
+</pre></div>
+</div>
+<p>All of the above examples work whether you are running on 1 or
+multiple processors, but assumed you are running LAMMPS on a single
+partition of processors.  LAMMPS can be run on multiple partitions via
+the <a class="reference internal" href="Run_options.html"><span class="doc">-partition command-line switch</span></a>.</p>
+<p>In the last 2 examples, if LAMMPS were run on 3 partitions, the same
+scripts could be used if the <code class="docutils literal notranslate"><span class="pre">index</span></code> and <code class="docutils literal notranslate"><span class="pre">loop</span></code> variables were
+replaced with <em>universe</em>-style variables, as described in the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command.  Also, the <code class="code highlight LAMMPS docutils literal highlight-LAMMPS"><span class="k">next </span><span class="nv nv-Identifier">t</span></code> and <code class="code highlight LAMMPS docutils literal highlight-LAMMPS"><span class="k">next </span><span class="nv nv-Identifier">a</span></code>
+commands would need to be replaced with a single <code class="code highlight LAMMPS docutils literal highlight-LAMMPS"><span class="k">next </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">t</span></code> command.
+With these modifications, the 8 simulations of each script would run
+on the 3 partitions one after the other until all were finished.
+Initially, 3 simulations would be started simultaneously, one on each
+partition.  When one finished, that partition would then start
+the fourth simulation, and so forth, until all 8 were completed.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_viz.html" class="btn btn-neutral float-left" title="10.1.2. Visualize LAMMPS snapshots" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_replica.html" class="btn btn-neutral float-right" title="10.1.6. Multi-replica simulations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6.2. Parsing rules for input scripts &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Commands_parse.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="6.3. Input script structure" href="Commands_structure.html" />
+    <link rel="prev" title="6.1. LAMMPS input scripts" href="Commands_input.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Commands.html">6. Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">6.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">6.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">6.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_category.html">6.4. Commands by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">6.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">6.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">6.7. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_pair.html">6.8. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html">6.9. Bond styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#angle-styles">6.10. Angle styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#dihedral-styles">6.11. Dihedral styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#improper-styles">6.12. Improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">6.13. KSpace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_dump.html">6.14. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_removed.html">6.15. Removed commands and packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Commands.html"><span class="section-number">6. </span>Commands</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6.2. </span>Parsing rules for input scripts</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Commands_input.html" class="btn btn-neutral float-left" title="6.1. LAMMPS input scripts" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Commands_structure.html" class="btn btn-neutral float-right" title="6.3. Input script structure" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="parsing-rules-for-input-scripts">
+<h1><span class="section-number">6.2. </span>Parsing rules for input scripts<a class="headerlink" href="#parsing-rules-for-input-scripts" title="Link to this heading"></a></h1>
+<p>Each non-blank line in the input script is treated as a command.
+LAMMPS commands are case sensitive.  Command names are lower-case, as
+are specified command arguments.  Upper case letters may be used in
+file names or user-chosen ID strings.</p>
+<p>Here are 6 rules for how each line in the input script is parsed by
+LAMMPS:</p>
+<ol class="arabic simple" id="one">
+<li><p>If the last printable character on the line is a “&amp;” character, the
+command is assumed to continue on the next line.  The next line is
+concatenated to the previous line by removing the “&amp;” character and
+line break.  This allows long commands to be continued across two or
+more lines.  See the discussion of triple quotes in <a class="reference internal" href="#six"><span class="std std-ref">6</span></a>
+for how to continue a command across multiple line without using “&amp;”
+characters.</p></li>
+</ol>
+<ol class="arabic" id="two" start="2">
+<li><p>All characters from the first “#” character onward are treated as
+comment and discarded.  The exception to this rule is described in
+<a class="reference internal" href="#six"><span class="std std-ref">6</span></a>. Note that a comment after a trailing “&amp;” character
+will prevent the command from continuing on the next line.  Also note
+that for multi-line commands a single leading “#” will comment out
+the entire command.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># this is a comment</span>
+<span class="k">timestep</span><span class="w">  </span><span class="m">1.0</span><span class="w">   </span><span class="c"># this is also a comment</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<ol class="arabic" id="three" start="3">
+<li><p>The line is searched repeatedly for $ characters, which indicate
+variables that are replaced with a text string.  The exception to
+this rule is described in <a class="reference internal" href="#six"><span class="std std-ref">6</span></a>.</p>
+<p>If the $ is followed by text in curly brackets ‘{}’, then the
+variable name is the text inside the curly brackets.  If no curly
+brackets follow the $, then the variable name is the single character
+immediately following the $.  Thus <code class="docutils literal notranslate"><span class="pre">${myTemp}</span></code> and <code class="docutils literal notranslate"><span class="pre">$x</span></code> refer to variables
+named “myTemp” and “x”, while <code class="docutils literal notranslate"><span class="pre">$xx</span></code> will be interpreted as a variable
+named “x” followed by an “x” character.</p>
+<p>How the variable is converted to a text string depends on what style
+of variable it is; see the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> page for
+details.  It can be a variable that stores multiple text strings, and
+return one of them.  The returned text string can be multiple “words”
+(space separated) which will then be interpreted as multiple
+arguments in the input command.  The variable can also store a
+numeric formula which will be evaluated and its numeric result
+returned as a string.</p>
+<p>As a special case, if the $ is followed by parenthesis “()”, then the
+text inside the parenthesis is treated as an “immediate” variable and
+evaluated as an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>.  This is a
+way to use numeric formulas in an input script without having to
+assign them to variable names.  For example, these 3 input script
+lines:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">X</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="nv">(xlo+xhi)</span><span class="o">/</span><span class="m">2</span><span class="o">+</span><span class="n">sqrt</span><span class="nv">(v_area)</span>
+<span class="k">region </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="nv">$X</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">INF</span><span class="w"> </span><span class="n">INF</span><span class="w"> </span><span class="n">EDGE</span><span class="w"> </span><span class="n">EDGE</span>
+<span class="k">variable </span><span class="nv nv-Identifier">X</span><span class="w"> </span><span class="n">delete</span>
+</pre></div>
+</div>
+<p>can be replaced by:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">region </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="nv">$((xlo+xhi)/2+sqrt(v_area))</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">INF</span><span class="w"> </span><span class="n">INF</span><span class="w"> </span><span class="n">EDGE</span><span class="w"> </span><span class="n">EDGE</span>
+</pre></div>
+</div>
+<p>so that you do not have to define (or discard) a temporary variable,
+“X” in this case.</p>
+<p>Additionally, the entire “immediate” variable expression may be
+followed by a colon, followed by a C-style format string,
+e.g. <code class="docutils literal notranslate"><span class="pre">:%f</span></code> or <code class="docutils literal notranslate"><span class="pre">:%.10g</span></code>.  The format string must be appropriate for
+a double-precision floating-point value.  The format string is used
+to output the result of the variable expression evaluation.  If a
+format string is not specified, a high-precision <code class="docutils literal notranslate"><span class="pre">%.20g</span></code> is used as
+the default format.</p>
+<p>This can be useful for formatting print output to a desired precision:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="w"> </span><span class="s">&quot;Final energy per atom: $(v_ke_per_atom+v_pe_per_atom:%10.3f) eV/atom&quot;</span>
+</pre></div>
+</div>
+<p>Note that neither the curly-bracket or immediate form of variables
+can contain nested $ characters for other variables to substitute
+for.  Thus you may <strong>NOT</strong> do this:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable        </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">2</span>
+<span class="k">variable        </span><span class="nv nv-Identifier">b2</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">4</span>
+<span class="k">print</span><span class="w">           </span><span class="s">&quot;B2 = ${b$a}&quot;</span>
+</pre></div>
+</div>
+<p>Nor can you specify an expression like <code class="docutils literal notranslate"><span class="pre">$($x-1.0)</span></code> for an immediate
+variable, but you could use <code class="docutils literal notranslate"><span class="pre">$(v_x-1.0)</span></code>, since the latter is valid
+syntax for an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a>.</p>
+<p>See the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command for more details of how
+strings are assigned to variables and evaluated, and how they can
+be used in input script commands.</p>
+</li>
+</ol>
+<ol class="arabic simple" id="four" start="4">
+<li><p>The line is broken into “words” separated by white-space (tabs,
+spaces).  Note that words can thus contain letters, digits,
+underscores, or punctuation characters.</p></li>
+</ol>
+<ol class="arabic simple" id="five" start="5">
+<li><p>The first word is the command name.  All successive words in the line
+are arguments.</p></li>
+</ol>
+<ol class="arabic" id="six" start="6">
+<li><p>If you want text with spaces to be treated as a single argument, it
+can be enclosed in either single (’) or double (”) or triple (“””)
+quotes.  A long single argument enclosed in single or double quotes
+can span multiple lines if the “&amp;” character is used, as described
+in <a class="reference internal" href="#one"><span class="std std-ref">1</span></a> above.  When the lines are concatenated together
+by LAMMPS (and the “&amp;” characters and line breaks removed), the
+combined text will become a single line.  If you want multiple lines
+of an argument to retain their line breaks, the text can be enclosed
+in triple quotes, in which case “&amp;” characters are not needed and do
+not function as line continuation character.  For example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="w"> </span><span class="s">&quot;Volume = $v&quot;</span>
+<span class="k">print</span><span class="w"> </span><span class="s">&#39;Volume = $v&#39;</span>
+<span class="k">if</span><span class="w"> </span><span class="s">&quot;${steps} &gt; 1000&quot;</span><span class="w"> </span><span class="k">then</span><span class="w"> </span><span class="n">quit</span>
+<span class="k">variable </span><span class="nv nv-Identifier">a</span><span class="w"> </span><span class="n">string</span><span class="w"> </span><span class="s">&quot;red green blue &amp;</span>
+<span class="s">                purple orange cyan&quot;</span>
+<span class="k">print</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">System volume = $v</span>
+<span class="s">System temperature = $t</span>
+<span class="s">&quot;&quot;&quot;</span>
+</pre></div>
+</div>
+<p>In each of these cases, the single, double, or triple quotes are
+removed and the enclosed text stored internally as a single
+argument.</p>
+<p>See the <a class="reference internal" href="dump_modify.html"><span class="doc">dump modify format</span></a>, <a class="reference internal" href="print.html"><span class="doc">print</span></a>, <a class="reference internal" href="if.html"><span class="doc">if</span></a>, and <a class="reference internal" href="python.html"><span class="doc">python</span></a> commands for
+examples.</p>
+<p>A “#” or “$” character that is between quotes will not be treated as
+a comment indicator in <a class="reference internal" href="#two"><span class="std std-ref">2</span></a> or substituted for as a
+variable in <a class="reference internal" href="#three"><span class="std std-ref">3</span></a>.</p>
+</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the argument is itself a command that requires a quoted argument
+(e.g. using a <a class="reference internal" href="print.html"><span class="doc">print</span></a> command as part of an <a class="reference internal" href="if.html"><span class="doc">if</span></a> or <a class="reference internal" href="run.html"><span class="doc">run every</span></a> command), then single, double, or
+triple quotes can be nested in the usual manner.  See the doc pages
+for those commands for examples.  Only one level of nesting is
+allowed, but that should be sufficient for most use cases.</p>
+</div>
+<div class="note admonition">
+<p class="admonition-title">ASCII versus UTF-8</p>
+<p>LAMMPS expects and processes 7-bit ASCII format text internally.
+Many modern environments use UTF-8 encoding, which is a superset
+of the 7-bit ASCII character table and thus mostly compatible.
+However, there are several non-ASCII characters that can look
+very similar to their ASCII equivalents or are invisible (so they
+look like a blank), but are encoded differently.  Web browsers,
+PDF viewers, document editors are known to sometimes replace one
+with the other for a better looking output.  However, that can
+lead to problems, for instance, when using cut-n-paste of input
+file examples from web pages, or when using a document editor
+(not a dedicated plain text editor) for writing LAMMPS inputs.
+LAMMPS will try to detect this and substitute the non-ASCII
+characters with their ASCII equivalents where known.  There also
+is going to be a warning printed, if this occurs.  It is
+recommended to avoid such characters altogether in LAMMPS input,
+data and potential files.  The replacement tables are likely
+incomplete and dependent on users reporting problems processing
+correctly looking input containing UTF-8 encoded non-ASCII
+characters.</p>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Commands_input.html" class="btn btn-neutral float-left" title="6.1. LAMMPS input scripts" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Commands_structure.html" class="btn btn-neutral float-right" title="6.3. Input script structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

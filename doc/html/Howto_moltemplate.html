@@ -1,0 +1,618 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.6.4. Moltemplate Tutorial &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_moltemplate.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.6.5. LAMMPS Python Tutorial" href="Howto_python.html" />
+    <link rel="prev" title="10.6.3. Using LAMMPS-GUI" href="Howto_lammps_gui.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_cmake.html">10.6.1. Using CMake with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_github.html">10.6.2. LAMMPS GitHub tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_lammps_gui.html">10.6.3. Using LAMMPS-GUI</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.6.4. Moltemplate Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_python.html">10.6.5. LAMMPS Python Tutorial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_wsl.html">10.6.6. Using LAMMPS on Windows 10 with WSL</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.6.4. </span>Moltemplate Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_lammps_gui.html" class="btn btn-neutral float-left" title="10.6.3. Using LAMMPS-GUI" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_python.html" class="btn btn-neutral float-right" title="10.6.5. LAMMPS Python Tutorial" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="moltemplate-tutorial">
+<h1><span class="section-number">10.6.4. </span>Moltemplate Tutorial<a class="headerlink" href="#moltemplate-tutorial" title="Link to this heading"></a></h1>
+<p>In this tutorial, we are going to use the tool <a class="reference internal" href="#moltemplate1"><span class="std std-ref">Moltemplate</span></a> from <a class="reference external" href="https://moltemplate.org/">https://moltemplate.org/</a> to set up a classical
+molecular dynamic simulation using the <a class="reference internal" href="#oplsaa2024"><span class="std std-ref">OPLS-AA force field</span></a>. The first task is to describe an organic compound and
+create a complete input deck for LAMMPS.  The second task is to use
+moltemplate to build a polymer.  The third task is to map the OPLS-AA
+force field to a molecular sample created with an external tool,
+e.g. PACKMOL, and exported as a PDB file.  The files used in this
+tutorial can be found in the <code class="docutils literal notranslate"><span class="pre">tools/moltemplate/tutorial-files</span></code> folder
+of the LAMMPS source code distribution.</p>
+<p>Many more examples can be found here: <a class="reference external" href="https://moltemplate.org/examples.html">https://moltemplate.org/examples.html</a></p>
+<section id="simulating-an-organic-solvent">
+<h2>Simulating an organic solvent<a class="headerlink" href="#simulating-an-organic-solvent" title="Link to this heading"></a></h2>
+<p>This example aims to create a cubic box of the organic solvent
+formamide.</p>
+<p>The first step is to create a molecular topology in the LAMMPS-template
+(LT) file format representing a single molecule, which will be
+stored in a Moltemplate object called <code class="docutils literal notranslate"><span class="pre">_FAM</span> <span class="pre">inherits</span> <span class="pre">OPLSAA</span> <span class="pre">{}</span></code>.
+This command states that the object <code class="docutils literal notranslate"><span class="pre">_FAM</span></code> is based on an existing
+object called <code class="docutils literal notranslate"><span class="pre">OPLSAA</span></code>, which contains OPLS-AA parameters, atom type
+definitions, partial charges, masses and bond-angle rules for many organic
+and biological compounds.
+The atomic structure is the starting point to populate the command
+<code class="docutils literal notranslate"><span class="pre">write('Data</span> <span class="pre">Atoms')</span> <span class="pre">{}</span></code>, which will write the <code class="docutils literal notranslate"><span class="pre">Atoms</span></code> section in the
+LAMMPS data file. The OPLS-AA force field uses the <code class="docutils literal notranslate"><span class="pre">atom_style</span> <span class="pre">full</span></code>,
+therefore, this column format is used:
+<code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">atomID</span> <span class="pre">molID</span> <span class="pre">atomType</span> <span class="pre">charge</span> <span class="pre">coordX</span> <span class="pre">coordY</span> <span class="pre">coordZ</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">atomID</span></code>s are replaced with Moltemplate <code class="docutils literal notranslate"><span class="pre">$</span></code>-type variables, which
+are then substituted with unique numerical IDs. The same logic is applied
+to the <code class="docutils literal notranslate"><span class="pre">molID</span></code>, except that the same variable is used for the whole
+molecule. The atom types are assigned using <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>-type variables. The
+assignment of atom types (e.g. <code class="docutils literal notranslate"><span class="pre">&#64;atom:177</span></code>, <code class="docutils literal notranslate"><span class="pre">&#64;atom:178</span></code>) is done using
+the OPLS-AA atom types defined in the “In Charges” section of the file
+<code class="docutils literal notranslate"><span class="pre">oplsaa2024.lt</span></code>, looking for a reasonable match with the description of the atom.
+The resulting file (<code class="docutils literal notranslate"><span class="pre">formamide.lt</span></code>) follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>/usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt<span class="w">  </span><span class="c1"># defines OPLSAA</span>
+
+_FAM<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+
+<span class="w">  </span><span class="c1"># atomID    molID  atomType  charge  coordX  coordY  coordZ</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s1">&#39;Data Atoms&#39;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$atom</span>:C00<span class="w">  </span><span class="nv">$mol</span><span class="w">  </span>@atom:235<span class="w">  </span><span class="m">0</span>.00<span class="w">    </span><span class="m">0</span>.100<span class="w">   </span><span class="m">0</span>.490<span class="w">   </span><span class="m">0</span>.0
+<span class="w">    </span><span class="nv">$atom</span>:O01<span class="w">  </span><span class="nv">$mol</span><span class="w">  </span>@atom:236<span class="w">  </span><span class="m">0</span>.00<span class="w">    </span><span class="m">1</span>.091<span class="w">  </span>-0.250<span class="w">   </span><span class="m">0</span>.0
+<span class="w">    </span><span class="nv">$atom</span>:N02<span class="w">  </span><span class="nv">$mol</span><span class="w">  </span>@atom:237<span class="w">  </span><span class="m">0</span>.00<span class="w">   </span>-1.121<span class="w">  </span>-0.181<span class="w">   </span><span class="m">0</span>.0
+<span class="w">    </span><span class="nv">$atom</span>:H03<span class="w">  </span><span class="nv">$mol</span><span class="w">  </span>@atom:240<span class="w">  </span><span class="m">0</span>.00<span class="w">   </span>-2.013<span class="w">   </span><span class="m">0</span>.272<span class="w">   </span><span class="m">0</span>.0
+<span class="w">    </span><span class="nv">$atom</span>:H04<span class="w">  </span><span class="nv">$mol</span><span class="w">  </span>@atom:240<span class="w">  </span><span class="m">0</span>.00<span class="w">   </span>-1.056<span class="w">  </span>-1.190<span class="w">   </span><span class="m">0</span>.0
+<span class="w">    </span><span class="nv">$atom</span>:H05<span class="w">  </span><span class="nv">$mol</span><span class="w">  </span>@atom:279<span class="w">  </span><span class="m">0</span>.00<span class="w">    </span><span class="m">0</span>.144<span class="w">   </span><span class="m">1</span>.570<span class="w">   </span><span class="m">0</span>.0
+<span class="w">  </span><span class="o">}</span>
+
+<span class="w">  </span><span class="c1"># A list of the bonds in the molecule:</span>
+<span class="w">  </span><span class="c1"># BondID   AtomID1   AtomID2</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s1">&#39;Data Bond List&#39;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$bond</span>:C1<span class="w"> </span><span class="nv">$atom</span>:C00<span class="w"> </span><span class="nv">$atom</span>:O01
+<span class="w">    </span><span class="nv">$bond</span>:C2<span class="w"> </span><span class="nv">$atom</span>:C00<span class="w"> </span><span class="nv">$atom</span>:H05
+<span class="w">    </span><span class="nv">$bond</span>:C3<span class="w"> </span><span class="nv">$atom</span>:C00<span class="w"> </span><span class="nv">$atom</span>:N02
+<span class="w">    </span><span class="nv">$bond</span>:C4<span class="w"> </span><span class="nv">$atom</span>:N02<span class="w"> </span><span class="nv">$atom</span>:H03
+<span class="w">    </span><span class="nv">$bond</span>:C5<span class="w"> </span><span class="nv">$atom</span>:N02<span class="w"> </span><span class="nv">$atom</span>:H04
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>You don’t have to specify the charge in this example because the OPLSAA
+force-field assigns charge according to the atom type.  (This is not true
+when using other force fields.)  A “Data Bond List” section is needed as
+the atom type will determine the bond type. The other bonded interactions
+(e.g. angles, dihedrals, and impropers) will be automatically generated by
+Moltemplate.</p>
+<p>If the simulation is not charge-neutral, or Moltemplate complains that
+you have missing bond, angle, or dihedral types, this probably means that
+at least one of your atom types is incorrect (or that perhaps there is no
+suitable atom type currently defined in the <code class="docutils literal notranslate"><span class="pre">oplsaa2024.lt</span></code> file).</p>
+<p>The second step is to create a master file with instructions to build a
+starting structure and the LAMMPS commands to run an NPT simulation. The
+master file (<code class="docutils literal notranslate"><span class="pre">solv_01.lt</span></code>) follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>formamide.lt<span class="w">  </span><span class="c1"># Defines &quot;_FAM&quot; and OPLSAA</span>
+
+<span class="c1"># Distribute the molecules on a 5x5x5 cubic grid with spacing 4.6</span>
+<span class="nv">solv</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>new<span class="w"> </span>_FAM<span class="w"> </span><span class="o">[</span><span class="m">5</span><span class="o">]</span>.move<span class="o">(</span><span class="w"> </span><span class="m">4</span>.6,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+<span class="w">                </span><span class="o">[</span><span class="m">5</span><span class="o">]</span>.move<span class="o">(</span><span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">4</span>.6,<span class="w"> </span><span class="m">0</span><span class="o">)</span>
+<span class="w">                </span><span class="o">[</span><span class="m">5</span><span class="o">]</span>.move<span class="o">(</span><span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">0</span>,<span class="w"> </span><span class="m">4</span>.6<span class="o">)</span>
+solv<span class="o">[</span>*<span class="o">][</span>*<span class="o">][</span>*<span class="o">]</span>.move<span class="o">(</span>-11.5,<span class="w"> </span>-11.5,<span class="w"> </span>-11.5<span class="o">)</span>
+
+<span class="c1"># Set the simulation box.</span>
+write_once<span class="o">(</span><span class="s2">&quot;Data Boundary&quot;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w"> </span>-11.5<span class="w"> </span><span class="m">11</span>.5<span class="w"> </span>xlo<span class="w"> </span>xhi
+<span class="w"> </span>-11.5<span class="w"> </span><span class="m">11</span>.5<span class="w"> </span>ylo<span class="w"> </span>yhi
+<span class="w"> </span>-11.5<span class="w"> </span><span class="m">11</span>.5<span class="w"> </span>zlo<span class="w"> </span>zhi
+<span class="o">}</span>
+
+<span class="c1"># Note: The lines below in the &quot;In Run&quot; section are often omitted.</span>
+
+write_once<span class="o">(</span><span class="s2">&quot;In Run&quot;</span><span class="o">){</span>
+<span class="w"> </span><span class="c1"># Create an input deck for LAMMPS.</span>
+<span class="w"> </span><span class="c1"># Run an NPT simulation.</span>
+<span class="w"> </span><span class="c1"># Input variables.</span>
+<span class="w"> </span>variable<span class="w"> </span>run<span class="w">    </span>string<span class="w"> </span>solv_01<span class="w">   </span><span class="c1"># output name</span>
+<span class="w"> </span>variable<span class="w"> </span>ts<span class="w">     </span>equal<span class="w">  </span><span class="m">1</span><span class="w">         </span><span class="c1"># timestep</span>
+<span class="w"> </span>variable<span class="w"> </span>temp<span class="w">   </span>equal<span class="w">  </span><span class="m">300</span><span class="w">       </span><span class="c1"># equilibrium temperature</span>
+<span class="w"> </span>variable<span class="w"> </span>p<span class="w">      </span>equal<span class="w">  </span><span class="m">1</span>.<span class="w">        </span><span class="c1"># equilibrium pressure</span>
+<span class="w"> </span>variable<span class="w"> </span>d<span class="w">      </span>equal<span class="w">  </span><span class="m">1000</span><span class="w">      </span><span class="c1"># output frequency</span>
+<span class="w"> </span>variable<span class="w"> </span>equi<span class="w">   </span>equal<span class="w">  </span><span class="m">5000</span><span class="w">      </span><span class="c1"># Equilibration steps</span>
+<span class="w"> </span>variable<span class="w"> </span>prod<span class="w">   </span>equal<span class="w">  </span><span class="m">30000</span><span class="w">     </span><span class="c1"># Production steps</span>
+
+<span class="w"> </span><span class="c1"># Derived variables.</span>
+<span class="w"> </span>variable<span class="w"> </span>tcouple<span class="w"> </span>equal<span class="w"> </span><span class="se">\$\{</span>ts<span class="se">\}</span>*100
+<span class="w"> </span>variable<span class="w"> </span>pcouple<span class="w"> </span>equal<span class="w"> </span><span class="se">\$\{</span>ts<span class="se">\}</span>*1000
+
+<span class="w"> </span><span class="c1"># Output.</span>
+<span class="w"> </span>thermo<span class="w">          </span><span class="se">\$</span>d
+<span class="w"> </span>thermo_style<span class="w"> </span>custom<span class="w"> </span>step<span class="w"> </span>etotal<span class="w"> </span>evdwl<span class="w"> </span>ecoul<span class="w"> </span>elong<span class="w"> </span>ebond<span class="w"> </span>eangle<span class="w"> </span><span class="p">&amp;</span>
+<span class="w"> </span>edihed<span class="w"> </span>eimp<span class="w"> </span>ke<span class="w"> </span>pe<span class="w"> </span>temp<span class="w"> </span>press<span class="w"> </span>vol<span class="w"> </span>density<span class="w"> </span>cpu
+<span class="w"> </span>thermo_modify<span class="w"> </span>flush<span class="w"> </span>yes
+
+<span class="w"> </span><span class="c1"># Trajectory.</span>
+<span class="w"> </span>dump<span class="w"> </span>TRJ<span class="w"> </span>all<span class="w"> </span>dcd<span class="w"> </span><span class="se">\$</span>d<span class="w"> </span><span class="se">\$\{</span>run<span class="se">\}</span>.dcd
+<span class="w"> </span>dump_modify<span class="w"> </span>TRJ<span class="w"> </span>unwrap<span class="w"> </span>yes
+
+<span class="w"> </span><span class="c1"># Thermalisation and relaxation, NPT ensemble.</span>
+<span class="w"> </span>timestep<span class="w">       </span><span class="se">\$\{</span>ts<span class="se">\}</span>
+<span class="w"> </span>fix<span class="w">             </span>NPT<span class="w"> </span>all<span class="w"> </span>npt<span class="w"> </span>temp<span class="w"> </span><span class="se">\$\{</span>temp<span class="se">\}</span><span class="w"> </span><span class="se">\$\{</span>temp<span class="se">\}</span><span class="w"> </span><span class="se">\$\{</span>tcouple<span class="se">\}</span><span class="w"> </span>iso<span class="w"> </span><span class="se">\$</span>p<span class="w"> </span><span class="se">\$</span>p<span class="w"> </span><span class="se">\$\{</span>pcouple<span class="se">\}</span>
+<span class="w"> </span>velocity<span class="w"> </span>all<span class="w"> </span>create<span class="w"> </span><span class="se">\$\{</span>temp<span class="se">\}</span><span class="w"> </span><span class="m">858096</span><span class="w"> </span>dist<span class="w"> </span>gaussian
+<span class="w"> </span><span class="c1"># Short runs to update the PPPM settings as the box shrinks.</span>
+<span class="w"> </span>run<span class="w">    </span><span class="se">\$\{</span>equi<span class="se">\}</span><span class="w"> </span>post<span class="w"> </span>no
+<span class="w"> </span>run<span class="w">    </span><span class="se">\$\{</span>equi<span class="se">\}</span><span class="w"> </span>post<span class="w"> </span>no
+<span class="w"> </span>run<span class="w">    </span><span class="se">\$\{</span>equi<span class="se">\}</span><span class="w"> </span>post<span class="w"> </span>no
+<span class="w"> </span>run<span class="w">    </span><span class="se">\$\{</span>equi<span class="se">\}</span>
+<span class="w"> </span><span class="c1"># From now on, the density shouldn&#39;t change too much.</span>
+<span class="w"> </span>run<span class="w">    </span><span class="se">\$\{</span>prod<span class="se">\}</span>
+<span class="w"> </span>unfix<span class="w"> </span>NPT
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>The first two commands insert the content of files <code class="docutils literal notranslate"><span class="pre">oplsaa2024.lt</span></code> and
+<code class="docutils literal notranslate"><span class="pre">formamide.lt</span></code> into the master file. At this point, we can use the
+command <code class="docutils literal notranslate"><span class="pre">solv</span> <span class="pre">=</span> <span class="pre">new</span> <span class="pre">_FAM</span> <span class="pre">[N]</span></code> to create N copies of a molecule of type
+<code class="docutils literal notranslate"><span class="pre">_FAM</span></code>. In this case, we create an array of 5*5*5 molecules on a cubic
+grid using the coordinate transformation command <code class="docutils literal notranslate"><span class="pre">.move(</span> <span class="pre">4.6,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>.
+See the Moltemplate documentation to learn more about the syntax. As
+the sample was created from scratch, we also specify the simulation box
+size in the “Data Boundary” section.</p>
+<p>The LAMMPS setting for the force field are specified in the file
+<code class="docutils literal notranslate"><span class="pre">oplsaa2024.lt</span></code> and are written automatically in the input deck. We also
+specify the boundary conditions and a set of variables in
+the “In Init” section.</p>
+<p>The remaining commands to run an NPT simulation
+are written in the “In Run” section. Note that in this script, LAMMPS
+variables are protected with the escape character <code class="docutils literal notranslate"><span class="pre">\</span></code> to distinguish
+them from Moltemplate variables, e.g. <code class="docutils literal notranslate"><span class="pre">\$\{run\}</span></code> is a LAMMPS
+variable that is written in the input deck as <code class="docutils literal notranslate"><span class="pre">${run}</span></code>.</p>
+<p>(Note: Moltemplate can be slow to run, so you need to change you run
+settings frequently, I recommended moving those commands (from “In Run”)
+out of your .lt files and into a separate file.  Moltemplate creates a
+file named <code class="docutils literal notranslate"><span class="pre">run.in.EXAMPLE</span></code> for this purpose.  You can put your run
+settings and fixes that file and then invoke LAMMPS using
+<code class="docutils literal notranslate"><span class="pre">mpirun</span> <span class="pre">-np</span> <span class="pre">4</span> <span class="pre">lmp</span> <span class="pre">-in</span> <span class="pre">run.in.EXAMPLE</span></code> instead.)</p>
+<p>Compile the master file with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>moltemplate.sh<span class="w"> </span>solv_01.lt
+cleanup_moltemplate.sh<span class="w">   </span><span class="c1"># &lt;-- optional: see below</span>
+</pre></div>
+</div>
+<p>(Note: The optional “cleanup_moltemplate.sh” command deletes
+unused atom types, which sometimes makes LAMMPS run faster.
+But it does not work with many-body pair styles or dreiding-style h-bonds.
+Fortunately most force fields, including OPLSAA, don’t use those features.)</p>
+<p>Then execute the simulation with the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp<span class="w"> </span>-in<span class="w"> </span>solv_01.in<span class="w"> </span>-l<span class="w"> </span>solv_01.log
+</pre></div>
+</div>
+<figure class="align-center align-default" id="id1" style="width: 80%">
+<img alt="_images/solv_01.png" src="_images/solv_01.png" />
+<figcaption>
+<p><span class="caption-text">Snapshot of the sample at the beginning and end of the simulation.
+Rendered with Ovito.</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="building-a-simple-polymer">
+<h2>Building a simple polymer<a class="headerlink" href="#building-a-simple-polymer" title="Link to this heading"></a></h2>
+<p>Moltemplate is particularly useful for building polymers (and other molecules
+with sub-units).  As an simple example, consider butane:</p>
+<figure class="align-default">
+<img alt="_images/butane.jpg" src="_images/butane.jpg" />
+</figure>
+<p>The <code class="docutils literal notranslate"><span class="pre">butane.lt</span></code> file below defines Butane as a polymer containing
+4 monomers (of type <code class="docutils literal notranslate"><span class="pre">CH3</span></code>, <code class="docutils literal notranslate"><span class="pre">CH2</span></code>, <code class="docutils literal notranslate"><span class="pre">CH2</span></code>, <code class="docutils literal notranslate"><span class="pre">CH3</span></code>).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>import<span class="w"> </span>/usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt<span class="w">  </span><span class="c1"># defines OPLSAA</span>
+
+CH3<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+
+<span class="w">  </span><span class="c1"># atomID    molID   atomType  charge   coordX   coordY    coordZ</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s2">&quot;Data Atoms&quot;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$atom</span>:c<span class="w">  </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:54<span class="w">   </span><span class="m">0</span>.0<span class="w">   </span><span class="m">0</span>.000000<span class="w">  </span><span class="m">0</span>.4431163<span class="w">  </span><span class="m">0</span>.000000
+<span class="w">    </span><span class="nv">$atom</span>:h1<span class="w"> </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:60<span class="w">   </span><span class="m">0</span>.0<span class="w">   </span><span class="m">0</span>.000000<span class="w">  </span><span class="m">1</span>.0741603<span class="w">  </span><span class="m">0</span>.892431
+<span class="w">    </span><span class="nv">$atom</span>:h2<span class="w"> </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:60<span class="w">   </span><span class="m">0</span>.0<span class="w">   </span><span class="m">0</span>.000000<span class="w">  </span><span class="m">1</span>.0741603<span class="w"> </span>-0.892431
+<span class="w">    </span><span class="nv">$atom</span>:h3<span class="w"> </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:60<span class="w">   </span><span class="m">0</span>.0<span class="w">  </span>-0.892431<span class="w"> </span>-0.1879277<span class="w">  </span><span class="m">0</span>.000000
+<span class="w">  </span><span class="o">}</span>
+<span class="w">  </span><span class="c1"># (Using &quot;$mol:...&quot; indicates this object (&quot;CH3&quot;) is part of a larger</span>
+<span class="w">  </span><span class="c1">#  molecule. Moltemplate will share the molecule-ID with that molecule.)</span>
+
+<span class="w">  </span><span class="c1"># A list of the bonds within the &quot;CH3&quot; molecular sub-unit:</span>
+<span class="w">  </span><span class="c1"># BondID   AtomID1   AtomID2</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s1">&#39;Data Bond List&#39;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$bond</span>:ch1<span class="w"> </span><span class="nv">$atom</span>:c<span class="w"> </span><span class="nv">$atom</span>:h1
+<span class="w">    </span><span class="nv">$bond</span>:ch2<span class="w"> </span><span class="nv">$atom</span>:c<span class="w"> </span><span class="nv">$atom</span>:h2
+<span class="w">    </span><span class="nv">$bond</span>:ch3<span class="w"> </span><span class="nv">$atom</span>:c<span class="w"> </span><span class="nv">$atom</span>:h3
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+
+CH2<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+
+<span class="w">  </span><span class="c1"># atomID    molID   atomType  charge   coordX   coordY    coordZ</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s2">&quot;Data Atoms&quot;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$atom</span>:c<span class="w">  </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:57<span class="w">   </span><span class="m">0</span>.0<span class="w">   </span><span class="m">0</span>.000000<span class="w">  </span><span class="m">0</span>.4431163<span class="w">  </span><span class="m">0</span>.000000
+<span class="w">    </span><span class="nv">$atom</span>:h1<span class="w"> </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:60<span class="w">   </span><span class="m">0</span>.0<span class="w">   </span><span class="m">0</span>.000000<span class="w">  </span><span class="m">1</span>.0741603<span class="w">  </span><span class="m">0</span>.892431
+<span class="w">    </span><span class="nv">$atom</span>:h2<span class="w"> </span><span class="nv">$mol</span>:...<span class="w"> </span>@atom:60<span class="w">   </span><span class="m">0</span>.0<span class="w">   </span><span class="m">0</span>.000000<span class="w">  </span><span class="m">1</span>.0741603<span class="w"> </span>-0.892431
+<span class="w">  </span><span class="o">}</span>
+
+<span class="w">  </span><span class="c1"># A list of the bonds within the &quot;CH2&quot; molecular sub-unit:</span>
+<span class="w">  </span><span class="c1"># BondID   AtomID1   AtomID2</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s1">&#39;Data Bond List&#39;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$bond</span>:ch1<span class="w"> </span><span class="nv">$atom</span>:c<span class="w"> </span><span class="nv">$atom</span>:h1
+<span class="w">    </span><span class="nv">$bond</span>:ch2<span class="w"> </span><span class="nv">$atom</span>:c<span class="w"> </span><span class="nv">$atom</span>:h2
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+
+Butane<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+
+<span class="w">  </span>create_var<span class="w"> </span><span class="o">{</span><span class="nv">$mol</span><span class="o">}</span><span class="w">  </span><span class="c1"># optional:force all monomers to share the same molecule-ID</span>
+
+<span class="w">  </span><span class="c1"># - Create 4 monomers</span>
+<span class="w">  </span><span class="c1"># - Move them along the X axis using &quot;.move()&quot;,</span>
+<span class="w">  </span><span class="c1"># - Rotate them 180 degrees with respect to the previous monomer</span>
+<span class="w">  </span><span class="nv">monomer1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>new<span class="w"> </span>CH3
+<span class="w">  </span><span class="nv">monomer2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>new<span class="w"> </span>CH2.rot<span class="o">(</span><span class="m">180</span>,1,0,0<span class="o">)</span>.move<span class="o">(</span><span class="m">1</span>.2533223,0,0<span class="o">)</span>
+<span class="w">  </span><span class="nv">monomer3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>new<span class="w"> </span>CH2.move<span class="o">(</span><span class="m">2</span>.5066446,0,0<span class="o">)</span>
+<span class="w">  </span><span class="nv">monomer4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>new<span class="w"> </span>CH3.rot<span class="o">(</span><span class="m">180</span>,0,0,1<span class="o">)</span>.move<span class="o">(</span><span class="m">3</span>.7599669,0,0<span class="o">)</span>
+
+<span class="w">  </span><span class="c1"># A list of the bonds connecting different monomers together:</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s1">&#39;Data Bond List&#39;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$bond</span>:b1<span class="w">  </span><span class="nv">$atom</span>:monomer1/c<span class="w"> </span><span class="nv">$atom</span>:monomer2/c
+<span class="w">    </span><span class="nv">$bond</span>:b2<span class="w">  </span><span class="nv">$atom</span>:monomer2/c<span class="w"> </span><span class="nv">$atom</span>:monomer3/c
+<span class="w">    </span><span class="nv">$bond</span>:b3<span class="w">  </span><span class="nv">$atom</span>:monomer3/c<span class="w"> </span><span class="nv">$atom</span>:monomer4/c
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>Again, you don’t have to specify the charge in this example because OPLSAA
+assigns charges according to the atom type.</p>
+<p>This <code class="docutils literal notranslate"><span class="pre">Butane</span></code> object is a molecule which can be used anywhere other molecules
+can be used.  (You can arrange <code class="docutils literal notranslate"><span class="pre">Butane</span></code> molecules on a lattice, as we did previously.
+You can also modify individual butane molecules by adding or deleting atoms or bonds.
+You can add bonds between specific butane molecules or use <code class="docutils literal notranslate"><span class="pre">Butane</span></code> as a
+sub-unit to define even larger molecules.  See the moltemplate manual for details.)</p>
+</section>
+<section id="how-to-build-a-complex-polymer">
+<h2>How to build a complex polymer<a class="headerlink" href="#how-to-build-a-complex-polymer" title="Link to this heading"></a></h2>
+<p>A similar procedure can be used to create more complicated polymers,
+such as the NIPAM polymer example shown below.  For details, see:</p>
+<p><a class="reference external" href="https://github.com/jewettaij/moltemplate/tree/master/examples/all_atom/force_field_OPLSAA/NIPAM_polymer+water+ions">https://github.com/jewettaij/moltemplate/tree/master/examples/all_atom/force_field_OPLSAA/NIPAM_polymer+water+ions</a></p>
+</section>
+<section id="mapping-an-existing-structure">
+<h2>Mapping an existing structure<a class="headerlink" href="#mapping-an-existing-structure" title="Link to this heading"></a></h2>
+<p>Another helpful way to use Moltemplate is mapping an existing molecular
+sample to a force field. This is useful when a complex sample is assembled
+from different simulations or created with specialized software (e.g. PACKMOL).
+(Note: The previous link shows how to build this entire system from scratch
+using only moltemplate.  However here we will assume instead that we obtained
+a PDB file for this system using PACKMOL.)</p>
+<p>As in the previous examples, all molecular species in the sample
+are defined using single-molecule Moltemplate objects.
+For this example, we use a short polymer in a box containing
+water molecules and ions in the PDB file <code class="docutils literal notranslate"><span class="pre">model.pdb</span></code>.</p>
+<p>It is essential to understand that the order of atoms in the PDB file
+and in the Moltemplate master script must match, as we are using the
+coordinates from the PDB file in the order they appear. The order of
+atoms and molecules in the PDB file provided is as follows:</p>
+<ul>
+<li><p>500 water molecules, with atoms ordered in this sequence:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ATOM      1  O   MOL D   1       5.901   7.384   1.103  0.00  0.00      DUM
+ATOM      2  H   MOL D   1       6.047   8.238   0.581  0.00  0.00      DUM
+ATOM      3  H   MOL D   1       6.188   7.533   2.057  0.00  0.00      DUM
+</pre></div>
+</div>
+</li>
+<li><p>1 polymer molecule.</p></li>
+<li><p>1 Ca<sup>2+</sup> ion.</p></li>
+<li><p>2 Cl<sup>-</sup> ions.</p></li>
+</ul>
+<p>In the master LT file, this sequence of molecules is matched with the
+following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create the sample.</span>
+<span class="nv">wat</span><span class="o">=</span>new<span class="w"> </span>SPC<span class="o">[</span><span class="m">500</span><span class="o">]</span>
+<span class="nv">pol</span><span class="o">=</span>new<span class="w"> </span>PolyNIPAM<span class="o">[</span><span class="m">1</span><span class="o">]</span>
+<span class="nv">cat</span><span class="o">=</span>new<span class="w"> </span>Ca<span class="o">[</span><span class="m">1</span><span class="o">]</span>
+<span class="nv">ani</span><span class="o">=</span>new<span class="w"> </span>Cl<span class="o">[</span><span class="m">2</span><span class="o">]</span>
+</pre></div>
+</div>
+<p>Note that the first command would create 500 water molecules in the
+same position in space, and the other commands will use the coordinates
+specified in the corresponding molecular topology block. However, the
+coordinates will be overwritten by rendering an external atomic
+structure file. Note that if the same molecule species are scattered in
+the input structure, it is recommended to reorder and group together
+for molecule types to facilitate the creation of the input sample.</p>
+<p>The molecular topology for the polymer is created as in the previous
+example, with the atom types assigned as in the following schema:</p>
+<figure class="align-center" id="id2">
+<a class="reference internal image-reference" href="_images/PolyNIPAM.jpg"><img alt="_images/PolyNIPAM.jpg" height="302" src="_images/PolyNIPAM.jpg" width="198" />
+</a>
+<figcaption>
+<p><span class="caption-text">Atom types assigned to the polymer’s repeating unit.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<p>The molecular topology of the water and ions is stated directly into
+the master file for the sake of space, but they could also be written
+in a separate file(s) and imported before the sample is created.</p>
+<p>The resulting master LT file defining short annealing at a fixed volume
+(NVT) follows:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use the OPLS-AA force field for all species.</span>
+import<span class="w"> </span>/usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
+import<span class="w"> </span>PolyNIPAM.lt
+
+<span class="c1"># Define the SPC water and ions as in the OPLS-AA</span>
+Ca<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s2">&quot;Data Atoms&quot;</span><span class="o">){</span>
+<span class="w">    </span><span class="nv">$atom</span>:a1<span class="w">  </span><span class="nv">$mol</span>:.<span class="w"> </span>@atom:412<span class="w"> </span><span class="m">0</span>.0<span class="w">  </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.000000
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+Cl<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s2">&quot;Data Atoms&quot;</span><span class="o">){</span>
+<span class="w">    </span><span class="nv">$atom</span>:a1<span class="w">  </span><span class="nv">$mol</span>:.<span class="w"> </span>@atom:401<span class="w"> </span><span class="m">0</span>.0<span class="w">  </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.000000
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+SPC<span class="w"> </span>inherits<span class="w"> </span>OPLSAA<span class="w"> </span><span class="o">{</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s2">&quot;Data Atoms&quot;</span><span class="o">){</span>
+<span class="w">    </span><span class="nv">$atom</span>:O<span class="w">  </span><span class="nv">$mol</span>:.<span class="w"> </span>@atom:9991<span class="w"> </span><span class="m">0</span>.<span class="w">  </span><span class="m">0</span>.0000000<span class="w"> </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.0000000
+<span class="w">    </span><span class="nv">$atom</span>:H1<span class="w"> </span><span class="nv">$mol</span>:.<span class="w"> </span>@atom:9990<span class="w"> </span><span class="m">0</span>.<span class="w">  </span><span class="m">0</span>.8164904<span class="w"> </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.5773590
+<span class="w">    </span><span class="nv">$atom</span>:H2<span class="w"> </span><span class="nv">$mol</span>:.<span class="w"> </span>@atom:9990<span class="w"> </span><span class="m">0</span>.<span class="w"> </span>-0.8164904<span class="w"> </span><span class="m">0</span>.00000<span class="w"> </span><span class="m">0</span>.5773590
+<span class="w">  </span><span class="o">}</span>
+<span class="w">  </span>write<span class="o">(</span><span class="s2">&quot;Data Bond List&quot;</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nv">$bond</span>:OH1<span class="w"> </span><span class="nv">$atom</span>:O<span class="w"> </span><span class="nv">$atom</span>:H1
+<span class="w">    </span><span class="nv">$bond</span>:OH2<span class="w"> </span><span class="nv">$atom</span>:O<span class="w"> </span><span class="nv">$atom</span>:H2
+<span class="w">  </span><span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1"># Create the sample.</span>
+<span class="nv">wat</span><span class="o">=</span>new<span class="w"> </span>SPC<span class="o">[</span><span class="m">500</span><span class="o">]</span>
+<span class="nv">pol</span><span class="o">=</span>new<span class="w"> </span>PolyNIPAM<span class="o">[</span><span class="m">1</span><span class="o">]</span>
+<span class="nv">cat</span><span class="o">=</span>new<span class="w"> </span>Ca<span class="o">[</span><span class="m">1</span><span class="o">]</span>
+<span class="nv">ani</span><span class="o">=</span>new<span class="w"> </span>Cl<span class="o">[</span><span class="m">2</span><span class="o">]</span>
+
+<span class="c1"># Periodic boundary conditions:</span>
+write_once<span class="o">(</span><span class="s2">&quot;Data Boundary&quot;</span><span class="o">){</span>
+<span class="w">  </span><span class="m">0</span><span class="w"> </span><span class="m">26</span><span class="w"> </span>xlo<span class="w"> </span>xhi
+<span class="w">  </span><span class="m">0</span><span class="w"> </span><span class="m">26</span><span class="w"> </span>ylo<span class="w"> </span>yhi
+<span class="w">  </span><span class="m">0</span><span class="w"> </span><span class="m">26</span><span class="w"> </span>zlo<span class="w"> </span>zhi
+<span class="o">}</span>
+
+write_once<span class="o">(</span><span class="s2">&quot;In Init&quot;</span><span class="o">){</span>
+<span class="w">  </span>boundary<span class="w"> </span>p<span class="w"> </span>p<span class="w"> </span>p<span class="w">  </span><span class="c1"># &quot;p p p&quot; is the default. This line is optional.</span>
+<span class="w">  </span>neighbor<span class="w"> </span><span class="m">3</span><span class="w"> </span>bin<span class="w">  </span><span class="c1"># (This line is also optional in this example.)</span>
+<span class="o">}</span>
+
+<span class="c1"># Note: The lines below in the &quot;In Run&quot; section are often omitted.</span>
+
+<span class="c1"># Run an NVT simulation.</span>
+write_once<span class="o">(</span><span class="s2">&quot;In Run&quot;</span><span class="o">){</span>
+<span class="w">  </span><span class="c1"># Input variables.</span>
+<span class="w">  </span>variable<span class="w"> </span>run<span class="w">    </span>string<span class="w"> </span>sample01<span class="w">  </span><span class="c1"># output name</span>
+<span class="w">  </span>variable<span class="w"> </span>ts<span class="w">     </span>equal<span class="w">  </span><span class="m">2</span><span class="w">         </span><span class="c1"># timestep</span>
+<span class="w">  </span>variable<span class="w"> </span>temp<span class="w">   </span>equal<span class="w">  </span><span class="m">298</span>.15<span class="w">    </span><span class="c1"># equilibrium temperature</span>
+<span class="w">  </span>variable<span class="w"> </span>p<span class="w">      </span>equal<span class="w">  </span><span class="m">1</span>.<span class="w">        </span><span class="c1"># equilibrium pressure</span>
+<span class="w">  </span>variable<span class="w"> </span>equi<span class="w">   </span>equal<span class="w">  </span><span class="m">30000</span><span class="w">     </span><span class="c1"># equilibration steps</span>
+
+<span class="w">  </span><span class="c1"># Set the output.</span>
+<span class="w">  </span>thermo<span class="w">          </span><span class="m">1000</span>
+<span class="w">  </span>thermo_style<span class="w">    </span>custom<span class="w"> </span>step<span class="w"> </span>etotal<span class="w"> </span>evdwl<span class="w"> </span>ecoul<span class="w"> </span>elong<span class="w"> </span>ebond<span class="w"> </span>eangle<span class="w"> </span><span class="p">&amp;</span>
+<span class="w">  </span>edihed<span class="w"> </span>eimp<span class="w"> </span>pe<span class="w"> </span>ke<span class="w"> </span>temp<span class="w"> </span>press<span class="w"> </span>atoms<span class="w"> </span>vol<span class="w"> </span>density<span class="w"> </span>cpu
+<span class="w">  </span>thermo_modify<span class="w"> </span>flush<span class="w"> </span>yes
+<span class="w">  </span>compute<span class="w"> </span>pe1<span class="w"> </span>all<span class="w"> </span>pe/atom<span class="w"> </span>pair
+<span class="w">  </span>dump<span class="w"> </span>TRJ<span class="w"> </span>all<span class="w"> </span>custom<span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="se">\$\{</span>run<span class="se">\}</span>.dump<span class="w"> </span>id<span class="w"> </span>xu<span class="w"> </span>yu<span class="w"> </span>zu<span class="w"> </span>c_pe1
+
+<span class="w">  </span><span class="c1"># Minimise the input structure, just in case.</span>
+<span class="w">  </span>minimize<span class="w">        </span>.01<span class="w"> </span>.001<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">100000</span>
+<span class="w">  </span>write_data<span class="w"> </span><span class="se">\$\{</span>run<span class="se">\}</span>.min
+
+<span class="w">  </span><span class="c1"># Set the constrains.</span>
+<span class="w">  </span>group<span class="w"> </span>watergroup<span class="w"> </span><span class="nb">type</span><span class="w"> </span>@atom:9991<span class="w"> </span>@atom:9990
+<span class="w">  </span>fix<span class="w"> </span><span class="m">0</span><span class="w"> </span>watergroup<span class="w"> </span>shake<span class="w"> </span><span class="m">0</span>.0001<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">0</span><span class="w"> </span>b<span class="w"> </span>@bond:spcO_spcH<span class="w"> </span>a<span class="w"> </span>@angle:spcH_spcO_spcH
+
+<span class="w">  </span><span class="c1"># Short annealing.</span>
+<span class="w">  </span>timestep<span class="w">        </span><span class="se">\$\{</span>ts<span class="se">\}</span>
+<span class="w">  </span>fix<span class="w">       </span><span class="m">1</span><span class="w"> </span>all<span class="w"> </span>nvt<span class="w"> </span>temp<span class="w"> </span><span class="se">\$\{</span>temp<span class="se">\}</span><span class="w"> </span><span class="se">\$\{</span>temp<span class="se">\}</span><span class="w"> </span><span class="se">\$</span><span class="o">(</span><span class="m">100</span>*dt<span class="o">)</span>
+<span class="w">  </span>velocity<span class="w">    </span>all<span class="w"> </span>create<span class="w"> </span><span class="se">\$\{</span>temp<span class="se">\}</span><span class="w"> </span><span class="m">315443</span>
+<span class="w">  </span>run<span class="w">             </span><span class="se">\$\{</span>equi<span class="se">\}</span>
+<span class="w">  </span>unfix<span class="w"> </span><span class="m">1</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+<p>In this example, the water model is SPC and it is defined in the
+<code class="docutils literal notranslate"><span class="pre">oplsaa2024.lt</span></code> file with atom types <code class="docutils literal notranslate"><span class="pre">&#64;atom:9991</span></code> and <code class="docutils literal notranslate"><span class="pre">&#64;atom:9990</span></code>.  For
+water we also use the <code class="docutils literal notranslate"><span class="pre">group</span></code> and <code class="docutils literal notranslate"><span class="pre">fix</span> <span class="pre">shake</span></code> commands with
+Moltemplate <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>-type variables, to ensure consistency with the
+numerical values assigned during compilation. To identify the bond and
+angle types, look for the extended <code class="docutils literal notranslate"><span class="pre">&#64;atom</span></code> IDs, which in this case
+are:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>replace<span class="o">{</span><span class="w"> </span>@atom:9991<span class="w"> </span>@atom:9991_bspcO_aspcO_dspcO_ispcO<span class="w"> </span><span class="o">}</span>
+replace<span class="o">{</span><span class="w"> </span>@atom:9990<span class="w"> </span>@atom:9990_bspcH_aspcH_dspcH_ispcH<span class="w"> </span><span class="o">}</span>
+</pre></div>
+</div>
+<p>From which we can identify the following “Data Bonds By Type”:
+<code class="docutils literal notranslate"><span class="pre">&#64;bond:spcO_spcH</span> <span class="pre">&#64;atom:*_bspcO*_a*_d*_i*</span> <span class="pre">&#64;atom:*_bspcH*_a*_d*_i*</span></code>
+and “Data Angles By Type”:
+<code class="docutils literal notranslate"><span class="pre">&#64;angle:spcH_spcO_spcH</span> <span class="pre">&#64;atom:*_b*_aspcH*_d*_i*</span> <span class="pre">&#64;atom:*_b*_aspcO*_d*_i*</span> <span class="pre">&#64;atom:*_b*_aspcH*_d*_i*</span></code></p>
+<p>Compile the master file with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>moltemplate.sh<span class="w"> </span>-pdb<span class="w"> </span>model.pdb<span class="w"> </span>sample01.lt
+cleanup_moltemplate.sh
+</pre></div>
+</div>
+<p>And execute the simulation with the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp<span class="w"> </span>-in<span class="w"> </span>sample01.in<span class="w"> </span>-l<span class="w"> </span>sample01.log
+</pre></div>
+</div>
+<figure class="align-center align-default" id="id3" style="width: 50%">
+<img alt="_images/sample01.png" src="_images/sample01.png" />
+<figcaption>
+<p><span class="caption-text">Sample visualized with Ovito loading the trajectory into the DATA
+file written after minimization.</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<hr class="docutils" />
+<p id="oplsaa2024"><strong>(OPLS-AA)</strong>  Jorgensen, W.L., Ghahremanpour, M.M., Saar, A., Tirado-Rives, J., J. Phys. Chem. B, 128(1), 250-262 (2024).</p>
+<p id="moltemplate1"><strong>(Moltemplate)</strong>  Jewett et al., J. Mol. Biol., 433(11), 166841 (2021)</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_lammps_gui.html" class="btn btn-neutral float-left" title="10.6.3. Using LAMMPS-GUI" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_python.html" class="btn btn-neutral float-right" title="10.6.5. LAMMPS Python Tutorial" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

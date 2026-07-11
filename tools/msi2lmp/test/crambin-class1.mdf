@@ -1,0 +1,840 @@
+!BIOSYM molecular_data 4
+
+!DATE:      Mon Jul 14 13:41:24 1997     INSIGHT generated molecular data file 
+
+#topology                                                                      
+
+@column 1 element                                                              
+@column 2 atom_type cvff                                                       
+@column 3 charge_group cvff                                                    
+@column 4 isotope                                                              
+@column 5 formal_charge                                                        
+@column 6 charge cvff                                                          
+@column 7 switching_atom cvff                                                  
+@column 8 oop_flag cvff                                                        
+@column 9 chirality_flag                                                       
+@column 10 occupancy                                                           
+@column 11 xray_temp_factor                                                    
+@column 12 connections                                                         
+
+@molecule CRAMBIN                                                             
+
+THRN_1:N            N  n4      pep+ 0  0  -0.5000 1 0 8  1.0000 13.7900 CA HN1 HN2 HN3 
+THRN_1:HN3          H  hn      pep+ 0  0   0.3600 0 0 8  1.0000  0.0000 N 
+THRN_1:HN1          H  hn      pep+ 0  0   0.3600 0 0 8  1.0000  0.0000 N 
+THRN_1:HN2          H  hn      pep+ 0  0   0.3600 0 0 8  1.0000  0.0000 N 
+THRN_1:CA           C  ca      pep+ 0  0   0.3200 0 0 8  1.0000 10.8000 C CB N HA 
+THRN_1:HA           H  h       pep+ 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+THRN_1:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  9.1900 O/2.0 CA THR_2:N/1.5 
+THRN_1:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  9.8500 C/2.0 
+THRN_1:CB           C  c1      cBoh 0  0  -0.0700 0 0 8  1.0000 13.0200 CG2 OG1 CA HB 
+THRN_1:HB           H  h       cBoh 0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THRN_1:OG1          O  oh      cBoh 0  0  -0.3800 1 0 8  1.0000 15.0600 CB HG1 
+THRN_1:HG1          H  ho      cBoh 0  0   0.3500 0 0 8  1.0000  0.0000 OG1 
+THRN_1:CG2          C  c3      meG  0  0  -0.3000 1 0 8  1.0000 14.2300 CB HG21 HG22 HG23 
+THRN_1:HG21         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THRN_1:HG22         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THRN_1:HG23         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_2:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  7.8100 CA THRN_1:C/1.5 HN 
+THR_2:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+THR_2:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  8.3100 C CB N HA 
+THR_2:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+THR_2:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.8000 O/2.0 CA CYS_3:N/1.5 
+THR_2:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.9400 C/2.0 
+THR_2:CB            C  c1      cBoh 0  0  -0.0700 0 0 8  1.0000 10.3200 CG2 OG1 CA HB 
+THR_2:HB            H  h       cBoh 0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_2:OG1           O  oh      cBoh 0  0  -0.3800 1 0 8  1.0000 12.8100 CB HG1 
+THR_2:HG1           H  ho      cBoh 0  0   0.3500 0 0 8  1.0000  0.0000 OG1 
+THR_2:CG2           C  c3      meG  0  0  -0.3000 1 0 8  1.0000 11.9000 CB HG21 HG22 HG23 
+THR_2:HG21          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_2:HG22          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_2:HG23          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+CYS_3:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.2400 CA THR_2:C/1.5 HN 
+CYS_3:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+CYS_3:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.3900 C CB N HA 
+CYS_3:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+CYS_3:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.4500 O/2.0 CA CYS_4:N/1.5 
+CYS_3:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.5400 C/2.0 
+CYS_3:CB            C  c2      cs   0  0  -0.3000 1 0 8  1.0000  5.9900 SG CA HB1 HB2 
+CYS_3:HB1           H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_3:HB2           H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_3:SG            S  s1      cs   0  0   0.1000 0 0 8  1.0000  7.0100 CB CYS_40:SG 
+CYS_4:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.9000 CA CYS_3:C/1.5 HN 
+CYS_4:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+CYS_4:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.2400 C CB N HA 
+CYS_4:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+CYS_4:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.7200 O/2.0 CA PRO_5:N/1.5 
+CYS_4:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.3000 C/2.0 
+CYS_4:CB            C  c2      cs   0  0  -0.3000 1 0 8  1.0000  4.4100 SG CA HB1 HB2 
+CYS_4:HB1           H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_4:HB2           H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_4:SG            S  s1      cs   0  0   0.1000 0 0 8  1.0000  4.7200 CB CYS_32:SG 
+PRO_5:N             N  n       pepN 0  0  -0.4200 1 1 8  1.0000  3.9600 CA CD CYS_4:C/1.5 
+PRO_5:CA            C  ca      pepN 0  0   0.0600 0 0 8  1.0000  4.2500 C CB N HA 
+PRO_5:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+PRO_5:CD            C  c2      pepN 0  0   0.0600 0 0 8  1.0000  5.2000 N CG HD1 HD2 
+PRO_5:HD1           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_5:HD2           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_5:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.9600 O/2.0 CA SER_6:N/1.5 
+PRO_5:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.4400 C/2.0 
+PRO_5:CB            C  c2      meB  0  0  -0.2000 1 0 8  1.0000  5.1100 CG CA HB1 HB2 
+PRO_5:HB1           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_5:HB2           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_5:CG            C  c2      meG  0  0  -0.2000 1 0 8  1.0000  5.2400 CD CB HG1 HG2 
+PRO_5:HG1           H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+PRO_5:HG2           H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+SER_6:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.8300 CA PRO_5:C/1.5 HN 
+SER_6:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+SER_6:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.4500 C CB N HA 
+SER_6:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+SER_6:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.9900 O/2.0 CA ILE_7:N/1.5 
+SER_6:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.6100 C/2.0 
+SER_6:CB            C  c2      coh  0  0  -0.1700 0 0 8  1.0000  5.0500 OG CA HB1 HB2 
+SER_6:HB1           H  h       coh  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+SER_6:HB2           H  h       coh  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+SER_6:OG            O  oh      coh  0  0  -0.3800 1 0 8  1.0000  6.3900 CB HG 
+SER_6:HG            H  ho      coh  0  0   0.3500 0 0 8  1.0000  0.0000 OG 
+ILE_7:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.9400 CA SER_6:C/1.5 HN 
+ILE_7:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ILE_7:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  6.3300 C CB N HA 
+ILE_7:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ILE_7:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.3200 O/2.0 CA VAL_8:N/1.5 
+ILE_7:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.8500 C/2.0 
+ILE_7:CB            C  c1      meB  0  0  -0.1000 1 0 8  1.0000  8.4300 CG2 CG1 CA HB 
+ILE_7:HB            H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ILE_7:CG1           C  c2      meG1 0  0  -0.2000 1 0 8  1.0000  9.7800 CD1 CB HG11 HG12 
+ILE_7:HG11          H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_7:HG12          H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_7:CG2           C  c3      meG2 0  0  -0.3000 1 0 8  1.0000 11.7000 CB HG21 HG22 HG23 
+ILE_7:HG21          H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_7:HG22          H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_7:HG23          H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_7:CD1           C  c3      meD1 0  0  -0.3000 1 0 8  1.0000  9.9200 CG1 HD11 HD12 HD13 
+ILE_7:HD11          H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_7:HD12          H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_7:HD13          H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+VAL_8:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.0200 CA ILE_7:C/1.5 HN 
+VAL_8:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+VAL_8:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  6.9300 C CB N HA 
+VAL_8:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+VAL_8:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.3900 O/2.0 CA ALA_9:N/1.5 
+VAL_8:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.3000 C/2.0 
+VAL_8:CB            C  c1      meB  0  0  -0.1000 1 0 8  1.0000  9.6400 CG1 CG2 CA HB 
+VAL_8:HB            H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+VAL_8:CG1           C  c3      meG1 0  0  -0.3000 1 0 8  1.0000 13.8500 CB HG11 HG12 HG13 
+VAL_8:HG11          H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+VAL_8:HG12          H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+VAL_8:HG13          H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+VAL_8:CG2           C  c3      meG2 0  0  -0.3000 1 0 8  1.0000 11.9700 CB HG21 HG22 HG23 
+VAL_8:HG21          H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+VAL_8:HG22          H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+VAL_8:HG23          H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ALA_9:N             N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.7300 CA VAL_8:C/1.5 HN 
+ALA_9:HN            H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ALA_9:CA            C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.5600 C CB N HA 
+ALA_9:HA            H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ALA_9:C             C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.1300 O/2.0 CA ARG_10:N/1.5 
+ALA_9:O             O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.3600 C/2.0 
+ALA_9:CB            C  c3      meB  0  0  -0.3000 1 0 8  1.0000  4.8000 CA HB1 HB2 HB3 
+ALA_9:HB1           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_9:HB2           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_9:HB3           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ARG_10:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.7300 CA ALA_9:C/1.5 HN 
+ARG_10:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ARG_10:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.3800 C CB N HA 
+ARG_10:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ARG_10:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.4700 O/2.0 CA SER_11:N/1.5 
+ARG_10:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.6700 C/2.0 
+ARG_10:CB           C  c2      c3nc 0  0  -0.2000 0 0 8  1.0000  3.9500 CG CA HB1 HB2 
+ARG_10:HB1          H  h       c3nc 0  0   0.1100 0 0 8  1.0000  0.0000 CB 
+ARG_10:HB2          H  h       c3nc 0  0   0.1100 0 0 8  1.0000  0.0000 CB 
+ARG_10:CG           C  c2      c3nc 0  0  -0.2000 0 0 8  1.0000  4.5500 CD CB HG1 HG2 
+ARG_10:HG1          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CG 
+ARG_10:HG2          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CG 
+ARG_10:CD           C  c2      c3nc 0  0  -0.1600 1 0 8  1.0000  5.8900 NE CG HD1 HD2 
+ARG_10:HD1          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CD 
+ARG_10:HD2          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CD 
+ARG_10:NE           N  n       c3nc 0  0  -0.5600 0 0 8  1.0000  6.2000 CZ/2.0 CD 
+ARG_10:CZ           C  cr      c3nc 0  0   0.3800 0 1 8  1.0000  7.5200 NH1 NH2 NE/2.0 
+ARG_10:NH1          N  n2      am1  0  0  -0.5600 1 1 8  1.0000 10.6800 CZ HH11 HH12 
+ARG_10:HH11         H  hn      am1  0  0   0.2800 0 0 8  1.0000  0.0000 NH1 
+ARG_10:HH12         H  hn      am1  0  0   0.2800 0 0 8  1.0000  0.0000 NH1 
+ARG_10:NH2          N  n2      am2  0  0  -0.5600 1 1 8  1.0000  9.4800 CZ HH21 HH22 
+ARG_10:HH21         H  hn      am2  0  0   0.2800 0 0 8  1.0000  0.0000 NH2 
+ARG_10:HH22         H  hn      am2  0  0   0.2800 0 0 8  1.0000  0.0000 NH2 
+SER_11:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.1900 CA ARG_10:C/1.5 HN 
+SER_11:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+SER_11:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.6000 C CB N HA 
+SER_11:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+SER_11:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.8400 O/2.0 CA ASN_12:N/1.5 
+SER_11:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.8400 C/2.0 
+SER_11:CB           C  c2      coh  0  0  -0.1700 0 0 8  1.0000  5.9100 OG CA HB1 HB2 
+SER_11:HB1          H  h       coh  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+SER_11:HB2          H  h       coh  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+SER_11:OG           O  oh      coh  0  0  -0.3800 1 0 8  1.0000  8.3800 CB HG 
+SER_11:HG           H  ho      coh  0  0   0.3500 0 0 8  1.0000  0.0000 OG 
+ASN_12:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.5400 CA SER_11:C/1.5 HN 
+ASN_12:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ASN_12:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.5700 C CB N HA 
+ASN_12:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ASN_12:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.1400 O/2.0 CA PHE_13:N/1.5 
+ASN_12:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.5200 C/2.0 
+ASN_12:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  6.4200 CG CA HB1 HB2 
+ASN_12:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASN_12:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASN_12:CG           C  c'      coG  0  0   0.3800 1 1 8  1.0000  8.2500 OD1/2.0 ND2/1.5 CB 
+ASN_12:OD1          O  o'      coG  0  0  -0.3800 0 0 8  1.0000 12.7200 CG/2.0 
+ASN_12:ND2          N  n2      amD  0  0  -0.5600 1 1 8  1.0000  9.9200 CG/1.5 HD21 HD22 
+ASN_12:HD21         H  hn      amD  0  0   0.2800 0 0 8  1.0000  0.0000 ND2 
+ASN_12:HD22         H  hn      amD  0  0   0.2800 0 0 8  1.0000  0.0000 ND2 
+PHE_13:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.4300 CA ASN_12:C/1.5 HN 
+PHE_13:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+PHE_13:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.4900 C CB N HA 
+PHE_13:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+PHE_13:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.4000 O/2.0 CA ASN_14:N/1.5 
+PHE_13:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.0700 C/2.0 
+PHE_13:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  5.4800 CG CA HB1 HB2 
+PHE_13:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PHE_13:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PHE_13:CG           C  cp      arG  0  0   0.0000 1 1 8  1.0000  5.5700 CD1/1.5 CD2/1.5 CB 
+PHE_13:CD1          C  cp      arD1 0  0  -0.1000 1 1 8  1.0000  6.9900 CE1/1.5 CG/1.5 HD1 
+PHE_13:HD1          H  h       arD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+PHE_13:CD2          C  cp      arD2 0  0  -0.1000 1 1 8  1.0000  6.5200 CG/1.5 CE2/1.5 HD2 
+PHE_13:HD2          H  h       arD2 0  0   0.1000 0 0 8  1.0000  0.0000 CD2 
+PHE_13:CE1          C  cp      arE1 0  0  -0.1000 1 1 8  1.0000  8.2000 CZ/1.5 CD1/1.5 HE1 
+PHE_13:HE1          H  h       arE1 0  0   0.1000 0 0 8  1.0000  0.0000 CE1 
+PHE_13:CE2          C  cp      arE2 0  0  -0.1000 1 1 8  1.0000  6.3400 CD2/1.5 CZ/1.5 HE2 
+PHE_13:HE2          H  h       arE2 0  0   0.1000 0 0 8  1.0000  0.0000 CE2 
+PHE_13:CZ           C  cp      arZ  0  0  -0.1000 1 1 8  1.0000  6.8400 CE2/1.5 CE1/1.5 HZ 
+PHE_13:HZ           H  h       arZ  0  0   0.1000 0 0 8  1.0000  0.0000 CZ 
+ASN_14:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.6400 CA PHE_13:C/1.5 HN 
+ASN_14:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ASN_14:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.3100 C CB N HA 
+ASN_14:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ASN_14:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.9800 O/2.0 CA VAL_15:N/1.5 
+ASN_14:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.2200 C/2.0 
+ASN_14:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  5.8100 CG CA HB1 HB2 
+ASN_14:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASN_14:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASN_14:CG           C  c'      coG  0  0   0.3800 1 1 8  1.0000  6.8200 OD1/2.0 ND2/1.5 CB 
+ASN_14:OD1          O  o'      coG  0  0  -0.3800 0 0 8  1.0000  9.4300 CG/2.0 
+ASN_14:ND2          N  n2      amD  0  0  -0.5600 1 1 8  1.0000  8.2100 CG/1.5 HD21 HD22 
+ASN_14:HD21         H  hn      amD  0  0   0.2800 0 0 8  1.0000  0.0000 ND2 
+ASN_14:HD22         H  hn      amD  0  0   0.2800 0 0 8  1.0000  0.0000 ND2 
+VAL_15:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.7600 CA ASN_14:C/1.5 HN 
+VAL_15:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+VAL_15:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.9800 C CB N HA 
+VAL_15:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+VAL_15:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.8000 O/2.0 CA CYS_16:N/1.5 
+VAL_15:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.8500 C/2.0 
+VAL_15:CB           C  c1      meB  0  0  -0.1000 1 0 8  1.0000  4.7100 CG1 CG2 CA HB 
+VAL_15:HB           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+VAL_15:CG1          C  c3      meG1 0  0  -0.3000 1 0 8  1.0000  6.6700 CB HG11 HG12 HG13 
+VAL_15:HG11         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+VAL_15:HG12         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+VAL_15:HG13         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+VAL_15:CG2          C  c3      meG2 0  0  -0.3000 1 0 8  1.0000  6.2600 CB HG21 HG22 HG23 
+VAL_15:HG21         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+VAL_15:HG22         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+VAL_15:HG23         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+CYS_16:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.7900 CA VAL_15:C/1.5 HN 
+CYS_16:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+CYS_16:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.5400 C CB N HA 
+CYS_16:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+CYS_16:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.4800 O/2.0 CA ARG_17:N/1.5 
+CYS_16:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.6300 C/2.0 
+CYS_16:CB           C  c2      cs   0  0  -0.3000 1 0 8  1.0000  4.5800 SG CA HB1 HB2 
+CYS_16:HB1          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_16:HB2          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_16:SG           S  s1      cs   0  0   0.1000 0 0 8  1.0000  5.6600 CB CYS_26:SG 
+ARG_17:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.9900 CA CYS_16:C/1.5 HN 
+ARG_17:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ARG_17:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.8300 C CB N HA 
+ARG_17:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ARG_17:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.7900 O/2.0 CA LEU_18:N/1.5 
+ARG_17:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.3900 C/2.0 
+ARG_17:CB           C  c2      c3nc 0  0  -0.2000 0 0 8  1.0000  4.1100 CG CA HB1 HB2 
+ARG_17:HB1          H  h       c3nc 0  0   0.1100 0 0 8  1.0000  0.0000 CB 
+ARG_17:HB2          H  h       c3nc 0  0   0.1100 0 0 8  1.0000  0.0000 CB 
+ARG_17:CG           C  c2      c3nc 0  0  -0.2000 0 0 8  1.0000  4.6900 CD CB HG1 HG2 
+ARG_17:HG1          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CG 
+ARG_17:HG2          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CG 
+ARG_17:CD           C  c2      c3nc 0  0  -0.1600 1 0 8  1.0000  5.1000 NE CG HD1 HD2 
+ARG_17:HD1          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CD 
+ARG_17:HD2          H  h       c3nc 0  0   0.1300 0 0 8  1.0000  0.0000 CD 
+ARG_17:NE           N  n       c3nc 0  0  -0.5600 0 0 8  1.0000  4.7100 CZ/2.0 CD 
+ARG_17:CZ           C  cr      c3nc 0  0   0.3800 0 1 8  1.0000  5.2800 NH1 NH2 NE/2.0 
+ARG_17:NH1          N  n2      am1  0  0  -0.5600 1 1 8  1.0000  6.6700 CZ HH11 HH12 
+ARG_17:HH11         H  hn      am1  0  0   0.2800 0 0 8  1.0000  0.0000 NH1 
+ARG_17:HH12         H  hn      am1  0  0   0.2800 0 0 8  1.0000  0.0000 NH1 
+ARG_17:NH2          N  n2      am2  0  0  -0.5600 1 1 8  1.0000  6.4100 CZ HH21 HH22 
+ARG_17:HH21         H  hn      am2  0  0   0.2800 0 0 8  1.0000  0.0000 NH2 
+ARG_17:HH22         H  hn      am2  0  0   0.2800 0 0 8  1.0000  0.0000 NH2 
+LEU_18:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.7000 CA ARG_17:C/1.5 HN 
+LEU_18:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+LEU_18:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.4600 C CB N HA 
+LEU_18:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+LEU_18:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.1300 O/2.0 CA PRO_19:N/1.5 
+LEU_18:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.5500 C/2.0 
+LEU_18:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  6.4700 CG CA HB1 HB2 
+LEU_18:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+LEU_18:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+LEU_18:CG           C  c1      meG  0  0  -0.1000 1 0 8  1.0000  7.4300 CD1 CD2 CB HG 
+LEU_18:HG           H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+LEU_18:CD1          C  c3      meD1 0  0  -0.3000 1 0 8  1.0000  8.7000 CG HD11 HD12 HD13 
+LEU_18:HD11         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+LEU_18:HD12         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+LEU_18:HD13         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+LEU_18:CD2          C  c3      meD2 0  0  -0.3000 1 0 8  1.0000  9.3900 CG HD21 HD22 HD23 
+LEU_18:HD21         H  h       meD2 0  0   0.1000 0 0 8  1.0000  0.0000 CD2 
+LEU_18:HD22         H  h       meD2 0  0   0.1000 0 0 8  1.0000  0.0000 CD2 
+LEU_18:HD23         H  h       meD2 0  0   0.1000 0 0 8  1.0000  0.0000 CD2 
+PRO_19:N            N  n       pepN 0  0  -0.4200 1 1 8  1.0000  4.2800 CA CD LEU_18:C/1.5 
+PRO_19:CA           C  ca      pepN 0  0   0.0600 0 0 8  1.0000  5.3800 C CB N HA 
+PRO_19:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+PRO_19:CD           C  c2      pepN 0  0   0.0600 0 0 8  1.0000  6.4500 N CG HD1 HD2 
+PRO_19:HD1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_19:HD2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_19:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  6.3000 O/2.0 CA GLY_20:N/1.5 
+PRO_19:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  9.6200 C/2.0 
+PRO_19:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  5.8700 CG CA HB1 HB2 
+PRO_19:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_19:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_19:CG           C  c2      meG  0  0  -0.2000 1 0 8  1.0000  6.4700 CD CB HG1 HG2 
+PRO_19:HG1          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+PRO_19:HG2          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+GLY_20:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.9400 CA PRO_19:C/1.5 HN 
+GLY_20:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+GLY_20:CA           C  cg      pepN 0  0   0.0200 0 0 8  1.0000  5.3900 C N HA1 HA2 
+GLY_20:HA1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_20:HA2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_20:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.0300 O/2.0 CA THR_21:N/1.5 
+GLY_20:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.3400 C/2.0 
+THR_21:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.1000 CA GLY_20:C/1.5 HN 
+THR_21:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+THR_21:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  3.9400 C CB N HA 
+THR_21:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+THR_21:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.9600 O/2.0 CA PRO_22:N/1.5 
+THR_21:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.8200 C/2.0 
+THR_21:CB           C  c1      cBoh 0  0  -0.0700 0 0 8  1.0000  4.1300 CG2 OG1 CA HB 
+THR_21:HB           H  h       cBoh 0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_21:OG1          O  oh      cBoh 0  0  -0.3800 1 0 8  1.0000  5.4500 CB HG1 
+THR_21:HG1          H  ho      cBoh 0  0   0.3500 0 0 8  1.0000  0.0000 OG1 
+THR_21:CG2          C  c3      meG  0  0  -0.3000 1 0 8  1.0000  5.4100 CB HG21 HG22 HG23 
+THR_21:HG21         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_21:HG22         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_21:HG23         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+PRO_22:N            N  n       pepN 0  0  -0.4200 1 1 8  1.0000  5.0400 CA CD THR_21:C/1.5 
+PRO_22:CA           C  ca      pepN 0  0   0.0600 0 0 8  1.0000  4.6900 C CB N HA 
+PRO_22:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+PRO_22:CD           C  c2      pepN 0  0   0.0600 0 0 8  1.0000  4.9000 N CG HD1 HD2 
+PRO_22:HD1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_22:HD2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_22:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.1900 O/2.0 CA GLU_23:N/1.5 
+PRO_22:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.4700 C/2.0 
+PRO_22:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  7.1200 CG CA HB1 HB2 
+PRO_22:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_22:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_22:CG           C  c2      meG  0  0  -0.2000 1 0 8  1.0000  7.0300 CD CB HG1 HG2 
+PRO_22:HG1          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+PRO_22:HG2          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+GLU_23:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.1600 CA PRO_22:C/1.5 HN 
+GLU_23:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+GLU_23:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.3100 C CB N HA 
+GLU_23:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLU_23:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.1100 O/2.0 CA ALA_24:N/1.5 
+GLU_23:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.1100 C/2.0 
+GLU_23:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  6.1600 CG CA HB1 HB2 
+GLU_23:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+GLU_23:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+GLU_23:CG           C  c2      meG  0  0  -0.2000 1 0 8  1.0000  7.4800 CD CB HG1 HG2 
+GLU_23:HG1          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+GLU_23:HG2          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+GLU_23:CD           C  c'      cooh 0  0   0.3800 1 1 8  1.0000  9.4000 OE1/2.0 OE2 CG 
+GLU_23:OE1          O  o'      cooh 0  0  -0.3500 0 0 8  1.0000 10.4000 CD/2.0 
+GLU_23:OE2          O  oh      cooh 0  0  -0.3800 0 0 8  1.0000 13.3200 CD HE2 
+GLU_23:HE2          H  ho      cooh 0  0   0.3500 0 0 8  1.0000  0.0000 OE2 
+ALA_24:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.5600 CA GLU_23:C/1.5 HN 
+ALA_24:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ALA_24:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.4900 C CB N HA 
+ALA_24:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ALA_24:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.1000 O/2.0 CA ILE_25:N/1.5 
+ALA_24:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.6400 C/2.0 
+ALA_24:CB           C  c3      meB  0  0  -0.3000 1 0 8  1.0000  5.8000 CA HB1 HB2 HB3 
+ALA_24:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_24:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_24:HB3          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ILE_25:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.3700 CA ALA_24:C/1.5 HN 
+ILE_25:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ILE_25:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.4400 C CB N HA 
+ILE_25:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ILE_25:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.3200 O/2.0 CA CYS_26:N/1.5 
+ILE_25:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.7200 C/2.0 
+ILE_25:CB           C  c1      meB  0  0  -0.1000 1 0 8  1.0000  6.4200 CG2 CG1 CA HB 
+ILE_25:HB           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ILE_25:CG1          C  c2      meG1 0  0  -0.2000 1 0 8  1.0000  7.5000 CD1 CB HG11 HG12 
+ILE_25:HG11         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_25:HG12         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_25:CG2          C  c3      meG2 0  0  -0.3000 1 0 8  1.0000  7.6500 CB HG21 HG22 HG23 
+ILE_25:HG21         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_25:HG22         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_25:HG23         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_25:CD1          C  c3      meD1 0  0  -0.3000 1 0 8  1.0000  7.8000 CG1 HD11 HD12 HD13 
+ILE_25:HD11         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_25:HD12         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_25:HD13         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+CYS_26:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.9200 CA ILE_25:C/1.5 HN 
+CYS_26:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+CYS_26:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.3700 C CB N HA 
+CYS_26:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+CYS_26:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  3.9500 O/2.0 CA ALA_27:N/1.5 
+CYS_26:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  4.7400 C/2.0 
+CYS_26:CB           C  c2      cs   0  0  -0.3000 1 0 8  1.0000  4.6300 SG CA HB1 HB2 
+CYS_26:HB1          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_26:HB2          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_26:SG           S  s1      cs   0  0   0.1000 0 0 8  1.0000  5.6100 CB CYS_16:SG 
+ALA_27:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  3.8900 CA CYS_26:C/1.5 HN 
+ALA_27:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ALA_27:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.4300 C CB N HA 
+ALA_27:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ALA_27:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.2600 O/2.0 CA THR_28:N/1.5 
+ALA_27:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.4400 C/2.0 
+ALA_27:CB           C  c3      meB  0  0  -0.3000 1 0 8  1.0000  5.3600 CA HB1 HB2 HB3 
+ALA_27:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_27:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_27:HB3          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_28:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.5300 CA ALA_27:C/1.5 HN 
+THR_28:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+THR_28:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.0800 C CB N HA 
+THR_28:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+THR_28:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.6200 O/2.0 CA TYR_29:N/1.5 
+THR_28:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.8000 C/2.0 
+THR_28:CB           C  c1      cBoh 0  0  -0.0700 0 0 8  1.0000  6.0300 CG2 OG1 CA HB 
+THR_28:HB           H  h       cBoh 0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_28:OG1          O  oh      cBoh 0  0  -0.3800 1 0 8  1.0000  7.1900 CB HG1 
+THR_28:HG1          H  ho      cBoh 0  0   0.3500 0 0 8  1.0000  0.0000 OG1 
+THR_28:CG2          C  c3      meG  0  0  -0.3000 1 0 8  1.0000  7.3400 CB HG21 HG22 HG23 
+THR_28:HG21         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_28:HG22         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_28:HG23         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+TYR_29:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.0100 CA THR_28:C/1.5 HN 
+TYR_29:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+TYR_29:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  6.6000 C CB N HA 
+TYR_29:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+TYR_29:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.9200 O/2.0 CA THR_30:N/1.5 
+TYR_29:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.1300 C/2.0 
+TYR_29:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  9.6600 CG CA HB1 HB2 
+TYR_29:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+TYR_29:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+TYR_29:CG           C  cp      arG  0  0   0.0000 1 1 8  1.0000 11.5600 CD1/1.5 CD2/1.5 CB 
+TYR_29:CD1          C  cp      arD1 0  0  -0.1000 1 1 8  1.0000 12.8500 CE1/1.5 CG/1.5 HD1 
+TYR_29:HD1          H  h       arD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+TYR_29:CD2          C  cp      arD2 0  0  -0.1000 1 1 8  1.0000 14.4400 CG/1.5 CE2/1.5 HD2 
+TYR_29:HD2          H  h       arD2 0  0   0.1000 0 0 8  1.0000  0.0000 CD2 
+TYR_29:CE1          C  cp      arE1 0  0  -0.1000 1 1 8  1.0000 16.6100 CZ/1.5 CD1/1.5 HE1 
+TYR_29:HE1          H  h       arE1 0  0   0.1000 0 0 8  1.0000  0.0000 CE1 
+TYR_29:CE2          C  cp      arE2 0  0  -0.1000 1 1 8  1.0000 17.1100 CD2/1.5 CZ/1.5 HE2 
+TYR_29:HE2          H  h       arE2 0  0   0.1000 0 0 8  1.0000  0.0000 CE2 
+TYR_29:CZ           C  cp      phol 0  0   0.0300 0 1 8  1.0000 19.9900 OH CE2/1.5 CE1/1.5 
+TYR_29:OH           O  oh      phol 0  0  -0.3800 1 0 8  1.0000 28.9800 CZ HH 
+TYR_29:HH           H  ho      phol 0  0   0.3500 0 0 8  1.0000  0.0000 OH 
+THR_30:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.3100 CA TYR_29:C/1.5 HN 
+THR_30:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+THR_30:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.7000 C CB N HA 
+THR_30:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+THR_30:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  6.2800 O/2.0 CA GLY_31:N/1.5 
+THR_30:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  8.7700 C/2.0 
+THR_30:CB           C  c1      cBoh 0  0  -0.0700 0 0 8  1.0000  6.5500 CG2 OG1 CA HB 
+THR_30:HB           H  h       cBoh 0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_30:OG1          O  oh      cBoh 0  0  -0.3800 1 0 8  1.0000  6.5700 CB HG1 
+THR_30:HG1          H  ho      cBoh 0  0   0.3500 0 0 8  1.0000  0.0000 OG1 
+THR_30:CG2          C  c3      meG  0  0  -0.3000 1 0 8  1.0000  7.2900 CB HG21 HG22 HG23 
+THR_30:HG21         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_30:HG22         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_30:HG23         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+GLY_31:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.9900 CA THR_30:C/1.5 HN 
+GLY_31:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+GLY_31:CA           C  cg      pepN 0  0   0.0200 0 0 8  1.0000  5.5000 C N HA1 HA2 
+GLY_31:HA1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_31:HA2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_31:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.1900 O/2.0 CA CYS_32:N/1.5 
+GLY_31:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.1200 C/2.0 
+CYS_32:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.3000 CA GLY_31:C/1.5 HN 
+CYS_32:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+CYS_32:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  4.8900 C CB N HA 
+CYS_32:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+CYS_32:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.5000 O/2.0 CA ILE_33:N/1.5 
+CYS_32:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  5.8200 C/2.0 
+CYS_32:CB           C  c2      cs   0  0  -0.3000 1 0 8  1.0000  4.6600 SG CA HB1 HB2 
+CYS_32:HB1          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_32:HB2          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_32:SG           S  s1      cs   0  0   0.1000 0 0 8  1.0000  5.3300 CB CYS_4:SG 
+ILE_33:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  6.0200 CA CYS_32:C/1.5 HN 
+ILE_33:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ILE_33:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.2400 C CB N HA 
+ILE_33:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ILE_33:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.1600 O/2.0 CA ILE_34:N/1.5 
+ILE_33:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.1900 C/2.0 
+ILE_33:CB           C  c1      meB  0  0  -0.1000 1 0 8  1.0000  5.4900 CG2 CG1 CA HB 
+ILE_33:HB           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ILE_33:CG1          C  c2      meG1 0  0  -0.2000 1 0 8  1.0000  6.8500 CD1 CB HG11 HG12 
+ILE_33:HG11         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_33:HG12         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_33:CG2          C  c3      meG2 0  0  -0.3000 1 0 8  1.0000  6.4500 CB HG21 HG22 HG23 
+ILE_33:HG21         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_33:HG22         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_33:HG23         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_33:CD1          C  c3      meD1 0  0  -0.3000 1 0 8  1.0000  8.9400 CG1 HD11 HD12 HD13 
+ILE_33:HD11         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_33:HD12         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_33:HD13         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_34:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.5200 CA ILE_33:C/1.5 HN 
+ILE_34:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ILE_34:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  6.8200 C CB N HA 
+ILE_34:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ILE_34:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  6.9200 O/2.0 CA ILE_35:N/1.5 
+ILE_34:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  9.2200 C/2.0 
+ILE_34:CB           C  c1      meB  0  0  -0.1000 1 0 8  1.0000  8.1100 CG2 CG1 CA HB 
+ILE_34:HB           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ILE_34:CG1          C  c2      meG1 0  0  -0.2000 1 0 8  1.0000  9.5900 CD1 CB HG11 HG12 
+ILE_34:HG11         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_34:HG12         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_34:CG2          C  c3      meG2 0  0  -0.3000 1 0 8  1.0000  9.7300 CB HG21 HG22 HG23 
+ILE_34:HG21         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_34:HG22         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_34:HG23         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_34:CD1          C  c3      meD1 0  0  -0.3000 1 0 8  1.0000 13.4100 CG1 HD11 HD12 HD13 
+ILE_34:HD11         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_34:HD12         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_34:HD13         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_35:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  7.0600 CA ILE_34:C/1.5 HN 
+ILE_35:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ILE_35:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  7.5200 C CB N HA 
+ILE_35:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ILE_35:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  6.6300 O/2.0 CA PRO_36:N/1.5 
+ILE_35:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.9000 C/2.0 
+ILE_35:CB           C  c1      meB  0  0  -0.1000 1 0 8  1.0000  8.0700 CG2 CG1 CA HB 
+ILE_35:HB           H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ILE_35:CG1          C  c2      meG1 0  0  -0.2000 1 0 8  1.0000  9.4100 CD1 CB HG11 HG12 
+ILE_35:HG11         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_35:HG12         H  h       meG1 0  0   0.1000 0 0 8  1.0000  0.0000 CG1 
+ILE_35:CG2          C  c3      meG2 0  0  -0.3000 1 0 8  1.0000  9.4600 CB HG21 HG22 HG23 
+ILE_35:HG21         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_35:HG22         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_35:HG23         H  h       meG2 0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+ILE_35:CD1          C  c3      meD1 0  0  -0.3000 1 0 8  1.0000  9.8500 CG1 HD11 HD12 HD13 
+ILE_35:HD11         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_35:HD12         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+ILE_35:HD13         H  h       meD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+PRO_36:N            N  n       pepN 0  0  -0.4200 1 1 8  1.0000  8.0700 CA CD ILE_35:C/1.5 
+PRO_36:CA           C  ca      pepN 0  0   0.0600 0 0 8  1.0000  8.7800 C CB N HA 
+PRO_36:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+PRO_36:CD           C  c2      pepN 0  0   0.0600 0 0 8  1.0000  9.5300 N CG HD1 HD2 
+PRO_36:HD1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_36:HD2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_36:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  8.3100 O/2.0 CA GLY_37:N/1.5 
+PRO_36:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  9.0900 C/2.0 
+PRO_36:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  9.6700 CG CA HB1 HB2 
+PRO_36:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_36:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_36:CG           C  c2      meG  0  0  -0.2000 1 0 8  1.0000 10.1500 CD CB HG1 HG2 
+PRO_36:HG1          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+PRO_36:HG2          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+GLY_37:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  8.4800 CA PRO_36:C/1.5 HN 
+GLY_37:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+GLY_37:CA           C  cg      pepN 0  0   0.0200 0 0 8  1.0000  9.2000 C N HA1 HA2 
+GLY_37:HA1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_37:HA2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_37:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000 10.4100 O/2.0 CA ALA_38:N/1.5 
+GLY_37:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000 12.0600 C/2.0 
+ALA_38:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  9.2400 CA GLY_37:C/1.5 HN 
+ALA_38:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ALA_38:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  9.2400 C CB N HA 
+ALA_38:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ALA_38:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  9.6000 O/2.0 CA THR_39:N/1.5 
+ALA_38:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000 13.6500 C/2.0 
+ALA_38:CB           C  c3      meB  0  0  -0.3000 1 0 8  1.0000 10.4300 CA HB1 HB2 HB3 
+ALA_38:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_38:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_38:HB3          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_39:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  8.7000 CA ALA_38:C/1.5 HN 
+THR_39:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+THR_39:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  9.4600 C CB N HA 
+THR_39:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+THR_39:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  8.3200 O/2.0 CA CYS_40:N/1.5 
+THR_39:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  9.8900 C/2.0 
+THR_39:CB           C  c1      cBoh 0  0  -0.0700 0 0 8  1.0000 10.7200 CG2 OG1 CA HB 
+THR_39:HB           H  h       cBoh 0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+THR_39:OG1          O  oh      cBoh 0  0  -0.3800 1 0 8  1.0000 11.6600 CB HG1 
+THR_39:HG1          H  ho      cBoh 0  0   0.3500 0 0 8  1.0000  0.0000 OG1 
+THR_39:CG2          C  c3      meG  0  0  -0.3000 1 0 8  1.0000 11.8100 CB HG21 HG22 HG23 
+THR_39:HG21         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_39:HG22         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+THR_39:HG23         H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG2 
+CYS_40:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  7.6400 CA THR_39:C/1.5 HN 
+CYS_40:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+CYS_40:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  8.0500 C CB N HA 
+CYS_40:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+CYS_40:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  7.6300 O/2.0 CA PRO_41:N/1.5 
+CYS_40:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  9.6400 C/2.0 
+CYS_40:CB           C  c2      cs   0  0  -0.3000 1 0 8  1.0000  7.8000 SG CA HB1 HB2 
+CYS_40:HB1          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_40:HB2          H  h       cs   0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+CYS_40:SG           S  s1      cs   0  0   0.1000 0 0 8  1.0000  7.3000 CB CYS_3:SG 
+PRO_41:N            N  n       pepN 0  0  -0.4200 1 1 8  1.0000  8.0000 CA CD CYS_40:C/1.5 
+PRO_41:CA           C  ca      pepN 0  0   0.0600 0 0 8  1.0000  8.9600 C CB N HA 
+PRO_41:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+PRO_41:CD           C  c2      pepN 0  0   0.0600 0 0 8  1.0000 10.4900 N CG HD1 HD2 
+PRO_41:HD1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_41:HD2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CD 
+PRO_41:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  9.0600 O/2.0 CA GLY_42:N/1.5 
+PRO_41:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  8.8200 C/2.0 
+PRO_41:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000 10.3900 CG CA HB1 HB2 
+PRO_41:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_41:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+PRO_41:CG           C  c2      meG  0  0  -0.2000 1 0 8  1.0000 10.9900 CD CB HG1 HG2 
+PRO_41:HG1          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+PRO_41:HG2          H  h       meG  0  0   0.1000 0 0 8  1.0000  0.0000 CG 
+GLY_42:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  7.5500 CA PRO_41:C/1.5 HN 
+GLY_42:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+GLY_42:CA           C  cg      pepN 0  0   0.0200 0 0 8  1.0000  8.0000 C N HA1 HA2 
+GLY_42:HA1          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_42:HA2          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+GLY_42:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  7.2200 O/2.0 CA ASP_43:N/1.5 
+GLY_42:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  8.4100 C/2.0 
+ASP_43:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.5400 CA GLY_42:C/1.5 HN 
+ASP_43:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ASP_43:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.8500 C CB N HA 
+ASP_43:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ASP_43:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  5.8700 O/2.0 CA TYR_44:N/1.5 
+ASP_43:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.2900 C/2.0 
+ASP_43:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  6.7200 CG CA HB1 HB2 
+ASP_43:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASP_43:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASP_43:CG           C  c'      cooh 0  0   0.3800 1 1 8  1.0000  8.5900 OD1/2.0 OD2 CB 
+ASP_43:OD1          O  o'      cooh 0  0  -0.3500 0 0 8  1.0000  9.5900 CG/2.0 
+ASP_43:OD2          O  oh      cooh 0  0  -0.3800 0 0 8  1.0000 11.4500 CG HD2 
+ASP_43:HD2          H  ho      cooh 0  0   0.3500 0 0 8  1.0000  0.0000 OD2 
+TYR_44:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.2200 CA ASP_43:C/1.5 HN 
+TYR_44:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+TYR_44:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.5600 C CB N HA 
+TYR_44:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+TYR_44:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  4.6100 O/2.0 CA ALA_45:N/1.5 
+TYR_44:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  6.0400 C/2.0 
+TYR_44:CB           C  c2      meB  0  0  -0.2000 1 0 8  1.0000  5.4100 CG CA HB1 HB2 
+TYR_44:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+TYR_44:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+TYR_44:CG           C  cp      arG  0  0   0.0000 1 1 8  1.0000  5.3400 CD1/1.5 CD2/1.5 CB 
+TYR_44:CD1          C  cp      arD1 0  0  -0.1000 1 1 8  1.0000  6.5900 CE1/1.5 CG/1.5 HD1 
+TYR_44:HD1          H  h       arD1 0  0   0.1000 0 0 8  1.0000  0.0000 CD1 
+TYR_44:CD2          C  cp      arD2 0  0  -0.1000 1 1 8  1.0000  5.9400 CG/1.5 CE2/1.5 HD2 
+TYR_44:HD2          H  h       arD2 0  0   0.1000 0 0 8  1.0000  0.0000 CD2 
+TYR_44:CE1          C  cp      arE1 0  0  -0.1000 1 1 8  1.0000  5.9700 CZ/1.5 CD1/1.5 HE1 
+TYR_44:HE1          H  h       arE1 0  0   0.1000 0 0 8  1.0000  0.0000 CE1 
+TYR_44:CE2          C  cp      arE2 0  0  -0.1000 1 1 8  1.0000  5.1700 CD2/1.5 CZ/1.5 HE2 
+TYR_44:HE2          H  h       arE2 0  0   0.1000 0 0 8  1.0000  0.0000 CE2 
+TYR_44:CZ           C  cp      phol 0  0   0.0300 0 1 8  1.0000  5.9600 OH CE2/1.5 CE1/1.5 
+TYR_44:OH           O  oh      phol 0  0  -0.3800 1 0 8  1.0000  8.6000 CZ HH 
+TYR_44:HH           H  ho      phol 0  0   0.3500 0 0 8  1.0000  0.0000 OH 
+ALA_45:N            N  n       pepN 0  0  -0.5000 1 1 8  1.0000  4.7600 CA TYR_44:C/1.5 HN 
+ALA_45:HN           H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ALA_45:CA           C  ca      pepN 0  0   0.1200 0 0 8  1.0000  5.8900 C CB N HA 
+ALA_45:HA           H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ALA_45:C            C  c'      pepC 0  0   0.3800 1 1 8  1.0000  6.6700 O/2.0 CA ASNC_46:N/1.5 
+ALA_45:O            O  o'      pepC 0  0  -0.3800 0 0 8  1.0000  7.5600 C/2.0 
+ALA_45:CB           C  c3      meB  0  0  -0.3000 1 0 8  1.0000  6.8200 CA HB1 HB2 HB3 
+ALA_45:HB1          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_45:HB2          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ALA_45:HB3          H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASNC_46:N           N  n       pepN 0  0  -0.5000 1 1 8  1.0000  5.8000 CA ALA_45:C/1.5 HN 
+ASNC_46:HN          H  hn      pepN 0  0   0.2800 0 0 8  1.0000  0.0000 N 
+ASNC_46:CA          C  ca      pepN 0  0   0.1200 0 0 8  1.0000  6.1500 C CB N HA 
+ASNC_46:HA          H  h       pepN 0  0   0.1000 0 0 8  1.0000  0.0000 CA 
+ASNC_46:C           C  c-      pep- 0  0   0.1400 1 1 8  1.0000  6.6100 O/1.5 OXT/1.5 CA 
+ASNC_46:O           O  o-      pep- 0  0  -0.5700 0 0 8  1.0000  7.1800 C/1.5 
+ASNC_46:OXT         O  o-      pep- 0  0  -0.5700 0 0 8  1.0000  7.8600 C/1.5 
+ASNC_46:CB          C  c2      meB  0  0  -0.2000 1 0 8  1.0000  7.2700 CG CA HB1 HB2 
+ASNC_46:HB1         H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASNC_46:HB2         H  h       meB  0  0   0.1000 0 0 8  1.0000  0.0000 CB 
+ASNC_46:CG          C  c'      coG  0  0   0.3800 1 1 8  1.0000  7.9800 OD1/2.0 ND2/1.5 CB 
+ASNC_46:OD1         O  o'      coG  0  0  -0.3800 0 0 8  1.0000 11.0000 CG/2.0 
+ASNC_46:ND2         N  n2      amD  0  0  -0.5600 1 1 8  1.0000 10.3200 CG/1.5 HD21 HD22 
+ASNC_46:HD21        H  hn      amD  0  0   0.2800 0 0 8  1.0000  0.0000 ND2 
+ASNC_46:HD22        H  hn      amD  0  0   0.2800 0 0 8  1.0000  0.0000 ND2 
+
+
+#atomset                                                                      
+
+
+@quartet torsion *:*_*:chi1
+N      CA     CB     OG1   
+
+@quartet torsion *:*_*:chi2
+CA     CB     OG1    HG1   
+
+@quartet torsion *:*_*:ch2'
+CA     CB     CG2    HG21  
+
+@quartet torsion *:*_*:psi 
+N      CA     C      *:N   
+
+@quartet torsion *:*_*:omeg
+CA     C      *:N    *:CA  
+
+@quartet torsion *:*_*:phi 
+*:C    N      CA     C     
+
+@quartet torsion *:CYS_*:chi1
+N      CA     CB     SG    
+
+@quartet torsion *:*_*:chi1
+N      CA     CB     CG    
+
+@quartet torsion *:SER_*:chi1
+N      CA     CB     OG    
+
+@quartet torsion *:SER_*:chi2
+CA     CB     OG     HG    
+
+@quartet torsion *:*_*:chi1
+N      CA     CB     CG1   
+
+@quartet torsion *:ILE_*:chi2
+CA     CB     CG1    CD1   
+
+@quartet torsion *:ILE_*:chi3
+CB     CG1    CD1    HD11  
+
+@quartet torsion *:VAL_*:chi2
+CA     CB     CG1    HG11  
+
+@quartet torsion *:ALA_*:chi1
+N      CA     CB     HB1   
+
+@quartet torsion *:*_*:chi2
+CA     CB     CG     CD    
+
+@quartet torsion *:ARG_*:chi3
+CB     CG     CD     NE    
+
+@quartet torsion *:ARG_*:chi4
+CG     CD     NE     CZ    
+
+@quartet torsion *:ARG_*:chi5
+CD     NE     CZ     NH1   
+
+@quartet torsion *:*_*:chi2
+CA     CB     CG     ND2   
+
+@quartet torsion *:*_*:chi3
+CB     CG     ND2    HD21  
+
+@quartet torsion *:*_*:chi2
+CA     CB     CG     CD1   
+
+@quartet torsion *:LEU_18:chi3
+CB     CG     CD1    HD11  
+
+@quartet torsion *:LEU_18:ch2'
+CA     CB     CG     CD2   
+
+@quartet torsion *:LEU_18:ch3'
+CB     CG     CD2    HD21  
+
+@quartet torsion *:GLU_23:chi3
+CB     CG     CD     OE2   
+
+@quartet torsion *:GLU_23:chi4
+CG     CD     OE2    HE2   
+
+@quartet torsion *:TYR_*:chi3
+CE1    CZ     OH     HH    
+
+@quartet torsion *:ASP_43:chi2
+CA     CB     CG     OD2   
+
+@quartet torsion *:ASP_43:chi3
+CB     CG     OD2    HD2   
+
+
+@list subset  CRN$TURNT1
+CRAMBIN:PRO_41:N CA HA CD HD1 HD2 C O CB HB1 HB2 CG HG1 HG2 
+GLY_42:N HN CA HA1 HA2 C O 
+ASP_43:N HN CA HA C O CB HB1 HB2 CG OD1 OD2 HD2 
+TYR_44:N HN CA HA C O CB HB1 HB2 CG CD1 HD1 CD2 HD2 CE1 HE1 CE2 HE2 CZ OH HH 
+
+@list subset  CRN$TURN
+CRAMBIN:PRO_41:N CA HA CD HD1 HD2 C O CB HB1 HB2 CG HG1 HG2 
+GLY_42:N HN CA HA1 HA2 C O 
+ASP_43:N HN CA HA C O CB HB1 HB2 CG OD1 OD2 HD2 
+TYR_44:N HN CA HA C O CB HB1 HB2 CG CD1 HD1 CD2 HD2 CE1 HE1 CE2 HE2 CZ OH HH 
+
+@list subset  CRN$SHEETS1
+CRAMBIN:THRN_1:N HN3 HN1 HN2 CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+THR_2:N HN CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+CYS_3:N HN CA HA C O CB HB1 HB2 SG 
+CYS_4:N HN CA HA C O CB HB1 HB2 SG 
+CYS_32:N HN CA HA C O CB HB1 HB2 SG 
+ILE_33:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+ILE_34:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+ILE_35:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+
+@list subset  CRN$SHEET
+CRAMBIN:THRN_1:N HN3 HN1 HN2 CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+THR_2:N HN CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+CYS_3:N HN CA HA C O CB HB1 HB2 SG 
+CYS_4:N HN CA HA C O CB HB1 HB2 SG 
+CYS_32:N HN CA HA C O CB HB1 HB2 SG 
+ILE_33:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+ILE_34:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+ILE_35:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+
+@list subset  CRN$HELIXH2
+CRAMBIN:GLU_23:N HN CA HA C O CB HB1 HB2 CG HG1 HG2 CD OE1 OE2 HE2 
+ALA_24:N HN CA HA C O CB HB1 HB2 HB3 
+ILE_25:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+CYS_26:N HN CA HA C O CB HB1 HB2 SG 
+ALA_27:N HN CA HA C O CB HB1 HB2 HB3 
+THR_28:N HN CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+TYR_29:N HN CA HA C O CB HB1 HB2 CG CD1 HD1 CD2 HD2 CE1 HE1 CE2 HE2 CZ OH HH 
+THR_30:N HN CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+
+@list subset  CRN$HELIXH1
+CRAMBIN:ILE_7:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+VAL_8:N HN CA HA C O CB HB CG1 HG11 HG12 HG13 CG2 HG21 HG22 HG23 
+ALA_9:N HN CA HA C O CB HB1 HB2 HB3 
+ARG_10:N HN CA HA C O CB HB1 HB2 CG HG1 HG2 CD HD1 HD2 NE CZ NH1 HH11 HH12 NH2 HH21 HH22 
+SER_11:N HN CA HA C O CB HB1 HB2 OG HG 
+ASN_12:N HN CA HA C O CB HB1 HB2 CG OD1 ND2 HD21 HD22 
+PHE_13:N HN CA HA C O CB HB1 HB2 CG CD1 HD1 CD2 HD2 CE1 HE1 CE2 HE2 CZ HZ 
+ASN_14:N HN CA HA C O CB HB1 HB2 CG OD1 ND2 HD21 HD22 
+VAL_15:N HN CA HA C O CB HB CG1 HG11 HG12 HG13 CG2 HG21 HG22 HG23 
+CYS_16:N HN CA HA C O CB HB1 HB2 SG 
+ARG_17:N HN CA HA C O CB HB1 HB2 CG HG1 HG2 CD HD1 HD2 NE CZ NH1 HH11 HH12 NH2 HH21 HH22 
+LEU_18:N HN CA HA C O CB HB1 HB2 CG HG CD1 HD11 HD12 HD13 CD2 HD21 HD22 HD23 
+PRO_19:N CA HA CD HD1 HD2 C O CB HB1 HB2 CG HG1 HG2 
+
+@list subset  CRN$HELIX
+CRAMBIN:ILE_7:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+VAL_8:N HN CA HA C O CB HB CG1 HG11 HG12 HG13 CG2 HG21 HG22 HG23 
+ALA_9:N HN CA HA C O CB HB1 HB2 HB3 
+ARG_10:N HN CA HA C O CB HB1 HB2 CG HG1 HG2 CD HD1 HD2 NE CZ NH1 HH11 HH12 NH2 HH21 HH22 
+SER_11:N HN CA HA C O CB HB1 HB2 OG HG 
+ASN_12:N HN CA HA C O CB HB1 HB2 CG OD1 ND2 HD21 HD22 
+PHE_13:N HN CA HA C O CB HB1 HB2 CG CD1 HD1 CD2 HD2 CE1 HE1 CE2 HE2 CZ HZ 
+ASN_14:N HN CA HA C O CB HB1 HB2 CG OD1 ND2 HD21 HD22 
+VAL_15:N HN CA HA C O CB HB CG1 HG11 HG12 HG13 CG2 HG21 HG22 HG23 
+CYS_16:N HN CA HA C O CB HB1 HB2 SG 
+ARG_17:N HN CA HA C O CB HB1 HB2 CG HG1 HG2 CD HD1 HD2 NE CZ NH1 HH11 HH12 NH2 HH21 HH22 
+LEU_18:N HN CA HA C O CB HB1 HB2 CG HG CD1 HD11 HD12 HD13 CD2 HD21 HD22 HD23 
+PRO_19:N CA HA CD HD1 HD2 C O CB HB1 HB2 CG HG1 HG2 
+GLU_23:N HN CA HA C O CB HB1 HB2 CG HG1 HG2 CD OE1 OE2 HE2 
+ALA_24:N HN CA HA C O CB HB1 HB2 HB3 
+ILE_25:N HN CA HA C O CB HB CG1 HG11 HG12 CG2 HG21 HG22 HG23 CD1 HD11 HD12 HD13 
+CYS_26:N HN CA HA C O CB HB1 HB2 SG 
+ALA_27:N HN CA HA C O CB HB1 HB2 HB3 
+THR_28:N HN CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+TYR_29:N HN CA HA C O CB HB1 HB2 CG CD1 HD1 CD2 HD2 CE1 HE1 CE2 HE2 CZ OH HH 
+THR_30:N HN CA HA C O CB HB OG1 HG1 CG2 HG21 HG22 HG23 
+#end
+

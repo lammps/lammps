@@ -1,0 +1,16 @@
+The input script in.22DMH.relres provides an example of a molecular
+simulation using the Relative Resolution (RelRes) algorithm.  In this
+example, 2,2-Dimethylhexane is the molecule in focus. This script
+uses the data file Data.22DMH.in.relres, which consists of 8000
+molecules. It also generates the RelRes potential for the selected atom types.
+
+The input script in.22DMH.respa demonstrates the use of the lj/relres pair
+style with r-RESPA applying multi-timestepping between the appropriate atom
+types (using a hybrid pair style configuration).
+
+The input script in.22DMH.real demonstrates the use of the lj/relres pair
+style with real units (the data file Data.22DMH.in.real). It performs
+a set of molecular simulations with different switching distances. Finally,
+it performs a molecular simulation with the lj/smooth pair style, allowing
+comparison of the thermal characteristics and the running time between the
+RelRes and the conventional approach.

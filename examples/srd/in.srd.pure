@@ -1,0 +1,53 @@
+# 2d SRD only test
+
+units		lj
+atom_style	atomic
+atom_modify	first empty
+dimension	2
+
+# create box with big lattice
+
+lattice		sq 0.4
+region		box block 0 10 0 10 -0.5 0.5
+create_box	1 box
+
+# add SRD particles as hi density lattice
+
+lattice		sq 0.4
+region		plane block 0 10 0 10 -0.001 0.001
+lattice		sq 85.0
+create_atoms	1 region plane
+
+group		empty type 2
+
+mass		1 0.01
+velocity	all create 1.0 593849 loop geom
+
+# settings - need dummy empty group to enable no communication
+
+neighbor	0.3 bin
+neigh_modify	delay 1 every 1 check no
+
+comm_modify	group empty
+
+# timestep is big and SRD frequency is 1
+
+timestep	0.02
+
+fix	        1 all srd 1 NULL 1.0 0.25 49894 collision slip
+fix		2 all enforce2d
+
+# diagnostics
+
+thermo_style	custom step temp f_1[7] etotal press f_1[3] f_1[4] f_1[6]
+thermo		100
+
+#dump		1 all atom 250 dump.srd.pure
+
+#dump		2 all image 250 image.*.jpg type type zoom 1.6 adiam 0.2
+#dump_modify	2 pad 4
+
+#dump		3 all movie 250 movie.mpg type type zoom 1.6 adiam 0.2
+#dump_modify	3 pad 4
+
+run		5000

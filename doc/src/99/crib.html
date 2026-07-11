@@ -1,0 +1,629 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+    <META NAME="Generator" CONTENT="Cosmo Create 1.0.3">
+</HEAD>
+<BODY>
+<H2>
+Crib File</H2>
+<P>
+<A HREF="README.html">Return</A> to top-level of LAMMPS documentation.</P>
+<P>
+This file contains one-line descriptions of the key variables and 
+parameters used in LAMMPS. The variables are listed by their data type:</P>
+<UL>
+    <LI>
+    <A HREF="#_cch3_930764945">Parameters</A> 
+    <LI>
+    <A HREF="#_cch3_930764951">Arrays (real</A>) 
+    <LI>
+    <A HREF="#_cch3_930764957">Arrays (integer)</A> 
+    <LI>
+    <A HREF="#_cch3_930764964">Variables (real)</A> 
+    <LI>
+    <A HREF="#_cch3_930764969">Variables (integer)</A> 
+    <LI>
+    <A HREF="#_cch3_930764974">Variables (character)</A> 
+</UL>
+<P>
+Note: this file is somewhat out-of-date for LAMMPS 99.</P>
+<HR>
+<H3>
+<A NAME="_cch3_930764945">Parameters: </A></H3>
+<UL>
+    <LI>
+    maxown = max # of local owned atoms 
+    <LI>
+    maxother = max # of local nearby atoms 
+    <LI>
+    maxtotal = max # of total atoms in simulation 
+    <LI>
+    maxtype = max # of atom types 
+    <LI>
+    maxbond = max # of bonds to compute on one processor
+    <LI>
+    maxangle = max # of angles to compute on one processor 
+    <LI>
+    maxdihed = max # of dihedrals to compute on one processor 
+    <LI>
+    maximpro = max # of impropers to compute on one processor 
+    <LI>
+    maxbondper = max # of bonds of one atom 
+    <LI>
+    maxangleper = max # of angles of one atom 
+    <LI>
+    maxdihedper = max # of dihedrals of one atom 
+    <LI>
+    maximproper = max # of impropers of one atom 
+    <LI>
+    maxbondtype = max # of bond types 
+    <LI>
+    maxangletype = max # of angle types 
+    <LI>
+    maxdihedtype = max # of dihedral types 
+    <LI>
+    maximprotype = max # of improper types 
+    <LI>
+    maxexch = max # of atoms in exchange buffer 
+    <LI>
+    maxsend = max # of atoms to send to all neighbors in all swaps 
+    <LI>
+    maxsendone = max # of atoms to send in one swap 
+    <LI>
+    maxswap = max # of swaps to do at each timestep 
+    <LI>
+    maxneigh = max # of neighbors per owned atom 
+    <LI>
+    maxsneigh = max # of special neighbors of one atom 
+    <LI>
+    maxbin = max # of local neighbor bins 
+    <LI>
+    maxfix = max # of defined constraints + 1
+    <LI>
+    maxdiag = max # of diagnostic routines 
+    <LI>
+    maxgrid = max size of PPPM grid with ghosts on one processor 
+    <LI>
+    maxfft = max size of PPPM FFT grid on one processor 
+    <LI>
+    maxperatom = max # of data items stored/comm/output per atom 
+    <LI>
+    maxatom = maxown + maxother = total # of own and nearby atoms 
+    <LI>
+    maxexchtot = maxexch * (maxperatom + maxsneigh + 3*maxbondper + 
+    4*maxangleper + 5*maxdihedper + 5*maximproper) = total data volume for 
+    all exchanged atoms 
+    <LI>
+    maxrestot = maxown * (maxperatom - 3 + 3*maxbondper + 4*maxangleper + 
+    5*maxdihedper + 5*maximproper)+1 = total data volume for all buffered 
+    restart atoms 
+    <LI>
+    maxsendspec = 2 * maxsneigh * maxown total data volume for sending 
+    special requests 
+    <LI>
+    maxrecvspec = maxsneigh + 1 total data volume for receiving a list of 
+    specials 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930764951">Arrays (real): </A></H3>
+<UL>
+    <LI>
+    anglecoeff(2,maxangletype) = angle coeffs for each angle type 
+    <LI>
+    bondcoeff(5,maxbondtype) = bond coeffs for each bond type 
+    <LI>
+    boundhi(maxswap) = hi slab boundary on atom positions for each swap 
+    send 
+    <LI>
+    boundlo(maxswap) = lo slab boundary on atom positions for each swap 
+    send 
+    <LI>
+    buf1(maxexchtot) = comm buffer for sending exchange atoms 
+    <LI>
+    buf2(2*maxexchtot) = comm buffer for 2 recv of exchange atoms 
+    <LI>
+    buf3(3*maxsendone) = comm buffer for sending one set of swap atom 
+    positions 
+    <LI>
+    buf4(8*maxown) = comm buffer for output 
+    <LI>
+    buf5(maxrestot) = comm buffer for restart atoms 
+    <LI>
+    buf6(maxsendone) = comm buffer for sending one set of swap charges 
+    <LI>
+    cutforcesq(maxtype,maxtype) = force cutoff squared for atom pair 
+    (LJ/Coul) 
+    <LI>
+    cutljsq(maxtype,maxtype) = LJ cutoff squared for atom pairs 
+    <LI>
+    cutljinner(maxtype,maxtype) = inner LJ cutoff for switched LJ 
+    <LI>
+    cutljinnersq(maxtype,maxtype) = inner LJ cutoff squared for switched LJ 
+    <LI>
+    cutneighsq(maxtype,maxtype) = neigh cutoff squared for atom pair 
+    (LJ/Coul + skin) 
+    <LI>
+    diagparams(6,maxdiag) = parameters to pass into a diagnostic routine 
+    <LI>
+    dihedcoeff(3,maxdihedtype) = dihedral coeffs for each dihedral type 
+    <LI>
+    f(3,maxown) = forces on own atoms 
+    <LI>
+    fixcoeff(8,maxfix) = constraint coeffs for each constraint 
+    <LI>
+    fixstore(5*maxfix) = accumulated quantities for each constraint 
+    <LI>
+    improcoeff(2,maximprotype) = improper coeffs for each improper type 
+    <LI>
+    lj12345(maxtype,maxtype) = pre-computed LJ coeffs for use in energy and 
+    force 
+    <LI>
+    ljsw01234(maxtype,maxtype) = pre-computed switched LJ coeffs for eng 
+    and force 
+    <LI>
+    mass(maxtype) = mass of each atom type 
+    <LI>
+    noncoeff1234(maxtype,maxtype) = nonbond coeffs input for atom pairs 
+    <LI>
+    offset(maxtype,maxtype) = LJ potential offsets at cutoff for energy 
+    calc 
+    <LI>
+    q(maxatom) = charge of own and nearby atoms (electron units) 
+    <LI>
+    v(3,maxown) = velocity of owned atoms 
+    <LI>
+    x(3,maxatom) = positions of own and nearby atoms 
+    <LI>
+    xhold(3,maxown) = positions of own atoms at last reneighboring 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930764957">Arrays (integer): </A></H3>
+<UL>
+    <LI>
+    angleatom123(maxangleper,maxown) = angle atoms for angles of owned 
+    atoms 
+    <LI>
+    anglelist(4,maxangle) = atoms and type of each angle to compute locally 
+    <LI>
+    angletype(maxangleper,maxown) = angle type for angles of owned atoms 
+    <LI>
+    bin(maxatom) = linked list pointers from one atom to next in bin 
+    <LI>
+    binpnt(maxbin) = pointer to 1st atom in each bin 
+    <LI>
+    bondatom12(maxbondper,maxown) = bond atoms for bonds of owned atoms 
+    <LI>
+    bondlist(3,maxbond) = atoms and type of each bond to compute locally 
+    <LI>
+    bondtype(maxbondper,maxown) = bond type for bonds of owned atoms 
+    <LI>
+    bondtypeflag(maxbondtype) = flag for whether bond coeffs are set 
+    <LI>
+    diagfileflag(maxdiag) = whether a file has been specified for a diag 
+    routine 
+    <LI>
+    diagfreq(maxdiag) = call a diagnostic routine every this many steps 
+    <LI>
+    diagnparams(maxdiag) = # of parameters specified for a diagnostic 
+    routine 
+    <LI>
+    diagstyle(maxdiag) = whether a diagnostic has been set 0/1 
+    <LI>
+    dihedatom1234(maxdihedper,maxown) = dihed atoms for diheds of owned 
+    atoms 
+    <LI>
+    dihedlist(5,maxdihed) = atoms and type of each dihedral to compute 
+    locally 
+    <LI>
+    dihedtype(maxdihedper,maxown) = dihed type for diheds of owned atoms 
+    <LI>
+    fix(maxown) = constraint assignments for each owned atom 
+    <LI>
+    fixflag(3,maxfix) = 0/1 flags for various fix styles 
+    <LI>
+    fixptr(maxfix) = how many values are accumulated for each constraint 
+    <LI>
+    fixstyle(maxfix) = style of each constraint 
+    <LI>
+    ibuf1(maxsendone) = comm buffer for sending one set of swap atom tags 
+    <LI>
+    ibuf2(maxsendone) = comm buffer for sending one set of swap atom types 
+    <LI>
+    ibuf3(maxspec) = comm buffer for sending special requests 
+    <LI>
+    ibuf4(maxspec) = comm buffer for receiving special lists 
+    <LI>
+    improatom1234(maximproper,maxown) = impro atoms for impros of owned 
+    atoms 
+    <LI>
+    improlist(5,maximpro) = atoms and type of each improper to compute 
+    locally 
+    <LI>
+    improtype(maximproper,maxown) = impro type for impros of owned atoms 
+    <LI>
+    list(maxown) = linked list of local atoms (last one -&gt; maxown+1) 
+    <LI>
+    localptr(0:maxtotal) = ptr from global atom to local array (0 if don't 
+    have) 
+    <LI>
+    molecule(maxown) = molecule id # each owned atom is in 
+    <LI>
+    nlist(maxown*maxneigh+maxneigh) = neighbor lists of own atoms 
+    <LI>
+    nliststart(maxown) = pointer to where neighbor list for this atom 
+    starts 
+    <LI>
+    nliststop(maxown) = pointer to where neighbor list for this atom stops 
+    <LI>
+    nontypeflag(maxtype,maxtype) = flag for whether nonbond coeffs are set 
+    <LI>
+    nrlist(maxswap+1) = prt to where received other atoms start for each 
+    swap 
+    <LI>
+    nslist(maxswap+1) = pointer to where swap list starts for each swap 
+    <LI>
+    numangle(maxown) = # of angles of each owned atom 
+    <LI>
+    numbond(maxown) = # of 1st neighbors bonded to each owned atom 
+    <LI>
+    num2bond(maxown) = # of 2nd neighbors for each owned atom 
+    <LI>
+    num3bond(maxown) = # of 3rd neighbors for each owned atom 
+    <LI>
+    numdihed(maxown) = # of dihedrals of each owned atom 
+    <LI>
+    numimpro(maxown) = # of impropers of each owned atom 
+    <LI>
+    rpart(maxswap) = node # of who to recv from for each swap 
+    <LI>
+    slist(maxsend) = send list of atoms to send out in all swaps 
+    <LI>
+    spart(maxswap) = node # of who to send to for each swap 
+    <LI>
+    specbond(maxsneigh,maxown) = special bond neighbors of each owned atom 
+    <LI>
+    tag(maxatom) = global id # of own and nearby atoms 
+    <LI>
+    true(maxown) = which periodic box atom is truly in for all 3 dims 
+    <LI>
+    type(maxatom) = type # of own and nearby atoms 
+    <LI>
+    typecheck(maxtype) = consistency check for all existing atom types 
+    <LI>
+    typechecktmp(maxtype) = summing array for atom type consistency check 
+    <LI>
+    velflag(maxown) = whether velocity for each atom has been created 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930764964">Variables (real): </A></H3>
+<UL>
+    <LI>
+    binsize[xyz] = size of global neighbor bins in each dimension 
+    <LI>
+    boltz = Boltzmann factor 
+    <LI>
+    border(2,3) = lo/hi boundaries of my sub-box in each dimension 
+    <LI>
+    coulpre = Coulombic force prefactor 
+    <LI>
+    createregion(6) = bounding box for atoms to create temperature for 
+    <LI>
+    createvec(3) = initial velocity for create temp atoms 
+    <LI>
+    cutcoul = input force cutoff for Coulombic interactions 
+    <LI>
+    cutcoulsq = Coul cutoff squared for all atom pairs 
+    <LI>
+    cutforce = max force cutoff for all atom pairs (LJ/Coul) 
+    <LI>
+    cutlj = input global (default) LJ cutoff for all atom pairs 
+    <LI>
+    cutljinterior = global inner LJ cutoff for switched LJ 
+    <LI>
+    cutneigh = max neighbor cutoff for all atom pairs (LJ/Coul + skin) 
+    <LI>
+    dielectric = dielectric constant 
+    <LI>
+    dt = timestep 
+    <LI>
+    dtfactor = timestep conversion factor from input to program units 
+    <LI>
+    dthalf = timestep / 2 
+    <LI>
+    efactor = energy conversion factor from Coulombic to Kcals 
+    <LI>
+    e_angle = energy in angles 
+    <LI>
+    e_bond = energy in bonds 
+    <LI>
+    e_coul = energy in nonbond Coulombic 
+    <LI>
+    e_dihedral = energy in dihedrals 
+    <LI>
+    e_improper = energy in impropers 
+    <LI>
+    e_total = total energy 
+    <LI>
+    e_vdwl = energy in nonbond LJ 
+    <LI>
+    fixregion(6) = bounding box for atoms to assign to a constraint 
+    <LI>
+    skin = distance between force and neighbor cutoffs 
+    <LI>
+    special(3) = weight factors for special neighbors 
+    <LI>
+    triggersq = squared distance to trigger neighbor list rebuild 
+    <LI>
+    two16 = 2 ^ (1/6) constant for use in FENE bond potentials 
+    <LI>
+    t_create = requested initialization temp 
+    <LI>
+    t_current = current temp returned from temp routine 
+    <LI>
+    t_nph = default temp for constant NPH 
+    <LI>
+    t_start = target temp at beginning of run 
+    <LI>
+    t_stop = target temp at end of run 
+    <LI>
+    t_window = control temp within this window 
+    <LI>
+    time_angle = angle time 
+    <LI>
+    time_bond = bond time 
+    <LI>
+    time_comm = communication time 
+    <LI>
+    time_current = current time 
+    <LI>
+    time_dihedral = dihedral time 
+    <LI>
+    time_exch = exchange time 
+    <LI>
+    time_improper = improper time 
+    <LI>
+    time_io = i/o time 
+    <LI>
+    time_loop = time for integration loop 
+    <LI>
+    time_neigh1 = neighboring time in nonbond 
+    <LI>
+    time_neigh2 = neighboring time in bonds 
+    <LI>
+    time_nonbond = nonbond force time 
+    <LI>
+    time_other = other miscellaneous time 
+    <LI>
+    time_total = total run time of entire simulation 
+    <LI>
+    x[yz]mc = box size minus force cutoff for PBC checks 
+    <LI>
+    x[yz]ms box size minus neighbor list cutoff for PBC checks 
+    <LI>
+    x[yz]boundlo = lower global box boundary in each dimension 
+    <LI>
+    x[yz]boundhi = upper global box boundary in each dimension 
+    <LI>
+    x[yz]prd = global box size in each dimension 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930764969">Variables (integer): </A></H3>
+<UL>
+    <LI>
+    atompnt = pointer to 1st atom in my list 
+    <LI>
+    bondstyle = style of bond computation 
+    <LI>
+    boxflag = flag if box has been remapped (non-PBC) 
+    <LI>
+    coulstyle = style of Coulomb interaction 
+    <LI>
+    creategroup = kind of atom group to create temp for 
+    <LI>
+    createstyle = style of temp creation 
+    <LI>
+    createtypehi = upper range of atom types to create temp for 
+    <LI>
+    createtypelo = lower range of atom types to create temp for 
+    <LI>
+    dumpfileflag = has dump file been opened or not (1/0) 
+    <LI>
+    dumpflag = dump atoms to file every this many steps (0 = never) 
+    <LI>
+    dumpforcefileflag = has dump force file been opened or not (1/0) 
+    <LI>
+    dumpforceflag = dump forces to file every this many steps (0 = never) 
+    <LI>
+    dumpvelfileflag = has dump velocity file been opened or not (1/0) 
+    <LI>
+    dumpvelflag = dump vels to file every this many steps (0 = never) 
+    <LI>
+    fixatom = assign atom/molecule with this tag to a constraint 
+    <LI>
+    fixgroup = kind of atom group to assign to a constraint 
+    <LI>
+    fixnum = total # of accumulated values for all constraints 
+    <LI>
+    fixtype = assign group of atoms of this type to a constraint 
+    <LI>
+    fixwhich = which constraint a atom group is to be assigned to 
+    <LI>
+    freepnt = pointer to 1st free space in list (last one -&gt; 0) 
+    <LI>
+    idimension = dimension of problem (2-d or 3-d) 
+    <LI>
+    iseed = RNG seed for generating initial velocities 
+    <LI>
+    itime = current timestep loop counter in integrator 
+    <LI>
+    iversion = version number of restart files (for backward compat) 
+    <LI>
+    max_angle = most angles I ever have to compute 
+    <LI>
+    max_angleper = most angles ever attached to any atom 
+    <LI>
+    max_bond = most bonds I ever have to compute 
+    <LI>
+    max_bondper = most bonds ever attached to any atom 
+    <LI>
+    max_dihed = most diheds I ever have to compute 
+    <LI>
+    max_dihedper = most diheds ever attached to any atom 
+    <LI>
+    max_exch = most atoms ever leaving my box (in one dimension) 
+    <LI>
+    max_impro = most impros I ever have to compute 
+    <LI>
+    max_improper = most impros ever attached to any atom 
+    <LI>
+    max_nlocal = most atoms I ever owned 
+    <LI>
+    max_neigh = most neighbors ever stored in neighbor list 
+    <LI>
+    max_nother = most nearby atoms I ever stored 
+    <LI>
+    max_slist = biggest size swap list ever reached 
+    <LI>
+    max_swap = most atoms ever sent in one swap 
+    <LI>
+    mbin[xyz] = # of bins in my box with nearby atoms included 
+    <LI>
+    mbin[xyz]lo = global bin indices (offset) at corner of extended box 
+    <LI>
+    me(3) = which box I am (0 - pgrid-1) in each dimension 
+    <LI>
+    mixflag = whether mixing style has been set or not 
+    <LI>
+    mixstyle = style of mixing for nonbond coeffs (arith,geom,sixth) 
+    <LI>
+    mpart(2,3)= node # of neighbor processor in each dimension 
+    <LI>
+    nanglelocal = local # of angless to compute 
+    <LI>
+    nangles = total # of angles 
+    <LI>
+    nangletypes = total # of angle types 
+    <LI>
+    natoms = total # of atoms 
+    <LI>
+    nbin[xyz] # of global neighbor bins in each dimension 
+    <LI>
+    nbondlocal = local # of bonds to compute 
+    <LI>
+    nbonds = total # of bonds 
+    <LI>
+    nbondtypes = total # of bond types 
+    <LI>
+    ndanger = # of neighbor rebuilds triggered by 1st check 
+    <LI>
+    ndiags = # of user-specified diagnostic routines 
+    <LI>
+    ndihedlocal = local # of dihedrals to compute 
+    <LI>
+    ndihedrals = total # of diheds 
+    <LI>
+    ndihedtypes = total # of dihedral types 
+    <LI>
+    need(3) how many processors I need neighbors from in each dim 
+    <LI>
+    neighago = how many timesteps ago neighboring was done 
+    <LI>
+    neighdelay = delay neighbor list build for this many steps 
+    <LI>
+    neighfreq = build neighbor list every this many steps 
+    <LI>
+    neighstyle = neighboring by (0) N^2 or (1) binning method 
+    <LI>
+    neightop = last used position in neighbor list (nlist) 
+    <LI>
+    neightrigger = always (0) do neighbor list or trigger (1) on atom move 
+    <LI>
+    newton = flag for kind of Newton's 3rd law used (0,1,2,3) 
+    <LI>
+    newton_bond = Newton's 3rd is not used (0) or (1) used for bonds 
+    <LI>
+    newton_nonbond = Newton's 3rd is not used (0) or (1) used for nonbonds 
+    <LI>
+    nfixes = # of constraints 
+    <LI>
+    nimprolocal = local # of impropers to compute 
+    <LI>
+    nimpropers = total # of impros 
+    <LI>
+    nimprotypes = total # of improper types 
+    <LI>
+    nlocal = # of atoms I currently own 
+    <LI>
+    nother = # of nearby atoms I currently store 
+    <LI>
+    node = my node # 
+    <LI>
+    nonstyle = style on nonbond computation 
+    <LI>
+    nprocs = total # of processors 
+    <LI>
+    nsteps = # of timesteps to simulate 
+    <LI>
+    nswap = # of swaps at each timestep 
+    <LI>
+    ntimestep = current global timestep 
+    <LI>
+    ntypes = total # of atom types 
+    <LI>
+    numneigh = number of times reneighboring is done 
+    <LI>
+    offsetflag = whether to include energy offset in LJ energy calc 
+    <LI>
+    peratom = # of values/atom not including bond info 
+    <LI>
+    perflagx[yz] = flag for periodic (0) or non-periodic (1) BC 
+    <LI>
+    pgrid(3) = # of processors in each dimension 
+    <LI>
+    readflag = whether atom input file has been read or not (1/0) 
+    <LI>
+    restartfileflag = which restart file to open next (0/1) 
+    <LI>
+    restartflag = write restart file every this many steps (0=never) 
+    <LI>
+    t_every = rescale/replace temp every this many steps 
+    <LI>
+    tempflag = constant temperature style flag 
+    <LI>
+    thermoflag = print thermo info every this many steps (0 = never) 
+    <LI>
+    thermostyle = style of thermo output (0 = full, 1 = reduced) 
+    <LI>
+    trueflag = whether to dump remapped or true atom positions 
+    <LI>
+    units = flag for real vs reduced LJ units 
+</UL>
+<HR>
+<H3>
+<A NAME="_cch3_930764974">Variables (character): </A></H3>
+<UL>
+    <LI>
+    datafile = file to read atom and connectivity info from 
+    <LI>
+    diagfile(maxdiag) = files to print user-specified diagnostics to 
+    <LI>
+    diagname(maxdiag) = name of a user-specified diagnostic routine 
+    <LI>
+    dumpfile = file to dump atom info to 
+    <LI>
+    dumpforcefile = file to dump force info to 
+    <LI>
+    dumpvelfile = file to dump velocity info to 
+    <LI>
+    restart_in = file to read restart info from 
+    <LI>
+    restart_out[12] = files to write restart info to 
+</UL>
+<P>
+</P>
+</BODY>
+</HTML>

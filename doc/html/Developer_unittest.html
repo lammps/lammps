@@ -1,0 +1,1547 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.12. Adding tests for unit testing &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_unittest.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.13. C++ base classes" href="Classes.html" />
+    <link rel="prev" title="4.11. Writing plugins" href="Developer_plugins.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.12. Adding tests for unit testing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-utility-functions">4.12.1. Tests for utility functions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-individual-lammps-commands">4.12.2. Tests for individual LAMMPS commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-the-c-style-library-interface">4.12.3. Tests for the C-style library interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-the-python-module-and-package">4.12.4. Tests for the Python module and package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-the-fortran-interface">4.12.5. Tests for the Fortran interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">4.12.6. Tests for the C++-style library interface</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-reading-and-writing-file-formats">4.12.7. Tests for reading and writing file formats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-styles-computing-or-modifying-forces">4.12.8. Tests for styles computing or modifying forces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-granular-dem-models">4.12.9. Tests for granular (DEM) models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tests-for-programs-in-the-tools-folder">4.12.10. Tests for programs in the tools folder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting-failed-unit-tests">4.12.11. Troubleshooting failed unit tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.12. </span>Adding tests for unit testing</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_plugins.html" class="btn btn-neutral float-left" title="4.11. Writing plugins" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Classes.html" class="btn btn-neutral float-right" title="4.13. C++ base classes" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="adding-tests-for-unit-testing">
+<h1><span class="section-number">4.12. </span>Adding tests for unit testing<a class="headerlink" href="#adding-tests-for-unit-testing" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#tests-for-utility-functions" id="id2">Tests for utility functions</a></p>
+<ul>
+<li><p><a class="reference internal" href="#fft-testing-infrastructure" id="id3">FFT Testing Infrastructure</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tests-for-individual-lammps-commands" id="id4">Tests for individual LAMMPS commands</a></p></li>
+<li><p><a class="reference internal" href="#tests-for-the-c-style-library-interface" id="id5">Tests for the C-style library interface</a></p></li>
+<li><p><a class="reference internal" href="#tests-for-the-python-module-and-package" id="id6">Tests for the Python module and package</a></p></li>
+<li><p><a class="reference internal" href="#tests-for-the-fortran-interface" id="id7">Tests for the Fortran interface</a></p></li>
+<li><p><a class="reference internal" href="#id1" id="id8">Tests for the C++-style library interface</a></p></li>
+<li><p><a class="reference internal" href="#tests-for-reading-and-writing-file-formats" id="id9">Tests for reading and writing file formats</a></p></li>
+<li><p><a class="reference internal" href="#tests-for-styles-computing-or-modifying-forces" id="id10">Tests for styles computing or modifying forces</a></p></li>
+<li><p><a class="reference internal" href="#tests-for-granular-dem-models" id="id11">Tests for granular (DEM) models</a></p>
+<ul>
+<li><p><a class="reference internal" href="#analytic-only-chaotic-bulk" id="id12">Analytic-only (chaotic bulk)</a></p></li>
+<li><p><a class="reference internal" href="#adding-a-new-reference-yaml-file" id="id13">Adding a new reference (YAML) file</a></p></li>
+<li><p><a class="reference internal" href="#adding-a-new-test-program" id="id14">Adding a new test program</a></p></li>
+<li><p><a class="reference internal" href="#references" id="id15">References</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#tests-for-programs-in-the-tools-folder" id="id16">Tests for programs in the tools folder</a></p></li>
+<li><p><a class="reference internal" href="#troubleshooting-failed-unit-tests" id="id17">Troubleshooting failed unit tests</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<p>This section discusses adding or expanding tests for the unit test
+infrastructure included into the LAMMPS source code distribution.
+Unlike example inputs, unit tests focus on testing the “local” behavior
+of individual features, tend to run fast, and should be set up to cover
+as much of the added code as possible.  When contributing code to the
+distribution, the LAMMPS developers will appreciate if additions to the
+integrated unit test facility are included.</p>
+<p>Given the complex nature of MD simulations where many operations can
+only be performed when suitable “real” simulation environment has been
+set up, not all tests will be unit tests in the strict definition of
+the term.  They are rather executed on a more abstract level by issuing
+LAMMPS script commands and then inspecting the changes to the internal
+data.  For some classes of tests, generic test programs have been
+written that can be applied to parts of LAMMPS that use the same
+interface (via polymorphism) and those are driven by input files, so
+tests can be added by simply adding more of those input files.  Those
+tests should be seen more as a hybrid between unit and regression tests.</p>
+<p>When adding tests it is recommended to also <a class="reference internal" href="Build_development.html#testing"><span class="std std-ref">enable support for
+code coverage reporting</span></a>, and study the coverage reports
+so that it is possible to monitor which parts of the code of a given
+file are executed during the tests and which tests would need to be
+added to increase the coverage.</p>
+<p>The tests are grouped into categories and corresponding folders.
+The following sections describe how the tests are implemented and
+executed in those categories with increasing complexity of tests
+and implementation.</p>
+<section id="tests-for-utility-functions">
+<h2><a class="toc-backref" href="#id2" role="doc-backlink"><span class="section-number">4.12.1. </span>Tests for utility functions</a><a class="headerlink" href="#tests-for-utility-functions" title="Link to this heading"></a></h2>
+<p>These tests are driven by programs in the <code class="docutils literal notranslate"><span class="pre">unittest/utils</span></code> folder
+and most closely resemble conventional unit tests. There is one test
+program for each namespace or group of classes or file. The naming
+convention for the sources and executables is that they start with
+with <code class="docutils literal notranslate"><span class="pre">test_</span></code>.  The following sources and groups of tests are currently
+available:</p>
+<table class="docutils align-left">
+<colgroup>
+<col style="width: 32.0%" />
+<col style="width: 18.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>File name:</p></th>
+<th class="head"><p>Test name:</p></th>
+<th class="head"><p>Description:</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_argutils.cpp</span></code></p></td>
+<td><p>ArgInfo</p></td>
+<td><p>Tests for <code class="docutils literal notranslate"><span class="pre">ArgInfo</span></code> class used by LAMMPS</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_fmtlib.cpp</span></code></p></td>
+<td><p>FmtLib</p></td>
+<td><p>Tests for <code class="docutils literal notranslate"><span class="pre">{fmt}</span></code> or <code class="docutils literal notranslate"><span class="pre">std::format</span></code> functions used by LAMMPS</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_math_eigen_impl.cpp</span></code></p></td>
+<td><p>MathEigen</p></td>
+<td><p>Tests for <code class="docutils literal notranslate"><span class="pre">MathEigen::</span></code> classes and functions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_mempool.cpp</span></code></p></td>
+<td><p>MemPool</p></td>
+<td><p>Tests for <a class="reference internal" href="Developer_utils.html#_CPPv4I0EN9LAMMPS_NS6MyPageE" title="LAMMPS_NS::MyPage"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">MyPage</span></code></a> and <a class="reference internal" href="Developer_utils.html#_CPPv4I0EN9LAMMPS_NS11MyPoolChunkE" title="LAMMPS_NS::MyPoolChunk"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">MyPoolChunk</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_tokenizer.cpp</span></code></p></td>
+<td><p>Tokenizer</p></td>
+<td><p>Tests for <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS9TokenizerE" title="LAMMPS_NS::Tokenizer"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">Tokenizer</span></code></a> and <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS14ValueTokenizerE" title="LAMMPS_NS::ValueTokenizer"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">ValueTokenizer</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_utils.cpp</span></code></p></td>
+<td><p>Utils</p></td>
+<td><p>Tests for <code class="docutils literal notranslate"><span class="pre">utils::</span></code> <a class="reference internal" href="Developer_utils.html"><span class="doc">functions</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_fft3d.cpp</span></code></p></td>
+<td><p>FFT3D</p></td>
+<td><p>Tests for standard FFT3d wrapper (KISS, FFTW3, MKL, NVPL)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_fft3d_kokkos.cpp</span></code></p></td>
+<td><p>FFT3DKokkos</p></td>
+<td><p>Tests for KOKKOS FFT3d wrapper (CPU and GPU back ends)</p></td>
+</tr>
+</tbody>
+</table>
+<p>To add tests either an existing source file needs to be modified or a
+new source file needs to be added to the distribution and enabled for
+testing.  To add a new file suitable CMake script code needs to be added
+to the <code class="docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file in the <code class="docutils literal notranslate"><span class="pre">unittest/utils</span></code> folder.  Example:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">add_executable</span><span class="p">(</span><span class="s">test_tokenizer</span><span class="w"> </span><span class="s">test_tokenizer.cpp</span><span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">test_tokenizer</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">lammps</span><span class="w"> </span><span class="s">GTest::GMockMain</span><span class="w"> </span><span class="s">GTest::GMock</span><span class="w"> </span><span class="s">GTest::GTest</span><span class="p">)</span>
+<span class="nb">add_test</span><span class="p">(</span><span class="s">Tokenizer</span><span class="w"> </span><span class="s">test_tokenizer</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This adds instructions to build the <code class="docutils literal notranslate"><span class="pre">test_tokenizer</span></code> executable from
+<code class="docutils literal notranslate"><span class="pre">test_tokenizer.cpp</span></code> and links it with the GoogleTest libraries and the
+LAMMPS library as well as it uses the <code class="docutils literal notranslate"><span class="pre">main()</span></code> function from the
+GoogleMock library of GoogleTest.  The third line registers the executable
+as a test program to be run from <code class="docutils literal notranslate"><span class="pre">ctest</span></code> under the name <code class="docutils literal notranslate"><span class="pre">Tokenizer</span></code>.</p>
+<p>The test executable itself will execute multiple individual tests
+through the GoogleTest framework. In this case each test consists of
+creating a tokenizer class instance with a given string and explicit or
+default separator choice, and then executing member functions of the
+class and comparing their results with expected values. A few examples:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">TEST</span><span class="p">(</span><span class="n">Tokenizer</span><span class="p">,</span><span class="w"> </span><span class="n">empty_string</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Tokenizer</span><span class="w"> </span><span class="n">t</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">count</span><span class="p">(),</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">TEST</span><span class="p">(</span><span class="n">Tokenizer</span><span class="p">,</span><span class="w"> </span><span class="n">two_words</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Tokenizer</span><span class="w"> </span><span class="n">t</span><span class="p">(</span><span class="s">&quot;test word&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot; &quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">count</span><span class="p">(),</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="n">TEST</span><span class="p">(</span><span class="n">Tokenizer</span><span class="p">,</span><span class="w"> </span><span class="n">default_separators</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">Tokenizer</span><span class="w"> </span><span class="n">t</span><span class="p">(</span><span class="s">&quot; </span><span class="se">\r\n</span><span class="s"> test </span><span class="se">\t</span><span class="s"> word </span><span class="se">\f</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">ASSERT_THAT</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">next</span><span class="p">(),</span><span class="w"> </span><span class="n">Eq</span><span class="p">(</span><span class="s">&quot;test&quot;</span><span class="p">));</span>
+<span class="w">    </span><span class="n">ASSERT_THAT</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">next</span><span class="p">(),</span><span class="w"> </span><span class="n">Eq</span><span class="p">(</span><span class="s">&quot;word&quot;</span><span class="p">));</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">t</span><span class="p">.</span><span class="n">count</span><span class="p">(),</span><span class="w"> </span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Each of these TEST functions will become an individual
+test run by the test program. When using the <code class="docutils literal notranslate"><span class="pre">ctest</span></code>
+command as a front end to run the tests, their output
+will be suppressed and only a summary printed, but adding
+the ‘-V’ option will then produce output from the tests
+above like the following:</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">[...]</span>
+<span class="go">1: [ RUN      ] Tokenizer.empty_string</span>
+<span class="go">1: [       OK ] Tokenizer.empty_string (0 ms)</span>
+<span class="go">1: [ RUN      ] Tokenizer.two_words</span>
+<span class="go">1: [       OK ] Tokenizer.two_words (0 ms)</span>
+<span class="go">1: [ RUN      ] Tokenizer.default_separators</span>
+<span class="go">1: [       OK ] Tokenizer.default_separators (0 ms)</span>
+<span class="go">[...]</span>
+</pre></div>
+</div>
+<p>The MathEigen test collection has been adapted from a standalone test
+and does not use the GoogleTest framework and thus not representative.
+The other test sources, however, can serve as guiding examples for
+additional tests.</p>
+<section id="fft-testing-infrastructure">
+<h3><a class="toc-backref" href="#id3" role="doc-backlink">FFT Testing Infrastructure</a><a class="headerlink" href="#fft-testing-infrastructure" title="Link to this heading"></a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 10Dec2025.</span></p>
+</div>
+<p>The FFT tests (<code class="docutils literal notranslate"><span class="pre">test_fft3d.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">test_fft3d_kokkos.cpp</span></code>)
+validate the LAMMPS FFT wrapper implementations for both standard (CPU)
+and KOKKOS (CPU/GPU) back ends.  These tests require the KSPACE package
+and use specialized helper utilities to ensure FFT correctness across
+different library back ends (KISS FFT, FFTW3, MKL, NVPL, cuFFT, hipFFT,
+etc.).</p>
+<p><strong>Building and Running FFT Tests:</strong></p>
+<p>The FFT tests are automatically enabled when <code class="docutils literal notranslate"><span class="pre">ENABLE_TESTING=ON</span></code> and
+<code class="docutils literal notranslate"><span class="pre">PKG_KSPACE=ON</span></code> are set during CMake configuration. For KOKKOS FFT tests,
+<code class="docutils literal notranslate"><span class="pre">PKG_KOKKOS=ON</span></code> is also required.</p>
+<p>Run only FFT tests using the <code class="docutils literal notranslate"><span class="pre">ctest</span></code> command of the CMake software:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>ctest<span class="w"> </span>-R<span class="w"> </span>FFT3D<span class="w">          </span><span class="c1"># Run all tests with FFT3D in their name</span>
+ctest<span class="w"> </span>-R<span class="w"> </span>FFT3D<span class="w"> </span>-V<span class="w">       </span><span class="c1"># Same as above but with verbose output</span>
+ctest<span class="w"> </span>-L<span class="w"> </span>fft<span class="w">            </span><span class="c1"># Run all tests labeled with &#39;fft&#39;</span>
+</pre></div>
+</div>
+<p>Tests automatically skip configurations requiring libraries or back ends
+not available in the current build (e.g., FFTW3, MPI, CUDA).</p>
+<p><strong>FFT Test Helper Header:</strong></p>
+<p>The testing infrastructure uses <code class="docutils literal notranslate"><span class="pre">fft_test_helpers.h</span></code> which contains
+test data generators, validators, and utilities.</p>
+<p>For runtime configuration detection, tests use the existing <code class="docutils literal notranslate"><span class="pre">Info</span></code>
+class API (<code class="docutils literal notranslate"><span class="pre">Info::has_package()</span></code>, <code class="docutils literal notranslate"><span class="pre">Info::has_accelerator_feature()</span></code>,
+etc.).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fft_test_helpers.h</span></code> header provides three main namespaces:</p>
+<ol class="arabic simple">
+<li><p><strong>FFTTestHelpers</strong> - utility functions:
+<code class="docutils literal notranslate"><span class="pre">FFTBuffer</span></code> (RAII wrapper), <code class="docutils literal notranslate"><span class="pre">idx3d()</span></code> (index conversion),
+<code class="docutils literal notranslate"><span class="pre">scaled_tolerance()</span></code> (grid-size-dependent precision)</p></li>
+<li><p><strong>FFTTestData</strong> - test data generators:
+<code class="docutils literal notranslate"><span class="pre">DeltaFunctionGenerator</span></code>, <code class="docutils literal notranslate"><span class="pre">ConstantGenerator</span></code>, <code class="docutils literal notranslate"><span class="pre">SineWaveGenerator</span></code>,
+<code class="docutils literal notranslate"><span class="pre">GaussianGenerator</span></code>, <code class="docutils literal notranslate"><span class="pre">RandomComplexGenerator</span></code>, <code class="docutils literal notranslate"><span class="pre">MixedModesGenerator</span></code></p></li>
+<li><p><strong>FFTValidation</strong> - validators:
+<code class="docutils literal notranslate"><span class="pre">RoundTripValidator</span></code>, <code class="docutils literal notranslate"><span class="pre">KnownAnswerValidator</span></code>, <code class="docutils literal notranslate"><span class="pre">ParsevalValidator</span></code>,
+<code class="docutils literal notranslate"><span class="pre">HermitianSymmetryValidator</span></code>, <code class="docutils literal notranslate"><span class="pre">LinearityValidator</span></code></p></li>
+</ol>
+<p><strong>Example Test:</strong></p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_F</span><span class="p">(</span><span class="n">FFT3DTest</span><span class="p">,</span><span class="w"> </span><span class="n">RoundTrip_32x32x32</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">FFTBuffer</span><span class="w"> </span><span class="nf">original</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">),</span><span class="w"> </span><span class="n">fft_result</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">),</span><span class="w"> </span><span class="n">recovered</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">GaussianGenerator</span><span class="w"> </span><span class="nf">generator</span><span class="p">(</span><span class="mf">2.0</span><span class="p">);</span>
+<span class="w">    </span><span class="n">generator</span><span class="p">.</span><span class="n">generate</span><span class="p">(</span><span class="n">original</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">fft</span><span class="o">-&gt;</span><span class="n">compute</span><span class="p">(</span><span class="n">original</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">fft_result</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">FFT3d</span><span class="o">::</span><span class="n">FORWARD</span><span class="p">);</span>
+<span class="w">    </span><span class="n">fft</span><span class="o">-&gt;</span><span class="n">compute</span><span class="p">(</span><span class="n">fft_result</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">recovered</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">FFT3d</span><span class="o">::</span><span class="n">BACKWARD</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">RoundTripValidator</span><span class="w"> </span><span class="nf">validator</span><span class="p">(</span><span class="n">original</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="n">recovered</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span>
+<span class="w">                                  </span><span class="n">scaled_tolerance</span><span class="p">(</span><span class="n">ROUNDTRIP_TOLERANCE</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span><span class="w"> </span><span class="mi">32</span><span class="p">));</span>
+<span class="w">    </span><span class="n">EXPECT_TRUE</span><span class="p">(</span><span class="n">validator</span><span class="p">.</span><span class="n">validate</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Precision and Tolerances:</strong></p>
+<p>FFT tests use precision-aware tolerances that automatically adjust based
+on floating-point precision (<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">FFT_SINGLE=ON</span></code> vs <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">FFT_SINGLE=off</span></code>), grid size, and accelerator back end.  Base tolerances
+(<code class="docutils literal notranslate"><span class="pre">ROUNDTRIP_TOLERANCE</span></code>, <code class="docutils literal notranslate"><span class="pre">PARSEVAL_TOLERANCE</span></code>, etc.)  are defined in
+<code class="docutils literal notranslate"><span class="pre">fft_test_helpers.h</span></code>.  Use <code class="docutils literal notranslate"><span class="pre">scaled_tolerance()</span></code> to adjust for grid
+size effects.</p>
+</section>
+</section>
+<section id="tests-for-individual-lammps-commands">
+<h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">4.12.2. </span>Tests for individual LAMMPS commands</a><a class="headerlink" href="#tests-for-individual-lammps-commands" title="Link to this heading"></a></h2>
+<p>The tests <code class="docutils literal notranslate"><span class="pre">unittest/commands</span></code> are a bit more complex as they require
+to first create a <a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS</span></code></a> class instance
+and then use the <a class="reference internal" href="Cplusplus.html"><span class="doc">C++ API</span></a> to pass individual commands
+to that LAMMPS instance.  For that reason these tests use a GoogleTest
+“test fixture”, i.e. a class derived from <code class="docutils literal notranslate"><span class="pre">testing::Test</span></code> that will
+create (and delete) the required LAMMPS class instance for each set of
+tests in a <code class="docutils literal notranslate"><span class="pre">TEST_F()</span></code> function.  Please see the individual source files
+for different examples of setting up suitable test fixtures.  Here is an
+example for implementing a test using a fixture by first checking the
+default value and then issuing LAMMPS commands and checking whether they
+have the desired effect:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_F</span><span class="p">(</span><span class="n">SimpleCommandsTest</span><span class="p">,</span><span class="w"> </span><span class="n">ResetTimestep</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">lmp</span><span class="o">-&gt;</span><span class="n">update</span><span class="o">-&gt;</span><span class="n">ntimestep</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">BEGIN_HIDE_OUTPUT</span><span class="p">();</span>
+<span class="w">    </span><span class="n">command</span><span class="p">(</span><span class="s">&quot;reset_timestep 10&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">END_HIDE_OUTPUT</span><span class="p">();</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">lmp</span><span class="o">-&gt;</span><span class="n">update</span><span class="o">-&gt;</span><span class="n">ntimestep</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">BEGIN_HIDE_OUTPUT</span><span class="p">();</span>
+<span class="w">    </span><span class="n">command</span><span class="p">(</span><span class="s">&quot;reset_timestep 0&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="n">END_HIDE_OUTPUT</span><span class="p">();</span>
+<span class="w">    </span><span class="n">ASSERT_EQ</span><span class="p">(</span><span class="n">lmp</span><span class="o">-&gt;</span><span class="n">update</span><span class="o">-&gt;</span><span class="n">ntimestep</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+
+<span class="w">    </span><span class="n">TEST_FAILURE</span><span class="p">(</span><span class="s">&quot;.*ERROR: Timestep must be &gt;= 0.*&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">command</span><span class="p">(</span><span class="s">&quot;reset_timestep -10&quot;</span><span class="p">););</span>
+<span class="w">    </span><span class="n">TEST_FAILURE</span><span class="p">(</span><span class="s">&quot;.*ERROR: Illegal reset_timestep .*&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">command</span><span class="p">(</span><span class="s">&quot;reset_timestep&quot;</span><span class="p">););</span>
+<span class="w">    </span><span class="n">TEST_FAILURE</span><span class="p">(</span><span class="s">&quot;.*ERROR: Illegal reset_timestep .*&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">command</span><span class="p">(</span><span class="s">&quot;reset_timestep 10 10&quot;</span><span class="p">););</span>
+<span class="w">    </span><span class="n">TEST_FAILURE</span><span class="p">(</span><span class="s">&quot;.*ERROR: Expected integer .*&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">command</span><span class="p">(</span><span class="s">&quot;reset_timestep xxx&quot;</span><span class="p">););</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Please note the use of the <code class="docutils literal notranslate"><span class="pre">BEGIN_HIDE_OUTPUT</span></code> and <code class="docutils literal notranslate"><span class="pre">END_HIDE_OUTPUT</span></code>
+functions that will capture output from running LAMMPS.  This is normally
+discarded but by setting the verbose flag (via setting the <code class="docutils literal notranslate"><span class="pre">TEST_ARGS</span></code>
+environment variable, <code class="docutils literal notranslate"><span class="pre">TEST_ARGS=-v</span></code>) it can be printed and used to
+understand why tests fail unexpectedly.</p>
+<p>The specifics of so-called “death tests”, i.e. conditions where LAMMPS
+should fail and throw an exception, are implemented in the
+<code class="docutils literal notranslate"><span class="pre">TEST_FAILURE()</span></code> macro. These tests operate by capturing the screen
+output when executing the failing command and then comparing that with a
+provided regular expression string pattern.  Example:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">TEST_F</span><span class="p">(</span><span class="n">SimpleCommandsTest</span><span class="p">,</span><span class="w"> </span><span class="n">UnknownCommand</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">TEST_FAILURE</span><span class="p">(</span><span class="s">&quot;.*ERROR: Unknown command.*&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">lmp</span><span class="o">-&gt;</span><span class="n">input</span><span class="o">-&gt;</span><span class="n">one</span><span class="p">(</span><span class="s">&quot;XXX one two&quot;</span><span class="p">););</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The following test programs are currently available:</p>
+<table class="docutils align-left">
+<thead>
+<tr class="row-odd"><th class="head"><p>File name:</p></th>
+<th class="head"><p>Test name:</p></th>
+<th class="head"><p>Description:</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_simple_commands.cpp</span></code></p></td>
+<td><p>SimpleCommands</p></td>
+<td><p>Tests for LAMMPS commands that do not require a box</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_lattice_region.cpp</span></code></p></td>
+<td><p>LatticeRegion</p></td>
+<td><p>Tests to validate the <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> and <a class="reference internal" href="region.html"><span class="doc">region</span></a> commands</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_groups.cpp</span></code></p></td>
+<td><p>GroupTest</p></td>
+<td><p>Tests to validate the <a class="reference internal" href="group.html"><span class="doc">group</span></a> command</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_variables.cpp</span></code></p></td>
+<td><p>VariableTest</p></td>
+<td><p>Tests to validate the <a class="reference internal" href="variable.html"><span class="doc">variable</span></a> command</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_kim_commands.cpp</span></code></p></td>
+<td><p>KimCommands</p></td>
+<td><p>Tests for several commands from the <a class="reference internal" href="Packages_details.html#pkg-kim"><span class="std std-ref">KIM package</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_reset_atoms.cpp</span></code></p></td>
+<td><p>ResetAtoms</p></td>
+<td><p>Tests to validate the <a class="reference internal" href="reset_atoms.html"><span class="doc">reset_atoms</span></a> sub-commands</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tests-for-the-c-style-library-interface">
+<h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">4.12.3. </span>Tests for the C-style library interface</a><a class="headerlink" href="#tests-for-the-c-style-library-interface" title="Link to this heading"></a></h2>
+<p>Tests for validating the LAMMPS C-style library interface are in the
+<code class="docutils literal notranslate"><span class="pre">unittest/c-library</span></code> folder.  They text either utility functions or
+LAMMPS commands, but use the functions implemented in
+<code class="docutils literal notranslate"><span class="pre">src/library.cpp</span></code> as much as possible.  There may be some overlap with
+other tests as far as the LAMMPS functionality is concerned, but the
+focus is on testing the C-style library API.  The tests are distributed
+over multiple test programs which try to match the grouping of the
+functions in the source code and <a class="reference internal" href="Library.html#lammps-c-api"><span class="std std-ref">in the manual</span></a>.</p>
+<p>This group of tests also includes tests invoking LAMMPS in parallel
+through the library interface, provided that LAMMPS was compiled with
+MPI support.  These include tests where LAMMPS is run in multi-partition
+mode or only on a subset of the MPI world communicator.  The CMake
+script code for adding this kind of test looks like this:</p>
+<div class="highlight-cmake notranslate"><div class="highlight"><pre><span></span><span class="nb">if</span><span class="w"> </span><span class="p">(</span><span class="s">BUILD_MPI</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">add_executable</span><span class="p">(</span><span class="s">test_library_mpi</span><span class="w"> </span><span class="s">test_library_mpi.cpp</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">test_library_mpi</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="s">lammps</span><span class="w"> </span><span class="s">GTest::GTest</span><span class="w"> </span><span class="s">GTest::GMock</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">target_compile_definitions</span><span class="p">(</span><span class="s">test_library_mpi</span><span class="w"> </span><span class="s">PRIVATE</span><span class="w"> </span><span class="o">${</span><span class="nv">TEST_CONFIG_DEFS</span><span class="o">}</span><span class="p">)</span>
+<span class="w">  </span><span class="nb">add_mpi_test</span><span class="p">(</span><span class="s">NAME</span><span class="w"> </span><span class="s">LibraryMPI</span><span class="w"> </span><span class="s">NUM_PROCS</span><span class="w"> </span><span class="s">4</span><span class="w"> </span><span class="s">COMMAND</span><span class="w"> </span><span class="o">$&lt;</span><span class="nv">TARGET_FILE:test_library_mpi</span><span class="o">&gt;</span><span class="p">)</span>
+<span class="nb">endif</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Note the custom function <code class="docutils literal notranslate"><span class="pre">add_mpi_test()</span></code> which adapts how <code class="docutils literal notranslate"><span class="pre">ctest</span></code>
+will execute the test so it is launched in parallel (with 4 MPI ranks).</p>
+</section>
+<section id="tests-for-the-python-module-and-package">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink"><span class="section-number">4.12.4. </span>Tests for the Python module and package</a><a class="headerlink" href="#tests-for-the-python-module-and-package" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">unittest/python</span></code> folder contains primarily tests for classes and
+functions in the LAMMPS python module but also for commands in the
+PYTHON package.  These tests are only enabled, if the necessary
+prerequisites are detected or enabled during configuration and
+compilation of LAMMPS (shared library build enabled, Python interpreter
+found, Python development files found).</p>
+<p>The Python tests are implemented using the <code class="docutils literal notranslate"><span class="pre">unittest</span></code> standard Python
+module and split into multiple files with similar categories as the
+tests for the C-style library interface.</p>
+</section>
+<section id="tests-for-the-fortran-interface">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink"><span class="section-number">4.12.5. </span>Tests for the Fortran interface</a><a class="headerlink" href="#tests-for-the-fortran-interface" title="Link to this heading"></a></h2>
+<p>Tests for using the Fortran module are in the <code class="docutils literal notranslate"><span class="pre">unittest/fortran</span></code>
+folder.  Since they are also using the GoogleTest library, they require
+test wrappers written in C++ that will call fortran functions with a C
+function interface through ISO_C_BINDINGS which will in turn call the
+functions in the LAMMPS Fortran module.</p>
+</section>
+<section id="id1">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink"><span class="section-number">4.12.6. </span>Tests for the C++-style library interface</a><a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>The tests in the <code class="docutils literal notranslate"><span class="pre">unittest/cplusplus</span></code> folder are somewhat similar to
+the tests for the C-style library interface, but do not need to test the
+convenience and utility functions that are only available through the
+C-style library interface.  Instead they focus on the more generic
+features that are used in LAMMPS internally.  This part of the unit
+tests is currently still mostly in the planning stage.</p>
+</section>
+<section id="tests-for-reading-and-writing-file-formats">
+<h2><a class="toc-backref" href="#id9" role="doc-backlink"><span class="section-number">4.12.7. </span>Tests for reading and writing file formats</a><a class="headerlink" href="#tests-for-reading-and-writing-file-formats" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">unittest/formats</span></code> folder contains test programs for reading and
+writing files like data files, restart files, potential files or dump
+files.  This covers simple things like the file i/o convenience
+functions in the <code class="docutils literal notranslate"><span class="pre">utils::</span></code> namespace to complex tests of atom styles
+where creating and deleting of atoms with different properties is tested
+in different ways and through script commands or reading and writing of
+data or restart files.</p>
+</section>
+<section id="tests-for-styles-computing-or-modifying-forces">
+<h2><a class="toc-backref" href="#id10" role="doc-backlink"><span class="section-number">4.12.8. </span>Tests for styles computing or modifying forces</a><a class="headerlink" href="#tests-for-styles-computing-or-modifying-forces" title="Link to this heading"></a></h2>
+<p>These are tests common configurations for pair styles, bond styles,
+angle styles, kspace styles and certain fix styles.  Those are tests
+driven by some test executables build from sources in the
+<code class="docutils literal notranslate"><span class="pre">unittest/force-styles</span></code> folder and use LAMMPS input template and data
+files as well as input files in YAML format from the
+<code class="docutils literal notranslate"><span class="pre">unittest/force-styles/tests</span></code> folder. The YAML file names have to
+follow some naming conventions so they get associated with the test
+programs and categorized and listed with canonical names in the list
+of tests as displayed by <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-N</span></code>.  If you add a new YAML file,
+you need to re-run CMake to update the corresponding list of tests.</p>
+<p>A minimal YAML file for a (molecular) pair style test will looks
+something like the following (see <code class="docutils literal notranslate"><span class="pre">mol-pair-zero.yaml</span></code>):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="nt">lammps_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">24 Aug 2020</span>
+<span class="nt">date_generated</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Tue Sep 15 09:44:21 202</span>
+<span class="nt">epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-14</span>
+<span class="nt">prerequisites</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">atom full</span>
+<span class="w">  </span><span class="no">pair zero</span>
+<span class="nt">pre_commands</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="nt">post_commands</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="nt">input_file</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">in.fourmol</span>
+<span class="nt">pair_style</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">zero 8.0</span>
+<span class="nt">pair_coeff</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">* *</span>
+<span class="nt">extract</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="s">&quot;&quot;</span>
+<span class="nt">natoms</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">29</span>
+<span class="nt">init_vdwl</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="nt">init_coul</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+
+<span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+</pre></div>
+</div>
+<p>The following table describes the available keys and their purpose.  The
+<code class="docutils literal notranslate"><span class="pre">Tester</span></code> column lists which test program(s) use each key.  <code class="docutils literal notranslate"><span class="pre">all</span></code> means
+every force-style tester (<code class="docutils literal notranslate"><span class="pre">test_pair_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_bond_style</span></code>,
+<code class="docutils literal notranslate"><span class="pre">test_angle_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_dihedral_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_improper_style</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">test_fix_timestep</span></code>), and <code class="docutils literal notranslate"><span class="pre">bonded</span> <span class="pre">interaction</span> <span class="pre">tests</span></code> means the
+<code class="docutils literal notranslate"><span class="pre">test_bond_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_angle_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_dihedral_style</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">test_improper_style</span></code> testers.  The <code class="docutils literal notranslate"><span class="pre">Required</span></code> column indicates whether
+a valid YAML file (for the listed tester) must contain the key (<code class="docutils literal notranslate"><span class="pre">yes</span></code>) or
+whether it may be omitted (<code class="docutils literal notranslate"><span class="pre">no</span></code>).  The reference generator always writes
+the required keys; the optional keys are either metadata added by hand
+(<code class="docutils literal notranslate"><span class="pre">skip_tests</span></code>, <code class="docutils literal notranslate"><span class="pre">tags</span></code>) or reference data that is only emitted when the
+tested style actually provides it (e.g. <code class="docutils literal notranslate"><span class="pre">global_scalar</span></code> only for a fix
+with scalar output):</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key:</p></th>
+<th class="head"><p>Tester:</p></th>
+<th class="head"><p>Required:</p></th>
+<th class="head"><p>Description:</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>lammps_version</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>LAMMPS version used to last update the reference data</p></td>
+</tr>
+<tr class="row-odd"><td><p>date_generated</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>date when the file was last updated</p></td>
+</tr>
+<tr class="row-even"><td><p>epsilon</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>base value for the relative precision required for tests to pass</p></td>
+</tr>
+<tr class="row-odd"><td><p>skip_tests</p></td>
+<td><p>all</p></td>
+<td><p>no</p></td>
+<td><p>request to skip the indicated test fixtures (see table below)</p></td>
+</tr>
+<tr class="row-even"><td><p>tags</p></td>
+<td><p>all</p></td>
+<td><p>no</p></td>
+<td><p>used to classify tests and to adjust behavior of test fixtures (see table below)</p></td>
+</tr>
+<tr class="row-odd"><td><p>prerequisites</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>list of style kind / style name pairs required to run the test</p></td>
+</tr>
+<tr class="row-even"><td><p>pre_commands</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>LAMMPS commands to be executed before the input template file is read</p></td>
+</tr>
+<tr class="row-odd"><td><p>post_commands</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>LAMMPS commands to be executed right before the actual tests</p></td>
+</tr>
+<tr class="row-even"><td><p>input_file</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>LAMMPS input file template</p></td>
+</tr>
+<tr class="row-odd"><td><p>input_coeffs</p></td>
+<td><p>test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>file with the force-field and group setup commands applied after the input template</p></td>
+</tr>
+<tr class="row-even"><td><p>natoms</p></td>
+<td><p>all</p></td>
+<td><p>yes</p></td>
+<td><p>number of atoms in the input file template</p></td>
+</tr>
+<tr class="row-odd"><td><p>pair_style</p></td>
+<td><p>test_pair_style</p></td>
+<td><p>yes</p></td>
+<td><p>arguments to the pair_style command to be tested</p></td>
+</tr>
+<tr class="row-even"><td><p>pair_coeff</p></td>
+<td><p>test_pair_style</p></td>
+<td><p>yes</p></td>
+<td><p>list of pair_coeff arguments to set parameters for the input template</p></td>
+</tr>
+<tr class="row-odd"><td><p>init_vdwl</p></td>
+<td><p>test_pair_style</p></td>
+<td><p>yes</p></td>
+<td><p>non-Coulomb pair energy after “run 0”</p></td>
+</tr>
+<tr class="row-even"><td><p>init_coul</p></td>
+<td><p>test_pair_style</p></td>
+<td><p>yes</p></td>
+<td><p>Coulomb pair energy after “run 0”</p></td>
+</tr>
+<tr class="row-odd"><td><p>run_vdwl</p></td>
+<td><p>test_pair_style</p></td>
+<td><p>yes</p></td>
+<td><p>non-Coulomb pair energy after “run 4”</p></td>
+</tr>
+<tr class="row-even"><td><p>run_coul</p></td>
+<td><p>test_pair_style</p></td>
+<td><p>yes</p></td>
+<td><p>Coulomb pair energy after “run 4”</p></td>
+</tr>
+<tr class="row-odd"><td><p>bond_style</p></td>
+<td><p>test_bond_style</p></td>
+<td><p>yes</p></td>
+<td><p>arguments to the bond_style command to be tested</p></td>
+</tr>
+<tr class="row-even"><td><p>bond_coeff</p></td>
+<td><p>test_bond_style</p></td>
+<td><p>yes</p></td>
+<td><p>list of bond_coeff arguments to set parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p>angle_style</p></td>
+<td><p>test_angle_style</p></td>
+<td><p>yes</p></td>
+<td><p>arguments to the angle_style command to be tested</p></td>
+</tr>
+<tr class="row-even"><td><p>angle_coeff</p></td>
+<td><p>test_angle_style</p></td>
+<td><p>yes</p></td>
+<td><p>list of angle_coeff arguments to set parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p>dihedral_style</p></td>
+<td><p>test_dihedral_style</p></td>
+<td><p>yes</p></td>
+<td><p>arguments to the dihedral_style command to be tested</p></td>
+</tr>
+<tr class="row-even"><td><p>dihedral_coeff</p></td>
+<td><p>test_dihedral_style</p></td>
+<td><p>yes</p></td>
+<td><p>list of dihedral_coeff arguments to set parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p>improper_style</p></td>
+<td><p>test_improper_style</p></td>
+<td><p>yes</p></td>
+<td><p>arguments to the improper_style command to be tested</p></td>
+</tr>
+<tr class="row-even"><td><p>improper_coeff</p></td>
+<td><p>test_improper_style</p></td>
+<td><p>yes</p></td>
+<td><p>list of improper_coeff arguments to set parameters</p></td>
+</tr>
+<tr class="row-odd"><td><p>init_energy</p></td>
+<td><p>bonded interaction tests</p></td>
+<td><p>yes</p></td>
+<td><p>bonded interaction energy after “run 0”</p></td>
+</tr>
+<tr class="row-even"><td><p>run_energy</p></td>
+<td><p>bonded interaction tests</p></td>
+<td><p>yes</p></td>
+<td><p>bonded interaction energy after “run 4”</p></td>
+</tr>
+<tr class="row-odd"><td><p>equilibrium</p></td>
+<td><p>test_bond_style</p></td>
+<td><p>yes</p></td>
+<td><p>equilibrium distance for each type</p></td>
+</tr>
+<tr class="row-even"><td><p>equilibrium</p></td>
+<td><p>test_angle_style</p></td>
+<td><p>yes</p></td>
+<td><p>equilibrium angle for each type</p></td>
+</tr>
+<tr class="row-odd"><td><p>extract</p></td>
+<td><p>all but test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>list of keywords supported by the style’s <code class="docutils literal notranslate"><span class="pre">extract()</span></code> method and their dimension</p></td>
+</tr>
+<tr class="row-even"><td><p>init_stress</p></td>
+<td><p>all but test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>stress tensor after “run 0”</p></td>
+</tr>
+<tr class="row-odd"><td><p>init_forces</p></td>
+<td><p>all but test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>forces on atoms after “run 0”</p></td>
+</tr>
+<tr class="row-even"><td><p>run_stress</p></td>
+<td><p>all</p></td>
+<td><p>no</p></td>
+<td><p>stress tensor after the run (omitted by <code class="docutils literal notranslate"><span class="pre">test_fix_timestep</span></code> when the fix has no virial contribution)</p></td>
+</tr>
+<tr class="row-odd"><td><p>run_forces</p></td>
+<td><p>all but test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>forces on atoms after “run 4”</p></td>
+</tr>
+<tr class="row-even"><td><p>run_pos</p></td>
+<td><p>test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>per-atom positions after the run</p></td>
+</tr>
+<tr class="row-odd"><td><p>run_vel</p></td>
+<td><p>test_fix_timestep</p></td>
+<td><p>yes</p></td>
+<td><p>per-atom velocities after the run</p></td>
+</tr>
+<tr class="row-even"><td><p>run_torque</p></td>
+<td><p>test_fix_timestep</p></td>
+<td><p>no</p></td>
+<td><p>per-atom torques after the run (only when the atom style stores torque)</p></td>
+</tr>
+<tr class="row-odd"><td><p>global_scalar</p></td>
+<td><p>test_fix_timestep</p></td>
+<td><p>no</p></td>
+<td><p>the global scalar output of the tested fix, if any</p></td>
+</tr>
+<tr class="row-even"><td><p>global_vector</p></td>
+<td><p>test_fix_timestep</p></td>
+<td><p>no</p></td>
+<td><p>the global vector output of the tested fix, if any</p></td>
+</tr>
+</tbody>
+</table>
+<p>These reference files can be validated against the JSON schema file
+<code class="docutils literal notranslate"><span class="pre">tools/json/force-style-test-schema.json</span></code> with the <code class="docutils literal notranslate"><span class="pre">check-jsonschema</span></code>
+tool, which catches typos in keys, missing required keys, and values of the
+wrong type.  For example, to validate all of them at once:</p>
+<div class="highlight-sh notranslate"><div class="highlight"><pre><span></span>check-jsonschema<span class="w"> </span>--schemafile<span class="w"> </span>tools/json/force-style-test-schema.json<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>unittest/force-styles/tests/*.yaml
+</pre></div>
+</div>
+<p>See the <a class="reference internal" href="Tools.html#json"><span class="std std-ref">JSON support files</span></a> section of the <a class="reference internal" href="Tools.html"><span class="doc">Auxiliary tools</span></a>
+documentation for how to install <code class="docutils literal notranslate"><span class="pre">check-jsonschema</span></code>.</p>
+<p>The test program will read all this data from the YAML file and then
+create a LAMMPS instance, apply the settings/commands from the YAML file
+as needed and then issue a “run 0” command, write out a restart file, a
+data file and a coeff file. The actual test will then compare computed
+energies, stresses, and forces with the reference data, issue a “run 4”
+command and compare to the second set of reference data.  This will be
+run with both the newton_pair setting enabled and disabled and is
+expected to generate the same results (allowing for some numerical
+noise). Then it will restart from the previously generated restart and
+compare with the reference and also start from the data file.  A final
+check will use multi-cutoff r-RESPA (if supported by the pair style) at
+a 1:1 split and compare to the Verlet results.  These sets of tests are
+run with multiple test fixtures for accelerated styles: OPT, OPENMP and
+INTEL (the latter two with 4 OpenMP threads enabled), and three mutually
+exclusive KOKKOS fixtures selected by the active back end: the
+<code class="docutils literal notranslate"><span class="pre">kokkos_omp</span></code> fixture requires the KOKKOS package compiled with the
+OpenMP back end and uses 4 OpenMP threads, while the <code class="docutils literal notranslate"><span class="pre">kokkos_serial</span></code>
+fixture only runs when the Serial back end is the sole back end of the
+KOKKOS package (with any other back end enabled the host execution space
+would not be Serial, so this configuration must be tested with a separate
+build).  Both of these host fixtures skip when a GPU back end (CUDA, HIP,
+SYCL) is enabled, since the KOKKOS package then must run on the GPU.  The
+third fixture, <code class="docutils literal notranslate"><span class="pre">kokkos_gpu</span></code>, is the complement: it runs only when a GPU
+back end is enabled (using <code class="docutils literal notranslate"><span class="pre">-k</span> <span class="pre">on</span> <span class="pre">g</span> <span class="pre">1</span></code>) and is skipped on host-only
+builds.  Because enabling the KOKKOS package with a GPU back end aborts
+when no usable device is present, this fixture first probes for a
+compatible GPU at runtime with <code class="docutils literal notranslate"><span class="pre">Info::has_kokkos_gpu_device()</span></code> (the
+KOKKOS package analog of <code class="docutils literal notranslate"><span class="pre">Info::has_gpu_device()</span></code> for the GPU package)
+and skips transparently when none is available, so the test suite can be
+run unchanged on machines without a GPU.  For these tests the relative error
+(epsilon) is lowered by a common factor due to the additional numerical
+noise, but the tests are still comparing to the same reference data.</p>
+<p>The KOKKOS fixtures also support the KOKKOS package compiled for reduced
+precision with <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">KOKKOS_PREC=mixed</span></code> (compute in single precision,
+accumulate in double precision) or <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">KOKKOS_PREC=single</span></code>: the test
+tolerance is then relaxed by a large additional factor, similar to what
+is done for the mixed and single precision variants of the GPU package.
+Individual tests can be skipped for a given fixture by listing the
+fixture name in the <code class="docutils literal notranslate"><span class="pre">skip_tests:</span></code> field of the YAML file (e.g.
+<code class="docutils literal notranslate"><span class="pre">skip_tests:</span> <span class="pre">kokkos_omp</span> <span class="pre">kokkos_serial</span> <span class="pre">kokkos_gpu</span></code>).  A skip entry may
+also be qualified by the KOKKOS precision, e.g. <code class="docutils literal notranslate"><span class="pre">kokkos_serial_single</span></code>
+or <code class="docutils literal notranslate"><span class="pre">kokkos_omp_mixed</span></code>, which skips the test only for that combination
+of fixture and precision.  This is used for tests whose reference
+quantities cannot be meaningfully compared in reduced precision, for
+example global force totals that are the cancellation sum of large
+per-atom contributions in a charge-neutral system.</p>
+<p>The test fixture names accepted by <code class="docutils literal notranslate"><span class="pre">skip_tests</span></code> (each fixture runs the
+corresponding variant or check and self-skips when its package or back end
+is not available) are listed below.  Not every fixture exists for every
+style kind (e.g. <code class="docutils literal notranslate"><span class="pre">gpu</span></code>, <code class="docutils literal notranslate"><span class="pre">intel</span></code>, and <code class="docutils literal notranslate"><span class="pre">opt</span></code> are used by the pair-style
+tester, while <code class="docutils literal notranslate"><span class="pre">numdiff</span></code> is used by the bonded-style testers).</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 22.0%" />
+<col style="width: 78.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Fixture</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>plain</p></td>
+<td><p>the unmodified (base class) style, without a suffix</p></td>
+</tr>
+<tr class="row-odd"><td><p>omp</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/omp</span></code> variant from the OPENMP package (run with 4 threads)</p></td>
+</tr>
+<tr class="row-even"><td><p>intel</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/intel</span></code> variant from the INTEL package</p></td>
+</tr>
+<tr class="row-odd"><td><p>opt</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/opt</span></code> variant from the OPT package</p></td>
+</tr>
+<tr class="row-even"><td><p>gpu</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/gpu</span></code> variant from the GPU package</p></td>
+</tr>
+<tr class="row-odd"><td><p>kokkos_serial</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/kk</span></code> variant from the KOKKOS package with a Serial-only build</p></td>
+</tr>
+<tr class="row-even"><td><p>kokkos_omp</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/kk</span></code> variant from the KOKKOS package with the OpenMP back end
+(run with 4 threads)</p></td>
+</tr>
+<tr class="row-odd"><td><p>kokkos_gpu</p></td>
+<td><p>the <code class="docutils literal notranslate"><span class="pre">/kk</span></code> variant from the KOKKOS package with a GPU back end</p></td>
+</tr>
+<tr class="row-even"><td><p>single</p></td>
+<td><p>consistency check of the style’s <code class="docutils literal notranslate"><span class="pre">single()</span></code> method against <code class="docutils literal notranslate"><span class="pre">compute()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>extract</p></td>
+<td><p>check of the style’s <code class="docutils literal notranslate"><span class="pre">extract()</span></code> keywords (base style)</p></td>
+</tr>
+<tr class="row-even"><td><p>extract_omp</p></td>
+<td><p>check of the style’s <code class="docutils literal notranslate"><span class="pre">extract()</span></code> keywords (<code class="docutils literal notranslate"><span class="pre">/omp</span></code> variant)</p></td>
+</tr>
+<tr class="row-odd"><td><p>numdiff</p></td>
+<td><p>check of the forces against a numerical derivative of the energy</p></td>
+</tr>
+</tbody>
+</table>
+<p>The <code class="docutils literal notranslate"><span class="pre">kokkos_omp</span></code>, <code class="docutils literal notranslate"><span class="pre">kokkos_serial</span></code>, and <code class="docutils literal notranslate"><span class="pre">kokkos_gpu</span></code> entries may be
+qualified with <code class="docutils literal notranslate"><span class="pre">_single</span></code> or <code class="docutils literal notranslate"><span class="pre">_mixed</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">kokkos_gpu_single</span></code>), as
+noted above.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">tags:</span></code> field of a YAML file lists keywords that classify a test or
+request special handling from the test fixtures.  The fixtures query them
+with <code class="docutils literal notranslate"><span class="pre">TestConfig::has_tag()</span></code> so that style-specific behavior is selected by
+a descriptive tag instead of by hard-coded style names.  The recognized tags
+are:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>gpu_no_mixed</p></td>
+<td><p>The GPU package variant of the style does not support mixed
+precision GPU mode; the <code class="docutils literal notranslate"><span class="pre">gpu</span></code> fixture skips the test when the
+GPU package was compiled for mixed precision.</p></td>
+</tr>
+<tr class="row-odd"><td><p>gpu_no_single</p></td>
+<td><p>The GPU package variant of the style does not support single
+precision GPU mode (e.g. <code class="docutils literal notranslate"><span class="pre">born/coul/long/cs/gpu</span></code>); the <code class="docutils literal notranslate"><span class="pre">gpu</span></code>
+fixture skips the test when the GPU package was compiled for
+single precision.</p></td>
+</tr>
+<tr class="row-even"><td><p>single_thread</p></td>
+<td><p>The style cannot run correctly with more than one thread in the
+test (e.g.  <code class="docutils literal notranslate"><span class="pre">dpd</span></code> uses multiple per-thread pRNGs; <code class="docutils literal notranslate"><span class="pre">snap</span></code> and
+<code class="docutils literal notranslate"><span class="pre">pace</span></code> due to their implementation), so the threaded fixtures
+(<code class="docutils literal notranslate"><span class="pre">omp</span></code>, <code class="docutils literal notranslate"><span class="pre">intel</span></code>, <code class="docutils literal notranslate"><span class="pre">kokkos_omp</span></code>) run it with a single thread.</p></td>
+</tr>
+<tr class="row-odd"><td><p>no_respa</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">fix_timestep</span></code> tester does not exercise this style under
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a>: rigid fixes need additional
+work to test correctly with r-RESPA, <code class="docutils literal notranslate"><span class="pre">fix</span> <span class="pre">nve/limit</span></code> and <code class="docutils literal notranslate"><span class="pre">fix</span>
+<span class="pre">recenter</span></code> do not support it, stochastic integrators and barostats
+(<code class="docutils literal notranslate"><span class="pre">brownian</span></code>, <code class="docutils literal notranslate"><span class="pre">gjf</span></code>, <code class="docutils literal notranslate"><span class="pre">press/langevin</span></code>) draw their random
+numbers differently under r-RESPA, and velocity-dependent forcing
+fixes (<code class="docutils literal notranslate"><span class="pre">viscous</span></code>, <code class="docutils literal notranslate"><span class="pre">accelerate/cos</span></code>) and the isokinetic <code class="docutils literal notranslate"><span class="pre">nvk</span></code>
+integrator follow a different trajectory under r-RESPA - in all of
+these cases the verlet and r-RESPA runs cannot match.</p></td>
+</tr>
+<tr class="row-even"><td><p>no_reset_dt</p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">fix_timestep</span></code> tester does not exercise a timestep change
+for this style.  The fix rejects a timestep reset (its
+<code class="docutils literal notranslate"><span class="pre">Fix::reset_dt()</span></code> raises an error, e.g. <a class="reference internal" href="fix_move.html"><span class="doc">fix move</span></a>), which would otherwise abort the test.</p></td>
+</tr>
+<tr class="row-odd"><td><p>ellipsoid</p></td>
+<td><p>The test includes ellipsoids and thus requires <a class="reference internal" href="fix_nve_asphere.html"><span class="doc">fix
+nve/asphere</span></a>.</p></td>
+</tr>
+<tr class="row-even"><td><p>spica_pair</p></td>
+<td><p>The test setup uses <code class="docutils literal notranslate"><span class="pre">pair_style</span> <span class="pre">lj/spica</span></code> instead of the
+default <code class="docutils literal notranslate"><span class="pre">pair_style</span> <span class="pre">zero</span></code> (required by the <code class="docutils literal notranslate"><span class="pre">spica</span></code> angle
+style).</p></td>
+</tr>
+<tr class="row-odd"><td><p>slow</p></td>
+<td><p>The test runs significantly longer than others and <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-LE</span>
+<span class="pre">slow</span></code> would skip it.</p></td>
+</tr>
+<tr class="row-even"><td><p>noWindows</p></td>
+<td><p>Indicates that this test must be skipped on Windows; use
+<code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-LE</span> <span class="pre">noWindows</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>unstable</p></td>
+<td><p>The test exhibits numerically unstable behavior on some
+platforms, e.g. ARM64; Until a proper correction is found, tests
+can be skipped with <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-LE</span> <span class="pre">unstable</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>generated</p></td>
+<td><p>Indicates that a test input was regenerated. <em>Remove</em> after
+confirming the correctness of the updated YAML file.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Additional tests will check whether all listed extract keywords are
+supported and have the correct dimensionality and the final set of tests
+will set up a few pairs of atoms explicitly and in such a fashion that
+the forces on the atoms computed from <code class="docutils literal notranslate"><span class="pre">Pair::compute()</span></code> will match
+individually with the results from <code class="docutils literal notranslate"><span class="pre">Pair::single()</span></code>, if the pair style
+does support that functionality.</p>
+<p>With this scheme a large fraction of the code of any tested pair style
+will be executed and consistent results are required for different
+settings and between different accelerated pair style variants and the
+base class, as well as for computing individual pairs through the
+<code class="docutils literal notranslate"><span class="pre">Pair::single()</span></code> method where supported.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">test_pair_style</span></code> tester is used with 4 categories of test inputs:</p>
+<ul class="simple">
+<li><p>pair styles compatible with molecular systems using bonded
+interactions and exclusions.  For pair styles requiring a KSpace style
+the KSpace computations are disabled.  The YAML files match the
+pattern “mol-pair-*.yaml” and the tests are correspondingly labeled
+with “MolPairStyle:*”</p></li>
+<li><p>pair styles not compatible with the previous input template.
+The YAML files match the pattern “atomic-pair-*.yaml” and the tests are
+correspondingly labeled with “AtomicPairStyle:*”</p></li>
+<li><p>manybody pair styles.
+The YAML files match the pattern “atomic-pair-*.yaml” and the tests are
+correspondingly labeled with “AtomicPairStyle:*”</p></li>
+<li><p>kspace styles.
+The YAML files match the pattern “kspace-*.yaml” and the tests are
+correspondingly labeled with “KSpaceStyle:*”. In these cases a compatible
+pair style is defined, but the computation of the pair style contributions
+is disabled.</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">test_bond_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_angle_style</span></code>, <code class="docutils literal notranslate"><span class="pre">test_dihedral_style</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">test_improper_style</span></code> tester programs are set up in a similar fashion and
+share support functions with the pair style tester.  The final group of
+tests in this section is for fix styles that add/manipulate forces and
+velocities, e.g. for time integration, thermostats and more.</p>
+<p>Adding a new test is easiest done by copying and modifying an existing YAML
+file for a style that is similar to one to be tested.  The file name should
+follow the naming conventions described above and after copying the file,
+the first step is to replace the style names where needed.  The coefficient
+values do not have to be meaningful, just in a reasonable range for the
+given system.  It does not matter if some forces are large, for as long as
+they do not diverge.</p>
+<p>The template input files define a large number of index variables at the top
+that can be modified inside the YAML file to control the behavior.  For example,
+if a pair style requires a “newton on” setting, the following can be used in
+as the “pre_commands” section:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">pre_commands</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">variable newton_pair delete</span>
+<span class="w">  </span><span class="no">variable newton_pair index on</span>
+</pre></div>
+</div>
+<p>And for a pair style requiring a kspace solver the following would be used as
+the “post_commands” section:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">post_commands</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">pair_modify table 0</span>
+<span class="w">  </span><span class="no">kspace_style pppm/tip4p 1.0e-6</span>
+<span class="w">  </span><span class="no">kspace_modify gewald 0.3</span>
+<span class="w">  </span><span class="no">kspace_modify compute no</span>
+</pre></div>
+</div>
+<p>Note that this disables computing the kspace contribution, but still will run
+the setup.  The “gewald” parameter should be set explicitly to speed up the run.
+For styles with long-range electrostatics, typically two tests are added one using
+the (slower) analytic approximation of the erfc() function and the other using
+the tabulated coulomb, to test both code paths.  The reference results in the YAML
+files then should be compared manually, if they agree well enough within the limits
+of those two approximations.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">test_pair_style</span></code> and equivalent programs have special command-line options
+to update the YAML files. Running a command like</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>test_pair_style<span class="w"> </span>mol-pair-lennard_mdf.yaml<span class="w"> </span>-g<span class="w"> </span>new.yaml
+</pre></div>
+</div>
+<p>will read the settings from the <code class="docutils literal notranslate"><span class="pre">mol-pair-lennard_mdf.yaml</span></code> file and then compute
+the reference data and write a new file with to <code class="docutils literal notranslate"><span class="pre">new.yaml</span></code>.  If this step fails,
+there are likely some (LAMMPS or YAML) syntax issues in the YAML file that need to
+be resolved and then one can compare the two files to see if the output is as expected.</p>
+<p>It is also possible to do an update in place with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>test_pair_style<span class="w"> </span>mol-pair-lennard_mdf.yaml<span class="w"> </span>-u
+</pre></div>
+</div>
+<p>And one can finally run the full set of tests with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>test_pair_style<span class="w"> </span>mol-pair-lennard_mdf.yaml
+</pre></div>
+</div>
+<p>This will just print a summary of the groups of tests.  When using the “-v” flag
+the test will also keep any LAMMPS output and when using the “-s” flag, there
+will be some statistics reported on the relative errors for the individual checks
+which can help to figure out what would be a good choice of the epsilon parameter.
+It should be as small as possible to catch any unintended side effects from changes
+elsewhere, but large enough to accommodate the numerical noise due to the implementation
+of the potentials and differences in compilers.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These kinds of tests can be very sensitive to compiler optimization and
+thus the expectation is that they pass with compiler optimization turned
+off. When compiler optimization is enabled, there may be some failures, but
+one has to carefully check whether those are acceptable due to the enhanced
+numerical noise from reordering floating-point math operations or due to
+the compiler mis-compiling the code. That is not always obvious.</p>
+</div>
+</section>
+<section id="tests-for-granular-dem-models">
+<h2><a class="toc-backref" href="#id11" role="doc-backlink"><span class="section-number">4.12.9. </span>Tests for granular (DEM) models</a><a class="headerlink" href="#tests-for-granular-dem-models" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">unittest/granular</span></code> folder contains a YAML-driven test suite for
+discrete element method (DEM) / granular models, built in the same spirit
+as the force-style tests above but specialized for time-resolved
+trajectories of small granular systems.</p>
+<p>Currently, there are 11 test programs. This set of unit tests is still a
+work-in-progress and the tests have not yet been thoroughly vetted. Tests
+may be added, updated, or removed. The first six test programs,
+<code class="docutils literal notranslate"><span class="pre">test_dem_01</span></code> through <code class="docutils literal notranslate"><span class="pre">test_dem_06</span></code>, reproduce the test surface of the
+MFiX-DEM verification studies of <a class="reference internal" href="#dem-garg2012"><span class="std std-ref">Garg et al.</span></a> (the
+individual cases are also described in the <a class="reference external" href="https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/index.html">MFiX-DEM manual</a>).
+<code class="docutils literal notranslate"><span class="pre">test_dem_07</span></code> through <code class="docutils literal notranslate"><span class="pre">test_dem_11</span></code> add coverage of benchmark cases
+from the granular literature: rolling resistance, cohesion, and
+two-particle collisions follow the software-agnostic DEM benchmark of
+<a class="reference internal" href="#dem-mohajeri2024"><span class="std std-ref">Mohajeri et al.</span></a>, and the bulk angle of repose
+and multi-sphere clump cases follow the round-robin study of
+<a class="reference internal" href="#dem-saomoto2023"><span class="std std-ref">Saomoto et al.</span></a>.  The particle-impact-level cases
+– oblique wall impact (<code class="docutils literal notranslate"><span class="pre">test_dem_05</span></code>), two-sphere and spinning-sphere
+collisions (<code class="docutils literal notranslate"><span class="pre">test_dem_09</span></code>) and the elastic Hertzian normal impact
+(<code class="docutils literal notranslate"><span class="pre">test_dem_11</span></code>) – follow the benchmark of <a class="reference internal" href="#dem-chung2011"><span class="std std-ref">Chung and Ooi</span></a>.  The test programs are:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Program</p></th>
+<th class="head"><p>Scenario</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_01</span></code></p></td>
+<td><p>a freely falling particle bouncing off a wall</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_02</span></code></p></td>
+<td><p>a particle bouncing repeatedly (convergence to the hard-sphere limit)</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_03</span></code></p></td>
+<td><p>two stacked particles in continuous compression between two walls</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_04</span></code></p></td>
+<td><p>a sphere sliding then rolling without slipping on a rough surface</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_05</span></code></p></td>
+<td><p>an oblique collision of a sphere (and a superellipsoid) with a wall</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_06</span></code></p></td>
+<td><p>a single particle settling to its terminal velocity under fluid drag</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_07</span></code></p></td>
+<td><p>a spinning sphere damped to rest by rolling resistance (<code class="docutils literal notranslate"><span class="pre">rolling</span> <span class="pre">sds</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_08</span></code></p></td>
+<td><p>cohesive/adhesive contact: the DMT and JKR pull-off force</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_09</span></code></p></td>
+<td><p>two-sphere head-on, oblique (shear), and spinning-sphere collisions</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_10</span></code></p></td>
+<td><p>bulk behavior: a settling pile, the angle of repose, and a rigid clump</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dem_11</span></code></p></td>
+<td><p>elastic Hertzian normal impact (peak contact mechanics)</p></td>
+</tr>
+</tbody>
+</table>
+<p>Every test program shares the same driver logic, implemented in
+<code class="docutils literal notranslate"><span class="pre">unittest/granular/test_dem_common.cpp</span></code> and compiled into the
+<code class="docutils literal notranslate"><span class="pre">granular_tests</span></code> support library; each <code class="docutils literal notranslate"><span class="pre">test_dem_0N.cpp</span></code> only contains
+the two GoogleTest fixtures (<code class="docutils literal notranslate"><span class="pre">newton_on</span></code> and <code class="docutils literal notranslate"><span class="pre">newton_off</span></code>).  As with the
+force-style tests, the reference systems are defined by YAML files in the
+<code class="docutils literal notranslate"><span class="pre">unittest/granular/tests</span></code> folder and registered as CTest cases by their
+file name (<code class="docutils literal notranslate"><span class="pre">dem0N-*.yaml</span></code> becomes test <code class="docutils literal notranslate"><span class="pre">DEM0N:*</span></code>); adding or removing a
+YAML file requires re-running CMake.</p>
+<p>Unlike the force-style tests, the entire system is built <em>from the YAML
+file</em> rather than from a fixed input template.  A YAML file provides an
+optional <code class="docutils literal notranslate"><span class="pre">variables</span></code> block (emitted as <a class="reference internal" href="variable.html"><span class="doc">index variables</span></a>
+so they can be substituted as <code class="docutils literal notranslate"><span class="pre">${name}</span></code> anywhere in the command strings),
+<code class="docutils literal notranslate"><span class="pre">pre_commands</span></code> that create the geometry, <code class="docutils literal notranslate"><span class="pre">pair_style</span></code> / <code class="docutils literal notranslate"><span class="pre">pair_coeff</span></code>
+that select the contact model, and <code class="docutils literal notranslate"><span class="pre">post_commands</span></code> that add the
+integrator, gravity, walls and drag.  The trajectory is then advanced in a
+sequence of <code class="docutils literal notranslate"><span class="pre">run_segments</span></code> and, after each segment, the per-atom
+positions, velocities, torques, angular velocities (spheres) and angular
+momenta (ellipsoids/superellipsoids) are compared against the recorded
+reference.  A minimal example (<code class="docutils literal notranslate"><span class="pre">dem01-hooke-3d-si.yaml</span></code>) looks like:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="nt">lammps_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">30 Mar 2026</span>
+<span class="nt">tags</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">granular</span>
+<span class="nt">epsilon</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1e-10</span>
+<span class="nt">prerequisites</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">atom sphere</span>
+<span class="w">  </span><span class="no">pair gran/hooke</span>
+<span class="nt">variables</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">knorm 1.0e4</span>
+<span class="w">  </span><span class="no">gnorm 10.0</span>
+<span class="w">  </span><span class="no">diam 0.2</span>
+<span class="w">  </span><span class="no">dens 2600.0</span>
+<span class="w">  </span><span class="no">grav 9.81</span>
+<span class="w">  </span><span class="no">z0 0.5</span>
+<span class="nt">pre_commands</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">units si</span>
+<span class="w">  </span><span class="no">dimension 3</span>
+<span class="w">  </span><span class="no">boundary f f f</span>
+<span class="w">  </span><span class="no">atom_style sphere</span>
+<span class="w">  </span><span class="no">region box block -0.5 0.5 -0.5 0.5 0.0 1.0 units box</span>
+<span class="w">  </span><span class="no">create_box 1 box</span>
+<span class="w">  </span><span class="no">create_atoms 1 single 0.0 0.0 ${z0} units box</span>
+<span class="w">  </span><span class="no">set group all diameter ${diam} density ${dens}</span>
+<span class="w">  </span><span class="no">comm_modify vel yes</span>
+<span class="w">  </span><span class="no">timestep 0.001</span>
+<span class="nt">pair_style</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">gran/hooke ${knorm} NULL ${gnorm} NULL 0.0 0</span>
+<span class="nt">pair_coeff</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">* *</span>
+<span class="nt">post_commands</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">fix grav all gravity ${grav} vector 0.0 0.0 -1.0</span>
+<span class="w">  </span><span class="no">fix integr all nve/sphere</span>
+<span class="w">  </span><span class="no">fix zwall all wall/gran hooke ${knorm} NULL ${gnorm} NULL 0.0 0 zplane 0.0 NULL</span>
+<span class="nt">run_segments</span><span class="p">:</span><span class="w"> </span><span class="kt">!</span><span class="w"> </span><span class="p p-Indicator">|</span>
+<span class="w">  </span><span class="no">250 150 300</span>
+<span class="nt">analytic_enable</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">yes</span>
+<span class="nt">analytic_model</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">freefall</span>
+<span class="nt">analytic_tol</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0e-9</span>
+<span class="nt">analytic_segment</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="c1"># run_pos / run_vel / run_torque / run_omega / run_angmom blocks follow</span>
+</pre></div>
+</div>
+<p>The following table describes the available keys:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key:</p></th>
+<th class="head"><p>Description:</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>epsilon</p></td>
+<td><p>relative precision required for the recorded (regression) reference data</p></td>
+</tr>
+<tr class="row-odd"><td><p>prerequisites</p></td>
+<td><p>list of style kind / style name pairs required to run the test</p></td>
+</tr>
+<tr class="row-even"><td><p>variables</p></td>
+<td><p>name/value pairs exposed as <code class="docutils literal notranslate"><span class="pre">${name}</span></code> index variables for substitution</p></td>
+</tr>
+<tr class="row-odd"><td><p>pre_commands</p></td>
+<td><p>commands that build the geometry (units, box, atoms, <code class="docutils literal notranslate"><span class="pre">set</span></code>, timestep)</p></td>
+</tr>
+<tr class="row-even"><td><p>pair_style / pair_coeff</p></td>
+<td><p>the particle-particle contact model</p></td>
+</tr>
+<tr class="row-odd"><td><p>post_commands</p></td>
+<td><p>fixes added after the geometry (integrator, gravity, walls, drag)</p></td>
+</tr>
+<tr class="row-even"><td><p>run_segments</p></td>
+<td><p>whitespace-separated list of run lengths; state is captured after each</p></td>
+</tr>
+<tr class="row-odd"><td><p>run_pos, run_vel</p></td>
+<td><p>reference positions and velocities, as <code class="docutils literal notranslate"><span class="pre">segment</span> <span class="pre">tag</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">z</span></code> rows</p></td>
+</tr>
+<tr class="row-even"><td><p>run_torque, run_omega, run_angmom</p></td>
+<td><p>reference torque / angular velocity / angular momentum (when applicable)</p></td>
+</tr>
+<tr class="row-odd"><td><p>analytic_enable</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code> to also assert a closed-form (analytic) model</p></td>
+</tr>
+<tr class="row-even"><td><p>analytic_model</p></td>
+<td><p>which analytic model to evaluate (see below)</p></td>
+</tr>
+<tr class="row-odd"><td><p>analytic_tol</p></td>
+<td><p>relative tolerance for the analytic assertion (looser than <code class="docutils literal notranslate"><span class="pre">epsilon</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>analytic_segment</p></td>
+<td><p>run segment at which the analytic model is checked (<code class="docutils literal notranslate"><span class="pre">-1</span></code> means the last)</p></td>
+</tr>
+<tr class="row-odd"><td><p>analytic_only</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code> to record/check <em>only</em> the analytic model and skip the per-atom
+regression (for chaotic bulk tests; see below)</p></td>
+</tr>
+</tbody>
+</table>
+<p>The per-atom reference blocks use a <code class="docutils literal notranslate"><span class="pre">segment</span> <span class="pre">tag</span> <span class="pre">x</span> <span class="pre">y</span> <span class="pre">z</span></code> row format, so a
+single block holds the data for all run segments and the row order does not
+matter.  Because granular/atomic systems do not build an atom map by
+default, the reference generator iterates over local atoms by tag rather
+than calling <code class="docutils literal notranslate"><span class="pre">Atom::map()</span></code>.</p>
+<p>Each test runs as a pure regression check (the recorded data is reproduced
+to within <code class="docutils literal notranslate"><span class="pre">epsilon</span></code>) under both the <code class="docutils literal notranslate"><span class="pre">newton</span> <span class="pre">on</span></code> and <code class="docutils literal notranslate"><span class="pre">newton</span> <span class="pre">off</span></code>
+fixtures, which are expected to give identical results.  In addition, a
+test may opt in to an <em>analytic</em> check that compares a derived quantity
+against a closed-form solution implemented in
+<code class="docutils literal notranslate"><span class="pre">unittest/granular/test_analytic_models.cpp</span></code>.  The analytic tolerance is
+deliberately loose, because the soft-sphere DEM result only approaches the
+idealized (hard-sphere or instantaneous-contact) solution.  The models
+currently implemented are:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model:</p></th>
+<th class="head"><p>Checks:</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>freefall</p></td>
+<td><p>ballistic motion before contact: <span class="math notranslate nohighlight">\(z = z_0 - g t^2/2\)</span>, <span class="math notranslate nohighlight">\(v_z = -g t\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>bounce_height</p></td>
+<td><p>hard-sphere apex after the k-th bounce <span class="math notranslate nohighlight">\(h_k = r + e^{2k}(h_0 - r)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>stack_energy</p></td>
+<td><p>conservation of total mechanical energy for an elastic two-particle stack</p></td>
+</tr>
+<tr class="row-odd"><td><p>slip_cessation</p></td>
+<td><p>rolling-without-slipping limit <span class="math notranslate nohighlight">\(u = 5 u_0/7\)</span>, <span class="math notranslate nohighlight">\(\omega = u/r\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>oblique_impact</p></td>
+<td><p>gross-sliding rebound <span class="math notranslate nohighlight">\(v_x' = v_x - \mu(1+e)v_z\)</span>, <span class="math notranslate nohighlight">\(\omega_y = \tfrac{5}{2}\mu(1+e)v_z/r\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>terminal_velocity_linear</p></td>
+<td><p>Stokes drag terminal velocity <span class="math notranslate nohighlight">\(v_{term} = m g/\gamma\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>terminal_velocity_schiller_naumann</p></td>
+<td><p>Schiller-Naumann terminal velocity from <span class="math notranslate nohighlight">\(m g = \tfrac{1}{2} C_d \rho_g \pi r^2 v^2\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>rolling_decay</p></td>
+<td><p>linear spin-down under rolling resistance: <span class="math notranslate nohighlight">\(\omega = \omega_0 - \tfrac{5 \mu_r g}{2 r} t\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>pulloff_dmt</p></td>
+<td><p>DMT pull-off force at contact <span class="math notranslate nohighlight">\(|F| = 4 \pi \gamma R_{\mathrm{eff}}\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>collision_restitution</p></td>
+<td><p>two-sphere momentum conservation and restitution <span class="math notranslate nohighlight">\(e = -(v_1'-v_2')/(v_1-v_2)\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>angle_of_repose</p></td>
+<td><p>measured heap slope <span class="math notranslate nohighlight">\(\arctan(z_{\max}/r_{\max})\)</span> lies within a <code class="docutils literal notranslate"><span class="pre">[lo,</span> <span class="pre">hi]</span></code> band</p></td>
+</tr>
+<tr class="row-odd"><td><p>hertz_normal_impact</p></td>
+<td><p>Hertzian peak energy balance <span class="math notranslate nohighlight">\(\tfrac{1}{2}\mu_{red} V_{rela}^2 = \tfrac{2}{5} P_{max}\alpha_{max}\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>spin_impact</p></td>
+<td><p>gross-sliding rebound of a spinning sphere: <span class="math notranslate nohighlight">\(v_x' = \mu(1+e)v_n\)</span>, <span class="math notranslate nohighlight">\(\omega_y' = \omega_0 - \tfrac{5}{2}\mu(1+e)v_n/r\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>spin_no_friction</p></td>
+<td><p>counter-spinning spheres with zero contact slip keep their spin and gain no tangential velocity</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="docutils literal notranslate"><span class="pre">test_dem_06</span></code> exercises both <a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a> (linear
+Stokes drag) and the <a class="reference internal" href="fix_viscous_nonlinear.html"><span class="doc">fix viscous/nonlinear</span></a>
+style that was added together with these tests for the Schiller-Naumann
+drag correlation.</p>
+<section id="analytic-only-chaotic-bulk">
+<h3><a class="toc-backref" href="#id12" role="doc-backlink">Analytic-only (chaotic bulk)</a><a class="headerlink" href="#analytic-only-chaotic-bulk" title="Link to this heading"></a></h3>
+<p>Most tests are bit-for-bit
+regressions that reproduce identically under <code class="docutils literal notranslate"><span class="pre">newton</span> <span class="pre">on</span></code> and <code class="docutils literal notranslate"><span class="pre">newton</span>
+<span class="pre">off</span></code>.  A few bulk scenarios – notably the angle-of-repose pile in
+<code class="docutils literal notranslate"><span class="pre">test_dem_10</span></code> – are <em>chaotic</em>: a long pour-and-settle trajectory amplifies
+the round-off differences between summation orders, so the per-atom state is
+not reproducible across <code class="docutils literal notranslate"><span class="pre">newton</span></code> settings or platforms even though the bulk
+observable (the heap angle) is robust.  Such a YAML sets <code class="docutils literal notranslate"><span class="pre">analytic_only:</span>
+<span class="pre">yes</span></code>. The generator then records no per-atom reference blocks, and the
+driver checks only the analytic model.  <code class="docutils literal notranslate"><span class="pre">test_dem_10</span></code> pairs this with a
+short, deterministic <code class="docutils literal notranslate"><span class="pre">dem10-settle-*</span></code> regression (a small lattice block
+relaxing into contact) and a deterministic <code class="docutils literal notranslate"><span class="pre">dem10-clump-*</span></code> case (a
+<a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/small</span></a> tetrahedral clump bouncing on a granular
+wall) so the bit-for-bit code path is still covered.</p>
+</section>
+<section id="adding-a-new-reference-yaml-file">
+<h3><a class="toc-backref" href="#id13" role="doc-backlink">Adding a new reference (YAML) file</a><a class="headerlink" href="#adding-a-new-reference-yaml-file" title="Link to this heading"></a></h3>
+<p>Copy an existing <code class="docutils literal notranslate"><span class="pre">dem0N-*.yaml</span></code>
+for a similar scenario, adjust the <code class="docutils literal notranslate"><span class="pre">variables</span></code>, <code class="docutils literal notranslate"><span class="pre">pre_commands</span></code>,
+<code class="docutils literal notranslate"><span class="pre">pair_style</span></code>/<code class="docutils literal notranslate"><span class="pre">pair_coeff</span></code> and <code class="docutils literal notranslate"><span class="pre">post_commands</span></code> for the new model, and
+give it a new name matching the <code class="docutils literal notranslate"><span class="pre">dem0N-*.yaml</span></code> pattern of the test program
+it belongs to.  Leave out the reference data blocks initially, then
+(re)generate them in place with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">TEST_ARGS</span><span class="o">=</span>-u<span class="w"> </span>ctest<span class="w"> </span>-R<span class="w"> </span>DEM0N:myvariant
+</pre></div>
+</div>
+<p>or by running the driver directly (<code class="docutils literal notranslate"><span class="pre">test_dem_0N</span> <span class="pre">dem0N-myvariant.yaml</span> <span class="pre">-u</span></code>).
+Do <strong>not</strong> write the generated file to a sibling <code class="docutils literal notranslate"><span class="pre">dem0N-*.yaml</span></code> name (for
+example with the <code class="docutils literal notranslate"><span class="pre">-g</span> <span class="pre">newfile.yaml</span></code> option pointing into the <code class="docutils literal notranslate"><span class="pre">tests</span></code>
+folder), because the <code class="docutils literal notranslate"><span class="pre">CONFIGURE_DEPENDS</span></code> glob would then register it as an
+extra, stale test.  After adding the file, re-run CMake so the new test is
+registered, then verify it with <code class="docutils literal notranslate"><span class="pre">ctest</span> <span class="pre">-V</span> <span class="pre">-R</span> <span class="pre">DEM0N:myvariant</span></code> (the <code class="docutils literal notranslate"><span class="pre">-s</span></code>
+option of the driver reports per-quantity error statistics, which helps when
+choosing <code class="docutils literal notranslate"><span class="pre">epsilon</span></code> and the analytic tolerance).</p>
+</section>
+<section id="adding-a-new-test-program">
+<h3><a class="toc-backref" href="#id14" role="doc-backlink">Adding a new test program</a><a class="headerlink" href="#adding-a-new-test-program" title="Link to this heading"></a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">test_dem_0N.cpp</span></code> as a thin copy of an existing one (only the
+GoogleTest suite name changes), add an
+<code class="docutils literal notranslate"><span class="pre">add_executable</span></code>/<code class="docutils literal notranslate"><span class="pre">register_dem_tests</span></code> pair to
+<code class="docutils literal notranslate"><span class="pre">unittest/granular/CMakeLists.txt</span></code>, and add the corresponding
+<code class="docutils literal notranslate"><span class="pre">dem0N-*.yaml</span></code> reference files.  If the new scenario needs a
+closed-form check, add a named model to <code class="docutils literal notranslate"><span class="pre">test_analytic_models.cpp</span></code>
+that reads its parameters from the <code class="docutils literal notranslate"><span class="pre">variables</span></code> block (and reads
+masses, radii, etc. from the live LAMMPS instance to avoid depending on
+derived quantities) and assert it with <code class="docutils literal notranslate"><span class="pre">EXPECT_LE</span></code> on the relative
+error.</p>
+</section>
+<section id="references">
+<h3><a class="toc-backref" href="#id15" role="doc-backlink">References</a><a class="headerlink" href="#references" title="Link to this heading"></a></h3>
+<p id="dem-garg2012"><strong>(Garg et al., 2012)</strong> R. Garg, J. Galvin, T. Li, and S. Pannala,
+Open-source MFIX-DEM software for gas-solids flows: Part I – Verification
+studies, Powder Technology, 220, 122-137 (2012),
+<a class="reference external" href="https://doi.org/10.1016/j.powtec.2011.09.019">https://doi.org/10.1016/j.powtec.2011.09.019</a></p>
+<p id="dem-mohajeri2024"><strong>(Mohajeri et al., 2024)</strong> M. J. Mohajeri, C. Coetzee, and D. L. Schott,
+A software-agnostic benchmark for DEM simulation of cohesive and
+non-cohesive materials, Powder Technology, 447, 120136 (2024),
+<a class="reference external" href="https://doi.org/10.1016/j.powtec.2024.120136">https://doi.org/10.1016/j.powtec.2024.120136</a></p>
+<p id="dem-saomoto2023"><strong>(Saomoto et al., 2023)</strong> H. Saomoto, N. Kikkawa, S. Moriguchi, Y. Nakata,
+et al., Round robin test on angle of repose: DEM simulation results
+collected from 16 groups around the world, Soils and Foundations, 63,
+101272 (2023), <a class="reference external" href="https://doi.org/10.1016/j.sandf.2023.101272">https://doi.org/10.1016/j.sandf.2023.101272</a></p>
+<p id="dem-chung2011"><strong>(Chung and Ooi, 2011)</strong> Y. C. Chung and J. Y. Ooi, Benchmark tests for
+verifying discrete element modelling codes at particle impact level,
+Granular Matter, 13, 643-656 (2011),
+<a class="reference external" href="https://doi.org/10.1007/s10035-011-0277-0">https://doi.org/10.1007/s10035-011-0277-0</a></p>
+</section>
+</section>
+<section id="tests-for-programs-in-the-tools-folder">
+<h2><a class="toc-backref" href="#id16" role="doc-backlink"><span class="section-number">4.12.10. </span>Tests for programs in the tools folder</a><a class="headerlink" href="#tests-for-programs-in-the-tools-folder" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">unittest/tools</span></code> folder contains tests for programs in the
+<code class="docutils literal notranslate"><span class="pre">tools</span></code> folder.  This currently only contains tests for the LAMMPS
+shell, which are implemented as a python scripts using the <code class="docutils literal notranslate"><span class="pre">unittest</span></code>
+Python module and launching the tool commands through the <code class="docutils literal notranslate"><span class="pre">subprocess</span></code>
+Python module.</p>
+</section>
+<section id="troubleshooting-failed-unit-tests">
+<h2><a class="toc-backref" href="#id17" role="doc-backlink"><span class="section-number">4.12.11. </span>Troubleshooting failed unit tests</a><a class="headerlink" href="#troubleshooting-failed-unit-tests" title="Link to this heading"></a></h2>
+<p>There are by default no unit tests for newly added features (e.g. pair,
+fix, or compute styles) unless your pull request also includes tests for
+these added features.  If you are modifying some existing LAMMPS
+features, you may see failures for existing tests, if your modifications
+have some unexpected side effects or your changes render the existing
+test invalid.  If you are adding an accelerated version of an existing
+style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
+back ends, depending on how the KOKKOS package was configured), OPENMP,
+and OPT will be run automatically.  Tests for the GPU package are time
+consuming and thus are only run <em>after</em> a merge, or when a special
+label, <code class="docutils literal notranslate"><span class="pre">gpu_unit_tests</span></code> is added to the pull request.  After the test
+has started, it is often best to remove the label since every PR
+activity will re-trigger the test (that is a limitation of triggering a
+test with a label).  Support for unit tests using KOKKOS with GPU
+acceleration is currently not supported.</p>
+<p>When you see a failed build on GitHub, click on <code class="docutils literal notranslate"><span class="pre">Details</span></code> to be taken
+to the corresponding LAMMPS Jenkins CI web page.  Click on the “Exit”
+symbol near the <code class="docutils literal notranslate"><span class="pre">Logout</span></code> button on the top right of that page to go to
+the “classic view”.  In the classic view, there is a list of the
+individual runs that make up this test run (they are shown but cannot be
+inspected in the default view).  You can click on any of those.
+Clicking on <code class="docutils literal notranslate"><span class="pre">Test</span> <span class="pre">Result</span></code> will display the list of failed tests. Click
+on the “Status” column to sort the tests based on their Failed or Passed
+status.  Then click on the failed test to expand its output.</p>
+<p>For example, the following output snippet shows the failed unit test</p>
+<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">[ RUN      ] PairStyle.gpu</span>
+<span class="go">/home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:63: Failure</span>
+<span class="go">Expected: (err) &lt;= (epsilon)</span>
+<span class="go">Actual: 0.00018957912910606503 vs 0.0001</span>
+<span class="go">Google Test trace:</span>
+<span class="go">/home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:56: EXPECT_FORCES: init_forces (newton off)</span>
+<span class="go">/home/builder/workspace/dev/pull_requests/ubuntu_gpu/unit_tests/cmake_gpu_opencl_mixed_smallbig_clang_static/unittest/force-styles/test_main.cpp:64: Failure</span>
+<span class="go">Expected: (err) &lt;= (epsilon)</span>
+<span class="go">Actual: 0.00022892713393549854 vs 0.0001</span>
+</pre></div>
+</div>
+<p>The failed assertions provide line numbers in the test source
+(e.g. <code class="docutils literal notranslate"><span class="pre">test_main.cpp:56</span></code>), from which one can understand what
+specific assertion failed.</p>
+<p>Note that the force style engine runs one of a small number of systems
+in a rather off-equilibrium configuration with a few atoms for a few
+steps, writes data and restart files, uses <a class="reference internal" href="clear.html"><span class="doc">the clear command</span></a> to reset LAMMPS, and then runs from those files with different
+settings (e.g. newton on/off) and integrators (e.g. verlet vs. respa).
+Beyond potential issues/bugs in the source code, the mismatch between
+the expected and actual values could be that force arrays are not
+properly cleared between multiple run commands or that class members are
+not correctly initialized or written to or read from a data or restart
+file.</p>
+<p>While the epsilon (relative precision) for a single, <a class="reference external" href="https://en.wikipedia.org/wiki/IEEE_754">IEEE 754 compliant</a>, double precision floating
+point operation is at about 2.2e-16, the achievable precision for the
+tests is lower due to most numbers being sums over intermediate results
+for which the non-associativity of floating point math leads to larger
+errors.  As a rule of thumb, the test epsilon can often be in the range
+5.0e-14 to 1.0e-13.  But for “noisy” force kernels, e.g. those a larger
+amount of arithmetic operations involving <cite>exp()</cite>, <cite>log()</cite> or <cite>sin()</cite>
+functions, and also due to the effect of compiler optimization or differences
+between compilers or platforms, epsilon may need to be further relaxed,
+sometimes epsilon can be relaxed to 1.0e-12. If interpolation or lookup
+tables are used, epsilon may need to be set to 1.0e-10 or even higher.
+For tests of accelerated styles, the per-test epsilon is multiplied
+by empirical factors that take into account the differences in the order
+of floating point operations or that some or most intermediate operations
+may be done using approximations or with single precision floating point
+math.</p>
+<p>To rerun a failed unit test individually, change to the <code class="docutils literal notranslate"><span class="pre">build</span></code> directory
+and run the test with verbose output. For example,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>env<span class="w"> </span><span class="nv">TEST_ARGS</span><span class="o">=</span>-v<span class="w"> </span>ctest<span class="w"> </span>-R<span class="w"> </span>^MolPairStyle:lj_cut_coul_long<span class="w"> </span>-V
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">ctest</span></code> with the <code class="docutils literal notranslate"><span class="pre">-V</span></code> flag also shows the exact command
+of the test. One can then use <code class="docutils literal notranslate"><span class="pre">gdb</span> <span class="pre">--args</span></code> to further debug and
+catch exceptions with the test command, for example,</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>gdb<span class="w"> </span>--args<span class="w"> </span>/path/to/lammps/build/test_pair_style<span class="w"> </span>/path/to/lammps/unittest/force-styles/tests/mol-pair-lj_cut_coul_long.yaml
+</pre></div>
+</div>
+<p>It is recommended to configure the build with <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">BUILD_SHARED_LIBS=on</span></code> and use a custom linker to shorten the build time
+during recompilation.  Installing <cite>ccache</cite> in your development
+environment helps speed up recompilation by caching previous
+compilations and detecting when the same compilation is being done
+again.  Please see <a class="reference internal" href="Build_development.html"><span class="doc">Development build options</span></a> for further details.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_plugins.html" class="btn btn-neutral float-left" title="4.11. Writing plugins" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Classes.html" class="btn btn-neutral float-right" title="4.13. C++ base classes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

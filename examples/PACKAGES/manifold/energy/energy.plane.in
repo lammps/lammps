@@ -1,0 +1,27 @@
+units lj
+dimension 2
+
+read_data plane.data
+
+fix step all nve
+fix twod all enforce2d
+
+pair_style lj/smooth/linear 2.5
+pair_coeff * * 1.0 1.0
+pair_modify shift yes
+
+timestep 0.0005
+
+variable t equal time
+variable U equal pe
+variable K equal ke
+variable E equal "v_U + v_K"
+
+fix therm all print 25000 "$t  $U  $K  $E" file thermo.plane.dat screen no
+
+dump traj all custom 1000000 dump.plane.gz id type x y z
+
+thermo_style custom time step temp pe ke etotal
+thermo 10000
+run ${STEPS}
+

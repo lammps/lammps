@@ -1,0 +1,388 @@
+LAMMPS (17 Feb 2022)
+#===========================================================================#
+# Large colloidal sphere difusing around.                                   #
+#                                                                           #
+# In the first stage, the sphere is constructed by condensing atoms onto    #
+# the surface of a spherical region. There are a flag you can change to     #
+# either bond atoms into a spherical shell or integrate them as a rigid body#
+#                                                                           #
+# To run this example, LAMMPS needs to be compiled with a the following     #
+# packages: RIGID, LATBOTLZ                                                 #
+#                                                                           #
+# If you uncomment the "dump..." line, sample output from this run          #
+# can be found in the file:                                                 #
+#   'dump.trapnewsphere.lammpstrj'                                          #
+# and viewed using, e.g., the VMD software.                                 #
+#                                                                           #
+#===========================================================================#
+
+units nano
+dimension 3
+boundary p p p
+
+region mybox block -24 24 -24 24 -24 24
+
+# flag indicating whether sphere will be bonded or rigid, 0 or 1
+variable is_bonded equal 0
+# timestep for the LB run (setup uses different timesteps)
+variable tstep equal 0.00025
+# number of stencil points in any direction.  could be 2, 3, or 4
+variable stpts equal 2
+
+if "${is_bonded} == 1" then    "create_box 1 mybox bond/types 10 extra/bond/per/atom 12" else    "create_box 1 mybox"
+create_box 1 mybox
+Created orthogonal box = (-24 -24 -24) to (24 24 24)
+  1 by 2 by 2 MPI processor grid
+
+#----------------------------------------------------------------------------
+# Create a spherical region and then fill it with atoms
+#----------------------------------------------------------------------------
+region mysphereinside sphere 0 0 0 4.0
+
+#variable n_nodes equal 216
+variable n_nodes equal 284
+create_atoms 1 random ${n_nodes} 1234 mysphereinside units box
+create_atoms 1 random 284 1234 mysphereinside units box
+Created 284 atoms
+  using box units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.001 seconds
+
+pair_style soft 1.0
+pair_coeff * * 0.0
+variable prefactor equal ramp(0,30)
+fix 1 all adapt 1 pair soft a * * v_prefactor
+
+mass * 1.0
+
+#----------------------------------------------------------------------------
+# Set up and do an initial run to push the atoms apart as the random creation
+#   could have them overlapping too much for stability.
+#----------------------------------------------------------------------------
+timestep 0.002
+
+# Define sphere where minimum of wall potential is at r=4 so
+# regions is 4 + (2/5)^(1/6) sigma
+region mysphere sphere 0 0 0 5.28756
+fix wall all wall/region mysphere lj93 15.0 1.5 5.28
+
+fix 2 all nve
+
+#dump mydump all atom 10000 dump.trapnewsphere.lammpstrj
+
+run 20000
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.1
+  ghost atom cutoff = 1.1
+  binsize = 0.55, bins = 88 88 88
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair soft, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.944 | 3.944 | 3.944 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0            0            0            0            0 
+   20000    317.05614    618.63581            0    2476.8578     0.030715 
+Loop time of 0.573686 on 4 procs for 20000 steps with 284 atoms
+
+Performance: 6024197.192 ns/day, 0.000 hours/ns, 34862.252 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.062609   | 0.070036   | 0.076149   |   1.8 | 12.21
+Neigh   | 0.21074    | 0.2209     | 0.2305     |   1.5 | 38.51
+Comm    | 0.17847    | 0.19084    | 0.21153    |   3.0 | 33.26
+Output  | 1.74e-05   | 2.58e-05   | 5.02e-05   |   0.0 |  0.00
+Modify  | 0.079214   | 0.082596   | 0.085481   |   0.8 | 14.40
+Other   |            | 0.009288   |            |       |  1.62
+
+Nlocal:             71 ave          73 max          69 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:          54.75 ave          57 max          53 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Neighs:         107.25 ave         127 max          85 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+
+Total # of neighbors = 429
+Ave neighs/atom = 1.5105634
+Neighbor list builds = 1996
+Dangerous builds = 1993
+
+unfix wall
+fix wall all wall/region mysphere lj93 50.0 1.5 5.68
+
+unfix 1
+
+#----------------------------------------------------------------------------
+# Do a run to condense the atoms onto the spherical surface and anneal them
+#   so they will be orderly aranged onto a semi-triangular mesh on the sphere
+#----------------------------------------------------------------------------
+pair_style lj/cut 1.68359
+#pair_coeff * * 0.002 1.5 1.68369
+pair_coeff * * 0.0005 1.5 1.68369
+
+fix 3 all langevin 1.5 0.01 100.0 5678
+
+neighbor 0.3 bin
+neigh_modify delay 0 every 1 check yes
+comm_modify cutoff 2.5
+
+run 500000
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.98369
+  ghost atom cutoff = 2.5
+  binsize = 0.991845, bins = 49 49 49
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.277 | 3.277 | 3.277 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+   20000    317.05614    626.83186            0    2485.0538  0.034256287 
+  520000   0.20789564    780.54747            0    781.76592  0.028916791 
+Loop time of 12.8226 on 4 procs for 500000 steps with 284 atoms
+
+Performance: 6738089.440 ns/day, 0.000 hours/ns, 38993.573 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.6508     | 3.1904     | 3.6443     |  20.0 | 24.88
+Neigh   | 0.68551    | 0.75012    | 0.80362    |   5.1 |  5.85
+Comm    | 3.7915     | 4.3143     | 4.922      |  19.6 | 33.65
+Output  | 2.26e-05   | 3.335e-05  | 6.29e-05   |   0.0 |  0.00
+Modify  | 3.1825     | 3.2495     | 3.3155     |   2.6 | 25.34
+Other   |            | 1.318      |            |       | 10.28
+
+Nlocal:             71 ave          74 max          69 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Nghost:         109.75 ave         113 max         105 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Neighs:         613.25 ave         718 max         495 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+
+Total # of neighbors = 2453
+Ave neighs/atom = 8.6373239
+Neighbor list builds = 13515
+Dangerous builds = 0
+
+minimize 0.0 1.0e-8 1000 100000
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.402 | 4.402 | 4.402 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+  520000   0.20789564    780.54747            0    781.76592  0.028916791 
+  520004   0.20789564    780.00993            0    781.22838   0.02889732 
+Loop time of 0.00296133 on 4 procs for 4 steps with 284 atoms
+
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+Minimization stats:
+  Stopping criterion = linesearch alpha is zero
+  Energy initial, next-to-last, final = 
+      780.547473373201   780.009929329778   780.009929329778
+  Force two-norm initial, final = 40.166574 13.723713
+  Force max component initial, final = 4.2404394 1.5423956
+  Final line search alpha, max atom move = 6.0381565e-11 9.3132257e-11
+  Iterations, force evaluations = 4 69
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0009509  | 0.0010909  | 0.0014002  |   0.5 | 36.84
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0007064  | 0.0010256  | 0.0011795  |   0.6 | 34.63
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0.000204   | 0.00024405 | 0.0002982  |   0.0 |  8.24
+Other   |            | 0.0006008  |            |       | 20.29
+
+Nlocal:             71 ave          72 max          69 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Nghost:         109.75 ave         113 max         107 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+Neighs:         612.75 ave         726 max         504 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 2451
+Ave neighs/atom = 8.6302817
+Neighbor list builds = 0
+Dangerous builds = 0
+
+unfix wall
+unfix 2
+unfix 3
+
+#----------------------------------------------------------------------------
+# If bonded, bond the atoms together at something close to their current
+#   configuration
+#----------------------------------------------------------------------------
+
+variable total_mass equal 0.002398
+variable node_mass equal "v_total_mass / v_n_nodes"
+mass * ${node_mass}
+mass * 8.44366197183099e-06
+
+if "${is_bonded} == 1" then "bond_style harmonic" "bond_coeff 1 25.0 0.869333" "bond_coeff 2 25.0 0.948" "bond_coeff 3 25.0 1.026666" "bond_coeff 4 25.0 1.105333" "bond_coeff 5 25.0 1.184" "bond_coeff 6 25.0 1.262666" "bond_coeff 7 25.0 1.341333" "bond_coeff 8 25.0 1.42" "bond_coeff 9 25.0 1.498666" "bond_coeff 10 25.0 1.577333" "create_bonds many all all 1 0.83 0.908666" "create_bonds many all all 2 0.908667 0.987333" "create_bonds many all all 3 0.987334 1.066" "create_bonds many all all 4 1.066001 1.144666" "create_bonds many all all 5 1.144667 1.223333" "create_bonds many all all 6 1.223334 1.302" "create_bonds many all all 7 1.302001 1.380666" "create_bonds many all all 8 1.380667 1.459333" "create_bonds many all all 9 1.459334 1.538" "create_bonds many all all 10 1.538001 1.61667"
+
+if "${is_bonded} == 1" then  "pair_style lj/cut 5.05108"  "pair_coeff * * 0.5 4.5" else  "pair_style lj/cut 1.2"  "pair_coeff * * 0.0 0.0"
+pair_style lj/cut 1.2
+pair_coeff * * 0.0 0.0
+
+timestep ${tstep}
+timestep 0.00025
+
+#----------------------------------------------------------------------------
+# You could uncomment the following lines and then turn off the noise and
+#   comment out the trap (following) to instead do a run that drags the
+#   sphere through the fluid to measure the drag force.
+#----------------------------------------------------------------------------
+#variable total_force equal 8.0
+#variable node_force equal "v_total_force / v_n_nodes"
+#variable oscillateY equal cos(step*0.0005)/(-0.004+50*v_tstep)/v_n_nodes
+#variable oscillateZ equal cos(step*0.0003)/(-0.004+50*v_tstep)/v_n_nodes
+#fix drag all addforce ${node_force} v_oscillateY v_oscillateZ
+
+#----------------------------------------------------------------------------
+# Trap the sphere along x (could be done experimentally using optical
+#    tweezers.
+#----------------------------------------------------------------------------
+variable fx atom -x*4.14195/284.0
+fix trap all addforce v_fx 0.0 0.0  # needs to go before fix lb/fluid and lb/viscous
+
+#----------------------------------------------------------------------------
+# Set up the lb/fluid parameters for water and at a temperature of 300 K.  If
+#   the colloid is integrated with the rigid fix, the dof are not
+#   automatically calculated correctly but as this would then be a rigid
+#   sphere it is clear it should have 6 degrees of freedom.
+#----------------------------------------------------------------------------
+if "${is_bonded} == 1" then "fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920" else "fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920 dof 6"
+fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920 dof 6
+fix   FL all lb/fluid 1 1.0 0.0009982071 stencil 2 dx 1.2 noise 300.0 181920 dof 6
+Using a lattice-Boltzmann grid of 40 by 40 by 40 total grid points. (../fix_lb_fluid.cpp:486)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1018)
+
+fix   2 all lb/viscous
+
+if "${is_bonded} == 1" then    "fix   3 all nve" else    "fix   3 all rigid group 1 all"
+fix   3 all rigid group 1 all
+  1 rigid bodies with 284 atoms
+
+#equilibration run
+run 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix lb/fluid command:
+
+@Article{Denniston et al.,
+ author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,F.E. Mackay, S.T.T. Ollila, T. Whitehead},
+ title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid}, journal = {Comp.~Phys.~Comm.},
+ year =    2022,
+ volume =  275,
+ pages =   {108318}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 5.306 | 5.306 | 5.306 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+  520004 8.9102565e-07            0            0 1.8452924e-08 6.7761632e-05 
+  530004     3.474402            0            0  0.071954018 -0.00061159689 
+Loop time of 238.57 on 4 procs for 10000 steps with 284 atoms
+
+Performance: 905.396 ns/day, 0.027 hours/ns, 41.916 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.07901    | 0.086329   | 0.095378   |   2.0 |  0.04
+Neigh   | 0.012928   | 0.013445   | 0.013795   |   0.3 |  0.01
+Comm    | 0.18848    | 0.1969     | 0.20455    |   1.3 |  0.08
+Output  | 4.07e-05   | 5.9575e-05 | 0.0001157  |   0.0 |  0.00
+Modify  | 238.01     | 238.02     | 238.03     |   0.1 | 99.77
+Other   |            | 0.2536     |            |       |  0.11
+
+Nlocal:             71 ave          84 max          59 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Nghost:         110.75 ave         121 max         101 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Neighs:         243.25 ave         285 max         209 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+
+Total # of neighbors = 973
+Ave neighs/atom = 3.4260563
+Neighbor list builds = 52
+Dangerous builds = 0
+
+# data gathering run
+reset_timestep 0
+
+#----------------------------------------------------------------------------
+# Create variables containing the positions/velocity of the colloids center
+#   of mass.
+#----------------------------------------------------------------------------
+variable cmx equal xcm(all,x)
+variable cmy equal xcm(all,y)
+variable cmz equal xcm(all,z)
+
+variable vcmx equal vcm(all,x)
+variable vcmy equal vcm(all,y)
+variable vcmz equal vcm(all,z)
+
+if "${is_bonded} == 1" then    "variable comdatafile string trap_nb${n_nodes}_st${stpts}_dt${tstep}.out" else    "variable comdatafile string trap_n${n_nodes}_st${stpts}_dt${tstep}.out"
+variable comdatafile string trap_n${n_nodes}_st${stpts}_dt${tstep}.out
+variable comdatafile string trap_n284_st${stpts}_dt${tstep}.out
+variable comdatafile string trap_n284_st2_dt${tstep}.out
+variable comdatafile string trap_n284_st2_dt0.00025.out
+
+#fix printCM all print 10 "$(step) $(f_FL) ${cmx} ${cmy} ${cmz} ${vcmx} ${vcmy} ${vcmz}" file ${comdatafile} screen no
+
+run 10000
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 5.306 | 5.306 | 5.306 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0     3.474402            0            0  0.071954018   0.00181615 
+   10000    2.6284662            0            0  0.054434894 0.00098091301 
+Loop time of 237.772 on 4 procs for 10000 steps with 284 atoms
+
+Performance: 908.435 ns/day, 0.026 hours/ns, 42.057 timesteps/s
+100.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.079283   | 0.087287   | 0.095198   |   2.6 |  0.04
+Neigh   | 0.0133     | 0.013789   | 0.014439   |   0.3 |  0.01
+Comm    | 0.18949    | 0.1975     | 0.20661    |   1.8 |  0.08
+Output  | 2.88e-05   | 4.3675e-05 | 8.58e-05   |   0.0 |  0.00
+Modify  | 237.21     | 237.22     | 237.22     |   0.0 | 99.77
+Other   |            | 0.253      |            |       |  0.11
+
+Nlocal:             71 ave          87 max          54 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:            110 ave         125 max         100 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+Neighs:         243.25 ave         264 max         207 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+
+Total # of neighbors = 973
+Ave neighs/atom = 3.4260563
+Neighbor list builds = 53
+Dangerous builds = 0
+#run 25000000
+Total wall time: 0:08:09

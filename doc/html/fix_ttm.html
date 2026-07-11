@@ -1,0 +1,923 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>fix ttm command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/fix_ttm.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="fix tune/kspace command" href="fix_tune_kspace.html" />
+    <link rel="prev" title="fix tmd command" href="fix_tmd.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="fixes.html">Fix Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="fix_accelerate_cos.html">fix accelerate/cos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_acks2_reaxff.html">fix acks2/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt.html">fix adapt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_adapt_fep.html">fix adapt/fep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_add_heat.html">fix add/heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addforce.html">fix addforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_atom.html">fix addtorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_addtorque_group.html">fix addtorque/group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_alchemy.html">fix alchemy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_align_self.html">fix align/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_bitorsion.html">fix amoeba/bitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_amoeba_pitorsion.html">fix amoeba/pitorsion command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_append_atoms.html">fix append/atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atc.html">fix atc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_swap.html">fix atom/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_atom_weight_apip.html">fix atom_weight/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_atom.html">fix ave/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_chunk.html">fix ave/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate.html">fix ave/correlate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_correlate_long.html">fix ave/correlate/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_grid.html">fix ave/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html">fix ave/histo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_histo.html#fix-ave-histo-weight-command">fix ave/histo/weight command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_moments.html">fix ave/moments command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial.html">fix ave/spatial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_spatial_sphere.html">fix ave/spatial/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ave_time.html">fix ave/time command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_aveforce.html">fix aveforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_balance.html">fix balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_baoab.html">fix baoab command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bocs.html">fix bocs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_break.html">fix bond/break command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html">fix bond/create command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_create.html#fix-bond-create-angle-command">fix bond/create/angle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_react.html">fix bond/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_bond_swap.html">fix bond/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_box_relax.html">fix box/relax command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html">fix brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-sphere-command">fix brownian/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_brownian.html#fix-brownian-asphere-command">fix brownian/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_charge_regulation.html">fix charge/regulation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_cmap.html">fix cmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_colvars.html">fix colvars command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_controller.html">fix controller command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_damping_cundall.html">fix damping/cundall command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform.html">fix deform command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deform_pressure.html">fix deform/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_deposit.html">fix deposit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_energy.html">fix dpd/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html">fix edpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dpd_source.html#fix-tdpd-source-command">fix tdpd/source command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drag.html">fix drag command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude.html">fix drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html">fix drude/transform/direct command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_drude_transform.html#fix-drude-transform-inverse-command">fix drude/transform/inverse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_dt_reset.html">fix dt/reset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html">fix efield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield.html#fix-efield-tip4p-command">fix efield/tip4p command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_efield_lepton.html">fix efield/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ehex.html">fix ehex command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html">fix electrode/conp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-conq-command">fix electrode/conq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electrode.html#fix-electrode-thermo-command">fix electrode/thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html">fix electron/stopping command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_electron_stopping.html#fix-electron-stopping-fit-command">fix electron/stopping/fit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_enforce2d.html">fix enforce2d command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_cv.html">fix eos/cv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table.html">fix eos/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_eos_table_rx.html">fix eos/table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_evaporate.html">fix evaporate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_external.html">fix external command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ffl.html">fix ffl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_filter_corotate.html">fix filter/corotate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_flow_gauss.html">fix flow/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_freeze.html">fix freeze command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gcmc.html">fix gcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gemc.html">fix gemc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gjf.html">fix gjf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gld.html">fix gld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gle.html">fix gle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_arrows.html">fix graphics/arrows command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_chunk.html">fix graphics/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_isosurface.html">fix graphics/isosurface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_labels.html">fix graphics/labels command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_lines.html">fix graphics/lines command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_objects.html">fix graphics/objects command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_periodic.html">fix graphics/periodic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_graphics_replica.html">fix graphics/replica command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_gravity.html">fix gravity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_grem.html">fix grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_halt.html">fix halt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat.html">fix heat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_heat_flow.html">fix heat/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hmc.html">fix hmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_global.html">fix hyper/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_hyper_local.html">fix hyper/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ilves.html">fix ilves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_imd.html">fix imd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_indent.html">fix indent command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ipi.html">fix ipi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_apip.html">fix lambda/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_la_csp_apip.html">fix lambda/la/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lambda_thermostat_apip.html">fix lambda_thermostat/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin.html">fix langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_drude.html">fix langevin/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_eff.html">fix langevin/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_langevin_spin.html">fix langevin/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_fluid.html">fix lb/fluid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_momentum.html">fix lb/momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lb_viscous.html">fix lb/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_lineforce.html">fix lineforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_manifoldforce.html">fix manifoldforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qm.html">fix mdi/qm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mdi_qmmm.html">fix mdi/qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_meso_move.html">fix meso/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mol_swap.html">fix mol/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html">fix momentum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_momentum.html#fix-momentum-chunk-command">fix momentum/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_move.html">fix move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_msst.html">fix msst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html">fix mvv/dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-edpd-command">fix mvv/edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_mvv_dpd.html#fix-mvv-tdpd-command">fix mvv/tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb.html">fix neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neb_spin.html">fix neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_neighbor_swap.html">fix neighbor/swap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html">fix nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-npt-command">fix npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh.html#fix-nph-command">fix nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html">fix nvt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-npt-eff-command">fix npt/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_eff.html#fix-nph-eff-command">fix nph/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html">fix nvt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nh_uef.html#fix-npt-uef-command">fix npt/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nonaffine_displacement.html">fix nonaffine/displacement command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_asphere.html">fix nph/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_body.html">fix nph/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nph_sphere.html">fix nph/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nphug.html">fix nphug command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_asphere.html">fix npt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_body.html">fix npt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_cauchy.html">fix npt/cauchy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_npt_sphere.html">fix npt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff.html">fix numdiff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_numdiff_virial.html">fix numdiff/virial command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve.html">fix nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere.html">fix nve/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_asphere_noforce.html">fix nve/asphere/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_body.html">fix nve/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_bpm_sphere.html">fix nve/bpm/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dot.html">fix nve/dot command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_dotc_langevin.html">fix nve/dotc/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_eff.html">fix nve/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_limit.html">fix nve/limit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_line.html">fix nve/line command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_manifold_rattle.html">fix nve/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_noforce.html">fix nve/noforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_sphere.html">fix nve/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_spin.html">fix nve/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nve_tri.html">fix nve/tri command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvk.html">fix nvk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_asphere.html">fix nvt/asphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_body.html">fix nvt/body command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_manifold_rattle.html">fix nvt/manifold/rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod.html">fix nvt/sllod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sllod_eff.html">fix nvt/sllod/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_nvt_sphere.html">fix nvt/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_oneway.html">fix oneway command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html">fix orient/fcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient.html#fix-orient-bcc-command">fix orient/bcc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_orient_eco.html">fix orient/eco command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pafi.html">fix pafi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pair.html">fix pair command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_phonon.html">fix phonon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html">fix pimd/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-nvt-command">fix pimd/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-langevin-bosonic-command">fix pimd/langevin/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pimd.html#fix-pimd-nvt-bosonic-command">fix pimd/nvt/bosonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_planeforce.html">fix planeforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_plumed.html">fix plumed command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_poems.html">fix poems command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html">fix polarize/bem/gmres command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-bem-icc-command">fix polarize/bem/icc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_polarize.html#fix-polarize-functional-command">fix polarize/functional command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_pour.html">fix pour command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_precession_spin.html">fix precession/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_berendsen.html">fix press/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_press_langevin.html">fix press/langevin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_print.html">fix print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_propel_self.html">fix propel/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_property_atom.html">fix property/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_invoke.html">fix python/invoke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_python_move.html">fix python/move command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qbmsst.html">fix qbmsst command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html">fix qeq/point command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-shielded-command">fix qeq/shielded command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-slater-command">fix qeq/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-ctip-command">fix qeq/ctip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-dynamic-command">fix qeq/dynamic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq.html#fix-qeq-fire-command">fix qeq/fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_comb.html">fix qeq/comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_reaxff.html">fix qeq/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qeq_rel_reaxff.html">fix qeq/rel/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qmmm.html">fix qmmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtb.html">fix qtb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_qtpie_reaxff.html">fix qtpie/reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_bonds.html">fix reaxff/bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_reaxff_species.html">fix reaxff/species command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_recenter.html">fix recenter command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_restrain.html">fix restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo.html">fix rheo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_oxidation.html">fix rheo/oxidation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_pressure.html">fix rheo/pressure command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_thermal.html">fix rheo/thermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rheo_viscosity.html">fix rheo/viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rhok.html">fix rhok command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html">fix rigid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-command">fix rigid/nve command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-command">fix rigid/nvt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-command">fix rigid/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-command">fix rigid/nph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-small-command">fix rigid/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nve-small-command">fix rigid/nve/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nvt-small-command">fix rigid/nvt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-npt-small-command">fix rigid/npt/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid.html#fix-rigid-nph-small-command">fix rigid/nph/small command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rigid_meso.html">fix rigid/meso command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_rx.html">fix rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_saed_vtk.html">fix saed/vtk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_set.html">fix set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html">fix setforce command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_setforce.html#fix-setforce-spin-command">fix setforce/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_settorque_atom.html">fix settorque/atom command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sgcmc.html">fix sgcmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html">fix shake command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shake.html#fix-rattle-command">fix rattle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_shardlow.html">fix shardlow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd.html">fix smd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_adjust_dt.html">fix smd/adjust_dt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_tlsph.html">fix smd/integrate_tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_integrate_ulsph.html">fix smd/integrate_ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_move_triangulated_surface.html">fix smd/move_tri_surf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_setvel.html">fix smd/setvel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_smd_wall_surface.html">fix smd/wall_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph.html">fix sph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_sph_stationary.html">fix sph/stationary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring.html">fix spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_chunk.html">fix spring/chunk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_rg.html">fix spring/rg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_spring_self.html">fix spring/self command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_srd.html">fix srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_force.html">fix store/force command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_store_state.html">fix store/state command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_global.html">fix surface/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_surface_local.html">fix surface/local command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_berendsen.html">fix temp/berendsen command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html">fix temp/csvr command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_csvr.html#fix-temp-csld-command">fix temp/csld command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale.html">fix temp/rescale command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_temp_rescale_eff.html">fix temp/rescale/eff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tfmc.html">fix tfmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html">fix tgnvt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tgnh_drude.html#fix-tgnpt-drude-command">fix tgnpt/drude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_thermal_conductivity.html">fix thermal/conductivity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_ti_spring.html">fix ti/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tmd.html">fix tmd command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">fix ttm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-ttm-grid-command">fix ttm/grid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-ttm-mod-command">fix ttm/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fix-ttm-thermal-command">fix ttm/thermal command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-fix-modify-output-run-start-stop-minimize-info">Restart, fix_modify, output, run start/stop, minimize info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="fix_tune_kspace.html">fix tune/kspace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_vector.html">fix vector command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscosity.html">fix viscosity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous.html">fix viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_nonlinear.html">fix viscous/nonlinear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_viscous_sphere.html">fix viscous/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html">fix wall/lj93 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj126-command">fix wall/lj126 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lj1043-command">fix wall/lj1043 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-colloid-command">fix wall/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-command">fix wall/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-harmonic-outside-command">fix wall/harmonic/outside command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-lepton-command">fix wall/lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-morse-command">fix wall/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall.html#fix-wall-table-command">fix wall/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polygon.html">fix wall/body/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_body_polyhedron.html">fix wall/body/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html">fix wall/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_ees.html#fix-wall-region-ees-command">fix wall/region/ees command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_flow.html">fix wall/flow command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran.html">fix wall/gran command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_gran_region.html">fix wall/gran/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_piston.html">fix wall/piston command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect.html">fix wall/reflect command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_reflect_stochastic.html">fix wall/reflect/stochastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_region.html">fix wall/region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_wall_srd.html">fix wall/srd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_widom.html">fix widom command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="fixes.html">Fix Styles</a></li>
+      <li class="breadcrumb-item active">fix ttm command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="fix_tmd.html" class="btn btn-neutral float-left" title="fix tmd command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_tune_kspace.html" class="btn btn-neutral float-right" title="fix tune/kspace command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="fix-ttm-command">
+<span id="index-3"></span><span id="index-2"></span><span id="index-1"></span><span id="index-0"></span><h1>fix ttm command<a class="headerlink" href="#fix-ttm-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-ttm-grid-command">
+<h1>fix ttm/grid command<a class="headerlink" href="#fix-ttm-grid-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-ttm-mod-command">
+<h1>fix ttm/mod command<a class="headerlink" href="#fix-ttm-mod-command" title="Link to this heading"></a></h1>
+</section>
+<section id="fix-ttm-thermal-command">
+<h1>fix ttm/thermal command<a class="headerlink" href="#fix-ttm-thermal-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">ttm</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="n">C_e</span><span class="w"> </span><span class="n">rho_e</span><span class="w"> </span><span class="n">kappa_e</span><span class="w"> </span><span class="n">gamma_p</span><span class="w"> </span><span class="n">gamma_s</span><span class="w"> </span><span class="n">v_0</span><span class="w"> </span><span class="n">Nx</span><span class="w"> </span><span class="n">Ny</span><span class="w"> </span><span class="n">Nz</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+<span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">ttm</span><span class="o">/</span><span class="n">mod</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="n">init_file</span><span class="w"> </span><span class="n">Nx</span><span class="w"> </span><span class="n">Ny</span><span class="w"> </span><span class="n">Nz</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+<span class="k">fix </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">ttm</span><span class="o">/</span><span class="n">thermal</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="n">properties_file</span><span class="w"> </span><span class="n">Nx</span><span class="w"> </span><span class="n">Ny</span><span class="w"> </span><span class="n">Nz</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>ID, group-ID are documented in <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command</p></li>
+<li><p>style = <em>ttm</em> or <em>ttm/grid</em> or <em>ttm/mod</em> or <em>ttm/thermal</em></p></li>
+<li><p>seed = random number seed to use for white noise (positive integer)</p></li>
+<li><p>remaining arguments for fix ttm or fix ttm/grid</p>
+<pre class="literal-block">C_e  = electronic specific heat (energy/(electron*temperature) units)
+rho_e = electronic density (electrons/volume units)
+kappa_e = electronic thermal conductivity (energy/(time*distance*temperature) units)
+gamma_p = friction coefficient due to electron-ion interactions (mass/time units)
+gamma_s = friction coefficient due to electronic stopping (mass/time units)
+v_0 = electronic stopping critical velocity (velocity units)
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)</pre>
+</li>
+<li><p>remaining arguments for fix ttm/mod:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>init_file = file with the parameters to TTM
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)
+</pre></div>
+</div>
+</li>
+<li><p>remaining arguments for fix ttm/thermal:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>properties_file = file with grid based TTM properties
+Nx = number of thermal solve grid points in the x-direction (positive integer)
+Ny = number of thermal solve grid points in the y-direction (positive integer)
+Nz = number of thermal solve grid points in the z-direction (positive integer)
+</pre></div>
+</div>
+</li>
+<li><p>zero or more keyword/value(s) pairs may be appended</p></li>
+<li><p>keyword = <em>set</em> or <em>infile</em> or <em>outfile</em></p>
+<pre class="literal-block"><em>set</em> value = Tinit
+  Tinit = initial electronic temperature at all grid points (temperature units)
+<em>infile</em> value = file.in with grid values for electronic temperatures
+<em>outfile</em> values = Nout file.out
+  Nout = dump grid temperatures every this many timesteps
+  file.out = filename to write grid temperatures to</pre>
+</li>
+<li><p>fix ttm/thermal supports an additional keyword: <em>source</em></p>
+<pre class="literal-block"><em>source</em> value = source
+  source = volumetric heating term applied to electrons (energy/(time*volume) units)</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">ttm</span><span class="w"> </span><span class="m">699489</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">12</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">infile</span><span class="w"> </span><span class="n">initial</span><span class="w"> </span><span class="n">outfile</span><span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="n">T.out</span>
+<span class="k">fix </span><span class="nv nv-Identifier">3</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">ttm</span><span class="o">/</span><span class="n">grid</span><span class="w"> </span><span class="m">123456</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">infile</span><span class="w"> </span><span class="n">Te.in</span>
+<span class="k">fix </span><span class="nv nv-Identifier">4</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">ttm</span><span class="o">/</span><span class="n">mod</span><span class="w"> </span><span class="m">34277</span><span class="w"> </span><span class="n">parameters.txt</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">infile</span><span class="w"> </span><span class="n">T_init</span><span class="w"> </span><span class="n">outfile</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">T_out</span>
+<span class="k">fix </span><span class="nv nv-Identifier">5</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">ttm</span><span class="o">/</span><span class="n">thermal</span><span class="w"> </span><span class="m">11111</span><span class="w"> </span><span class="n">properties.in</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">infile</span><span class="w"> </span><span class="n">temps.in</span><span class="w"> </span><span class="n">outfile</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="n">temps.out</span>
+</pre></div>
+</div>
+<p>Example input scripts using these commands can be found in examples/ttm.</p>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Use a two-temperature model (TTM) to represent heat transfer through
+and between electronic and atomic subsystems.  LAMMPS models the
+atomic subsystem as usual with a molecular dynamics model and the
+classical force field specified by the user.  The electronic subsystem
+is modeled as a continuum, or a background “gas”, on a regular grid
+which overlays the simulation domain.  Energy can be transferred
+spatially within the grid representing the electrons.  Energy can also
+be transferred between the electronic and atomic subsystems.  The
+algorithm underlying this fix was derived by D. M.  Duffy
+and A. M. Rutherford and is discussed in two J Physics: Condensed
+Matter papers: <a class="reference internal" href="#duffy"><span class="std std-ref">(Duffy)</span></a> and <a class="reference internal" href="#rutherford"><span class="std std-ref">(Rutherford)</span></a>.  They used this algorithm in cascade simulations where
+a primary knock-on atom (PKA) was initialized with a high velocity to
+simulate a radiation event.</p>
+<p>The description in this subsection applies to all 4 fix styles:
+<em>ttm</em>, <em>ttm/grid</em>, <em>ttm/mod</em>, and <em>ttm/thermal</em>.</p>
+<p>Fix <em>ttm/grid</em> distributes the regular grid across processors consistent
+with the subdomains of atoms owned by each processor, but is otherwise
+identical to fix ttm.  Note that fix <em>ttm</em> stores a copy of the grid on
+each processor, which is acceptable when the overall grid is reasonably
+small.  For larger grids you should use fix <em>ttm/grid</em> instead.</p>
+<p>Fix <em>ttm/mod</em> adds options to account for external heat sources (e.g. at
+a surface) and for specifying parameters that allow the electronic heat
+capacity to depend strongly on electronic temperature.  It is more
+expensive computationally than fix <em>ttm</em> because it treats the thermal
+diffusion equation as non-linear.  More details on fix <em>ttm/mod</em> are
+given below.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 10Dec2025.</span></p>
+</div>
+<p>Fix <em>ttm/thermal</em> allows for electronic properties to be assigned
+independently to each TTM grid point and supports external heat sources
+to the electronic subsystem. More details on fix <em>ttm/thermal</em> are
+given below.</p>
+<p>Heat transfer between the electronic and atomic subsystems is carried
+out via an inhomogeneous Langevin thermostat.  Only atoms in the fix
+group contribute to and are affected by this heat transfer.</p>
+<p>This thermostatting differs from the regular Langevin thermostat
+(<a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>) in three important ways.  First,
+the Langevin thermostat is applied uniformly to all atoms in the
+user-specified group for a single target temperature, whereas the TTM
+fixes apply Langevin thermostatting locally to atoms within the
+volumes represented by the user-specified grid points with a target
+temperature specific to that grid point.  Second, the Langevin
+thermostat couples the temperature of the atoms to an infinite heat
+reservoir, whereas the heat reservoir for the TTM fixes is finite and
+represents the local electrons.  Third, the TTM fixes allow users to
+specify not just one friction coefficient, but rather two independent
+friction coefficients: one for the electron-ion interactions
+(<em>gamma_p</em>), and one for electron stopping (<em>gamma_s</em>).</p>
+<p>When the friction coefficient due to electron stopping, <em>gamma_s</em>, is
+non-zero, electron stopping effects are included for atoms moving
+faster than the electron stopping critical velocity, <em>v_0</em>.  For
+further details about this algorithm, see <a class="reference internal" href="#duffy"><span class="std std-ref">(Duffy)</span></a> and
+<a class="reference internal" href="#rutherford"><span class="std std-ref">(Rutherford)</span></a>.</p>
+<p>Energy transport within the electronic subsystem is solved according
+to the heat diffusion equation with added source terms for heat
+transfer between the subsystems:</p>
+<div class="math notranslate nohighlight">
+\[C_e \rho_e \frac{\partial T_e}{\partial t} =
+\bigtriangledown (\kappa_e \bigtriangledown T_e) -
+g_p (T_e - T_a) + g_s T_a'\]</div>
+<p>where <span class="math notranslate nohighlight">\(C_e\)</span> is the specific heat, <span class="math notranslate nohighlight">\(\rho_e\)</span> is the density,
+<span class="math notranslate nohighlight">\(\kappa_e\)</span> is the thermal conductivity, <em>T</em> is temperature, the
+“e” and “a” subscripts represent electronic and atomic subsystems
+respectively, <span class="math notranslate nohighlight">\(g_p\)</span> is the coupling constant for the electron-ion
+interaction, and <span class="math notranslate nohighlight">\(g_s\)</span> is the electron stopping coupling
+parameter.  <span class="math notranslate nohighlight">\(C_e\)</span>, <span class="math notranslate nohighlight">\(\rho_e\)</span>, and <span class="math notranslate nohighlight">\(\kappa_e\)</span> are
+specified as parameters to the fix <em>ttm</em> or <em>ttm/grid</em>.  The other
+quantities are derived.  The form of the heat diffusion equation used
+here is almost the same as that in equation 6 of <a class="reference internal" href="#duffy"><span class="std std-ref">(Duffy)</span></a>,
+with the exception that the electronic density is explicitly
+represented, rather than being part of the specific heat parameter.</p>
+<p>Currently, the TTM fixes assume that none of the user-supplied
+parameters will vary with temperature. Note that <a class="reference internal" href="#duffy"><span class="std std-ref">(Duffy)</span></a>
+used a tanh() functional form for the temperature dependence of the
+electronic specific heat, but ignored temperature dependencies of any of
+the other parameters.  See more discussion below for fix <em>ttm/mod</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These fixes do not perform time integration of the atoms in the fix
+group, they only rescale their velocities.  Thus a time integration
+fix such as <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> should be used in conjunction
+with these fixes.  These fixes should not normally be used on atoms
+that have their temperature controlled by another thermostatting
+fix, e.g. <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a> or <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These fixes require use of an orthogonal 3d simulation box with
+periodic boundary conditions in all dimensions.  They also require
+that the size and shape of the simulation box do not vary
+dynamically, e.g. due to use of the <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> command.
+Likewise, the size/shape of processor subdomains cannot vary due to
+dynamic load-balancing via use of the <a class="reference internal" href="fix_balance.html"><span class="doc">fix balance</span></a> command.  It is possible however to load balance
+before the simulation starts using the <a class="reference internal" href="balance.html"><span class="doc">balance</span></a>
+command, so that each processor has a different size subdomain.</p>
+</div>
+<p>Periodic boundary conditions are also used in the heat equation solve
+for the electronic subsystem.  This varies from the approach of
+<a class="reference internal" href="#rutherford"><span class="std std-ref">(Rutherford)</span></a> where the atomic subsystem was
+embedded within a larger continuum representation of the electronic
+subsystem.</p>
+<p>The <em>set</em> keyword specifies a <em>Tinit</em> temperature value to initialize
+the value stored on all grid points.  By default the temperatures
+are all zero when the grid is created.</p>
+<p>The <em>infile</em> keyword specifies an input file of electronic temperatures
+for each grid point to be read in to initialize the grid, as an alternative
+to using the <em>set</em> keyword.</p>
+<p>The input file is a text file which may have comments starting with
+the ‘#’ character.  Each line contains four numeric columns:
+ix,iy,iz,Temperature.  Empty or comment-only lines will be
+ignored. The number of lines must be equal to the number of
+user-specified grid points (Nx by Ny by Nz).  The ix,iy,iz are grid
+point indices ranging from 1 to Nxyz inclusive in each dimension.  The
+lines can appear in any order.  For example, the initial electronic
+temperatures on a 1 by 2 by 3 grid could be specified in the file as
+follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># UNITS: metal COMMENT: initial electron temperature
+1 1 1 1.0
+1 1 2 1.0
+1 1 3 1.0
+1 2 1 2.0
+1 2 2 2.0
+1 2 3 2.0
+</pre></div>
+</div>
+<p>where the electronic temperatures along the y=0 plane have been set to
+1.0, and the electronic temperatures along the y=1 plane have been set
+to 2.0.  If all the grid point values are not specified, LAMMPS will
+generate an error. LAMMPS will check if a “UNITS:” tag is in the first
+line and stop with an error, if there is a mismatch with the current
+units used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The electronic temperature at each grid point must be a non-zero
+positive value, both initially, and as the temperature evolves over
+time.  Thus you must use either the <em>set</em> or <em>infile</em> keyword or be
+restarting a simulation that used this fix previously.</p>
+</div>
+<p>The <em>outfile</em> keyword has 2 values.  The first value <em>Nout</em> triggers
+output of the electronic temperatures for each grid point every Nout
+timesteps.  The second value is the filename for output, which will be
+suffixed by the timestep.  The format of each output file is exactly
+the same as the input temperature file. It will contain a comment in
+the first line reporting the date the file was created, the LAMMPS
+units setting in use, grid size and the current timestep.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The fix ttm/grid command does not support the <em>outfile</em> keyword.
+Instead you can use the <a class="reference internal" href="dump.html"><span class="doc">dump grid</span></a> command to output
+the electronic temperature on the distributed grid to a dump file or
+the <a class="reference internal" href="restart.html"><span class="doc">restart</span></a> command which creates a file specific
+to this fix which the <a class="reference internal" href="read_restart.html"><span class="doc">read restart</span></a> command
+reads.  The file has the same format as the file the <em>infile</em> option
+reads.</p>
+</div>
+<p>For the fix ttm, fix ttm/mod, and fix ttm/thermal commands, the
+corresponding atomic temperature for atoms in each grid cell can be
+computed and output by the <a class="reference internal" href="fix_ave_chunk.html"><span class="doc">fix ave/chunk</span></a> command
+using the <a class="reference internal" href="compute_chunk_atom.html"><span class="doc">compute chunk/atom</span></a> command to
+create a 3d array of chunks consistent with the grid used by this fix.</p>
+<p>For the fix ttm/grid command the same thing can be done using the
+<a class="reference internal" href="fix_ave_grid.html"><span class="doc">fix ave/grid</span></a> command and its per-grid values can
+be output via the <a class="reference internal" href="dump.html"><span class="doc">dump grid</span></a> command.</p>
+<hr class="docutils" />
+<p><strong>Additional details for fix ttm/mod</strong></p>
+<p>Fix <em>ttm/mod</em> uses the heat diffusion equation with possible external
+heat sources (e.g. laser heating in ablation simulations):</p>
+<div class="math notranslate nohighlight">
+\[C_e \rho_e \frac{\partial T_e}{\partial t} =
+\bigtriangledown (\kappa_e \bigtriangledown T_e) -
+g_p (T_e - T_a) + g_s T_a' + \theta (x-x_{surface})I_0 \exp(-x/l_{skin})\]</div>
+<p>where <span class="math notranslate nohighlight">\(\theta\)</span> is the Heaviside step function, <span class="math notranslate nohighlight">\(I_0\)</span> is the
+(absorbed) laser pulse intensity for ablation simulations,
+<span class="math notranslate nohighlight">\(l_{skin}\)</span> is the depth of the skin-layer, and all other
+designations have the same meaning as in the former equation. The
+duration of the pulse is set by the parameter <em>tau</em> in the <em>init_file</em>.</p>
+<p>Fix <em>ttm/mod</em> also allows users to specify the dependencies of
+<span class="math notranslate nohighlight">\(C_e\)</span> and <span class="math notranslate nohighlight">\(\kappa_e\)</span> on the electronic temperature. The
+specific heat is expressed as</p>
+<div class="math notranslate nohighlight">
+\[C_e = C_0 + (a_0 + a_1 X + a_2 X^2 + a_3 X^3 + a_4 X^4) \exp (-(AX)^2)\]</div>
+<p>where <span class="math notranslate nohighlight">\(X = \frac{T_e}{1000}\)</span>, and the thermal conductivity is
+defined as <span class="math notranslate nohighlight">\(\kappa_e = D_e \cdot rho_e \cdot C_e\)</span>, where
+<span class="math notranslate nohighlight">\(D_e\)</span> is the thermal diffusion coefficient.</p>
+<p>Electronic pressure effects are included in the TTM model to account for
+the blast force acting on ions because of electronic pressure gradient
+(see <a class="reference internal" href="#chen"><span class="std std-ref">(Chen)</span></a>, <a class="reference internal" href="#norman"><span class="std std-ref">(Norman)</span></a>).  The total force
+acting on an ion is:</p>
+<div class="math notranslate nohighlight">
+\[{\vec F}_i = - \partial U / \partial {\vec r}_i + {\vec
+F}_{langevin} - \nabla P_e/n_{ion}\]</div>
+<p>where <span class="math notranslate nohighlight">\(F_{langevin}\)</span> is a force from Langevin thermostat
+simulating electron-phonon coupling, and <span class="math notranslate nohighlight">\(\nabla P_e/n_{ion}\)</span> is
+the electron blast force.</p>
+<p>The electronic pressure is taken to be <span class="math notranslate nohighlight">\(P_e = B \cdot rho_e \cdot
+C_e \cdot T_e\)</span></p>
+<p>The current fix <em>ttm/mod</em> implementation allows TTM simulations with a
+vacuum. The vacuum region is defined as the grid cells with zero
+electronic temperature. The numerical scheme does not allow energy
+exchange with such cells. Since the material can expand to previously
+unoccupied region in some simulations, the vacuum border can be allowed
+to move. It is controlled by the <em>surface_movement</em> parameter in the
+<em>init_file</em>. If it is set to 1, then “vacuum” cells can be changed to
+“electron-filled” cells with the temperature <em>T_e_min</em> if atoms move
+into them (currently only implemented for the case of 1-dimensional
+motion of a flat surface normal to the X axis). The initial locations of
+the interfaces of the electron density to the vacuum can be set in the
+<em>init_file</em> via <em>lsurface</em> and <em>rsurface</em> parameters. In this case,
+electronic pressure gradient is calculated as</p>
+<div class="math notranslate nohighlight">
+\[\nabla_x P_e = \left[\frac{C_e{}T_e(x)\lambda}{(x+\lambda)^2} +
+\frac{x}{x+\lambda}\frac{(C_e{}T_e)_{x+\Delta
+x}-(C_e{}T_e)_{x}}{\Delta x} \right]\]</div>
+<p>where <span class="math notranslate nohighlight">\(\lambda\)</span> is the electron mean free path (see <a class="reference internal" href="#norman"><span class="std std-ref">(Norman)</span></a>, <a class="reference internal" href="#pisarev"><span class="std std-ref">(Pisarev)</span></a>)</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <em>lsurface</em> and <em>rsurface</em> parameters always define the range of
+electronic grid cells in the x-direction over which the electron-ion
+(Langevin) coupling and any external (laser) source term are applied,
+regardless of the <em>surface_movement</em> setting.  Only atoms in grid
+cells whose x grid index <em>ix</em> satisfies <em>lsurface</em> &lt;= <em>ix</em> &lt;
+<em>rsurface</em> are coupled to the electronic subsystem; atoms in cells
+outside this range exchange no energy with the electrons.  Therefore,
+to model a bulk system with full periodicity and no vacuum (i.e. to
+reproduce the behavior of fix <em>ttm</em>), you must set <em>lsurface</em> = 0 and
+<em>rsurface</em> = <em>Nx</em> so that the coupling acts on the entire simulation
+box.  Setting <em>rsurface</em> to a smaller value couples only a sub-slab of
+the grid cells and will make energy transfer between the two
+subsystems appear much too slow.  Fix <em>ttm/mod</em> prints a warning when
+this coupling region does not span the whole box (with
+<em>surface_movement</em> disabled).</p>
+</div>
+<p>The fix <em>ttm/mod</em> parameter file <em>init_file</em> has the following syntax.
+Every line with an odd number is considered as a comment and
+ignored. The lines with the even numbers are treated as follows:</p>
+<pre class="literal-block">a_0, energy/(temperature*electron) units
+a_1, energy/(temperature^2*electron) units
+a_2, energy/(temperature^3*electron) units
+a_3, energy/(temperature^4*electron) units
+a_4, energy/(temperature^5*electron) units
+C_0, energy/(temperature*electron) units
+A, 1/temperature units
+rho_e, electrons/volume units
+D_e, length^2/time units
+gamma_p, mass/time units
+gamma_s, mass/time units
+v_0, length/time units
+I_0, energy/(time*length^2) units
+lsurface, lower x grid index of the coupled (electron) region (positive integer; see note above)
+rsurface, upper x grid index of the coupled (electron) region (positive integer; see note above)
+l_skin, electron grid units (positive integer)
+tau, time units
+B, dimensionless
+lambda, length units
+n_ion, ions/volume units
+surface_movement: 0 to disable tracking of surface motion, 1 to enable
+T_e_min, temperature units</pre>
+<hr class="docutils" />
+<p><strong>Additional details for fix ttm/thermal</strong></p>
+<p>Fix <em>ttm/thermal</em> uses the heat diffusion equation with possible external
+heat sources (e.g. inductive heating). The effects of electron stopping
+have been removed:</p>
+<div class="math notranslate nohighlight">
+\[C_\mathrm{vol} \frac{\partial T_e}{\partial t} =
+\bigtriangledown (\kappa_\mathrm{eff} \bigtriangledown T_e) -
+g_p (T_e - T_a) + \eta s\]</div>
+<p>where <span class="math notranslate nohighlight">\(s\)</span> is the applied heating power density and <span class="math notranslate nohighlight">\(\eta\)</span> is
+the absorption efficiency (0-1) defined for each ttm grid cell in the
+<em>properties.in</em> file. Also note that compared to the original <em>fix ttm</em>,
+it uses use a volumetric specific heat, <span class="math notranslate nohighlight">\(C_\mathrm{vol}\)</span> , which
+represents the product of <span class="math notranslate nohighlight">\(C_e \rho_e\)</span>.</p>
+<p><a class="reference internal" href="#baer"><span class="std std-ref">(Baer)</span></a> defined <span class="math notranslate nohighlight">\(\kappa_\mathrm{eff}\)</span> as an effective
+electronic thermal conductivity when two adjacent TTM cells (denoted by
+the subscripts <em>a</em> and <em>b</em>) have different conductivities as:</p>
+<div class="math notranslate nohighlight">
+\[\kappa_\mathrm{eff} = \frac{2 \kappa_a \kappa_b}{\kappa_a + \kappa_b}\]</div>
+<p>The current fix <em>ttm/thermal</em> implementation allows TTM simulations with
+TTM cells that do not contain electrons (vacuum or insulators). Similar
+to <em>ttm/mod</em>, the absence of electrons is defined as the grid cells with
+zero electronic temperature.The numerical scheme does not allow energy
+exchange with such cells.</p>
+<p>The fix <em>ttm/thermal</em> parameter file <em>properties_file</em> uses a similar syntax
+as the keyword <em>infile</em>. The file is read in line by line and each ttm cell’s
+properties are set. Comment lines are allowed and each line should have
+properties listed in the order:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ix iy iz C_vol kappa_e gamma_p eta
+</pre></div>
+</div>
+<p>the grid must match the one declared in the fix and all grid points must have
+all properties set or <em>ttm/thermal</em> will exit with an error.</p>
+</section>
+<hr class="docutils" />
+<section id="restart-fix-modify-output-run-start-stop-minimize-info">
+<h2>Restart, fix_modify, output, run start/stop, minimize info<a class="headerlink" href="#restart-fix-modify-output-run-start-stop-minimize-info" title="Link to this heading"></a></h2>
+<p>The fix ttm, fix ttm/mod, and fix ttm/thermal commands write the state
+of the electronic subsystem and the energy exchange between the subsystems
+to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>.  The fix ttm/grid command does
+not yet support writing of its distributed grid to a restart file.</p>
+<p>See the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.  Note
+that the restart script must define the same size grid as the original
+script.</p>
+<p>The fix ttm/grid command also outputs an auxiliary file each time a
+restart file is written, with the electron temperatures for each grid
+cell.  The format of this file is the same as that read by the
+<em>infile</em> option explained above.  The filename is the same as the
+restart filename with “.ttm” appended.  This auxiliary file can be
+read in for a restarted run by using the <em>infile</em> option for the fix
+ttm/grid command, following the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a>
+command.</p>
+<p>None of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix_modify</span></a> options are relevant to
+these fixes.</p>
+<p>These fixes compute 2 output quantities stored in a vector of length
+2, which can be accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  The first quantity is the total energy of the
+electronic subsystem.  The second quantity is the energy transferred
+from the electronic to the atomic subsystem on that timestep. Note
+that the velocity verlet integrator applies the fix ttm forces to the
+atomic subsystem as two half-step velocity updates: one on the current
+timestep and one on the subsequent timestep.  Consequently, the change
+in the atomic subsystem energy is lagged by half a timestep relative
+to the change in the electronic subsystem energy. As a result of this,
+users may notice slight fluctuations in the sum of the atomic and
+electronic subsystem energies reported at the end of the timestep.</p>
+<p>The vector values calculated are “extensive”.</p>
+<p>The fix ttm/grid command also outputs a per-grid vector which stores
+the electron temperature for each grid cell in temperature <a class="reference internal" href="units.html"><span class="doc">units</span></a>. which can be accessed by various <a class="reference internal" href="Howto_output.html"><span class="doc">output commands</span></a>.  The length of the vector (distributed across all
+processors) is Nx * Ny * Nz.  For access by other commands, the name
+of the single grid produced by fix ttm/grid is “grid”.  The name of
+its per-grid data is “data”.</p>
+<p>No parameter of the fixes can be used with the <em>start/stop</em> keywords
+of the <a class="reference internal" href="run.html"><span class="doc">run</span></a> command.  The fixes are not invoked during
+<a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>All these fixes are part of the EXTRA-FIX package. They are only
+enabled if LAMMPS was built with that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build
+package</span></a> page for more info.</p>
+<p>As mentioned above, these fixes require 3d simulations and orthogonal
+simulation boxes periodic in all 3 dimensions.</p>
+<p>These fixes used a random number generator to Langevin thermostat the
+electron temperature.  This means you will not get identical answers
+when running on different numbers of processors or when restarting a
+simulation (even on the same number of processors).  However, in a
+statistical sense, simulations on different processor counts and
+restarted simulation should produce results which are statistically
+the same.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a>, <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>none</p>
+<hr class="docutils" />
+<p id="duffy"><strong>(Duffy)</strong> D M Duffy and A M Rutherford, J. Phys.: Condens. Matter, 19,
+016207-016218 (2007).</p>
+<p id="rutherford"><strong>(Rutherford)</strong> A M Rutherford and D M Duffy, J. Phys.:
+Condens. Matter, 19, 496201-496210 (2007).</p>
+<p id="chen"><strong>(Chen)</strong> J Chen, D Tzou and J Beraun, Int. J. Heat
+Mass Transfer, 49, 307-316 (2006).</p>
+<p id="norman"><strong>(Norman)</strong> G E Norman, S V Starikov, V V Stegailov et al., Contrib.
+Plasma Phys., 53, 129-139 (2013).</p>
+<p id="pisarev"><strong>(Pisarev)</strong> V V Pisarev and S V Starikov, J. Phys.: Condens. Matter, 26,
+475401 (2014).</p>
+<p id="baer"><strong>(Baer)</strong> B Baer and D G Walker, J. Mol. Model, 31, 220 (2025)</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fix_tmd.html" class="btn btn-neutral float-left" title="fix tmd command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fix_tune_kspace.html" class="btn btn-neutral float-right" title="fix tune/kspace command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,6 @@
+Run this example as:
+
+mpirun -np 4 lmp_g++ -partition 4x1 -in in.prd
+mpirun -np 8 lmp_g++ -partition 4x2 -in in.prd
+
+You should be able to use any number of replicas >= 3.

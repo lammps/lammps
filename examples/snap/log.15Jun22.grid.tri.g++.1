@@ -1,0 +1,192 @@
+LAMMPS (2 Jun 2022)
+  using 1 OpenMP thread(s) per MPI task
+# Demonstrate calculation of SNAP bispectrum
+# descriptors on a grid for triclinic cell
+
+# This triclinic cell has 6 times the volume of the single
+# unit cell used by in.grid
+# and contains 12 atoms.  It is a 3x2x1 supercell
+# with each unit cell containing 2 atoms and the
+# reduced lattice vectors are [1 0 0], [1 1 0], and [1 1 1].
+# The grid is listed in x-fastest order
+
+# CORRECTNESS: The atom positions coincide with certain
+# gridpoints, so c_b[1][1-5] should match c_mygrid[1][4-8]
+# and c_b[7][1-5] should match c_mygrid[13][4-8].
+# Local arrays can not be access directly in the script,
+# but they are printed out to file dump.blocal.tri
+
+# Initialize simulation
+
+variable     	nrep index 1
+variable     	a index 3.316
+variable     	ngrid index 2
+
+variable     	nrepx equal 3*${nrep}
+variable     	nrepx equal 3*1
+variable     	nrepy equal 2*${nrep}
+variable     	nrepy equal 2*1
+variable     	nrepz equal 1*${nrep}
+variable     	nrepz equal 1*1
+
+variable     	ngridx equal 3*${ngrid}
+variable     	ngridx equal 3*2
+variable     	ngridy equal 2*${ngrid}
+variable     	ngridy equal 2*2
+variable     	ngridz equal 1*${ngrid}
+variable     	ngridz equal 1*2
+
+units	     	metal
+atom_modify  	map hash sort 0 0
+
+# generate the box and atom positions using a BCC lattice
+
+variable     	nx equal ${nrepx}
+variable     	nx equal 3
+variable     	ny equal ${nrepy}
+variable     	ny equal 2
+variable     	nz equal ${nrepz}
+variable     	nz equal 1
+
+boundary     	p p p
+
+lattice		custom $a 		a1 1 0 0 		a2 1 1 0  		a3 1 1 1 		basis 0 0 0 		basis 0.0 0.0 0.5 		spacing 1 1 1
+lattice		custom 3.316 		a1 1 0 0 		a2 1 1 0  		a3 1 1 1 		basis 0 0 0 		basis 0.0 0.0 0.5 		spacing 1 1 1
+Lattice spacing in x,y,z = 3.316 3.316 3.316
+
+box 		tilt large
+region		box prism 0 ${nx} 0 ${ny} 0 ${nz} ${ny} ${nz} ${nz}
+region		box prism 0 3 0 ${ny} 0 ${nz} ${ny} ${nz} ${nz}
+region		box prism 0 3 0 2 0 ${nz} ${ny} ${nz} ${nz}
+region		box prism 0 3 0 2 0 1 ${ny} ${nz} ${nz}
+region		box prism 0 3 0 2 0 1 2 ${nz} ${nz}
+region		box prism 0 3 0 2 0 1 2 1 ${nz}
+region		box prism 0 3 0 2 0 1 2 1 1
+create_box	1 box
+Created triclinic box = (0 0 0) to (9.948 6.632 3.316) with tilt (6.632 3.316 3.316)
+WARNING: Triclinic box skew is large (src/domain.cpp:224)
+  1 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 12 atoms
+  using lattice units in triclinic box = (0 0 0) to (9.948 6.632 3.316) with tilt (6.632 3.316 3.316)
+  create_atoms CPU = 0.000 seconds
+
+mass 		1 180.88
+
+# define atom compute and grid compute
+
+group 		snapgroup type 1
+12 atoms in group snapgroup
+variable 	twojmax equal 2
+variable 	rcutfac equal 4.67637
+variable 	rfac0 equal 0.99363
+variable 	rmin0 equal 0
+variable 	wj equal 1
+variable 	radelem equal 0.5
+variable 	bzero equal 0
+variable 	quadratic equal 0
+variable 	switch equal 1
+
+variable 	snap_options string 		"${rcutfac} ${rfac0} ${twojmax} ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}"
+4.67637 ${rfac0} ${twojmax} ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 ${twojmax} ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 ${radelem} 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		${wj} rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 ${rmin0} quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag ${quadratic} 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag ${bzero} switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag ${switch}
+4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+
+# build zero potential to satisfy compute sna/atom
+
+pair_style      zero ${rcutfac}
+pair_style      zero 4.67637
+pair_coeff      * *
+
+# define atom and grid computes
+
+compute       	b all sna/atom ${snap_options}
+compute       	b all sna/atom 4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+compute 	mygrid all sna/grid grid ${ngridx} ${ngridy} ${ngridz} 	 	${snap_options}
+compute 	mygrid all sna/grid grid 6 ${ngridy} ${ngridz} 	 	${snap_options}
+compute 	mygrid all sna/grid grid 6 4 ${ngridz} 	 	${snap_options}
+compute 	mygrid all sna/grid grid 6 4 2 	 	${snap_options}
+compute 	mygrid all sna/grid grid 6 4 2 	 	4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+compute 	mygridlocal all sna/grid/local grid ${ngridx} ${ngridy} ${ngridz} 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 6 ${ngridy} ${ngridz} 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 6 4 ${ngridz} 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 6 4 2 	 	${snap_options}
+compute 	mygridlocal all sna/grid/local grid 6 4 2 	 	4.67637 0.99363 2 0.5 		1 rmin0 0 quadraticflag 0 		bzeroflag 0 switchflag 1
+
+# define output
+
+variable	B5atom equal c_b[7][5]
+variable	B5grid equal c_mygrid[13][8]
+
+# do not compare x,y,z because assignment of ids
+# to atoms is not unnique for different processor grids
+
+variable	rmse_global equal "sqrt(    	 (c_mygrid[13][4] - c_b[7][1])^2 + 	 (c_mygrid[13][5] - c_b[7][2])^2 + 	 (c_mygrid[13][6] - c_b[7][3])^2 + 	 (c_mygrid[13][7] - c_b[7][4])^2 + 	 (c_mygrid[13][8] - c_b[7][5])^2   	 )"
+
+thermo_style	custom step v_B5atom v_B5grid v_rmse_global
+
+# this is the only way to view the local grid
+
+dump 1 all local 1000 dump.blocal.tri c_mygridlocal[*]
+dump 2 all custom 1000 dump.batom.tri id x y z c_b[*]
+
+# run
+
+run		0
+WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.67637
+  ghost atom cutoff = 6.67637
+  binsize = 3.338185, bins = 6 3 1
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+  (2) compute sna/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.183 | 7.183 | 7.183 Mbytes
+   Step        v_B5atom       v_B5grid    v_rmse_global 
+         0   1.0427295      1.0427295      7.2262471e-14
+Loop time of 1.414e-06 on 1 procs for 0 steps with 12 atoms
+
+70.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.414e-06  |            |       |100.00
+
+Nlocal:             12 ave          12 max          12 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            604 ave         604 max         604 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            384 ave         384 max         384 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:          768 ave         768 max         768 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 768
+Ave neighs/atom = 64
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:00

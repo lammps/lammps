@@ -1,0 +1,1968 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.8. Packages with extra build options &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Build_extras.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+      <script src="_static/tabs.js?v=3030b3cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.9. Build the LAMMPS documentation" href="Build_manual.html" />
+    <link rel="prev" title="3.7. Include packages in build" href="Build_package.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Build_prerequisites.html">3.1. Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.2. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.3. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.4. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.5. Basic build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_settings.html">3.6. Optional build settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.7. Include packages in build</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.8. Packages with extra build options</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#compress-package">3.8.1. COMPRESS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#graphics-package">3.8.2. GRAPHICS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gpu-package">3.8.3. GPU package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kim-package">3.8.4. KIM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kokkos-package">3.8.5. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lepton-package">3.8.6. LEPTON package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#machdyn-package">3.8.7. MACHDYN package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-iap-package">3.8.8. ML-IAP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#opt-package">3.8.9. OPT package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#python-package">3.8.10. PYTHON package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#voronoi-package">3.8.11. VORONOI package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adios-package">3.8.12. ADIOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#apip-package">3.8.13. APIP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#colvars-package">3.8.14. COLVARS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#electrode-package">3.8.15. ELECTRODE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mbx-package">3.8.16. MBX package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-pace-package">3.8.17. ML-PACE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-pod-package">3.8.18. ML-POD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-quip-package">3.8.19. ML-QUIP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plumed-package">3.8.20. PLUMED package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#h5md-package">3.8.21. H5MD package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-hdnnp-package">3.8.22. ML-HDNNP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ml-runner-package">3.8.23. ML-RUNNER package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#intel-package">3.8.24. INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mdi-package">3.8.25. MDI package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#misc-package">3.8.26. MISC package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molfile-package">3.8.27. MOLFILE package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#netcdf-package">3.8.28. NETCDF package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#openmp-package">3.8.29. OPENMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#qmmm-package">3.8.30. QMMM package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rheo-package">3.8.31. RHEO package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scafacos-package">3.8.32. SCAFACOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#vtk-package">3.8.33. VTK package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.9. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.10. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_diskspace.html">3.11. Notes for saving disk space when building LAMMPS from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.12. Development build options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.8. </span>Packages with extra build options</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Build_package.html" class="btn btn-neutral float-left" title="3.7. Include packages in build" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_manual.html" class="btn btn-neutral float-right" title="3.9. Build the LAMMPS documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="packages-with-extra-build-options">
+<h1><span class="section-number">3.8. </span>Packages with extra build options<a class="headerlink" href="#packages-with-extra-build-options" title="Link to this heading"></a></h1>
+<p>When building with some packages, additional steps may be required,
+in addition to</p>
+<table class="docutils align-center" style="width: 80%">
+<colgroup>
+<col style="width: 50.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>CMake build</p></th>
+<th class="head"><p>Traditional make</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_NAME</span><span class="o">=</span>yes
+</pre></div>
+</div>
+</td>
+<td><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>yes-name
+</pre></div>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<p>as described on the <a class="reference internal" href="Build_package.html"><span class="doc">Build_package</span></a> page.</p>
+<p>For a CMake build there may be additional optional or required
+variables to set.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The traditional build system with GNU make no longer supports packages
+that require extra steps in the <code class="docutils literal notranslate"><span class="pre">lammps/lib</span></code> directory.</p>
+<p>This is the list of packages that may require additional steps.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#adios"><span class="std std-ref">ADIOS</span></a></p></td>
+<td><p><a class="reference internal" href="#apip"><span class="std std-ref">APIP</span></a></p></td>
+<td><p><a class="reference internal" href="#colvar"><span class="std std-ref">COLVARS</span></a></p></td>
+<td><p><a class="reference internal" href="#compress"><span class="std std-ref">COMPRESS</span></a></p></td>
+<td><p><a class="reference internal" href="#electrode"><span class="std std-ref">ELECTRODE</span></a></p></td>
+<td><p><a class="reference internal" href="#graphics"><span class="std std-ref">GRAPHICS</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#gpu"><span class="std std-ref">GPU</span></a></p></td>
+<td><p><a class="reference internal" href="#h5md"><span class="std std-ref">H5MD</span></a></p></td>
+<td><p><a class="reference internal" href="#intel"><span class="std std-ref">INTEL</span></a></p></td>
+<td><p><a class="reference internal" href="#kim"><span class="std std-ref">KIM</span></a></p></td>
+<td><p><a class="reference internal" href="#kokkos"><span class="std std-ref">KOKKOS</span></a></p></td>
+<td><p><a class="reference internal" href="#lepton"><span class="std std-ref">LEPTON</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#machdyn"><span class="std std-ref">MACHDYN</span></a></p></td>
+<td><p><a class="reference internal" href="#mbx"><span class="std std-ref">MBX</span></a></p></td>
+<td><p><a class="reference internal" href="#mdi"><span class="std std-ref">MDI</span></a></p></td>
+<td><p><a class="reference internal" href="#misc"><span class="std std-ref">MISC</span></a></p></td>
+<td><p><a class="reference internal" href="#ml-hdnnp"><span class="std std-ref">ML-HDNNP</span></a></p></td>
+<td><p><a class="reference internal" href="#mliap"><span class="std std-ref">ML-IAP</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#ml-pace"><span class="std std-ref">ML-PACE</span></a></p></td>
+<td><p><a class="reference internal" href="#ml-pod"><span class="std std-ref">ML-POD</span></a></p></td>
+<td><p><a class="reference internal" href="#ml-quip"><span class="std std-ref">ML-QUIP</span></a></p></td>
+<td><p><a class="reference internal" href="#ml-runner"><span class="std std-ref">ML-RUNNER</span></a></p></td>
+<td><p><a class="reference internal" href="#molfile"><span class="std std-ref">MOLFILE</span></a></p></td>
+<td><p><a class="reference internal" href="#netcdf"><span class="std std-ref">NETCDF</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#openmp"><span class="std std-ref">OPENMP</span></a></p></td>
+<td><p><a class="reference internal" href="#opt"><span class="std std-ref">OPT</span></a></p></td>
+<td><p><a class="reference internal" href="#plumed"><span class="std std-ref">PLUMED</span></a></p></td>
+<td><p><a class="reference internal" href="#python"><span class="std std-ref">PYTHON</span></a></p></td>
+<td><p><a class="reference internal" href="#qmmm"><span class="std std-ref">QMMM</span></a></p></td>
+<td><p><a class="reference internal" href="#rheo"><span class="std std-ref">RHEO</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#scafacos"><span class="std std-ref">SCAFACOS</span></a></p></td>
+<td><p><a class="reference internal" href="#voronoi"><span class="std std-ref">VORONOI</span></a></p></td>
+<td><p><a class="reference internal" href="#vtk"><span class="std std-ref">VTK</span></a></p></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+<section id="compress-package">
+<span id="compress"></span><h2><span class="section-number">3.8.1. </span>COMPRESS package<a class="headerlink" href="#compress-package" title="Link to this heading"></a></h2>
+<p>To build with this package you must have the <a class="reference external" href="https://zlib.net">zlib compression library</a> available on your system to build dump styles with
+a <code class="docutils literal notranslate"><span class="pre">/gz</span></code> suffix.  There are also styles using the
+<a class="reference external" href="https://facebook.github.io/zstd/">Zstandard</a> library which have a
+‘/zstd’ suffix.  The zstd library version must be at least 1.4.  Older
+versions use an incompatible API and thus LAMMPS will fail to compile.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><p>If CMake cannot find the zlib library or include files, you can set
+these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">ZLIB_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">    </span><span class="c1"># path to zlib.h header file</span>
+-D<span class="w"> </span><span class="nv">ZLIB_LIBRARY</span><span class="o">=</span>path<span class="w">        </span><span class="c1"># path to libz.a (.so) file</span>
+</pre></div>
+</div>
+<p>Support for Zstandard compression is auto-detected and for that
+CMake depends on the <a class="reference external" href="https://www.freedesktop.org/wiki/Software/pkg-config/">pkg-config</a> tool to
+identify the necessary flags to compile with this library, so the
+corresponding <code class="docutils literal notranslate"><span class="pre">libzstandard.pc</span></code> file must be in a folder where
+<code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> can find it, which may require adding it to the
+<code class="docutils literal notranslate"><span class="pre">PKG_CONFIG_PATH</span></code> environment variable.</p>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The COMPRESS package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="graphics-package">
+<span id="graphics"></span><h2><span class="section-number">3.8.2. </span>GRAPHICS package<a class="headerlink" href="#graphics-package" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026: </span><em>dump image</em>, <em>dump_movie</em> and supporting classes were moved to form
+the new GRAPHICS package together with several <em>fix graphics/…</em> styles.</p>
+</div>
+<p>The <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> command has options to output JPEG or
+PNG image files in addition to the default PPM format, and the <a class="reference internal" href="fix_graphics_labels.html"><span class="doc">fix
+graphics/labels</span></a> can read images in JPEG or PNG
+format in addition to PPM format files.  Likewise, the <a class="reference internal" href="dump_image.html"><span class="doc">dump movie</span></a> command outputs movie files in a variety of movie formats.
+Using these additional options requires the following settings:</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">WITH_JPEG</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># yes or no</span>
+<span class="w">                      </span><span class="c1"># default = yes if CMake finds JPEG development files, else no</span>
+-D<span class="w"> </span><span class="nv">WITH_PNG</span><span class="o">=</span>value<span class="w">     </span><span class="c1"># yes or no</span>
+<span class="w">                      </span><span class="c1"># default = yes if CMake finds PNG and ZLIB development files,</span>
+<span class="w">                      </span><span class="c1"># else no</span>
+-D<span class="w"> </span><span class="nv">WITH_FFMPEG</span><span class="o">=</span>value<span class="w">  </span><span class="c1"># yes or no</span>
+<span class="w">                      </span><span class="c1"># default = yes if CMake can find ffmpeg, else no</span>
+</pre></div>
+</div>
+<p>Usually these settings are all that is needed.  If CMake cannot
+find the graphics header, library, executable files, you can set
+these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">JPEG_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">    </span><span class="c1"># path to jpeglib.h header file</span>
+-D<span class="w"> </span><span class="nv">JPEG_LIBRARY</span><span class="o">=</span>path<span class="w">        </span><span class="c1"># path to libjpeg.a (.so) file</span>
+-D<span class="w"> </span><span class="nv">PNG_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">     </span><span class="c1"># path to png.h header file</span>
+-D<span class="w"> </span><span class="nv">PNG_LIBRARY</span><span class="o">=</span>path<span class="w">         </span><span class="c1"># path to libpng.a (.so) file</span>
+-D<span class="w"> </span><span class="nv">ZLIB_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">    </span><span class="c1"># path to zlib.h header file</span>
+-D<span class="w"> </span><span class="nv">ZLIB_LIBRARY</span><span class="o">=</span>path<span class="w">        </span><span class="c1"># path to libz.a (.so) file</span>
+-D<span class="w"> </span><span class="nv">FFMPEG_EXECUTABLE</span><span class="o">=</span>path<span class="w">   </span><span class="c1"># path to ffmpeg executable</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_JPEG<span class="w"> </span>-DLAMMPS_PNG<span class="w"> </span>-DLAMMPS_FFMPEG<span class="w">  </span>&lt;other<span class="w"> </span>LMP_INC<span class="w"> </span>settings&gt;
+
+<span class="nv">JPG_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-I/usr/local/include<span class="w">   </span><span class="c1"># path to jpeglib.h, png.h, zlib.h headers</span>
+<span class="c">                                 # if make cannot find them</span>
+<span class="nv">JPG_PATH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-L/usr/lib<span class="w">            </span><span class="c1"># paths to libjpeg.a, libpng.a, libz.a (.so)</span>
+<span class="c">                                 # files if make cannot find them</span>
+<span class="nv">JPG_LIB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-ljpeg<span class="w"> </span>-lpng<span class="w"> </span>-lz<span class="w">       </span><span class="c1"># library names</span>
+</pre></div>
+</div>
+<p>As with CMake, you do not need to set <code class="docutils literal notranslate"><span class="pre">JPG_INC</span></code> or <code class="docutils literal notranslate"><span class="pre">JPG_PATH</span></code>,
+if make can find the graphics header and library files in their
+default system locations.  You must specify <code class="docutils literal notranslate"><span class="pre">JPG_LIB</span></code> with a
+list of graphics libraries to include in the link.  You must make
+certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
+in a directory where LAMMPS can find it at runtime; that is
+usually a directory list in your <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable.</p>
+</div></div>
+<p>Using <code class="docutils literal notranslate"><span class="pre">ffmpeg</span></code> to output movie files requires that your machine
+supports the “popen” function in the standard runtime library.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On some clusters with high-speed networks, using the fork()
+library call (required by popen()) can interfere with the fast
+communication library and lead to simulations using ffmpeg to hang or
+crash.</p>
+</div>
+<hr class="docutils" />
+</section>
+<section id="gpu-package">
+<span id="gpu"></span><h2><span class="section-number">3.8.3. </span>GPU package<a class="headerlink" href="#gpu-package" title="Link to this heading"></a></h2>
+<p>To build with this package, you must choose options for precision and
+which GPU hardware to build for. The GPU package currently supports
+three different types of back ends: OpenCL, CUDA and HIP.</p>
+<section id="cmake-build">
+<h3>CMake build<a class="headerlink" href="#cmake-build" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">GPU_API</span><span class="o">=</span>value<span class="w">             </span><span class="c1"># value = opencl (default) or cuda or hip</span>
+-D<span class="w"> </span><span class="nv">GPU_PREC</span><span class="o">=</span>value<span class="w">            </span><span class="c1"># precision setting</span>
+<span class="w">                             </span><span class="c1"># value = double or mixed (default) or single</span>
+-D<span class="w"> </span><span class="nv">GPU_ARCH</span><span class="o">=</span>value<span class="w">            </span><span class="c1"># primary GPU hardware choice for all GPU_API back ends</span>
+<span class="w">                             </span><span class="c1"># value = sm_XX for cuda and hip/nvcc (see below),</span>
+<span class="w">                             </span><span class="c1"># gfx&lt;XXX&gt; for hip/amd, or spirv for hip/spirv</span>
+<span class="w">                             </span><span class="c1"># defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),</span>
+<span class="w">                             </span><span class="c1"># spirv (hip/spirv)</span>
+-D<span class="w"> </span><span class="nv">GPU_DEBUG</span><span class="o">=</span>value<span class="w">           </span><span class="c1"># enable debug code in the GPU package library,</span>
+<span class="w">                             </span><span class="c1"># mostly useful for developers</span>
+<span class="w">                             </span><span class="c1"># value = yes or no (default)</span>
+-D<span class="w"> </span><span class="nv">HIP_PATH</span><span class="o">=</span>value<span class="w">            </span><span class="c1"># value = path to HIP installation. Must be set if</span>
+<span class="w">                             </span><span class="c1"># GPU_API=HIP</span>
+-D<span class="w"> </span><span class="nv">HIP_ARCH</span><span class="o">=</span>value<span class="w">            </span><span class="c1"># deprecated, use GPU_ARCH instead (still accepted,</span>
+<span class="w">                             </span><span class="c1"># but prints a deprecation warning)</span>
+-D<span class="w"> </span><span class="nv">HIP_USE_DEVICE_SORT</span><span class="o">=</span>value<span class="w"> </span><span class="c1"># enables GPU sorting</span>
+<span class="w">                             </span><span class="c1"># value = yes (default) or no</span>
+-D<span class="w"> </span><span class="nv">CUDPP_OPT</span><span class="o">=</span>value<span class="w">           </span><span class="c1"># use GPU binning with CUDA (should be off for modern GPUs)</span>
+<span class="w">                             </span><span class="c1"># enables CUDA Performance Primitives, must be &quot;no&quot; for</span>
+<span class="w">                             </span><span class="c1"># CUDA_MPS_SUPPORT=yes</span>
+<span class="w">                             </span><span class="c1"># value = yes or no (default)</span>
+-D<span class="w"> </span><span class="nv">CUDA_MPS_SUPPORT</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># enables some tweaks required to run with active</span>
+<span class="w">                             </span><span class="c1"># nvidia-cuda-mps daemon</span>
+<span class="w">                             </span><span class="c1"># value = yes or no (default)</span>
+-D<span class="w"> </span><span class="nv">CUDA_BUILD_MULTIARCH</span><span class="o">=</span>value<span class="w">  </span><span class="c1"># enables building CUDA kernels for all supported GPU</span>
+<span class="w">                               </span><span class="c1"># architectures</span>
+<span class="w">                               </span><span class="c1"># value = yes (default) or no</span>
+-D<span class="w"> </span><span class="nv">USE_STATIC_OPENCL_LOADER</span><span class="o">=</span>value<span class="w">  </span><span class="c1"># downloads/includes OpenCL ICD loader library,</span>
+<span class="w">                                   </span><span class="c1"># no local OpenCL headers/libs needed</span>
+<span class="w">                                   </span><span class="c1"># value = yes (default) or no</span>
+</pre></div>
+</div>
+<p>The GPU package supports 3 precision modes: single, double, and mixed, with
+the latter being the default.  In the double precision mode, atom positions,
+forces and energies are stored, computed and accumulated in double precision.
+In the mixed precision mode, forces and energies are accumulated in double precision
+while atom coordinates are stored and arithmetic operations are performed
+in single precision. In the single precision mode, all are stored, executed
+and accumulated in single precision.</p>
+<p>To specify the precision mode (output to the screen before LAMMPS runs for
+verification), set <code class="docutils literal notranslate"><span class="pre">GPU_PREC</span></code> to one of <code class="docutils literal notranslate"><span class="pre">single</span></code>, <code class="docutils literal notranslate"><span class="pre">double</span></code>, or <code class="docutils literal notranslate"><span class="pre">mixed</span></code>.</p>
+<p>Some accelerators or OpenCL implementations only support single precision.
+This mode should be used with care and appropriate validation as the errors
+can scale with system size in this implementation. This can be useful for
+accelerating test runs when setting up a simulation for production runs on
+another machine. In the case where only single precision is supported, either
+LAMMPS must be compiled with <code class="docutils literal notranslate"><span class="pre">-DFFT_SINGLE</span></code> to use PPPM with GPU acceleration
+or GPU acceleration should be disabled for PPPM (e.g. suffix off or <code class="docutils literal notranslate"><span class="pre">pair/only</span></code>
+as described in the LAMMPS documentation).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4Jul2026.</span></p>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">GPU_ARCH</span></code> is the canonical architecture setting for all <code class="docutils literal notranslate"><span class="pre">GPU_API</span></code>
+back ends.  The back end specific <code class="docutils literal notranslate"><span class="pre">HIP_ARCH</span></code> (for <code class="docutils literal notranslate"><span class="pre">GPU_API=hip</span></code>)
+variable is still accepted for backward compatibility, but its use is
+deprecated and prints a warning.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">GPU_API=cuda</span></code> and <code class="docutils literal notranslate"><span class="pre">GPU_API=hip</span></code> with <code class="docutils literal notranslate"><span class="pre">HIP_PLATFORM=nvcc</span></code>, the
+<code class="docutils literal notranslate"><span class="pre">GPU_ARCH</span></code> settings for different GPU hardware are as follows:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_30</span></code> for Kepler (supported since CUDA 5 and until CUDA 10.x)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_35</span></code> or <code class="docutils literal notranslate"><span class="pre">sm_37</span></code> for Kepler (supported since CUDA 5 and until CUDA 11.x)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_50</span></code> or <code class="docutils literal notranslate"><span class="pre">sm_52</span></code> for Maxwell (supported since CUDA 6)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_60</span></code> or <code class="docutils literal notranslate"><span class="pre">sm_61</span></code> for Pascal (supported since CUDA 8)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_70</span></code> for Volta (supported since CUDA 9)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_75</span></code> for Turing (supported since CUDA 10)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_80</span></code> or <code class="docutils literal notranslate"><span class="pre">sm_86</span></code> for Ampere (supported since CUDA 11, <code class="docutils literal notranslate"><span class="pre">sm_86</span></code> since CUDA 11.1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_89</span></code> for Lovelace (supported since CUDA 11.8)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_90</span></code> or <code class="docutils literal notranslate"><span class="pre">sm_90a</span></code> for Hopper (supported since CUDA 12.0)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_100</span></code> or <code class="docutils literal notranslate"><span class="pre">sm_103</span></code> for Blackwell B100/B200/B300 (supported since CUDA 12.8)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_120</span></code> for Blackwell B20x/B40 (supported since CUDA 12.8)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sm_121</span></code> for Blackwell (supported since CUDA 12.9)</p></li>
+</ul>
+<p>A more detailed list can be found, for example,
+at <a class="reference external" href="https://en.wikipedia.org/wiki/CUDA#GPUs_supported">Wikipedia’s CUDA article</a></p>
+<p>CMake can detect which version of the CUDA toolkit is used and thus will
+try to include support for <strong>all</strong> major GPU architectures supported by
+this toolkit.  Thus the <code class="docutils literal notranslate"><span class="pre">GPU_ARCH</span></code> setting is merely an optimization, to
+have code for the preferred GPU architecture directly included rather
+than having to wait for the JIT compiler of the CUDA driver to translate
+it.  This behavior can be turned off (e.g. to speed up compilation) by
+setting <code class="docutils literal notranslate"><span class="pre">CUDA_ENABLE_MULTIARCH</span></code> to <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p>
+<p>When compiling for CUDA or HIP with CUDA, version 8.0 or later of the
+CUDA toolkit is required and a GPU architecture of Kepler or later,
+which must <em>also</em> be supported by the CUDA toolkit in use <strong>and</strong> the
+CUDA driver in use.  When compiling for OpenCL, OpenCL version 1.2 or
+later is required and the GPU must be supported by the GPU driver and
+OpenCL runtime bundled with the driver.</p>
+<p>Please note that the GPU library accesses the CUDA driver library
+directly, so it needs to be linked with the CUDA driver library
+(<code class="docutils literal notranslate"><span class="pre">libcuda.so</span></code>) that ships with the Nvidia driver.  If you are
+compiling LAMMPS on the head node of a GPU cluster, this library may not
+be installed, so you may need to copy it over from one of the compute
+nodes (best into this directory).  Recent versions of the CUDA toolkit
+starting from CUDA 9 provide a dummy <code class="docutils literal notranslate"><span class="pre">libcuda.so</span></code> library (typically
+under <code class="docutils literal notranslate"><span class="pre">$(CUDA_HOME)/lib64/stubs</span></code>), that can be used for linking.  If
+you are compiling LAMMPS with the <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">BUILD_SHARED_LIBS=ON</span></code> setting,
+you may get to see <code class="docutils literal notranslate"><span class="pre">ld:</span> <span class="pre">warning:</span> <span class="pre">libcuda.so.1,</span> <span class="pre">needed</span> <span class="pre">by</span>
+<span class="pre">liblammps.so.0,</span> <span class="pre">not</span> <span class="pre">found</span></code>.  This may be worked around by also setting:
+<code class="docutils literal notranslate"><span class="pre">-DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs</span></code>.</p>
+<p>To support the CUDA multi-process server (MPS) you can set the define
+<code class="docutils literal notranslate"><span class="pre">-DCUDA_MPS_SUPPORT</span></code>.  Please note that in this case you must <strong>not</strong>
+use the CUDA performance primitives and thus set the variable
+<code class="docutils literal notranslate"><span class="pre">CUDPP_OPT</span></code> to empty.</p>
+<p>If you are compiling for OpenCL, the default setting is to download,
+build, and link with a static OpenCL ICD loader library and standard
+OpenCL headers.  This way no local OpenCL development headers or library
+needs to be present and only OpenCL compatible drivers need to be
+installed to use OpenCL.  If this is not desired, you can set
+<code class="docutils literal notranslate"><span class="pre">USE_STATIC_OPENCL_LOADER</span></code> to <code class="docutils literal notranslate"><span class="pre">no</span></code>.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">GERYON_NUMA_FISSION</span></code> is defined at build time (<code class="docutils literal notranslate"><span class="pre">-DGPU_DEBUG=no</span></code>),
+LAMMPS will consider separate NUMA nodes on GPUs or accelerators as
+separate devices.  For example, a 2-socket CPU would appear as two separate
+devices for OpenCL (and LAMMPS would require two MPI processes to use both
+sockets with the GPU library - each with its own device ID as output by
+ocl_get_devices).  OpenCL version 1.2 or later is required.</p>
+<p>If you are compiling with HIP, note that before running CMake you will
+have to set appropriate environment variables. Some variables such as
+<code class="docutils literal notranslate"><span class="pre">HCC_AMDGPU_TARGET</span></code> (for ROCm &lt;= 4.0) or <code class="docutils literal notranslate"><span class="pre">CUDA_PATH</span></code> are
+necessary for <code class="docutils literal notranslate"><span class="pre">hipcc</span></code> and the linker to work correctly.</p>
+<p>When compiling for HIP ROCm, GPU sorting with <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">HIP_USE_DEVICE_SORT=on</span></code> requires installing the <code class="docutils literal notranslate"><span class="pre">hipcub</span></code> library
+(<a class="reference external" href="https://github.com/ROCmSoftwarePlatform/hipCUB">https://github.com/ROCmSoftwarePlatform/hipCUB</a>).  Setting
+<code class="docutils literal notranslate"><span class="pre">-DDOWNLOAD_CUB=yes</span></code> will download and compile CUB.</p>
+<p>The GPU library has some multi-thread support using OpenMP.  If LAMMPS
+is built with <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">BUILD_OMP=on</span></code> this will also be enabled.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Some Clang-based tool chains - in particular <code class="docutils literal notranslate"><span class="pre">hipcc</span></code> from ROCm - do not
+ship the <code class="docutils literal notranslate"><span class="pre">omp.h</span></code> header in the compiler’s own resource directory.  When
+building with <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">BUILD_OMP=on</span></code> and such a compiler, host code that
+includes <code class="docutils literal notranslate"><span class="pre">&lt;omp.h&gt;</span></code> would fail to compile even though the <code class="docutils literal notranslate"><span class="pre">-fopenmp</span></code>
+flag is accepted.  CMake detects this case and adds the <code class="docutils literal notranslate"><span class="pre">omp.h</span></code> from a
+matching version of the system Clang installation as a fallback include
+path (using <code class="docutils literal notranslate"><span class="pre">-idirafter</span></code> so it does not shadow other headers).  If no
+matching <code class="docutils literal notranslate"><span class="pre">omp.h</span></code> can be found automatically, you may need to add the
+directory containing it yourself, for example with
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/&lt;version&gt;/include</span></code>.</p>
+</div>
+<p>For a debug build, set <code class="docutils literal notranslate"><span class="pre">GPU_DEBUG</span></code> to be <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 3Aug2022.</span></p>
+</div>
+<p>Using the CHIP-SPV implementation of HIP is supported. It allows one to
+run HIP code on Intel GPUs via the OpenCL or Level Zero back ends. To use
+CHIP-SPV, you must set <code class="docutils literal notranslate"><span class="pre">-DHIP_USE_DEVICE_SORT=OFF</span></code> in your CMake
+command-line as CHIP-SPV does not yet support hipCUB. As of Summer 2022,
+the use of HIP for Intel GPUs is experimental. You should only use this
+option in preparations to run on Aurora system at Argonne.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># AMDGPU target (ROCm &lt;= 4.0)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PLATFORM</span><span class="o">=</span>hcc
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PATH</span><span class="o">=</span>/path/to/HIP/install
+<span class="nb">export</span><span class="w"> </span><span class="nv">HCC_AMDGPU_TARGET</span><span class="o">=</span>gfx906
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_GPU</span><span class="o">=</span>on<span class="w"> </span>-D<span class="w"> </span><span class="nv">GPU_API</span><span class="o">=</span>HIP<span class="w"> </span>-D<span class="w"> </span><span class="nv">HIP_ARCH</span><span class="o">=</span>gfx906<span class="w"> </span>-D<span class="w"> </span><span class="nv">CMAKE_CXX_COMPILER</span><span class="o">=</span>hipcc<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># AMDGPU target (ROCm &gt;= 4.1)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PLATFORM</span><span class="o">=</span>amd
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PATH</span><span class="o">=</span>/path/to/HIP/install
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_GPU</span><span class="o">=</span>on<span class="w"> </span>-D<span class="w"> </span><span class="nv">GPU_API</span><span class="o">=</span>HIP<span class="w"> </span>-D<span class="w"> </span><span class="nv">HIP_ARCH</span><span class="o">=</span>gfx906<span class="w"> </span>-D<span class="w"> </span><span class="nv">CMAKE_CXX_COMPILER</span><span class="o">=</span>hipcc<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CUDA target (not recommended, use GPU_API=cuda)</span>
+<span class="c1"># !!! DO NOT set CMAKE_CXX_COMPILER !!!</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PLATFORM</span><span class="o">=</span>nvcc
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PATH</span><span class="o">=</span>/path/to/HIP/install
+<span class="nb">export</span><span class="w"> </span><span class="nv">CUDA_PATH</span><span class="o">=</span>/usr/local/cuda
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_GPU</span><span class="o">=</span>on<span class="w"> </span>-D<span class="w"> </span><span class="nv">GPU_API</span><span class="o">=</span>HIP<span class="w"> </span>-D<span class="w"> </span><span class="nv">HIP_ARCH</span><span class="o">=</span>sm_70<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># SPIR-V target (Intel GPUs)</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PLATFORM</span><span class="o">=</span>spirv
+<span class="nb">export</span><span class="w"> </span><span class="nv">HIP_PATH</span><span class="o">=</span>/path/to/HIP/install
+<span class="nb">export</span><span class="w"> </span><span class="nv">CMAKE_CXX_COMPILER</span><span class="o">=</span>&lt;hipcc/clang++&gt;
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_GPU</span><span class="o">=</span>on<span class="w"> </span>-D<span class="w"> </span><span class="nv">GPU_API</span><span class="o">=</span>HIP<span class="w"> </span>..
+make<span class="w"> </span>-j<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+</section>
+</section>
+<section id="kim-package">
+<span id="kim"></span><h2><span class="section-number">3.8.4. </span>KIM package<a class="headerlink" href="#kim-package" title="Link to this heading"></a></h2>
+<p>To build with this package, the KIM API v2.0+ must be downloaded
+and built on your system. See
+<a class="reference external" href="https://openkim.org/doc/usage/obtaining-models">Obtaining KIM Models</a> to
+learn how to install the KIM API, as well as how to install any models you
+wish to use afterward.
+See the list of all KIM models here: <a class="reference external" href="https://openkim.org/browse/models">https://openkim.org/browse/models</a></p>
+<p>If you would like to use the <a class="reference internal" href="kim_commands.html"><span class="doc">kim query</span></a>
+command, you also need to have libcurl installed with the matching
+development headers and the curl-config tool.</p>
+<p>If you would like to use the <a class="reference internal" href="kim_commands.html"><span class="doc">kim property</span></a>
+command, you need to build LAMMPS with the PYTHON package installed
+and linked to Python 3.6 or later. See the <a class="reference internal" href="#python"><span class="std std-ref">PYTHON package build info</span></a>
+for more details on this. After successfully building LAMMPS with Python, you
+also need to install the <code class="docutils literal notranslate"><span class="pre">kim-property</span></code> Python package, which can be easily
+done using <em>pip</em> as <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">kim-property</span></code>, or from the <em>conda-forge</em>
+channel as <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">kim-property</span></code> if LAMMPS is built in Conda. More
+detailed information is available at:
+<a class="reference external" href="https://github.com/openkim/kim-property#installing-kim-property">kim-property installation</a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-2-2-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-2-2-0" name="2-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-2-2-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-2-2-1" name="2-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-2-2-0" class="sphinx-tabs-panel" id="panel-2-2-0" name="2-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_KIM</span><span class="o">=</span>value<span class="w">           </span><span class="c1"># download OpenKIM API v2 for build</span>
+<span class="w">                                </span><span class="c1"># value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">LMP_DEBUG_CURL</span><span class="o">=</span>value<span class="w">         </span><span class="c1"># set libcurl verbose mode on/off</span>
+<span class="w">                                </span><span class="c1"># value = off (default) or on</span>
+-D<span class="w"> </span><span class="nv">LMP_NO_SSL_CHECK</span><span class="o">=</span>value<span class="w">       </span><span class="c1"># tell libcurl to not verify the peer</span>
+<span class="w">                                </span><span class="c1"># value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">KIM_EXTRA_UNITTESTS</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># enables extra unit tests</span>
+<span class="w">                                </span><span class="c1"># value = no (default) or yes</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_KIM</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code> (or <code class="docutils literal notranslate"><span class="pre">on</span></code>), the KIM API library
+will be downloaded and built inside the CMake build directory.  Note that
+in most cases it is recommended that you do not use this option, and instead
+provide a KIM API installation yourself before building LAMMPS.  If
+the KIM library is already installed on your system (in a location
+where CMake cannot find it), you may need to set the
+<code class="docutils literal notranslate"><span class="pre">PKG_CONFIG_PATH</span></code> environment variable so that libkim-api can be
+found, or run the command <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">kim-api-activate</span></code>.  If CMake cannot find
+the KIM API when configuring for the first time (or after clearing the
+CMake cache), the default value of the <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_KIM</span></code> option will be <code class="docutils literal notranslate"><span class="pre">yes</span></code>.</p>
+<p>Extra unit tests can only be available if they are explicitly requested
+(<code class="docutils literal notranslate"><span class="pre">KIM_EXTRA_UNITTESTS</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code> (or <code class="docutils literal notranslate"><span class="pre">on</span></code>)) and the prerequisites
+are met. See <a class="reference internal" href="#kim-extra-unittests"><span class="std std-ref">KIM Extra unit tests</span></a> for
+more details on this.</p>
+</div><div aria-labelledby="tab-2-2-1" class="sphinx-tabs-panel" hidden="true" id="panel-2-2-1" name="2-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The KIM package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<section id="debugging-openkim-web-queries-in-lammps">
+<h3>Debugging OpenKIM web queries in LAMMPS<a class="headerlink" href="#debugging-openkim-web-queries-in-lammps" title="Link to this heading"></a></h3>
+<p>If <code class="docutils literal notranslate"><span class="pre">LMP_DEBUG_CURL</span></code> is set, the libcurl verbose mode will be turned
+on, and any libcurl calls within the KIM web query display a lot of
+information about libcurl operations.  You hardly ever want this set in
+production use, you will almost always want this when you debug or
+report problems.</p>
+<p>The libcurl library performs peer SSL certificate verification by
+default.  This verification is done using a CA certificate store that
+the SSL library can use to make sure the peer’s server certificate is
+valid.  If SSL reports an error (“certificate verify failed”) during the
+handshake and thus refuses further communicate with that server, you can
+set <code class="docutils literal notranslate"><span class="pre">LMP_NO_SSL_CHECK</span></code> to override that behavior.  When LAMMPS is
+compiled with <code class="docutils literal notranslate"><span class="pre">LMP_NO_SSL_CHECK</span></code> set, libcurl does not verify the peer
+and connection attempts will succeed regardless of the names in the
+certificate. This option is insecure.  As an alternative, you can
+specify your own CA cert path by setting the environment variable
+<code class="docutils literal notranslate"><span class="pre">CURL_CA_BUNDLE</span></code> to the path of your choice.  A call to the KIM web
+query would get this value from the environment variable.</p>
+</section>
+<section id="kim-extra-unit-tests-cmake-only">
+<span id="kim-extra-unittests"></span><h3>KIM Extra unit tests (CMake only)<a class="headerlink" href="#kim-extra-unit-tests-cmake-only" title="Link to this heading"></a></h3>
+<p>During development, testing, or debugging, if
+<a class="reference internal" href="Build_development.html"><span class="doc">unit testing</span></a> is enabled in LAMMPS, one can also
+enable extra tests on <a class="reference internal" href="kim_commands.html"><span class="doc">KIM commands</span></a> by setting the
+<code class="docutils literal notranslate"><span class="pre">KIM_EXTRA_UNITTESTS</span></code> to <code class="docutils literal notranslate"><span class="pre">yes</span></code> (or <code class="docutils literal notranslate"><span class="pre">on</span></code>).</p>
+<p>Enabling the extra unit tests have some requirements,</p>
+<ul>
+<li><p>It requires to have internet access.</p></li>
+<li><p>It requires to have libcurl installed with the matching development headers
+and the curl-config tool.</p></li>
+<li><p>It requires to build LAMMPS with the PYTHON package installed and linked to
+Python 3.6 or later. See the <a class="reference internal" href="#python"><span class="std std-ref">PYTHON package build info</span></a> for
+more details on this.</p></li>
+<li><p>It requires to have <code class="docutils literal notranslate"><span class="pre">kim-property</span></code> Python package installed, which can be
+easily done using <em>pip</em> as <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">kim-property</span></code>, or from the
+<em>conda-forge</em> channel as <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">kim-property</span></code> if LAMMPS is built in
+Conda. More detailed information is available at:
+<a class="reference external" href="https://github.com/openkim/kim-property#installing-kim-property">kim-property installation</a>.</p></li>
+<li><p>It is also necessary to install the following KIM models:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">EAM_Dynamo_MendelevAckland_2007v3_Zr__MO_004835508849_001</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EAM_Dynamo_ErcolessiAdams_1994_Al__MO_123629422045_006</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">LennardJones612_UniversalShifted__MO_959249795837_003</span></code> (this model is an example model automatically built with the API unless explicitly disabled)</p></li>
+</ul>
+<p>See <a class="reference external" href="https://openkim.org/doc/usage/obtaining-models">Obtaining KIM Models</a>
+to learn how to install a pre-built binary of the OpenKIM Repository of
+Models or see
+<a class="reference external" href="https://openkim.org/doc/usage/obtaining-models/#installing_models">Installing KIM Models</a>
+to learn how to install the specific KIM models.</p>
+</li>
+</ul>
+<hr class="docutils" />
+</section>
+</section>
+<section id="kokkos-package">
+<span id="kokkos"></span><h2><span class="section-number">3.8.5. </span>KOKKOS package<a class="headerlink" href="#kokkos-package" title="Link to this heading"></a></h2>
+<p>Using the KOKKOS package requires choosing several settings.  You have
+to select whether you want to compile with parallelization on the host
+and whether you want to include offloading of calculations to a device
+(e.g. a GPU).  The default setting is to have no host parallelization
+and no device offloading.  In addition, you can select the hardware
+architecture to select the instruction set.  Since most hardware is
+backward compatible, you may choose settings for an older architecture
+to have an executable that will run on this and newer architectures.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you run Kokkos on a different GPU architecture than what LAMMPS
+was compiled with, there will be a delay during device initialization
+while the just-in-time compiler is recompiling all GPU kernels for
+the new hardware.  This is, however, only supported for GPUs of the
+<strong>same</strong> major hardware version and different minor hardware versions,
+e.g. 5.0 and 5.2 but not 5.2 and 6.0.  LAMMPS will abort with an
+error message indicating a mismatch, if the major version differs.</p>
+</div>
+<p>The settings discussed below have been tested with LAMMPS and are
+confirmed to work.  Kokkos is an active project with ongoing improvements
+and projects working on including support for additional architectures.
+More information on Kokkos can be found on the
+<a class="reference external" href="https://github.com/kokkos">Kokkos GitHub project</a>.</p>
+<section id="available-architecture-settings">
+<h3>Available Architecture settings<a class="headerlink" href="#available-architecture-settings" title="Link to this heading"></a></h3>
+<p>These are the possible choices for the Kokkos architecture ID.
+They must be specified in uppercase.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><strong>Arch-ID</strong></p></td>
+<td><p><strong>HOST or GPU</strong></p></td>
+<td><p><strong>Description</strong></p></td>
+</tr>
+<tr class="row-even"><td><p>NATIVE</p></td>
+<td><p>HOST</p></td>
+<td><p>Local machine</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMDAVX</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD chip</p></td>
+</tr>
+<tr class="row-even"><td><p>ARMV80</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8.0 Compatible CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARMV81</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8.1 Compatible CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>ARMV84</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8.4 Compatible CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARMV84_SVE</p></td>
+<td><p>HOST</p></td>
+<td><p>Generic ARMv8.4 with SVE support (-march=armv8.4-a+sve)</p></td>
+</tr>
+<tr class="row-even"><td><p>ARMV8_THUNDERX</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8 Cavium ThunderX CPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARMV8_THUNDERX2</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8 Cavium ThunderX2 CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>A64FX</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv8.2 with SVE Support</p></td>
+</tr>
+<tr class="row-odd"><td><p>ARMV9_GRACE</p></td>
+<td><p>HOST</p></td>
+<td><p>ARMv9 NVIDIA Grace CPU</p></td>
+</tr>
+<tr class="row-even"><td><p>SNB</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Sandy/Ivy Bridge CPUs</p></td>
+</tr>
+<tr class="row-odd"><td><p>HSW</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Haswell CPUs</p></td>
+</tr>
+<tr class="row-even"><td><p>BDW</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Broadwell Xeon E-class CPUs</p></td>
+</tr>
+<tr class="row-odd"><td><p>ICL</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Ice Lake Client CPUs (AVX512)</p></td>
+</tr>
+<tr class="row-even"><td><p>ICX</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Ice Lake Xeon Server CPUs (AVX512)</p></td>
+</tr>
+<tr class="row-odd"><td><p>SKL</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Skylake Client CPUs</p></td>
+</tr>
+<tr class="row-even"><td><p>SKX</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Skylake Xeon Server CPUs (AVX512)</p></td>
+</tr>
+<tr class="row-odd"><td><p>KNC</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Knights Corner Xeon Phi</p></td>
+</tr>
+<tr class="row-even"><td><p>KNL</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Knights Landing Xeon Phi</p></td>
+</tr>
+<tr class="row-odd"><td><p>SPR</p></td>
+<td><p>HOST</p></td>
+<td><p>Intel Sapphire Rapids Xeon Server CPUs (AVX512)</p></td>
+</tr>
+<tr class="row-even"><td><p>POWER8</p></td>
+<td><p>HOST</p></td>
+<td><p>IBM POWER8 CPUs</p></td>
+</tr>
+<tr class="row-odd"><td><p>POWER9</p></td>
+<td><p>HOST</p></td>
+<td><p>IBM POWER9 CPUs</p></td>
+</tr>
+<tr class="row-even"><td><p>ZEN</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen architecture</p></td>
+</tr>
+<tr class="row-odd"><td><p>ZEN2</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen2 architecture</p></td>
+</tr>
+<tr class="row-even"><td><p>ZEN3</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen3 architecture</p></td>
+</tr>
+<tr class="row-odd"><td><p>ZEN4</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen4 architecture</p></td>
+</tr>
+<tr class="row-even"><td><p>ZEN5</p></td>
+<td><p>HOST</p></td>
+<td><p>AMD Zen5 architecture</p></td>
+</tr>
+<tr class="row-odd"><td><p>RISCV_SG2042</p></td>
+<td><p>HOST</p></td>
+<td><p>SG2042 (RISC-V) CPUs</p></td>
+</tr>
+<tr class="row-even"><td><p>RISCV_RVA22V</p></td>
+<td><p>HOST</p></td>
+<td><p>RVA22V (RISC-V) CPUs</p></td>
+</tr>
+<tr class="row-odd"><td><p>RISCV_U74MC</p></td>
+<td><p>HOST</p></td>
+<td><p>U74MC (RISC-V) CPUs</p></td>
+</tr>
+<tr class="row-even"><td><p>KEPLER30</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>KEPLER32</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.2</p></td>
+</tr>
+<tr class="row-even"><td><p>KEPLER35</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>KEPLER37</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Kepler generation CC 3.7</p></td>
+</tr>
+<tr class="row-even"><td><p>MAXWELL50</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Maxwell generation CC 5.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>MAXWELL52</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Maxwell generation CC 5.2</p></td>
+</tr>
+<tr class="row-even"><td><p>MAXWELL53</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Maxwell generation CC 5.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>PASCAL60</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Pascal generation CC 6.0</p></td>
+</tr>
+<tr class="row-even"><td><p>PASCAL61</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Pascal generation CC 6.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>VOLTA70</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Volta generation CC 7.0</p></td>
+</tr>
+<tr class="row-even"><td><p>VOLTA72</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Volta generation CC 7.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>TURING75</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Turing generation CC 7.5</p></td>
+</tr>
+<tr class="row-even"><td><p>AMPERE80</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Ampere generation CC 8.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMPERE86</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Ampere generation CC 8.6</p></td>
+</tr>
+<tr class="row-even"><td><p>AMPERE87</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Ampere generation CC 8.7</p></td>
+</tr>
+<tr class="row-odd"><td><p>ADA89</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Ada generation CC 8.9</p></td>
+</tr>
+<tr class="row-even"><td><p>HOPPER90</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Hopper generation CC 9.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>BLACKWELL100</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Blackwell generation CC 10.0</p></td>
+</tr>
+<tr class="row-even"><td><p>BLACKWELL103</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Blackwell generation CC 10.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>BLACKWELL120</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Blackwell generation CC 12.0</p></td>
+</tr>
+<tr class="row-even"><td><p>BLACKWELL121</p></td>
+<td><p>GPU</p></td>
+<td><p>NVIDIA Blackwell generation CC 12.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMD_GFX906</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI50/60</p></td>
+</tr>
+<tr class="row-even"><td><p>AMD_GFX908</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI100</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMD_GFX90A</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI200</p></td>
+</tr>
+<tr class="row-even"><td><p>AMD_GFX940</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI300</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMD_GFX942</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI300</p></td>
+</tr>
+<tr class="row-even"><td><p>AMD_GFX942_APU</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD APU MI300A</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMD_GFX950</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU MI350</p></td>
+</tr>
+<tr class="row-even"><td><p>AMD_GFX1030</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU V620/W6800</p></td>
+</tr>
+<tr class="row-odd"><td><p>AMD_GFX1100</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD GPU RX7900XTX</p></td>
+</tr>
+<tr class="row-even"><td><p>AMD_GFX1103</p></td>
+<td><p>GPU</p></td>
+<td><p>AMD APU Phoenix</p></td>
+</tr>
+<tr class="row-odd"><td><p>INTEL_GEN</p></td>
+<td><p>GPU</p></td>
+<td><p>SPIR64-based devices, e.g. Intel GPUs, using JIT</p></td>
+</tr>
+<tr class="row-even"><td><p>INTEL_DG1</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel Iris XeMAX GPU</p></td>
+</tr>
+<tr class="row-odd"><td><p>INTEL_GEN9</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPU Gen9</p></td>
+</tr>
+<tr class="row-even"><td><p>INTEL_GEN11</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPU Gen11</p></td>
+</tr>
+<tr class="row-odd"><td><p>INTEL_GEN12LP</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPU Gen12LP</p></td>
+</tr>
+<tr class="row-even"><td><p>INTEL_XEHP</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPU Xe-HP</p></td>
+</tr>
+<tr class="row-odd"><td><p>INTEL_PVC</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPU Ponte Vecchio</p></td>
+</tr>
+<tr class="row-even"><td><p>INTEL_DG2</p></td>
+<td><p>GPU</p></td>
+<td><p>Intel GPU DG2</p></td>
+</tr>
+</tbody>
+</table>
+<p>This list was last updated for version 5.1.0 of the Kokkos library.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-3-3-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-3-3-0" name="3-0" role="tab" tabindex="0">Basic CMake build settings:</button><button aria-controls="panel-3-3-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-3-3-1" name="3-1" role="tab" tabindex="-1">Basic traditional make settings:</button></div><div aria-labelledby="tab-3-3-0" class="sphinx-tabs-panel" id="panel-3-3-0" name="3-0" role="tabpanel" tabindex="0"><p>For multicore CPUs using OpenMP, set these 2 variables.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">Kokkos_ARCH_HOSTARCH</span><span class="o">=</span>yes<span class="w">  </span><span class="c1"># HOSTARCH = HOST from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+-D<span class="w"> </span><span class="nv">BUILD_OMP</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>Please note that enabling OpenMP for KOKKOS requires that OpenMP is
+also <a class="reference internal" href="Build_basics.html#serial"><span class="std std-ref">enabled for the rest of LAMMPS</span></a>.</p>
+<p>For Intel KNLs using OpenMP, set these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">Kokkos_ARCH_KNL</span><span class="o">=</span>yes
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>For NVIDIA GPUs using CUDA, set these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">Kokkos_ARCH_HOSTARCH</span><span class="o">=</span>yes<span class="w">   </span><span class="c1"># HOSTARCH = HOST from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ARCH_GPUARCH</span><span class="o">=</span>yes<span class="w">    </span><span class="c1"># GPUARCH = GPU from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_CUDA</span><span class="o">=</span>yes
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>This will also enable executing FFTs on the GPU, either via the
+internal KISSFFT library, or - by preference - with the cuFFT
+library bundled with the CUDA toolkit, depending on whether CMake
+can identify its location.</p>
+<p>For AMD or NVIDIA GPUs using HIP, set these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">Kokkos_ARCH_HOSTARCH</span><span class="o">=</span>yes<span class="w">   </span><span class="c1"># HOSTARCH = HOST from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ARCH_GPUARCH</span><span class="o">=</span>yes<span class="w">    </span><span class="c1"># GPUARCH = GPU from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_HIP</span><span class="o">=</span>yes
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>This will enable FFTs on the GPU, either by the internal KISSFFT library
+or with the hipFFT wrapper library, which will call out to the
+platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
+NVIDIA GPUs.</p>
+<p>For Intel GPUs using SYCL, set these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">Kokkos_ARCH_HOSTARCH</span><span class="o">=</span>yes<span class="w">   </span><span class="c1"># HOSTARCH = HOST from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ARCH_GPUARCH</span><span class="o">=</span>yes<span class="w">    </span><span class="c1"># GPUARCH = GPU from list above</span>
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_SYCL</span><span class="o">=</span>yes
+-D<span class="w"> </span><span class="nv">Kokkos_ENABLE_OPENMP</span><span class="o">=</span>yes
+-D<span class="w"> </span><span class="nv">FFT_KOKKOS</span><span class="o">=</span>MKL_GPU
+</pre></div>
+</div>
+<p>This will enable FFTs on the GPU using the oneMKL library.</p>
+<p>To simplify compilation, seven preset files are included in the
+<code class="docutils literal notranslate"><span class="pre">cmake/presets</span></code> folder, <code class="docutils literal notranslate"><span class="pre">kokkos-serial.cmake</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kokkos-openmp.cmake</span></code>, <code class="docutils literal notranslate"><span class="pre">kokkos-cuda.cmake</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kokkos-cuda-nowrapper.cmake</span></code>, <code class="docutils literal notranslate"><span class="pre">kokkos-hip.cmake</span></code>,
+<code class="docutils literal notranslate"><span class="pre">kokkos-sycl-nvidia.cmake</span></code>, and <code class="docutils literal notranslate"><span class="pre">kokkos-sycl-intel.cmake</span></code>.
+They will enable the KOKKOS package and enable some hardware
+choices.  For GPU support those preset files may need to be
+customized to match the hardware used.  For some platforms,
+e.g. CUDA, the Kokkos library will try to auto-detect a suitable
+configuration.  So to compile with CUDA device parallelization
+with some common packages enabled, you can do the following:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mkdir<span class="w"> </span>build-kokkos-cuda
+<span class="nb">cd</span><span class="w"> </span>build-kokkos-cuda
+cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/basic.cmake<span class="w"> </span><span class="se">\</span>
+<span class="w">      </span>-C<span class="w"> </span>../cmake/presets/kokkos-cuda-nowrapper.cmake<span class="w"> </span>../cmake
+cmake<span class="w"> </span>--build<span class="w"> </span>.
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">kokkos-openmp.cmake</span></code> preset can be combined with any of the
+others, but it is not possible to combine multiple GPU
+acceleration settings (CUDA, HIP, SYCL) into a single executable.</p>
+</div><div aria-labelledby="tab-3-3-1" class="sphinx-tabs-panel" hidden="true" id="panel-3-3-1" name="3-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 11Feb2026.</span></p>
+</div>
+<p>The KOKKOS package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+</section>
+<section id="advanced-kokkos-compilation-settings">
+<h3>Advanced KOKKOS compilation settings<a class="headerlink" href="#advanced-kokkos-compilation-settings" title="Link to this heading"></a></h3>
+<p>There are other allowed options when building with the KOKKOS package
+that can improve performance or assist in debugging or profiling. Below
+are some examples that may be useful in combination with LAMMPS.  For
+the full list (which keeps changing as the Kokkos package itself evolves),
+please consult the Kokkos library documentation.</p>
+<p>As alternative to using multi-threading via OpenMP
+(<code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_OPENMP=on</span></code>) it is also possible to use Posix threads
+directly (<code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_PTHREAD=on</span></code>).  While binding of threads to
+individual or groups of CPU cores is managed in OpenMP with environment
+variables, you need assistance from either the “hwloc” or “libnuma”
+library for the Pthread thread parallelization option. To enable use
+with CMake: <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_HWLOC=on</span></code> or
+<code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_LIBNUMA=on</span></code>.</p>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_LIBRT=on</span></code> enables the use of a more
+accurate timer mechanism on many Unix-like platforms for internal
+profiling.</p>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_DEBUG=on</span></code> enables printing of
+run-time debugging information that can be useful. It also enables
+runtime bounds checking on Kokkos data structures.  As to be expected,
+enabling this option will negatively impact the performance and thus is
+only recommended when developing a Kokkos-enabled style in LAMMPS.</p>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-DKokkos_ENABLE_CUDA_UVM=on</span></code> enables the use of CUDA
+“Unified Virtual Memory” (UVM) in Kokkos.  UVM allows to transparently
+use RAM on the host to supplement the memory used on the GPU (with some
+performance penalty) and thus enables running larger problems that would
+otherwise not fit into the RAM on the GPU.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 10Sep2025.</span></p>
+</div>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">KOKKOS_PREC=value</span></code> sets the floating point
+precision of the calculations, where <code class="docutils literal notranslate"><span class="pre">value</span></code> can be one of: <code class="docutils literal notranslate"><span class="pre">double</span></code>
+(FP64, default) or <code class="docutils literal notranslate"><span class="pre">mixed</span></code> (FP64 for accumulation of forces, energy,
+and virial, FP32 otherwise) or <code class="docutils literal notranslate"><span class="pre">single</span></code> (FP32).  When using reduced
+precision (single or mixed), the simulation and its results should be
+carefully checked to ensure it is stable and that, for example, energy
+is sufficiently well conserved.  Using a lower floating point precision
+works best when simulating homogeneous bulk systems because those have
+the best error cancellation.  Using <code class="docutils literal notranslate"><span class="pre">mixed</span></code> precision provides most of
+the performance advantages of using single precision while performing
+the steps most relevant for accuracy in double precision.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 10Sep2025.</span></p>
+</div>
+<p>The CMake option <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">KOKKOS_LAYOUT=value</span></code> sets the array layout of
+Kokkos views (e.g. forces, velocities, etc.) on GPUs, where <code class="docutils literal notranslate"><span class="pre">value</span></code>
+can be one of: <code class="docutils literal notranslate"><span class="pre">legacy</span></code> (mostly LayoutRight, default) or <code class="docutils literal notranslate"><span class="pre">default</span></code>
+(mostly LayoutLeft).  Using the default layout (LayoutLeft) can give
+speedup on GPUs for some models, but a slowdown for others. LayoutRight
+is always used for positions on GPUs since it has been found to be
+faster, and when compiling exclusively for CPUs.</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="lepton-package">
+<span id="lepton"></span><h2><span class="section-number">3.8.6. </span>LEPTON package<a class="headerlink" href="#lepton-package" title="Link to this heading"></a></h2>
+<p>To build with this package, you must build the Lepton library which is
+included in the LAMMPS source distribution in the <code class="docutils literal notranslate"><span class="pre">lib/lepton</span></code> folder.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-4-4-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-4-4-0" name="4-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-4-4-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-4-4-1" name="4-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-4-4-0" class="sphinx-tabs-panel" id="panel-4-4-0" name="4-0" role="tabpanel" tabindex="0"><p>This is the recommended build procedure for using Lepton in
+LAMMPS. No additional settings are normally needed besides
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_LEPTON=yes</span></code>.</p>
+<p>On x86 hardware the Lepton library will also include a just-in-time
+compiler for faster execution.  This is auto detected but can
+be explicitly disabled by setting <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">LEPTON_ENABLE_JIT=no</span></code>
+(or enabled by setting it to yes).</p>
+</div><div aria-labelledby="tab-4-4-1" class="sphinx-tabs-panel" hidden="true" id="panel-4-4-1" name="4-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The LEPTON package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="machdyn-package">
+<span id="machdyn"></span><h2><span class="section-number">3.8.7. </span>MACHDYN package<a class="headerlink" href="#machdyn-package" title="Link to this heading"></a></h2>
+<p>To build with this package, you must download the Eigen3 library.
+Eigen3 is a template library, so you do not need to build it.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-5-5-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-5-5-0" name="5-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-5-5-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-5-5-1" name="5-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-5-5-0" class="sphinx-tabs-panel" id="panel-5-5-0" name="5-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span>DOWNLOAD_EIGEN3<span class="w">            </span><span class="c1"># download Eigen3, value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">EIGEN3_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">    </span><span class="c1"># path to Eigen library (only needed if a</span>
+<span class="w">                              </span><span class="c1"># custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_EIGEN3</span></code> is set, the Eigen3 library will be
+downloaded and inside the CMake build directory.  If the Eigen3
+library is already on your system (in a location where CMake
+cannot find it), set <code class="docutils literal notranslate"><span class="pre">EIGEN3_INCLUDE_DIR</span></code> to the directory the
+<code class="docutils literal notranslate"><span class="pre">Eigen3</span></code> include file is in.</p>
+</div><div aria-labelledby="tab-5-5-1" class="sphinx-tabs-panel" hidden="true" id="panel-5-5-1" name="5-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The MACHDYN package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="ml-iap-package">
+<span id="mliap"></span><h2><span class="section-number">3.8.8. </span>ML-IAP package<a class="headerlink" href="#ml-iap-package" title="Link to this heading"></a></h2>
+<p>Building the ML-IAP package requires including the <a class="reference internal" href="Packages_details.html#pkg-ml-snap"><span class="std std-ref">ML-SNAP</span></a> package.  There will be an error message if this requirement
+is not satisfied.  Using the <em>mliappy</em> model also requires enabling
+Python support, which in turn requires to include the <a class="reference internal" href="Packages_details.html#pkg-python"><span class="std std-ref">PYTHON</span></a> package <strong>and</strong> requires to have the <a class="reference external" href="https://cython.org">cython</a> software installed and with it a working
+<code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command.  This feature requires compiling LAMMPS with
+Python version 3.6 or later.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-6-6-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-6-6-0" name="6-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-6-6-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-6-6-1" name="6-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-6-6-0" class="sphinx-tabs-panel" id="panel-6-6-0" name="6-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">MLIAP_ENABLE_PYTHON</span><span class="o">=</span>value<span class="w">   </span><span class="c1"># enable mliappy model (default is autodetect)</span>
+</pre></div>
+</div>
+<p>Without this setting, CMake will check whether it can find a
+suitable Python version and the <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command and choose
+the default accordingly.  During the build procedure the provided
+.pyx file(s) will be automatically translated to C++ code and compiled.
+Please do <strong>not</strong> run <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> manually in the <code class="docutils literal notranslate"><span class="pre">src/ML-IAP</span></code> folder,
+as that can lead to compilation errors if Python support is not enabled.
+If you did it by accident, please remove the generated .cpp and .h files.</p>
+</div><div aria-labelledby="tab-6-6-1" class="sphinx-tabs-panel" hidden="true" id="panel-6-6-1" name="6-1" role="tabpanel" tabindex="0"><p>The build uses the <code class="docutils literal notranslate"><span class="pre">lib/python/Makefile.mliap_python</span></code> file in the
+compile/link process to add a rule to update the files generated by
+the <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command in case the corresponding .pyx file(s) were
+modified.  You may need to modify <code class="docutils literal notranslate"><span class="pre">lib/python/Makefile.lammps</span></code>
+if the LAMMPS build fails.</p>
+<p>To enable building the ML-IAP package with Python support enabled,
+you need to add <code class="docutils literal notranslate"><span class="pre">-DMLIAP_PYTHON</span></code> to the <code class="docutils literal notranslate"><span class="pre">LMP_INC</span></code> variable in
+your machine makefile.  You may have to manually run the
+<code class="docutils literal notranslate"><span class="pre">cythonize</span></code> command on .pyx file(s) in the <code class="docutils literal notranslate"><span class="pre">src</span></code> folder, if
+this is not automatically done during installing the ML-IAP
+package.  Please do <strong>not</strong> run <code class="docutils literal notranslate"><span class="pre">cythonize</span></code> in the <code class="docutils literal notranslate"><span class="pre">src/ML-IAP</span></code>
+folder, as that can lead to compilation errors if Python support
+is not enabled.  If you did this by accident, please remove the
+generated .cpp and .h files.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="opt-package">
+<span id="opt"></span><h2><span class="section-number">3.8.9. </span>OPT package<a class="headerlink" href="#opt-package" title="Link to this heading"></a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-7-7-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-7-7-0" name="7-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-7-7-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-7-7-1" name="7-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-7-7-0" class="sphinx-tabs-panel" id="panel-7-7-0" name="7-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_OPT=yes</span></code></p>
+</div><div aria-labelledby="tab-7-7-1" class="sphinx-tabs-panel" hidden="true" id="panel-7-7-1" name="7-1" role="tabpanel" tabindex="0"><p>The compiler flag <code class="docutils literal notranslate"><span class="pre">-restrict</span></code> must be used to build LAMMPS with
+the OPT package when using Intel compilers.  It should be added to
+the <code class="docutils literal notranslate"><span class="pre">CCFLAGS</span></code> line of your <code class="docutils literal notranslate"><span class="pre">Makefile.machine</span></code>.  See
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.opt</span></code> for an example.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="python-package">
+<span id="python"></span><h2><span class="section-number">3.8.10. </span>PYTHON package<a class="headerlink" href="#python-package" title="Link to this heading"></a></h2>
+<p>Building with the PYTHON package requires you have a the Python
+development headers and library available on your system, which
+needs to be Python version 3.6 or later.  See <code class="docutils literal notranslate"><span class="pre">lib/python/README</span></code>
+for additional details.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-8-8-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-8-8-0" name="8-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-8-8-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-8-8-1" name="8-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-8-8-0" class="sphinx-tabs-panel" id="panel-8-8-0" name="8-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">Python_EXECUTABLE</span><span class="o">=</span>path<span class="w">   </span><span class="c1"># path to Python executable to use</span>
+</pre></div>
+</div>
+<p>Without this setting, CMake will guess the default Python version
+on your system.  To use a different Python version, you can either
+create a virtualenv, activate it and then run cmake.  Or you can
+set the Python_EXECUTABLE variable to specify which Python
+interpreter should be used.  Note note that you will also need to
+have the development headers installed for this version,
+e.g. python3-devel.</p>
+</div><div aria-labelledby="tab-8-8-1" class="sphinx-tabs-panel" hidden="true" id="panel-8-8-1" name="8-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The PYTHON package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="voronoi-package">
+<span id="voronoi"></span><h2><span class="section-number">3.8.11. </span>VORONOI package<a class="headerlink" href="#voronoi-package" title="Link to this heading"></a></h2>
+<p>To build with this package, you must download and build the
+<a class="reference external" href="https://math.lbl.gov/voro++/">Voro++ library</a> or install a
+binary package provided by your operating system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-9-9-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-9-9-0" name="9-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-9-9-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-9-9-1" name="9-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-9-9-0" class="sphinx-tabs-panel" id="panel-9-9-0" name="9-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_VORO</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># download Voro++ for build</span>
+<span class="w">                          </span><span class="c1"># value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">VORO_LIBRARY</span><span class="o">=</span>path<span class="w">      </span><span class="c1"># Voro++ library file</span>
+<span class="w">                          </span><span class="c1"># (only needed if at custom location)</span>
+-D<span class="w"> </span><span class="nv">VORO_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">  </span><span class="c1"># Voro++ include directory</span>
+<span class="w">                          </span><span class="c1"># (only needed if at custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_VORO</span></code> is set, the Voro++ library will be downloaded
+and built inside the CMake build directory.  If the Voro++ library
+is already on your system (in a location CMake cannot find it),
+<code class="docutils literal notranslate"><span class="pre">VORO_LIBRARY</span></code> is the filename (plus path) of the Voro++ library
+file, not the directory the library file is in.
+<code class="docutils literal notranslate"><span class="pre">VORO_INCLUDE_DIR</span></code> is the directory the Voro++ include file is
+in.</p>
+</div><div aria-labelledby="tab-9-9-1" class="sphinx-tabs-panel" hidden="true" id="panel-9-9-1" name="9-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The VORONOI package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="adios-package">
+<span id="adios"></span><h2><span class="section-number">3.8.12. </span>ADIOS package<a class="headerlink" href="#adios-package" title="Link to this heading"></a></h2>
+<p>The ADIOS package requires the <a class="reference external" href="https://github.com/ornladios/ADIOS2">ADIOS I/O library</a>, version 2.3.1 or newer. Make
+sure that you have ADIOS built either with or without MPI to match if
+you build LAMMPS with or without MPI.  ADIOS compilation settings for
+LAMMPS are automatically detected, if the PATH and LD_LIBRARY_PATH
+environment variables have been updated for the local ADIOS installation
+and the instructions below are followed for the respective build
+systems.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-10-10-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-10-10-0" name="10-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-10-10-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-10-10-1" name="10-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-10-10-0" class="sphinx-tabs-panel" id="panel-10-10-0" name="10-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">ADIOS2_DIR</span><span class="o">=</span>path<span class="w">        </span><span class="c1"># path is where ADIOS 2.x is installed</span>
+-D<span class="w"> </span><span class="nv">PKG_ADIOS</span><span class="o">=</span>yes
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-10-10-1" class="sphinx-tabs-panel" hidden="true" id="panel-10-10-1" name="10-1" role="tabpanel" tabindex="0"><p>Turn on the ADIOS package before building LAMMPS. If the
+ADIOS 2.x software is installed in PATH, there is nothing else to
+do:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>yes-adios
+</pre></div>
+</div>
+<p>otherwise, set ADIOS2_DIR environment variable when turning on the package:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">ADIOS2_DIR</span><span class="o">=</span>path<span class="w"> </span>make<span class="w"> </span>yes-adios<span class="w">   </span><span class="c1"># path is where ADIOS 2.x is installed</span>
+</pre></div>
+</div>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="apip-package">
+<span id="apip"></span><h2><span class="section-number">3.8.13. </span>APIP package<a class="headerlink" href="#apip-package" title="Link to this heading"></a></h2>
+<p>The APIP package depends on the library of the
+<a class="reference internal" href="#ml-pace"><span class="std std-ref">ML-PACE</span></a> package.
+The code for the library can be found
+at: <a class="reference external" href="https://github.com/ICAMS/lammps-user-pace/">https://github.com/ICAMS/lammps-user-pace/</a></p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-11-11-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-11-11-0" name="11-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-11-11-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-11-11-1" name="11-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-11-11-0" class="sphinx-tabs-panel" id="panel-11-11-0" name="11-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_APIP=yes</span></code>
+and <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_ML-PACE=yes</span></code>.
+One can use a local version of the ML-PACE library instead of
+automatically downloading the library as described <a class="reference internal" href="#ml-pace"><span class="std std-ref">here</span></a>.</p>
+</div><div aria-labelledby="tab-11-11-1" class="sphinx-tabs-panel" hidden="true" id="panel-11-11-1" name="11-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The APIP package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="colvars-package">
+<span id="colvar"></span><h2><span class="section-number">3.8.14. </span>COLVARS package<a class="headerlink" href="#colvars-package" title="Link to this heading"></a></h2>
+<p>This package enables the use of the <a class="reference external" href="https://colvars.github.io/">Colvars</a>
+module included in the LAMMPS source distribution.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-12-12-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-12-12-0" name="12-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-12-12-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-12-12-1" name="12-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-12-12-0" class="sphinx-tabs-panel" id="panel-12-12-0" name="12-0" role="tabpanel" tabindex="0"><p>This is the recommended build procedure for using Colvars in
+LAMMPS. No additional settings are normally needed besides <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">PKG_COLVARS=yes</span></code>. The following CMake variables are available.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">PKG_COLVARS</span><span class="o">=</span>yes<span class="w">          </span><span class="c1"># enable the package itself</span>
+-D<span class="w"> </span><span class="nv">COLVARS_LEPTON</span><span class="o">=</span>yes<span class="w">       </span><span class="c1"># use the Lepton library for custom expression (on by defaul)</span>
+-D<span class="w"> </span><span class="nv">COLVARS_DEBUG</span><span class="o">=</span>no<span class="w">         </span><span class="c1"># eneable debugging message (verbose, off by default)</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-12-12-1" class="sphinx-tabs-panel" hidden="true" id="panel-12-12-1" name="12-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The COLVARS package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="electrode-package">
+<span id="electrode"></span><h2><span class="section-number">3.8.15. </span>ELECTRODE package<a class="headerlink" href="#electrode-package" title="Link to this heading"></a></h2>
+<p>This package depends on the KSPACE package.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-13-13-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-13-13-0" name="13-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-13-13-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-13-13-1" name="13-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-13-13-0" class="sphinx-tabs-panel" id="panel-13-13-0" name="13-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">PKG_ELECTRODE</span><span class="o">=</span>yes<span class="w">          </span><span class="c1"># enable the package itself</span>
+-D<span class="w"> </span><span class="nv">PKG_KSPACE</span><span class="o">=</span>yes<span class="w">             </span><span class="c1"># the ELECTRODE package requires KSPACE</span>
+-D<span class="w"> </span><span class="nv">USE_INTERNAL_LINALG</span><span class="o">=</span>value<span class="w">  </span><span class="c1">#</span>
+</pre></div>
+</div>
+<p>Features in the ELECTRODE package are dependent on code in the
+KSPACE package so the latter one <em>must</em> be enabled.</p>
+<p>The ELECTRODE package also requires LAPACK (and BLAS) and CMake
+can identify their locations and pass that info to the ELECTRODE
+build script.  But on some systems this may cause problems when
+linking or the dependency is not desired.  Try enabling
+<code class="docutils literal notranslate"><span class="pre">USE_INTERNAL_LINALG</span></code> in those cases to use the bundled linear
+algebra library and work around the limitation.</p>
+</div><div aria-labelledby="tab-13-13-1" class="sphinx-tabs-panel" hidden="true" id="panel-13-13-1" name="13-1" role="tabpanel" tabindex="0"><p>The ELECTRODE package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="mbx-package">
+<span id="mbx"></span><h2><span class="section-number">3.8.16. </span>MBX package<a class="headerlink" href="#mbx-package" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 11Feb2026.</span></p>
+</div>
+<p>This package requires the MBX library that can be downloaded and built
+either before LAMMPS is built or as part of the LAMMPS compilation.  The
+code for the library can be found at:
+<a class="reference external" href="https://github.com/paesanilab/MBX/">https://github.com/paesanilab/MBX/</a></p>
+<p>Instead of including the MBX package directly into LAMMPS, it is also
+possible to skip this step and build the MBX package as a plugin using
+the CMake script files in the <code class="docutils literal notranslate"><span class="pre">examples/PACKAGE/mbx/plugin</span></code> folder and
+then load this plugin at runtime with the <a class="reference internal" href="plugin.html"><span class="doc">plugin command</span></a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-14-14-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-14-14-0" name="14-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-14-14-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-14-14-1" name="14-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-14-14-0" class="sphinx-tabs-panel" id="panel-14-14-0" name="14-0" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 30Mar2026: </span>Replaced MD5 checksums with SHA-256</p>
+</div>
+<p>By default the MBX library will be downloaded from the git
+repository and built automatically when the MBX package is enabled
+with <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_MBX=yes</span></code>.  The location for the sources may be
+customized by setting the variable <code class="docutils literal notranslate"><span class="pre">MBXLIB_URL</span></code> when configuring
+with CMake (e.g. to use a local archive on machines without
+internet access).  Since CMake checks the validity of the archive
+using a SHA-256 checksum you may also need to set the
+<code class="docutils literal notranslate"><span class="pre">MBXLIB_SHA256</span></code> variable to the corresponding checksum
+(e.g. computed with <code class="docutils literal notranslate"><span class="pre">sha256sum</span></code>) if you provide a different
+library version than what is downloaded automatically.</p>
+</div><div aria-labelledby="tab-14-14-1" class="sphinx-tabs-panel" hidden="true" id="panel-14-14-1" name="14-1" role="tabpanel" tabindex="0"><p>The MBX package does not support the traditional make
+build.  You need to build LAMMPS with CMake to use it.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="ml-pace-package">
+<span id="ml-pace"></span><h2><span class="section-number">3.8.17. </span>ML-PACE package<a class="headerlink" href="#ml-pace-package" title="Link to this heading"></a></h2>
+<p>This package requires a library that can be downloaded and built
+in lib/pace or somewhere else, which must be done before building
+LAMMPS with this package. The code for the library can be found
+at: <a class="reference external" href="https://github.com/ICAMS/lammps-user-pace/">https://github.com/ICAMS/lammps-user-pace/</a></p>
+<p>Instead of including the ML-PACE package directly into LAMMPS, it
+is also possible to skip this step and build the ML-PACE package as
+a plugin using the CMake script files in the <code class="docutils literal notranslate"><span class="pre">examples/PACKAGE/pace/plugin</span></code>
+folder and then load this plugin at runtime with the <a class="reference internal" href="plugin.html"><span class="doc">plugin command</span></a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-15-15-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-15-15-0" name="15-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-15-15-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-15-15-1" name="15-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-15-15-0" class="sphinx-tabs-panel" id="panel-15-15-0" name="15-0" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 30Mar2026: </span>Replaced MD5 checksums with SHA-256</p>
+</div>
+<p>By default the library will be downloaded from the git repository
+and built automatically when the ML-PACE package is enabled with
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_ML-PACE=yes</span></code>.  The location for the sources may be
+customized by setting the variable <code class="docutils literal notranslate"><span class="pre">PACELIB_URL</span></code> when
+configuring with CMake (e.g. to use a local archive on machines
+without internet access).    Since CMake checks the validity of the archive
+using a SHA-256 checksum you may also need to set the
+<code class="docutils literal notranslate"><span class="pre">PACELIB_SHA256</span></code> variable to the corresponding checksum
+(e.g. computed with <code class="docutils literal notranslate"><span class="pre">sha256sum</span></code>) if you provide a different
+library version than what is downloaded automatically.</p>
+</div><div aria-labelledby="tab-15-15-1" class="sphinx-tabs-panel" hidden="true" id="panel-15-15-1" name="15-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The ML-PACE package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="ml-pod-package">
+<span id="ml-pod"></span><h2><span class="section-number">3.8.18. </span>ML-POD package<a class="headerlink" href="#ml-pod-package" title="Link to this heading"></a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-16-16-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-16-16-0" name="16-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-16-16-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-16-16-1" name="16-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-16-16-0" class="sphinx-tabs-panel" id="panel-16-16-0" name="16-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_ML-POD=yes</span></code>.</p>
+</div><div aria-labelledby="tab-16-16-1" class="sphinx-tabs-panel" hidden="true" id="panel-16-16-1" name="16-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The ML-POD package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="ml-quip-package">
+<span id="ml-quip"></span><h2><span class="section-number">3.8.19. </span>ML-QUIP package<a class="headerlink" href="#ml-quip-package" title="Link to this heading"></a></h2>
+<p>To build with this package, you must download and build the QUIP
+library.  It can be obtained from GitHub.  For support of GAP
+potentials, additional files with specific licensing conditions need
+to be downloaded and configured.  The automatic download will from
+within CMake will download the non-commercial use version.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-17-17-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-17-17-0" name="17-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-17-17-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-17-17-1" name="17-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-17-17-0" class="sphinx-tabs-panel" id="panel-17-17-0" name="17-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_QUIP</span><span class="o">=</span>value<span class="w">       </span><span class="c1"># download QUIP library for build</span>
+<span class="w">                             </span><span class="c1"># value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">QUIP_LIBRARY</span><span class="o">=</span>path<span class="w">         </span><span class="c1"># path to libquip.a</span>
+<span class="w">                             </span><span class="c1"># (only needed if a custom location)</span>
+-D<span class="w"> </span><span class="nv">USE_INTERNAL_LINALG</span><span class="o">=</span>value<span class="w"> </span><span class="c1"># Use the internal linear algebra library</span>
+<span class="w">                             </span><span class="c1"># instead of LAPACK</span>
+<span class="w">                             </span><span class="c1"># value = no (default) or yes</span>
+</pre></div>
+</div>
+<p>CMake will try to download and build the QUIP library from GitHub,
+if it is not found on the local machine. This requires to have git
+installed. It will use the same compilers and flags as used for
+compiling LAMMPS.  Currently this is only supported for the GNU
+and the Intel compilers. Set the <code class="docutils literal notranslate"><span class="pre">QUIP_LIBRARY</span></code> variable if you
+want to use a previously compiled and installed QUIP library and
+CMake cannot find it.</p>
+<p>The QUIP library requires LAPACK (and BLAS) and CMake can identify
+their locations and pass that info to the QUIP build script. But
+on some systems this triggers a (current) limitation of CMake and
+the configuration will fail. Try enabling <code class="docutils literal notranslate"><span class="pre">USE_INTERNAL_LINALG</span></code> in
+those cases to use the bundled linear algebra library and work around
+the limitation.</p>
+</div><div aria-labelledby="tab-17-17-1" class="sphinx-tabs-panel" hidden="true" id="panel-17-17-1" name="17-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The ML-QUIP package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="plumed-package">
+<span id="plumed"></span><h2><span class="section-number">3.8.20. </span>PLUMED package<a class="headerlink" href="#plumed-package" title="Link to this heading"></a></h2>
+<p>Before building LAMMPS with this package, you must first build PLUMED.
+PLUMED can be built as part of the LAMMPS build or installed separately
+from LAMMPS using the generic <a class="reference external" href="https://www.plumed.org/doc-v2.9/user-doc/html/_installation.html">PLUMED installation instructions</a>.
+The PLUMED package has been tested to work with Plumed versions
+2.4.x, to 2.9.x and will error out, when trying to run calculations
+with a different version of the Plumed kernel.</p>
+<p>PLUMED can be linked into MD codes in three different modes: static,
+shared, and runtime.  With the “static” mode, all the code that PLUMED
+requires is linked statically into LAMMPS. LAMMPS is then fully
+independent from the PLUMED installation, but you have to rebuild/relink
+it in order to update the PLUMED code inside it.  With the “shared”
+linkage mode, LAMMPS is linked to a shared library that contains the
+PLUMED code.  This library should preferably be installed in a globally
+accessible location. When PLUMED is linked in this way the same library
+can be used by multiple MD packages.  Furthermore, the PLUMED library
+LAMMPS uses can be updated without the need for a recompile of LAMMPS
+for as long as the shared PLUMED library is ABI-compatible.</p>
+<p>The third linkage mode is “runtime” which allows the user to specify
+which PLUMED kernel should be used at runtime by using the PLUMED_KERNEL
+environment variable. This variable should point to the location of the
+libplumedKernel.so dynamical shared object, which is then loaded at
+runtime. This mode of linking is particularly convenient for doing
+PLUMED development and comparing multiple PLUMED versions as these sorts
+of comparisons can be done without recompiling the hosting MD code. All
+three linkage modes are supported by LAMMPS on selected operating
+systems (e.g. Linux) and using either CMake or traditional make
+build. The “static” mode should be the most portable, while the
+“runtime” mode support in LAMMPS makes the most assumptions about
+operating system and compiler environment. If one mode does not work,
+try a different one, switch to a different build system, consider a
+global PLUMED installation or consider downloading PLUMED during the
+LAMMPS build.</p>
+<p>Instead of including the PLUMED package directly into LAMMPS, it
+is also possible to skip this step and build the PLUMED package as
+a plugin using the CMake script files in the <code class="docutils literal notranslate"><span class="pre">examples/PACKAGE/plumed/plugin</span></code>
+folder and then load this plugin at runtime with the <a class="reference internal" href="plugin.html"><span class="doc">plugin command</span></a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-18-18-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-18-18-0" name="18-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-18-18-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-18-18-1" name="18-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-18-18-0" class="sphinx-tabs-panel" id="panel-18-18-0" name="18-0" role="tabpanel" tabindex="0"><p>When the <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_PLUMED=yes</span></code> flag is included in the cmake
+command you must ensure that <cite>the GNU Scientific Library (GSL)
+&lt;https://www.gnu.org/software/gsl/&gt;</cite> is installed in locations
+that are accessible in your environment.  There are then two
+additional variables that control the manner in which PLUMED is
+obtained and linked into LAMMPS.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_PLUMED</span><span class="o">=</span>value<span class="w">   </span><span class="c1"># download PLUMED for build</span>
+<span class="w">                           </span><span class="c1"># value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">PLUMED_MODE</span><span class="o">=</span>value<span class="w">       </span><span class="c1"># Linkage mode for PLUMED</span>
+<span class="w">                           </span><span class="c1"># value = static (default), shared,</span>
+<span class="w">                           </span><span class="c1">#         or runtime</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_PLUMED</span></code> is set to <code class="docutils literal notranslate"><span class="pre">yes</span></code>, the PLUMED library will be
+downloaded (the version of PLUMED that will be downloaded is
+hard-coded to a vetted version of PLUMED, usually a recent stable
+release version) and built inside the CMake build directory.  If
+<code class="docutils literal notranslate"><span class="pre">DOWNLOAD_PLUMED</span></code> is set to “no” (the default), CMake will try
+to detect and link to an installed version of PLUMED.  For this to
+work, the PLUMED library has to be installed into a location where
+the <code class="docutils literal notranslate"><span class="pre">pkg-config</span></code> tool can find it or the <code class="docutils literal notranslate"><span class="pre">PKG_CONFIG_PATH</span></code>
+environment variable has to be set up accordingly.  PLUMED should
+be installed in such a location if you compile it using the
+default make; make install commands.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">PLUMED_MODE</span></code> setting determines the linkage mode for the
+PLUMED library.  The allowed values for this flag are “static”
+(default), “shared”, or “runtime”.  If you want to switch the
+linkage mode, just re-run CMake with a different setting. For a
+discussion of PLUMED linkage modes, please see above.  When
+<code class="docutils literal notranslate"><span class="pre">DOWNLOAD_PLUMED</span></code> is enabled the static linkage mode is
+recommended.</p>
+</div><div aria-labelledby="tab-18-18-1" class="sphinx-tabs-panel" hidden="true" id="panel-18-18-1" name="18-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The PLUMED package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="h5md-package">
+<span id="h5md"></span><h2><span class="section-number">3.8.21. </span>H5MD package<a class="headerlink" href="#h5md-package" title="Link to this heading"></a></h2>
+<p>To build with this package you must have the HDF5 software package
+installed on your system, which should include the h5cc compiler and
+the HDF5 library.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-19-19-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-19-19-0" name="19-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-19-19-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-19-19-1" name="19-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-19-19-0" class="sphinx-tabs-panel" id="panel-19-19-0" name="19-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_H5MD=yes</span></code>.</p>
+<p>This should auto-detect the H5MD library on your system.  Several
+advanced CMake H5MD options exist if you need to specify where it
+is installed.  Use the ccmake (terminal window) or cmake-gui
+(graphical) tools to see these options and set them interactively
+from their user interfaces.</p>
+</div><div aria-labelledby="tab-19-19-1" class="sphinx-tabs-panel" hidden="true" id="panel-19-19-1" name="19-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The H5MD package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="ml-hdnnp-package">
+<span id="ml-hdnnp"></span><h2><span class="section-number">3.8.22. </span>ML-HDNNP package<a class="headerlink" href="#ml-hdnnp-package" title="Link to this heading"></a></h2>
+<p>To build with the ML-HDNNP package it is required to download and build the
+external <a class="reference external" href="https://github.com/CompPhysVienna/n2p2">n2p2</a> library <code class="docutils literal notranslate"><span class="pre">v2.1.4</span></code>
+(or higher). The LAMMPS build process offers an automatic download and
+compilation of <em>n2p2</em> or allows you to choose the installation directory of
+<em>n2p2</em> manually. Please see the boxes below for the CMake and traditional build
+system for detailed information.</p>
+<p>In case of a manual installation of <em>n2p2</em> you only need to build the <em>n2p2</em> core
+library <code class="docutils literal notranslate"><span class="pre">libnnp</span></code> and interface library <code class="docutils literal notranslate"><span class="pre">libnnpif</span></code>. When using GCC it should
+suffice to execute <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">libnnpif</span></code> in the <em>n2p2</em> <code class="docutils literal notranslate"><span class="pre">src</span></code> directory. For more
+details please see <code class="docutils literal notranslate"><span class="pre">lib/hdnnp/README</span></code> and the <a class="reference external" href="https://compphysvienna.github.io/n2p2/topics/build.html">n2p2 build documentation</a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-20-20-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-20-20-0" name="20-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-20-20-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-20-20-1" name="20-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-20-20-0" class="sphinx-tabs-panel" id="panel-20-20-0" name="20-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_N2P2</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># download n2p2 for build</span>
+<span class="w">                          </span><span class="c1"># value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">N2P2_DIR</span><span class="o">=</span>path<span class="w">          </span><span class="c1"># n2p2 base directory</span>
+<span class="w">                          </span><span class="c1"># (only needed if a custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_N2P2</span></code> is set, the <em>n2p2</em> library will be downloaded and
+built inside the CMake build directory.  If the <em>n2p2</em> library is already
+on your system (in a location CMake cannot find it), set the <code class="docutils literal notranslate"><span class="pre">N2P2_DIR</span></code>
+to path where <em>n2p2</em> is located. If <em>n2p2</em> is located directly in
+<code class="docutils literal notranslate"><span class="pre">lib/hdnnp/n2p2</span></code> it will be automatically found by CMake.</p>
+<div class="note admonition">
+<p class="admonition-title">Failure to build n2p2 due to git branch names</p>
+<p>Some script code inside the <em>n2p2</em> library build processes the
+current branch name used by git and that will fail for LAMMPS
+repository branch names containing the forward slash ‘/’
+character, for example: <code class="docutils literal notranslate"><span class="pre">user/update-n2p2</span></code>.  The workaround
+is to change the (local) branch name, e.g. for the given
+example with: <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">branch</span> <span class="pre">-m</span> <span class="pre">user/update-n2p2</span>
+<span class="pre">user_update-n2p2</span></code></p>
+</div>
+</div><div aria-labelledby="tab-20-20-1" class="sphinx-tabs-panel" hidden="true" id="panel-20-20-1" name="20-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The ML-HDNNP package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="ml-runner-package">
+<span id="ml-runner"></span><h2><span class="section-number">3.8.23. </span>ML-RUNNER package<a class="headerlink" href="#ml-runner-package" title="Link to this heading"></a></h2>
+<p>The ML-RUNNER package provides an interface to the
+<a class="reference external" href="https://www.theochem2.ruhr-uni-bochum.de/tc/software/runner.html.en">RuNNer</a>
+(Ruhr University Neural Network Energy Representation) library for
+high-dimensional neural network potentials (HDNNP).</p>
+<p><strong>Prerequisites</strong></p>
+<ul class="simple">
+<li><p><strong>Fortran Compiler:</strong> Since the RuNNer library is written in Fortran, a working Fortran compiler must be available on your system and detectable by CMake.</p></li>
+<li><p><strong>BLAS/LAPACK:</strong> RuNNer requires BLAS and LAPACK libraries for linear algebra operations.</p></li>
+<li><p><strong>FFT Library:</strong> RuNNer uses an FFT library for electrostatic calculations (3G/4G).
+It can use either MKL or FFTW3 and the choice is imported from the KSPACE package configuration.
+When using FFTW3 also FFTW3 threading (-DFFT_FFTW_THREADING=ON) needs to be enabled
+which is usually auto-detected.  These restrictions are needed so that LAMMPS and RuNNer
+use the same FFT library settings and link to the same library.  In both cases the
+Fortran 03 wrapper file <code class="docutils literal notranslate"><span class="pre">fftw3.f03</span></code> must be in the Fortran compiler include path.</p></li>
+</ul>
+<p><strong>Building RuNNer</strong></p>
+<p>By default, the LAMMPS build process automatically downloads and compiles the
+RuNNer library as a static library. Alternatively, you can point LAMMPS to a
+pre-compiled version already present on your system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-21-21-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-21-21-0" name="21-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-21-21-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-21-21-1" name="21-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-21-21-0" class="sphinx-tabs-panel" id="panel-21-21-0" name="21-0" role="tabpanel" tabindex="0"><p><strong>Basic Options:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span>PKG_ML-RUNNER<span class="o">=</span>yes<span class="w">       </span><span class="c1"># yes (default): Download and build RuNNer automatically.</span>
+-D<span class="w"> </span><span class="nv">DOWNLOAD_RUNNER</span><span class="o">=</span>yes<span class="w">     </span><span class="c1"># yes (default): clone the stable version of the official RuNNer repo.</span>
+<span class="w">                           </span><span class="c1"># no: Use a pre-compiled RuNNer library.</span>
+-D<span class="w"> </span><span class="nv">RUNNER_SHARED_LIB</span><span class="o">=</span>yes<span class="w">    </span><span class="c1"># no: (default): Look for static library (.a).</span>
+<span class="w">                            </span><span class="c1"># yes: Look for shared library (.so).</span>
+</pre></div>
+</div>
+<p><strong>Manual Library Configuration (if DOWNLOAD_RUNNER=no):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">RUNNER_LIB_DIR</span><span class="o">=</span>path<span class="w">      </span><span class="c1"># Directory containing the RuNNer library.</span>
+<span class="w">                            </span><span class="c1"># (default: $HOME/.local/lib)</span>
+-D<span class="w"> </span><span class="nv">RUNNER_LIB_NAME</span><span class="o">=</span>name<span class="w">     </span><span class="c1"># Filename of the library (without extension).</span>
+<span class="w">                            </span><span class="c1"># (default: libRuNNer_mpi)</span>
+</pre></div>
+</div>
+<p><strong>FFT Library Selection:</strong></p>
+<p>The build system uses the FFT selection from the KSPACE package.
+Only MKL and FFTW3 are currently supported</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">FFT</span><span class="o">=</span>value<span class="w">                </span><span class="c1"># FFTW3 or MKL</span>
+-D<span class="w"> </span><span class="nv">FFT_MKL_THREADS</span><span class="o">=</span>yes<span class="w">      </span><span class="c1"># required with MKL (default)</span>
+-D<span class="w"> </span><span class="nv">FFT_FFTW_THREADS</span><span class="o">=</span>yes<span class="w">     </span><span class="c1"># required with FFTW3 (default)</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-21-21-1" class="sphinx-tabs-panel" hidden="true" id="panel-21-21-1" name="21-1" role="tabpanel" tabindex="0"><p>The ML-RUNNER package does not support the traditional make build system.
+You must build LAMMPS with CMake.</p>
+</div></div>
+<p><strong>Detailed Option Table</strong></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 25.0%" />
+<col style="width: 50.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Description</p></th>
+<th class="head"><p>Default</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">DOWNLOAD_RUNNER</span></code></p></td>
+<td><p>Download and build RuNNer from source</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RUNNER_LIB_DIR</span></code></p></td>
+<td><p>Path to a pre-installed RuNNer library</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">$HOME/.local/lib</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RUNNER_LIB_NAME</span></code></p></td>
+<td><p>Name of the RuNNer library file without extension</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">libRuNNer_mpi</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">RUNNER_SHARED_LIB</span></code></p></td>
+<td><p>Link against a shared RuNNer library</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FFT</span></code></p></td>
+<td><p>FFT library to use (FFTW3 or MKL)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">auto-detected</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">FFT_MKL_THREADS</span></code></p></td>
+<td><p>Use multi-threaded MKL FFT</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">FFT_FFTW_THREADS</span></code></p></td>
+<td><p>Use multi-threaded FFTW</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">yes</span></code></p></td>
+</tr>
+</tbody>
+</table>
+<hr class="docutils" />
+</section>
+<section id="intel-package">
+<span id="intel"></span><h2><span class="section-number">3.8.24. </span>INTEL package<a class="headerlink" href="#intel-package" title="Link to this heading"></a></h2>
+<p>This package optimizes styles for x86 CPUs.  You should
+also typically <a class="reference internal" href="#openmp"><span class="std std-ref">install the OPENMP package</span></a>, as it can be
+used in tandem with the INTEL package to good effect, as explained
+on the <a class="reference internal" href="Speed_intel.html"><span class="doc">INTEL package</span></a> page.</p>
+<p>When using Intel compilers version 16.0 or later is required.  You can
+also use the GNU or Clang compilers and they will provide performance
+improvements over regular styles and OPENMP styles, but less so than
+with the Intel compilers.  Please also note, that some compilers have
+been found to apply memory alignment constraints incompletely or
+incorrectly and thus can cause segmentation faults in otherwise correct
+code when using features from the INTEL package.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-22-22-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-22-22-0" name="22-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-22-22-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-22-22-1" name="22-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-22-22-0" class="sphinx-tabs-panel" id="panel-22-22-0" name="22-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">INTEL_LRT_MODE</span><span class="o">=</span>value<span class="w"> </span><span class="c1"># value = threads, none, or c++17</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-22-22-1" class="sphinx-tabs-panel" hidden="true" id="panel-22-22-1" name="22-1" role="tabpanel" tabindex="0"><p>Choose compiler flags in Makefile.machine via the following
+settings.  See <code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.intel_cpu*</span></code> files for
+examples and <code class="docutils literal notranslate"><span class="pre">src/INTEL/README</span></code> for additional information.</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">OPTFLAGS</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-xHost<span class="w"> </span>-O2<span class="w"> </span>-fp-model<span class="w"> </span><span class="nv">fast</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>-no-prec-div<span class="w"> </span>-qoverride-limits<span class="w"> </span>-qopt-zmm-usage<span class="o">=</span>high
+<span class="nv">CCFLAGS</span><span class="w"> </span><span class="o">=</span><span class="w">   </span>-g<span class="w"> </span>-qopenmp<span class="w"> </span>-DLAMMPS_MEMALIGN<span class="o">=</span><span class="m">64</span><span class="w"> </span>-fno-alias<span class="w"> </span>-ansi-alias<span class="w"> </span>-restrict<span class="w"> </span><span class="k">$(</span>OPTFLAGS<span class="k">)</span>
+<span class="nv">LINKFLAGS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-g<span class="w"> </span>-qopenmp<span class="w"> </span><span class="k">$(</span>OPTFLAGS<span class="k">)</span>
+<span class="nv">LIB</span><span class="w"> </span><span class="o">=</span><span class="w">       </span>-ltbbmalloc
+</pre></div>
+</div>
+</div></div>
+<p>In Long-range thread mode (LRT) a modified verlet style is used, that
+operates the Kspace calculation in a separate thread concurrently to
+other calculations. This has to be enabled in the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command at runtime. With the setting “threads” it used the
+pthreads library, while “c++17” will use the built-in thread support
+of C++17 compilers. The option “none” skips compilation of this
+feature. The default is to use “threads” if pthreads is available and
+otherwise “none”.</p>
+<p>Best performance is achieved with Intel hardware, Intel compilers, as
+well as the Intel TBB and MKL libraries. However, the code also
+compiles, links, and runs with other compilers / hardware and without
+TBB and MKL.</p>
+<hr class="docutils" />
+</section>
+<section id="mdi-package">
+<span id="mdi"></span><h2><span class="section-number">3.8.25. </span>MDI package<a class="headerlink" href="#mdi-package" title="Link to this heading"></a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-23-23-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-23-23-0" name="23-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-23-23-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-23-23-1" name="23-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-23-23-0" class="sphinx-tabs-panel" id="panel-23-23-0" name="23-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_MDI</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># download MDI Library for build</span>
+<span class="w">                         </span><span class="c1"># value = no (default) or yes</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-23-23-1" class="sphinx-tabs-panel" hidden="true" id="panel-23-23-1" name="23-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The MDI package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="misc-package">
+<span id="misc"></span><h2><span class="section-number">3.8.26. </span>MISC package<a class="headerlink" href="#misc-package" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="fix_imd.html"><span class="doc">fix imd</span></a> style in this package can be run either
+synchronously (communication with IMD clients is done in the main
+process) or asynchronously (the fix spawns a separate thread that can
+communicate with IMD clients concurrently to the LAMMPS execution).</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-24-24-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-24-24-0" name="24-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-24-24-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-24-24-1" name="24-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-24-24-0" class="sphinx-tabs-panel" id="panel-24-24-0" name="24-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">LAMMPS_ASYNC_IMD</span><span class="o">=</span>value<span class="w">  </span><span class="c1"># Run IMD server asynchronously</span>
+<span class="w">                           </span><span class="c1"># value = no (default) or yes</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-24-24-1" class="sphinx-tabs-panel" hidden="true" id="panel-24-24-1" name="24-1" role="tabpanel" tabindex="0"><p>To enable asynchronous mode the <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_ASYNC_IMD</span></code> define
+needs to be added to the <code class="docutils literal notranslate"><span class="pre">LMP_INC</span></code> variable in the
+<code class="docutils literal notranslate"><span class="pre">Makefile.machine</span></code> you are using.  For example:</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_ASYNC_IMD<span class="w"> </span>-DLAMMPS_MEMALIGN<span class="o">=</span><span class="m">64</span>
+</pre></div>
+</div>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="molfile-package">
+<span id="molfile"></span><h2><span class="section-number">3.8.27. </span>MOLFILE package<a class="headerlink" href="#molfile-package" title="Link to this heading"></a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-25-25-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-25-25-0" name="25-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-25-25-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-25-25-1" name="25-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-25-25-0" class="sphinx-tabs-panel" id="panel-25-25-0" name="25-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">MOLFILE_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">   </span><span class="c1"># (optional) path where VMD molfile</span>
+<span class="w">                              </span><span class="c1"># plugin headers are installed</span>
+-D<span class="w"> </span><span class="nv">PKG_MOLFILE</span><span class="o">=</span>yes
+</pre></div>
+</div>
+<p>Using <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_MOLFILE=yes</span></code> enables the package, and setting
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">MOLFILE_INCLUDE_DIR</span></code> allows to provide a custom location for
+the molfile plugin header files. These should match the ABI of the
+plugin files used, and thus one typically sets them to include
+folder of the local VMD installation in use. LAMMPS ships with a
+couple of default header files that correspond to a popular VMD
+version, usually the latest release.</p>
+</div><div aria-labelledby="tab-25-25-1" class="sphinx-tabs-panel" hidden="true" id="panel-25-25-1" name="25-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The MOLFILE package no longer supports the traditional make
+build.  You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="netcdf-package">
+<span id="netcdf"></span><h2><span class="section-number">3.8.28. </span>NETCDF package<a class="headerlink" href="#netcdf-package" title="Link to this heading"></a></h2>
+<p>To build with this package you must have the NetCDF library installed
+on your system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-26-26-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-26-26-0" name="26-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-26-26-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-26-26-1" name="26-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-26-26-0" class="sphinx-tabs-panel" id="panel-26-26-0" name="26-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_NETCDF=yes</span></code>.</p>
+<p>This should auto-detect the NETCDF library if it is installed on
+your system at standard locations.  Several advanced CMake NETCDF
+options exist if you need to specify where it was installed.  Use
+the <code class="docutils literal notranslate"><span class="pre">ccmake</span></code> (terminal window) or <code class="docutils literal notranslate"><span class="pre">cmake-gui</span></code> (graphical)
+tools to see these options and set them interactively from their
+user interfaces.</p>
+</div><div aria-labelledby="tab-26-26-1" class="sphinx-tabs-panel" hidden="true" id="panel-26-26-1" name="26-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The NETCDF package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="openmp-package">
+<span id="openmp"></span><h2><span class="section-number">3.8.29. </span>OPENMP package<a class="headerlink" href="#openmp-package" title="Link to this heading"></a></h2>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-27-27-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-27-27-0" name="27-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-27-27-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-27-27-1" name="27-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-27-27-0" class="sphinx-tabs-panel" id="panel-27-27-0" name="27-0" role="tabpanel" tabindex="0"><p>No additional settings are required besides <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">PKG_OPENMP=yes</span></code>.  If CMake detects OpenMP compiler support, the
+OPENMP code will be compiled with multi-threading support
+enabled, otherwise as optimized serial code.</p>
+</div><div aria-labelledby="tab-27-27-1" class="sphinx-tabs-panel" hidden="true" id="panel-27-27-1" name="27-1" role="tabpanel" tabindex="0"><p>To enable multi-threading support in the OPENMP package (and
+other styles supporting OpenMP) the following compile and link
+flags must be added to your Makefile.machine file.  See
+<code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.omp</span></code> for an example.</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CCFLAGS: -fopenmp               # for GNU and Clang Compilers
+CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
+LINKFLAGS: -fopenmp             # for GNU and Clang Compilers
+LINKFLAGS: -qopenmp             # for Intel compilers on Linux
+</pre></div>
+</div>
+<p>For other platforms and compilers, please consult the
+documentation about OpenMP support for your compiler.</p>
+</div></div>
+<div class="note admonition">
+<p class="admonition-title">Adding OpenMP support on macOS</p>
+<p>Apple offers the <a class="reference external" href="https://developer.apple.com/xcode/">Xcode package and IDE</a> for compiling software on
+macOS, so you have likely installed it to compile LAMMPS.  Their
+compiler is based on <a class="reference external" href="https://clang.llvm.org/">Clang</a>, but while it
+is capable of processing OpenMP directives, the necessary header
+files and OpenMP runtime library are missing.  The <a class="reference external" href="https://www.r-project.org/">R developers</a> have figured out a way to build those
+in a compatible fashion. One can download them from
+<a class="reference external" href="https://mac.r-project.org/openmp/">https://mac.r-project.org/openmp/</a>.  Simply adding those files as
+instructed enables the Xcode C++ compiler to compile LAMMPS with <code class="docutils literal notranslate"><span class="pre">-D</span>
+<span class="pre">BUILD_OMP=yes</span></code>.</p>
+</div>
+<hr class="docutils" />
+</section>
+<section id="qmmm-package">
+<span id="qmmm"></span><h2><span class="section-number">3.8.30. </span>QMMM package<a class="headerlink" href="#qmmm-package" title="Link to this heading"></a></h2>
+<p>For using LAMMPS to do QM/MM simulations via the QMMM package you
+need to build LAMMPS as a library.  A LAMMPS executable with <a class="reference internal" href="fix_qmmm.html"><span class="doc">fix
+qmmm</span></a> included can be built, but will not be able to do a
+QM/MM simulation on as such.  You must also build a QM code - currently
+only Quantum ESPRESSO (QE) is supported - and create a new executable
+which links LAMMPS and the QM code together.  Details are given in the
+<code class="docutils literal notranslate"><span class="pre">lib/qmmm/README</span></code> file.  It is also recommended to read the
+instructions for <a class="reference internal" href="Build_link.html"><span class="doc">linking with LAMMPS as a library</span></a>
+for background information.  This requires compatible Quantum Espresso
+and LAMMPS versions.  The current interface and makefiles have last been
+verified to work in February 2020 with Quantum Espresso versions 6.3 to
+6.5.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-28-28-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-28-28-0" name="28-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-28-28-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-28-28-1" name="28-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-28-28-0" class="sphinx-tabs-panel" id="panel-28-28-0" name="28-0" role="tabpanel" tabindex="0"><p>When using CMake, building a LAMMPS library is required and it is
+recommended to build a shared library, since any libraries built
+from the sources in the <em>lib</em> folder (including the essential
+libqmmm.a) are not included in the static LAMMPS library and are
+(currently) not installed, while their code is included in the
+shared LAMMPS library.  Thus a typical command to configure
+building LAMMPS for QMMM would be:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>-C<span class="w"> </span>../cmake/presets/basic.cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">PKG_QMMM</span><span class="o">=</span>yes<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-D<span class="w"> </span><span class="nv">BUILD_LIB</span><span class="o">=</span>yes<span class="w"> </span>-DBUILD_SHARED_LIBS<span class="o">=</span>yes<span class="w"> </span>../cmake
+</pre></div>
+</div>
+<p>After completing the LAMMPS build and also configuring and
+compiling Quantum ESPRESSO with external library support (via
+“make couple”), go back to the <code class="docutils literal notranslate"><span class="pre">lib/qmmm</span></code> folder and follow the
+instructions on the README file to build the combined LAMMPS/QE
+QM/MM executable (pwqmmm.x) in the <code class="docutils literal notranslate"><span class="pre">lib/qmmm</span></code> folder.</p>
+</div><div aria-labelledby="tab-28-28-1" class="sphinx-tabs-panel" hidden="true" id="panel-28-28-1" name="28-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The QMMM package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="rheo-package">
+<span id="rheo"></span><h2><span class="section-number">3.8.31. </span>RHEO package<a class="headerlink" href="#rheo-package" title="Link to this heading"></a></h2>
+<p>This package depends on the BPM package.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-29-29-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-29-29-0" name="29-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-29-29-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-29-29-1" name="29-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-29-29-0" class="sphinx-tabs-panel" id="panel-29-29-0" name="29-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">PKG_RHEO</span><span class="o">=</span>yes<span class="w">               </span><span class="c1"># enable the package itself</span>
+-D<span class="w"> </span><span class="nv">PKG_BPM</span><span class="o">=</span>yes<span class="w">                </span><span class="c1"># the RHEO package requires BPM</span>
+-D<span class="w"> </span><span class="nv">USE_INTERNAL_LINALG</span><span class="o">=</span>value<span class="w">  </span><span class="c1"># prefer internal LAPACK if true</span>
+</pre></div>
+</div>
+<p>Some features in the RHEO package are dependent on code in the BPM
+package so the latter one <em>must</em> be enabled as well.</p>
+<p>The RHEO package also requires LAPACK (and BLAS) and CMake
+can identify their locations and pass that info to the RHEO
+build script.  But on some systems this may cause problems when
+linking or the dependency is not desired.  By using the setting
+<code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">USE_INTERNAL_LINALG=yes</span></code> when running the CMake
+configuration, you will select compiling and linking the bundled
+linear algebra library and work around the limitations.</p>
+</div><div aria-labelledby="tab-29-29-1" class="sphinx-tabs-panel" hidden="true" id="panel-29-29-1" name="29-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The RHEO package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="scafacos-package">
+<span id="scafacos"></span><h2><span class="section-number">3.8.32. </span>SCAFACOS package<a class="headerlink" href="#scafacos-package" title="Link to this heading"></a></h2>
+<p>To build with this package, you must download and build the
+<a class="reference external" href="http://www.scafacos.de/">ScaFaCoS Coulomb solver library</a></p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-30-30-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-30-30-0" name="30-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-30-30-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-30-30-1" name="30-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-30-30-0" class="sphinx-tabs-panel" id="panel-30-30-0" name="30-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">DOWNLOAD_SCAFACOS</span><span class="o">=</span>value<span class="w">    </span><span class="c1"># download ScaFaCoS for build, value = no (default) or yes</span>
+-D<span class="w"> </span><span class="nv">SCAFACOS_LIBRARY</span><span class="o">=</span>path<span class="w">      </span><span class="c1"># ScaFaCos library file (only needed if at custom location)</span>
+-D<span class="w"> </span><span class="nv">SCAFACOS_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">  </span><span class="c1"># ScaFaCoS include directory (only needed if at custom location)</span>
+</pre></div>
+</div>
+<p>If <code class="docutils literal notranslate"><span class="pre">DOWNLOAD_SCAFACOS</span></code> is set, the ScaFaCoS library will be
+downloaded and built inside the CMake build directory.  If the
+ScaFaCoS library is already on your system (in a location CMake
+cannot find it), <code class="docutils literal notranslate"><span class="pre">SCAFACOS_LIBRARY</span></code> is the filename (plus path) of
+the ScaFaCoS library file, not the directory the library file is
+in.  <code class="docutils literal notranslate"><span class="pre">SCAFACOS_INCLUDE_DIR</span></code> is the directory the ScaFaCoS include
+file is in.</p>
+</div><div aria-labelledby="tab-30-30-1" class="sphinx-tabs-panel" hidden="true" id="panel-30-30-1" name="30-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The SCAFACOS package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="vtk-package">
+<span id="vtk"></span><h2><span class="section-number">3.8.33. </span>VTK package<a class="headerlink" href="#vtk-package" title="Link to this heading"></a></h2>
+<p>To build with this package you must have the VTK library installed on
+your system.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-31-31-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-31-31-0" name="31-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-31-31-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-31-31-1" name="31-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-31-31-0" class="sphinx-tabs-panel" id="panel-31-31-0" name="31-0" role="tabpanel" tabindex="0"><p>No additional settings are needed besides <code class="docutils literal notranslate"><span class="pre">-D</span> <span class="pre">PKG_VTK=yes</span></code>.</p>
+<p>This should auto-detect the VTK library if it is installed on your
+system at standard locations.  Several advanced VTK options exist
+if you need to specify where it was installed.  Use the <code class="docutils literal notranslate"><span class="pre">ccmake</span></code>
+(terminal window) or <code class="docutils literal notranslate"><span class="pre">cmake-gui</span></code> (graphical) tools to see these
+options and set them interactively from their user interfaces.</p>
+</div><div aria-labelledby="tab-31-31-1" class="sphinx-tabs-panel" hidden="true" id="panel-31-31-1" name="31-1" role="tabpanel" tabindex="0"><div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>The VTK package no longer supports the traditional make build.
+You need to build LAMMPS with CMake.</p>
+</div></div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Build_package.html" class="btn btn-neutral float-left" title="3.7. Include packages in build" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_manual.html" class="btn btn-neutral float-right" title="3.9. Build the LAMMPS documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

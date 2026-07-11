@@ -1,0 +1,40 @@
+# Created 2010-11-28
+
+# General parameters
+
+variable	sname index CH4fc.ang
+
+units		real
+newton		on
+boundary	p p p
+
+atom_style      electron
+
+read_data       data.${sname}
+
+pair_style      eff/cut 1000.0 limit/eradius pressure/evirials
+pair_coeff      * *
+
+compute         energies all pair eff/cut
+variable        eke equal c_energies[1]
+variable        epauli equal c_energies[2]
+variable        estatics equal c_energies[3]
+variable        errestrain equal c_energies[4]
+
+comm_modify	vel yes
+timestep 0.0001
+
+compute         peratom all stress/atom NULL
+compute         p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable        press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+compute         effTemp all temp/eff
+compute         effPress all pressure effTemp
+
+thermo          10
+thermo_style    custom step etotal pe ke v_eke v_epauli v_estatics v_errestrain temp press v_press 
+thermo_modify   temp effTemp press effPress
+
+run	0
+
+

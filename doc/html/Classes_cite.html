@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.13.4. Citation management for contributed features &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Classes_cite.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.14. Platform abstraction functions" href="Developer_platform.html" />
+    <link rel="prev" title="4.13.3. LAMMPS Input Base Class" href="Classes_input.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Classes_lammps.html">4.13.1. LAMMPS Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Classes_atom.html">4.13.2. LAMMPS Atom and AtomVec Base Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Classes_input.html">4.13.3. LAMMPS Input Base Class</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.13.4. Citation management for contributed features</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Classes.html"><span class="section-number">4.13. </span>C++ base classes</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.13.4. </span>Citation management for contributed features</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Classes_input.html" class="btn btn-neutral float-left" title="4.13.3. LAMMPS Input Base Class" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_platform.html" class="btn btn-neutral float-right" title="4.14. Platform abstraction functions" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="citation-management-for-contributed-features">
+<h1><span class="section-number">4.13.4. </span>Citation management for contributed features<a class="headerlink" href="#citation-management-for-contributed-features" title="Link to this heading"></a></h1>
+<p>LAMMPS provides a built-in mechanism to remind users to cite publications
+that describe the implementation of contributed features. This is
+implemented through the <a class="reference internal" href="#_CPPv4N9LAMMPS_NS6CiteMeE" title="LAMMPS_NS::CiteMe"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">CiteMe</span></code></a> class.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>When users use specific features in LAMMPS, a citation reminder
+can be configured in the contributed source code to remind users
+which publications they should cite.
+Citations are output in three ways:</p>
+<ul class="simple">
+<li><p>To the screen (with configurable verbosity)</p></li>
+<li><p>To the log file (with configurable verbosity)</p></li>
+<li><p>To an optional BibTeX file for easy integration with bibliography managers</p></li>
+</ul>
+<p>The system automatically deduplicates citations, so each publication is
+listed only once even if multiple features reference it or they are used
+multiple times.</p>
+</section>
+<section id="adding-a-citation-reminder-to-contributed-code">
+<h2>Adding a citation reminder to contributed code<a class="headerlink" href="#adding-a-citation-reminder-to-contributed-code" title="Link to this heading"></a></h2>
+<p>If you are contributing a new feature to LAMMPS you can add a reminder
+for citing a publication describing the implementation of that feature.
+This is a simple two-step process:</p>
+<p><strong>Step 1: Define the citation string</strong></p>
+<p>At the top of your implementation file (typically a <code class="docutils literal notranslate"><span class="pre">.cpp</span></code> file),
+define a static string containing the citation in BibTeX format. The
+string should start with a single line description including a DOI URL,
+followed by a complete BibTeX entry. Example:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="n">cite_my_feature</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span>
+<span class="w">  </span><span class="s">&quot;my_feature command: https://doi.org/10.1234/example.doi</span><span class="se">\n\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot;@Article{AuthorYear,</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot; author = {First Author and Second Author},</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot; title = {Title of the Paper},</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot; journal = {Journal Name},</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot; year = 2024,</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot; volume = 100,</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot; pages = {1-10}</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">  </span><span class="s">&quot;}</span><span class="se">\n\n</span><span class="s">&quot;</span><span class="p">;</span>
+</pre></div>
+</div>
+<p><strong>Step 2: Register the citation</strong></p>
+<p>In your style’s constructor, add a call to register the citation. Always
+check that the <code class="docutils literal notranslate"><span class="pre">citeme</span></code> pointer instance in the LAMMPS is available
+before calling, since the pointer will be NULL when citation tracking is
+disabled via a command line option:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">MyStyle</span><span class="o">::</span><span class="n">MyStyle</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">)</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">Parent</span><span class="p">(</span><span class="n">lmp</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">lmp</span><span class="o">-&gt;</span><span class="n">citeme</span><span class="p">)</span><span class="w"> </span><span class="n">lmp</span><span class="o">-&gt;</span><span class="n">citeme</span><span class="o">-&gt;</span><span class="n">add</span><span class="p">(</span><span class="n">cite_my_feature</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// ... rest of constructor code</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p><strong>Output:</strong></p>
+<p>The example from above will produce by default the following output:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- my_feature command: https://doi.org/10.1234/example.doi
+
+The file log.cite lists these citations in BibTeX format.
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+</pre></div>
+</div>
+</section>
+<section id="implementation-details">
+<h2>Implementation details<a class="headerlink" href="#implementation-details" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="#_CPPv4N9LAMMPS_NS6CiteMeE" title="LAMMPS_NS::CiteMe"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">CiteMe</span></code></a> class uses hash-based
+deduplication to ensure each citation is shown only once, even if multiple
+features in a simulation reference the same publication.  Only MPI rank 0
+performs citation output to avoid flooding the output in parallel runs.</p>
+<p>Citations added with <a class="reference internal" href="#_CPPv4N9LAMMPS_NS6CiteMe3addERKNSt6stringE" title="LAMMPS_NS::CiteMe::add"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">CiteMe::add()</span></code></a> are:</p>
+<ol class="arabic simple">
+<li><p>Written immediately to the BibTeX file (if enabled)</p></li>
+<li><p>Buffered for screen and log file output</p></li>
+<li><p>Flushed to screen and log file at appropriate times (typically at the
+end of the run or when LAMMPS has reached the end of the input file).</p></li>
+</ol>
+<p>For the complete API documentation see the class reference below:</p>
+<hr class="docutils" />
+<dl class="cpp class">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS6CiteMeE">
+<span id="_CPPv3N9LAMMPS_NS6CiteMeE"></span><span id="_CPPv2N9LAMMPS_NS6CiteMeE"></span><span id="LAMMPS_NS::CiteMe"></span><span class="target" id="classLAMMPS__NS_1_1CiteMe"></span><span class="k"><span class="pre">class</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">CiteMe</span></span></span><span class="w"> </span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="k"><span class="pre">protected</span></span><span class="w"> </span><a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS8PointersE" title="LAMMPS_NS::Pointers"><span class="n"><span class="pre">Pointers</span></span></a><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6CiteMeE" title="Link to this definition"></a><br /></dt>
+<dd><p>The <a class="reference internal" href="#classLAMMPS__NS_1_1CiteMe"><span class="std std-ref">CiteMe</span></a> class provides a mechanism for <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> to remind users to cite relevant publications when they use specific contributed features. This ensures proper attribution for the scientific work underlying <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> implementations. </p>
+<div class="breathe-sectiondef docutils container">
+<p class="breathe-sectiondef-title rubric" id="breathe-section-title-public-functions">Public Functions</p>
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS6CiteMe6CiteMeEP6LAMMPSiiPKc">
+<span id="_CPPv3N9LAMMPS_NS6CiteMe6CiteMeEP6LAMMPSiiPKc"></span><span id="_CPPv2N9LAMMPS_NS6CiteMe6CiteMeEP6LAMMPSiiPKc"></span><span id="LAMMPS_NS::CiteMe::CiteMe__LAMMPSP.i.i.cCP"></span><span class="target" id="classLAMMPS__NS_1_1CiteMe_1a97b055eafaac0cf413e1308ba26826c3"></span><span class="sig-name descname"><span class="n"><span class="pre">CiteMe</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">class</span></span><span class="w"> </span><a class="reference internal" href="Classes_lammps.html#_CPPv4N9LAMMPS_NS6LAMMPSE" title="LAMMPS_NS::LAMMPS"><span class="n"><span class="pre">LAMMPS</span></span></a><span class="p"><span class="pre">*</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="kt"><span class="pre">int</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="p"><span class="pre">*</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6CiteMe6CiteMeEP6LAMMPSiiPKc" title="Link to this definition"></a><br /></dt>
+<dd><p>Constructor for <a class="reference internal" href="#classLAMMPS__NS_1_1CiteMe"><span class="std std-ref">CiteMe</span></a> class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lmp</strong> – Pointer to the main <a class="reference internal" href="Classes_lammps.html#classLAMMPS__NS_1_1LAMMPS"><span class="std std-ref">LAMMPS</span></a> object </p></li>
+<li><p><strong>_screen</strong> – Output mode for screen (VERBOSE or TERSE) </p></li>
+<li><p><strong>_logfile</strong> – Output mode for log file (VERBOSE or TERSE) </p></li>
+<li><p><strong>_file</strong> – Optional filename for BibTeX citation output file (can be NULL) </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS6CiteMeD0Ev">
+<span id="_CPPv3N9LAMMPS_NS6CiteMeD0Ev"></span><span id="_CPPv2N9LAMMPS_NS6CiteMeD0Ev"></span><span id="LAMMPS_NS::CiteMe::~CiteMe"></span><span class="target" id="classLAMMPS__NS_1_1CiteMe_1a7bde7a250ae909d2b26cfb5b18fbffa0"></span><span class="sig-name descname"><span class="n"><span class="pre">~CiteMe</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><span class="w"> </span><span class="k"><span class="pre">override</span></span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6CiteMeD0Ev" title="Link to this definition"></a><br /></dt>
+<dd><p>Destructor flushes any remaining citations </p>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS6CiteMe3addERKNSt6stringE">
+<span id="_CPPv3N9LAMMPS_NS6CiteMe3addERKNSt6stringE"></span><span id="_CPPv2N9LAMMPS_NS6CiteMe3addERKNSt6stringE"></span><span id="LAMMPS_NS::CiteMe::add__ssCR"></span><span class="target" id="classLAMMPS__NS_1_1CiteMe_1a19fb5c08b5d5922eb2bc6004a07b04c6"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">add</span></span></span><span class="sig-paren">(</span><span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="n"><span class="pre">std</span></span><span class="p"><span class="pre">::</span></span><span class="n"><span class="pre">string</span></span><span class="w"> </span><span class="p"><span class="pre">&amp;</span></span><span class="n sig-param"><span class="pre">reference</span></span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6CiteMe3addERKNSt6stringE" title="Link to this definition"></a><br /></dt>
+<dd><p>Register a publication for citation output</p>
+<p><p>Adds a citation to the set of publications to be cited.  Each citation
+should contain a BibTeX entry and is output only once, even if add()
+is called multiple times with the same citation.  The citation string
+should start with a brief description including a DOI,  followed by a
+complete BibTeX entry.</p>
+<p>This method should typically be called in the constructor of a style
+that implements a published method or algorithm.</p>
+</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reference</strong> – String containing the citation in BibTeX format with DOI header </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="cpp function">
+<dt class="sig sig-object cpp" id="_CPPv4N9LAMMPS_NS6CiteMe5flushEv">
+<span id="_CPPv3N9LAMMPS_NS6CiteMe5flushEv"></span><span id="_CPPv2N9LAMMPS_NS6CiteMe5flushEv"></span><span id="LAMMPS_NS::CiteMe::flush"></span><span class="target" id="classLAMMPS__NS_1_1CiteMe_1adac116554b543b7c4228c018a85882f5"></span><span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">flush</span></span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#_CPPv4N9LAMMPS_NS6CiteMe5flushEv" title="Link to this definition"></a><br /></dt>
+<dd><p>Flush accumulated citation buffers to screen and log file</p>
+<p>Outputs all pending citations to the screen and log file with appropriate
+formatting.  Called automatically by the destructor when LAMMPS terminates
+or is reset by the <a class="reference internal" href="clear.html"><span class="doc">clear</span></a> command and at the end of a
+<a class="reference internal" href="run.html"><span class="doc">run</span></a> or <a class="reference internal" href="minimize.html"><span class="doc">minimize</span></a> command.</p>
+</dd></dl>
+
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Classes_input.html" class="btn btn-neutral float-left" title="4.13.3. LAMMPS Input Base Class" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_platform.html" class="btn btn-neutral float-right" title="4.14. Platform abstraction functions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,258 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.1. Basics of running LAMMPS &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Run_basics.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.2. Command-line options" href="Run_options.html" />
+    <link rel="prev" title="4. Run LAMMPS" href="Run_head.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.1. Basics of running LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_options.html">4.2. Command-line options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html">4.3. Screen and logfile output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_output.html#error-message-output">4.4. Error message output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_formats.html">4.5. File formats used by LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Run_windows.html">4.6. Running LAMMPS on Windows</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Run_head.html"><span class="section-number">4. </span>Run LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.1. </span>Basics of running LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Run_head.html" class="btn btn-neutral float-left" title="4. Run LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_options.html" class="btn btn-neutral float-right" title="4.2. Command-line options" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="basics-of-running-lammps">
+<h1><span class="section-number">4.1. </span>Basics of running LAMMPS<a class="headerlink" href="#basics-of-running-lammps" title="Link to this heading"></a></h1>
+<p>LAMMPS is run from the command-line, reading commands from a file via
+the <code class="docutils literal notranslate"><span class="pre">-in</span></code> command-line flag, or from standard input.  Using the <code class="docutils literal notranslate"><span class="pre">-in</span>
+<span class="pre">in.file</span></code> variant is recommended (see note below).  The name of the
+LAMMPS executable is either <code class="docutils literal notranslate"><span class="pre">lmp</span></code> or <code class="docutils literal notranslate"><span class="pre">lmp_&lt;machine&gt;</span></code> with
+<cite>&lt;machine&gt;</cite> being the machine string used when compiling LAMMPS.  This
+is required when compiling LAMMPS with the traditional build system
+(e.g. with <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">mpi</span></code>), but optional when using CMake to configure and
+build LAMMPS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>lmp_serial<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.file
+lmp_serial<span class="w"> </span>&lt;<span class="w"> </span><span class="k">in</span>.file
+lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.file
+lmp<span class="w"> </span>&lt;<span class="w"> </span><span class="k">in</span>.file
+/path/to/lammps/src/lmp_serial<span class="w"> </span>-i<span class="w"> </span><span class="k">in</span>.file
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp_mpi<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.file
+mpiexec<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.file
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">8</span><span class="w"> </span>/path/to/lammps/src/lmp_mpi<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.file
+mpiexec<span class="w"> </span>-n<span class="w"> </span><span class="m">6</span><span class="w"> </span>/usr/local/bin/lmp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.file
+</pre></div>
+</div>
+<p>You normally run the LAMMPS command in the directory where your input
+script is located.  That is also where output files are produced by
+default, unless you provide specific other paths in your input script or
+on the command-line.  As in some of the examples above, the LAMMPS
+executable itself can be placed elsewhere.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The redirection operator “&lt;” will not always work when running in
+parallel with <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> or <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code>; for those systems the -in
+form is required.</p>
+</div>
+<p>As LAMMPS runs it prints info to the screen and a logfile named
+<code class="docutils literal notranslate"><span class="pre">log.lammps</span></code>.  More info about output is given on the <a class="reference internal" href="Run_output.html"><span class="doc">screen and
+logfile output</span></a> page.</p>
+<p>If LAMMPS encounters errors in the input script or while running a
+simulation it will print an ERROR message and stop or a WARNING
+message and continue.  See the <a class="reference internal" href="Errors.html"><span class="doc">Common Problems</span></a> page for a
+discussion of the various kinds of errors LAMMPS can or can’t detect,
+a list of all ERROR and WARNING messages, and what to do about them.</p>
+<hr class="docutils" />
+<p>LAMMPS can run the same problem on any number of processors, including a
+single processor.  In theory you should get identical answers on any
+number of processors and on any machine.  In practice, numerical
+round-off due to using floating-point math can cause slight differences
+and an eventual divergence of molecular dynamics trajectories.  See the
+<a class="reference internal" href="Errors_common.html"><span class="doc">Errors common</span></a> page for discussion of this.</p>
+<p>LAMMPS can run as large a problem as will fit in the physical memory of
+one or more processors.  If you run out of memory, you must run on more
+processors or define a smaller problem.  The amount of memory needed and
+how well it can be distributed across processors may vary based
+on the models and settings and commands used.</p>
+<p>If you run LAMMPS in parallel via mpirun, you should be aware of the
+<a class="reference internal" href="processors.html"><span class="doc">processors</span></a> command, which controls how MPI tasks are
+mapped to the simulation box, as well as mpirun options that control how
+MPI tasks are assigned to physical cores of the node(s) of the machine
+you are running on.  These settings can improve performance, though the
+defaults are often adequate.</p>
+<p>For example, it is often important to bind MPI tasks (processes) to
+physical cores (processor affinity), so that the operating system does
+not migrate them during a simulation.  If this is not the default
+behavior on your machine, the mpirun option <code class="docutils literal notranslate"><span class="pre">--bind-to</span> <span class="pre">core</span></code> (OpenMPI)
+or <code class="docutils literal notranslate"><span class="pre">-bind-to</span> <span class="pre">core</span></code> (MPICH) can be used.</p>
+<p>If the LAMMPS command(s) you are using support multi-threading, you
+can set the number of threads per MPI task via the environment
+variable <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code>, before you launch LAMMPS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span><span class="w">     </span><span class="c1"># bash</span>
+setenv<span class="w"> </span>OMP_NUM_THREADS<span class="w"> </span><span class="m">2</span><span class="w">     </span><span class="c1"># csh or tcsh</span>
+</pre></div>
+</div>
+<p>This can also be done via the <a class="reference internal" href="package.html"><span class="doc">package</span></a> command or via
+the <a class="reference internal" href="Run_options.html"><span class="doc">-pk command-line switch</span></a> which invokes the
+package command.  See the <a class="reference internal" href="package.html"><span class="doc">package</span></a> command or
+<a class="reference internal" href="Speed.html"><span class="doc">Speed</span></a> doc pages for more details about which accelerator
+packages and which commands support multi-threading.</p>
+<hr class="docutils" />
+<p>You can experiment with running LAMMPS using any of the input scripts
+provided in the examples or bench directory.  Input scripts are named
+<code class="docutils literal notranslate"><span class="pre">in.*</span></code> and sample outputs are named <code class="docutils literal notranslate"><span class="pre">log.*.P</span></code> where P is the number of
+processors it was run on.</p>
+<p>Some of the examples or benchmarks require LAMMPS to be built with
+optional packages.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Run_head.html" class="btn btn-neutral float-left" title="4. Run LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Run_options.html" class="btn btn-neutral float-right" title="4.2. Command-line options" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

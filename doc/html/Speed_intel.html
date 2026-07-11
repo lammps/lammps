@@ -1,0 +1,544 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7.4.2. INTEL package &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Speed_intel.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="7.4.3. KOKKOS package" href="Speed_kokkos.html" />
+    <link rel="prev" title="7.4.1. GPU package" href="Speed_gpu.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Speed.html">7. Accelerate performance</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Speed_bench.html">7.1. Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_measure.html">7.2. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_tips.html">7.3. General tips</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Speed_packages.html">7.4. Accelerator packages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Speed_gpu.html">7.4.1. GPU package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">7.4.2. INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_kokkos.html">7.4.3. KOKKOS package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_omp.html">7.4.4. OPENMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_opt.html">7.4.5. OPT package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_compare.html">7.5. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Speed.html"><span class="section-number">7. </span>Accelerate performance</a></li>
+          <li class="breadcrumb-item"><a href="Speed_packages.html"><span class="section-number">7.4. </span>Accelerator packages</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">7.4.2. </span>INTEL package</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Speed_gpu.html" class="btn btn-neutral float-left" title="7.4.1. GPU package" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Speed_kokkos.html" class="btn btn-neutral float-right" title="7.4.3. KOKKOS package" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="intel-package">
+<h1><span class="section-number">7.4.2. </span>INTEL package<a class="headerlink" href="#intel-package" title="Link to this heading"></a></h1>
+<p>The INTEL package currently has no official maintainer.  It accelerates
+simulations on Intel CPUs by running in single, mixed, or double
+precision with vectorization and multi-threading.</p>
+<section id="currently-available-intel-styles">
+<h2>Currently Available INTEL Styles<a class="headerlink" href="#currently-available-intel-styles" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Angle Styles: <a class="reference internal" href="angle_charmm.html"><span class="doc">charmm</span></a>, <a class="reference internal" href="angle_harmonic.html"><span class="doc">harmonic</span></a></p></li>
+<li><p>Bond Styles: <a class="reference internal" href="bond_fene.html"><span class="doc">fene</span></a>, <a class="reference internal" href="bond_harmonic.html"><span class="doc">harmonic</span></a></p></li>
+<li><p>Dihedral Styles: <a class="reference internal" href="dihedral_charmm.html"><span class="doc">charmm</span></a>, <a class="reference internal" href="dihedral_fourier.html"><span class="doc">fourier</span></a>, <a class="reference internal" href="dihedral_harmonic.html"><span class="doc">harmonic</span></a>, <a class="reference internal" href="dihedral_opls.html"><span class="doc">opls</span></a></p></li>
+<li><p>Fixes: <a class="reference internal" href="fix_nve.html"><span class="doc">nve</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">npt</span></a>, <a class="reference internal" href="fix_nh.html"><span class="doc">nvt</span></a>,
+<a class="reference internal" href="fix_nvt_sllod.html"><span class="doc">nvt/sllod</span></a>, <a class="reference internal" href="fix_nve_asphere.html"><span class="doc">nve/asphere</span></a>,
+<a class="reference internal" href="fix_electrode.html"><span class="doc">electrode/conp</span></a>, <a class="reference internal" href="fix_electrode.html"><span class="doc">electrode/conq</span></a>, <a class="reference internal" href="fix_electrode.html"><span class="doc">electrode/thermo</span></a></p></li>
+<li><p>Improper Styles: <a class="reference internal" href="improper_cvff.html"><span class="doc">cvff</span></a>, <a class="reference internal" href="improper_harmonic.html"><span class="doc">harmonic</span></a></p></li>
+<li><p>Pair Styles: <a class="reference internal" href="pair_airebo.html"><span class="doc">airebo</span></a>, <a class="reference internal" href="pair_airebo.html"><span class="doc">airebo/morse</span></a>, <a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/cut</span></a>, <a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/long</span></a>,:doc:<cite>buck &lt;pair_buck&gt;</cite>, <a class="reference internal" href="pair_dpd.html"><span class="doc">dpd</span></a>, <a class="reference internal" href="pair_eam.html"><span class="doc">eam</span></a>, <a class="reference internal" href="pair_eam.html"><span class="doc">eam/alloy</span></a>, <a class="reference internal" href="pair_eam.html"><span class="doc">eam/fs</span></a>,
+<a class="reference internal" href="pair_gayberne.html"><span class="doc">gayberne</span></a>, <a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/charmm</span></a>, <a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/long</span></a>, <a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut</span></a>, <a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/long</span></a>,
+<a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/long/coul/long</span></a>, <a class="reference internal" href="pair_airebo.html"><span class="doc">rebo</span></a>,
+<a class="reference internal" href="pair_snap.html"><span class="doc">snap</span></a>, <a class="reference internal" href="pair_sw.html"><span class="doc">sw</span></a>, <a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff</span></a></p></li>
+<li><p>K-Space Styles: <a class="reference internal" href="kspace_style.html"><span class="doc">pppm</span></a>, <a class="reference internal" href="kspace_style.html"><span class="doc">pppm/disp</span></a><a class="reference internal" href="kspace_style.html"><span class="doc">pppm/electrode</span></a></p></li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>None of the styles in the INTEL package currently
+support computing per-atom stress.  If any compute or fix in your
+input requires it, LAMMPS will abort with an error message.</p>
+</div>
+</section>
+<section id="speed-up-to-expect">
+<h2>Speed-up to expect<a class="headerlink" href="#speed-up-to-expect" title="Link to this heading"></a></h2>
+<p>The speedup will depend on your simulation, the hardware, which
+styles are used, the number of atoms, and the floating-point
+precision mode. Performance improvements are shown compared to
+LAMMPS <em>without using other acceleration packages</em> as these are
+under active development (and subject to performance changes). The
+measurements were performed using the input files available in
+the <code class="docutils literal notranslate"><span class="pre">src/INTEL/TEST</span></code> directory with the provided run script.
+These are scalable in size; the results given are with 512K
+particles (524K for Liquid Crystal). Most of the simulations are
+standard LAMMPS benchmarks (indicated by the filename extension in
+parenthesis) with modifications to the run length and to add a
+warm-up run.</p>
+<img alt="_images/user_intel.png" class="align-center" src="_images/user_intel.png" />
+<p>Results are speedups obtained on Intel Xeon E5-2697v4 processors
+(code-named Broadwell) and Intel Xeon Gold 6148 processors (code-named
+Skylake) with “June 2017” LAMMPS built with Intel Parallel Studio
+2017 update 2. Results are with 1 MPI task per physical core. See
+<code class="docutils literal notranslate"><span class="pre">src/INTEL/TEST/README</span></code> for the raw simulation rates and
+instructions to reproduce.</p>
+</section>
+<hr class="docutils" />
+<section id="accuracy-and-order-of-operations">
+<h2>Accuracy and order of operations<a class="headerlink" href="#accuracy-and-order-of-operations" title="Link to this heading"></a></h2>
+<p>In most molecular dynamics software, parallelization parameters
+(# of MPI, OpenMP, and vectorization) can change the results due
+to changing the order of operations with finite-precision
+calculations. The INTEL package is deterministic. This means
+that the results should be reproducible from run to run with the
+<em>same</em> parallel configurations and when using deterministic
+libraries or library settings (MPI, OpenMP, FFT). However, there
+are differences in the INTEL package that can change the
+order of operations compared to LAMMPS without acceleration:</p>
+<ul class="simple">
+<li><p>Neighbor lists can be created in a different order</p></li>
+<li><p>Bins used for sorting atoms can be oriented differently</p></li>
+<li><p>The default stencil order for PPPM is 7. By default, LAMMPS will
+calculate other PPPM parameters to fit the desired accuracy with
+this order</p></li>
+<li><p>The <em>newton</em> setting applies to all atoms, not just atoms shared
+between MPI tasks</p></li>
+<li><p>Vectorization can change the order for adding pairwise forces</p></li>
+<li><p>When using the <code class="docutils literal notranslate"><span class="pre">-DLMP_USE_MKL_RNG</span></code> define (all included intel optimized
+makefiles do) at build time, the random number generator for
+dissipative particle dynamics (<code class="docutils literal notranslate"><span class="pre">pair</span> <span class="pre">style</span> <span class="pre">dpd/intel</span></code>) uses the Mersenne
+Twister generator included in the Intel MKL library (that should be
+more robust than the default Masaglia random number generator)</p></li>
+</ul>
+<p>The precision mode (described below) used with the INTEL
+package can change the <em>accuracy</em> of the calculations. For the
+default <em>mixed</em> precision option, calculations between pairs or
+triplets of atoms are performed in single precision, intended to
+be within the inherent error of MD simulations. All accumulation
+is performed in double precision to prevent the error from growing
+with the number of atoms in the simulation. <em>Single</em> precision
+mode should not be used without appropriate validation.</p>
+</section>
+<hr class="docutils" />
+<section id="quick-start-for-experienced-users">
+<h2>Quick Start for Experienced Users<a class="headerlink" href="#quick-start-for-experienced-users" title="Link to this heading"></a></h2>
+<p>LAMMPS should be built with the INTEL package installed.
+Simulations should be run with 1 MPI task per physical <em>core</em>,
+not <em>hardware thread</em>.</p>
+<ul class="simple">
+<li><p>Edit <code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi</span></code> as necessary.</p></li>
+<li><p>Set the environment variable <code class="docutils literal notranslate"><span class="pre">KMP_BLOCKTIME=0</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">intel</span> <span class="pre">0</span> <span class="pre">omp</span> <span class="pre">$t</span> <span class="pre">-sf</span> <span class="pre">intel</span></code> added to LAMMPS command-line</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">$t</span></code> should be 2 for Intel Xeon CPUs</p></li>
+<li><p>For some of the simple 2-body potentials without long-range
+electrostatics, performance and scalability can be better with
+the <code class="docutils literal notranslate"><span class="pre">newton</span> <span class="pre">off</span></code> setting added to the input script</p></li>
+<li><p>For simulations on higher node counts, add <code class="docutils literal notranslate"><span class="pre">processors</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">*</span> <span class="pre">grid</span>
+<span class="pre">numa</span></code> to the beginning of the input script for better scalability</p></li>
+<li><p>If using <code class="docutils literal notranslate"><span class="pre">kspace_style</span> <span class="pre">pppm</span></code> in the input script, add
+<code class="docutils literal notranslate"><span class="pre">kspace_modify</span> <span class="pre">diff</span> <span class="pre">ad</span></code> for better performance</p></li>
+</ul>
+<p>For simulations using <code class="docutils literal notranslate"><span class="pre">kspace_style</span> <span class="pre">pppm</span></code> on Intel CPUs supporting
+AVX-512:</p>
+<ul class="simple">
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">kspace_modify</span> <span class="pre">diff</span> <span class="pre">ad</span></code> to the input script</p></li>
+<li><p>The command-line option should be changed to
+<code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">intel</span> <span class="pre">0</span> <span class="pre">omp</span> <span class="pre">$r</span> <span class="pre">lrt</span> <span class="pre">yes</span> <span class="pre">-sf</span> <span class="pre">intel</span></code> where <code class="docutils literal notranslate"><span class="pre">$r</span></code> is the number of
+threads minus 1.</p></li>
+<li><p>Do not use thread affinity (set <code class="docutils literal notranslate"><span class="pre">KMP_AFFINITY=none</span></code>)</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">newton</span> <span class="pre">off</span></code> setting may provide better scalability</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="required-hardware-software">
+<h2>Required hardware/software<a class="headerlink" href="#required-hardware-software" title="Link to this heading"></a></h2>
+<p>When using Intel compilers version 16.0 or later is required.</p>
+<p>Although any compiler can be used with the INTEL package,
+currently, vectorization directives are disabled by default when
+not using Intel compilers due to lack of standard support and
+observations of decreased performance. The OpenMP standard now
+supports directives for vectorization and we plan to transition the
+code to this standard once it is available in most compilers. We
+expect this to allow improved performance and support with other
+compilers.</p>
+</section>
+<section id="notes-about-simultaneous-multithreading">
+<h2>Notes about Simultaneous Multithreading<a class="headerlink" href="#notes-about-simultaneous-multithreading" title="Link to this heading"></a></h2>
+<p>Modern CPUs often support Simultaneous Multithreading (SMT). On
+Intel processors, this is called Hyper-Threading (HT) technology.
+SMT is hardware support for running multiple threads efficiently on
+a single core. <em>Hardware threads</em> or <em>logical cores</em> are often used
+to refer to the number of threads that are supported in hardware.
+For example, the Intel Xeon E5-2697v4 processor is described
+as having 36 cores and 72 threads. This means that 36 MPI processes
+or OpenMP threads can run simultaneously on separate cores, but that
+up to 72 MPI processes or OpenMP threads can be running on the CPU
+without costly operating system context switches.</p>
+<p>Molecular dynamics simulations will often run faster when making use
+of SMT. If a thread becomes stalled, for example because it is
+waiting on data that has not yet arrived from memory, another thread
+can start running so that the CPU pipeline is still being used
+efficiently. Although benefits can be seen by launching a MPI task
+for every hardware thread, for multinode simulations, we recommend
+that OpenMP threads are used for SMT instead, either with the
+INTEL package, <a class="reference internal" href="Speed_omp.html"><span class="doc">OPENMP package</span></a>, or
+<a class="reference internal" href="Speed_kokkos.html"><span class="doc">KOKKOS package</span></a>. In the example above, up
+to 36X speedups can be observed by using all 36 physical cores with
+LAMMPS. By using all 72 hardware threads, an additional 10-30%
+performance gain can be achieved.</p>
+<p>The BIOS on many platforms allows SMT to be disabled, however, we do
+not recommend this on modern processors as there is little to no
+benefit for any software package in most cases. The operating system
+will report every hardware thread as a separate core allowing one to
+determine the number of hardware threads available. On Linux systems,
+this information can normally be obtained with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat<span class="w"> </span>/proc/cpuinfo
+</pre></div>
+</div>
+</section>
+<section id="building-lammps-with-the-intel-package">
+<h2>Building LAMMPS with the INTEL package<a class="headerlink" href="#building-lammps-with-the-intel-package" title="Link to this heading"></a></h2>
+<p>See the <a class="reference internal" href="Build_extras.html#intel"><span class="std std-ref">Build extras</span></a> page for
+instructions.  Some additional details are covered here.</p>
+<p>For building with make, several example Makefiles for building with
+the Intel compiler are included with LAMMPS in the <code class="docutils literal notranslate"><span class="pre">src/MAKE/OPTIONS/</span></code>
+directory:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Makefile.intel_cpu_intelmpi<span class="w">  </span><span class="c1"># Intel Compiler, Intel MPI</span>
+Makefile.intel_cpu_mpich<span class="w">     </span><span class="c1"># Intel Compiler, MPICH</span>
+Makefile.intel_cpu_openmpi<span class="w">   </span><span class="c1"># Intel Compiler, OpenMPI</span>
+</pre></div>
+</div>
+<p>For users with
+recent installations of Intel Parallel Studio, the process can be as
+simple as:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>yes-intel
+<span class="nb">source</span><span class="w"> </span>/opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
+<span class="c1"># or psxevars.csh for C-shell</span>
+make<span class="w"> </span>intel_cpu_intelmpi
+</pre></div>
+</div>
+<p>The general requirements for Makefiles with the INTEL package
+are as follows. When using Intel compilers, <code class="docutils literal notranslate"><span class="pre">-restrict</span></code> is required
+and <code class="docutils literal notranslate"><span class="pre">-qopenmp</span></code> is highly recommended for <code class="docutils literal notranslate"><span class="pre">CCFLAGS</span></code> and <code class="docutils literal notranslate"><span class="pre">LINKFLAGS</span></code>.
+<code class="docutils literal notranslate"><span class="pre">CCFLAGS</span></code> should include <code class="docutils literal notranslate"><span class="pre">-DLMP_INTEL_USELRT</span></code> (unless POSIX Threads
+are not supported in the build environment) and <code class="docutils literal notranslate"><span class="pre">-DLMP_USE_MKL_RNG</span></code>
+(unless Intel Math Kernel Library (MKL) is not available in the build
+environment). For Intel compilers, <code class="docutils literal notranslate"><span class="pre">LIB</span></code> should include <code class="docutils literal notranslate"><span class="pre">-ltbbmalloc</span></code>
+or if the library is not available, <code class="docutils literal notranslate"><span class="pre">-DLMP_INTEL_NO_TBB</span></code> can be added
+to <code class="docutils literal notranslate"><span class="pre">CCFLAGS</span></code>. Other
+recommended <code class="docutils literal notranslate"><span class="pre">CCFLAG</span></code> options for best performance are <code class="docutils literal notranslate"><span class="pre">-O2</span> <span class="pre">-fno-alias</span>
+<span class="pre">-ansi-alias</span> <span class="pre">-qoverride-limits</span> <span class="pre">fp-model</span> <span class="pre">fast=2</span> <span class="pre">-no-prec-div</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See the <code class="docutils literal notranslate"><span class="pre">src/INTEL/README</span></code> file for additional flags that
+might be needed for best performance on Intel server processors
+code-named “Skylake”.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The vectorization and math capabilities can differ depending on
+the CPU. For Intel compilers, the <code class="docutils literal notranslate"><span class="pre">-x</span></code> flag specifies the type of
+processor for which to optimize. <code class="docutils literal notranslate"><span class="pre">-xHost</span></code> specifies that the compiler
+should build for the processor used for compiling. For fourth
+generation Intel Xeon (v4/Broadwell) processors, <code class="docutils literal notranslate"><span class="pre">-xCORE-AVX2</span></code> should
+be used. For older Intel Xeon processors, <code class="docutils literal notranslate"><span class="pre">-xAVX</span></code> will perform best
+in general for the different simulations in LAMMPS. The default
+in most of the example Makefiles is to use <code class="docutils literal notranslate"><span class="pre">-xHost</span></code>, however this
+should not be used when cross-compiling.</p>
+</div>
+</section>
+<section id="running-lammps-with-the-intel-package">
+<h2>Running LAMMPS with the INTEL package<a class="headerlink" href="#running-lammps-with-the-intel-package" title="Link to this heading"></a></h2>
+<p>Running LAMMPS with the INTEL package is similar to normal use
+with the exceptions that one should 1) specify that LAMMPS should use
+the INTEL package, 2) specify the number of OpenMP threads, and
+3) optionally specify the specific LAMMPS styles that should use the
+INTEL package. 1) and 2) can be performed from the command-line
+or by editing the input script. 3) requires editing the input script.
+Advanced performance tuning options are also described below to get
+the best performance.</p>
+<p>When running on a single node, best performance is normally obtained
+by using 1 MPI task per physical core and additional OpenMP threads
+with SMT. For Intel Xeon processors, 2 OpenMP threads should be used
+for SMT. In cases where the user
+specifies that LRT mode is used (described below), 1 or 3 OpenMP
+threads should be used. For multi-node runs, using 1 MPI task per
+physical core will often perform best, however, depending on the
+machine and scale, users might get better performance by decreasing
+the number of MPI tasks and using more OpenMP threads. For
+performance, the product of the number of MPI tasks and OpenMP
+threads should not exceed the number of available hardware threads in
+almost all cases.</p>
+</section>
+<section id="run-with-the-intel-package-from-the-command-line">
+<h2>Run with the INTEL package from the command-line<a class="headerlink" href="#run-with-the-intel-package-from-the-command-line" title="Link to this heading"></a></h2>
+<p>To enable INTEL optimizations for all available styles used in the input
+script, the <code class="docutils literal notranslate"><span class="pre">-sf</span> <span class="pre">intel</span></code> <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> can
+be used without any requirement for editing the input script. This
+switch will automatically append “intel” to styles that support it. It
+also invokes a default command: <a class="reference internal" href="package.html"><span class="doc">package intel 1</span></a>. This
+package command is used to set options for the INTEL package.  The
+default package command will specify that INTEL calculations are
+performed in mixed precision and that the number of OpenMP threads is
+specified by the OMP_NUM_THREADS environment variable.</p>
+<p>You can specify different options for the INTEL package by using
+the <code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">intel</span></code> <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> with
+keyword/value pairs as specified in the documentation. Common options
+to the INTEL package include <em>omp</em> to
+override any <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> setting and specify the number of OpenMP
+threads, <em>mode</em> to set the floating-point precision mode, and <em>lrt</em> to
+enable Long-Range Thread mode as described below. See the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command for details, including the default values
+used for all its options if not specified, and how to set the number
+of OpenMP threads via the <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> environment variable if
+desired.</p>
+<p>Examples (see documentation for your MPI/Machine for differences in
+launching MPI applications):</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads</span>
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">72</span><span class="w"> </span>-ppn<span class="w"> </span><span class="m">36</span><span class="w"> </span>lmp_machine<span class="w"> </span>-sf<span class="w"> </span>intel<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+
+<span class="c1"># use 2 OpenMP threads for each task, use double precision</span>
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">72</span><span class="w"> </span>-ppn<span class="w"> </span><span class="m">36</span><span class="w"> </span>lmp_machine<span class="w"> </span>-sf<span class="w"> </span>intel<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script<span class="w"> </span><span class="se">\</span>
+<span class="w">       </span>-pk<span class="w"> </span>intel<span class="w"> </span><span class="m">0</span><span class="w"> </span>omp<span class="w"> </span><span class="m">2</span><span class="w"> </span>mode<span class="w"> </span>double
+</pre></div>
+</div>
+</section>
+<section id="or-run-with-the-intel-package-by-editing-an-input-script">
+<h2>Or run with the INTEL package by editing an input script<a class="headerlink" href="#or-run-with-the-intel-package-by-editing-an-input-script" title="Link to this heading"></a></h2>
+<p>As an alternative to adding command-line arguments, the input script
+can be edited to enable the INTEL package. This requires adding
+the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command to the top of the input
+script. For the second example above, this would be:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">package</span><span class="w"> </span><span class="n">intel</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">omp</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">mode</span><span class="w"> </span><span class="n">double</span>
+</pre></div>
+</div>
+<p>To enable the INTEL package only for individual styles, you can
+add an “intel” suffix to the individual style, e.g.:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">intel</span><span class="w"> </span><span class="m">2.5</span>
+</pre></div>
+</div>
+<p>Alternatively, the <a class="reference internal" href="suffix.html"><span class="doc">suffix intel</span></a> command can be added to
+the input script to enable INTEL styles for the commands that
+follow in the input script.</p>
+</section>
+<section id="tuning-for-performance">
+<h2>Tuning for Performance<a class="headerlink" href="#tuning-for-performance" title="Link to this heading"></a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The INTEL package will perform better with modifications
+to the input script when <a class="reference internal" href="kspace_style.html"><span class="doc">PPPM</span></a> is used:
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify diff ad</span></a> should be added to the
+input script.</p>
+</div>
+<p>Long-Range Thread (LRT) mode is an option to the <a class="reference internal" href="package.html"><span class="doc">package intel</span></a> command that can improve performance when using
+<a class="reference internal" href="kspace_style.html"><span class="doc">PPPM</span></a> for long-range electrostatics on processors
+with SMT. It generates an extra pthread for each MPI task. The thread
+is dedicated to performing some of the PPPM calculations and MPI
+communications. This feature requires setting the pre-processor flag
+<code class="docutils literal notranslate"><span class="pre">-DLMP_INTEL_USELRT</span></code> in the makefile when compiling LAMMPS. It is unset
+in the default makefiles (<code class="docutils literal notranslate"><span class="pre">Makefile.mpi</span></code> and <code class="docutils literal notranslate"><span class="pre">Makefile.serial</span></code>) but
+it is set in all makefiles tuned for the INTEL package.  On Intel
+Xeon processors, using
+this mode might result in better performance when using multiple nodes,
+depending on the specific machine configuration. To enable LRT mode,
+specify that the number of OpenMP threads is one less than would
+normally be used for the run and add the <code class="docutils literal notranslate"><span class="pre">lrt</span> <span class="pre">yes</span></code> option to the <code class="docutils literal notranslate"><span class="pre">-pk</span></code>
+command-line suffix or “package intel” command. For example, if a run
+would normally perform best with “-pk intel 0 omp 4”, instead use
+<code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">intel</span> <span class="pre">0</span> <span class="pre">omp</span> <span class="pre">3</span> <span class="pre">lrt</span> <span class="pre">yes</span></code>. When using LRT, you should set the
+environment variable <code class="docutils literal notranslate"><span class="pre">KMP_AFFINITY=none</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Changing the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> setting to off can improve
+performance and/or scalability for simple 2-body potentials such as
+lj/cut or when using LRT mode on processors supporting AVX-512.</p>
+</div>
+<p>Not all styles are supported in the INTEL package. You can mix
+the INTEL package with styles from the <a class="reference internal" href="Speed_opt.html"><span class="doc">OPT</span></a>
+package or the <a class="reference internal" href="Speed_omp.html"><span class="doc">OPENMP package</span></a>. Of course, this
+requires that these packages were installed at build time. This can
+performed automatically by using <code class="docutils literal notranslate"><span class="pre">-sf</span> <span class="pre">hybrid</span> <span class="pre">intel</span> <span class="pre">opt</span></code> or <code class="docutils literal notranslate"><span class="pre">-sf</span> <span class="pre">hybrid</span>
+<span class="pre">intel</span> <span class="pre">omp</span></code> command-line options. Alternatively, the “opt” and “omp”
+suffixes can be appended manually in the input script. For the latter,
+the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command must be in the input script or
+the <code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">omp</span> <span class="pre">Nt</span></code> <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> must be used
+where <code class="docutils literal notranslate"><span class="pre">Nt</span></code> is the number of OpenMP threads. The number of OpenMP threads
+should not be set differently for the different packages. Note that
+the <a class="reference internal" href="suffix.html"><span class="doc">suffix hybrid intel omp</span></a> command can also be used
+within the input script to automatically append the “omp” suffix to
+styles when INTEL styles are not available.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For simulations on higher node counts, add <a class="reference internal" href="processors.html"><span class="doc">processors * * * grid numa</span></a> to the beginning of the input script for
+better scalability.</p>
+</div>
+<p>When running on many nodes, performance might be better when using
+fewer OpenMP threads and more MPI tasks. This will depend on the
+simulation and the machine. Using the <a class="reference internal" href="run_style.html"><span class="doc">verlet/split</span></a>
+run style might also give better performance for simulations with
+<a class="reference internal" href="kspace_style.html"><span class="doc">PPPM</span></a> electrostatics. Note that this is an
+alternative to LRT mode and the two cannot be used together.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>None of
+the pair styles in the INTEL package currently support the
+“inner”, “middle”, “outer” options for rRESPA integration via the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command; only the “pair” option is
+supported.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Brown, W.M., Carrillo, J.-M.Y., Mishra, B., Gavhane, N., Thakkar, F.M., De Kraker, A.R., Yamada, M., Ang, J.A., Plimpton, S.J., “Optimizing Classical Molecular Dynamics in LAMMPS”, in Intel Xeon Phi Processor High Performance Programming: Knights Landing Edition, J. Jeffers, J. Reinders, A. Sodani, Eds. Morgan Kaufmann.</p></li>
+<li><p>Brown, W. M., Semin, A., Hebenstreit, M., Khvostov, S., Raman, K., Plimpton, S.J. <a class="reference external" href="https://dl.acm.org/citation.cfm?id=3014915">Increasing Molecular Dynamics Simulation Rates with an 8-Fold Increase in Electrical Power Efficiency.</a> 2016 High Performance Computing, Networking, Storage and Analysis, SC16: International Conference (pp. 82-95).</p></li>
+<li><p>Brown, W.M., Carrillo, J.-M.Y., Gavhane, N., Thakkar, F.M., Plimpton, S.J. Optimizing Legacy Molecular Dynamics Software with Directive-Based Offload. Computer Physics Communications. 2015. 195: p. 95-101.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Speed_gpu.html" class="btn btn-neutral float-left" title="7.4.1. GPU package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Speed_kokkos.html" class="btn btn-neutral float-right" title="7.4.3. KOKKOS package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,787 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pair_style oxdna2/excv command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/pair_oxdna2.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pair_style oxdna3/excv command" href="pair_oxdna3.html" />
+    <link rel="prev" title="pair_style oxdna/excv command" href="pair_oxdna.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pairs.html">Pair Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pair_adp.html">pair_style adp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_agni.html">pair_style agni command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_aip_water_2dm.html">pair_style aip/water/2dm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html">pair_style airebo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-morse-command">pair_style airebo/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-bc-command">pair_style airebo/bc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-rebo-command">pair_style rebo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_amoeba.html">pair_style amoeba command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_amoeba.html#pair-style-hippo-command">pair_style hippo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_atm.html">pair_style atm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_beck.html">pair_style beck command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body_nparticle.html">pair_style body/nparticle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body_rounded_polygon.html">pair_style body/rounded/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body_rounded_polyhedron.html">pair_style body/rounded/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bondval.html">pair_style bondval command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bondval.html#pair-style-bondval-vec-command">pair_style bondval/vec command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bop.html">pair_style bop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html">pair_style born command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-long-command">pair_style born/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-msm-command">pair_style born/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-wolf-command">pair_style born/coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-dsf-command">pair_style born/coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born_gauss.html">pair_style born/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bpm_spring.html">pair_style bpm/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html">pair_style brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html#pair-style-brownian-poly-command">pair_style brownian/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html">pair_style buck command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-command">pair_style buck/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-command">pair_style buck/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-msm-command">pair_style buck/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck6d_coul_gauss.html">pair_style buck6d/coul/gauss/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck6d_coul_gauss.html#pair-style-buck6d-coul-gauss-long-command">pair_style buck6d/coul/gauss/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck_long.html">pair_style buck/long/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html">pair_style lj/charmm/coul/charmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-charmm-implicit-command">pair_style lj/charmm/coul/charmm/implicit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-command">pair_style lj/charmm/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-msm-command">pair_style lj/charmm/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmmfsw-coul-charmmfsh-command">pair_style lj/charmmfsw/coul/charmmfsh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmmfsw-coul-long-command">pair_style lj/charmmfsw/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html">pair_style lj/class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-cut-command">pair_style lj/class2/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-long-command">pair_style lj/class2/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_colloid.html">pair_style colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html">pair_style comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html#pair-style-comb3-command">pair_style comb3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cosine_squared.html">pair_style cosine/squared command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html">pair_style coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-cut-global-command">pair_style coul/cut/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-ctip-command">pair_style coul/ctip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-debye-command">pair_style coul/debye command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-dsf-command">pair_style coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-exclude-command">pair_style coul/exclude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-command">pair_style coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-msm-command">pair_style coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-streitz-command">pair_style coul/streitz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-wolf-command">pair_style coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-cut-command">pair_style tip4p/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-long-command">pair_style tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_diel.html">pair_style coul/diel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_shield.html">pair_style coul/shield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_slater.html">pair_style coul/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_slater.html#pair-style-coul-slater-cut-command">pair_style coul/slater/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_slater.html#pair-style-coul-slater-long-command">pair_style coul/slater/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_tt.html">pair_style coul/tt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html">pair_style born/coul/dsf/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-born-coul-long-cs-command">pair_style born/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-born-coul-wolf-cs-command">pair_style born/coul/wolf/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-buck-coul-long-cs-command">pair_style buck/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-coul-long-cs-command">pair_style coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-coul-wolf-cs-command">pair_style coul/wolf/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-lj-cut-coul-long-cs-command">pair_style lj/cut/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-lj-class2-coul-long-cs-command">pair_style lj/class2/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html">pair_style coul/cut/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-coul-long-dielectric-command">pair_style coul/long/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-cut-dielectric-command">pair_style lj/cut/coul/cut/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-debye-dielectric-command">pair_style lj/cut/coul/debye/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-long-dielectric-command">pair_style lj/cut/coul/long/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-msm-dielectric-command">pair_style lj/cut/coul/msm/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-long-coul-long-dielectric-command">pair_style lj/long/coul/long/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html">pair_style lj/cut/dipole/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-sf-dipole-sf-command">pair_style lj/sf/dipole/sf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-cut-dipole-long-command">pair_style lj/cut/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-long-dipole-long-command">pair_style lj/long/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dispersion_d3.html">pair_style dispersion/d3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html">pair_style dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-tstat-command">pair_style dpd/tstat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_coul_slater_long.html">pair_style dpd/coul/slater/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_ext.html">pair_style dpd/ext command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_ext.html#pair-style-dpd-ext-tstat-command">pair_style dpd/ext/tstat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_fdt.html">pair_style dpd/fdt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_fdt.html#pair-style-dpd-fdt-energy-command">pair_style dpd/fdt/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_drip.html">pair_style drip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dsmc.html">pair_style dsmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_e3b.html">pair_style e3b command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html">pair_style eam command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-command">pair_style eam/alloy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-cd-command">pair_style eam/cd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-cd-old-command">pair_style eam/cd/old command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-command">pair_style eam/fs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-he-command">pair_style eam/he command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam_apip.html">pair_style eam/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam_apip.html#pair-style-eam-fs-apip-command">pair_style eam/fs/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_edip.html">pair_style edip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_edip.html#pair-style-edip-multi-command">pair_style edip/multi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eff.html">pair_style eff/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eim.html">pair_style eim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_exp6_rx.html">pair_style exp6/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_extep.html">pair_style extep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html">pair_style lj/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-soft-gapsys-command">pair_style lj/cut/soft/gapsys command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-coul-cut-soft-command">pair_style lj/cut/coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-coul-long-soft-command">pair_style lj/cut/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-tip4p-long-soft-command">pair_style lj/cut/tip4p/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-charmm-coul-long-soft-command">pair_style lj/charmm/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-class2-soft-command">pair_style lj/class2/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-class2-coul-cut-soft-command">pair_style lj/class2/coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-class2-coul-long-soft-command">pair_style lj/class2/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-coul-cut-soft-command">pair_style coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-coul-cut-soft-gapsys-command">pair_style coul/cut/soft/gapsys command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-coul-long-soft-command">pair_style coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-tip4p-long-soft-command">pair_style tip4p/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-morse-soft-command">pair_style morse/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html">pair_style gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html#pair-style-gauss-cut-command">pair_style gauss/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gayberne.html">pair_style gayberne command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html">pair_style gran/hooke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hooke-history-command">pair_style gran/hooke/history command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hertz-history-command">pair_style gran/hertz/history command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_granular.html">pair_style granular command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_granular_superellipsoid.html">pair_style granular/superellipsoid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html">pair_style lj/gromacs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html#pair-style-lj-gromacs-coul-gromacs-command">pair_style lj/gromacs/coul/gromacs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gw.html">pair_style gw command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gw.html#pair-style-gw-zbl-command">pair_style gw/zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_harmonic_cut.html">pair_style harmonic/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html">pair_style hbond/dreiding/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-lj-angleoffset-command">pair_style hbond/dreiding/lj/angleoffset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-morse-command">pair_style hbond/dreiding/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-morse-angleoffset-command">pair_style hbond/dreiding/morse/angleoffset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hdnnp.html">pair_style hdnnp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html">pair_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-molecular-command">pair_style hybrid/molecular command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-overlay-command">pair_style hybrid/overlay command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-scaled-command">pair_style hybrid/scaled command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ilp_graphene_hbn.html">pair_style ilp/graphene/hbn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ilp_tmd.html">pair_style ilp/tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kim.html">pair_style kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kolmogorov_crespi_full.html">pair_style kolmogorov/crespi/full command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kolmogorov_crespi_z.html">pair_style kolmogorov/crespi/z command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_input_apip.html">pair_style lambda/input/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_input_apip.html#pair-style-lambda-input-csp-apip-command">pair_style lambda/input/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_input_apip.html#id1">pair_style lambda/input/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_zone_apip.html">pair_style lambda/zone/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lcbop.html">pair_style lcbop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ldd.html">pair_style ldd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lebedeva_z.html">pair_style lebedeva/z command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lepton.html">pair_style lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lepton.html#pair-style-lepton-coul-command">pair_style lepton/coul command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lepton.html#pair-style-lepton-sphere-command">pair_style lepton/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_line_lj.html">pair_style line/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_list.html">pair_style list command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html">pair_style lj/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj96.html">pair_style lj96/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cubic.html">pair_style lj/cubic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html">pair_style lj/cut/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-debye-command">pair_style lj/cut/coul/debye command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-dsf-command">pair_style lj/cut/coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-long-command">pair_style lj/cut/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-msm-command">pair_style lj/cut/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-wolf-command">pair_style lj/cut/coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_sphere.html">pair_style lj/cut/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_tip4p.html">pair_style lj/cut/tip4p/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_tip4p.html#pair-style-lj-cut-tip4p-long-command">pair_style lj/cut/tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html">pair_style lj/expand command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html#pair-style-lj-expand-coul-long-command">pair_style lj/expand/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand_sphere.html">pair_style lj/expand/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html">pair_style lj/long/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html#pair-style-lj-long-tip4p-long-command">pair_style lj/long/tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_pirani.html">pair_style lj/pirani command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_relres.html">pair_style lj/relres command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth.html">pair_style lj/smooth command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth_linear.html">pair_style lj/smooth/linear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_switch3_coulgauss_long.html">pair_style lj/switch3/coulgauss/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_switch3_coulgauss_long.html#pair-style-mm3-switch3-coulgauss-long-command">pair_style mm3/switch3/coulgauss/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_local_density.html">pair_style local/density command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html">pair_style lubricate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html#pair-style-lubricate-poly-command">pair_style lubricate/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricateU.html">pair_style lubricateU command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricateU.html#pair-style-lubricateu-poly-command">pair_style lubricateU/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mbx.html">pair_style mbx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html">pair_style lj/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html#pair-style-buck-mdf-command">pair_style buck/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html#pair-style-lennard-mdf-command">pair_style lennard/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam.html">pair_style meam command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam.html#pair-style-meam-ms-command">pair_style meam/ms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_spline.html">pair_style meam/spline command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_sw_spline.html">pair_style meam/sw/spline command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesocnt.html">pair_style mesocnt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesocnt.html#pair-style-mesocnt-viscous-command">pair_style mesocnt/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html">pair_style edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html#pair-style-mdpd-command">pair_style mdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html#pair-style-mdpd-rhosum-command">pair_style mdpd/rhosum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html#pair-style-tdpd-command">pair_style tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mgpt.html">pair_style mgpt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mie.html">pair_style mie/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mliap.html">pair_style mliap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_momb.html">pair_style momb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html">pair_style morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-smooth-linear-command">pair_style morse/smooth/linear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_multi_lucy.html">pair_style multi/lucy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_multi_lucy_rx.html">pair_style multi/lucy/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nb3b.html">pair_style nb3b/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nb3b.html#pair-style-nb3b-screened-command">pair_style nb3b/screened command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html">pair_style nm/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-split-command">pair_style nm/cut/split command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-cut-command">pair_style nm/cut/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-long-command">pair_style nm/cut/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_none.html">pair_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html">pair_style oxdna/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-stk-command">pair_style oxdna/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-hbond-command">pair_style oxdna/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-xstk-command">pair_style oxdna/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-coaxstk-command">pair_style oxdna/coaxstk command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pair_style oxdna2/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-oxdna2-stk-command">pair_style oxdna2/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-oxdna2-hbond-command">pair_style oxdna2/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-oxdna2-xstk-command">pair_style oxdna2/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-oxdna2-coaxstk-command">pair_style oxdna2/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pair-style-oxdna2-dh-command">pair_style oxdna2/dh command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#potential-file-reading">Potential file reading</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unique-base-pairing">Unique base pairing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html">pair_style oxdna3/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-stk-command">pair_style oxdna3/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-hbond-command">pair_style oxdna3/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-xstk-command">pair_style oxdna3/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-coaxstk-command">pair_style oxdna3/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-dh-command">pair_style oxdna3/dh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html">pair_style oxrna2/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-stk-command">pair_style oxrna2/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-hbond-command">pair_style oxrna2/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-xstk-command">pair_style oxrna2/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-coaxstk-command">pair_style oxrna2/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-dh-command">pair_style oxrna2/dh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace.html">pair_style pace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace.html#pair-style-pace-extrapolation-command">pair_style pace/extrapolation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace_apip.html">pair_style pace/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace_apip.html#pair-style-pace-fast-apip-command">pair_style pace/fast/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace_apip.html#pair-style-pace-precise-apip-command">pair_style pace/precise/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pedone.html">pair_style pedone command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html">pair_style peri/pmb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-lps-command">pair_style peri/lps command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-ves-command">pair_style peri/ves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-eps-command">pair_style peri/eps command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pod.html">pair_style pod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_polymorphic.html">pair_style polymorphic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_python.html">pair_style python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_quip.html">pair_style quip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rann.html">pair_style rann command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_reaxff.html">pair_style reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rebomos.html">pair_style rebomos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_resquared.html">pair_style resquared command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rheo.html">pair_style rheo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rheo_solid.html">pair_style rheo/solid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_runner.html">pair_style runner command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_saip_metal.html">pair_style saip/metal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_saip_metal.html#pair-style-saip-metal-tmd-command">pair_style saip/metal/tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdpd_taitwater_isothermal.html">pair_style sdpd/taitwater/isothermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smatb.html">pair_style smatb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smatb.html#pair-style-smatb-single-command">pair_style smatb/single command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_hertz.html">pair_style smd/hertz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_tlsph.html">pair_style smd/tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_triangulated_surface.html">pair_style smd/tri_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_ulsph.html">pair_style smd/ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smtbq.html">pair_style smtbq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_snap.html">pair_style snap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_soft.html">pair_style soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_heatconduction.html">pair_style sph/heatconduction command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_idealgas.html">pair_style sph/idealgas command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_lj.html">pair_style sph/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_rhosum.html">pair_style sph/rhosum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_taitwater.html">pair_style sph/taitwater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_taitwater_morris.html">pair_style sph/taitwater/morris command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spica.html">pair_style lj/spica command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spica.html#pair-style-lj-spica-coul-long-command">pair_style lj/spica/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spica.html#pair-style-lj-spica-coul-msm-command">pair_style lj/spica/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_dipole.html">pair_style spin/dipole/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_dipole.html#pair-style-spin-dipole-long-command">pair_style spin/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_dmi.html">pair_style spin/dmi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_exchange.html">pair_style spin/exchange command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_exchange.html#pair-style-spin-exchange-biquadratic-command">pair_style spin/exchange/biquadratic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_magelec.html">pair_style spin/magelec command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_neel.html">pair_style spin/neel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_srp.html">pair_style srp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_srp.html#pair-style-srp-react-command">pair_style srp/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_surf_granular.html">pair_style surf/granular command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html">pair_style sw command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html#pair-style-sw-mod-command">pair_style sw/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw_angle_table.html">pair_style sw/angle/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table.html">pair_style table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table_rx.html">pair_style table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html">pair_style tersoff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-table-command">pair_style tersoff/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html">pair_style tersoff/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html#pair-style-tersoff-mod-c-command">pair_style tersoff/mod/c command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_zbl.html">pair_style tersoff/zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html">pair_style thole command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html#pair-style-lj-cut-thole-long-command">pair_style lj/cut/thole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_threebody_table.html">pair_style threebody/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tracker.html">pair_style tracker command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_uf3.html">pair_style uf3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ufm.html">pair_style ufm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_wf_cut.html">pair_style wf/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ylz.html">pair_style ylz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa_colloid.html">pair_style yukawa/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zbl.html">pair_style zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zero.html">pair_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pairs.html">Pair Styles</a></li>
+      <li class="breadcrumb-item active">pair_style oxdna2/excv command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="pair_oxdna.html" class="btn btn-neutral float-left" title="pair_style oxdna/excv command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pair_oxdna3.html" class="btn btn-neutral float-right" title="pair_style oxdna3/excv command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="pair-style-oxdna2-excv-command">
+<span id="index-5"></span><span id="index-4"></span><span id="index-3"></span><span id="index-2"></span><span id="index-1"></span><span id="index-0"></span><h1>pair_style oxdna2/excv command<a class="headerlink" href="#pair-style-oxdna2-excv-command" title="Link to this heading"></a></h1>
+</section>
+<section id="pair-style-oxdna2-stk-command">
+<h1>pair_style oxdna2/stk command<a class="headerlink" href="#pair-style-oxdna2-stk-command" title="Link to this heading"></a></h1>
+</section>
+<section id="pair-style-oxdna2-hbond-command">
+<h1>pair_style oxdna2/hbond command<a class="headerlink" href="#pair-style-oxdna2-hbond-command" title="Link to this heading"></a></h1>
+</section>
+<section id="pair-style-oxdna2-xstk-command">
+<h1>pair_style oxdna2/xstk command<a class="headerlink" href="#pair-style-oxdna2-xstk-command" title="Link to this heading"></a></h1>
+</section>
+<section id="pair-style-oxdna2-coaxstk-command">
+<h1>pair_style oxdna2/coaxstk command<a class="headerlink" href="#pair-style-oxdna2-coaxstk-command" title="Link to this heading"></a></h1>
+</section>
+<section id="pair-style-oxdna2-dh-command">
+<h1>pair_style oxdna2/dh command<a class="headerlink" href="#pair-style-oxdna2-dh-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">style1</span>
+
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">style2</span><span class="w"> </span><span class="n">args</span><span class="w"> </span><span class="n">[keyword</span><span class="w"> </span><span class="n">value]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>style1 = <em>hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh</em></p></li>
+<li><p>style2 = <em>oxdna2/excv</em> or <em>oxdna2/stk</em> or <em>oxdna2/hbond</em> or <em>oxdna2/xstk</em> or <em>oxdna2/coaxstk</em> or <em>oxdna2/dh</em></p></li>
+<li><p>args = list of arguments for these particular styles</p></li>
+<li><p>zero or one keyword/value pair may be appended to <em>oxdna2/dh</em></p></li>
+<li><p>keyword = <em>half_charged_ends</em></p></li>
+</ul>
+<pre class="literal-block"><em>oxdna2/stk</em> args = seq T xi kappa 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+  seq = seqav (for average sequence stacking strength) or seqdep (for sequence-dependent stacking strength)
+  T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K)
+  xi = 1.3523 (LJ units) or 8.06199211612242 (real units), temperature-independent coefficient in stacking strength
+  kappa = 2.6717 (LJ units) or 0.005309213 (real units), coefficient of linear temperature dependence in stacking strength
+<em>oxdna2/hbond</em> args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+  seq = seqav (for average sequence base-pairing strength) or seqdep (for sequence-dependent base-pairing strength)
+  eps = 1.0678 (LJ units) or 6.36589157849259 (real units), average hydrogen bonding strength between A-T and C-G Watson-Crick base pairs, 0 between all other pairs
+<em>oxdna2/dh</em> args [keyword value] = T rhos qeff [half_charged_ends no|yes]
+  T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K)
+  rhos = salt concentration (mole per litre)
+  qeff = 0.815 (effective charge in elementary charges)
+  half_charged_ends yes = set half charge at terminal nucleotides
+  half_charged_ends no  = set full charge at terminal nucleotides</pre>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># LJ units</span>
+<span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w">    </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.675</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.515</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.33</span><span class="w"> </span><span class="m">0.32</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w">     </span><span class="n">seqdep</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="m">1.3523</span><span class="w"> </span><span class="m">2.6717</span><span class="w"> </span><span class="m">6.0</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0.32</span><span class="w"> </span><span class="m">0.75</span><span class="w"> </span><span class="m">1.3</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.8</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.65</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.65</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">8.0</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="m">0.75</span><span class="w"> </span><span class="m">0.34</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.46</span><span class="w"> </span><span class="m">3.141592653589793</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.5707963267948966</span><span class="w"> </span><span class="m">0.45</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.5707963267948966</span><span class="w"> </span><span class="m">0.45</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="m">1.0678</span><span class="w"> </span><span class="m">8.0</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="m">0.75</span><span class="w"> </span><span class="m">0.34</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.46</span><span class="w"> </span><span class="m">3.141592653589793</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.5707963267948966</span><span class="w"> </span><span class="m">0.45</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.5707963267948966</span><span class="w"> </span><span class="m">0.45</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="m">1.0678</span><span class="w"> </span><span class="m">8.0</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="m">0.75</span><span class="w"> </span><span class="m">0.34</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.46</span><span class="w"> </span><span class="m">3.141592653589793</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.5707963267948966</span><span class="w"> </span><span class="m">0.45</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.5707963267948966</span><span class="w"> </span><span class="m">0.45</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w">    </span><span class="m">47.5</span><span class="w"> </span><span class="m">0.575</span><span class="w"> </span><span class="m">0.675</span><span class="w"> </span><span class="m">0.495</span><span class="w"> </span><span class="m">0.655</span><span class="w"> </span><span class="m">2.25</span><span class="w"> </span><span class="m">0.791592653589793</span><span class="w"> </span><span class="m">0.58</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.68</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.68</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.65</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">0.875</span><span class="w"> </span><span class="m">0.68</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">0.875</span><span class="w"> </span><span class="m">0.68</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="m">58.5</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="m">0.6</span><span class="w"> </span><span class="m">0.22</span><span class="w"> </span><span class="m">0.58</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">2.891592653589793</span><span class="w"> </span><span class="m">0.65</span><span class="w"> </span><span class="m">1.3</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.8</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">40.0</span><span class="w"> </span><span class="m">3.116592653589793</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span><span class="w">      </span><span class="m">0.1</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.815</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w">    </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w">     </span><span class="n">seqdep</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w">    </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span><span class="w">      </span><span class="m">0.1</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+
+<span class="c"># Real units</span>
+<span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w">    </span><span class="m">11.92337812042065</span><span class="w"> </span><span class="m">5.9626</span><span class="w"> </span><span class="m">5.74965</span><span class="w"> </span><span class="m">11.92337812042065</span><span class="w"> </span><span class="m">4.38677</span><span class="w"> </span><span class="m">4.259</span><span class="w"> </span><span class="m">11.92337812042065</span><span class="w"> </span><span class="m">2.81094</span><span class="w"> </span><span class="m">2.72576</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w">     </span><span class="n">seqdep</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">8.06199211612242</span><span class="w"> </span><span class="m">0.005309213</span><span class="w"> </span><span class="m">0.70439070204273</span><span class="w"> </span><span class="m">3.4072</span><span class="w"> </span><span class="m">7.6662</span><span class="w"> </span><span class="m">2.72576</span><span class="w"> </span><span class="m">6.3885</span><span class="w"> </span><span class="m">1.3</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.8</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.65</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.65</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.93918760272364</span><span class="w"> </span><span class="m">3.4072</span><span class="w"> </span><span class="m">6.3885</span><span class="w"> </span><span class="m">2.89612</span><span class="w"> </span><span class="m">5.9626</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.46</span><span class="w"> </span><span class="m">3.141592654</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.570796327</span><span class="w"> </span><span class="m">0.45</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.570796327</span><span class="w"> </span><span class="m">0.45</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="m">6.36589157849259</span><span class="w"> </span><span class="m">0.93918760272364</span><span class="w"> </span><span class="m">3.4072</span><span class="w"> </span><span class="m">6.3885</span><span class="w"> </span><span class="m">2.89612</span><span class="w"> </span><span class="m">5.9626</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.46</span><span class="w"> </span><span class="m">3.141592654</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.570796327</span><span class="w"> </span><span class="m">0.45</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.570796327</span><span class="w"> </span><span class="m">0.45</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="m">6.36589157849259</span><span class="w"> </span><span class="m">0.93918760272364</span><span class="w"> </span><span class="m">3.4072</span><span class="w"> </span><span class="m">6.3885</span><span class="w"> </span><span class="m">2.89612</span><span class="w"> </span><span class="m">5.9626</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.46</span><span class="w"> </span><span class="m">3.141592654</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.570796327</span><span class="w"> </span><span class="m">0.45</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="m">1.570796327</span><span class="w"> </span><span class="m">0.45</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w">    </span><span class="m">3.9029021145006</span><span class="w"> </span><span class="m">4.89785</span><span class="w"> </span><span class="m">5.74965</span><span class="w"> </span><span class="m">4.21641</span><span class="w"> </span><span class="m">5.57929</span><span class="w"> </span><span class="m">2.25</span><span class="w"> </span><span class="m">0.791592654</span><span class="w"> </span><span class="m">0.58</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.68</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.68</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.65</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">0.875</span><span class="w"> </span><span class="m">0.68</span><span class="w"> </span><span class="m">1.7</span><span class="w"> </span><span class="m">0.875</span><span class="w"> </span><span class="m">0.68</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="m">4.80673207785863</span><span class="w"> </span><span class="m">3.4072</span><span class="w"> </span><span class="m">5.1108</span><span class="w"> </span><span class="m">1.87396</span><span class="w"> </span><span class="m">4.94044</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">2.891592653589793</span><span class="w"> </span><span class="m">0.65</span><span class="w"> </span><span class="m">1.3</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.8</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">0.9</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.95</span><span class="w"> </span><span class="m">40.0</span><span class="w"> </span><span class="m">3.116592653589793</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span><span class="w">      </span><span class="m">300.0</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.815</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w">    </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w">     </span><span class="n">seqdep</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w">    </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2_real.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span><span class="w">      </span><span class="m">300.0</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">oxdna2_real.cgdna</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The coefficients in the above examples are provided in forms
+compatible with both <em>units lj</em> and <em>units real</em> (see documentation
+of <a class="reference internal" href="units.html"><span class="doc">units</span></a>).  These can also be read from a potential
+file with correct unit style by specifying the name of the
+file. Several potential files for each unit style are included in the
+<code class="docutils literal notranslate"><span class="pre">potentials</span></code> directory of the LAMMPS distribution.</p>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The <em>oxdna2</em> pair styles compute the pairwise-additive parts of the
+oxDNA force field for coarse-grained modelling of DNA. The effective
+interaction between the nucleotides consists of potentials for the
+excluded volume interaction <em>oxdna2/excv</em>, the stacking <em>oxdna2/stk</em>,
+cross-stacking <em>oxdna2/xstk</em> and coaxial stacking interaction
+<em>oxdna2/coaxstk</em>, electrostatic Debye-Hueckel interaction <em>oxdna2/dh</em> as
+well as the hydrogen-bonding interaction <em>oxdna2/hbond</em> between
+complementary pairs of nucleotides on opposite strands. Average sequence
+or sequence-dependent stacking and base-pairing strengths are supported
+<a class="reference internal" href="#sulc2"><span class="std std-ref">(Sulc)</span></a>.</p>
+<p>The exact functional form of the pair styles is rather complex.  The
+individual potentials consist of products of modulation factors, which
+themselves are constructed from a number of more basic potentials
+(Morse, Lennard-Jones, harmonic angle and distance) as well as quadratic
+smoothing and modulation terms.  We refer to <a class="reference internal" href="#snodin2"><span class="std std-ref">(Snodin)</span></a>
+and the original oxDNA publications <a class="reference internal" href="#ouldridge-dphil2"><span class="std std-ref">(Ouldridge-DPhil)</span></a> and <a class="reference internal" href="#ouldridge2"><span class="std std-ref">(Ouldridge)</span></a> for a detailed
+description of the oxDNA2 force field.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These pair styles have to be used together with the related oxDNA2
+bond style <em>oxdna2/fene</em> for the connectivity of the phosphate
+backbone (see also documentation of <a class="reference internal" href="bond_oxdna.html"><span class="doc">bond_style oxdna2/fene</span></a>). Most of the coefficients in the above example have to
+be kept fixed and cannot be changed without reparameterizing the
+entire model.  Exceptions are the first two coefficients after
+<em>oxdna2/stk</em> (seq=seqdep and T=0.1 and
+corresponding <em>real unit</em> equivalents in the above examples), the
+first coefficient after <em>oxdna2/hbond</em> (seq=seqdep in the above
+example) and the two coefficients after <em>oxdna2/dh</em> (T=0.1 and
+rhos=0.5 in the above example).
+<em>oxdna2/dh</em> has the option to set half a charge at terminal nucleotides
+(half_charged_ends yes) to aid coaxial stacking. When using a
+Langevin thermostat e.g. through <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> or
+<a class="reference internal" href="fix_nve_dotc_langevin.html"><span class="doc">fix nve/dotc/langevin</span></a> the temperature
+coefficients have to be matched to the one used in the fix.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>These pair styles have to be used with the <em>atom_style hybrid bond
+ellipsoid oxdna</em> (see documentation of <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a>). The <em>atom_style oxdna</em> stores the 3’-to-5’ polarity
+of the nucleotide strand, which is set through the bond topology in
+the data file. The first (second) atom in a bond definition is
+understood to point towards the 3’-end (5’-end) of the strand.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>If data files are produced with <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a>, then
+the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> command should be set to <em>newton on</em>.
+Otherwise the data files will not have the same 3’-to-5’ polarity
+as the initial data file. This limitation does not apply to
+binary restart files produced with <a class="reference internal" href="write_restart.html"><span class="doc">write_restart</span></a>.</p>
+</div>
+<p>Example input and data files for DNA duplexes can be found in
+<code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/</span></code> or in the
+corresponding folder for real units.
+A simple python setup tool which creates single straight or helical DNA
+strands, DNA duplexes or arrays of DNA duplexes can be found in
+<code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/cgdna/util/</span></code>.</p>
+<p>Please cite <a class="reference internal" href="#henrich2"><span class="std std-ref">(Henrich)</span></a> in any publication that uses
+this implementation. An updated documentation that contains general
+information on the model, its implementation and performance as well as
+the structure of the data and input file can be found <a class="reference external" href="PDF/CG-DNA.pdf">here</a>.</p>
+<p>Please cite also the relevant oxDNA2 publications
+<a class="reference internal" href="#snodin2"><span class="std std-ref">(Snodin)</span></a> and <a class="reference internal" href="#sulc2"><span class="std std-ref">(Sulc)</span></a>.</p>
+</section>
+<hr class="docutils" />
+<section id="potential-file-reading">
+<h2>Potential file reading<a class="headerlink" href="#potential-file-reading" title="Link to this heading"></a></h2>
+<p>For each pair style above the first non-modifiable argument can be a
+filename (with exception of Debye-Hueckel, for which the effective
+charge argument can be a filename), and if it is, no further arguments
+should be supplied.  Therefore the following command:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna_real.cgdna</span>
+</pre></div>
+</div>
+<p>will be interpreted as a request to read the corresponding hydrogen
+bonding potential parameters from the file with the given name.  The
+file can define multiple potential parameters for both bonded and pair
+interactions, but for the example pair interaction above there must
+exist in the file a line of the form:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">hbond</span><span class="w">     </span><span class="o">&lt;</span><span class="n">coefficients</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>If potential customization is required, the potential file reading can
+be mixed with the manual specification of the potential parameters. For
+example, the following command:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">hybrid</span><span class="o">/</span><span class="n">overlay</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">excv</span><span class="w">    </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.7</span><span class="w"> </span><span class="m">0.675</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.515</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="m">0.33</span><span class="w"> </span><span class="m">0.32</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">stk</span><span class="w">     </span><span class="n">seqdep</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">hbond</span><span class="w">   </span><span class="n">seqdep</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">xstk</span><span class="w">    </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">coaxstk</span><span class="w"> </span><span class="n">oxdna2_lj.cgdna</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">oxdna2</span><span class="o">/</span><span class="n">dh</span><span class="w">      </span><span class="m">0.1</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">0.815</span>
+</pre></div>
+</div>
+<p>will read the excluded volume and Debye-Hueckel effective charge <em>qeff</em>
+parameters from the manual specification and all others from the
+potential file <em>oxdna2_lj.cgdna</em>.</p>
+<p>There are sample potential files for each unit style in the <code class="docutils literal notranslate"><span class="pre">potentials</span></code>
+directory of the LAMMPS distribution. The potential file unit system
+must align with the units defined via the <a class="reference internal" href="units.html"><span class="doc">units</span></a>
+command. For conversion between different <em>LJ</em> and <em>real</em> unit systems
+for oxDNA, the python tool <em>lj2real.py</em> located in the
+<code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/cgdna/util/</span></code> directory can be used. This tool assumes
+similar file structure to the examples found in
+<code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/cgdna/examples/</span></code>.</p>
+</section>
+<hr class="docutils" />
+<section id="unique-base-pairing">
+<h2>Unique base pairing<a class="headerlink" href="#unique-base-pairing" title="Link to this heading"></a></h2>
+<p>Unique base pairing describes the restriction on the specific complementary
+nucleotide with which a particular base can pair. This can be used to prevent
+asymmetric base pairs or to simplify the free energy landscape. With unique
+base pairing enabled base pairs can only form between complementary nucleotides
+with specific atom IDs. This functionality draws on <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a>
+and a modified <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+<p>To use unique base pairing, the data file of a system with N nucleotides must contain a section like</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="n">Basepairs</span><span class="w"> </span><span class="c"># i_idc</span>
+
+<span class="m">1</span><span class="w"> </span><span class="n">idc1</span>
+<span class="m">2</span><span class="w"> </span><span class="n">idc2</span>
+<span class="m">3</span><span class="w"> </span><span class="n">idc3</span>
+<span class="m">4</span><span class="w"> </span><span class="n">idc4</span>
+<span class="n">...</span>
+<span class="n">N</span><span class="w"> </span><span class="n">idcN</span>
+</pre></div>
+</div>
+<p>where idc is the non-negative atom ID of a complementary nucleotide that binds uniquely
+to the preceding atom ID.</p>
+<p>Unique base pairing can be combined with normal base pairing by setting a zero or negative value for idc.
+For instance, in a 4-mer with 8 nucleotides consisting of a ssDNA strand 3’-A-A-A-A-5’ with atom IDs 3’-1-2-3-4-5’
+and a complementary strand 5’-T-T-T-T-3’ with atom IDs 5’-8-7-6-5-3’ set up as</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="n">Basepairs</span><span class="w"> </span><span class="c"># i_idc</span>
+
+<span class="m">1</span><span class="w"> </span><span class="m">8</span>
+<span class="m">2</span><span class="w"> </span><span class="o">-</span><span class="m">1</span>
+<span class="m">3</span><span class="w"> </span><span class="o">-</span><span class="m">1</span>
+<span class="m">4</span><span class="w"> </span><span class="m">5</span>
+<span class="m">5</span><span class="w"> </span><span class="m">4</span>
+<span class="m">6</span><span class="w"> </span><span class="o">-</span><span class="m">1</span>
+<span class="m">7</span><span class="w"> </span><span class="o">-</span><span class="m">1</span>
+<span class="m">8</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<p>the A nucleotide with ID 1 can only hybridize with the T nucleotide with ID 8 and
+the A nucleotide with ID 4 can only hybridize with the T nucleotide with ID 5,
+whereas the A nucleotides with ID 2 and 3 can hybridize with either T nucleotide with ID 6 and 7.</p>
+<p>The input file requires an instance of the <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a> and a
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command as follows:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">Basepairs</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">property</span><span class="o">/</span><span class="n">atom</span><span class="w"> </span><span class="n">i_idc</span><span class="w"> </span><span class="n">ghost</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">read_data</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="k">fix </span><span class="nv nv-Identifier">Basepairs</span><span class="w"> </span><span class="nv nv-Identifier">NULL</span><span class="w"> </span><span class="n">Basepairs</span>
+</pre></div>
+</div>
+<p>where <em>file</em> is the name of the data file and the only modifiable argument.
+An example input and data file for a dsDNA ring can be found in
+<code class="docutils literal notranslate"><span class="pre">examples/PACKAGES/cgdna/examples/lj_units/oxDNA3/unique_bp</span></code>
+or in the corresponding folder for real units.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>These pair styles can only be used if LAMMPS was built with the
+CG-DNA package and the MOLECULE and ASPHERE package.  See the
+<a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="bond_oxdna.html"><span class="doc">bond_style oxdna2/fene</span></a>, <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>,
+<a class="reference internal" href="bond_oxdna.html"><span class="doc">bond_style oxdna/fene</span></a>, <a class="reference internal" href="pair_oxdna.html"><span class="doc">pair_style oxdna/excv</span></a>,
+<a class="reference internal" href="bond_oxdna.html"><span class="doc">bond_style oxrna2/fene</span></a>, <a class="reference internal" href="pair_oxrna2.html"><span class="doc">pair_style oxrna2/excv</span></a>,
+<a class="reference internal" href="atom_style.html"><span class="doc">atom_style oxdna</span></a>, <a class="reference internal" href="fix_nve_dotc_langevin.html"><span class="doc">fix nve/dotc/langevin</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>none</p>
+<hr class="docutils" />
+<p id="henrich2"><strong>(Henrich)</strong> O. Henrich, Y. A. Gutierrez-Fosado, T. Curk, T. E. Ouldridge, Eur. Phys. J. E 41, 57 (2018).</p>
+<p id="snodin2"><strong>(Snodin)</strong> B.E. Snodin, F. Randisi, M. Mosayebi, et al., J. Chem. Phys. 142, 234901 (2015).</p>
+<p id="sulc2"><strong>(Sulc)</strong> P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).</p>
+<p id="ouldridge-dphil2"><strong>(Ouldridge-DPhil)</strong> T.E. Ouldridge, Coarse-grained modelling of DNA and DNA self-assembly, DPhil. University of Oxford (2011).</p>
+<p id="ouldridge2"><strong>(Ouldridge)</strong> T.E. Ouldridge, A.A. Louis, J.P.K. Doye, J. Chem. Phys. 134, 085101 (2011).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pair_oxdna.html" class="btn btn-neutral float-left" title="pair_style oxdna/excv command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pair_oxdna3.html" class="btn btn-neutral float-right" title="pair_style oxdna3/excv command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+# Compute elastic constant tensor for a crystal at finite temperature
+# These settings replicate the 1477~K benchmark of
+# Kluge, Ray, and Rahman (1986) that is Ref.[15] in:
+# Y. Zhen, C. Chu, Computer Physics Communications 183(2012) 261-265
+
+# here: Y. Zhen, C. Chu, Computer Physics Communications 183(2012) 261-265
+
+include init.in
+
+# Compute initial state
+
+include potential.in
+thermo_style custom step temp pe press density
+run ${nequil}
+
+# Run dynamics
+
+include potential.in
+include output.in
+
+run ${nrun}
+
+# Output final values
+
+include final_output.in

@@ -1,0 +1,53 @@
+##### 2d overdamped brownian dynamics with self-propulsion force in direction of velocity. #####
+
+variable        gamma_t equal 1.0
+variable        temp equal 1.0
+variable        seed equal 1974019
+variable        fp equal 4.0
+variable        params string ${gamma_t}_${temp}_${fp}
+
+units           lj
+dimension       2
+newton off
+
+lattice         sq 0.4
+region          box block -16 16 -16 16 -0.2 0.2
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+velocity        all create 1.0 1 loop geom
+
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+
+pair_style none
+
+fix         step all brownian ${temp} ${seed} gamma_t ${gamma_t}
+fix         vel all propel/self velocity ${fp}
+fix         2 all enforce2d
+fix_modify  vel virial yes
+
+compute press all pressure NULL virial
+
+thermo_style    custom step temp epair c_press
+
+#equilibration
+timestep        0.0000000001
+thermo          500
+run             5000
+reset_timestep  0
+
+#initialisation for the main run
+
+# MSD
+compute         msd  all msd
+
+thermo_style    custom step ke pe c_msd[*] c_press
+
+timestep        0.00001
+thermo          1000
+
+# main run
+run             12000
+
+

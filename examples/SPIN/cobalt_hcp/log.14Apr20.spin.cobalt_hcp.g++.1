@@ -1,0 +1,142 @@
+LAMMPS (19 Mar 2020)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+# hcp cobalt in a 3d periodic box
+
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (../comm.cpp:94)
+  using 1 OpenMP thread(s) per MPI task
+units	 	metal
+atom_style 	spin
+
+dimension 	3
+boundary 	p p p
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array
+
+lattice 	hcp 2.5071
+Lattice spacing in x,y,z = 2.5071 4.34242 4.09408
+region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box 	1 box
+Created orthogonal box = (0 0 0) to (12.5355 21.7121 20.4704)
+  1 by 1 by 1 MPI processor grid
+create_atoms 	1 box
+Created 500 atoms
+  create_atoms CPU = 0.00121403 secs
+
+# setting mass, mag. moments, and interactions for hcp cobalt
+
+mass		1 58.93
+
+set 		group all spin/random 31 1.72
+  500 settings made for spin/random
+#set 		group all spin 1.72 0.0 0.0 1.0
+velocity 	all create 100 4928459 rot yes dist gaussian
+
+#pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0 spin/neel 4.0
+pair_style 	hybrid/overlay eam/alloy spin/exchange 4.0
+pair_coeff 	* * eam/alloy Co_PurjaPun_2012.eam.alloy Co
+pair_coeff 	* * spin/exchange exchange 4.0 -0.3593 1.135028015e-05 1.064568567
+#pair_coeff 	* * spin/neel neel 4.0 0.0048 0.234 1.168 2.6905 0.705 0.652
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin anisotropy 0.01 0.0 0.0 1.0
+fix_modify      1 energy yes
+fix 		2 all langevin/spin 0.0 0.0 21
+fix 		3 all nve/spin lattice moving
+
+timestep	0.0001
+
+
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magnorm pe v_emag temp press etotal
+thermo          50
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 100 dump_cobalt_hcp.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+
+run 		1000
+Neighbor list info ...
+  update every 10 steps, delay 20 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.59954
+  ghost atom cutoff = 6.59954
+  binsize = 3.29977, bins = 4 7 7
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair eam/alloy, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.902 | 7.902 | 7.902 Mbytes
+Step Time v_magnorm PotEng v_emag Temp Press TotEng 
+       0            0  0.076558814   -2197.5536   -2.5536882    100.00543   -552.75983   -2191.1032 
+      50        0.005  0.079437931   -2197.3113   -2.6177795     96.18776   -337.75504   -2191.1071 
+     100         0.01  0.079575823   -2196.5768   -2.7375927    84.740309    571.91195   -2191.1109 
+     150        0.015  0.078526145   -2195.4996   -2.8719243    67.984081     1845.185   -2191.1146 
+     200         0.02  0.077001318   -2194.3502    -3.019723    50.107518    3008.9709   -2191.1182 
+     250        0.025  0.077628454    -2193.403   -3.1832392    35.364524    4018.0217    -2191.122 
+     300         0.03  0.077407462   -2192.8618   -3.3557644    26.910583    4535.9542    -2191.126 
+     350        0.035  0.078090775   -2192.8052   -3.5305639    25.971561    4733.0322     -2191.13 
+     400         0.04  0.078594494    -2193.135   -3.6772939    31.026665    4309.2088   -2191.1338 
+     450        0.045  0.079898162   -2193.6965   -3.8044501    39.672566    3591.9593   -2191.1376 
+     500         0.05  0.079885039   -2194.3293   -3.9435795    49.423774    2698.4519   -2191.1414 
+     550        0.055  0.077196547   -2194.8554   -4.0868278    57.523322    1934.2444   -2191.1451 
+     600         0.06  0.075430904   -2195.1797   -4.2355252    62.494025    1597.2543   -2191.1488 
+     650        0.065  0.076510964   -2195.2854   -4.3752086    64.080496    1656.2312   -2191.1522 
+     700         0.07   0.07649426   -2195.2723   -4.5226349    63.825926    1521.7541   -2191.1555 
+     750        0.075  0.076254777   -2195.2746   -4.6937954    63.804162    1505.1323   -2191.1592 
+     800         0.08  0.074211447   -2195.3567   -4.8567561    65.022623    1203.5409   -2191.1627 
+     850        0.085  0.072034236   -2195.5531   -5.0007443    68.003461    900.03381   -2191.1668 
+     900         0.09  0.071097702   -2195.8563   -5.1391578    72.641879    548.08834   -2191.1709 
+     950        0.095  0.072642434   -2196.2007   -5.2853353    77.926596    194.45928   -2191.1743 
+    1000          0.1   0.07306537     -2196.46   -5.4169261    81.891897   -404.70871   -2191.1779 
+Loop time of 4.78824 on 1 procs for 1000 steps with 500 atoms
+
+Performance: 1.804 ns/day, 13.301 hours/ns, 208.845 timesteps/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.3284     | 2.3284     | 2.3284     |   0.0 | 48.63
+Neigh   | 0.01273    | 0.01273    | 0.01273    |   0.0 |  0.27
+Comm    | 0.042432   | 0.042432   | 0.042432   |   0.0 |  0.89
+Output  | 0.0083201  | 0.0083201  | 0.0083201  |   0.0 |  0.17
+Modify  | 2.3895     | 2.3895     | 2.3895     |   0.0 | 49.90
+Other   |            | 0.006823   |            |       |  0.14
+
+Nlocal:    500 ave 500 max 500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    2444 ave 2444 max 2444 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    27036 ave 27036 max 27036 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  54072 ave 54072 max 54072 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 54072
+Ave neighs/atom = 108.144
+Neighbor list builds = 6
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:00:04

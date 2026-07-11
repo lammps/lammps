@@ -1,0 +1,499 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.2.3. Triclinic (non-orthogonal) simulation boxes &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_triclinic.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.2.4. Thermostats" href="Howto_thermostat.html" />
+    <link rel="prev" title="10.2.2. Type labels" href="Howto_type_labels.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_2d.html">10.2.1. 2d simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_type_labels.html">10.2.2. Type labels</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.2.3. Triclinic (non-orthogonal) simulation boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_thermostat.html">10.2.4. Thermostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_barostat.html">10.2.5. Barostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_walls.html">10.2.6. Walls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_nemd.html">10.2.7. NEMD simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_dispersion.html">10.2.8. Long-range dispersion settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bulk2slab.html">10.2.9. Convert bulk system to slab</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_broken_bonds.html">10.2.10. Broken Bonds</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.2.3. </span>Triclinic (non-orthogonal) simulation boxes</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_type_labels.html" class="btn btn-neutral float-left" title="10.2.2. Type labels" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_thermostat.html" class="btn btn-neutral float-right" title="10.2.4. Thermostats" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="triclinic-non-orthogonal-simulation-boxes">
+<h1><span class="section-number">10.2.3. </span>Triclinic (non-orthogonal) simulation boxes<a class="headerlink" href="#triclinic-non-orthogonal-simulation-boxes" title="Link to this heading"></a></h1>
+<p>By default, LAMMPS uses an orthogonal simulation box to encompass the
+particles.  The orthogonal box has its “origin” at (xlo,ylo,zlo) and
+extends to (xhi,yhi,zhi).  Conceptually it is defined by 3 edge
+vectors starting from the origin given by <strong>A</strong> = (xhi-xlo,0,0); <strong>B</strong>
+= (0,yhi-ylo,0); <strong>C</strong> = (0,0,zhi-zlo).  The <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command sets the boundary conditions for the 6 faces of
+the box (periodic, non-periodic, etc).  The 6 parameters
+(xlo,xhi,ylo,yhi,zlo,zhi) are defined at the time the simulation box
+is created by one of these commands:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a></p></li>
+<li><p><a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a></p></li>
+<li><p><a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></p></li>
+<li><p><a class="reference internal" href="read_dump.html"><span class="doc">read_dump</span></a></p></li>
+</ul>
+<p>Internally, LAMMPS defines box size parameters lx,ly,lz where lx =
+xhi-xlo, and similarly in the y and z dimensions.  The 6 parameters, as
+well as lx,ly,lz, can be output via the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command.  See the <a class="reference internal" href="Howto_2d.html"><span class="doc">Howto 2d</span></a> doc page
+for info on how zlo and zhi are defined for 2d simulations.</p>
+<hr class="docutils" />
+<section id="triclinic-simulation-boxes">
+<h2>Triclinic simulation boxes<a class="headerlink" href="#triclinic-simulation-boxes" title="Link to this heading"></a></h2>
+<p>LAMMPS also allows simulations to be performed using triclinic
+(non-orthogonal) simulation boxes shaped as a 3d parallelepiped with
+triclinic symmetry.  For 2d simulations a triclinic simulation box is
+effectively a parallelogram; see the <a class="reference internal" href="Howto_2d.html"><span class="doc">Howto 2d</span></a> doc
+page for details.</p>
+<p>One use of triclinic simulation boxes is to model solid-state crystals
+with triclinic symmetry.  The <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> command can be
+used with non-orthogonal basis vectors to define a lattice that will
+tile a triclinic simulation box via the <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> command.</p>
+<p>A second use is to run Parrinello-Rahman dynamics via the <a class="reference internal" href="fix_nh.html"><span class="doc">fix
+npt</span></a> command, which will adjust the xy, xz, yz tilt factors
+to compensate for off-diagonal components of the pressure tensor.  The
+analog for an <a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a> is the <a class="reference internal" href="fix_box_relax.html"><span class="doc">fix
+box/relax</span></a> command.</p>
+<p>A third use is to shear a bulk solid to study the response of the
+material.  The <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> command can be used for
+this purpose.  It allows dynamic control of the xy, xz, yz tilt
+factors as a simulation runs.  This is discussed in the <a class="reference internal" href="Howto_nemd.html"><span class="doc">Howto
+NEMD</span></a> doc page on non-equilibrium MD (NEMD) simulations.</p>
+<p>Conceptually, a triclinic parallelepiped is defined with an “origin”
+at (xlo,ylo,zhi) and 3 edge vectors <strong>A</strong> = (ax,ay,az), <strong>B</strong> =
+(bx,by,bz), <strong>C</strong> = (cx,cy,cz) which can be arbitrary vectors, so long
+as they are non-zero, distinct, and not co-planar.  In addition, they
+must define a right-handed system, such that (<strong>A</strong> cross <strong>B</strong>)
+points in the direction of <strong>C</strong>.  Note that a left-handed system can
+be converted to a right-handed system by simply swapping the order of
+any pair of the <strong>A</strong>, <strong>B</strong>, <strong>C</strong> vectors.</p>
+<p>The 4 commands listed above for defining orthogonal simulation boxes
+have triclinic options which allow for specification of the origin and
+edge vectors <strong>A</strong>, <strong>B</strong>, <strong>C</strong>.  For each command, this can be done
+in one of two ways, for what LAMMPS calls a <em>general</em> triclinic box or
+a <em>restricted</em> triclinic box.</p>
+<p>A <em>general</em> triclinic box is specified by an origin (xlo, ylo, zlo)
+and arbitrary edge vectors <strong>A</strong> = (ax,ay,az), <strong>B</strong> = (bx,by,bz), and
+<strong>C</strong> = (cx,cy,cz).  So there are 12 parameters in total.</p>
+<p>A <em>restricted</em> triclinic box also has an origin (xlo,ylo,zlo), but its
+edge vectors are of the following restricted form: <strong>A</strong> =
+(xhi-xlo,0,0), <strong>B</strong> = (xy,yhi-ylo,0), <strong>C</strong> = (xz,yz,zhi-zlo).  So
+there are 9 parameters in total.  Note that the restricted form
+requires <strong>A</strong> to be along the x-axis, <strong>B</strong> to be in the xy plane
+with a y-component in the +y direction, and <strong>C</strong> to have its
+z-component in the +z direction.  Note that a restricted triclinic box
+is <em>right-handed</em> by construction since (<strong>A</strong> cross <strong>B</strong>) points in
+the direction of <strong>C</strong>.</p>
+<p>The <em>xy,xz,yz</em> values can be zero or positive or negative.  They are
+called “tilt factors” because they are the amount of displacement
+applied to edges of faces of an orthogonal box to change it into a
+restricted triclinic parallelepiped.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Any right-handed general triclinic box (i.e. solid-state crystal
+basis vectors) can be rotated in 3d around its origin in order to
+conform to the LAMMPS definition of a restricted triclinic box.
+See the discussion in the next sub-section about general triclinic
+simulation boxes in LAMMPS.</p>
+</div>
+<p>Note that the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command has
+keywords for outputting the various parameters that define the size
+and shape of orthogonal, restricted triclinic, and general triclinic
+simulation boxes.</p>
+<p>For orthogonal boxes there are 6 thermo keywords (xlo,ylo,zlo) and
+(xhi,yhi,zhi).</p>
+<p>For restricted triclinic boxes there are 9 thermo keywords for
+(xlo,ylo,zlo), (xhi,yhi,zhi), and the (xy,xz,yz) tilt factors.</p>
+<p>For general triclinic boxes there are 12 thermo keywords for
+(xlo,ylo,zhi) and the components of the <strong>A</strong>, <strong>B</strong>, <strong>C</strong> edge
+vectors, namely (avecx,avecy,avecz), (bvecx,bvecy,bvecz), and
+(cvecx,cvecy,cvecz),</p>
+<p>The remainder of this doc page explains (a) how LAMMPS operates with
+general triclinic simulation boxes, (b) mathematical transformations
+between general and restricted triclinic boxes which may be useful
+when creating LAMMPS inputs or interpreting outputs for triclinic
+simulations, and (c) how LAMMPS uses tilt factors for restricted
+triclinic simulation boxes.</p>
+</section>
+<hr class="docutils" />
+<section id="general-triclinic-simulation-boxes-in-lammps">
+<h2>General triclinic simulation boxes in LAMMPS<a class="headerlink" href="#general-triclinic-simulation-boxes-in-lammps" title="Link to this heading"></a></h2>
+<p>LAMMPS allows specification of general triclinic simulation boxes with
+their atoms as a convenience for users who may be converting data from
+solid-state crystallographic representations or from DFT codes for
+input to LAMMPS.  Likewise it allows output of dump files, data files,
+and thermodynamic data (e.g. pressure tensor) in a general triclinic
+format.</p>
+<p>However internally, LAMMPS only uses restricted triclinic simulation
+boxes.  This is for parallel efficiency and to formulate partitioning
+of the simulation box across processors, neighbor list building, and
+inter-processor communication of per-atom data with methods similar to
+those used for orthogonal boxes.</p>
+<p>This means 4 things which are important to understand:</p>
+<ul class="simple">
+<li><p>Input of a general triclinic system is immediately converted to a
+restricted triclinic system.</p></li>
+<li><p>If output of per-atom data for a general triclinic system is
+requested (e.g. for atom coordinates in a dump file),
+conversion from a restricted to general triclinic system is done at
+the time of output.</p></li>
+<li><p>The conversion of the simulation box and per-atom data from general
+triclinic to restricted triclinic (and vice versa) is a 3d rotation
+operation around an origin, which is the lower left corner of the
+simulation box.  This means an input data file for a general
+triclinic system should specify all per-atom quantities consistent
+with the general triclinic box and its orientation relative to the
+standard x,y,z coordinate axes.  For example, atom coordinates
+should be inside the general triclinic simulation box defined by the
+edge vectors <strong>A</strong>, <strong>B</strong>, <strong>C</strong> and its origin.  Likewise per-atom
+velocities should be in directions consistent with the general
+triclinic box orientation.  E.g. a velocity vector which will be in
+the +x direction once LAMMPS converts from a general to restricted
+triclinic box, should be specified in the data file in the direction
+of the <strong>A</strong> edge vector.  See the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> doc
+page for info on all the per-atom vector quantities to which this
+rule applies when a data file for a general triclinic box is input.</p></li>
+<li><p>If commands such as <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a> or <a class="reference internal" href="dump.html"><span class="doc">dump
+custom</span></a> are used to output general triclinic information, it
+is effectively the inverse of the operation described in the
+preceding bullet.</p></li>
+<li><p>Other LAMMPS commands such as <a class="reference internal" href="region.html"><span class="doc">region</span></a> or
+<a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> or <a class="reference internal" href="set.html"><span class="doc">set</span></a>, operate on a
+restricted triclinic system even if a general triclinic system was
+defined initially.</p></li>
+</ul>
+<p>This is the list of commands which have general triclinic options:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> - define a general triclinic box</p></li>
+<li><p><a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> - add atoms to a general triclinic box</p></li>
+<li><p><a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> - define a custom lattice consistent with the <strong>A</strong>, <strong>B</strong>, <strong>C</strong> edge vectors of a general triclinic box</p></li>
+<li><p><a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> - read a data file for a general triclinic system</p></li>
+<li><p><a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a> - write a data file for a general triclinic system</p></li>
+<li><p><a class="reference internal" href="dump.html"><span class="doc">dump atom, dump custom</span></a> - output dump snapshots in general triclinic format</p></li>
+<li><p><a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify triclinic/general</span></a> - select general triclinic format for dump output</p></li>
+<li><p><a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> - output the pressure tensor in
+general triclinic format</p></li>
+<li><p><a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify triclinic/general</span></a> - select general triclinic format for thermo output</p></li>
+<li><p><a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> - read a restart file for a general triclinic system</p></li>
+<li><p><a class="reference internal" href="read_restart.html"><span class="doc">write_restart</span></a> - write a restart file for a general triclinic system</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="transformation-from-general-to-restricted-triclinic-boxes">
+<h2>Transformation from general to restricted triclinic boxes<a class="headerlink" href="#transformation-from-general-to-restricted-triclinic-boxes" title="Link to this heading"></a></h2>
+<p>Let <strong>A</strong>,<strong>B</strong>,<strong>C</strong> be the right-handed edge vectors of a
+general triclinic simulation box.  The equivalent LAMMPS <strong>a</strong>,<strong>b</strong>,<strong>c</strong> for a restricted triclinic box are a 3d rotation of
+<strong>A</strong>, <strong>B</strong>, and <strong>C</strong> and can be computed as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{pmatrix} \mathbf{a}  &amp; \mathbf{b}  &amp; \mathbf{c} \end{pmatrix} = &amp;
+\begin{pmatrix}
+  a_x &amp; b_x &amp; c_x \\
+  0   &amp; b_y &amp; c_y \\
+  0   &amp; 0   &amp; c_z \\
+\end{pmatrix} \\
+a_x = &amp; A \\
+b_x = &amp; \mathbf{B} \cdot \mathbf{\hat{A}} \quad = \quad B \cos{\gamma} \\
+b_y = &amp; |\mathbf{\hat{A}} \times \mathbf{B}| \quad = \quad B \sin{\gamma} \quad =  \quad  \sqrt{B^2 - {b_x}^2} \\
+c_x = &amp; \mathbf{C} \cdot \mathbf{\hat{A}} \quad = \quad C \cos{\beta} \\
+c_y = &amp; \mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})} \times \mathbf{\hat{A}} \quad = \quad \frac{\mathbf{B} \cdot \mathbf{C} - b_x c_x}{b_y} \\
+c_z = &amp; |\mathbf{C} \cdot \widehat{(\mathbf{A} \times \mathbf{B})}|\quad = \quad \sqrt{C^2 - {c_x}^2 - {c_y}^2}\end{split}\]</div>
+<p>where A = | <strong>A</strong> | indicates the scalar length of <strong>A</strong>. The hat
+symbol (^) indicates the corresponding unit vector. <span class="math notranslate nohighlight">\(\beta\)</span> and
+<span class="math notranslate nohighlight">\(\gamma\)</span> are angles between the <strong>A</strong>, <strong>B</strong>, <strong>C</strong> vectors
+as described below.</p>
+<p>For consistency, the same rotation applied to the triclinic box edge
+vectors can also be applied to atom positions, velocities, and other
+vector quantities.  This can be conveniently achieved by first
+converting to fractional coordinates in the general triclinic
+coordinates and then converting to coordinates in the restricted
+triclinic basis.  The transformation is given by the following equation:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbf{x} = &amp; \begin{pmatrix} \mathbf{a}  &amp; \mathbf{b}  &amp; \mathbf{c} \end{pmatrix} \cdot \frac{1}{V}
+  \begin{pmatrix}
+    \mathbf{B \times C}  \\
+    \mathbf{C \times A}  \\
+    \mathbf{A \times B}
+  \end{pmatrix} \cdot \mathbf{X}\end{split}\]</div>
+<p>where <em>V</em> is the volume of the box (same in either basis), <strong>X</strong> is
+the fractional vector in the general triclinic basis and <strong>x</strong> is the
+resulting vector in the restricted triclinic basis.</p>
+</section>
+<hr class="docutils" />
+<section id="crystallographic-general-triclinic-representation-of-a-simulation-box">
+<h2>Crystallographic general triclinic representation of a simulation box<a class="headerlink" href="#crystallographic-general-triclinic-representation-of-a-simulation-box" title="Link to this heading"></a></h2>
+<p>General triclinic crystal structures are often defined using three
+lattice constants <em>a</em>, <em>b</em>, and <em>c</em>, and three angles <span class="math notranslate nohighlight">\(\alpha\)</span>,
+<span class="math notranslate nohighlight">\(\beta\)</span>, and <span class="math notranslate nohighlight">\(\gamma\)</span>. Note that in this nomenclature, the
+a, b, and c lattice constants are the scalar lengths of the edge
+vectors <strong>a</strong>, <strong>b</strong>, and <strong>c</strong> defined above.  The relationship
+between these 6 quantities (a, b, c, <span class="math notranslate nohighlight">\(\alpha\)</span>, <span class="math notranslate nohighlight">\(\beta\)</span>,
+<span class="math notranslate nohighlight">\(\gamma\)</span>) and the LAMMPS restricted triclinic box sizes
+(lx,ly,lz) = (xhi-xlo,yhi-ylo,zhi-zlo) and tilt factors (xy,xz,yz) is
+as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}a   = &amp; \mathrm{lx} \\
+b^2 = &amp;  \mathrm{ly}^2 + \mathrm{xy}^2 \\
+c^2 = &amp;  \mathrm{lz}^2 + \mathrm{xz}^2 + \mathrm{yz}^2 \\
+\cos{\alpha} = &amp; \frac{\mathrm{xy}*\mathrm{xz} + \mathrm{ly}*\mathrm{yz}}{b*c} \\
+\cos{\beta}  = &amp; \frac{\mathrm{xz}}{c} \\
+\cos{\gamma} = &amp; \frac{\mathrm{xy}}{b} \\\end{split}\]</div>
+<p>The inverse relationship can be written as follows:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathrm{lx}   = &amp; a \\
+\mathrm{xy}   = &amp; b \cos{\gamma}  \\
+\mathrm{xz}   = &amp; c \cos{\beta}\\
+\mathrm{ly}^2 = &amp; b^2 - \mathrm{xy}^2 \\
+\mathrm{yz}   = &amp; \frac{b*c \cos{\alpha} - \mathrm{xy}*\mathrm{xz}}{\mathrm{ly}} \\
+\mathrm{lz}^2 = &amp; c^2 - \mathrm{xz}^2 - \mathrm{yz}^2 \\\end{split}\]</div>
+<p>The values of <em>a</em>, <em>b</em>, <em>c</em>, <span class="math notranslate nohighlight">\(\alpha\)</span> , <span class="math notranslate nohighlight">\(\beta\)</span>, and
+<span class="math notranslate nohighlight">\(\gamma\)</span> can be printed out or accessed by computes using the
+<a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> keywords <em>cella</em>, <em>cellb</em>,
+<em>cellc</em>, <em>cellalpha</em>, <em>cellbeta</em>, <em>cellgamma</em>, respectively.</p>
+</section>
+<hr class="docutils" />
+<section id="output-of-restricted-and-general-triclinic-boxes-in-a-dump-file">
+<h2>Output of restricted and general triclinic boxes in a dump file<a class="headerlink" href="#output-of-restricted-and-general-triclinic-boxes-in-a-dump-file" title="Link to this heading"></a></h2>
+<p>As discussed on the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> command doc page, when the BOX
+BOUNDS for a snapshot is written to a dump file for a restricted
+triclinic box, an orthogonal bounding box which encloses the triclinic
+simulation box is output, along with the 3 tilt factors (xy, xz, yz) of
+the restricted triclinic box, formatted as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ITEM: BOX BOUNDS xy xz yz
+xlo_bound xhi_bound xy
+ylo_bound yhi_bound xz
+zlo_bound zhi_bound yz
+</pre></div>
+</div>
+<p>This bounding box is convenient for many visualization programs and is
+calculated from the 9 restricted triclinic box parameters
+(xlo,xhi,ylo,yhi,zlo,zhi,xy,xz,yz) as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>xlo_bound = xlo + MIN(0.0,xy,xz,xy+xz)
+xhi_bound = xhi + MAX(0.0,xy,xz,xy+xz)
+ylo_bound = ylo + MIN(0.0,yz)
+yhi_bound = yhi + MAX(0.0,yz)
+zlo_bound = zlo
+zhi_bound = zhi
+</pre></div>
+</div>
+<p>These formulas can be inverted if you need to convert the bounding box
+back into the restricted triclinic box parameters, e.g. xlo =
+xlo_bound - MIN(0.0,xy,xz,xy+xz).</p>
+</section>
+<hr class="docutils" />
+<section id="periodicity-and-tilt-factors-for-triclinic-simulation-boxes">
+<h2>Periodicity and tilt factors for triclinic simulation boxes<a class="headerlink" href="#periodicity-and-tilt-factors-for-triclinic-simulation-boxes" title="Link to this heading"></a></h2>
+<p>There is no requirement that a triclinic box be periodic in any
+dimension, though it typically should be in y or z if you wish to
+enforce a shift in coordinates due to periodic boundary conditions
+across the y or z boundaries.  See the doc page for the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command for an explanation of shifted coordinates for
+restricted triclinic boxes which are periodic.</p>
+<p>Some commands that work with triclinic boxes, e.g. the <a class="reference internal" href="fix_deform.html"><span class="doc">fix
+deform</span></a> and <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> commands, require
+periodicity or non-shrink-wrap boundary conditions in specific
+dimensions.  See the command doc pages for details.</p>
+<p>A restricted triclinic box can be defined with all 3 tilt factors =
+0.0, so that it is initially orthogonal.  This is necessary if the box
+will become non-orthogonal, e.g. due to use of the <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> or <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> commands.  Alternatively,
+you can use the <a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a> command to convert a
+simulation box from orthogonal to restricted triclinic and vice versa.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Highly tilted restricted triclinic simulation boxes can be
+computationally inefficient.  This is due to the large volume of
+communication needed to acquire ghost atoms around a processor’s
+irregular-shaped subdomain.  For extreme values of tilt, LAMMPS may
+also lose atoms and generate an error.</p>
+</div>
+<p>LAMMPS will issue a warning if you define a restricted triclinic box
+with a tilt factor which skews the box more than half the distance of
+the parallel box length, which is the first dimension in the tilt
+factor (e.g. x for xz).</p>
+<p>For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
+the xy tilt factor should be between -5 and 5 to avoid the warning.
+Similarly, both xz and yz should be between -(xhi-xlo)/2 and
++(yhi-ylo)/2.  Note that these are not limitations, since if the
+maximum tilt factor is 5 (as in this example), then simulations boxes
+and atom configurations with tilt = …, -15, -5, 5, 15, 25, … are
+all geometrically equivalent.</p>
+<p>If the box tilt exceeds this limit during a dynamics run (e.g. due to
+the <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> command), then by default the box
+is “flipped” to an equivalent shape with a tilt factor within the
+warning bounds, and the run continues.  See the <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> page for further details.  Box flips that would normally
+occur using the <a class="reference internal" href="fix_deform.html"><span class="doc">fix deform</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a> commands can be suppressed using the <em>flip no</em> option with
+either of the commands.</p>
+<p>One exception to box flipping is if the first dimension in the tilt
+factor (e.g. x for xy) is non-periodic.  In that case, the limits on
+the tilt factor are not enforced, since flipping the box in that
+dimension would not change the atom positions due to non-periodicity.
+In this mode, if the system tilts to large angles, the simulation will
+simply become inefficient, due to the highly skewed simulation box.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_type_labels.html" class="btn btn-neutral float-left" title="10.2.2. Type labels" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_thermostat.html" class="btn btn-neutral float-right" title="10.2.4. Thermostats" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+# 2d polygon body: rods Izz = 1/12 m length^2
+
+1 atoms
+3 13 body
+
+Coords
+
+1 0 0 0
+
+Types
+
+1 1
+
+Masses
+
+1 1.0
+
+Body Integers
+
+2 1 0
+
+Body Doubles
+
+1 1 1.333 0 0 0
+-2 0 0
+2 0 0
+0.5

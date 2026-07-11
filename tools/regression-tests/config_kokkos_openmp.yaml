@@ -1,0 +1,26 @@
+---
+  lmp_binary: ""
+  nprocs: "2"
+  args: "-cite none -k on t 2 -sf kk -pk kokkos newton on neigh half"
+  mpiexec: "mpirun"
+  mpiexec_numproc_flag: "--host localhost:2 -np"
+  tolerance:
+    PotEng:
+      abs: 1e-4
+      rel: 1e-6
+    TotEng:
+      abs: 1e-4
+      rel: 1e-6
+    Press:
+      abs: 1e-4
+      rel: 1e-6
+    Temp:
+      abs: 1e-4
+      rel: 1e-6
+    E_vdwl:
+      abs: 1e-3
+      rel: 1e-7
+
+  timeout: 120
+  nugget: 1.0
+  epsilon: 1e-16

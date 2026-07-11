@@ -1,0 +1,9 @@
+20     :nconfig
+1000   :nper
+19     :nconfig_skip
+1      :nframes_between_pdbs
+33     :nprotein_residues -- # of residues from start used to recenter box
+/enfs/tmp/pscrozi/1/input1
+/enfs/tmp/pscrozi/1/con1_
+/enfs/tmp/pscrozi/1/pdb/h1_
+/enfs/tmp/pscrozi/1/h1_template.pdb

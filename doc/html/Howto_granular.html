@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.5.2. Granular models &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_granular.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.5.3. Granular surfaces" href="Howto_granular_surfaces.html" />
+    <link rel="prev" title="10.5.1. Finite-size spherical and aspherical particles" href="Howto_spherical.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_spherical.html">10.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular_surfaces.html">10.5.3. Granular surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">10.5.4. Body particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bpm.html">10.5.5. Bonded particle models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">10.5.6. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">10.5.7. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">10.5.8. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_peri.html">10.5.10. Peridynamics with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">10.5.11. Manifolds (surfaces)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_rheo.html">10.5.12. Reproducing hydrodynamics and elastic objects (RHEO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spins.html">10.5.13. Magnetic spins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_apip.html">10.5.14. Adaptive-precision interatomic potentials (APIP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_ldd.html">10.5.15. Local Density Dependent Potentials via LDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.5.2. </span>Granular models</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_spherical.html" class="btn btn-neutral float-left" title="10.5.1. Finite-size spherical and aspherical particles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_granular_surfaces.html" class="btn btn-neutral float-right" title="10.5.3. Granular surfaces" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="granular-models">
+<h1><span class="section-number">10.5.2. </span>Granular models<a class="headerlink" href="#granular-models" title="Link to this heading"></a></h1>
+<p>Granular systems are composed of finite-size spherical or aspherical
+particles with explicit diameters, as opposed to point particles.
+This means they have an angular velocity and torque can be imparted
+to them to cause them to rotate.</p>
+<p>The various atom, pair, fix, and compute styles listed below on this
+page are useful for creating granular models with such particles.</p>
+<p>You can also define granular “surfaces” which are a collection of line
+segments (2d systems) or triangles (3d systems), which act as
+boundaries interacting with the particles.  This is particularly
+useful for defining a complex wall or boundary geometry.
+Particle/surface interactions can be specified with similar options as
+the pair styles listed below for particle/particle interactions.</p>
+<p>These doc pages describe how to define and use granular surfaces:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="Howto_granular_surfaces.html"><span class="doc">Howto granular surfaces</span></a></p></li>
+<li><p><a class="reference internal" href="fix_surface_global.html"><span class="doc">fix surface/global</span></a></p></li>
+<li><p><a class="reference internal" href="fix_surface_local.html"><span class="doc">fix surface/local</span></a></p></li>
+<li><p><a class="reference internal" href="pair_surf_granular.html"><span class="doc">pair_style surf/granular</span></a></p></li>
+</ul>
+<hr class="docutils" />
+<p>To run a simulation of particles with a granular model, you will
+typically want to use the following commands:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="atom_style.html"><span class="doc">atom_style sphere</span></a></p></li>
+<li><p><a class="reference internal" href="fix_nve_sphere.html"><span class="doc">fix nve/sphere</span></a></p></li>
+<li><p><a class="reference internal" href="fix_gravity.html"><span class="doc">fix gravity</span></a></p></li>
+</ul>
+<p>Aspherical granular particles can be simulated by creating clusters of spherical
+particles using either the <a class="reference internal" href="fix_rigid.html"><span class="doc">rigid</span></a> or <a class="reference internal" href="Howto_bpm.html"><span class="doc">BPM</span></a>
+package or by using <a class="reference internal" href="pair_granular_superellipsoid.html"><span class="doc">superellipsoids</span></a>.</p>
+<p>This compute</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="compute_erotate_sphere.html"><span class="doc">compute erotate/sphere</span></a></p></li>
+</ul>
+<p>calculates rotational kinetic energy which can be <a class="reference internal" href="Howto_output.html"><span class="doc">output with
+thermodynamic info</span></a>.</p>
+<p>The compute</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="compute_fabric.html"><span class="doc">compute fabric</span></a></p></li>
+</ul>
+<p>calculates various versions of the fabric tensor for granular and
+non-granular pair styles.</p>
+<p>Use one of these 4 pair potentials, which compute forces and torques
+between interacting pairs of particles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/history</span></a></p></li>
+<li><p><a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/no_history</span></a></p></li>
+<li><p><a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/hertzian</span></a></p></li>
+<li><p><a class="reference internal" href="pair_granular.html"><span class="doc">pair_style granular</span></a></p></li>
+</ul>
+<p>The first 3 are the older, original granular pair styles implemented
+in LAMMPS.  The 4th <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style gran/no_history</span></a> is
+the newest and most flexible.  It’s pairwise interaction models
+include options similar to the first 3 pair styles, plus many
+additional models.</p>
+<p>To add your own custom granular contact model to the <a class="reference internal" href="pair_granular.html"><span class="doc">pair_style
+granular</span></a> command, see the <a class="reference internal" href="Modify_gran_sub_mod.html"><span class="doc">Modifying granular
+sub-models</span></a> doc page.</p>
+<hr class="docutils" />
+<p>These commands implement fix options specific to granular systems:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_freeze.html"><span class="doc">fix freeze</span></a></p></li>
+<li><p><a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a></p></li>
+<li><p><a class="reference internal" href="fix_viscous.html"><span class="doc">fix viscous</span></a></p></li>
+<li><p><a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a></p></li>
+<li><p><a class="reference internal" href="fix_wall_gran_region.html"><span class="doc">fix wall/gran/region</span></a></p></li>
+</ul>
+<p>The fix style <em>freeze</em> zeroes both the force and torque of frozen
+atoms, and should be used for granular systems instead of the fix style
+<em>setforce</em>.</p>
+<p>To model heat conduction, one must add the temperature and heatflow
+atom variables with:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_property_atom.html"><span class="doc">fix property/atom</span></a></p></li>
+</ul>
+<p>plus a temperature integration fix</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_heat_flow.html"><span class="doc">fix heat/flow</span></a></p></li>
+</ul>
+<p>and a heat conduction option defined in both these commands:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="pair_granular.html"><span class="doc">pair_style granular</span></a></p></li>
+<li><p><a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a></p></li>
+</ul>
+<p>For computational efficiency, you can eliminate needless pairwise
+computations between frozen atoms by using this command:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify</span></a> exclude</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>By default, for 2d systems, granular particles are still modeled
+as 3d spheres, not 2d discs (circles), meaning their moment of inertia
+will be the same as in 3d.  If you wish to model granular particles in
+2d as 2d discs, see the note on this topic on the <a class="reference internal" href="Howto_2d.html"><span class="doc">Howto 2d</span></a>
+doc page, where 2d simulations are discussed.</p>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_spherical.html" class="btn btn-neutral float-left" title="10.5.1. Finite-size spherical and aspherical particles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_granular_surfaces.html" class="btn btn-neutral float-right" title="10.5.3. Granular surfaces" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

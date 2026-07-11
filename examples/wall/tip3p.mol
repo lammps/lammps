@@ -1,0 +1,62 @@
+# Water molecule. TIP3P geometry
+
+3 atoms
+2 bonds
+1 angles
+
+Coords
+
+1    0.00000  -0.06556   0.00000
+2    0.75695   0.52032   0.00000
+3   -0.75695   0.52032   0.00000
+
+Types
+
+1        1
+2        2
+3        2
+
+Charges
+
+1       -0.834
+2        0.417
+3        0.417
+
+Bonds
+
+1   1      1      2
+2   1      1      3
+
+Angles
+
+1   1      2      1      3
+
+Shake Flags
+
+1 1
+2 1
+3 1
+
+Shake Atoms
+
+1 1 2 3
+2 1 2 3
+3 1 2 3
+
+Shake Bond Types
+
+1 1 1 1
+2 1 1 1
+3 1 1 1
+
+Special Bond Counts
+
+1 2 0 0
+2 1 1 0
+3 1 1 0
+
+Special Bonds
+
+1 2 3
+2 1 3
+3 1 2

@@ -1,0 +1,51 @@
+This package implements the "fix plumed" command, which can be used
+in a LAMMPS input script.
+
+The fix allows enhanced sampling methods such as umbrella sampling and
+metadynamics to be used.  Furthermore, PLUMED can be used to perform a
+wide range of analyses on trajectories on the fly as they are generated.
+
+The package uses the "PLUMED" library, whose source code is not included
+in the LAMMPS source code distribution.  The files in the PLUMED package
+folder implement an interface between LAMMPS and PLUMED, and are
+written and maintained by Gareth Tribello (gareth.tribello@gmail.com).
+
+PLUMED must instead be downloaded and compiled separately to LAMMPS.
+This download and build step of compiling of PLUMED can be done before
+or during the building of LAMMPS.  For maximum utility and flexibility
+we strongly recommend to compile and install PLUMED before.  When PLUMED
+is downloaded and compiled automatically during the LAMMPS build, some
+of PLUMED's features and tools are not available.
+
+PLUMED currently only supports building LAMMPS with the CMake build system.
+
+More info about the PLUMED library can be found at:
+
+www.plumed.org
+
+and in the reference articles:
+
+PLUMED2: New feathers for an old bird
+G.A. Tribello, M. Bonomi, D. Branduardi, C. Camilloni and G. Bussi,
+Comp. Phys. Comm 185, 604 (2014)
+https://doi.org/10.1016/j.cpc.2013.09.018
+
+PLUMED: a portable plugin for free energy calculations with molecular dynamics
+M. Bonomi, D. Branduardi, G. Bussi, C. Camilloni, D. Provasi, P. Raiteri, D. Donadio, F. Marinelli, F. Pietrucci, R.A. Broglia and M. Parrinello
+Comp. Phys. Comm. 180, 1961 (2009)
+https://doi.org/10.1016/j.cpc.2009.05.011
+
+Instructions explaining how to use PLUMED and LAMMPS in tandem can be
+found on the PLUMED website, which also gives numerous example scripts
+for PLUMED as well as citations to articles that dcoment the various
+methods that are implemented within PLUMED.
+
+There are also example scripts for using this package in the folder
+examples/PACKAGES/plumed, as well as on the GitHub page for PLUMED.
+
+Please contact Gareth Tribello (gareth.tribello@gmail.com) for questions
+regarding this package.
+
+---------------------------------
+
+Version: 2025-08-04

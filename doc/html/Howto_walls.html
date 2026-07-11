@@ -1,0 +1,251 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.2.6. Walls &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_walls.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.2.7. NEMD simulations" href="Howto_nemd.html" />
+    <link rel="prev" title="10.2.5. Barostats" href="Howto_barostat.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_2d.html">10.2.1. 2d simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_type_labels.html">10.2.2. Type labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_triclinic.html">10.2.3. Triclinic (non-orthogonal) simulation boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_thermostat.html">10.2.4. Thermostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_barostat.html">10.2.5. Barostats</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.2.6. Walls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_nemd.html">10.2.7. NEMD simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_dispersion.html">10.2.8. Long-range dispersion settings</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bulk2slab.html">10.2.9. Convert bulk system to slab</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_broken_bonds.html">10.2.10. Broken Bonds</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.2.6. </span>Walls</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_barostat.html" class="btn btn-neutral float-left" title="10.2.5. Barostats" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_nemd.html" class="btn btn-neutral float-right" title="10.2.7. NEMD simulations" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="walls">
+<h1><span class="section-number">10.2.6. </span>Walls<a class="headerlink" href="#walls" title="Link to this heading"></a></h1>
+<p>Walls in an MD simulation are typically used to bound particle motion,
+i.e. to serve as a boundary condition.</p>
+<p>Walls in LAMMPS can be of rough (made of particles) or idealized
+surfaces.  Ideal walls can be smooth, generating forces only in the
+normal direction, or frictional, generating forces also in the
+tangential direction.</p>
+<p>Rough walls, built of particles, can be created in various ways.  The
+particles themselves can be generated like any other particle, via the
+<a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> and <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> commands,
+or read in via the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+<p>Their motion can be constrained by many different commands, so that
+they do not move at all, move together as a group at constant velocity
+or in response to a net force acting on them, move in a prescribed
+fashion (e.g. rotate around a point), etc.  Note that if a time
+integration fix like <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> or <a class="reference internal" href="fix_nh.html"><span class="doc">fix nvt</span></a>
+is not used with the group that contains wall particles, their
+positions and velocities will not be updated.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_aveforce.html"><span class="doc">fix aveforce</span></a> - set force on particles to average value, so they move together</p></li>
+<li><p><a class="reference internal" href="fix_setforce.html"><span class="doc">fix setforce</span></a> - set force on particles to a value, e.g. 0.0</p></li>
+<li><p><a class="reference internal" href="fix_freeze.html"><span class="doc">fix freeze</span></a> - freeze particles for use as granular walls</p></li>
+<li><p><a class="reference internal" href="fix_nve_noforce.html"><span class="doc">fix nve/noforce</span></a> - advect particles by their velocity, but without force</p></li>
+<li><p><a class="reference internal" href="fix_move.html"><span class="doc">fix move</span></a> - prescribe motion of particles by a linear velocity, oscillation, rotation, variable</p></li>
+</ul>
+<p>The <a class="reference internal" href="fix_move.html"><span class="doc">fix move</span></a> command offers the most generality, since
+the motion of individual particles can be specified with
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> formula which depends on time and/or the
+particle position.</p>
+<p>For rough walls, it may be useful to turn off pairwise interactions
+between wall particles via the <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify exclude</span></a> command.</p>
+<p>Rough walls can also be created by specifying frozen particles that do
+not move and do not interact with mobile particles, and then tethering
+other particles to the fixed particles, via a <a class="reference internal" href="bond_style.html"><span class="doc">bond</span></a>.
+The bonded particles do interact with other mobile particles.</p>
+<p>Idealized walls can be specified via several fix commands.  <a class="reference internal" href="fix_wall_gran.html"><span class="doc">Fix wall/gran</span></a> creates frictional walls for use with
+granular particles; all the other commands create smooth walls.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="fix_wall_reflect.html"><span class="doc">fix wall/reflect</span></a> - reflective flat walls</p></li>
+<li><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/lj93</span></a> - flat walls, with Lennard-Jones 9/3 potential</p></li>
+<li><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/lj126</span></a> - flat walls, with Lennard-Jones 12/6 potential</p></li>
+<li><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/colloid</span></a> - flat walls, with <a class="reference internal" href="pair_colloid.html"><span class="doc">pair_style colloid</span></a> potential</p></li>
+<li><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/harmonic</span></a> - flat walls, with repulsive harmonic spring potential</p></li>
+<li><p><a class="reference internal" href="fix_wall.html"><span class="doc">fix wall/morse</span></a> - flat walls, with Morse potential</p></li>
+<li><p><a class="reference internal" href="fix_wall_region.html"><span class="doc">fix wall/region</span></a> - use region surface as wall</p></li>
+<li><p><a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a> - flat or curved walls with <a class="reference internal" href="pair_gran.html"><span class="doc">pair_style granular</span></a> potential</p></li>
+</ul>
+<p>The <em>lj93</em>, <em>lj126</em>, <em>colloid</em>, <em>harmonic</em>, and <em>morse</em> styles all
+allow the flat walls to move with a constant velocity, or oscillate in
+time.  The <a class="reference internal" href="fix_wall_region.html"><span class="doc">fix wall/region</span></a> command offers the
+most generality, since the region surface is treated as a wall, and
+the geometry of the region can be a simple primitive volume (e.g. a
+sphere, or cube, or plane), or a complex volume made from the union
+and intersection of primitive volumes.  <a class="reference internal" href="region.html"><span class="doc">Regions</span></a> can also
+specify a volume “interior” or “exterior” to the specified primitive
+shape or <em>union</em> or <em>intersection</em>.  <a class="reference internal" href="region.html"><span class="doc">Regions</span></a> can also be
+“dynamic” meaning they move with constant velocity, oscillate, or
+rotate.</p>
+<p>The only frictional idealized walls currently in LAMMPS are flat or
+curved surfaces specified by the <a class="reference internal" href="fix_wall_gran.html"><span class="doc">fix wall/gran</span></a>
+command.  At some point we plan to allow region surfaces to be used as
+frictional walls, as well as triangulated surfaces.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_barostat.html" class="btn btn-neutral float-left" title="10.2.5. Barostats" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_nemd.html" class="btn btn-neutral float-right" title="10.2.7. NEMD simulations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

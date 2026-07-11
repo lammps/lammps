@@ -1,0 +1,23 @@
+
+processors * * 1
+units metal
+boundary p p f
+read_data adatom.data
+
+pair_style agni
+pair_coeff * * Al_jpc.agni Al
+
+neighbor 0.3 bin 
+neigh_modify delay 2 check yes 
+
+timestep 0.0005
+velocity all create 500 12345
+fix 1 all nvt temp 250 250 0.2 
+fix 5 all momentum 1 linear 1 1 1
+
+thermo 100
+thermo_style custom step ke temp
+
+# dump MyDump all custom 250 dump.atoms id type x y z vx vy vz fx fy fz
+
+run 1000

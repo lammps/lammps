@@ -1,0 +1,27 @@
+Each directory shows how to use LAMMPS in tandem with a specific
+quantum code:
+
+LATTE = semi-empirical tight-binding code from LANL
+  https://www.osti.gov/biblio/1526907-los-alamos-transferable-tight-binding-energetics-latte-version
+  https://github.com/lanl/LATTE
+
+NWChem = computational chemistry code from PNNL
+  focus here is on DFT portion of NWChem = PWDFT library
+  https://www.nwchem-sw.org
+
+PySCF = quantum chemistry code from Caltech
+  https://pyscf.org/index.html
+
+-----------------------------------------------------
+
+To be added later (as of March 2023):
+
+Quantum Espresso (QE) = DFT code for materials modeling
+  https://www.quantum-espresso.org
+
+DFT-FE = real-space DFT code from U Michigan
+  https://github.com/dftfeDevelopers/dftfe
+
+INQ = DFT code from LLNL
+  https://github.com/LLNL/inq
+

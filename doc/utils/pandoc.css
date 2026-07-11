@@ -1,0 +1,46 @@
+body {
+        padding-left: 1em;
+        padding-right: 1em;
+        padding-top: 1em;
+        padding-bottom: 1em;
+        hyphens: auto;
+        overflow-wrap: break-word;
+        text-rendering: optimizeLegibility;
+        font-kerning: normal;
+        font-family: sans-serif;
+}
+
+.parsed-literal {
+        font-family: monospace;
+        margin: 1px;
+}
+
+.note {
+        background: #e7f2fa;
+}
+
+.warning {
+        background: #f0b37e;
+}
+
+.title {
+        font-weight: bold;
+}
+
+.hint {
+        background: #dbfaf4;
+}
+p {
+        line-height: 20px;
+        font-size: 16px;
+        margin: 6px;
+}
+
+pre {
+        line-height: 18px;
+        padding: 1ex;
+        background: #f8f8f8;
+        border: solid;
+        border-width: 1px;
+        border-color: #d0d0d0;
+}

@@ -1,0 +1,737 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.9. Notes for developers and code maintainers &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_notes.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.10. Notes for updating code written for older LAMMPS versions" href="Developer_updating.html" />
+    <link rel="prev" title="4.8.20. Writing or updating documentation" href="Developer_write_docs.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.9. Notes for developers and code maintainers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reading-and-parsing-of-text-and-text-files">4.9.1. Reading and parsing of text and text files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#requesting-and-accessing-neighbor-lists">4.9.2. Requesting and accessing neighbor lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#errors-warnings-and-informational-messages">4.9.3. Errors, warnings, and informational messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#choosing-between-a-custom-atom-style-fix-property-atom-and-fix-store-atom">4.9.4. Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fix-contributions-to-instantaneous-energy-virial-and-cumulative-energy">4.9.5. Fix contributions to instantaneous energy, virial, and cumulative energy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#kspace-pppm-fft-grids">4.9.6. KSpace PPPM FFT grids</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.9. </span>Notes for developers and code maintainers</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_write_docs.html" class="btn btn-neutral float-left" title="4.8.20. Writing or updating documentation" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_updating.html" class="btn btn-neutral float-right" title="4.10. Notes for updating code written for older LAMMPS versions" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="notes-for-developers-and-code-maintainers">
+<h1><span class="section-number">4.9. </span>Notes for developers and code maintainers<a class="headerlink" href="#notes-for-developers-and-code-maintainers" title="Link to this heading"></a></h1>
+<p>This section documents how some of the code functionality within
+LAMMPS works at a conceptual level.  Comments on code in source files
+typically document what a variable stores, what a small section of
+code does, or what a function does and its input/outputs.  The topics
+on this page are intended to document code functionality at a higher level.</p>
+<nav class="contents local" id="available-notes">
+<p class="topic-title">Available notes</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#reading-and-parsing-of-text-and-text-files" id="id3">Reading and parsing of text and text files</a></p></li>
+<li><p><a class="reference internal" href="#requesting-and-accessing-neighbor-lists" id="id4">Requesting and accessing neighbor lists</a></p></li>
+<li><p><a class="reference internal" href="#errors-warnings-and-informational-messages" id="id5">Errors, warnings, and informational messages</a></p></li>
+<li><p><a class="reference internal" href="#choosing-between-a-custom-atom-style-fix-property-atom-and-fix-store-atom" id="id6">Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM</a></p></li>
+<li><p><a class="reference internal" href="#fix-contributions-to-instantaneous-energy-virial-and-cumulative-energy" id="id7">Fix contributions to instantaneous energy, virial, and cumulative energy</a></p></li>
+<li><p><a class="reference internal" href="#kspace-pppm-fft-grids" id="id8">KSpace PPPM FFT grids</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="reading-and-parsing-of-text-and-text-files">
+<h2><a class="toc-backref" href="#id3" role="doc-backlink"><span class="section-number">4.9.1. </span>Reading and parsing of text and text files</a><a class="headerlink" href="#reading-and-parsing-of-text-and-text-files" title="Link to this heading"></a></h2>
+<p>Classes in LAMMPS frequently need to read in additional
+data from a file, e.g. potential parameters from a potential file for
+manybody potentials.  LAMMPS provides several custom classes and
+convenience functions to simplify the process.  They offer the
+following benefits:</p>
+<ul class="simple">
+<li><p>better code reuse and fewer lines of code needed to implement reading
+and parsing data from a file</p></li>
+<li><p>better detection of format errors, incompatible data, and better error messages</p></li>
+<li><p>exit with an error message instead of silently converting only part of the
+text to a number or returning a 0 on unrecognized text and thus reading incorrect values</p></li>
+<li><p>re-entrant code through avoiding global static variables (as used by <code class="docutils literal notranslate"><span class="pre">strtok()</span></code>)</p></li>
+<li><p>transparent support for translating unsupported UTF-8 characters to their ASCII equivalents
+(the text-to-value conversion functions <strong>only</strong> accept ASCII characters)</p></li>
+</ul>
+<p>In most cases (e.g. potential files) the same data is needed on all MPI
+ranks.  Then it is best to do the reading and parsing only on MPI rank
+0, and communicate the data later with one or more <code class="docutils literal notranslate"><span class="pre">MPI_Bcast()</span></code>
+calls.  For reading generic text and potential parameter files the
+custom classes <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS14TextFileReaderE" title="LAMMPS_NS::TextFileReader"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">TextFileReader</span></code></a>
+and <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS19PotentialFileReaderE" title="LAMMPS_NS::PotentialFileReader"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">PotentialFileReader</span></code></a>
+are available. They allow reading the file as individual lines for which
+they can return a tokenizer class (see below) for parsing the line.  Or
+they can return blocks of numbers as a vector directly.  The
+documentation on <a class="reference internal" href="Developer_utils.html#file-reader-classes"><span class="std std-ref">File reader classes</span></a>
+contains an example for a typical case.</p>
+<p>When reading per-atom data, the data on each line of the file usually
+needs to include an atom ID so it can be associated with a particular
+atom.  In that case the data can be read in multi-line chunks and
+broadcast to all MPI ranks with
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils20read_lines_from_fileEP4FILEiiPci8MPI_Comm" title="LAMMPS_NS::utils::read_lines_from_file"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::read_lines_from_file()</span></code></a>.  Those chunks are then
+split into lines, parsed, and applied only to atoms the MPI rank
+“owns”.</p>
+<p>For splitting a string (incrementally) into words and optionally
+converting those to numbers, the <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS9TokenizerE" title="LAMMPS_NS::Tokenizer"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">Tokenizer</span></code></a> and <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS14ValueTokenizerE" title="LAMMPS_NS::ValueTokenizer"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">ValueTokenizer</span></code></a> can be used.  Those provide a superset of
+the functionality of <code class="docutils literal notranslate"><span class="pre">strtok()</span></code> from the C-library and the latter
+also includes conversion to different types.  Any errors while
+processing the string in those classes will result in an exception,
+which can be caught and the error processed as needed.  Unlike the
+C-library functions <code class="docutils literal notranslate"><span class="pre">atoi()</span></code>, <code class="docutils literal notranslate"><span class="pre">atof()</span></code>, <code class="docutils literal notranslate"><span class="pre">strtol()</span></code>, or
+<code class="docutils literal notranslate"><span class="pre">strtod()</span></code> the conversion will check if the converted text is a
+valid integer or floating point number and will not silently return an
+unexpected or incorrect value.  For example, <code class="docutils literal notranslate"><span class="pre">atoi()</span></code> will return 12
+when converting “12.5”, while the ValueTokenizer class will throw an
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS23InvalidIntegerExceptionE" title="LAMMPS_NS::InvalidIntegerException"><code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">InvalidIntegerException</span></code></a> if
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS14ValueTokenizer8next_intEv" title="LAMMPS_NS::ValueTokenizer::next_int"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">ValueTokenizer::next_int()</span></code></a> is called on the same string.</p>
+</section>
+<section id="requesting-and-accessing-neighbor-lists">
+<span id="request-neighbor-list"></span><h2><a class="toc-backref" href="#id4" role="doc-backlink"><span class="section-number">4.9.2. </span>Requesting and accessing neighbor lists</a><a class="headerlink" href="#requesting-and-accessing-neighbor-lists" title="Link to this heading"></a></h2>
+<p>LAMMPS uses Verlet-style neighbor lists to avoid having to loop over
+<em>all</em> pairs of <em>all</em> atoms when computing pairwise properties with a
+cutoff (e.g. pairwise forces or radial distribution functions).  There
+are three main algorithms that can be selected by the <a class="reference internal" href="neighbor.html"><span class="doc">neighbor
+command</span></a>: <cite>bin</cite> (the default, uses binning to achieve linear
+scaling with system size), <cite>nsq</cite> (without binning, quadratic scaling),
+<cite>multi</cite> (with binning, optimized for varying cutoffs or polydisperse
+granular particles).  In addition to how the neighbor lists are
+constructed a number of different variants of neighbor lists need to be
+created (e.g. “full” or “half”) for different purposes and styles and
+those may be required in every time step (“perpetual”) or on some steps
+(“occasional”).</p>
+<p>The neighbor list creation is managed by the <code class="docutils literal notranslate"><span class="pre">Neighbor</span></code> class.
+Individual classes can obtain a neighbor list by creating an instance of
+a <code class="docutils literal notranslate"><span class="pre">NeighRequest</span></code> class which is stored in a list inside the
+<code class="docutils literal notranslate"><span class="pre">Neighbor</span></code> class.  The <code class="docutils literal notranslate"><span class="pre">Neighbor</span></code> class will then analyze the
+various requests and apply optimizations where neighbor lists that have
+the same settings will be created only once and then copied, or a list
+may be constructed by processing a neighbor list from a different
+request that is a superset of the requested list.  The neighbor list
+build is then <a class="reference internal" href="Developer_par_neigh.html"><span class="doc">processed in parallel</span></a>.</p>
+<p>The most commonly required neighbor list is a so-called “half” neighbor
+list, where each pair of atoms is listed only once (except when the
+<a class="reference internal" href="newton.html"><span class="doc">newton command setting</span></a> for pair is off; in that case
+pairs straddling subdomains or periodic boundaries will be listed twice).
+Thus these are the default settings when a neighbor list request is created in:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">Pair::init_style</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="p">}</span>
+
+<span class="kt">void</span><span class="w"> </span><span class="nf">Pair::init_list</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="cm">/*id*/</span><span class="p">,</span><span class="w"> </span><span class="n">NeighList</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ptr</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">this</span></code> pointer argument is required so the neighbor list code can
+access the requesting class instance to store the assembled neighbor
+list with that instance by calling its <code class="docutils literal notranslate"><span class="pre">init_list()</span></code> member function.
+The optional second argument (omitted here) contains a bitmask of flags
+that determines the kind of neighbor list requested.  The default value
+used here asks for a perpetual “half” neighbor list.</p>
+<p>Non-default values of the second argument need to be used to adjust a
+neighbor list request to the specific needs of a style.  The <a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff</span></a> pair style, for example, needs a “full” neighbor list:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">PairTersoff::init_style</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// [...]</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_FULL</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When a pair style supports r-RESPA time integration with different cutoff regions,
+the request flag may depend on the corresponding r-RESPA settings. Here is an
+example from pair style lj/cut:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">PairLJCut::init_style</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">list_style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_DEFAULT</span><span class="p">;</span>
+
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">update</span><span class="o">-&gt;</span><span class="n">whichflag</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">strmatch</span><span class="p">(</span><span class="n">update</span><span class="o">-&gt;</span><span class="n">integrate_style</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;^respa&quot;</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">auto</span><span class="w"> </span><span class="n">respa</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Respa</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="n">update</span><span class="o">-&gt;</span><span class="n">integrate</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">respa</span><span class="o">-&gt;</span><span class="n">level_inner</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">list_style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_RESPA_INOUT</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">respa</span><span class="o">-&gt;</span><span class="n">level_middle</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">list_style</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_RESPA_ALL</span><span class="p">;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">list_style</span><span class="p">);</span>
+<span class="w">  </span><span class="c1">// [...]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Granular pair styles need neighbor lists based on particle sizes and not cutoff
+and also may need to store data across timesteps (“history”).
+For example with:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">use_history</span><span class="p">)</span><span class="w"> </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_SIZE</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_HISTORY</span><span class="p">);</span>
+<span class="k">else</span><span class="w"> </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_SIZE</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>In case a class would need to make multiple neighbor list requests with different
+settings, each request can set an id which is then used in the corresponding
+<code class="docutils literal notranslate"><span class="pre">init_list()</span></code> function to assign it to the suitable pointer variable. This is
+done for example by the <a class="reference internal" href="pair_meam.html"><span class="doc">pair style meam</span></a>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">PairMEAM::init_style</span><span class="p">()</span>
+<span class="p">{</span>
+<span class="c1">// [...]</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_FULL</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">set_id</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">set_id</span><span class="p">(</span><span class="mi">2</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">PairMEAM::init_list</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">id</span><span class="p">,</span><span class="w"> </span><span class="n">NeighList</span><span class="w"> </span><span class="o">*</span><span class="n">ptr</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="n">listfull</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ptr</span><span class="p">;</span>
+<span class="w">  </span><span class="k">else</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">id</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="n">listhalf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ptr</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Fixes may require a neighbor list that is only build occasionally (or
+just once) and this can also be indicated by a flag.  As an example here
+is the request from the <code class="docutils literal notranslate"><span class="pre">FixPeriNeigh</span></code> class which is created
+internally by <a class="reference internal" href="pair_peri.html"><span class="doc">Peridynamics pair styles</span></a>:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_FULL</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_OCCASIONAL</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>It is also possible to request a neighbor list that uses a different cutoff
+than what is usually inferred from the pair style settings (largest cutoff of
+all pair styles plus neighbor list skin).  The following is used in the
+<a class="reference internal" href="compute_rdf.html"><span class="doc">compute rdf</span></a> command implementation:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cutflag</span><span class="p">)</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_OCCASIONAL</span><span class="p">)</span><span class="o">-&gt;</span><span class="n">set_cutoff</span><span class="p">(</span><span class="n">mycutneigh</span><span class="p">);</span>
+<span class="k">else</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_OCCASIONAL</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>The neighbor list request function has a slightly different set of arguments
+when created by a command style.  In this case the neighbor list is
+<em>always</em> an occasional neighbor list, so that flag is not needed. However
+for printing the neighbor list summary the name of the requesting command
+should be set.  Below is the request from the <a class="reference internal" href="delete_atoms.html"><span class="doc">delete atoms</span></a>
+command:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;delete_atoms&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_FULL</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="errors-warnings-and-informational-messages">
+<span id="error-messages"></span><h2><a class="toc-backref" href="#id5" role="doc-backlink"><span class="section-number">4.9.3. </span>Errors, warnings, and informational messages</a><a class="headerlink" href="#errors-warnings-and-informational-messages" title="Link to this heading"></a></h2>
+<p>LAMMPS has specialized functionality to handle errors (which should
+terminate LAMMPS), warning messages (which should indicate possible
+problems <em>without</em> terminating LAMMPS), and informational text for
+messages about the progress and chosen settings.  We <em>strongly</em>
+encourage using these facilities and to <em>stay away</em> from using
+<code class="docutils literal notranslate"><span class="pre">printf()</span></code> or <code class="docutils literal notranslate"><span class="pre">fprintf()</span></code> or <code class="docutils literal notranslate"><span class="pre">std::cout</span></code> or <code class="docutils literal notranslate"><span class="pre">std::cerr</span></code> and
+calling <code class="docutils literal notranslate"><span class="pre">MPI_Abort()</span></code> or <code class="docutils literal notranslate"><span class="pre">exit()</span></code> directly.  Warnings and
+informational messages should be printed only on MPI rank 0 to avoid
+flooding the output when running in parallel with many MPI processes.</p>
+<p><strong>Errors</strong></p>
+<p>When LAMMPS encounters an error, for example a syntax error in the
+input, then a suitable error message should be printed giving a brief,
+one line remark about the reason and then call either <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code>
+or <code class="docutils literal notranslate"><span class="pre">Error::one()</span></code>.  <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code> must be called when the failing
+code path is executed by <em>all</em> MPI processes and the error condition
+will appear for <em>all</em> MPI processes the same.  If desired, each MPI
+process may set a flag to either 0 or 1 and then MPI_Allreduce()
+searching for the maximum can be used to determine if there was an error
+on <em>any</em> of the MPI processes and make this information available to
+<em>all</em>.  <code class="docutils literal notranslate"><span class="pre">Error::one()</span></code> in contrast needs to be called when only one or
+a few MPI processes execute the code path or can have the error
+condition.  <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code> is generally the preferred option.</p>
+<p>Calling these functions does not abort LAMMPS directly, but rather
+throws either a <code class="docutils literal notranslate"><span class="pre">LAMMPSException</span></code> (from <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code>) or a
+<code class="docutils literal notranslate"><span class="pre">LAMMPSAbortException</span></code> (from <code class="docutils literal notranslate"><span class="pre">Error::one()</span></code>).  These exceptions are
+caught by the LAMMPS <code class="docutils literal notranslate"><span class="pre">main()</span></code> program and then handled accordingly.
+The reason for this approach is to support applications, especially
+graphical applications like <a class="reference internal" href="Tools.html#lammps-gui"><span class="std std-ref">LAMMPS-GUI</span></a>, that are
+linked to the LAMMPS library and have a mechanism to avoid that an error
+in LAMMPS terminates the application.  By catching the exceptions, the
+application can delete the failing LAMMPS class instance and create a
+new one to try again.  In a similar fashion, the <a class="reference internal" href="Python_module.html"><span class="doc">LAMMPS Python
+module</span></a> checks for this and then re-throws a
+corresponding Python exception, which in turn can be caught by the
+calling Python code.</p>
+<p>There are multiple “signatures” that can be called:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">Error::all(FLERR,</span> <span class="pre">&quot;Error</span> <span class="pre">message&quot;)</span></code>: this will abort LAMMPS with
+the error message “Error message”, followed by the last line of input
+that was read and processed before the error condition happened.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Error::all(FLERR,</span> <span class="pre">Error::NOLASTLINE,</span> <span class="pre">&quot;Error</span> <span class="pre">message&quot;)</span></code>: this is the
+same as before but without the last line of input.  This is preferred
+for errors that would happen <em>during</em> a <a class="reference internal" href="run.html"><span class="doc">run</span></a> or
+<a class="reference internal" href="minimize.html"><span class="doc">minimization</span></a>, since the last line would be showing
+the “run” or “minimize” command yet those are unrelated to the command
+<em>causing</em> the error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Error::all(FLERR,</span> <span class="pre">idx,</span> <span class="pre">&quot;Error</span> <span class="pre">message&quot;)</span></code>: this is for argument
+parsing where “idx” is the index (starting at 0) of the argument for a
+LAMMPS command that is causing the failure (use <code class="docutils literal notranslate"><span class="pre">Error::COMMAND</span></code> for
+the command itself).  For index 0, i.e. the first command argument,
+you need to use the constant <code class="docutils literal notranslate"><span class="pre">Error::ARGZERO</span></code> to work around the
+inability of some compilers to disambiguate between a NULL pointer and
+an integer constant 0, even with an added type cast.  The output may
+also include the last input line <em>before</em> and <em>after</em> substituting
+variables, if they differ.  A textual indicator is pointing to the
+specific word that failed.  Using the constant <code class="docutils literal notranslate"><span class="pre">Error::NOPOINTER</span></code> in
+place of the <em>idx</em> argument will suppress the marker and then the
+behavior is like the <em>idx</em> argument is not provided.</p></li>
+</ul>
+<p>FLERR is a macro containing the filename and line where the Error class
+is called and that information is appended to the error message.  This
+allows to quickly find the relevant source code causing the error.  For
+all three signatures, the single string “Error message” may be replaced
+with a format string using ‘{}’ placeholders and followed by a variable
+number of arguments, one for each placeholder. This format string and
+the arguments are then handed for formatting to the <a class="reference external" href="https://fmt.dev">{fmt} library</a> (which is bundled with LAMMPS) or the <a class="reference external" href="https://cppreference.com/w/cpp/utility/format.html">C++ format
+library</a> (for
+C++20 and later) and thus allow processing similar to the “format()”
+functionality in Python.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Commands that accept wildcard arguments, for example
+<a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>, use
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils11expand_argsEPKciiPPciRPPcP6LAMMPSPPi" title="LAMMPS_NS::utils::expand_args"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::expand_args()</span></code></a>
+to convert the wildcards into a list of explicit arguments.
+This function accepts a pointer address as an optional argument,
+which will be set to a map to the original arguments from the
+expanded argument indices.  Please see the corresponding source
+code for details on how to apply this map in error messages.</p>
+</div>
+<p>For complex errors, that can have multiple causes and which cannot be
+explained in a single line, you can append to the error message, the
+string created by <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils8errorurlEi" title="LAMMPS_NS::utils::errorurl"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::errorurl()</span></code></a>, which then provides a URL pointing to a
+paragraph of the <a class="reference internal" href="Errors_details.html"><span class="doc">Errors and warnings details</span></a> that corresponds to the number
+provided. Example:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Unknown identifier in data file: {}{}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">keyword</span><span class="p">,</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">errorurl</span><span class="p">(</span><span class="mi">1</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>This will output something like this:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>ERROR: Unknown identifier in data file: Massess
+For more information see https://docs.lammps.org/err0001 (src/read_data.cpp:1482)
+Last input line: read_data       data.peptide
+</pre></div>
+</div>
+<p>Where the URL points to the first paragraph with explanations on
+the <a class="reference internal" href="Errors_details.html"><span class="doc">Errors and warnings details</span></a> page in the manual.</p>
+<p><strong>Warnings</strong></p>
+<p>To print warnings, the <code class="docutils literal notranslate"><span class="pre">Errors::warning()</span></code> function should be used.
+It also requires the FLERR macros as first argument to easily identify
+the location of the warning in the source code.  Same as with the error
+functions above, the function has two variants: one just taking a single
+string as final argument and a second that uses the <a class="reference external" href="https://fmt.dev">{fmt} library</a> to make it similar to, say, <code class="docutils literal notranslate"><span class="pre">fprintf()</span></code>.  One
+motivation to use this function is that it will output warnings with
+always the same capitalization of the leading “WARNING” string.  A
+second is that it has a built in rate limiter.  After a given number (by
+default 100), that can be set via the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify command</span></a> no more warnings are printed.  Also, warnings are
+written consistently to both screen and logfile or not, depending on the
+settings for <a class="reference internal" href="Run_options.html#screen"><span class="std std-ref">screen</span></a> or <a class="reference internal" href="log.html"><span class="doc">logfile</span></a> output.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Unlike <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code>, the warning function will produce output on
+<em>every</em> MPI process, so it typically would be prefixed with an if
+statement testing for <code class="docutils literal notranslate"><span class="pre">comm-&gt;me</span> <span class="pre">==</span> <span class="pre">0</span></code>, i.e. limiting output to MPI
+rank 0.</p>
+</div>
+<p><strong>Informational messages</strong></p>
+<p>Finally, for informational message LAMMPS has the
+<a class="reference internal" href="Developer_utils.html#_CPPv4IDpEN9LAMMPS_NS5utils7logmesgEvP6LAMMPSRKNSt6stringEDpRR4Args" title="LAMMPS_NS::utils::logmesg"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::logmesg()</span> <span class="pre">convenience</span> <span class="pre">function</span></code></a>.  It also uses the <a class="reference external" href="https://fmt.dev">{fmt} library</a> to support using a format string followed by a
+matching number of arguments.  It will output the resulting formatted
+text to both, the screen and the logfile and will honor the
+corresponding settings about whether this output is active and to which
+file it should be send.  Same as for <code class="docutils literal notranslate"><span class="pre">Error::warning()</span></code>, it would
+produce output for every MPI process and thus should usually be called
+only on MPI rank 0 to avoid flooding the output when running with many
+parallel processes.</p>
+</section>
+<section id="choosing-between-a-custom-atom-style-fix-property-atom-and-fix-store-atom">
+<h2><a class="toc-backref" href="#id6" role="doc-backlink"><span class="section-number">4.9.4. </span>Choosing between a custom atom style, fix property/atom, and fix STORE/ATOM</a><a class="headerlink" href="#choosing-between-a-custom-atom-style-fix-property-atom-and-fix-store-atom" title="Link to this heading"></a></h2>
+<p>There are multiple ways to manage per-atom data within LAMMPS.  Often
+the per-atom storage is only used locally and managed by the class that
+uses it.  If the data has to persist between multiple time steps and
+migrate with atoms when they move from sub-domain to sub-domain or
+across periodic boundaries, then using a custom atom style, or <a class="reference internal" href="fix_property_atom.html"><span class="doc">fix
+property/atom</span></a>, or the internal fix STORE/ATOM are
+possible options.</p>
+<ul class="simple">
+<li><p>Using the atom style is usually the most programming effort and mostly
+needed when the per-atom data is an integral part of the model like a
+per-atom charge or diameter and thus should be part of the Atoms
+section of a <a class="reference internal" href="read_data.html"><span class="doc">data file</span></a>.</p></li>
+<li><p>Fix property/atom is useful if the data is optional or should be
+entered by the user, or accessed as a (named) custom property. In this
+case the fix should be entered as part of the input (and not
+internally) which allows to enter and store its content with data files.</p></li>
+<li><p>Fix STORE/ATOM should be used when the data should be accessed internally
+only and thus the fix can be created internally.</p></li>
+</ul>
+</section>
+<section id="fix-contributions-to-instantaneous-energy-virial-and-cumulative-energy">
+<h2><a class="toc-backref" href="#id7" role="doc-backlink"><span class="section-number">4.9.5. </span>Fix contributions to instantaneous energy, virial, and cumulative energy</a><a class="headerlink" href="#fix-contributions-to-instantaneous-energy-virial-and-cumulative-energy" title="Link to this heading"></a></h2>
+<p>Fixes can calculate contributions to the instantaneous energy and/or
+virial of the system, both in a global and peratom sense.  Fixes that
+perform thermostatting or barostatting can calculate the cumulative
+energy they add to or subtract from the system, which is accessed by
+the <em>ecouple</em> and <em>econserve</em> thermodynamic keywords.  This subsection
+explains how both work and what flags to set in a new fix to enable
+this functionality.</p>
+<p>Let’s start with thermostatting and barostatting fixes.  Examples are
+the <a class="reference internal" href="fix_langevin.html"><span class="doc">fix langevin</span></a> and <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt</span></a>
+commands.  Here is what the fix needs to do:</p>
+<ul class="simple">
+<li><p>Set the variable <em>ecouple_flag</em> = 1 in the constructor.  Also set
+<em>scalar_flag</em> = 1, <em>extscalar</em> = 1, and <em>global_freq</em> to a timestep
+increment which matches how often the fix is invoked.</p></li>
+<li><p>Implement a compute_scalar() method that returns the cumulative
+energy added or subtracted by the fix, e.g. by rescaling the
+velocity of atoms.  The sign convention is that subtracted energy is
+positive, added energy is negative.  This must be the total energy
+added to the entire system, i.e. an “extensive” quantity, not a
+per-atom energy.  Cumulative means the summed energy since the fix
+was instantiated, even across multiple runs.  This is because the
+energy is used by the <em>econserve</em> thermodynamic keyword to check
+that the fix is conserving the total energy of the system,
+i.e. potential energy + kinetic energy + coupling energy = a
+constant.</p></li>
+</ul>
+<p>And here is how the code operates:</p>
+<ul class="simple">
+<li><p>The Modify class makes a list of all fixes that set <em>ecouple_flag</em> = 1.</p></li>
+<li><p>The <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command defines
+<em>ecouple</em> and <em>econserve</em> keywords.</p></li>
+<li><p>These keywords sum the energy contributions from all the
+<em>ecouple_flag</em> = 1 fixes by invoking the <em>energy_couple()</em> method in
+the Modify class, which calls the <em>compute_scalar()</em> method of each
+fix in the list.</p></li>
+</ul>
+<hr class="docutils" />
+<p>Next, here is how a fix contributes to the instantaneous energy and
+virial of the system.  First, it sets any or all of these flags to a
+value of 1 in their constructor:</p>
+<ul class="simple">
+<li><p><em>energy_global_flag</em> to contribute to global energy, example: <a class="reference internal" href="fix_indent.html"><span class="doc">fix indent</span></a></p></li>
+<li><p><em>energy_peratom_flag</em> to contribute to peratom energy, <a class="reference internal" href="fix_cmap.html"><span class="doc">fix cmap</span></a></p></li>
+<li><p><em>virial_global_flag</em> to contribute to global virial, example: <a class="reference internal" href="fix_wall.html"><span class="doc">fix wall</span></a></p></li>
+<li><p><em>virial_peratom_flag</em> to contribute to peratom virial, example: <a class="reference internal" href="fix_wall.html"><span class="doc">fix wall</span></a></p></li>
+</ul>
+<p>The fix must also do the following:</p>
+<ul class="simple">
+<li><p>For global energy, implement a compute_scalar() method that returns
+the energy added or subtracted on this timestep.  Here the sign
+convention is that added energy is positive, subtracted energy is
+negative.</p></li>
+<li><p>For peratom energy, invoke the ev_init(eflag,vflag) function each
+time the fix is invoked, which initializes per-atom energy storage.
+The value of eflag may need to be stored from an earlier call to the
+fix during the same timestep.  See how the <a class="reference internal" href="fix_cmap.html"><span class="doc">fix cmap</span></a> command does this in src/MOLECULE/fix_cmap.cpp.  When an
+energy for one or more atoms is calculated, invoke the ev_tally()
+function to tally the contribution to each atom.  Both the ev_init()
+and ev_tally() methods are in the parent Fix class.</p></li>
+<li><p>For global and/or peratom virial, invoke the v_init(vflag) function
+each time the fix is invoked, which initializes virial storage.
+When forces on one or more atoms are calculated, invoke the
+v_tally() function to tally the contribution.  Both the v_init() and
+v_tally() methods are in the parent Fix class.  Note that there are
+several variants of v_tally(); choose the one appropriate to your
+fix.</p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The ev_init() and ev_tally() methods also account for global and
+peratom virial contributions.  Thus you do not need to invoke the
+v_init() and v_tally() methods if the fix also calculates peratom
+energies.</p>
+</div>
+<p>The fix must also specify whether (by default) to include or exclude
+these contributions to the global/peratom energy/virial of the system.
+For the fix to include the contributions, set either or both of these
+variables in the constructor:</p>
+<ul class="simple">
+<li><p><em>thermo_energy</em> = 1, for global and peratom energy</p></li>
+<li><p><em>thermo_virial</em> = 1, for global and peratom virial</p></li>
+</ul>
+<p>Note that these variables are zeroed in fix.cpp.  Thus if you don’t
+set the variables, the contributions will be excluded (by default).</p>
+<p>However, the user has ultimate control over whether to include or
+exclude the contributions of the fix via the <a class="reference internal" href="fix_modify.html"><span class="doc">fix modify</span></a> command:</p>
+<ul class="simple">
+<li><p>fix modify <em>energy yes</em> to include global and peratom energy contributions</p></li>
+<li><p>fix modify <em>virial yes</em> to include global and peratom virial contributions</p></li>
+</ul>
+<p>If the fix contributes to any of the global/peratom energy/virial
+values for the system, it should be explained on the fix doc page,
+along with the default values for the <em>energy yes/no</em> and <em>virial
+yes/no</em> settings of the <a class="reference internal" href="fix_modify.html"><span class="doc">fix modify</span></a> command.</p>
+<p>Finally, these 4 contributions are included in the output of 4
+computes:</p>
+<ul class="simple">
+<li><p>global energy in <a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a></p></li>
+<li><p>peratom energy in <a class="reference internal" href="compute_pe_atom.html"><span class="doc">compute pe/atom</span></a></p></li>
+<li><p>global virial in <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a></p></li>
+<li><p>peratom virial in <a class="reference internal" href="compute_stress_atom.html"><span class="doc">compute stress/atom</span></a></p></li>
+</ul>
+<p>These computes invoke a method of the Modify class to include
+contributions from fixes that have the corresponding flags set,
+e.g. <em>energy_peratom_flag</em> and <em>thermo_energy</em> for <a class="reference internal" href="compute_pe_atom.html"><span class="doc">compute
+pe/atom</span></a>.</p>
+<p>Note that each compute has an optional keyword to either include or
+exclude all contributions from fixes.  Also note that <a class="reference internal" href="compute_pe.html"><span class="doc">compute pe</span></a> and <a class="reference internal" href="compute_pressure.html"><span class="doc">compute pressure</span></a> are what
+is used (by default) by <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a> to
+calculate values for its <em>pe</em> and <em>press</em> keywords.</p>
+</section>
+<section id="kspace-pppm-fft-grids">
+<h2><a class="toc-backref" href="#id8" role="doc-backlink"><span class="section-number">4.9.6. </span>KSpace PPPM FFT grids</a><a class="headerlink" href="#kspace-pppm-fft-grids" title="Link to this heading"></a></h2>
+<p>The various <a class="reference internal" href="kspace_style.html"><span class="doc">KSpace PPPM</span></a> styles in LAMMPS use
+FFTs to solve Poisson’s equation.  This subsection describes:</p>
+<ul class="simple">
+<li><p>how FFT grids are defined</p></li>
+<li><p>how they are decomposed across processors</p></li>
+<li><p>how they are indexed by each processor</p></li>
+<li><p>how particle charge and electric field values are mapped to/from
+the grid</p></li>
+</ul>
+<p>An FFT grid cell is a 3d volume; grid points are corners of a grid
+cell and the code stores values assigned to grid points in vectors or
+3d arrays.  A global 3d FFT grid has points indexed 0 to N-1 inclusive
+in each dimension.</p>
+<p>Each processor owns two subsets of the grid, each subset is
+brick-shaped.  Depending on how it is used, these subsets are
+allocated as a 1d vector or 3d array.  Either way, the ordering of
+values within contiguous memory x fastest, then y, z slowest.</p>
+<p>For the <code class="docutils literal notranslate"><span class="pre">3d</span> <span class="pre">decomposition</span></code> of the grid, the global grid is
+partitioned into bricks that correspond to the subdomains of the
+simulation box that each processor owns.  Often, this is a regular 3d
+array (Px by Py by Pz) of bricks, where P = number of processors =
+Px * Py * Pz.  More generally it can be a tiled decomposition, where
+each processor owns a brick and the union of all the bricks is the
+global grid.  Tiled decompositions are produced by load balancing with
+the RCB algorithm; see the <a class="reference internal" href="balance.html"><span class="doc">balance rcb</span></a> command.</p>
+<p>For the <code class="docutils literal notranslate"><span class="pre">FFT</span> <span class="pre">decompostion</span></code> of the grid, each processor owns a brick
+that spans the entire x dimension of the grid while the y and z
+dimensions are partitioned as a regular 2d array (P1 by P2), where P =
+P1 * P2.</p>
+<p>The following indices store the inclusive bounds of the brick a
+processor owns, within the global grid:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>nFOO_in = 3d decomposition brick
+nFOO_fft = FFT decomposition brick
+nFOO_out = 3d decomposition brick + ghost cells
+</pre></div>
+</div>
+<p>where <code class="docutils literal notranslate"><span class="pre">FOO</span></code> corresponds to <code class="docutils literal notranslate"><span class="pre">xlo,</span> <span class="pre">xhi,</span> <span class="pre">ylo,</span> <span class="pre">yhi,</span> <span class="pre">zlo,</span></code> or <code class="docutils literal notranslate"><span class="pre">zhi</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">in</span></code> and <code class="docutils literal notranslate"><span class="pre">fft</span></code> indices are from 0 to N-1 inclusive in each
+dimension, where N is the grid size.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">out</span></code> indices index an array which stores the <code class="docutils literal notranslate"><span class="pre">in</span></code> subset of
+the grid plus ghost cells that surround it.  These indices can thus be
+&lt; 0 or &gt;= N.</p>
+<p>The number of ghost cells a processor owns in each of the 6 directions
+is a function of:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>neighbor skin distance (since atoms can move outside a proc subdomain)
+qdist = offset or charge from atom due to TIP4P fictitious charge
+order = mapping stencil size
+shift = factor used when order is an even number (see below)
+</pre></div>
+</div>
+<p>Here is an explanation of how the PPPM variables <code class="docutils literal notranslate"><span class="pre">order</span></code>,
+<code class="docutils literal notranslate"><span class="pre">nlower</span></code> / <code class="docutils literal notranslate"><span class="pre">nupper</span></code>, <code class="docutils literal notranslate"><span class="pre">shift</span></code>, and <code class="docutils literal notranslate"><span class="pre">OFFSET</span></code> work. They are the
+relevant variables that determine how atom charge is mapped to grid
+points and how field values are mapped from grid points to atoms:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>order = # of nearby grid points in each dim that atom charge/field are mapped to/from
+nlower,nupper = extent of stencil around the grid point an atom is assigned to
+OFFSET = large integer added/subtracted when mapping to avoid int(-0.75) = 0 when -1 is the desired result
+</pre></div>
+</div>
+<p>The particle_map() method assigns each atom to a grid point.</p>
+<p>If order is even, say 4:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>atom is assigned to grid point to its left (in each dim)
+shift = OFFSET
+nlower = -1, nupper = 2, which are offsets from assigned grid point
+window of mapping grid pts is thus 2 grid points to left of atom, 2 to right
+</pre></div>
+</div>
+<p>If order is odd, say 5:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>atom is assigned to left/right grid pt it is closest to (in each dim)
+shift = OFFSET + 0.5
+nlower = 2, nupper = 2
+if point is in left half of cell, then window of affected grid pts is 3 grid points to left of atom, 2 to right
+if point is in right half of cell, then window of affected grid pts is 2 grid points to left of atom, 3 to right
+</pre></div>
+</div>
+<p>These settings apply to each dimension, so that if order = 5, an
+atom’s charge is mapped to 125 grid points that surround the atom.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_write_docs.html" class="btn btn-neutral float-left" title="4.8.20. Writing or updating documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_updating.html" class="btn btn-neutral float-right" title="4.10. Notes for updating code written for older LAMMPS versions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

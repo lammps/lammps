@@ -1,0 +1,76 @@
+LAMMPS (24 Jul 2017)
+  using 1 OpenMP thread(s) per MPI task
+# Test of GAP potential for Si system
+
+units		metal
+boundary	p p p
+
+atom_style	atomic
+
+read_data	data_gap
+  orthogonal box = (0 0 0) to (10.9685 10.9685 10.9685)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  64 atoms
+
+pair_style	quip
+pair_coeff	* * gap_example.xml "Potential xml_label=GAP_2015_2_20_0_10_54_35_765" 14
+
+neighbor	0.3 bin
+neigh_modify	delay 10
+
+fix		1 all nve
+thermo		10
+timestep	0.001
+
+#dump		1 all custom 10 dump.gap id fx fy fz
+
+run		40
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair quip, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.685 | 2.779 | 3.06 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0   -10412.677            0   -10412.677   -107490.01 
+      10    173.98393   -10414.096            0   -10412.679   -91270.969 
+      20    417.38493    -10416.08            0   -10412.681   -42816.133 
+      30    434.34789   -10416.217            0    -10412.68      2459.83 
+      40    423.05899   -10416.124            0   -10412.679    22936.209 
+Loop time of 0.837345 on 4 procs for 40 steps with 64 atoms
+
+Performance: 4.127 ns/day, 5.815 hours/ns, 47.770 timesteps/s
+96.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.73144    | 0.79214    | 0.83586    |   4.3 | 94.60
+Neigh   | 5.7936e-05 | 6.5327e-05 | 7.1049e-05 |   0.0 |  0.01
+Comm    | 0.00085807 | 0.044631   | 0.10532    |  18.0 |  5.33
+Output  | 0.00013208 | 0.00013494 | 0.00013733 |   0.0 |  0.02
+Modify  | 6.0558e-05 | 7.8678e-05 | 9.5129e-05 |   0.0 |  0.01
+Other   |            | 0.0002971  |            |       |  0.04
+
+Nlocal:    16 ave 18 max 14 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:    174 ave 182 max 167 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+Neighs:    0 ave 0 max 0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:  270 ave 294 max 237 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+
+Total # of neighbors = 1080
+Ave neighs/atom = 16.875
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:00

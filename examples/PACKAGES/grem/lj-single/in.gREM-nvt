@@ -1,0 +1,20 @@
+# LJ particles
+variable        T0 equal 300.0
+variable        press equal 0.0
+
+units           real
+atom_style      full
+pair_style      lj/cut 5.0
+
+read_data       "lj.data"
+
+thermo          10
+thermo_style    custom step temp pe etotal press vol
+
+timestep        1.0
+
+fix             fxnvt all nvt temp ${T0} ${T0} 1000.0
+fix             fxgREM all grem 400 -.01 -30000 fxnvt
+run             1000
+
+#write_data      lj-out.data

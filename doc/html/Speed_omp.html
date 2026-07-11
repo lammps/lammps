@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>7.4.4. OPENMP package &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Speed_omp.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="7.4.5. OPT package" href="Speed_opt.html" />
+    <link rel="prev" title="7.4.3. KOKKOS package" href="Speed_kokkos.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Speed.html">7. Accelerate performance</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Speed_bench.html">7.1. Benchmarks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_measure.html">7.2. Measuring performance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_tips.html">7.3. General tips</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Speed_packages.html">7.4. Accelerator packages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Speed_gpu.html">7.4.1. GPU package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_intel.html">7.4.2. INTEL package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_kokkos.html">7.4.3. KOKKOS package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">7.4.4. OPENMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Speed_opt.html">7.4.5. OPT package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Speed_compare.html">7.5. Comparison of various accelerator packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Speed.html"><span class="section-number">7. </span>Accelerate performance</a></li>
+          <li class="breadcrumb-item"><a href="Speed_packages.html"><span class="section-number">7.4. </span>Accelerator packages</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">7.4.4. </span>OPENMP package</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Speed_kokkos.html" class="btn btn-neutral float-left" title="7.4.3. KOKKOS package" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Speed_opt.html" class="btn btn-neutral float-right" title="7.4.5. OPT package" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="openmp-package">
+<h1><span class="section-number">7.4.4. </span>OPENMP package<a class="headerlink" href="#openmp-package" title="Link to this heading"></a></h1>
+<p>The OPENMP package was developed by Axel Kohlmeyer at Temple
+University.  It provides optimized and multi-threaded versions
+of many pair styles, nearly all bonded styles (bond, angle, dihedral,
+improper), several Kspace styles, and a few fix styles.  It uses
+the OpenMP interface for multi-threading, but can also be compiled
+without OpenMP support, providing optimized serial styles in that case.</p>
+<section id="required-hardware-software">
+<h2>Required hardware/software<a class="headerlink" href="#required-hardware-software" title="Link to this heading"></a></h2>
+<p>To enable multi-threading, your compiler must support the OpenMP interface.
+You should have one or more multicore CPUs, as multiple threads can only be
+launched by each MPI task on the local node (using shared memory).</p>
+</section>
+<section id="building-lammps-with-the-openmp-package">
+<h2>Building LAMMPS with the OPENMP package<a class="headerlink" href="#building-lammps-with-the-openmp-package" title="Link to this heading"></a></h2>
+<p>See the <a class="reference internal" href="Build_extras.html#openmp"><span class="std std-ref">Build extras</span></a> page for
+instructions.</p>
+</section>
+<section id="run-with-the-openmp-package-from-the-command-line">
+<h2>Run with the OPENMP package from the command-line<a class="headerlink" href="#run-with-the-openmp-package-from-the-command-line" title="Link to this heading"></a></h2>
+<p>These examples assume one or more 16-core nodes.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1 MPI task, 16 threads according to OMP_NUM_THREADS</span>
+env<span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">16</span><span class="w"> </span>lmp_omp<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+
+<span class="c1"># 1 MPI task, no threads, optimized kernels</span>
+lmp_mpi<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+
+<span class="c1"># 4 MPI tasks, 4 threads/task</span>
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp_omp<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-pk<span class="w"> </span>omp<span class="w"> </span><span class="m">4</span><span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+
+<span class="c1"># 8 nodes, 4 MPI tasks/node, 4 threads/task</span>
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">32</span><span class="w"> </span>-ppn<span class="w"> </span><span class="m">4</span><span class="w"> </span>lmp_omp<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-pk<span class="w"> </span>omp<span class="w"> </span><span class="m">4</span><span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> or <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> command sets the total number of MPI tasks
+used by LAMMPS (one or multiple per compute node) and the number of MPI
+tasks used per node.  E.g. the mpirun command in MPICH does this via
+its <code class="docutils literal notranslate"><span class="pre">-np</span></code> and <code class="docutils literal notranslate"><span class="pre">-ppn</span></code> switches.  Ditto for OpenMPI via <code class="docutils literal notranslate"><span class="pre">-np</span></code> and <code class="docutils literal notranslate"><span class="pre">-npernode</span></code>.</p>
+<p>You need to choose how many OpenMP threads per MPI task will be used
+by the OPENMP package.  Note that the product of MPI tasks *
+threads/task should not exceed the physical number of cores (on a
+node), otherwise performance will suffer.</p>
+<p>As in the lines above, use the <code class="docutils literal notranslate"><span class="pre">-sf</span> <span class="pre">omp</span></code> <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>, which will automatically append “omp” to
+styles that support it.  The <code class="docutils literal notranslate"><span class="pre">-sf</span> <span class="pre">omp</span></code> switch also issues a default
+<a class="reference internal" href="package.html"><span class="doc">package omp 0</span></a> command, which will set the number of
+threads per MPI task via the <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> environment variable.</p>
+<p>You can also use the <code class="docutils literal notranslate"><span class="pre">-pk</span> <span class="pre">omp</span> <span class="pre">Nt</span></code> <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>, to explicitly set <code class="docutils literal notranslate"><span class="pre">Nt</span></code> = # of OpenMP threads
+per MPI task to use, as well as additional options.  Its syntax is the
+same as the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command whose page gives
+details, including the default values used if it is not specified.  It
+also gives more details on how to set the number of threads via the
+<code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> environment variable.</p>
+</section>
+<section id="or-run-with-the-openmp-package-by-editing-an-input-script">
+<h2>Or run with the OPENMP package by editing an input script<a class="headerlink" href="#or-run-with-the-openmp-package-by-editing-an-input-script" title="Link to this heading"></a></h2>
+<p>The discussion above for the <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> or <code class="docutils literal notranslate"><span class="pre">mpiexec</span></code> command, MPI
+tasks/node, and threads/MPI task is the same.</p>
+<p>Use the <a class="reference internal" href="suffix.html"><span class="doc">suffix omp</span></a> command, or you can explicitly add an
+“omp” suffix to individual styles in your input script, e.g.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="o">/</span><span class="n">omp</span><span class="w"> </span><span class="m">2.5</span>
+</pre></div>
+</div>
+<p>You must also use the <a class="reference internal" href="package.html"><span class="doc">package omp</span></a> command to enable the
+OPENMP package.  When you do this you also specify how many threads
+per MPI task to use.  The command page explains other options and
+how to set the number of threads via the <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS</span></code> environment
+variable.</p>
+</section>
+<section id="speed-up-to-expect">
+<h2>Speed-up to expect<a class="headerlink" href="#speed-up-to-expect" title="Link to this heading"></a></h2>
+<p>Depending on which styles are accelerated, you should look for a
+reduction in the “Pair time”, “Bond time”, “KSpace time”, and “Loop
+time” values printed at the end of a run.</p>
+<p>You may see a small performance advantage (5 to 20%) when running a
+OPENMP style (in serial or parallel) with a single thread per MPI
+task, versus running standard LAMMPS with its standard un-accelerated
+styles (in serial or all-MPI parallelization with 1 task/core).  This
+is because many of the OPENMP styles contain similar optimizations
+to those used in the OPT package, described in
+<a class="reference internal" href="Speed_opt.html"><span class="doc">the OPT package</span></a> doc page.</p>
+<p>With multiple threads/task, the optimal choice of number of MPI
+tasks/node and OpenMP threads/task can vary a lot and should always be
+tested via benchmark runs for a specific simulation running on a
+specific machine, paying attention to guidelines discussed in the next
+subsection.</p>
+<p>A description of the multi-threading strategy used in the OPENMP
+package and some performance examples are
+<a class="reference external" href="https://drive.google.com/file/d/1d1gLK6Ru6aPYB50Ld2tO10Li8zgPVNB8/view?usp=sharing">presented here</a>.</p>
+</section>
+<section id="guidelines-for-best-performance">
+<h2>Guidelines for best performance<a class="headerlink" href="#guidelines-for-best-performance" title="Link to this heading"></a></h2>
+<p>For many problems on current generation CPUs, running the OPENMP
+package with a single thread/task is faster than running with multiple
+threads/task.  This is because the MPI parallelization in LAMMPS is
+often more efficient than multi-threading as implemented in the
+OPENMP package.  The parallel efficiency (in a threaded sense) also
+varies for different OPENMP styles.</p>
+<p>Using multiple threads/task can be more effective under the following
+circumstances:</p>
+<ul class="simple">
+<li><p>Individual compute nodes have a significant number of CPU cores but
+the CPU itself has limited memory bandwidth, e.g. for Intel Xeon 53xx
+(Clovertown) and 54xx (Harpertown) quad-core processors.  Running one
+MPI task per CPU core will result in significant performance
+degradation, so that running with 4 or even only 2 MPI tasks per node
+is faster.  Running in hybrid MPI+OpenMP mode will reduce the
+inter-node communication bandwidth contention in the same way, but
+offers an additional speedup by utilizing the otherwise idle CPU
+cores.</p></li>
+<li><p>The interconnect used for MPI communication does not provide
+sufficient bandwidth for a large number of MPI tasks per node.  For
+example, this applies to running over gigabit ethernet or on Cray XT4
+or XT5 series supercomputers.  As in the aforementioned case, this
+effect worsens when using an increasing number of nodes.</p></li>
+<li><p>The system has a spatially inhomogeneous particle density which does
+not map well to the <a class="reference internal" href="processors.html"><span class="doc">domain decomposition scheme</span></a> or
+<a class="reference internal" href="balance.html"><span class="doc">load-balancing</span></a> options that LAMMPS provides.  This is
+because multi-threading achieves parallelism over the number of
+particles, not via their distribution in space.</p></li>
+<li><p>A machine is being used in “capability mode”, i.e. near the point
+where MPI parallelism is maxed out.  For example, this can happen when
+using the <a class="reference internal" href="kspace_style.html"><span class="doc">PPPM solver</span></a> for long-range
+electrostatics on large numbers of nodes.  The scaling of the KSpace
+calculation (see the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> command)
+becomes the performance-limiting factor.  Using multi-threading allows
+less MPI tasks to be invoked and can speed-up the long-range solver,
+while increasing overall performance by parallelizing the pairwise and
+bonded calculations via OpenMP.  Likewise, additional speedup can
+sometimes be achieved by increasing the length of the Coulombic cutoff
+and thus reducing the work done by the long-range solver.  Using the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style verlet/split</span></a> command, which is compatible
+with the OPENMP package, is an alternative way to reduce the number of
+MPI tasks assigned to the KSpace calculation.</p></li>
+</ul>
+<p>Additional performance tips are as follows:</p>
+<ul class="simple">
+<li><p>The best parallel efficiency from <em>omp</em> styles is typically achieved
+when there is at least one MPI task per physical CPU chip, i.e. socket
+or die.</p></li>
+<li><p>It is usually most efficient to restrict threading to a single
+socket, i.e. use one or more MPI task per socket.</p></li>
+<li><p>NOTE: By default, several current MPI implementations use a processor
+affinity setting that restricts each MPI task to a single CPU core.
+Using multi-threading in this mode will force all threads to share the
+one core and thus is likely to be counterproductive.  Instead, binding
+MPI tasks to a (multicore) socket, should solve this issue.</p></li>
+</ul>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>None.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Speed_kokkos.html" class="btn btn-neutral float-left" title="7.4.3. KOKKOS package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Speed_opt.html" class="btn btn-neutral float-right" title="7.4.5. OPT package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

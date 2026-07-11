@@ -1,0 +1,186 @@
+LAMMPS (3 Nov 2022)
+# electrodes with constrained total charges
+# for graphene-ionic liquid supercapacitor
+
+boundary p p f # slab calculation
+include settings.mod # styles, groups, computes and fixes
+# set boundary in main script because ffield is periodic
+units real
+# distribute electrode atoms among all processors:
+if "$(extract_setting(world_size) % 2) == 0" then "processors * * 2"
+
+atom_style full
+pair_style lj/cut/coul/long 16
+bond_style harmonic
+angle_style harmonic
+kspace_style pppm/electrode 1e-7
+# kspace_modify in main script because ffield is periodic
+
+read_data "data.graph-il"
+Reading data file ...
+  orthogonal box = (0 0 -68) to (32.2 34.4 68)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3776 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  reading bonds ...
+  640 bonds
+  reading angles ...
+  320 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_data CPU = 0.023 seconds
+
+# replicate 4 4 1 # test different sys sizes
+
+variable zpos atom "z > 0"
+group zpos variable zpos
+1891 atoms in group zpos
+group ele type 5
+832 atoms in group ele
+group top intersect ele zpos
+416 atoms in group top
+group bot subtract ele top
+416 atoms in group bot
+
+group bmi type 1 2 3
+960 atoms in group bmi
+group electrolyte type 1 2 3 4
+1280 atoms in group electrolyte
+
+fix nvt electrolyte nvt temp 500.0 500.0 100
+fix shake bmi shake 1e-4 20 0 b 1 2 a 1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+     320 = # of frozen angles
+  find clusters CPU = 0.002 seconds
+
+variable q atom q
+compute qtop top reduce sum v_q
+compute qbot bot reduce sum v_q
+compute ctemp electrolyte temp
+kspace_modify slab 3.0
+
+fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes on # symm on
+832 atoms in group conp_group
+variable dv equal f_conq[2]-f_conq[1]
+# symm on and off give different electrode potentials, but identical potential difference
+
+thermo 50
+thermo_style custom step temp c_ctemp epair etotal c_qbot c_qtop f_conq[1] f_conq[2] v_dv
+run 500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- kspace_style pppm/electrode command:
+
+@article{Ahrens2021,
+author = {Ahrens-Iwers, Ludwig J.V. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0063381},
+title = {{Constant potential simulations on a mesh}},
+journal = {Journal of Chemical Physics},
+year = {2021}
+volume = {155},
+pages = {104104},
+}
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM/electrode initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  G vector (1/distance) = 0.20904498
+  grid = 32 32 200
+  stencil order = 5
+  estimated absolute RMS force accuracy = 3.7023506e-05
+  estimated relative force accuracy = 1.1149519e-07
+  using double precision MKL FFT
+  3d grid and FFT values/proc = 307242 204800
+Generated 15 of 15 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 4 4 16
+  3 neighbor lists, perpetual/occasional/extra = 2 1 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix electrode/conq, occasional, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) fix electrode/conq, perpetual, skip from (1)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 54.25 | 54.25 | 54.25 Mbytes
+   Step          Temp         c_ctemp         E_pair         TotEng         c_qbot         c_qtop       f_conq[1]      f_conq[2]         v_dv     
+         0   0              0              25137446       25137446      -1              1             -9.931852       10.097344      20.029196    
+        50   20.206425      72.797911      25137263       25137472      -1              1             -9.4359366      9.5964514      19.032388    
+       100   55.931663      201.50563      25136961       25137537      -1              1             -8.0440112      8.1861787      16.23019     
+       150   81.389273      293.22204      25136818       25137656      -1              1             -6.1113109      6.2267114      12.338022    
+       200   92.867946      334.57639      25136841       25137798      -1              1             -4.1857807      4.2740694      8.4598501    
+       250   97.518304      351.33028      25136942       25137946      -1              1             -2.8383703      2.9101475      5.7485179    
+       300   102.36577      368.79431      25137045       25138099      -1              1             -2.3831643      2.4461115      4.8292759    
+       350   113.66597      409.50566      25137086       25138256      -1              1             -2.7083563      2.7457811      5.4541374    
+       400   122.8443       442.57252      25137148       25138413      -1              1             -3.4311003      3.3941657      6.825266     
+       450   128.63713      463.44243      25137235       25138560      -1              1             -4.132871       3.9852959      8.1181669    
+       500   131.18361      472.61665      25137344       25138695      -1              1             -4.5104095      4.2567261      8.7671355    
+Loop time of 89.4461 on 1 procs for 500 steps with 3776 atoms
+
+Performance: 0.483 ns/day, 49.692 hours/ns, 5.590 timesteps/s, 21.108 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 19.404     | 19.404     | 19.404     |   0.0 | 21.69
+Bond    | 0.0014902  | 0.0014902  | 0.0014902  |   0.0 |  0.00
+Kspace  | 35.449     | 35.449     | 35.449     |   0.0 | 39.63
+Neigh   | 0.26499    | 0.26499    | 0.26499    |   0.0 |  0.30
+Comm    | 0.068497   | 0.068497   | 0.068497   |   0.0 |  0.08
+Output  | 0.0023974  | 0.0023974  | 0.0023974  |   0.0 |  0.00
+Modify  | 34.225     | 34.225     | 34.225     |   0.0 | 38.26
+Other   |            | 0.03044    |            |       |  0.03
+
+Nlocal:           3776 ave        3776 max        3776 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          12510 ave       12510 max       12510 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.72559e+06 ave 1.72559e+06 max 1.72559e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1725588
+Ave neighs/atom = 456.98835
+Ave special neighs/atom = 0.50847458
+Neighbor list builds = 6
+Dangerous builds = 0
+Total wall time: 0:01:48

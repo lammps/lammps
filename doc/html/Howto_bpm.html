@@ -1,0 +1,352 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.5.5. Bonded particle models &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_bpm.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.5.6. Polarizable models" href="Howto_polarizable.html" />
+    <link rel="prev" title="10.5.4. Body particles" href="Howto_body.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_spherical.html">10.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular.html">10.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular_surfaces.html">10.5.3. Granular surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">10.5.4. Body particles</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.5.5. Bonded particle models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">10.5.6. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">10.5.7. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">10.5.8. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_peri.html">10.5.10. Peridynamics with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">10.5.11. Manifolds (surfaces)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_rheo.html">10.5.12. Reproducing hydrodynamics and elastic objects (RHEO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spins.html">10.5.13. Magnetic spins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_apip.html">10.5.14. Adaptive-precision interatomic potentials (APIP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_ldd.html">10.5.15. Local Density Dependent Potentials via LDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.5.5. </span>Bonded particle models</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_body.html" class="btn btn-neutral float-left" title="10.5.4. Body particles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_polarizable.html" class="btn btn-neutral float-right" title="10.5.6. Polarizable models" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="bonded-particle-models">
+<h1><span class="section-number">10.5.5. </span>Bonded particle models<a class="headerlink" href="#bonded-particle-models" title="Link to this heading"></a></h1>
+<p>The BPM package implements bonded particle models which can be used to
+simulate mesoscale solids.  Solids are constructed as a collection of
+particles, which each represent a coarse-grained region of space much
+larger than the atomistic scale.  Particles within a solid region are
+then connected by a network of bonds to model solid elasticity.
+There are many names for methods that are based on similar (or
+equivalent) capabilities to those in this package, including, but not
+limited to, cohesive beam models, bonded DEMs, lattice spring models,
+mass spring models, and lattice particle methods.</p>
+<p>Unlike traditional bonds in molecular dynamics, the equilibrium bond
+length can vary between bonds. Bonds store the reference state.  This
+includes setting the equilibrium length equal to the initial distance
+between the two particles, but can also include data on the bond
+orientation for rotational models. This produces a stress-free initial
+state. Furthermore, bonds are allowed to break under large strains,
+producing fracture. The examples/bpm directory has sample input scripts
+for simulations of the fragmentation of an impacted plate and the
+pouring of extended, elastic bodies. See <a class="reference internal" href="#howto-clemmer"><span class="std std-ref">(Clemmer)</span></a>
+for more general information on the approach and the LAMMPS implementation.
+Example movies illustrating some of these capabilities are found at
+<a class="reference external" href="https://www.lammps.org/movies.html#bpmpackage">https://www.lammps.org/movies.html#bpmpackage</a>.</p>
+<hr class="docutils" />
+<p>Bonds can be created using a <a class="reference internal" href="read_data.html"><span class="doc">read data</span></a> or
+<a class="reference internal" href="create_bonds.html"><span class="doc">create bonds</span></a> command. Alternatively, a
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> template with bonds can be used with
+<a class="reference internal" href="fix_deposit.html"><span class="doc">fix deposit</span></a> or <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a> to create
+solid grains.</p>
+<p>In this implementation, bonds store their reference state when they are
+first computed in the setup of the first simulation run. Data is then
+preserved across run commands and is written to <a class="reference internal" href="restart.html"><span class="doc">binary restart
+files</span></a> such that restarting the system will not reset the
+reference state of a bond. Bonds that are created midway into a run,
+such as those created by pouring grains using <a class="reference internal" href="fix_pour.html"><span class="doc">fix pour</span></a>, are initialized on that timestep.</p>
+<hr class="docutils" />
+<p>Currently, there are three types of bonds included in the BPM package. The
+first bond style, <a class="reference internal" href="bond_bpm_spring.html"><span class="doc">bond bpm/spring</span></a>, only applies
+pairwise, central body forces. Point particles must have <a class="reference internal" href="atom_style.html"><span class="doc">bond atom
+style</span></a> and may be thought of as nodes in a spring
+network. An optional multibody term can be used to adjust the network’s
+Poisson’s ratio. The <a class="reference internal" href="bond_bpm_spring_plastic.html"><span class="doc">bpm/spring/plastic</span></a>
+bond style is similar except it adds a plastic yield strain.
+Alternatively, the third bond style, <a class="reference internal" href="bond_bpm_rotational.html"><span class="doc">bond bpm/rotational</span></a>, resolves tangential forces and torques arising
+with the shearing, bending, and twisting of the bond due to rotation or
+displacement of particles.  Particles are similar to those used in the
+<a class="reference internal" href="Howto_granular.html"><span class="doc">granular package</span></a>, <a class="reference internal" href="atom_style.html"><span class="doc">atom style sphere</span></a>. However, they must also track the current orientation of
+particles and store bonds, and therefore use a <a class="reference internal" href="atom_style.html"><span class="doc">bpm/sphere atom
+style</span></a>.  This also requires a unique integrator <a class="reference internal" href="fix_nve_bpm_sphere.html"><span class="doc">fix
+nve/bpm/sphere</span></a> which numerically integrates
+orientation similar to <a class="reference internal" href="fix_nve_asphere.html"><span class="doc">fix nve/asphere</span></a>.</p>
+<p>In addition to bond styles, a new pair style <a class="reference internal" href="pair_bpm_spring.html"><span class="doc">pair bpm/spring</span></a> was added to accompany the bpm/spring bond
+style. By default, this pair style is simply a hookean repulsion with
+similar velocity damping as its sister bond style, but optional
+arguments can be used to modify the force.</p>
+<hr class="docutils" />
+<p>Bond data can be output using a combination of standard LAMMPS commands.
+A list of IDs for bonded atoms can be generated using the
+<a class="reference internal" href="compute_property_local.html"><span class="doc">compute property/local</span></a> command.
+Various properties of bonds can be computed using the
+<a class="reference internal" href="compute_bond_local.html"><span class="doc">compute bond/local</span></a> command. This
+command allows one to access data saved to the bond’s history,
+such as the reference length of the bond. More information on
+bond history data can be found on the documentation pages for the specific
+BPM bond styles. Finally, this data can be output using a <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a>
+command. As one may output many columns from the same compute, the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump modify</span></a> <em>colname</em> option may be used to provide
+more helpful column names. An example of this procedure is found in
+<code class="docutils literal notranslate"><span class="pre">/examples/bpm/pour/</span></code>. External software, such as OVITO, can read these dump
+files to render bond data.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p>The <a class="reference internal" href="compute_bond_local.html"><span class="doc">compute bond/local</span></a> property can also be
+visualized using <a class="reference internal" href="dump_image.html"><span class="doc">dump image</span></a> to color bonds by
+property using a color map.  The <code class="docutils literal notranslate"><span class="pre">/examples/GRAPHICS/in.bpm.fracture</span></code>
+example file shows how such a visualization can be constructed.</p>
+<blockquote>
+<div><img alt="_images/bpm-fracture.png" src="_images/bpm-fracture.png" />
+</div></blockquote>
+<hr class="docutils" />
+<p>As bonds can potentially be broken between neighbor list builds, BPM bond
+styles may place restrictions on the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> command. There are three possible scenarios which determine how pair
+interactions between bonded particles and special bond weights work.</p>
+<p>The first option is the simplest. If bonds cannot break, then one can use any
+special bond settings to control pair forces. Namely, this is accomplished by
+setting the <em>break</em> keyword to <em>no</em>. Note that a zero coul weight for 1-2 bonds
+can be used to exclude bonded atoms from the neighbor list builds</p>
+<blockquote>
+<div><div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">special_bonds</span><span class="w"> </span><span class="n">lj</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">coul</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>This can be useful for post-processing, or to determine pair interaction
+properties between distinct bonded particles.</p>
+<p>If bonds can break, the second scenario is if pair forces are overlaid
+on top of bond forces such that atoms can simultaneously exchange both types
+of forces. This is accomplished by setting the <em>overlay/pair</em> keyword present
+in all bpm bond styles to <em>yes</em>. This case requires the following special
+bond settings</p>
+<blockquote>
+<div><div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">special_bonds</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">coul</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>Note that this scenario does not update special bond lists when bonds break,
+hence why fractional weights are not allowed. Whether or not two particles
+are bonded has no bearing on pair forces.</p>
+<p>In the third scenario, bonds can break but pair forces are disabled between
+bonded particles. This is the default behavior of BPM bond styles. Unlike
+<a class="reference internal" href="bond_quartic.html"><span class="doc">bond quartic</span></a>, pair forces are not removed by subtracting
+pair forces during the bond computation, but rather by dynamically updating the
+1-2 special bond list. To do this, LAMMPS requires <a class="reference internal" href="newton.html"><span class="doc">newton</span></a> bond
+off such that all processors containing an atom know when a bond breaks.
+Additionally, one must use the following special bond settings</p>
+<blockquote>
+<div><div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">special_bonds</span><span class="w"> </span><span class="n">lj</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">coul</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+</div></blockquote>
+<p>These settings accomplish two goals. First, they turn off 1-3 and 1-4
+special bond lists, which are not currently supported for breakable BPMs.
+As BPMs often have dense bond networks, generating/updating 1-3 and 1-4
+special bond lists can be expensive. By setting the lj weight for 1-2
+bonds to zero, this turns off pairwise interactions.  Even though there
+are no charges in BPM models, setting a nonzero coul weight for 1-2 bonds
+ensures all bonded neighbors are still included in the neighbor list
+in case bonds break between neighbor list builds.</p>
+<p>To monitor the fracture of bonds in the system, all BPM bond styles
+have the ability to record instances of bond breakage to output using
+the <a class="reference internal" href="dump.html"><span class="doc">dump local</span></a> command. Since one may frequently output
+a list of broken bonds and the time they broke, the
+<a class="reference internal" href="dump_modify.html"><span class="doc">dump modify</span></a> option <em>header no</em> may be useful to
+avoid repeatedly printing the header of the dump file. An example of
+this procedure is found in /examples/bpm/impact/. Additionally,
+one can use <a class="reference internal" href="compute_nbond_atom.html"><span class="doc">compute nbond/atom</span></a> to tally the
+current number of bonds per atom.</p>
+<p>See the <a class="reference internal" href="Howto_broken_bonds.html"><span class="doc">Howto</span></a> page on broken bonds for
+more information.</p>
+<hr class="docutils" />
+<p>While LAMMPS has many utilities to create and delete bonds, <em>only</em>
+the following are currently compatible with BPM bond styles:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="create_bonds.html"><span class="doc">create_bonds</span></a></p></li>
+<li><p><a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a></p></li>
+<li><p><a class="reference internal" href="fix_bond_create.html"><span class="doc">fix bond/create</span></a></p></li>
+<li><p><a class="reference internal" href="fix_bond_break.html"><span class="doc">fix bond/break</span></a></p></li>
+<li><p><a class="reference internal" href="fix_bond_swap.html"><span class="doc">fix bond/swap</span></a></p></li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a class="reference internal" href="create_bonds.html"><span class="doc">create_bonds</span></a> command requires certain
+<a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a> settings.  To subtract pair
+interactions, one will need to switch between different <em>special_bonds</em>
+settings in the input script. An example is found in
+<code class="docutils literal notranslate"><span class="pre">examples/bpm/impact</span></code>.</p>
+</div>
+<hr class="docutils" />
+<p id="howto-clemmer"><strong>(Clemmer)</strong> Clemmer, Monti, Lechman, Soft Matter, 20, 1702 (2024).</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_body.html" class="btn btn-neutral float-left" title="10.5.4. Body particles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_polarizable.html" class="btn btn-neutral float-right" title="10.5.6. Polarizable models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

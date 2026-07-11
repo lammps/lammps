@@ -1,0 +1,10 @@
+Running this example requires that LAMMPS be built with the VORONOI
+package and its compute voronoi command.  The compute uses the Voro++
+library, freely available at http://math.lbl.gov/voro++, to compute
+the Voronoi tesselation locally on each processor.  Voro++ was
+developed by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
+Laboratory.
+
+See the lib/voronoi/README file for instructions on how to download
+and install the Voro++ library for use with LAMMPS.
+

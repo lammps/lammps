@@ -1,0 +1,22 @@
+# Si fcc phase
+
+units           metal
+boundary        p p p
+
+atom_style      atomic
+lattice         fcc 3.98
+region          box block 0 5 0 5 0 5
+create_box              1 box
+create_atoms    1 box
+
+pair_style      meam/spline
+pair_coeff      * * Si_1.meam.spline Si
+mass            * 28.085
+
+velocity        all create 500.0 44226611
+
+fix             1 all nvt temp 500.0 500.0 1.0
+
+thermo          50
+run             500
+

@@ -1,0 +1,63 @@
+#!/bin/sh
+
+if [ ! -f libjavalammps.so ]
+then \
+    echo "Need to compile 'libjavalammps.so' first for this script to work"
+    exit 1
+fi
+
+cat > example.java <<EOF
+public class example {
+  static {
+    System.loadLibrary("javalammps");
+  }
+
+  public static void main(String argv[]) {
+    SWIGTYPE_p_void lmp = javalammps.lammps_open_no_mpi(0, null, null);
+    int ver = javalammps.lammps_version(lmp);
+
+    int npair_styles = javalammps.lammps_style_count(lmp, "pair");
+    System.out.println("LAMMPS includes " + npair_styles + " pair styles");
+
+    javalammps.lammps_command(lmp, "units real");
+    javalammps.lammps_command(lmp, "lattice fcc 2.5");
+    javalammps.lammps_command(lmp, "region box block -5 5 -5 5 -5 5");
+    javalammps.lammps_command(lmp, "create_box 1 box");
+    javalammps.lammps_command(lmp, "create_atoms 1 box");
+
+    SWIGTYPE_p_double boxlo_p = javalammps.new_double_1d(3);
+    SWIGTYPE_p_double boxhi_p = javalammps.new_double_1d(3);
+    SWIGTYPE_p_double xy_p = javalammps.new_double_p();
+    SWIGTYPE_p_double yz_p = javalammps.new_double_p();
+    SWIGTYPE_p_double xz_p = javalammps.new_double_p();
+    SWIGTYPE_p_int pflags_p = javalammps.new_int_1d(3);
+    SWIGTYPE_p_int boxflag_p = javalammps.new_int_p();
+
+    javalammps.lammps_extract_box(lmp, boxlo_p, boxhi_p, xy_p, yz_p, xz_p, pflags_p, boxflag_p);
+    System.out.println("boxlo:    " + javalammps.double_1d_getitem(boxlo_p, 0) + " " + javalammps.double_1d_getitem(boxlo_p, 1) + " " + javalammps.double_1d_getitem(boxlo_p, 2));
+    System.out.println("boxhi:    " + javalammps.double_1d_getitem(boxhi_p, 0) + " " + javalammps.double_1d_getitem(boxhi_p, 1) + " " + javalammps.double_1d_getitem(boxhi_p, 2));
+    System.out.println("xy/yz/xz: " + javalammps.double_p_value(xy_p) + " " + javalammps.double_p_value(yz_p) + " " + javalammps.double_p_value(xz_p));
+    System.out.println("periodicity: " + javalammps.int_1d_getitem(pflags_p, 0) + " " + javalammps.int_1d_getitem(pflags_p, 1) + " " + javalammps.int_1d_getitem(pflags_p, 2));
+    System.out.println("boxflag:  " + javalammps.int_p_value(boxflag_p));
+    javalammps.delete_double_1d(boxlo_p);
+    javalammps.delete_double_1d(boxhi_p);
+    javalammps.delete_int_1d(pflags_p);
+    javalammps.delete_double_p(xy_p);
+    javalammps.delete_double_p(yz_p);
+    javalammps.delete_double_p(xz_p);
+    javalammps.delete_int_p(boxflag_p);
+
+    System.out.println("LAMMPS version " + ver);
+    System.out.println("Number of created atoms: " + javalammps.lammps_get_natoms(lmp));
+    javalammps.lammps_close(lmp);
+  }
+}
+EOF
+
+CLASSPATH=${PWD}:${CLASSPATH-${PWD}}
+LD_LIBRARY_PATH=${PWD}:${LD_LIBARARY_PATH-${PWD}}
+
+export CLASSPATH LD_LIBRARY_PATH
+
+@Java_JAVAC_EXECUTABLE@ *.java
+@Java_JAVA_EXECUTABLE@ example

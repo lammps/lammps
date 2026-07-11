@@ -1,0 +1,94 @@
+
+   lmp2arc.exe
+
+   by Michael Peachey & John Carpenter  (SGI/Cray)
+   
+   Version 0.1:  8/14/97  MJP   initial version  NVT only
+   Version 1.0:  7/27/98  JEC   rewrote to reduce storage and generalize programs
+   Version 1.1: 10/22/98  JEC   geometric molecule "unwrapping" algorithm included
+   Version 1.2: 11/04/98  JEC   multiple position files in input; data structures
+                                standardized with lmp2gxf
+
+   This program converts a LAMMPS dump (position) file to a MSI
+   .arc file using a .car file as the template. This enables one to
+   visualize a LAMMPS trajectory using Insight II.
+
+    Usage: lmp2arc.exe [options] -car carfile < infile > outfile
+
+      options
+
+	      -trueflags  (default is not present)
+
+	         trueflags are present in the LAMMPS position file.
+
+	      -move_mol   (default is not present)
+
+                 Unwraps molecules. All atoms in the position file are in
+                 simulation cell. This means that molecules which
+                 are sticking out of the cell will have some of its
+                 atoms "wrapped" to the other side of the periodic cell.
+                 This leads to very messy visualizations. Specification
+                 of -move_mol will attempt to "unwrap" or straighten 
+                 molecules and yield a reasonable visualization. However,
+                 molecules which oscillate around half in or out of the
+                 box may appear to jump from one side of the box to
+                 the other. 
+
+                 Two algorithms are used depending upon the presence of
+                 trueflags. The algorithm that uses trueflags is the
+                 most robust, but the other geometric based algorithm 
+                 should be adequate.
+
+	      -car filename
+
+	         the name of the .car file that corresponds to the
+		 position information. This is required.
+
+	      -skip n   (default is 0)
+
+	         Skip every n timesteps in the position file.
+
+	      -npico n  (default is 2000)
+
+	         Number of timesteps in 1 picosecond of simulation
+                 
+
+	      stdin
+
+	         file containing one or more names of LAMMPS position files
+
+	      stdout
+
+	         the name of the new .arc file
+
+   Examples:
+
+    % lmp2arc.exe -trueflags -move_mol -skip 4 -car water.car <<EOF > water.arc
+      water1.pos
+      water2.pos
+      EOF
+
+>>>> Program output <<<<<
+
+ lmp2arc v1.2 - LAMMPS MD trajectory to MSI .arc file conversion
+
+
+ Car file name is water.car
+
+ Number of Atoms       = 24
+ Number of Molecules   = 8
+
+ Position file names:
+ water1.pos
+ water2.pos
+
+ Processing Timesteps
+
+ 20 40 60 80 100
+
+ 102 frames were written to the ArcFile
+
+
+ Program Exiting Normally
+
+

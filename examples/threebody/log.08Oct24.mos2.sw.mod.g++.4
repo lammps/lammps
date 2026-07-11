@@ -1,0 +1,102 @@
+LAMMPS (29 Aug 2024 - Development - patch_29Aug2024-512-g13c57ab9b5)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+# monolayer MoS2
+units      	metal
+boundary   	p p f
+processors	* * 1
+
+atom_style 	atomic
+read_data       single_layer_MoS2.data
+Reading data file ...
+  triclinic box = (0 0 -100) to (51.15232 44.299209 100) with tilt (25.57616 0 0)
+WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (src/domain.cpp:221)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  768 atoms
+  read_data CPU = 0.003 seconds
+
+mass            * 32.065	# mass of sulphur atom , uint: a.u.=1.66X10^(-27)kg
+mass            1 95.94		# mass of molebdenum atom , uint: a.u.=1.66X10^(-27)kg
+
+########################## Define potentials ################################
+pair_style      sw/mod maxdelcs 0.25 0.35
+pair_coeff      * * tmd.sw.mod Mo S S
+Reading sw potential file tmd.sw.mod with DATE: 2018-03-26
+#########################################################################
+
+### Simulation settings ####
+timestep        0.001
+velocity        all create 300.0 12345
+
+############################
+
+# Output
+thermo          500
+thermo_style    custom step etotal pe ke temp
+thermo_modify   lost warn
+
+###### Run molecular dynamics ######
+fix             thermostat all nve
+run             5000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.158796
+  ghost atom cutoff = 5.158796
+  binsize = 2.579398, bins = 30 18 78
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sw/mod, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.165 | 3.165 | 3.165 Mbytes
+   Step         TotEng         PotEng         KinEng          Temp     
+         0  -899.28605     -929.02881      29.742759      300          
+       500  -899.28626     -922.45519      23.168929      233.69313    
+      1000  -899.29247     -925.86547      26.573002      268.02828    
+      1500  -899.27957     -916.95478      17.675214      178.28084    
+      2000  -899.28171     -918.38728      19.105573      192.70814    
+      2500  -899.28732     -922.50423      23.21691       234.17709    
+      3000  -899.28195     -918.74112      19.459174      196.27473    
+      3500  -899.27944     -918.03105      18.751604      189.13784    
+      4000  -899.28397     -920.50737      21.223397      214.06955    
+      4500  -899.28386     -919.79154      20.507685      206.85053    
+      5000  -899.28077     -918.78947      19.508698      196.77425    
+Loop time of 0.595509 on 4 procs for 5000 steps with 768 atoms
+
+Performance: 725.430 ns/day, 0.033 hours/ns, 8396.182 timesteps/s, 6.448 Matom-step/s
+99.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.4603     | 0.49732    | 0.54269    |   4.2 | 83.51
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.03293    | 0.078347   | 0.11558    |  10.6 | 13.16
+Output  | 0.00010079 | 0.00010935 | 0.00012827 |   0.0 |  0.02
+Modify  | 0.0073413  | 0.0082665  | 0.0091767  |   0.7 |  1.39
+Other   |            | 0.01146    |            |       |  1.92
+
+Nlocal:            192 ave         194 max         190 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:            194 ave         196 max         192 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         5120 ave        5170 max        5070 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+
+Total # of neighbors = 20480
+Ave neighs/atom = 26.666667
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

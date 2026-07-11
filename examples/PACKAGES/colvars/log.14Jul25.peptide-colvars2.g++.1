@@ -1,0 +1,318 @@
+LAMMPS (12 Jun 2025 - Development - patch_12Jun2025-739-g2644e7f6fa-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Solvated 5-mer peptide
+
+units		real
+atom_style	full
+
+pair_style	lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style	pppm 0.0001
+
+read_data	data.peptide
+Reading data file ...
+  orthogonal box = (36.840194 41.013691 29.768095) to (64.21156 68.385058 57.139462)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2004 atoms
+  reading velocities ...
+  2004 velocities
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  14 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  orthogonal box = (36.840194 41.013691 29.768095) to (64.21156 68.385058 57.139462)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  1365 bonds
+  reading angles ...
+  786 angles
+  reading dihedrals ...
+  207 dihedrals
+  reading impropers ...
+  12 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     7 = max # of 1-3 neighbors
+    14 = max # of 1-4 neighbors
+    18 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.011 seconds
+
+neighbor	2.0 bin
+neigh_modify	delay 5
+
+timestep	2.0
+
+group		peptide type <= 12
+84 atoms in group peptide
+group		one id 2 4 5 6
+4 atoms in group one
+group		two id 80 82 83 84
+4 atoms in group two
+group		ref id 37
+1 atoms in group ref
+group		colvar union one two ref
+9 atoms in group colvar
+
+fix		1 all nvt temp 275.0 275.0 100.0 tchain 1
+
+shell "rm -f peptide2.colvars.*"
+fix		2 all colvars peptide.colvars2 output peptide2
+----------------------------------------------------------------------
+Initializing the collective variables module, version 2025-04-30.
+Please cite Fiorin et al, Mol Phys 2013:
+  https://doi.org/10.1080/00268976.2013.813594
+as well as all other papers listed below for individual features used.
+Summary of compile-time features available in this build:
+  - C++ language version: 201703
+  - Multiple replicas: not available
+  - Lepton custom functions: available
+  - Tcl interpreter: not available
+Using LAMMPS interface, version "2025-03-31".
+
+fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
+Finding SHAKE clusters ...
+      19 = # of size 2 clusters
+       6 = # of size 3 clusters
+       3 = # of size 4 clusters
+     640 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+
+#dump		1 colvar custom 1 dump.colvar2.lammpstrj id xu yu zu fx fy fz
+#dump_modify 1 sort id
+
+thermo_style	custom step temp etotal pe ke epair ebond f_2
+thermo		10
+
+
+run		100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.26872465
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.022820853
+  estimated relative force accuracy = 6.872432e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 10648 3375
+Generated 91 of 91 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+----------------------------------------------------------------------
+Reading new configuration from file "peptide.colvars2":
+# units = "" [default]
+# smp = "cvcs" [default]
+# colvarsTrajFrequency = 1
+# colvarsRestartFrequency = 1000
+# scriptedColvarForces = off [default]
+# scriptingAfterBiases = off [default]
+----------------------------------------------------------------------
+  Initializing a new collective variable.
+  # name = "one"
+    Initializing a new "distance" component.
+    # name = "" [default]
+    # componentCoeff = 1 [default]
+    # componentExp = 1 [default]
+    # period = 0 [default]
+    # wrapAround = 0 [default]
+    # forceNoPBC = off [default]
+    # scalable = on [default]
+      Initializing atom group "group1".
+      # name = "" [default]
+      # centerToOrigin = off [default]
+      # centerToReference = off [default]
+      # rotateToReference = off [default]
+      # atomsOfGroup = "" [default]
+      # indexGroup = "" [default]
+      # psfSegID =  [default]
+      # atomsFile = "" [default]
+      # dummyAtom = ( 0 , 0 , 0 ) [default]
+      # enableFitGradients = on [default]
+      # printAtomIDs = off [default]
+      Atom group "group1" defined with 4 atoms requested.
+      Initializing atom group "group2".
+      # name = "" [default]
+      # centerToOrigin = off [default]
+      # centerToReference = off [default]
+      # rotateToReference = off [default]
+      # atomsOfGroup = "" [default]
+      # indexGroup = "" [default]
+      # psfSegID =  [default]
+      # atomsFile = "" [default]
+      # dummyAtom = ( 0 , 0 , 0 ) [default]
+      # enableFitGradients = on [default]
+      # printAtomIDs = off [default]
+      Atom group "group2" defined with 4 atoms requested.
+    # oneSiteSystemForce = off [default]
+    # oneSiteTotalForce = off [default]
+  All components initialized.
+  # timeStepFactor = 1 [default]
+  # width = 1 [default]
+  # lowerBoundary = 0 [default]
+  # upperBoundary = 1 [default]
+  # hardLowerBoundary = on [default]
+  # hardUpperBoundary = off [default]
+  # expandBoundaries = off [default]
+  # extendedLagrangian = off [default]
+  # outputValue = on [default]
+  # outputVelocity = off [default]
+  # outputTotalForce = off [default]
+  # outputAppliedForce = off [default]
+  # subtractAppliedForce = off [default]
+  # runAve = off [default]
+  # corrFunc = off [default]
+----------------------------------------------------------------------
+Collective variables initialized, 1 in total.
+----------------------------------------------------------------------
+  Initializing a new "harmonic" instance.
+  # name = "h_pot"
+  # colvars = { one }
+  # stepZeroData = off [default]
+  # outputEnergy = off [default]
+  # outputFreq = 1000 [default]
+  # timeStepFactor = 1 [default]
+  # writeTISamples = off [default]
+  # writeTIPMF = off [default]
+  # centers = { 10 }
+  # targetCenters = { 10 } [default]
+  # outputCenters = off [default]
+  # forceConstant = 100
+  # decoupling = off [default]
+  # targetForceConstant = -1 [default]
+  The force constant for colvar "one" will be rescaled to 100 according to the specified width (1).
+----------------------------------------------------------------------
+Collective variables biases initialized, 1 in total.
+----------------------------------------------------------------------
+Collective variables module (re)initialized.
+----------------------------------------------------------------------
+Current simulation parameters: initial step = 0, integration timestep = 2
+Updating atomic parameters (masses, charges, etc).
+Re-initialized atom group for variable "one":0/0. 4 atoms: total mass = 15.035, total charge = -2.77556e-17.
+Re-initialized atom group for variable "one":0/1. 4 atoms: total mass = 15.035, total charge = 0.16.
+The final output state file will be "peptide2.colvars.state".
+Synchronizing (emptying the buffer of) trajectory file "peptide2.colvars.traj".
+SHAKE stats (type/ave/delta/count) on step 0
+Bond:    4   1.111     1.44264e-05        9
+Bond:    6   0.996998  7.26967e-06        6
+Bond:    8   1.08      1.32536e-05        7
+Bond:   10   1.111     1.22749e-05        8
+Bond:   12   1.08      1.11767e-05        9
+Bond:   14   0.96      0                  1
+Bond:   18   0.957206  4.37979e-05     1280
+Angle:  31   104.519   0.00396029       640
+Per MPI rank memory allocation (min/avg/max) = 19.03 | 19.03 | 19.03 Mbytes
+   Step          Temp          TotEng         PotEng         KinEng         E_pair         E_bond          f_2      
+         0   282.10052     -5237.458      -6372.3765      1134.9186     -6442.7679      16.557152      273.74323    
+        10   333.47919     -4982.3966     -6324.0167      1341.6201     -6400.422       21.367762      12.393263    
+        20   309.56902     -4999.498      -6244.9251      1245.4271     -6401.6983      43.59542       13.004313    
+        30   316.9763      -5025.5662     -6300.7936      1275.2273     -6422.5376      27.323196      6.7589588    
+        40   297.55779     -5088.2203     -6285.325       1197.1047     -6395.3749      13.6769        25.625023    
+        50   296.79994     -5117.2966     -6311.3524      1194.0558     -6451.8308      30.631241      5.3320864    
+        60   281.72778     -5188.4971     -6321.9161      1133.419      -6427.8858      26.287725      20.574037    
+        70   277.26052     -5224.8434     -6340.2902      1115.4468     -6447.8521      27.742891      0.6942037    
+        80   268.01485     -5281.8507     -6360.1013      1078.2505     -6496.6085      20.300755      5.2607208    
+        90   270.43474     -5334.0836     -6422.0696      1087.986      -6563.2513      39.846097      1.1832275    
+SHAKE stats (type/ave/delta/count) on step 100
+Bond:    4   1.11096   0.000191462        9
+Bond:    6   0.996989  3.55509e-05        6
+Bond:    8   1.08      9.0997e-06         7
+Bond:   10   1.111     1.58544e-05        8
+Bond:   12   1.08      5.80604e-06        9
+Bond:   14   0.959997  0                  1
+Bond:   18   0.957198  2.92445e-05     1280
+Angle:  31   104.52    0.00239923       640
+       100   260.35636     -5387.2284     -6434.6681      1047.4396     -6534.1956      20.246866      0.075048501  
+Saving collective variables state to "peptide2.colvars.state".
+Loop time of 0.89148 on 1 procs for 100 steps with 2004 atoms
+
+Performance: 19.384 ns/day, 1.238 hours/ns, 112.173 timesteps/s, 224.795 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.7041     | 0.7041     | 0.7041     |   0.0 | 78.98
+Bond    | 0.0014366  | 0.0014366  | 0.0014366  |   0.0 |  0.16
+Kspace  | 0.042217   | 0.042217   | 0.042217   |   0.0 |  4.74
+Neigh   | 0.12915    | 0.12915    | 0.12915    |   0.0 | 14.49
+Comm    | 0.0035232  | 0.0035232  | 0.0035232  |   0.0 |  0.40
+Output  | 0.00016921 | 0.00016921 | 0.00016921 |   0.0 |  0.02
+Modify  | 0.010367   | 0.010367   | 0.010367   |   0.0 |  1.16
+Other   |            | 0.000513   |            |       |  0.06
+
+Nlocal:           2004 ave        2004 max        2004 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          11143 ave       11143 max       11143 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         708234 ave      708234 max      708234 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 708234
+Ave neighs/atom = 353.41018
+Ave special neighs/atom = 2.3403194
+Neighbor list builds = 13
+Dangerous builds = 1
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Colvars module (Fiorin2013, plus other works listed for specific features)
+
+
+% Colvars module:
+% Colvars-LAMMPS interface:
+% Harmonic colvar bias implementation:
+% Optimal rotation via flexible fitting:
+% distance colvar component:
+
+@article{Fiorin2013,
+  author = {Fiorin, Giacomo and Klein, Michael L.{} and H\'enin, J\'er\^ome},
+  title = {Using collective variables to drive molecular dynamics simulations},
+  journal = {Mol. Phys.},
+  year = {2013},
+  volume = {111},
+  number = {22-23},
+  pages = {3345--3362},
+  publisher = {Taylor & Francis},
+  doi = {10.1080/00268976.2013.813594},
+  url = {https://doi.org/10.1080/00268976.2013.813594}
+}
+
+
+% LAMMPS engine:
+
+@article{Thompson2022,
+  title = {{LAMMPS} - a flexible simulation tool for particle-based materials modeling at the atomic, meso, and continuum scales},
+  author = {Thompson, Aidan P. and Aktulga, H. Metin and Berger, Richard and Bolintineanu, Dan S. and Brown, W. Michael and Crozier, Paul S. and {in't Veld}, Pieter J. and Kohlmeyer, Axel and Moore, Stan G. and Nguyen, Trung Dac and Shan, Ray and Stevens, Mark J. and Tranchida, Julien and Trott, Christian and Plimpton, Steven J.},
+  journal = {Comp. Phys. Comm.},
+  volume = {271},
+  pages = {108171},
+  year = {2022},
+  doi = {10.1016/j.cpc.2021.108171},
+  url = {https://doi.org/10.1016/j.cpc.2021.108171}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Total wall time: 0:00:00

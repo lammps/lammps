@@ -1,0 +1,131 @@
+# Cmake script code to define the LAMMPS C++ interface
+# settings required for building LAMMPS plugins
+
+set(LAMMPS_THIRDPARTY_URL "https://download.lammps.org/thirdparty"
+  CACHE STRING "URL for thirdparty package downloads")
+
+################################################################################
+# helper function
+function(validate_option name values)
+  string(TOLOWER ${${name}} needle_lower)
+  string(TOUPPER ${${name}} needle_upper)
+  list(FIND ${values} ${needle_lower} IDX_LOWER)
+  list(FIND ${values} ${needle_upper} IDX_UPPER)
+  if(${IDX_LOWER} LESS 0 AND ${IDX_UPPER} LESS 0)
+    list_to_bulletpoints(POSSIBLE_VALUE_LIST ${${values}})
+    message(FATAL_ERROR "\n########################################################################\n"
+      "Invalid value '${${name}}' for option ${name}\n"
+      "\n"
+      "Possible values are:\n"
+      "${POSSIBLE_VALUE_LIST}"
+      "########################################################################")
+  endif()
+endfunction(validate_option)
+
+#################################################################################
+# LAMMPS C++ interface. We only need the header related parts for shared linkage
+# but the library .a file for real static or quasi-static linkage (of LAMMPS).
+add_library(lammps INTERFACE)
+target_include_directories(lammps INTERFACE ${LAMMPS_HEADER_DIR})
+if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+  target_link_libraries(lammps INTERFACE ${CMAKE_BINARY_DIR}/../liblammps.dll.a)
+endif()
+
+################################################################################
+# MPI configuration
+# do not include the (obsolete) MPI C++ bindings which makes
+# for leaner object files and avoids namespace conflicts
+set(MPI_CXX_SKIP_MPICXX TRUE)
+if(NOT CMAKE_CROSSCOMPILING)
+  find_package(MPI QUIET COMPONENTS CXX)
+  option(BUILD_MPI "Build MPI version" ${MPI_FOUND})
+else()
+  option(BUILD_MPI "Build MPI version" OFF)
+endif()
+
+if(BUILD_MPI)
+  # We use a non-standard procedure to cross-compile with MPI on Windows
+  if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+    message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
+    set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
+    set(MPICH2_WIN64_DEVEL_SHA256 "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f" CACHE STRING "SHA256 checksum of MS-MPI (win64) tarball")
+    mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
+    mark_as_advanced(MPICH2_WIN64_DEVEL_SHA256)
+
+    include(ExternalProject)
+    if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
+      ExternalProject_Add(mpi4win_build
+        URL     ${MPICH2_WIN64_DEVEL_URL}
+        URL_HASH SHA256=${MPICH2_WIN64_DEVEL_SHA256}
+        CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
+        BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmsmpi.a)
+    else()
+      message(FATAL_ERROR "Only x86 64-bit builds are supported with MS-MPI")
+    endif()
+
+    ExternalProject_get_property(mpi4win_build SOURCE_DIR)
+    file(MAKE_DIRECTORY "${SOURCE_DIR}/include")
+    add_library(MPI::MPI_CXX UNKNOWN IMPORTED)
+    set_target_properties(MPI::MPI_CXX PROPERTIES
+      IMPORTED_LOCATION "${SOURCE_DIR}/lib/libmsmpi.a"
+      INTERFACE_INCLUDE_DIRECTORIES "${SOURCE_DIR}/include"
+      INTERFACE_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX=1")
+    add_dependencies(MPI::MPI_CXX mpi4win_build)
+
+    # set variables for status reporting at the end of CMake run
+    set(MPI_CXX_INCLUDE_PATH "${SOURCE_DIR}/include")
+    set(MPI_CXX_COMPILE_DEFINITIONS "MPICH_SKIP_MPICXX=1")
+    set(MPI_CXX_LIBRARIES "${SOURCE_DIR}/lib/libmsmpi.a")
+  else()
+    find_package(MPI REQUIRED)
+    option(LAMMPS_LONGLONG_TO_LONG "Workaround if your system or MPI version does not recognize 'long long' data types" OFF)
+    if(LAMMPS_LONGLONG_TO_LONG)
+      target_compile_definitions(lammps INTERFACE -DLAMMPS_LONGLONG_TO_LONG)
+    endif()
+  endif()
+  target_link_libraries(lammps INTERFACE MPI::MPI_CXX)
+else()
+  target_include_directories(lammps INTERFACE "${LAMMPS_SOURCE_DIR}/STUBS")
+endif()
+
+################
+# integer size selection
+set(LAMMPS_SIZES "smallbig" CACHE STRING "LAMMPS integer sizes (smallbig: 64-bit #atoms #timesteps, bigbig: also 64-bit imageint, 64-bit atom ids)")
+set(LAMMPS_SIZES_VALUES smallbig bigbig)
+set_property(CACHE LAMMPS_SIZES PROPERTY STRINGS ${LAMMPS_SIZES_VALUES})
+validate_option(LAMMPS_SIZES LAMMPS_SIZES_VALUES)
+string(TOUPPER ${LAMMPS_SIZES} LAMMPS_SIZES)
+target_compile_definitions(lammps INTERFACE -DLAMMPS_${LAMMPS_SIZES})
+
+################################################################################
+# detect if we may enable OpenMP support by default
+set(BUILD_OMP_DEFAULT OFF)
+find_package(OpenMP QUIET)
+if(OpenMP_FOUND)
+  check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
+  if(HAVE_OMP_H_INCLUDE)
+    set(BUILD_OMP_DEFAULT ON)
+  endif()
+endif()
+
+option(BUILD_OMP "Build with OpenMP support" ${BUILD_OMP_DEFAULT})
+
+if(BUILD_OMP)
+  find_package(OpenMP REQUIRED)
+  check_include_file_cxx(omp.h HAVE_OMP_H_INCLUDE)
+  if(NOT HAVE_OMP_H_INCLUDE)
+    message(FATAL_ERROR "Cannot find the 'omp.h' header file required for full OpenMP support")
+  endif()
+
+  if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
+      (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
+    # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
+    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
+    target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=4)
+  else()
+    target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=3)
+  endif()
+  target_link_libraries(lammps INTERFACE OpenMP::OpenMP_CXX)
+endif()

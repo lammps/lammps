@@ -1,0 +1,11 @@
+# Set CXX standard flags
+set(KOKKOS_ENABLE_CXX20 OFF)
+set(KOKKOS_ENABLE_CXX23 OFF)
+set(KOKKOS_ENABLE_CXX26 OFF)
+
+if(NOT CMAKE_CXX_STANDARD)
+  set(KOKKOS_CXX_STANDARD "20")
+else()
+  set(KOKKOS_CXX_STANDARD ${CMAKE_CXX_STANDARD})
+endif()
+message(STATUS "Setting default Kokkos CXX standard to ${KOKKOS_CXX_STANDARD}")

@@ -1,0 +1,75 @@
+# calculate the energy volume curve for InP zincblende
+
+# define volume range and filename
+
+variable	ndelta equal 100
+variable	volatom_min equal 20.0
+variable	volatom_max equal 29.0
+variable	evsvolfile string evsvol.dat
+
+# set up cell 
+
+units		metal
+ 
+boundary	p p p
+
+# setup loop variables for box volume
+
+variable	amin equal ${volatom_min}^(1/3)*2
+variable 	delta equal (${volatom_max}-${volatom_min})/${ndelta} 
+variable	scale equal (${delta}/v_volatom+1)^(1/3)
+
+# set up 8 atom InP zincblende unit cell
+
+lattice diamond ${amin}
+
+region		box prism &
+	 	0 1 &
+		0 1 &
+		0 1 &
+		0 0 0
+
+create_box	2 box
+
+create_atoms	1	box       &
+			basis 5 2 &
+			basis 6 2 &
+			basis 7 2 &
+			basis 8 2
+
+mass 		1 114.76
+mass 		2 30.98
+
+# choose potential
+
+pair_style 	vashishta/table 100000 0.2
+pair_coeff 	* * InP.vashishta In P
+
+# setup neighbor style
+
+neighbor 	1.0 nsq
+neigh_modify 	once no every 1 delay 0 check yes
+
+# setup output
+
+thermo_style 	custom step temp pe press vol
+thermo_modify 	norm no
+variable 	volatom equal vol/atoms
+variable 	eatom equal pe/atoms
+print 		"# Volume [A^3/atom] Energy [eV/atom]" file ${evsvolfile}
+
+# loop over range of volumes
+
+label 		loop
+variable 	i loop ${ndelta}
+
+change_box 	all x scale ${scale} y scale ${scale} z scale ${scale} remap
+
+# calculate energy
+# no energy minimization needed for zincblende
+ 
+run 		0
+print 		"${volatom} ${eatom}" append ${evsvolfile}
+
+next 		i
+jump 		SELF loop

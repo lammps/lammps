@@ -1,0 +1,16 @@
+The asphere_vis tool needs an input script and a dump file
+from a LAMMPS run.
+
+In examples/ellipse, you can run LAMMPS with in.ellipse
+to generate dump.ellipse
+
+Copy dump.ellipse to this dir.
+
+Run the tool to create a PyMol input file called ellipse.py by typing:
+
+../bin/asphere_vis colors.ellipse dump.ellipse ellipse.py -r 4 -o
+
+Launch PyMol on this input and you should see a viz of
+ellipsoids in a box of LJ particles:
+
+pymol ellipse.py

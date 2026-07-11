@@ -1,0 +1,212 @@
+LAMMPS (17 Feb 2022)
+#===========================================================================#
+# single particle drag tests                                                #
+#                                                                           #
+# Run consists of a colloidal particle being dragged with a constant force  #
+# through an LB-fluid.  The colloidal particle could be single atom or      #
+# be a composite particle.  Composite particles could be bonded or just     #
+# rigidly constrained to stay together. You can set flags in the script to  #
+# change these.                                                             #
+#                                                                           #
+# Sample output from this run can be found in the files with "log."         #
+# located in the same directory.     	      	                            #
+#===========================================================================#
+
+units          nano
+dimension      3
+boundary       p p f
+atom_style     molecular
+
+region mydomain block -24.0 24.0 -24.0 24.0 -24.0 24.0
+
+#----------------------------------------------------------------------------
+# Set up particles with n_nodes and decide if bonded or rigid
+#----------------------------------------------------------------------------
+variable n_nodes equal 4     # 1, 4, 6 are options with definitions below
+variable is_bonded equal 0   # 0 or 1 (1 only if n_nodes > 1,
+                             #    bond parameters set for n_node = 4 case)
+variable stpts equal 3       # 2, 3, 4 number of stencil points in any direction.
+
+variable tstep equal 0.00025
+
+if "${is_bonded} == 1" then    "create_box 1 mydomain bond/types 1 extra/bond/per/atom 6" else    "create_box 1 mydomain"
+create_box 1 mydomain
+Created orthogonal box = (-24 -24 -24) to (24 24 24)
+  1 by 1 by 1 MPI processor grid
+
+if "${n_nodes} == 1" then       "create_atoms 1 single 0.0 0.0 0.0" elif "${n_nodes} == 4"       "create_atoms 1 single 0.0 0.0 0.204124"       "create_atoms 1 single -0.096225 -0.166667 -0.0680414"       "create_atoms 1 single -0.096225 0.166667 -0.0680414"       "create_atoms 1 single 0.19245 0. -0.0680414" elif "${n_nodes} == 6"       "create_atoms 1 single 0.204124  0.0000000  0.0000000"        "create_atoms 1 single -0.204124  0.0000000  0.0000000"       "create_atoms 1 single 0.0000000  0.204124  0.0000000"        "create_atoms 1 single 0.0000000  -0.204124  0.0000000"       "create_atoms 1 single 0.0000000  0.0000000  0.204124"        "create_atoms 1 single 0.0000000  0.0000000  -0.204124"
+create_atoms 1 single 0.0 0.0 0.204124
+Created 1 atoms
+  using lattice units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.001 seconds
+create_atoms 1 single -0.096225 -0.166667 -0.0680414
+Created 1 atoms
+  using lattice units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.001 seconds
+create_atoms 1 single -0.096225 0.166667 -0.0680414
+Created 1 atoms
+  using lattice units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 0.19245 0. -0.0680414
+Created 1 atoms
+  using lattice units in orthogonal box = (-24 -24 -24) to (24 24 24)
+  create_atoms CPU = 0.000 seconds
+
+#----------------------------------------------------------------------------
+# Need a neighbor bin size smaller than the lattice-Boltzmann grid spacing
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.
+# The arguments for neigh_modify have been set to "delay 0 every 1", again
+#   to ensure that the particles belonging to a given processor remain inside
+#   that processors lattice-Boltzmann grid.  However, these values can likely
+#   be somewhat increased without issue.  If a problem does arise (a particle
+#   is outside of its processors LB grid) an error message is printed and
+#   the simulation is terminated.
+#----------------------------------------------------------------------------
+neighbor 0.3 bin
+neigh_modify delay 0 every 1 check yes
+
+comm_modify cutoff 2.5       # cutoff for communcation shoud be at least 2 dx
+
+#----------------------------------------------------------------------------
+# Implement a hard-sphere interactions between particles & create bonds
+#----------------------------------------------------------------------------
+pair_style	lj/cut 5.88
+pair_coeff	* * 0.0 0.0 5.88
+
+variable total_mass equal 0.002398       # particle mass
+variable node_mass equal "v_total_mass / v_n_nodes"
+mass * ${node_mass}
+mass * 0.0005995
+
+if "${is_bonded} == 1" then    "bond_style harmonic"    "bond_coeff 1 1.0 0.333333333"    "create_bonds many all all 1 0.3 0.35"
+
+#velocity all set 0.02 0.0 0.0
+
+#----------------------------------------------------------------------------
+# Define external forces (SHOULD COME BEFORE lb/fluid and lb/viscous FIXes)
+# to drag particles through the fluid.
+#----------------------------------------------------------------------------
+variable total_force equal 1.0        # total external force on the particle
+variable node_force equal "v_total_force / v_n_nodes"
+variable oscillateY equal cos(step*0.0005)/(-0.03+400*v_tstep)/v_n_nodes
+variable oscillateZ equal cos(step*0.0003)/(-0.03+400*v_tstep)/v_n_nodes
+fix drag all addforce ${node_force} v_oscillateY v_oscillateZ
+fix drag all addforce 0.25 v_oscillateY v_oscillateZ
+
+#---------------------------------------------------------------------------
+# Create a lattice-Boltzmann fluid covering the simulation domain.
+# This fluid feels a force due to the particle (group all here)
+#   (however, this fix does not explicity apply a force back on to these
+#    particles...this is accomplished through the use of the lb/viscous fix).
+# Use a fluid viscosity = 1.0, fluid density= 0.0009982071,(i.e. water) and
+# lattice spacing dx=1.2.
+# Different ".log" files in this directory show the output with the stencil
+# option being stencil 2, stencil 3, and stencil 4 (triliner, IBM, Key's).
+#----------------------------------------------------------------------------
+timestep ${tstep}
+timestep 0.00025
+fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2
+fix   FL all lb/fluid 1 1.0 0.0009982071 stencil 3 dx 1.2
+Using a lattice-Boltzmann grid of 40 by 40 by 41 total grid points. (../fix_lb_fluid.cpp:486)
+Local Grid Geometry created. (../fix_lb_fluid.cpp:1018)
+#dumpxdmf 1000 fflow
+
+#----------------------------------------------------------------------------
+# Apply the force from the fluid to the particles, and integrate their
+#   motion, constraining them to move and rotate together as a single rigid
+#   spherical object or an elastically bonded object
+#----------------------------------------------------------------------------
+fix   2 all lb/viscous
+
+if "${n_nodes} == 1 || ${is_bonded} == 1" then    "fix   3 all nve" else    "fix   3 all rigid group 1 all"
+fix   3 all rigid group 1 all
+  1 rigid bodies with 4 atoms
+
+#----------------------------------------------------------------------------
+# Create variables containing the positions/velocity of the colloids center
+#   of mass.
+#----------------------------------------------------------------------------
+variable cmx equal xcm(all,x)
+variable cmy equal xcm(all,y)
+variable cmz equal xcm(all,z)
+
+variable vcmx equal vcm(all,x)
+variable vcmy equal vcm(all,y)
+variable vcmz equal vcm(all,z)
+
+if "${is_bonded} == 1" then    "variable comdatafile string drag_nb${n_nodes}_st${stpts}_dt${tstep}.out" else    "variable comdatafile string drag_n${n_nodes}_st${stpts}_dt${tstep}.out"
+variable comdatafile string drag_n${n_nodes}_st${stpts}_dt${tstep}.out
+variable comdatafile string drag_n4_st${stpts}_dt${tstep}.out
+variable comdatafile string drag_n4_st3_dt${tstep}.out
+variable comdatafile string drag_n4_st3_dt0.00025.out
+
+#fix printCM all print 100 "$(step) ${cmx} ${cmy} ${cmz} ${vcmx} ${vcmy} ${vcmz}" file ${comdatafile} screen no
+
+run    10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix lb/fluid command:
+
+@Article{Denniston et al.,
+ author = {C. Denniston, N. Afrasiabian, M.G. Cole-Andre,F.E. Mackay, S.T.T. Ollila, T. Whitehead},
+ title =   {LAMMPS lb/fluid fix version 2: Improved Hydrodynamic Forces Implemented into LAMMPS through a lattice-Boltzmann fluid}, journal = {Comp.~Phys.~Comm.},
+ year =    2022,
+ volume =  275,
+ pages =   {108318}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+  generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.18
+  ghost atom cutoff = 6.18
+  binsize = 3.09, bins = 16 16 16
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Communication cutoff adjusted to 6.18 (../comm.cpp:732)
+Per MPI rank memory allocation (min/avg/max) = 7.15 | 7.15 | 7.15 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0            0            0            0 2.1529156e-12 
+   10000  0.021008983            0            0 0.00043509092 1.4149298e-08 
+Loop time of 185.434 on 1 procs for 10000 steps with 4 atoms
+
+Performance: 1164.837 ns/day, 0.021 hours/ns, 53.928 timesteps/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.02024    | 0.02024    | 0.02024    |   0.0 |  0.01
+Bond    | 0.0011585  | 0.0011585  | 0.0011585  |   0.0 |  0.00
+Neigh   | 8.88e-05   | 8.88e-05   | 8.88e-05   |   0.0 |  0.00
+Comm    | 0.011615   | 0.011615   | 0.011615   |   0.0 |  0.01
+Output  | 8.32e-05   | 8.32e-05   | 8.32e-05   |   0.0 |  0.00
+Modify  | 185.36     | 185.36     | 185.36     |   0.0 | 99.96
+Other   |            | 0.04469    |            |       |  0.02
+
+Nlocal:              4 ave           4 max           4 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              6 ave           6 max           6 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6
+Ave neighs/atom = 1.5
+Ave special neighs/atom = 0
+Neighbor list builds = 9
+Dangerous builds = 0
+#run   100000
+
+Total wall time: 0:03:05

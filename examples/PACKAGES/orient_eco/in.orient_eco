@@ -1,0 +1,20 @@
+
+units           metal
+atom_style      atomic
+read_data       data.sigma5
+
+pair_style      eam
+pair_coeff      * * Ni_u3.eam
+timestep        0.001
+
+fix integrator  all npt temp 750 750 0.1 iso 0 0 0.1
+fix eco         all orient/eco 0.08 0.25 3.6 sigma5.ori
+
+thermo          100
+thermo_style    custom step temp etotal press vol f_eco
+velocity        all create 750 18527782
+
+#dump            save all custom 100 orient_eco.dump xs ys zs f_eco[1] f_eco[2]
+#dump_modify     save sort id
+
+run             1000

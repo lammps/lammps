@@ -1,0 +1,113 @@
+# Removing Binned Velocities of Center of Mass (VCM) from Stress 
+
+# This example shows how to remove rigid body motion from 
+# binned stress calculations. This uses a combination of commands
+# from compute chunk/atom, compute temp/chunk, compute 
+# stress/atom and fix ave/time. We'll show how these commands 
+# work in the context of a shockwave experiment on a cube of 
+# atoms. To shock the cube, a rectangular region of atoms is 
+# frozen, moved into the cube with a constant velocity along the
+# x direction, and then unfrozen. As the shockwave begins 
+# propagating, the body of the cube also moves along the x 
+# direction. To better understand the stress dynamics of the 
+# cube we remove the velocity component belonging to the overall 
+# motion of each bin.
+
+units		    metal
+boundary        p p p
+atom_style	    atomic
+lattice		    fcc 5.3589
+processors 		1 * *
+
+# Defining regions for box and atoms.
+# In this experiment an elongated simulation cell is 
+# defined in the x direction to allow for non-periodic 
+# motion of the atoms.
+
+region		    box1 block -3 24 0 12 0 12 units lattice
+region		    box2 block 0 12 0 12 0 12 units lattice
+
+# Creating box and atoms
+
+create_box	    1 box1
+create_atoms    1 region box2
+
+mass		    1 40.00
+
+# Adding energy to the system
+
+velocity        all create 600.0 9999
+
+pair_style	    lj/cut 10 
+pair_coeff	    1 1 0.04 3.405
+
+# Begin time integration
+
+timestep        2e-3
+
+fix	            fix_nve all nve
+
+thermo		    100
+
+run             500
+
+#--------------------------------------#
+# Chunk, Stress, and VCM removal steps #
+#--------------------------------------#
+
+# 1. Create 20 equispaced bins sliced along the x direction.
+# -"units reduced" normalizes the distance from 0.0 to 1.0
+variable        nbins index 20
+variable        fraction equal 1.0/v_nbins
+variable        volfrac equal 1/(vol*${fraction}) 
+compute         ch_id all chunk/atom bin/1d x lower ${fraction} units reduced 
+
+# 2. Calculate temperature bins with VCM aka COM velocities removed.
+compute         ch_temp_vcm all temp/chunk ch_id com yes
+
+# 3. Compute per atom stress with VCM removed via temp-ID.
+# -The velocities from specified temp-ID are used to compute stress.
+# -Stress/atom units are pressure*volume! Optionally handled next step.
+compute         atom_stress_vcm all stress/atom ch_temp_vcm
+
+# 4. Divide out bin volume from xx stress component.
+variable        stress atom -(c_atom_stress_vcm[1])/(vol*${fraction})
+
+# 5. Sum the per atom stresses in each bin.
+compute         ch_stress_vcm all reduce/chunk ch_id sum v_stress
+
+# 6. Average and output to file.
+# -The average output is every 100 steps with samples collected 20 times with 5 step intervals.
+fix             ave_stress_vcm all ave/time 5 20 100 c_ch_stress_vcm mode vector file stress_xx.out
+
+#--------------------------------------#
+
+# Piston compressing along x direction
+
+region 			piston block -1 1 INF INF INF INF units lattice
+group          	piston region piston
+fix 			fix_piston piston move linear 5 0 0 units box # strain rate ~ 8e10 1/s 
+
+thermo_style    custom step temp ke pe lx ly lz pxx pyy pzz econserve 
+
+# Atom dump
+
+# dump		    atom_dump all atom 50 dump.vcm
+
+# # Image dumps
+
+# dump		    2 all image 250 image.*.jpg type type &
+# 		        axes yes 0.8 0.02 view 60 -30
+# dump_modify	    2 pad 1
+
+# # Movie dump
+
+# dump		    3 all movie 125 movie.avi type type &
+# 		        axes yes 0.8 0.02 view 60 -30
+# dump_modify	    3 pad 1
+
+run	            500
+
+unfix           fix_piston
+
+run             1500

@@ -1,0 +1,48 @@
+# DATE: 2009-05-05 UNITS: metal CONTRIBUTOR: Felix Ulomek, ulomek@imm.rwth-aachen.de CITATION: Erhart and Albe, Phys Rev B, 71, 035211 (2005)
+# Si and C mixture, parameterized for Tersoff potential
+# this file is from ulomek(at)imm.rwth-aachen.de
+# values are from Erhart/Albe - Phys Rev B, 71, 035211 (2005)
+
+# m=n=beta=1
+# R,D,gamma,c,d ->same
+# lambda1=beta*sqrt(2*S)
+# lambda2=beta*sqrt(2/S)
+# lambda3=2*mu=0
+# costheta0=-h
+# A=D0/(S-1)*exp(lambda1*r0)
+# B=S*D0/(S-1)*exp(lambda2*r0)
+
+# Tersoff parameters for various elements and mixtures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units:
+#   A,B = eV; lambda1,lambda2,lambda3 = 1/Angstroms; R,D = Angstroms
+#   other quantities are unitless
+
+# format of a single entry (one or more lines):
+#   element 1, element 2, element 3,
+#   m, gamma, lambda3, c, d, costheta0, n,
+#   beta, lambda2, B, R, D, lambda1, A
+
+C   C   C    1 0.11233 0 181.91 6.28433 -0.5556 1
+             1 1.93090093 175.426651 2 0.15 4.18426232 2019.8449
+
+Si  Si  Si   1 0.114354 0 2.00494 0.81472 -0.259 1
+             1 1.53810493 219.521624 2.82 0.14 2.83318929 2145.7128
+
+Si  Si  C    1 0.011877 0 273987 180.314 -0.68 0
+             0 0 0 2.4 0.2 0 0
+
+Si  C   C    1 0.011877 0 273987 180.314 -0.68 1
+             1 1.76807421 225.189481 2.4 0.2 3.26563307 1779.36144
+
+C   Si  Si   1 0.011877 0 273987 180.314 -0.68 1
+             1 1.76807421 225.189481 2.4 0.2 3.26563307 1779.36144
+
+C   Si  C    1 0.11233 0 181.910 6.28433 -0.5556 0
+             0 0 0 2 0.15 0 0
+
+C   C   Si   1 0.011877 0 273987 180.314 -0.68 0
+             0 0 0 2.4 0.2 0 0
+
+Si  C   Si   1 0.114354 0 2.00494 0.81472 -0.259 0
+             0 0 0 2.82 0.14 0 0

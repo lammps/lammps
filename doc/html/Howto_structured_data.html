@@ -1,0 +1,549 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.3.2. Output structured data from LAMMPS &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_structured_data.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.3.3. Use chunks to calculate system properties" href="Howto_chunk.html" />
+    <link rel="prev" title="10.3.1. Output from LAMMPS (thermo, dumps, computes, fixes, variables)" href="Howto_output.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_output.html">10.3.1. Output from LAMMPS (thermo, dumps, computes, fixes, variables)</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.3.2. Output structured data from LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_chunk.html">10.3.3. Use chunks to calculate system properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_grid.html">10.3.4. Using distributed grids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_temperature.html">10.3.5. Calculate temperature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_elastic.html">10.3.6. Calculate elastic constants</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_kappa.html">10.3.7. Calculate thermal conductivity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_viscosity.html">10.3.8. Calculate viscosity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_diffusion.html">10.3.9. Calculate diffusion coefficients</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.3.2. </span>Output structured data from LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_output.html" class="btn btn-neutral float-left" title="10.3.1. Output from LAMMPS (thermo, dumps, computes, fixes, variables)" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_chunk.html" class="btn btn-neutral float-right" title="10.3.3. Use chunks to calculate system properties" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="output-structured-data-from-lammps">
+<h1><span class="section-number">10.3.2. </span>Output structured data from LAMMPS<a class="headerlink" href="#output-structured-data-from-lammps" title="Link to this heading"></a></h1>
+<p>LAMMPS can output structured data with the <a class="reference internal" href="print.html"><span class="doc">print</span></a> and <a class="reference internal" href="fix_print.html"><span class="doc">fix
+print</span></a> command.  This gives you flexibility since you can build
+custom data formats that contain system properties, thermo data, and variables
+values. This output can be directed to the screen and/or to a file for post
+processing.</p>
+<section id="writing-the-current-system-state-thermo-data-variable-values">
+<h2>Writing the current system state, thermo data, variable values<a class="headerlink" href="#writing-the-current-system-state-thermo-data-variable-values" title="Link to this heading"></a></h2>
+<p>Use the <a class="reference internal" href="print.html"><span class="doc">print</span></a> command to output the current system state, which
+can include system properties, thermo data and variable values.</p>
+<section id="yaml">
+<h3>YAML<a class="headerlink" href="#yaml" title="Link to this heading"></a></h3>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="w"> </span><span class="s">&quot;&quot;&quot;---</span>
+<span class="s">timestep: $(step)</span>
+<span class="s">pe: $(pe)</span>
+<span class="s">ke: $(ke)</span>
+<span class="s">...&quot;&quot;&quot;</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">current_state.yaml</span><span class="w"> </span><span class="n">screen</span><span class="w"> </span><span class="n">no</span>
+</pre></div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">current_state.yaml</span><a class="headerlink" href="#id2" title="Link to this code"></a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span>
+<span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-4.7774327356321810711</span>
+<span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4962152903997174569</span>
+</pre></div>
+</div>
+</div>
+</section>
+<section id="json">
+<h3>JSON<a class="headerlink" href="#json" title="Link to this heading"></a></h3>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="w"> </span><span class="s">&quot;&quot;&quot;{</span>
+<span class="s">  &quot;</span><span class="n">timestep</span><span class="s">&quot;: $(step),</span>
+<span class="s">  &quot;</span><span class="n">pe</span><span class="s">&quot;: $(pe),</span>
+<span class="s">  &quot;</span><span class="n">ke</span><span class="s">&quot;: $(ke)</span>
+<span class="s">}&quot;&quot;&quot;</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">current_state.json</span><span class="w"> </span><span class="n">screen</span><span class="w"> </span><span class="n">no</span>
+</pre></div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">current_state.json</span><a class="headerlink" href="#id3" title="Link to this code"></a></div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-4.7774327356321810711</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.4962152903997174569</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="yaml-format-thermo-style-or-dump-style-output">
+<h2>YAML format thermo_style or dump_style output<a class="headerlink" href="#yaml-format-thermo-style-or-dump-style-output" title="Link to this heading"></a></h2>
+<section id="extracting-data-from-log-file">
+<h3>Extracting data from log file<a class="headerlink" href="#extracting-data-from-log-file" title="Link to this heading"></a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 24Mar2022.</span></p>
+</div>
+<p>LAMMPS supports the thermo style “yaml” and for “custom” style
+thermodynamic output the format can be changed to YAML with
+<a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify line yaml</span></a>.  This will produce a
+block of output in a compact YAML format - one “document” per run - of
+the following style:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">---</span>
+<span class="nt">keywords</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">&#39;Step&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;Temp&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;E_pair&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;E_mol&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;TotEng&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="s">&#39;Press&#39;</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="nt">data</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">100</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.757453103239935</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-5.7585054860159</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-4.62236133677021</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.207261053624721</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">110</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.759322359337036</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-5.7614668389562</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-4.62251889318624</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.194314975399602</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">120</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.759372342462676</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-5.76149365656489</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-4.62247073844943</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.191600048851267</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">130</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.756833027516501</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-5.75777334823494</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-4.62255928350835</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.208792327853067</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="p p-Indicator">]</span>
+<span class="nn">...</span>
+</pre></div>
+</div>
+<p>This data can be extracted and parsed from a log file using python with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span><span class="o">,</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">CSafeLoader</span> <span class="k">as</span> <span class="n">Loader</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">SafeLoader</span> <span class="k">as</span> <span class="n">Loader</span>
+
+<span class="n">docs</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;log.lammps&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="n">docs</span> <span class="o">+=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+<span class="n">thermo</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">load_all</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">Loader</span><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Number of runs: &quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">thermo</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">thermo</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;keywords&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">],</span> <span class="s1">&#39; = &#39;</span><span class="p">,</span> <span class="n">thermo</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="mi">4</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>After loading the YAML data, <cite>thermo</cite> is a list containing a dictionary
+for each “run” where the tag “keywords” maps to the list of thermo
+header strings and the tag “data” has a list of lists where the outer
+list represents the lines of output and the inner list the values of the
+columns matching the header keywords for that step.  The second print()
+command for example will print the header string for the fifth keyword
+of the second run and the corresponding value for the third output line
+of that run:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Number of runs:  2
+TotEng  =  -4.62140097780047
+</pre></div>
+</div>
+</section>
+<section id="extracting-data-from-dump-file">
+<h3>Extracting data from dump file<a class="headerlink" href="#extracting-data-from-dump-file" title="Link to this heading"></a></h3>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4May2022.</span></p>
+</div>
+<p>YAML format output has been added to multiple commands in LAMMPS,
+for example <a class="reference internal" href="dump.html"><span class="doc">dump yaml</span></a> or <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>
+Depending on the kind of data being written, organization of the data
+or the specific syntax used may change, but the principles are very
+similar and all files should be readable with a suitable YAML parser.
+A simple example for this is given below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">CSafeLoader</span> <span class="k">as</span> <span class="n">YamlLoader</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">SafeLoader</span> <span class="k">as</span> <span class="n">YamlLoader</span>
+
+<span class="n">timesteps</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;dump.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load_all</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">YamlLoader</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Processing timestep </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;timestep&#39;</span><span class="p">])</span>
+        <span class="n">timesteps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Read </span><span class="si">%d</span><span class="s1"> timesteps from yaml dump&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">timesteps</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Second timestep: &#39;</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;timestep&#39;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Box info: x: &#39;</span> <span class="p">,</span> <span class="n">timesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="s1">&#39; y:&#39;</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="s1">&#39; z:&#39;</span><span class="p">,</span><span class="n">timesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;box&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;First 5 per-atom columns: &#39;</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;keywords&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Corresponding 10th atom data: &#39;</span><span class="p">,</span> <span class="n">timesteps</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="mi">9</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">5</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The corresponding output for a YAML dump command added to the “melt” example is:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Processing timestep 0
+Processing timestep 50
+Processing timestep 100
+Processing timestep 150
+Processing timestep 200
+Processing timestep 250
+Read 6 timesteps from yaml dump
+Second timestep:  50
+Box info: x:  [0, 16.795961913825074]  y: [0, 16.795961913825074]  z: [0, 16.795961913825074]
+First 5 per-atom columns:  [&#39;id&#39;, &#39;type&#39;, &#39;x&#39;, &#39;y&#39;, &#39;z&#39;]
+Corresponding 10th atom data:  [10, 1, 4.43828, 0.968481, 0.108555]
+</pre></div>
+</div>
+</section>
+<section id="processing-scalar-data-with-python">
+<h3>Processing scalar data with Python<a class="headerlink" href="#processing-scalar-data-with-python" title="Link to this heading"></a></h3>
+<figure class="align-right" style="width: 33%">
+<img alt="_images/thermo_bondeng.png" src="_images/thermo_bondeng.png" />
+</figure>
+<p>After reading and parsing the YAML format data, it can be easily
+imported for further processing and visualization with the <a class="reference external" href="https://pandas.pydata.org/">pandas</a> and <a class="reference external" href="https://matplotlib.org/">matplotlib</a> Python modules.  Because of the organization
+of the data in the YAML format thermo output, it needs to be told to
+process only the ‘data’ part of the imported data to create a pandas
+data frame, and one needs to set the column names from the ‘keywords’
+entry.  The following Python script code example demonstrates this, and
+creates the image shown on the right of a simple plot of various bonded
+energy contributions versus the timestep from a run of the ‘peptide’
+example input after changing the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo style</span></a> to
+‘yaml’.  The properties to be used for x and y values can be
+conveniently selected through the keywords.  Please note that those
+keywords can be changed to custom strings with the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify
+colname</span></a> command.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">re</span><span class="o">,</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">CSafeLoader</span> <span class="k">as</span> <span class="n">Loader</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">SafeLoader</span> <span class="k">as</span> <span class="n">Loader</span>
+
+<span class="n">docs</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;log.lammps&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="n">docs</span> <span class="o">+=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+
+<span class="n">thermo</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">yaml</span><span class="o">.</span><span class="n">load_all</span><span class="p">(</span><span class="n">docs</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">Loader</span><span class="p">))</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">thermo</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;data&#39;</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">thermo</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;keywords&#39;</span><span class="p">])</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="s1">&#39;Step&#39;</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;E_bond&#39;</span><span class="p">,</span> <span class="s1">&#39;E_angle&#39;</span><span class="p">,</span> <span class="s1">&#39;E_dihed&#39;</span><span class="p">,</span> <span class="s1">&#39;E_impro&#39;</span><span class="p">],</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Energy in kcal/mol&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;thermo_bondeng.png&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="processing-vector-data-with-python">
+<h3>Processing vector data with Python<a class="headerlink" href="#processing-vector-data-with-python" title="Link to this heading"></a></h3>
+<p>Global <em>vector</em> data as produced by <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>
+uses a slightly different organization of the data. You still have the
+dictionary keys ‘keywords’ and ‘data’ for the column headers and the
+data.  But the data is a dictionary indexed by the time step and for
+each step there are multiple rows of values each with a list of the
+averaged properties.  This requires a slightly different processing,
+since the entire data cannot be directly imported into a single pandas
+DataFrame class instance.  The following Python script example
+demonstrates how to read such data.  The result will combine the data
+for the different steps into one large “multi-index” table.  The pandas
+IndexSlice class can then be used to select data from this combined data
+frame.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">CSafeLoader</span> <span class="k">as</span> <span class="n">Loader</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">yaml</span><span class="w"> </span><span class="kn">import</span> <span class="n">SafeLoader</span> <span class="k">as</span> <span class="n">Loader</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ave.yaml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">ave</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">Loader</span><span class="p">)</span>
+
+<span class="n">keys</span> <span class="o">=</span> <span class="n">ave</span><span class="p">[</span><span class="s1">&#39;keywords&#39;</span><span class="p">]</span>
+<span class="n">df</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ave</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">df</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">ave</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">],</span> <span class="n">columns</span><span class="o">=</span><span class="n">keys</span><span class="p">)</span>
+
+<span class="c1"># create multi-index data frame</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="c1"># output only the first 3 value for steps 200 to 300 of the column Pressure</span>
+<span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">IndexSlice</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s1">&#39;Pressure&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">[</span><span class="mi">200</span><span class="p">:</span><span class="mi">300</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]])</span>
+</pre></div>
+</div>
+</section>
+<section id="processing-scalar-data-with-perl">
+<h3>Processing scalar data with Perl<a class="headerlink" href="#processing-scalar-data-with-perl" title="Link to this heading"></a></h3>
+<p>The ease of processing YAML data is not limited to Python. Here is an
+example for extracting and processing a LAMMPS log file with Perl instead.</p>
+<div class="highlight-perl notranslate"><div class="highlight"><pre><span></span><span class="k">use</span><span class="w"> </span><span class="nn">YAML::XS</span><span class="p">;</span>
+
+<span class="nb">open</span><span class="p">(</span><span class="n">LOG</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;log.lammps&quot;</span><span class="p">)</span><span class="w"> </span><span class="ow">or</span><span class="w"> </span><span class="nb">die</span><span class="p">(</span><span class="s">&quot;could not open log.lammps: $!&quot;</span><span class="p">);</span>
+<span class="k">my</span><span class="w"> </span><span class="nv">$file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+<span class="k">while</span><span class="p">(</span><span class="k">my</span><span class="w"> </span><span class="nv">$line</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="sr">&lt;LOG&gt;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nv">$line</span><span class="w"> </span><span class="o">=~</span><span class="sr"> /^(keywords:.*$|data:$|---$|\.\.\.$|  - \[.*\]$)/</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nv">$file</span><span class="w"> </span><span class="o">.=</span><span class="w"> </span><span class="nv">$line</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+<span class="nb">close</span><span class="p">(</span><span class="n">LOG</span><span class="p">);</span>
+
+<span class="c1"># convert YAML to perl as nested hash and array references</span>
+<span class="k">my</span><span class="w"> </span><span class="nv">$thermo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Load</span><span class="w"> </span><span class="nv">$file</span><span class="p">;</span>
+
+<span class="c1"># convert references to real arrays</span>
+<span class="k">my</span><span class="w"> </span><span class="nv">@keywords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">@</span><span class="p">{</span><span class="nv">$thermo</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;keywords&#39;</span><span class="p">}};</span>
+<span class="k">my</span><span class="w"> </span><span class="nv">@data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">@</span><span class="p">{</span><span class="nv">$thermo</span><span class="o">-&gt;</span><span class="p">{</span><span class="s">&#39;data&#39;</span><span class="p">}};</span>
+
+<span class="c1"># print first two columns</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;$keywords[0] $keywords[1]\n&quot;</span><span class="p">);</span>
+<span class="k">foreach</span><span class="w"> </span><span class="p">(</span><span class="nv">@data</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="k">print</span><span class="p">(</span><span class="s">&quot;${$_}[0]  ${$_}[1]\n&quot;</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="writing-continuous-data-during-a-simulation">
+<h2>Writing continuous data during a simulation<a class="headerlink" href="#writing-continuous-data-during-a-simulation" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a> command allows you to output an arbitrary string at defined times during a simulation run.</p>
+<section id="id1">
+<h3>YAML<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">extra</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">print</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="s">&quot;&quot;&quot;</span>
+<span class="s">- timestep: $(step)</span>
+<span class="s">  pe: $(pe)</span>
+<span class="s">  ke: $(ke)&quot;&quot;&quot;</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">output.yaml</span><span class="w"> </span><span class="n">screen</span><span class="w"> </span><span class="n">no</span>
+</pre></div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">output.yaml</span><a class="headerlink" href="#id4" title="Link to this code"></a></div>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fix print output for fix extra</span>
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0</span>
+<span class="w">  </span><span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-6.77336805325924729</span>
+<span class="w">  </span><span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">4.4988750000000026219</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">50</span>
+<span class="w">  </span><span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-4.8082494418323200591</span>
+<span class="w">  </span><span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.5257981827119797558</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100</span>
+<span class="w">  </span><span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-4.7875608875581505686</span>
+<span class="w">  </span><span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.5062598821985102582</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">150</span>
+<span class="w">  </span><span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-4.7471033686005483787</span>
+<span class="w">  </span><span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.466095925545450207</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">200</span>
+<span class="w">  </span><span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-4.7509052858544134068</span>
+<span class="w">  </span><span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4701136792591693592</span>
+
+<span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">timestep</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">250</span>
+<span class="w">  </span><span class="nt">pe</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-4.7774327356321810711</span>
+<span class="w">  </span><span class="nt">ke</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.4962152903997174569</span>
+</pre></div>
+</div>
+</div>
+<p>Post-processing of YAML files can be easily be done with Python and other
+scripting languages. In case of Python the <cite>yaml</cite> package allows you to load the
+data files and obtain a list of dictionaries.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;output.yaml&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+   <span class="n">data</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>[{&#39;timestep&#39;: 0, &#39;pe&#39;: -6.773368053259247, &#39;ke&#39;: 4.498875000000003},
+ {&#39;timestep&#39;: 50, &#39;pe&#39;: -4.80824944183232, &#39;ke&#39;: 2.5257981827119798},
+ {&#39;timestep&#39;: 100, &#39;pe&#39;: -4.787560887558151, &#39;ke&#39;: 2.5062598821985103},
+ {&#39;timestep&#39;: 150, &#39;pe&#39;: -4.747103368600548, &#39;ke&#39;: 2.46609592554545},
+ {&#39;timestep&#39;: 200, &#39;pe&#39;: -4.750905285854413, &#39;ke&#39;: 2.4701136792591694},
+ {&#39;timestep&#39;: 250, &#39;pe&#39;: -4.777432735632181, &#39;ke&#39;: 2.4962152903997175}]
+</pre></div>
+</div>
+</section>
+<section id="line-delimited-json-ld-json">
+<h3>Line Delimited JSON (LD-JSON)<a class="headerlink" href="#line-delimited-json-ld-json" title="Link to this heading"></a></h3>
+<p>The JSON format itself is very strict when it comes to delimiters. For continuous
+output/streaming data it is beneficial use the <em>line delimited JSON</em> format.
+Each line represents one JSON object.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix </span><span class="nv nv-Identifier">extra</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">print</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="s">&quot;&quot;&quot;{&quot;</span><span class="n">timestep</span><span class="s">&quot;: $(step), &quot;</span><span class="n">pe</span><span class="s">&quot;: $(pe), &quot;</span><span class="n">ke</span><span class="s">&quot;: $(ke)}&quot;&quot;&quot;</span><span class="sc"> &amp;</span>
+<span class="w">    </span><span class="n">title</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">output.json</span><span class="w"> </span><span class="n">screen</span><span class="w"> </span><span class="n">no</span>
+</pre></div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">output.json</span><a class="headerlink" href="#id5" title="Link to this code"></a></div>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-6.77336805325924729</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">4.4988750000000026219</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-4.8082494418323200591</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5257981827119797558</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-4.7875608875581505686</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.5062598821985102582</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-4.7471033686005483787</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.466095925545450207</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-4.7509052858544134068</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.4701136792591693592</span><span class="p">}</span>
+<span class="p">{</span><span class="nt">&quot;timestep&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">250</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;pe&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">-4.7774327356321810711</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;ke&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">2.4962152903997174569</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<p>One simple way to load this data into a Python script is to use the <cite>pandas</cite>
+package. It can directly load these files into a data frame:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_json</span><span class="p">(</span><span class="s1">&#39;output.json&#39;</span><span class="p">,</span> <span class="n">lines</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="w">   </span>timestep<span class="w">        </span>pe<span class="w">        </span>ke
+<span class="m">0</span><span class="w">         </span><span class="m">0</span><span class="w"> </span>-6.773368<span class="w">  </span><span class="m">4</span>.498875
+<span class="m">1</span><span class="w">        </span><span class="m">50</span><span class="w"> </span>-4.808249<span class="w">  </span><span class="m">2</span>.525798
+<span class="m">2</span><span class="w">       </span><span class="m">100</span><span class="w"> </span>-4.787561<span class="w">  </span><span class="m">2</span>.506260
+<span class="m">3</span><span class="w">       </span><span class="m">150</span><span class="w"> </span>-4.747103<span class="w">  </span><span class="m">2</span>.466096
+<span class="m">4</span><span class="w">       </span><span class="m">200</span><span class="w"> </span>-4.750905<span class="w">  </span><span class="m">2</span>.470114
+<span class="m">5</span><span class="w">       </span><span class="m">250</span><span class="w"> </span>-4.777433<span class="w">  </span><span class="m">2</span>.496215
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_output.html" class="btn btn-neutral float-left" title="10.3.1. Output from LAMMPS (thermo, dumps, computes, fixes, variables)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_chunk.html" class="btn btn-neutral float-right" title="10.3.3. Use chunks to calculate system properties" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

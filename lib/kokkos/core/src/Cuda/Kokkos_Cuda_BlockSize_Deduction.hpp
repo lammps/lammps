@@ -1,0 +1,214 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_CUDA_INTERNAL_HPP
+#define KOKKOS_CUDA_INTERNAL_HPP
+
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_CUDA
+
+#include <Cuda/Kokkos_Cuda_Error.hpp>
+
+namespace Kokkos {
+namespace Impl {
+
+inline int cuda_warp_per_sm_allocation_granularity(
+    cudaDeviceProp const& properties) {
+  // Allocation granularity of warps in each sm
+  switch (properties.major) {
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 12: return 4;
+    case 6: return (properties.minor == 0 ? 2 : 4);
+    default:
+      throw_runtime_exception(
+          "Unknown device in cuda warp per sm allocation granularity");
+      return 0;
+  }
+}
+
+inline int cuda_max_warps_per_sm_registers(
+    cudaDeviceProp const& properties, cudaFuncAttributes const& attributes) {
+  // Maximum number of warps per sm as a function of register counts,
+  // subject to the constraint that warps are allocated with a fixed granularity
+  int const max_regs_per_block = properties.regsPerBlock;
+  int const regs_per_warp      = attributes.numRegs * properties.warpSize;
+  int const warp_granularity =
+      cuda_warp_per_sm_allocation_granularity(properties);
+  // The granularity of register allocation is chunks of 256 registers per warp,
+  // which implies a need to over-allocate, so we round up
+  int const allocated_regs_per_warp = 256 * ((regs_per_warp + 256 - 1) / 256);
+
+  // The maximum number of warps per SM is constrained from above by register
+  // allocation. To satisfy the constraint that warps per SM is allocated at a
+  // finite granularity, we need to round down.
+  int const max_warps_per_sm =
+      warp_granularity *
+      (max_regs_per_block / (allocated_regs_per_warp * warp_granularity));
+
+  return max_warps_per_sm;
+}
+
+inline int cuda_max_active_blocks_per_sm(cudaDeviceProp const& properties,
+                                         cudaFuncAttributes const& attributes,
+                                         int block_size, size_t dynamic_shmem) {
+  // Limits due to registers/SM
+  int const regs_per_sm     = properties.regsPerMultiprocessor;
+  int const regs_per_thread = attributes.numRegs;
+  // The granularity of register allocation is chunks of 256 registers per warp
+  // -> 8 registers per thread
+  int const allocated_regs_per_thread = 8 * ((regs_per_thread + 8 - 1) / 8);
+  int max_blocks_regs = regs_per_sm / (allocated_regs_per_thread * block_size);
+
+  // Compute the maximum number of warps as a function of the number of
+  // registers
+  int const max_warps_per_sm_registers =
+      cuda_max_warps_per_sm_registers(properties, attributes);
+
+  // Correct the number of blocks to respect the maximum number of warps per
+  // SM, which is constrained to be a multiple of the warp allocation
+  // granularity defined in `cuda_warp_per_sm_allocation_granularity`.
+  while ((max_blocks_regs * block_size / properties.warpSize) >
+         max_warps_per_sm_registers)
+    max_blocks_regs--;
+
+  // Limits due to shared memory/SM
+  size_t const shmem_per_sm            = properties.sharedMemPerMultiprocessor;
+  size_t const shmem_per_block         = properties.sharedMemPerBlock;
+  size_t const static_shmem            = attributes.sharedSizeBytes;
+  size_t const dynamic_shmem_per_block = attributes.maxDynamicSharedSizeBytes;
+  size_t const total_shmem             = static_shmem + dynamic_shmem;
+
+  int const max_blocks_shmem =
+      total_shmem > shmem_per_block || dynamic_shmem > dynamic_shmem_per_block
+          ? 0
+          : (total_shmem > 0 ? (int)shmem_per_sm / total_shmem
+                             : max_blocks_regs);
+
+  // Limits due to blocks/SM
+  int const max_blocks_per_sm = properties.maxBlocksPerMultiProcessor;
+
+  // Overall occupancy in blocks
+  return std::min({max_blocks_regs, max_blocks_shmem, max_blocks_per_sm});
+}
+
+template <typename UnaryFunction, typename LaunchBounds>
+inline int cuda_deduce_block_size(bool early_termination,
+                                  cudaDeviceProp const& properties,
+                                  cudaFuncAttributes const& attributes,
+                                  UnaryFunction block_size_to_dynamic_shmem,
+                                  LaunchBounds) {
+  // Limits
+  int const max_threads_per_sm = properties.maxThreadsPerMultiProcessor;
+  // unsure if I need to do that or if this is already accounted for in the
+  // functor attributes
+  int const max_threads_per_block =
+      std::min(LaunchBounds::maxTperB == 0 ? (int)properties.maxThreadsPerBlock
+                                           : (int)LaunchBounds::maxTperB,
+               attributes.maxThreadsPerBlock);
+  int const min_blocks_per_sm =
+      LaunchBounds::minBperSM == 0 ? 1 : LaunchBounds::minBperSM;
+
+  // Recorded maximum
+  int opt_block_size     = 0;
+  int opt_threads_per_sm = 0;
+
+  for (int block_size = max_threads_per_block; block_size > 0;
+       block_size -= 32) {
+    size_t const dynamic_shmem = block_size_to_dynamic_shmem(block_size);
+
+    int blocks_per_sm = cuda_max_active_blocks_per_sm(
+        properties, attributes, block_size, dynamic_shmem);
+
+    int threads_per_sm = blocks_per_sm * block_size;
+
+    if (threads_per_sm > max_threads_per_sm) {
+      blocks_per_sm  = max_threads_per_sm / block_size;
+      threads_per_sm = blocks_per_sm * block_size;
+    }
+
+    if (blocks_per_sm >= min_blocks_per_sm) {
+      // The logic prefers smaller block sizes over larger ones to
+      // give more flexibility to the scheduler.
+      // But don't go below 128 where performance suffers significantly
+      // for simple copy/set kernels.
+      if ((threads_per_sm > opt_threads_per_sm) ||
+          ((block_size >= 128) && (threads_per_sm == opt_threads_per_sm))) {
+        opt_block_size     = block_size;
+        opt_threads_per_sm = threads_per_sm;
+      }
+    }
+
+    if (early_termination && opt_block_size != 0) break;
+  }
+
+  return opt_block_size;
+}
+
+template <class FunctorType, class LaunchBounds>
+int cuda_get_max_block_size(const CudaInternal* cuda_instance,
+                            const cudaFuncAttributes& attr,
+                            const FunctorType& f, const size_t vector_length,
+                            const size_t shmem_block,
+                            const size_t shmem_thread) {
+  auto const& prop = cuda_instance->m_deviceProp;
+
+  auto const block_size_to_dynamic_shmem = [&f, vector_length, shmem_block,
+                                            shmem_thread](int block_size) {
+    size_t const functor_shmem =
+        Kokkos::Impl::FunctorTeamShmemSize<FunctorType>::value(
+            f, block_size / vector_length);
+
+    size_t const dynamic_shmem = shmem_block +
+                                 shmem_thread * (block_size / vector_length) +
+                                 functor_shmem;
+    return dynamic_shmem;
+  };
+
+  return cuda_deduce_block_size(true, prop, attr, block_size_to_dynamic_shmem,
+                                LaunchBounds{});
+}
+
+template <class FunctorType, class LaunchBounds>
+int cuda_get_opt_block_size(const CudaInternal* cuda_instance,
+                            const cudaFuncAttributes& attr,
+                            const FunctorType& f, const size_t vector_length,
+                            const size_t shmem_block,
+                            const size_t shmem_thread) {
+  auto const& prop = cuda_instance->m_deviceProp;
+
+  auto const block_size_to_dynamic_shmem = [&f, vector_length, shmem_block,
+                                            shmem_thread](int block_size) {
+    size_t const functor_shmem =
+        Kokkos::Impl::FunctorTeamShmemSize<FunctorType>::value(
+            f, block_size / vector_length);
+
+    size_t const dynamic_shmem = shmem_block +
+                                 shmem_thread * (block_size / vector_length) +
+                                 functor_shmem;
+    return dynamic_shmem;
+  };
+
+  return cuda_deduce_block_size(false, prop, attr, block_size_to_dynamic_shmem,
+                                LaunchBounds{});
+}
+
+// Thin version of cuda_get_opt_block_size for cases where there is no shared
+// memory
+template <class LaunchBounds>
+int cuda_get_opt_block_size_no_shmem(const cudaDeviceProp& prop,
+                                     const cudaFuncAttributes& attr,
+                                     LaunchBounds) {
+  return cuda_deduce_block_size(
+      false, prop, attr, [](int /*block_size*/) { return 0; }, LaunchBounds{});
+}
+
+}  // namespace Impl
+}  // namespace Kokkos
+
+#endif  // KOKKOS_ENABLE_CUDA
+#endif  /* #ifndef KOKKOS_CUDA_INTERNAL_HPP */

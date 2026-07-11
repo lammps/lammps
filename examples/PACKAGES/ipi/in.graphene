@@ -1,0 +1,34 @@
+atom_style	atomic
+units   	metal
+dimension	3
+boundary 	p p p
+
+read_data       ./data.graphene
+mass		1 12.01  ##Carbon
+
+### Optimized Tersoff for Carbon: Lindsay and Broido PRB 81, 205441 (2010) 
+pair_style      tersoff
+pair_coeff      * * C.opt.tersoff C(O) 
+
+variable	T equal 300
+variable        V equal vol
+
+variable        Lx equal xhi-xlo
+variable        Ly equal yhi-ylo
+print           "Lx = ${Lx} A"
+print           "Ly = ${Ly} A"
+
+print           "Volume simulation box = $V A^(3)"
+variable        Volume equal v_Lx*v_Ly*3.35
+print           "Volume = Lx*Ly*3.35A = ${Volume} A^(3)"
+
+velocity	all create $T 345352 mom yes rot yes dist gaussian
+timestep  	0.001  # 0.001 picosecond = 1 femtosecond
+thermo          1000
+thermo_style    custom step temp pe etotal press pxx pyy pzz
+
+# --------------- i-PI interface -----------------
+fix 1 all ipi graphene 31415 unix   # UNIX socket
+#fix 1 all ipi localhost 31415        # Internet socket
+run		5000000
+

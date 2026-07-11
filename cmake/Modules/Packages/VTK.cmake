@@ -1,0 +1,11 @@
+# FindVTK requires that C support is enabled when looking for MPI support
+enable_language(C)
+find_package(VTK REQUIRED NO_MODULE)
+target_compile_definitions(lammps PRIVATE -DLAMMPS_VTK)
+if (VTK_MAJOR_VERSION VERSION_LESS 9.0)
+  include(${VTK_USE_FILE})
+  target_link_libraries(lammps PRIVATE ${VTK_LIBRARIES})
+else()
+  target_link_libraries(lammps PRIVATE VTK::CommonCore VTK::IOCore VTK::CommonDataModel VTK::IOXML VTK::IOLegacy VTK::IOParallelXML)
+  vtk_module_autoinit(TARGETS lammps MODULES VTK::CommonCore VTK::IOCore VTK::CommonDataModel VTK::IOXML VTK::IOLegacy VTK::IOParallelXML)
+endif()

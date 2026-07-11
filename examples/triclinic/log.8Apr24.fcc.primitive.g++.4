@@ -1,0 +1,77 @@
+LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-442-gf1c2a22e2d)
+WARNING: Using I/O redirection is unreliable with parallel runs. Better to use the -in switch to read input files. (../lammps.cpp:551)
+# general triclinic box for fcc lattice primitive cell
+
+lattice       custom 1.1 a2 0.0 0.5 0.5 a3 0.5 0.0 0.5 a1 0.5 0.5 0.0               basis 0.0 0.0 0.0 triclinic/general
+Lattice spacing in x,y,z = 2.1747238 1.2555773 0.88782726
+
+create_box    1 NULL 0 1 0 1 0 1
+Created triclinic box = (0 0 0) to (1.0873619 0.94168301 0.88782726) with tilt (0.54368094 0.54368094 0.31389434)
+WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (../domain.cpp:221)
+  1 by 2 by 2 MPI processor grid
+create_atoms  1 box
+Created 1 atoms
+  using lattice units in triclinic box = (0 0 0) to (1.0873619 0.94168301 0.88782726) with tilt (0.54368094 0.54368094 0.31389434)
+  create_atoms CPU = 0.000 seconds
+
+mass          * 1.0
+
+write_data    tmp.data.fcc.primitive triclinic/general
+System init for write_data ...
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Atoms may get lost. (../comm_brick.cpp:210)
+
+pair_style    lj/cut 1.2
+pair_coeff    * * 1.0 1.0
+
+neighbor      0.0 bin
+
+thermo_style  custom step pe avecx avecy avecz bvecx bvecy bvecz               cvecx cvecy cvecz pxx pyy pzz vol
+thermo_modify triclinic/general yes
+
+dump          1 all custom 100 tmp.dump.fcc.primitive id type x y z
+dump_modify   1 triclinic/general yes
+
+run           0
+WARNING: No fixes with time integration, atoms won't move (../verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.2
+  ghost atom cutoff = 1.2
+  binsize = 0.6, bins = 4 3 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.973 | 3.005 | 3.098 Mbytes
+   Step         PotEng         Avecx          Avecy          Avecz          Bvecx          Bvecy          Bvecz          Cvecx          Cvecy          Cvecz           Pxx            Pyy            Pzz           Volume    
+         0  -5.7354         0.76888096     0.76888096    -6.036071e-17  -5.5511151e-17  0.76888096     0.76888096     0.76888096     0              0.76888096     6.70824        6.70824        6.70824        0.90909091   
+Loop time of 1.7905e-06 on 4 procs for 0 steps with 1 atoms
+
+55.9% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.791e-06  |            |       |100.00
+
+Nlocal:           0.25 ave           1 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:          35.75 ave          36 max          35 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
+Neighs:            1.5 ave           6 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 6
+Ave neighs/atom = 6
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -1,0 +1,8 @@
+# DATE: 2015-02-19 CONTRIBUTOR: Ray Shan, tnshan@sandia.gov CITATION: Streitz and Mintmire, Phys Rev B, 50, 11996-12003 (1994)
+# Streitz-Mintmire electrostatic plus (ES+) potential (AKA charge transfer ionic potential) for Al2O3
+# Edited by Ray Shan (Sandia)
+# must be used with "units metal" in LAMMPS
+# X (eV)		J (eV)		gamma (1/ang) 	zeta (1/ang)	Z (e)
+
+Al 	0.000000	10.328655	0.000000	0.968438 	0.763905
+O	5.484763	14.035715	0.000000	2.143957	0.000000

@@ -1,0 +1,38 @@
+# Visual Studio
+.vs/
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build directories
+build/
+
+# Build artifacts
+*.obj
+*.o
+*.exe
+*.dll
+*.lib
+*.exp
+*.ilk
+*.idb
+*.pdb
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# Temporary
+*.log
+*.tmp
+*.bak
+
+# Python
+__pycache__/
+*.pyc

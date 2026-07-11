@@ -1,0 +1,142 @@
+LAMMPS (4 Feb 2025 - Development - patch_4Feb2025-212-g01698ddc2e-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+# fcc cobalt in a 3d periodic box
+
+units           metal
+atom_style      spin
+
+dimension       3
+boundary        p p p
+
+# necessary for the serial algorithm (sametag)
+atom_modify     map array
+
+lattice         hcp 2.5071
+Lattice spacing in x,y,z = 2.5071 4.3424246 4.0940772
+region          box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box      1 box
+Created orthogonal box = (0 0 0) to (12.5355 21.712123 20.470386)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (12.5355 21.712123 20.470386)
+  create_atoms CPU = 0.000 seconds
+
+# setting mass, mag. moments, and interactions for cobalt
+
+mass            1 58.93
+
+set             group all spin/atom/random 31 1.72
+Setting atom values ...
+  500 settings made for spin/atom/random
+
+pair_style      spin/exchange 4.0
+pair_coeff      * * exchange 4.0 0.3593 1.135028015e-05 1.064568567
+
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
+
+fix             1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix             2 all langevin/spin 100.0 0.01 21
+
+fix             3 all nve/spin lattice frozen
+timestep        0.0001
+
+# compute and output options
+
+compute         out_mag    all spin
+compute         out_pe     all pe
+compute         out_ke     all ke
+compute         out_temp   all temp
+
+variable        magz      equal c_out_mag[3]
+variable        magnorm   equal c_out_mag[4]
+variable        emag      equal c_out_mag[5]
+variable        tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magnorm pe v_emag temp etotal
+thermo          100
+
+compute         outsp all property/atom spx spy spz sp fmx fmy fmz
+#dump            100 all custom 1 dump.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3] c_outsp[4] c_outsp[5] c_outsp[6] c_outsp[7]
+#dump_modify     100 sort id
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix nve/spin command: doi:10.1016/j.jcp.2018.06.042
+
+@article{tranchida2018massively,
+title={Massively Parallel Symplectic Algorithm for Coupled Magnetic Spin    Dynamics and Molecular Dynamics},
+author={Tranchida, J and Plimpton, S J and Thibaudeau, P and Thompson, A P},
+journal={Journal of Computational Physics},
+volume={372},
+pages={406--425},
+year={2018},
+publisher={Elsevier}
+doi={10.1016/j.jcp.2018.06.042}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 10 steps, delay = 20 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.1
+  ghost atom cutoff = 4.1
+  binsize = 2.05, bins = 7 11 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.78 | 4.78 | 4.78 Mbytes
+   Step          Time        v_magnorm        PotEng         v_emag          Temp          TotEng    
+         0   0              0.076558814    0.89911794     0.89911794     0              0.89911794   
+       100   0.01           0.077627966    0.36694275     0.36694275     0              0.36694275   
+       200   0.02           0.076678387   -0.20241504    -0.20241504     0             -0.20241504   
+       300   0.03           0.079174207   -0.67593525    -0.67593525     0             -0.67593525   
+       400   0.04           0.085031074   -1.5172826     -1.5172826      0             -1.5172826    
+       500   0.05           0.087026279   -2.042653      -2.042653       0             -2.042653     
+       600   0.06           0.087064628   -2.6297295     -2.6297295      0             -2.6297295    
+       700   0.07           0.089787949   -3.3144767     -3.3144767      0             -3.3144767    
+       800   0.08           0.091698615   -4.028707      -4.028707       0             -4.028707     
+       900   0.09           0.090031988   -4.6007241     -4.6007241      0             -4.6007241    
+      1000   0.1            0.093256399   -5.2351082     -5.2351082      0             -5.2351082    
+Loop time of 0.710555 on 1 procs for 1000 steps with 500 atoms
+
+Performance: 12.160 ns/day, 1.974 hours/ns, 1407.350 timesteps/s, 703.675 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.12852    | 0.12852    | 0.12852    |   0.0 | 18.09
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.012387   | 0.012387   | 0.012387   |   0.0 |  1.74
+Output  | 0.00014522 | 0.00014522 | 0.00014522 |   0.0 |  0.02
+Modify  | 0.56835    | 0.56835    | 0.56835    |   0.0 | 79.99
+Other   |            | 0.001145   |            |       |  0.16
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1221 ave        1221 max        1221 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        10000 ave       10000 max       10000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 10000
+Ave neighs/atom = 20
+Neighbor list builds = 0
+Dangerous builds = 0
+write_restart   restart_hcp_cobalt.equil
+System init for write_restart ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Total wall time: 0:00:00

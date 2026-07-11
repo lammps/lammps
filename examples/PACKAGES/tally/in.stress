@@ -1,0 +1,58 @@
+
+units		real	
+atom_style	full
+
+read_data	data.spce
+
+pair_style	lj/cut/coul/long 12.0 12.0
+kspace_style	pppm 1.0e-4
+
+pair_coeff	1 1 0.15535 3.166
+pair_coeff	* 2 0.0000 0.0000	
+
+bond_style	harmonic
+angle_style	harmonic
+dihedral_style	none
+improper_style	none
+
+bond_coeff	1 1000.00 1.000
+angle_coeff	1 100.0 109.47
+
+special_bonds   lj/coul 0.0 0.0 1.0
+
+neighbor        2.0 bin
+
+fix		1 all shake 0.0001 20 0 b 1 a 1
+fix		2 all nvt temp 300.0 300.0 100.0
+
+# make certain that shake constraints are satisfied
+run 0 post no
+
+group		one molecule 1 2
+
+# the following section shows equivalences between using the stress/tally compute and other computes and thermo keywords
+
+# compute per atom stress contributions
+compute		spa all stress/atom NULL pair
+compute		press all pressure NULL pair
+# compute stress contributions from one group with all
+compute		c1 one stress/tally all
+# collect stress contributions from all with all
+compute		c2 all stress/tally all
+compute		one one reduce sum c_c1[1] c_c1[2] c_c1[3] c_spa[1] c_spa[2] c_spa[3]
+compute		red all reduce sum c_spa[1] c_spa[2] c_spa[3] c_c2[1] c_c2[2] c_c2[3]
+#
+variable	spa equal -(c_red[1]+c_red[2]+c_red[3])/(3.0*vol)
+variable	press equal -(c_red[4]+c_red[5]+c_red[6])/(3.0*vol)
+variable	one equal (c_one[1]+c_one[2]+c_one[3])/3.0 
+variable	ref equal (c_one[4]+c_one[5]+c_one[6])/3.0
+
+#velocity	all create 300 432567 dist uniform
+
+timestep	2.0
+
+thermo_style    custom step c_press v_spa v_press v_one v_ref
+thermo		10
+
+run 50
+

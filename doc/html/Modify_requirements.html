@@ -1,0 +1,524 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.3. Requirements for contributions to LAMMPS &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Modify_requirements.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.4. LAMMPS programming style" href="Modify_style.html" />
+    <link rel="prev" title="3.2. Submitting new features for inclusion in LAMMPS" href="Modify_contribute.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Modify_overview.html">3.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_contribute.html">3.2. Submitting new features for inclusion in LAMMPS</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.3. Requirements for contributions to LAMMPS</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#motivation">3.3.1. Motivation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#licensing-requirements-strict">3.3.2. Licensing requirements (strict)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#integration-testing-strict">3.3.3. Integration testing (strict)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation-strict">3.3.4. Documentation (strict)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#build-system-strict">3.3.5. Build system (strict)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-or-style-names-file-names-and-keywords-strict">3.3.6. Command or style names, file names, and keywords (strict)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#programming-style-requirements-varied">3.3.7. Programming style requirements (varied)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples-preferred">3.3.8. Examples (preferred)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-or-warning-messages-and-explanations-preferred">3.3.9. Error or warning messages and explanations (preferred)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#citation-reminder-optional">3.3.10. Citation reminder (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#testing-optional">3.3.11. Testing (optional)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_style.html">3.4. LAMMPS programming style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_atom.html">3.5. Atom styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_pair.html">3.6. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_bond.html">3.7. Bond, angle, dihedral, improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_compute.html">3.8. Compute styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_fix.html">3.9. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_command.html">3.10. Input script command style</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_dump.html">3.11. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_kspace.html">3.12. Kspace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_min.html">3.13. Minimization styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_region.html">3.14. Region styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_body.html">3.15. Body styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_gran_sub_mod.html">3.16. Granular Sub-Model styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_thermo.html">3.17. Thermodynamic output options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Modify_variable.html">3.18. Variable options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Modify.html"><span class="section-number">3. </span>Modifying &amp; extending LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.3. </span>Requirements for contributions to LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Modify_contribute.html" class="btn btn-neutral float-left" title="3.2. Submitting new features for inclusion in LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Modify_style.html" class="btn btn-neutral float-right" title="3.4. LAMMPS programming style" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="requirements-for-contributions-to-lammps">
+<h1><span class="section-number">3.3. </span>Requirements for contributions to LAMMPS<a class="headerlink" href="#requirements-for-contributions-to-lammps" title="Link to this heading"></a></h1>
+<p>The following is a summary of the current requirements and
+recommendations for including contributed source code or documentation
+into the LAMMPS software distribution.</p>
+<section id="motivation">
+<h2><span class="section-number">3.3.1. </span>Motivation<a class="headerlink" href="#motivation" title="Link to this heading"></a></h2>
+<p>The LAMMPS developers are committed to provide a software package that
+is versatile, reliable, high-quality, efficient, portable, and easy to
+maintain and modify.  Achieving all of these goals is challenging
+since a large part of LAMMPS consists of contributed code from many
+different authors who may not be professionally trained programmers or
+familiar with the idiosyncrasies of maintaining a large software
+package.  In addition, changes that interfere with the parallel
+efficiency of the core code must be avoided.  As LAMMPS continues to
+grow and more features and functionality are added, it is necessary to
+follow established guidelines when accepting new contributions while
+also working at the same time to improve the existing code.</p>
+<p>The following requirements and recommendations are provided as a
+guide.  They indicate which individual requirements are strict, and
+which represent a preference and thus are negotiable or optional.
+Please feel free to contact the LAMMPS core developers in case you
+need additional explanations or clarifications, or you need assistance
+in implementing the (strict) requirements for your contributions.
+Requirements include:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#reqlicense"><span class="std std-ref">Licensing requirements</span></a> (strict)</p></li>
+<li><p><a class="reference internal" href="#reqintegrationtesting"><span class="std std-ref">Integration testing</span></a> (strict)</p></li>
+<li><p><a class="reference internal" href="#reqdocumentation"><span class="std std-ref">Documentation</span></a> (strict)</p></li>
+<li><p><a class="reference internal" href="#reqprogrammingstandards"><span class="std std-ref">Programming language standards</span></a> (strict)</p></li>
+<li><p><a class="reference internal" href="#reqbuildsystem"><span class="std std-ref">Build system</span></a> (strict)</p></li>
+<li><p><a class="reference internal" href="#reqnaming"><span class="std std-ref">Command or style names</span></a> (strict)</p></li>
+<li><p><a class="reference internal" href="#reqprogrammingstyle"><span class="std std-ref">Programming style requirements</span></a> (varied)</p></li>
+<li><p><a class="reference internal" href="#reqexamples"><span class="std std-ref">Examples</span></a> (preferred)</p></li>
+<li><p><a class="reference internal" href="#reqerrormessages"><span class="std std-ref">Error or warning messages and explanations</span></a> (preferred)</p></li>
+<li><p><a class="reference internal" href="#reqcitation"><span class="std std-ref">Citation reminder</span></a> (optional)</p></li>
+<li><p><a class="reference internal" href="#requnittesting"><span class="std std-ref">Testing</span></a> (optional)</p></li>
+</ul>
+</section>
+<section id="licensing-requirements-strict">
+<span id="reqlicense"></span><h2><span class="section-number">3.3.2. </span>Licensing requirements (strict)<a class="headerlink" href="#licensing-requirements-strict" title="Link to this heading"></a></h2>
+<p>Contributing authors agree when submitting a pull request that their
+contributions can be distributed under the LAMMPS license conditions.
+This is the GNU public license in version 2 (not 3 or later) for the
+publicly distributed versions, e.g. on the LAMMPS homepage or on
+GitHub.  We also have a version of LAMMPS under LGPL 2.1 terms which
+is available on request; this will usually be the latest available or
+a previous stable version with a few LGPL 2.1 incompatible files
+removed.  More details are found on the <a class="reference internal" href="Intro_opensource.html"><span class="doc">LAMMPS open-source
+license page</span></a>.</p>
+<p>Your new source files should have the LAMMPS copyright and GPL notice,
+followed by your name and email address at the top, like other
+user-contributed LAMMPS source files.</p>
+<p>Contributions may be under a different license as long as that license
+does not conflict with the aforementioned terms.  Contributions that
+use code with a conflicting license can be split into two parts:</p>
+<ol class="arabic simple">
+<li><p>the core parts (i.e. parts that must be in the <cite>src</cite> tree) that are
+licensed under compatible terms and bundled with the LAMMPS sources</p></li>
+<li><p>an external library that must be downloaded and compiled (either
+separately or as part of the LAMMPS compilation)</p></li>
+</ol>
+<p>Please note, that this split licensing mode may complicate including
+the contribution in binary packages.</p>
+</section>
+<section id="integration-testing-strict">
+<span id="reqintegrationtesting"></span><h2><span class="section-number">3.3.3. </span>Integration testing (strict)<a class="headerlink" href="#integration-testing-strict" title="Link to this heading"></a></h2>
+<p>Where possible we use available continuous integration tools to search
+for common programming mistakes, portability limitations, incompatible
+formatting, and undesired side effects.  Contributed code must pass the
+automated tests on GitHub before it can be merged with the LAMMPS
+distribution.  These tests compile LAMMPS in a variety of environments
+and settings and run the bundled unit tests.  At the discretion of the
+LAMMPS developer managing the pull request, additional tests may be
+activated that test for “side effects” on running a collection of
+input decks and create consistent results.  The translation of the
+documentation to HTML and PDF is also tested.</p>
+<p>This means that contributed source code <strong>must</strong> compile with the most
+current version of LAMMPS with <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_BIGBIG</span></code> in addition to the
+default setting of <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_SMALLBIG</span></code>.  The code needs to work
+correctly in both cases, and also in serial and parallel using MPI.</p>
+<p>Some “disruptive” changes may break tests and require updates to the
+testing tools or scripts or tests themselves.  This is rare.  If in
+doubt, contact the LAMMPS developer that is assigned to the pull
+request.</p>
+</section>
+<section id="documentation-strict">
+<span id="reqdocumentation"></span><h2><span class="section-number">3.3.4. </span>Documentation (strict)<a class="headerlink" href="#documentation-strict" title="Link to this heading"></a></h2>
+<p>Contributions that add new styles or commands or augment existing ones
+must include the corresponding new or modified documentation in
+<a class="reference external" href="https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html">ReStructuredText format</a> (.rst files in the <code class="docutils literal notranslate"><span class="pre">doc/src/</span></code>
+folder).  The documentation should be written in American English and the
+.rst file must only use ASCII characters, so it can be cleanly
+translated to PDF files (via <a class="reference external" href="https://www.sphinx-doc.org">sphinx</a> and
+PDFLaTeX).  Special characters may be included via embedded math
+expression typeset in a LaTeX subset.</p>
+<p>When adding new commands, they need to be integrated into the sphinx
+documentation system, and the corresponding command tables and lists
+updated.  When translating the documentation into html files there
+should be no warnings.  When adding a new package, some lists
+describing packages must also be updated as well as a package specific
+description added.  Likewise, if necessary, some package specific
+build instructions should be included.</p>
+<p>A detailed, step-by-step guide for what a documentation page must
+contain, how to register a new style in the command tables and overview
+lists, how to document accelerated variants, and which consistency
+checks to run is given on the <a class="reference internal" href="Developer_write_docs.html"><span class="doc">Writing or updating documentation</span></a> page.</p>
+<p>As appropriate, the text files with the documentation can include
+inline mathematical expressions or figures (see <code class="docutils literal notranslate"><span class="pre">doc/JPG</span></code> for
+examples).  Additional PDF files with further details may also be
+included; see <code class="docutils literal notranslate"><span class="pre">doc/PDF</span></code> for examples.  The page should also include
+literature citations as appropriate; see the bottom of
+<code class="docutils literal notranslate"><span class="pre">doc/fix_nh.rst</span></code> for examples and the earlier part of the same file
+for how to format the cite itself.  Citation labels must be unique
+across <strong>all</strong> .rst files.  The “Restrictions” section of the page
+should indicate if your command is only available if LAMMPS is built
+with the appropriate package.  See other command doc files for
+examples of how to do this.</p>
+<p>Please run at least “make html” and “make spelling” from within the
+doc/src directory, and carefully inspect and proofread the resulting
+HTML format doc page before submitting your code.  Upon submission of
+a pull request, checks for error free completion of the HTML and PDF
+build will be performed and also a spell check, a check for correct
+anchors and labels, and a check for completeness of references to all
+styles in their corresponding tables and lists is run.  In case the
+spell check reports false positives, they can be added to the file
+<code class="docutils literal notranslate"><span class="pre">doc/utils/sphinx-config/false_positives.txt</span></code></p>
+<p>Contributions that add or modify the library interface or “public”
+APIs from the C++ code or the Fortran module must include suitable
+doxygen comments in the source and corresponding changes to the
+documentation sources for the “Programmer Guide” guide section of the
+LAMMPS manual.</p>
+<p>If your feature requires some more complex steps and explanations to
+be used correctly or some external or bundled tools or scripts, we
+recommend that you also contribute a <a class="reference internal" href="Howto.html"><span class="doc">Howto document</span></a>
+providing some more background information and some tutorial material.
+This can also be used to provide more in-depth explanations of models
+that require use of multiple commands.</p>
+<p>As a rule-of-thumb, the more clear and self-explanatory you make your
+documentation, README files and examples, and the easier you make it
+for people to get started, the more likely it is that users will try
+out your new feature.</p>
+<section id="programming-language-standards-strict">
+<span id="reqprogrammingstandards"></span><h3>Programming language standards (strict)<a class="headerlink" href="#programming-language-standards-strict" title="Link to this heading"></a></h3>
+<p>The core of LAMMPS is written in C++17 in a style that can be mostly
+described as “C with classes”.  Advanced C++ features like operator
+overloading or excessive use of templates are avoided with the intent to
+keep the code readable to programmers that have limited C++ programming
+experience.  C++ constructs are acceptable when they help improve the
+readability and reliability of the code, e.g. when using the
+<cite>std::string</cite> class instead of manipulating pointers and calling the
+string functions of the C library or when using <cite>auto</cite> to avoid
+redundant data type specifications.  In addition, a collection of
+convenient <a class="reference internal" href="Developer_utils.html"><span class="doc">utility functions and classes</span></a> for
+recurring tasks and a collection of <a class="reference internal" href="Developer_platform.html"><span class="doc">platform neutral functions</span></a> for improved portability are provided.  Containers
+from C++ standard library have to be used with caution, but
+<cite>std::vector</cite> can be useful and is compatible with efficient
+communication via MPI.  Contributions with code requiring more recent
+C++ standards are only accepted as packages with the post C++17 standard
+code confined to the package so that it is optional.</p>
+<p>Included Fortran code has to be compatible with the Fortran 2003
+standard.  Since not all platforms supported by LAMMPS provide good
+support for compiling Fortran files, it should be considered to rewrite
+these parts as C++ code, if possible, and thus allow for a wider adoption
+of the contribution.  As of January 2023, all previously included
+Fortran code for the LAMMPS executable has been replaced by equivalent
+C++ code.</p>
+<p>Python code currently must be compatible with Python 3.6.  If a later
+version or Python is required, it needs to be documented.</p>
+<p>Compatibility with older programming language standards is very
+important to maintain portability and availability of LAMMPS on many
+platforms.  This applies especially to HPC cluster environments, which
+tend to be running older software stacks and where LAMMPS users may be
+required to use those older tools for access to advanced hardware
+features or not have the option to install newer compilers or libraries.</p>
+</section>
+</section>
+<section id="build-system-strict">
+<span id="reqbuildsystem"></span><h2><span class="section-number">3.3.5. </span>Build system (strict)<a class="headerlink" href="#build-system-strict" title="Link to this heading"></a></h2>
+<p>LAMMPS currently supports two build systems: one that is based on
+<a class="reference internal" href="Build_make.html"><span class="doc">traditional Makefiles</span></a> and one that is based on
+<a class="reference internal" href="Build_cmake.html"><span class="doc">CMake</span></a>.  As of fall 2025, it is no longer required
+to support the traditional <a class="reference internal" href="Build_make.html"><span class="doc">traditional GNU make build system</span></a>.  New packages may choose to only support <a class="reference internal" href="Build_cmake.html"><span class="doc">building
+with CMake</span></a>.  Additions to existing packages must follow
+the requirements set by that package.</p>
+<p>For a single pair of header and implementation files that are an
+independent feature, it is usually only required to add them to
+<code class="docutils literal notranslate"><span class="pre">src/.gitignore</span></code>.</p>
+<p>For traditional make, if your contributed files or package depend on
+other LAMMPS style files or packages also being installed (e.g. because
+your file is a derived class from the other LAMMPS class), then an
+<code class="docutils literal notranslate"><span class="pre">Install.sh</span></code> file is also needed to check for those dependencies and
+modifications to <code class="docutils literal notranslate"><span class="pre">src/Depend.sh</span></code> to trigger the checks.  See other
+README and Install.sh files in other directories as examples.</p>
+<p>Similarly, for CMake support, changes may need to be made to
+<code class="docutils literal notranslate"><span class="pre">cmake/CMakeLists.txt</span></code>, some of the files in <code class="docutils literal notranslate"><span class="pre">cmake/presets</span></code>, and
+possibly a file with specific instructions needs to be added to
+<code class="docutils literal notranslate"><span class="pre">cmake/Modules/Packages/</span></code>.  Please check out how this is handled for
+existing packages and ask the LAMMPS developers if you need assistance.</p>
+</section>
+<section id="command-or-style-names-file-names-and-keywords-strict">
+<span id="reqnaming"></span><h2><span class="section-number">3.3.6. </span>Command or style names, file names, and keywords (strict)<a class="headerlink" href="#command-or-style-names-file-names-and-keywords-strict" title="Link to this heading"></a></h2>
+<p>All user-visible command or style names should be all lower case and
+should only use letters, numbers, or forward slashes.  They should be
+descriptive and initialisms should be avoided unless they are well
+established (e.g. lj for Lennard-Jones).  For a compute style
+“some/name” the source files must be called <code class="docutils literal notranslate"><span class="pre">compute_some_name.h</span></code> and
+<code class="docutils literal notranslate"><span class="pre">compute_some_name.cpp</span></code>.  The “include guard” in the header file would
+then be <code class="docutils literal notranslate"><span class="pre">LMP_COMPUTE_SOME_NAME_H</span></code> and the class name
+<code class="docutils literal notranslate"><span class="pre">ComputeSomeName</span></code>.</p>
+</section>
+<section id="programming-style-requirements-varied">
+<span id="reqprogrammingstyle"></span><h2><span class="section-number">3.3.7. </span>Programming style requirements (varied)<a class="headerlink" href="#programming-style-requirements-varied" title="Link to this heading"></a></h2>
+<p>To maintain source code consistency across contributions from many
+people, there are various programming style requirements for
+contributions to LAMMPS.  Some of these requirements are strict and
+must be followed, while others are only preferred and thus may be
+skipped.  An in-depth discussion of the style guidelines is provided
+in the <a class="reference internal" href="Modify_style.html"><span class="doc">programming style doc page</span></a>.</p>
+</section>
+<section id="examples-preferred">
+<span id="reqexamples"></span><h2><span class="section-number">3.3.8. </span>Examples (preferred)<a class="headerlink" href="#examples-preferred" title="Link to this heading"></a></h2>
+<p>For many new features, it is preferred that example scripts (simple,
+small, fast to complete on 1 CPU) are included that demonstrate the
+use of new or extended functionality.  These are typically include
+under the examples or examples/PACKAGES directory and are further
+described on the <a class="reference internal" href="Examples.html"><span class="doc">examples page</span></a>.  Guidelines for
+input scripts include:</p>
+<ul class="simple">
+<li><p>commands that generate output should be commented out (except when the
+output is the sole purpose or the feature, e.g. for a new compute)</p></li>
+<li><p>commands like <a class="reference internal" href="log.html"><span class="doc">log</span></a>, <a class="reference internal" href="echo.html"><span class="doc">echo</span></a>, <a class="reference internal" href="package.html"><span class="doc">package</span></a>, <a class="reference internal" href="processors.html"><span class="doc">processors</span></a>, <a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> may
+<strong>not</strong> be used in the input file (exception: “processors * * 1” or
+similar is acceptable when used to avoid unwanted domain decomposition
+of empty volumes)</p></li>
+<li><p>outside of the log files, no generated output should be included</p></li>
+<li><p>custom thermo_style settings may not include output measuring CPU or other
+time as it complicates comparisons between different runs</p></li>
+<li><p>input files should be named <code class="docutils literal notranslate"><span class="pre">in.name</span></code>, data files should be named
+<code class="docutils literal notranslate"><span class="pre">data.name</span></code> and log files should be named <code class="docutils literal notranslate"><span class="pre">log.version.name.&lt;compiler&gt;.&lt;ncpu&gt;</span></code></p></li>
+<li><p>the total file size of all the inputs and outputs should be small</p></li>
+<li><p>where possible, potential files from the “potentials” folder or data
+file from other folders should be re-used through symbolic links</p></li>
+</ul>
+</section>
+<section id="error-or-warning-messages-and-explanations-preferred">
+<span id="reqerrormessages"></span><h2><span class="section-number">3.3.9. </span>Error or warning messages and explanations (preferred)<a class="headerlink" href="#error-or-warning-messages-and-explanations-preferred" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4May2022.</span></p>
+</div>
+<p>Starting with LAMMPS version 4 May 2022, the LAMMPS developers have
+agreed on a new policy for error and warning messages.</p>
+<p>Previously, all error and warning strings were supposed to be listed in
+the class header files with an explanation.  Those would then be
+regularly “harvested” and transferred to alphabetically sorted lists in
+the manual.  To avoid excessively long lists and to reduce effort, this
+came with a requirement to have rather generic error messages (e.g.
+“Illegal … command”).  To identify the specific cause, the name of the
+source file and the line number of the error location would be printed,
+so that one could look up the cause by reading the source code.</p>
+<p>The new policy encourages more specific error messages that ideally
+indicate the cause directly, and requiring no further lookup. This is
+aided by either the <a class="reference external" href="https://fmt.dev">{fmt} library</a> or the <a class="reference external" href="https://cppreference.com/w/cpp/utility/format.html">C++
+format library</a> (for C++20
+and later) enabling <code class="xref cpp cpp-class docutils literal notranslate"><span class="pre">LAMMPS_NS::Error</span></code> class methods that
+take a variable number of arguments and an error text that will be
+treated like a <a class="reference external" href="https://cppreference.com/w/cpp/utility/format/spec.html">C++ format string</a>. Error
+messages should still preferably be kept to a single line or two lines
+at most.</p>
+<p>For more complex explanations or errors that have multiple possible
+reasons, a paragraph should be added to the <cite>Error_details</cite> page with an
+error code reference (e.g. <code class="docutils literal notranslate"><span class="pre">..</span> <span class="pre">_err0001:</span></code>) then the utility function
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils8errorurlEi" title="LAMMPS_NS::utils::errorurl"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::errorurl()</span></code></a> can be used
+to generate a URL that will directly lead to that paragraph.  An error
+for missing arguments can be easily generated using the
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils16missing_cmd_argsERKNSt6stringEiRKNSt6stringEP5Error" title="LAMMPS_NS::utils::missing_cmd_args"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::missing_cmd_args()</span></code></a> convenience function.
+An example for this approach would be the
+<code class="docutils literal notranslate"><span class="pre">src/read_data.cpp</span></code> and <code class="docutils literal notranslate"><span class="pre">src/atom.cpp</span></code> files that implement the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> and <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify</span></a>
+commands and that may create <a class="reference internal" href="Errors_details.html#err0001"><span class="std std-ref">“Unknown identifier in data file”</span></a>
+errors that may have multiple possible reasons which complicates debugging,
+and thus require some additional explanation.</p>
+<p>The transformation of existing LAMMPS code to this new scheme is
+ongoing.  Given the size of the LAMMPS code base, it will take a
+significant amount of time to complete.  For new code, however,
+following the new approach is strongly preferred.  The expectation is
+that the new scheme will make understanding errors easier for LAMMPS
+users, developers, and maintainers.</p>
+</section>
+<section id="citation-reminder-optional">
+<span id="reqcitation"></span><h2><span class="section-number">3.3.10. </span>Citation reminder (optional)<a class="headerlink" href="#citation-reminder-optional" title="Link to this heading"></a></h2>
+<p>If there is a paper of yours describing your feature (either the
+algorithm/science behind the feature itself, or its initial usage, or
+its implementation in LAMMPS), you can add the citation to the <code class="docutils literal notranslate"><span class="pre">.cpp</span></code>
+source file.  A description of how to add the reminder is
+<a class="reference internal" href="Classes_cite.html"><span class="doc">available elsewhere in this manual</span></a>.</p>
+<p>If there is additional functionality (which may have been added later)
+described in a different publication, additional citation descriptions
+may be added so long as they are only registered when the corresponding
+keyword activating this functionality is used.</p>
+<p>With these options, it is possible to have LAMMPS output a specific
+citation reminder whenever a user invokes your feature from their input
+script.  Please note that you should <em>only</em> use this for the <em>most</em>
+relevant paper for a feature and a publication that you or your group
+authored.  E.g. adding a citation in the source code for a paper by Nose
+and Hoover if you write a fix that implements their integrator is not
+the intended usage.  That kind of citation should just be included in
+the documentation page you provide describing your contribution.  If you
+are not sure what the best option would be, please contact the LAMMPS
+developers for advice.</p>
+</section>
+<section id="testing-optional">
+<span id="requnittesting"></span><h2><span class="section-number">3.3.11. </span>Testing (optional)<a class="headerlink" href="#testing-optional" title="Link to this heading"></a></h2>
+<p>If your contribution contains new utility functions or a supporting
+class (i.e. anything that does not depend on a LAMMPS object), new unit
+tests should be added to a suitable folder in the <code class="docutils literal notranslate"><span class="pre">unittest</span></code> tree.
+When adding a new LAMMPS style computing forces or selected fixes, a
+<code class="docutils literal notranslate"><span class="pre">.yaml</span></code> file with a test configuration and reference data should be
+added for the styles where a suitable tester program already exists
+(e.g. pair styles, bond styles, etc.).  Please see <a class="reference internal" href="Build_development.html#testing"><span class="std std-ref">this section in
+the manual</span></a> for more information on how to enable, run, and
+expand testing.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Modify_contribute.html" class="btn btn-neutral float-left" title="3.2. Submitting new features for inclusion in LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Modify_style.html" class="btn btn-neutral float-right" title="3.4. LAMMPS programming style" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

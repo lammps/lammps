@@ -1,0 +1,41 @@
+# Point dipoles in a 2d box
+
+units		lj
+atom_style	hybrid sphere dipole
+dimension	2
+
+lattice		sq2 0.7
+region		box block 0 10 0 10 -0.5 0.5
+create_box	1 box
+create_atoms	1 box
+
+# need both mass settings due to hybrid atom style
+
+mass		1 1.0
+set		group all mass 1.0
+set		group all dipole/random 98934 0.75
+
+velocity	all create 0.0 87287 mom no
+
+pair_style	lj/cut/dipole/cut 2.5
+pair_coeff	* * 1.0 1.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+fix		1 all nve/sphere update dipole
+fix		2 all enforce2d
+
+timestep	0.005
+
+compute		erot all erotate/sphere
+thermo_style	custom step temp epair c_erot etotal press
+thermo		500
+
+#dump		1 all custom 500 dump.dipole id type x y z mux muy
+
+#dump		1 all image 250 image.*.jpg mux type &
+#		zoom 1.6 adiam 1.2
+#dump_modify	1 pad 5
+
+run		10000

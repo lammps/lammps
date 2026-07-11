@@ -1,0 +1,499 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.8.19. Creating styles for the OPENMP package &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_write_openmp.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.8.20. Writing or updating documentation" href="Developer_write_docs.html" />
+    <link rel="prev" title="4.8.17. Writing a new command style" href="Developer_write_command.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html">4.8.1. Writing new pair styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#package-and-build-system-considerations">4.8.2. Package and build system considerations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-1-a-pairwise-additive-model">4.8.3. Case 1: a pairwise additive model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-2-a-many-body-potential">4.8.4. Case 2: a many-body potential</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-3-a-potential-requiring-communication">4.8.5. Case 3: a potential requiring communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_pair.html#case-4-potentials-without-a-compute-function">4.8.6. Case 4: potentials without a compute() function</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html">4.8.7. Writing new bond, angle, dihedral, and improper styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-1-implementing-a-bond-style">4.8.8. Case 1: Implementing a bond style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-2-implementing-an-angle-style">4.8.9. Case 2: Implementing an angle style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-3-implementing-a-dihedral-style">4.8.10. Case 3: Implementing a dihedral style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_bond.html#case-4-implementing-an-improper-style">4.8.11. Case 4: Implementing an improper style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_fix.html">4.8.12. Writing a new fix style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html">4.8.13. Writing new compute styles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-1-a-global-scalar-compute">4.8.14. Case 1: A global scalar compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#case-2-a-per-atom-compute">4.8.15. Case 2: A per-atom compute</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_compute.html#notes-on-flags-and-output-types">4.8.16. Notes on flags and output types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html">4.8.17. Writing a new command style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_command.html#case-1-implementing-the-geturl-command">4.8.18. Case 1: Implementing the geturl command</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">4.8.19. Creating styles for the OPENMP package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html">4.8.20. Writing or updating documentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#anatomy-of-a-style-documentation-page">4.8.21. Anatomy of a style documentation page</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#integrating-a-new-style-into-the-command-lists">4.8.22. Integrating a new style into the command lists</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#documenting-an-accelerated-variant-of-an-existing-style">4.8.23. Documenting an accelerated variant of an existing style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#adding-and-referencing-example-inputs">4.8.24. Adding and referencing example inputs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#other-documentation-that-may-need-updating">4.8.25. Other documentation that may need updating</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Developer_write_docs.html#building-and-checking-the-documentation">4.8.26. Building and checking the documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+          <li class="breadcrumb-item"><a href="Developer_write.html"><span class="section-number">4.8. </span>Writing new styles</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.8.19. </span>Creating styles for the OPENMP package</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_write_command.html" class="btn btn-neutral float-left" title="4.8.17. Writing a new command style" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_write_docs.html" class="btn btn-neutral float-right" title="4.8.20. Writing or updating documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="creating-styles-for-the-openmp-package">
+<h1><span class="section-number">4.8.19. </span>Creating styles for the OPENMP package<a class="headerlink" href="#creating-styles-for-the-openmp-package" title="Link to this heading"></a></h1>
+<p>The OPENMP package in LAMMPS provides an accelerated execution of many
+LAMMPS styles with multi-threading using <a class="reference external" href="https://www.openmp.org/">OpenMP pragmas</a>.  Adding support for a new style to the
+OPENMP package involves creating a derived class that overrides the
+standard serial method.</p>
+<p>For a high-level discussion on the rationale and parallelization
+strategy of the OpenMP package, see <a class="reference internal" href="Developer_par_openmp.html"><span class="doc">OpenMP Parallelism</span></a>.</p>
+<p>In the text below, we will describe important steps of the procedure of
+adding multi-thread style to the OPENMP package by looking at a few
+selected example sections of source files in the OPENMP package.</p>
+<section id="package-and-build-system-considerations">
+<h2>Package and build system considerations<a class="headerlink" href="#package-and-build-system-considerations" title="Link to this heading"></a></h2>
+<p>The OPENMP package is one of the accelerator packages. New styles should
+be added to the <cite>src/OPENMP</cite> directory. The contributed code needs to
+support both the CMake build process and (if applicable) the traditional
+GNU make process.</p>
+</section>
+<section id="case-study-a-pairwise-additive-model">
+<h2>Case study: a pairwise additive model<a class="headerlink" href="#case-study-a-pairwise-additive-model" title="Link to this heading"></a></h2>
+<p>For many pair styles, adding OpenMP support involves creating a derived
+class that inherits from the serial pair style class. Let’s look at the
+<cite>pair_lj_cut</cite> style and its OpenMP-accelerated variant.</p>
+<section id="header-file">
+<h3>Header file<a class="headerlink" href="#header-file" title="Link to this heading"></a></h3>
+<p>The header file for an OPENMP-enabled pair style (e.g., <cite>pair_lj_cut_omp.h</cite>)
+typically derives from the original style class (e.g., <cite>PairLJCut</cite>).</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#ifndef LMP_PAIR_LJ_CUT_OMP_H</span>
+<span class="cp">#define LMP_PAIR_LJ_CUT_OMP_H</span>
+
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;pair_lj_cut.h&quot;</span>
+<span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;thr_omp.h&quot;</span>
+
+<span class="k">namespace</span><span class="w"> </span><span class="nn">LAMMPS_NS</span><span class="w"> </span><span class="p">{</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">PairLJCutOMP</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">PairLJCut</span><span class="p">,</span><span class="w"> </span><span class="k">public</span><span class="w"> </span><span class="n">ThrOMP</span><span class="w"> </span><span class="p">{</span>
+<span class="w"> </span><span class="k">public</span><span class="o">:</span>
+<span class="w">  </span><span class="n">PairLJCutOMP</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">);</span>
+<span class="w">  </span><span class="k">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">PairLJCutOMP</span><span class="p">()</span><span class="w"> </span><span class="p">{}</span>
+
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">compute</span><span class="p">(</span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">)</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="w">  </span><span class="kt">double</span><span class="w"> </span><span class="nf">memory_usage</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+
+<span class="w"> </span><span class="k">private</span><span class="o">:</span>
+<span class="w">  </span><span class="k">template</span><span class="w"> </span><span class="o">&lt;</span><span class="kt">int</span><span class="w"> </span><span class="n">EVFLAG</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">EFLAG</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">NEWTON_PAIR</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="kt">void</span><span class="w"> </span><span class="n">eval</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">ifrom</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">ito</span><span class="p">,</span><span class="w"> </span><span class="n">ThrData</span><span class="w"> </span><span class="o">*</span><span class="k">const</span><span class="w"> </span><span class="n">thr</span><span class="p">);</span>
+<span class="p">};</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The class inherits from <cite>PairLJCut</cite> (the base serial style) and <cite>ThrOMP</cite>,
+a utility class that manages the OpenMP-specific data, such as thread-local
+force and energy accumulation arrays.</p>
+</section>
+</section>
+<section id="constructor-and-methods">
+<h2>Constructor and methods<a class="headerlink" href="#constructor-and-methods" title="Link to this heading"></a></h2>
+<p>The constructor for an OMP style typically just calls the base class
+constructor and initializes the <cite>ThrOMP</cite> base:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">PairLJCutOMP</span><span class="o">::</span><span class="n">PairLJCutOMP</span><span class="p">(</span><span class="n">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="n">lmp</span><span class="p">)</span><span class="w"> </span><span class="o">:</span>
+<span class="w">  </span><span class="n">PairLJCut</span><span class="p">(</span><span class="n">lmp</span><span class="p">),</span><span class="w"> </span><span class="n">ThrOMP</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="n">THR_PAIR</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">respa_enable</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>The <cite>THR_PAIR</cite> argument tells the <cite>ThrOMP</cite> base class that this is a
+pair-style acceleration, which influences how data is allocated and
+managed.</p></li>
+<li><p>Setting <cite>respa_enable = 0</cite> is common for OMP accelerated styles as
+RESPA acceleration often requires separate implementation logic.</p></li>
+</ul>
+<section id="why-only-few-methods">
+<h3>Why only few methods?<a class="headerlink" href="#why-only-few-methods" title="Link to this heading"></a></h3>
+<p>You may notice that only a few methods are overridden. Most methods
+(e.g., <cite>coeff()</cite>, <cite>init_one()</cite>, <cite>write_restart()</cite>) are inherited directly
+from <cite>PairLJCut</cite>. This is possible because:</p>
+<ul class="simple">
+<li><p>The serial class already handles the data structures and input parsing.</p></li>
+<li><p>The <cite>compute()</cite> method is the part that consumes most of the CPU time and is called in every step during a run.</p></li>
+<li><p><cite>single()</cite> is not overridden because it cannot be efficiently
+parallelized with OpenMP.  It represents just one iteration of the
+inner loop of the main loop constructs of the <cite>compute()</cite> function.</p></li>
+</ul>
+</section>
+</section>
+<section id="utility-functions-for-threading">
+<h2>Utility Functions for Threading<a class="headerlink" href="#utility-functions-for-threading" title="Link to this heading"></a></h2>
+<p>The <cite>ThrOMP</cite> class and related LAMMPS infrastructure provide several key methods to manage parallel execution:</p>
+<ul class="simple">
+<li><p><cite>loop_setup_thr(int nlocal)</cite>: This method calculates the range of atoms (or neighbors)
+each thread should process based on the number of threads and the total count.
+It ensures an even workload distribution across threads.</p></li>
+<li><p><cite>FixOMP::get_thr(int tid)</cite>: This method retrieves the <cite>ThrData</cite> object for a specific
+thread ID (<cite>tid</cite>). <cite>ThrData</cite> maintains thread-private buffers for forces and energies,
+avoiding race conditions during the force computation.</p></li>
+<li><p><cite>reduce_thr(ThrData* thr, int eflag, int vflag)</cite>: After the parallel region, this
+method is used to perform the reduction of per-thread force, energy, and virial
+contributions into the global arrays (e.g., <cite>atom-&gt;f</cite>).</p></li>
+</ul>
+</section>
+<section id="ev-setup-thr-and-ev-tally-thr">
+<h2><cite>ev_setup_thr()</cite> and <cite>ev_tally_thr()</cite><a class="headerlink" href="#ev-setup-thr-and-ev-tally-thr" title="Link to this heading"></a></h2>
+<p>These methods replace their non-OpenMP counterparts (<cite>ev_setup()</cite> and <cite>ev_tally()</cite>)
+to support thread-local data:</p>
+<ul class="simple">
+<li><p><cite>ev_setup_thr(eflag, vflag, thr)</cite>: Unlike <cite>ev_setup()</cite>, which initializes global
+energy/virial flags, <cite>ev_setup_thr()</cite> initializes the thread-specific <cite>ThrData</cite>
+structures to track energy and virial contributions independently per thread.</p></li>
+<li><p><cite>ev_tally_thr(i, j, nlocal, newton, evdwl, ecoul, fpair, delx, dely, delz, thr)</cite>:
+Instead of updating global force/energy arrays directly, <cite>ev_tally_thr()</cite> updates
+the per-thread tally arrays stored within the provided <cite>ThrData</cite> object (<cite>thr</cite>).
+This allows multiple threads to record force/energy contributions simultaneously
+without locking or memory contention.</p></li>
+</ul>
+</section>
+<section id="performance-optimization-with-templates-and-noalias">
+<h2>Performance Optimization with Templates and <cite>_noalias</cite><a class="headerlink" href="#performance-optimization-with-templates-and-noalias" title="Link to this heading"></a></h2>
+<p>The template-based approach in <cite>eval&lt;EVFLAG, EFLAG, NEWTON_PAIR&gt;()</cite> is a powerful
+optimization technique:</p>
+<ul class="simple">
+<li><p><strong>Branch Elimination</strong>: By passing state as template parameters, the compiler
+can generate specialized machine code for each combination of flags (e.g.,
+<cite>NEWTON_PAIR=1</cite>, <cite>EFLAG=0</cite>). This removes conditional branches (<cite>if</cite> statements)
+from the inner loop, which is critical for performance because CPU branch
+predictors often struggle with these toggles in tight loops.</p></li>
+<li><p><strong>`_noalias`</strong>: The <cite>_noalias</cite> keyword (or compiler hint) tells the compiler
+that pointers (e.g., force arrays) do not point to the same memory addresses
+as other pointers used in the same context. This enables the compiler to
+aggressively optimize load/store operations and loop unrolling, as it
+no longer needs to ensure memory consistency across potential pointer aliasing.</p></li>
+</ul>
+</section>
+<section id="porting-complex-many-body-styles-e-g-pairswomp-pairtersoffomp">
+<h2>Porting complex many-body styles (e.g., PairSWOMP, PairTersoffOMP)<a class="headerlink" href="#porting-complex-many-body-styles-e-g-pairswomp-pairtersoffomp" title="Link to this heading"></a></h2>
+<p>Many-body pair styles like Stillinger-Weber (<cite>PairSW</cite>) or Tersoff (<cite>PairTersoff</cite>)
+differ significantly from pairwise additive potentials. In pairwise additive
+potentials (like LJ), the force on atom <cite>i</cite> depends only on its neighbors <cite>j</cite>.
+Many-body styles, however, compute forces based on three-body (or higher-order)
+terms, meaning the force on atom <cite>i</cite> depends on the environment of atom <cite>j</cite> as well.</p>
+<section id="differences-from-pairwise-additive-potentials">
+<h3>Differences from Pairwise Additive Potentials<a class="headerlink" href="#differences-from-pairwise-additive-potentials" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p><strong>Neighbor List Requirements</strong>: Pairwise additive potentials typically
+require a “half” neighbor list. Many-body potentials, however, usually
+require a “full” neighbor list to iterate over all neighbors of both atoms <cite>i</cite>
+and <cite>j</cite> when calculating the three-body interaction <cite>i-j-k</cite>.</p></li>
+<li><p><strong>Computational Structure</strong>: Instead of a simple nested loop, many-body
+potentials involve complex kernels that iterate over neighbors of neighbors.
+This significantly increases the complexity of the parallel execution
+and data locality requirements.</p></li>
+<li><p><strong>Communication</strong>: Due to the three-body nature, the potential needs access
+to the positions of all atoms within the cutoff of <cite>j</cite>, even if <cite>j</cite> is a
+ghost atom. This increases the amount of ghost-atom data that must be kept
+synchronized.</p></li>
+</ol>
+</section>
+<section id="case-study-paireamomp">
+<h3>Case Study: PairEAMOMP<a class="headerlink" href="#case-study-paireamomp" title="Link to this heading"></a></h3>
+<p>Many-body pair styles like EAM are more complex because they require multiple
+passes (e.g., one pass to accumulate density, one to compute forces).
+In <cite>PairEAMOMP</cite>, this is handled by having the <cite>compute()</cite> function
+orchestrate multiple parallel loops, each calling its own <cite>eval()</cite> variant:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="c1">// First loop: accumulate density</span>
+<span class="cp">#pragma omp parallel</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">eval_rho</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="p">(...);</span>
+<span class="p">}</span>
+
+<span class="c1">// Communication step:</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">forward_comm</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+
+<span class="c1">// Second loop: compute forces</span>
+<span class="cp">#pragma omp parallel</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">eval_force</span><span class="o">&lt;</span><span class="p">...</span><span class="o">&gt;</span><span class="p">(...);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="case-study-pairswomp-and-pairtersoffomp">
+<h3>Case Study: PairSWOMP and PairTersoffOMP<a class="headerlink" href="#case-study-pairswomp-and-pairtersoffomp" title="Link to this heading"></a></h3>
+<p>In <cite>PairSWOMP</cite> and <cite>PairTersoffOMP</cite>, the acceleration is handled by parallelizing
+the nested loops while maintaining thread-safety.</p>
+<ul class="simple">
+<li><p><strong>Data Locality</strong>: Because these styles require a full neighbor list, the
+<cite>PairTersoffOMP::compute()</cite> function must carefully partition the neighbor
+list among threads, ensuring that every thread processes a unique set of
+interactions without redundant calculations.</p></li>
+<li><p><strong>Tallying</strong>: Just as in pairwise styles, <cite>ev_tally_thr()</cite> is used to
+accumulate energy/virial. However, since the many-body calculation is more
+involved, the tallying is often called multiple times or with different
+arguments to properly decompose the contributions of the 2-body and 3-body terms.</p></li>
+<li><p><strong>Kernel Specialization</strong>: Similar to the pairwise case, the <cite>eval()</cite> kernels
+for many-body styles are heavily templated to handle various scenarios (e.g.,
+different Newton’s third law configurations).</p></li>
+</ul>
+<p>When porting these styles, the primary challenge is to ensure that the
+many-body logic remains correct within a multi-threaded environment. Developers
+must carefully synchronize data access, especially for shared neighbor list
+information and thread-local atom data, by utilizing the <cite>ThrData</cite> structure.</p>
+</section>
+</section>
+<section id="accelerating-bonded-force-styles">
+<h2>Accelerating bonded force styles<a class="headerlink" href="#accelerating-bonded-force-styles" title="Link to this heading"></a></h2>
+<p>Accelerating bonded force styles follows the same philosophy as pair styles.
+A <cite>BondLJCutOMP</cite> class would inherit from <cite>BondLJCut</cite> and <cite>ThrOMP</cite>.  The
+same principle applies to angle, dihedral, and improper styles.
+The <cite>compute()</cite> function again loops over the bonds using OpenMP pragmas,
+using the same thread-local tallying mechanisms as pair styles.</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">BondLJCutOMP::compute</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">eflag</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vflag</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="cp">#pragma omp parallel</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">     </span><span class="c1">// loop over bond list in chunks</span>
+<span class="w">     </span><span class="c1">// use ev_tally_thr for tallies</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The reduction logic and templated kernels remain nearly identical to
+those used in pair styles, making it relatively straightforward to
+port any bonded interaction style to OpenMP.</p>
+<section id="implementation-file">
+<h3>Implementation file<a class="headerlink" href="#implementation-file" title="Link to this heading"></a></h3>
+<p>The core of the OPENMP implementation resides in the <cite>.cpp</cite> file (e.g.,
+<cite>pair_lj_cut_omp.cpp</cite>).</p>
+<p>The <cite>compute()</cite> function is overridden to trigger the parallel
+execution and handle thread synchronization:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">PairLJCutOMP::compute</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">eflag</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">vflag</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="c1">// ... (initialization of evflag, vflag, etc.)</span>
+
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">nthreads</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">nthreads</span><span class="p">;</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">inum</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list</span><span class="o">-&gt;</span><span class="n">inum</span><span class="p">;</span>
+
+<span class="w">  </span><span class="cp">#if defined(_OPENMP)</span>
+<span class="w">  </span><span class="cp">#pragma omp parallel default(none) shared(eflag,vflag)</span>
+<span class="w">  </span><span class="cp">#endif</span>
+<span class="w">  </span><span class="p">{</span>
+<span class="w">    </span><span class="c1">// ... (setup thread-local data)</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">newton_pair</span><span class="p">)</span><span class="w"> </span><span class="n">eval</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">(...);</span>
+<span class="w">    </span><span class="k">else</span><span class="w"> </span><span class="n">eval</span><span class="o">&lt;</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">(...);</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="c1">// ... (reduce per-thread forces/energies/virials)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>The <cite>compute()</cite> function initializes the OpenMP parallel region
+using <cite>#pragma omp parallel</cite>.</p></li>
+<li><p>The <cite>eval()</cite> method (a template function) encapsulates the actual
+force-calculation loop. It uses template parameters (<cite>EVFLAG</cite>, <cite>EFLAG</cite>,
+<cite>NEWTON_PAIR</cite>) to optimize the loop based on whether energy/virial
+calculations are enabled and if Newton’s third law is used,
+avoiding runtime conditionals inside the hot loop.</p></li>
+<li><p>The <cite>eval()</cite> method uses <cite>ThrData</cite> to accumulate force and energy
+contributions safely within each thread.</p></li>
+<li><p>After the parallel loop, the results from each thread’s local buffers
+are reduced into the main force arrays, handling thread-safety during
+the reduction process.</p></li>
+</ol>
+<p>By templating the <cite>eval()</cite> method, we can compile multiple variants of the
+kernel at build time, significantly improving performance by removing branches
+inside the main force loop.</p>
+<p>Refer to existing files in <cite>src/OPENMP/</cite> for comprehensive implementation
+details and complex scenarios involving many-body interactions or
+communication.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_write_command.html" class="btn btn-neutral float-left" title="4.8.17. Writing a new command style" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_write_docs.html" class="btn btn-neutral float-right" title="4.8.20. Writing or updating documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

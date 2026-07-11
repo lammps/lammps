@@ -1,0 +1,92 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifdef COMPUTE_CLASS
+// clang-format off
+ComputeStyle(ave/sphere/atom/kk,ComputeAveSphereAtomKokkos<LMPDeviceType>);
+ComputeStyle(ave/sphere/atom/kk/device,ComputeAveSphereAtomKokkos<LMPDeviceType>);
+ComputeStyle(ave/sphere/atom/kk/host,ComputeAveSphereAtomKokkos<LMPHostType>);
+// clang-format on
+
+#else
+
+#ifndef LMP_COMPUTE_AVE_SPHERE_ATOM_KOKKOS_H
+#define LMP_COMPUTE_AVE_SPHERE_ATOM_KOKKOS_H
+
+#include "compute_ave_sphere_atom.h"
+#include "kokkos_type.h"
+#include "kokkos_base.h"
+
+namespace LAMMPS_NS {
+
+// clang-format off
+struct TagComputeAveSphereAtom {};
+struct TagComputeAveSphereAtomPackForwardComm{};
+struct TagComputeAveSphereAtomUnpackForwardComm{};
+// clang-format on
+
+template <class DeviceType> class ComputeAveSphereAtomKokkos : public ComputeAveSphereAtom, public KokkosBase {
+ public:
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  ComputeAveSphereAtomKokkos(class LAMMPS *, int, char **);
+  ~ComputeAveSphereAtomKokkos() override;
+  void init() override;
+  void compute_peratom() override;
+
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
+                       int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtom, const int &) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtomPackForwardComm, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagComputeAveSphereAtomUnpackForwardComm, const int&) const;
+
+ private:
+  KK_FLOAT adof, mvv2e, mv2d, boltz;
+
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkfloat_1d rmass;
+  typename AT::t_kkfloat_1d mass;
+  typename AT::t_int_1d type;
+  typename AT::t_int_1d mask;
+
+  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_int_1d d_ilist;
+  typename AT::t_int_1d d_numneigh;
+
+  DAT::ttransform_kkfloat_2d k_result;
+  typename AT::t_kkfloat_2d d_result;
+
+  int first,nsend;
+
+  typename AT::t_int_1d d_sendlist;
+  typename AT::t_double_1d_um d_buf;
+};
+
+}    // namespace LAMMPS_NS
+
+#endif
+#endif

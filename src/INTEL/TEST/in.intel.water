@@ -1,0 +1,47 @@
+# Coarse-grain water simulation using Stillinger-Weber
+
+variable        N index on      # Newton Setting
+variable        w index 10      # Warmup Timesteps
+variable        t index 2600	# Main Run Timesteps
+variable        m index 1       # Main Run Timestep Multiplier
+variable        n index 0       # Use NUMA Mapping for Multi-Node
+variable        p index 0       # Use Power Measurement
+
+variable	x index 4
+variable	y index 2
+variable	z index 2
+variable        rr equal floor($t*$m)
+
+newton          $N
+if "$n > 0"     then "processors * * * grid numa"
+
+units		real
+atom_style	atomic
+
+read_data	mW_32k_cube.data
+reset_timestep	0
+replicate	$x $y $z
+
+pair_style	sw
+pair_coeff	* * mW.sw mW
+
+mass		1 18.015 #g/mol
+group		mW type 1
+
+neighbor	2 bin #Angstroms
+neigh_modify	every 1 delay 4
+
+fix		1 all nvt temp 300.0 300.0 1000.0
+
+velocity	all zero linear
+
+timestep	10 #femtoseconds
+
+thermo_modify	norm yes
+
+thermo		1000
+
+if "$p > 0"     then "run_style verlet/power"
+
+if "$w > 0"     then "run $w"
+run		${rr}

@@ -1,0 +1,37 @@
+<simulation verbosity='medium'>
+  <output prefix='simulation'>
+      <properties stride='5' filename='out' flush="10" >  [ step, time{picosecond}, conserved{kelvin}, temperature{kelvin}, kinetic_cv{kelvin}, potential{kelvin}, pressure_cv{megapascal}] </properties>
+      <properties stride='5' filename='iso' flush="10" >  [ isotope_tdfep(1.167;C), isotope_scfep(1.167;0) ] </properties>
+      <properties stride='1' filename='kc'> [ kinetic_cv{kelvin}(C) ] </properties> 
+      <trajectory stride='5' filename='pos' flush="100">positions{angstrom}</trajectory>
+      <trajectory stride='5' filename='kin' flush="100"> kinetic_cv </trajectory>
+    <checkpoint stride='20000'/>
+  </output>
+  <total_steps>1000000</total_steps>
+  <prng>
+    <seed>31415</seed>
+  </prng>
+  <ffsocket name='lammps' mode='unix'>
+    <address> graphene </address>
+  </ffsocket>
+  <system>
+    <initialize nbeads='8'>
+      <file mode='xyz'> i-pi_positions.xyz </file>
+      <velocities mode='thermal' units='kelvin'> 300 </velocities>
+    </initialize>
+    <forces>
+      <force forcefield='lammps'> </force>
+    </forces>
+    <motion mode='dynamics'>
+      <dynamics mode='nvt'>
+        <timestep units='femtosecond'> 1.0 </timestep>
+        <thermostat mode='langevin'>
+          <tau units='femtosecond'> 100 </tau>
+        </thermostat>
+      </dynamics>
+    </motion>
+    <ensemble>
+      <temperature units='kelvin'> 300 </temperature>
+    </ensemble>
+  </system>
+</simulation>

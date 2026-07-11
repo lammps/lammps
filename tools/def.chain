@@ -1,0 +1,13 @@
+Polymer chain definition
+
+0.8442          rhostar
+592984          random # seed (8 digits or less)
+1               # of sets of chains (blank line + 6 values for each set)
+0               molecule tag rule: 0 = by mol, 1 = from 1 end, 2 = from 2 ends
+
+320             number of chains
+100             monomers/chain
+1               type of monomers (for output into LAMMPS file)
+1               type of bonds (for output into LAMMPS file)
+0.97            distance between monomers (in reduced units)
+1.02            no distance less than this from site i-1 to i+1 (reduced unit)

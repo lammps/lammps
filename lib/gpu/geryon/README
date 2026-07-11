@@ -1,0 +1,31 @@
+NOTE: This Geryon distribution has been modified to remove files not
+      necessary for the LAMMPS implementation. The full distribution
+      is available at http://users.nccs.gov/~wb8/geryon/index.htm
+
+Geryon
+
+   Copyright (2010) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the Simplified BSD License.
+
+Geryon is intended to be a simple library for managing the CUDA Runtime,
+CUDA Driver, and OpenCL APIs with a consistent interface:
+
+    * Change from one API to another by simply changing the namespace
+    * Use multiple APIs in the same code
+    * Lightweight (only include files - no build required)
+    * Manage device query and selection
+    * Simple vector and matrix containers
+    * Simple routines for data copy and type casting
+    * Simple routines for data I/O
+    * Simple classes for managing device timing
+    * Simple classes for managing kernel compilation and execution
+
+Geryon does not require building (although a Makefile is provided for testing
+purposes). The library is a set of header files that can be included with
+your code.
+
+Documentation and examples are provided at
+
+http://users.nccs.gov/~wb8/geryon/index.htm

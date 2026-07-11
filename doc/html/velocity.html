@@ -1,0 +1,525 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>velocity command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/velocity.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="write_coeff command" href="write_coeff.html" />
+    <link rel="prev" title="variable command" href="variable.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">velocity command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">velocity command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="variable.html" class="btn btn-neutral float-left" title="variable command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="write_coeff.html" class="btn btn-neutral float-right" title="write_coeff command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="velocity-command">
+<span id="index-0"></span><h1>velocity command<a class="headerlink" href="#velocity-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">velocity </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">args</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>group-ID = ID of group of atoms whose velocity will be changed</p></li>
+<li><p>style = <em>create</em> or <em>set</em> or <em>scale</em> or <em>ramp</em> or <em>zero</em></p>
+<pre class="literal-block"><em>create</em> args = temp seed
+  temp = temperature value (temperature units)
+  seed = random # seed (positive integer)
+<em>set</em> args = vx vy vz
+  vx,vy,vz = velocity value or NULL (velocity units)
+  any of vx,vy,vz can be a variable (see below)
+<em>scale</em> arg = temp
+  temp = temperature value (temperature units)
+<em>ramp</em> args = vdim vlo vhi dim clo chi
+  vdim = <em>vx</em> or <em>vy</em> or <em>vz</em>
+  vlo,vhi = lower and upper velocity value (velocity units)
+  dim = <em>x</em> or <em>y</em> or <em>z</em>
+  clo,chi = lower and upper coordinate bound (distance units)
+<em>zero</em> arg = <em>linear</em> or <em>angular</em>
+  <em>linear</em> = zero the linear momentum
+  <em>angular</em> = zero the angular momentum</pre>
+</li>
+<li><p>zero or more keyword/value pairs may be appended</p></li>
+<li><p>keyword = <em>dist</em> or <em>sum</em> or <em>mom</em> or <em>rot</em> or <em>temp</em> or <em>bias</em> or <em>loop</em> or <em>rigid</em> or <em>units</em></p>
+<pre class="literal-block"><em>dist</em> value = <em>uniform</em> or <em>gaussian</em>
+<em>sum</em> value = <em>no</em> or <em>yes</em>
+<em>mom</em> value = <em>no</em> or <em>yes</em>
+<em>rot</em> value = <em>no</em> or <em>yes</em>
+<em>temp</em> value = temperature compute ID
+<em>bias</em> value = <em>no</em> or <em>yes</em>
+<em>loop</em> value = <em>all</em> or <em>local</em> or <em>geom</em>
+<em>rigid</em> value = fix-ID
+  fix-ID = ID of rigid body fix
+<em>units</em> value = <em>box</em> or <em>lattice</em></pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">4928459</span><span class="w"> </span><span class="n">rot</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">dist</span><span class="w"> </span><span class="n">gaussian</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">border</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="n">v_vz</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">flow</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">300.0</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">flow</span><span class="w"> </span><span class="n">ramp</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">5.0</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="n">mytemp</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">zero</span><span class="w"> </span><span class="n">linear</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Set or change the velocities of a group of atoms in one of several
+styles.  For each style, there are required arguments and optional
+keyword/value parameters.  Not all options are used by each style.
+Each option has a default as listed below.</p>
+<p>The <em>create</em> style generates an ensemble of velocities using a random
+number generator with the specified seed at the specified temperature.</p>
+<p>The <em>set</em> style sets the velocities of all atoms in the group to the
+specified values.  If any component is specified as NULL, then it is
+not set.  Any of the vx,vy,vz velocity components can be specified as
+an equal-style or atom-style <a class="reference internal" href="variable.html"><span class="doc">variable</span></a>.  If the value
+is a variable, it should be specified as v_name, where name is the
+variable name.  In this case, the variable will be evaluated, and its
+value used to determine the velocity component.  Note that if a
+variable is used, the velocity it calculates must be in box units, not
+lattice units; see the discussion of the <em>units</em> keyword below.</p>
+<p>Equal-style variables can specify formulas with various mathematical
+functions, and include <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> command
+keywords for the simulation box parameters or other parameters.</p>
+<p>Atom-style variables can specify the same formulas as equal-style
+variables but can also include per-atom values, such as atom
+coordinates.  Thus it is easy to specify a spatially-dependent
+velocity field.</p>
+<p>The <em>scale</em> style computes the current temperature of the group of
+atoms and then rescales the velocities to the specified temperature.</p>
+<p>The <em>ramp</em> style is similar to that used by the <a class="reference internal" href="compute_temp_ramp.html"><span class="doc">compute
+temp/ramp</span></a> command.  Velocities ramped uniformly
+from vlo to vhi are applied to dimension vx, or vy, or vz.  The value
+assigned to a particular atom depends on its relative coordinate value
+(in dim) from clo to chi.  For the example above, an atom with
+y-coordinate of 10 (1/4 of the way from 5 to 25), would be assigned a
+x-velocity of 1.25 (1/4 of the way from 0.0 to 5.0).  Atoms outside
+the coordinate bounds (less than 5 or greater than 25 in this case),
+are assigned velocities equal to vlo or vhi (0.0 or 5.0 in this case).</p>
+<p>The <em>zero</em> style adjusts the velocities of the group of atoms so that
+the aggregate linear or angular momentum is zero.  No other changes
+are made to the velocities of the atoms.  If the <em>rigid</em> option is
+specified (see below), then the zeroing is performed on individual
+rigid bodies, as defined by the <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid or fix rigid/small</span></a> commands.  In other words, zero linear will set the
+linear momentum of each rigid body to zero, and zero angular will set
+the angular momentum of each rigid body to zero.  This is done by
+adjusting the velocities of the atoms in each rigid body.</p>
+<p>All temperatures specified in the velocity command are in temperature
+units; see the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command.  The units of velocities and
+coordinates depend on whether the <em>units</em> keyword is set to <em>box</em> or
+<em>lattice</em>, as discussed below.</p>
+<p>For all styles, no atoms are assigned z-component velocities if the
+simulation is 2d; see the <a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a> command.</p>
+<hr class="docutils" />
+<p>The keyword/value options are used in the following ways by the
+various styles.</p>
+<p>The <em>dist</em> keyword is used by <em>create</em>.  The ensemble of generated
+velocities can be a <em>uniform</em> distribution from some minimum to
+maximum value, scaled to produce the requested temperature.  Or it can
+be a <em>gaussian</em> distribution with a mean of 0.0 and a sigma scaled to
+produce the requested temperature.</p>
+<p>The <em>sum</em> keyword is used by all styles, except <em>zero</em>.  The new
+velocities will be added to the existing ones if sum = yes, or will
+replace them if sum = no.</p>
+<p>The <em>mom</em> and <em>rot</em> keywords are used by <em>create</em>.  If mom = yes, the
+linear momentum of the newly created ensemble of velocities is zeroed;
+if rot = yes, the angular momentum is zeroed.</p>
+<hr class="docutils" />
+<p>If specified, the <em>temp</em> keyword is used by <em>create</em> and <em>scale</em> to
+specify a <a class="reference internal" href="compute.html"><span class="doc">compute</span></a> that calculates temperature in a
+desired way, e.g. by first subtracting out a velocity bias, as
+discussed on the <a class="reference internal" href="Howto_thermostat.html"><span class="doc">Howto thermostat</span></a> doc page.
+If this keyword is not specified, <em>create</em> and <em>scale</em> calculate
+temperature using a compute that is defined internally as follows:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute </span><span class="nv nv-Identifier">velocity_temp</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">temp</span>
+</pre></div>
+</div>
+<p>where group-ID is the same ID used in the velocity command. i.e. the
+group of atoms whose velocity is being altered.  This compute is
+deleted when the velocity command is finished.  See the <a class="reference internal" href="compute_temp.html"><span class="doc">compute
+temp</span></a> command for details.  If the calculated
+temperature should have degrees-of-freedom removed due to fix
+constraints (e.g. SHAKE or rigid-body constraints), then the
+appropriate fix command must be specified before the velocity command
+is issued.</p>
+<p>The <em>bias</em> keyword with a <em>yes</em> setting is used by <em>create</em> and
+<em>scale</em>, but only if the <em>temp</em> keyword is also used to specify a
+<a class="reference internal" href="compute.html"><span class="doc">compute</span></a> that calculates temperature in a desired way.
+If the temperature compute also calculates a velocity bias, the bias
+is subtracted from atom velocities before the <em>create</em> and <em>scale</em>
+operations are performed.  After the operations, the bias is added
+back to the atom velocities.  See the <a class="reference internal" href="Howto_thermostat.html"><span class="doc">Howto thermostat</span></a> page for more discussion of temperature computes
+with biases.  Note that the velocity bias is only applied to atoms in
+the temperature compute specified with the <em>temp</em> keyword.</p>
+<p>As an example, assume atoms are currently streaming in a flow
+direction (which could be separately initialized with the <em>ramp</em>
+style), and you wish to initialize their thermal velocity to a desired
+temperature.  In this context thermal velocity means the per-particle
+velocity that remains when the streaming velocity is subtracted.  This
+can be done using the <em>create</em> style with the <em>temp</em> keyword
+specifying the ID of a <a class="reference internal" href="compute_temp_ramp.html"><span class="doc">compute temp/ramp</span></a> or
+<a class="reference internal" href="compute_temp_profile.html"><span class="doc">compute temp/profile</span></a> command, and the
+<em>bias</em> keyword set to a <em>yes</em> value.</p>
+<hr class="docutils" />
+<p>The <em>loop</em> keyword is used by <em>create</em> in the following ways.</p>
+<p>If <em>loop = all</em>, then each processor loops over all atoms in the
+simulation to create velocities, but only stores velocities for atoms it
+owns.  This can be a slow loop for a large simulation.  If atoms were
+read from a data file, the velocity assigned to a particular atom will
+be the same, independent of how many MPI processes are being used.  This
+will not be the case if atoms were created using the <a class="reference internal" href="create_atoms.html"><span class="doc">create_atoms</span></a> command, since atom IDs will likely be assigned to atoms
+differently.</p>
+<p>If <em>loop = local</em>, then each processor loops over only its atoms to
+produce velocities.  The random number seed is adjusted to give a
+different set of velocities on each processor.  This is a fast loop, but
+the velocity assigned to a particular atom will depend on which
+processor owns it.  Thus the results will always be different when a
+simulation is run on a different number of MPI processes.</p>
+<p>If <em>loop = geom</em>, then each processor loops over only its atoms.  For
+each atom a unique random number seed is created, based on the atom’s
+xyz coordinates.  A velocity is generated using that seed.  This is a
+fast loop and the velocity assigned to a particular atom will be the
+same, independent of how many MPI processes are used.  However, the set
+of generated velocities may be more correlated than if the <em>all</em> or
+<em>local</em> keywords are used.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <em>loop geom</em> keyword will not necessarily assign identical
+velocities for two simulations run on different machines.  This is
+because the computations based on xyz coordinates are sensitive to
+tiny differences in the double-precision value for a coordinate as
+stored on a particular machine.</p>
+</div>
+<hr class="docutils" />
+<p>The <em>rigid</em> keyword only has meaning when used with the <em>zero</em> style.
+It allows specification of a fix-ID for one of the <a class="reference internal" href="fix_rigid.html"><span class="doc">rigid-body
+fix</span></a> variants which defines a set of rigid bodies.  The
+zeroing of linear or angular momentum is then performed for each rigid
+body defined by the fix, as described above.</p>
+<p>The <em>units</em> keyword is used by <em>set</em> and <em>ramp</em>.  If units = box,
+the velocities and coordinates specified in the velocity command are
+in the standard units described by the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command
+(e.g. Angstroms/fs for real units).  If units = lattice, velocities
+are in units of lattice spacings per time (e.g. spacings/fs) and
+coordinates are in lattice spacings.  The <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>
+command must have been previously used to define the lattice spacing.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>Assigning a temperature via the <em>create</em> style to a system with
+<a class="reference internal" href="fix_rigid.html"><span class="doc">rigid bodies</span></a> or <a class="reference internal" href="fix_shake.html"><span class="doc">SHAKE constraints</span></a> may not have the desired outcome for two reasons.  First,
+the velocity command can be invoked before all of the relevant fixes
+are created and initialized and the number of adjusted degrees of
+freedom (DOFs) is known.  Thus it is not possible to compute the
+target temperature correctly.  Second, the assigned velocities may be
+partially canceled when constraints are first enforced, leading to a
+different temperature than desired.  A workaround for this is to
+perform a <a class="reference internal" href="run.html"><span class="doc">run 0</span></a> command, which ensures all DOFs are
+accounted for properly, and then rescale the temperature to the
+desired value before performing a simulation.  For example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">create</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">12345</span>
+<span class="k">run</span><span class="w"> </span><span class="m">0</span><span class="w">                             </span><span class="c"># temperature may not be 300K</span>
+<span class="k">velocity </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">scale</span><span class="w"> </span><span class="m">300.0</span><span class="w">          </span><span class="c"># now it should be</span>
+</pre></div>
+</div>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a>, <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a>,
+<a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The keyword defaults are dist = uniform, sum = no, mom = yes, rot =
+no, bias = no, loop = all, and units = lattice.  The temp and rigid
+keywords are not defined by default.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="variable.html" class="btn btn-neutral float-left" title="variable command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="write_coeff.html" class="btn btn-neutral float-right" title="write_coeff command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

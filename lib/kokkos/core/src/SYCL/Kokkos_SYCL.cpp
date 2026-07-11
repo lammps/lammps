@@ -1,0 +1,329 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
+#define KOKKOS_IMPL_PUBLIC_INCLUDE
+#endif
+
+#include <Kokkos_Concepts.hpp>
+#include <SYCL/Kokkos_SYCL_Instance.hpp>
+#include <SYCL/Kokkos_SYCL.hpp>
+#include <Kokkos_HostSpace.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
+#include <Kokkos_Core.hpp>
+#endif
+
+#include <impl/Kokkos_CheckUsage.hpp>
+#include <impl/Kokkos_DeviceManagement.hpp>
+#include <impl/Kokkos_Error.hpp>
+#include <impl/Kokkos_ExecSpaceManager.hpp>
+
+namespace {
+template <typename C>
+struct Container {
+  explicit Container(const C& c) : container(c) {}
+
+  friend std::ostream& operator<<(std::ostream& os, const Container& that) {
+    os << that.container.size();
+    for (const auto& v : that.container) {
+      os << "\n\t" << v;
+    }
+    return os;
+  }
+
+ private:
+  const C& container;
+};
+}  // namespace
+
+namespace Kokkos {
+
+SYCL::~SYCL() { Impl::check_execution_space_destructor_precondition(name()); }
+
+SYCL::SYCL()
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           Impl::SYCLInternal::default_instance)) {}
+
+SYCL::SYCL(const sycl::queue& stream)
+    : m_space_instance(
+          (Impl::check_execution_space_constructor_precondition(name()),
+           Impl::HostSharedPtr(new Impl::SYCLInternal(stream)))) {
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  if (!stream.is_in_order())
+    Kokkos::abort("User provided sycl::queues must be in-order!");
+#endif
+}
+
+int SYCL::concurrency() const { return m_space_instance->m_maxConcurrency; }
+
+const char* SYCL::name() { return "SYCL"; }
+
+void SYCL::impl_finalize() {
+  // The global_unique_token_locks array is static and should only be
+  // deallocated once by the default instance
+  Impl::sycl_global_unique_token_locks(true);
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+  desul::Impl::finalize_lock_arrays();
+  desul::Impl::finalize_lock_arrays_sycl(
+      Impl::SYCLInternal::default_instance->m_queue);
+#endif
+  Impl::SYCLInternal::default_instance = nullptr;
+}
+
+void SYCL::print_configuration(std::ostream& os, bool verbose) const {
+  os << "\nRuntime Configuration:\n";
+
+#ifdef KOKKOS_ENABLE_ONEDPL
+  os << "macro  KOKKOS_ENABLE_ONEDPL : defined\n";
+#else
+  os << "macro  KOKKOS_ENABLE_ONEDPL : undefined\n";
+#endif
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+  os << "macro  KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED : defined\n";
+#else
+  os << "macro  KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED : undefined\n";
+#endif
+#ifdef KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE
+  os << "macro  KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE : defined\n";
+#else
+  os << "macro  KOKKOS_ENABLE_SYCL_RELOCATABLE_DEVICE_CODE : undefined\n";
+#endif
+#ifdef SYCL_EXT_ONEAPI_DEVICE_GLOBAL
+  os << "macro  SYCL_EXT_ONEAPI_DEVICE_GLOBAL : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_DEVICE_GLOBAL : undefined\n";
+#endif
+#ifdef KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES
+  os << "macro  KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES : defined\n";
+#else
+  os << "macro  KOKKOS_IMPL_SYCL_USE_IN_ORDER_QUEUES : undefined\n";
+#endif
+#ifdef KOKKOS_IMPL_SYCL_GRAPH_SUPPORT
+  os << "macro  KOKKOS_IMPL_SYCL_GRAPH_SUPPORT : defined\n";
+#else
+  os << "macro  KOKKOS_IMPL_SYCL_GRAPH_SUPPORT : undefined\n";
+#endif
+#ifdef SYCL_EXT_ONEAPI_BFLOAT16
+  os << "macro  SYCL_EXT_ONEAPI_BFLOAT16 : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_BFLOAT16 : undefined\n";
+#endif
+#ifdef SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE
+  os << "macro  SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE : defined\n";
+#else
+  os << "macro  SYCL_EXT_ONEAPI_AUTO_LOCAL_RANGE : undefined\n";
+#endif
+
+#ifdef SYCL_EXT_INTEL_QUEUE_IMMEDIATE_COMMAND_LIST
+  if (sycl_queue()
+          .has_property<
+              sycl::ext::intel::property::queue::immediate_command_list>())
+    os << "Immediate command lists enforced\n";
+  else if (sycl_queue()
+               .has_property<sycl::ext::intel::property::queue::
+                                 no_immediate_command_list>())
+    os << "Standard command queue enforced\n";
+  else
+#endif
+  {
+    os << "Immediate command lists and standard command queue allowed.\n";
+    if (const char* environment_setting =
+            std::getenv("SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS"))
+      os << "SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS="
+         << environment_setting << " takes precedence.\n";
+    else
+      os << "SYCL_PI_LEVEL_ZERO_USE_IMMEDIATE_COMMANDLISTS not defined.\n";
+  }
+
+  int counter       = 0;
+  int active_device = Kokkos::device_id();
+  std::cout << "\nAvailable devices: \n";
+  std::vector<sycl::device> devices = Impl::get_sycl_devices();
+  for (const auto& device : devices) {
+    std::string device_type;
+    switch (device.get_info<sycl::info::device::device_type>()) {
+      case sycl::info::device_type::cpu: device_type = "cpu"; break;
+      case sycl::info::device_type::gpu: device_type = "gpu"; break;
+      case sycl::info::device_type::accelerator:
+        device_type = "accelerator";
+        break;
+      case sycl::info::device_type::custom: device_type = "custom"; break;
+      case sycl::info::device_type::automatic: device_type = "automatic"; break;
+      case sycl::info::device_type::host: device_type = "host"; break;
+      case sycl::info::device_type::all: device_type = "all"; break;
+    }
+    os << "[" << device.get_backend() << "]:" << device_type << ':' << counter
+       << "] " << device.get_info<sycl::info::device::name>();
+    if (counter == active_device)
+      os << " : Selected";
+    else
+      os << " : Not Selected";
+    os << '\n';
+    ++counter;
+  }
+
+  if (verbose) {
+    os << '\n';
+    SYCL::impl_sycl_info(os, sycl_queue().get_device());
+  }
+}
+
+void SYCL::fence(const std::string& name) const {
+  Impl::SYCLInternal::fence(sycl_queue(), name, impl_instance_id());
+}
+
+void SYCL::impl_static_fence(const std::string& name) {
+  Kokkos::Tools::Experimental::Impl::profile_fence_event<Kokkos::SYCL>(
+      name,
+      Kokkos::Tools::Experimental::SpecialSynchronizationCases::
+          GlobalDeviceSynchronization,
+      [&]() {
+        // guard accessing all_queues
+        std::scoped_lock lock(Impl::SYCLInternal::mutex);
+        for (auto& queue : Impl::SYCLInternal::all_queues) {
+          try {
+            queue->wait_and_throw();
+          } catch (sycl::exception const& e) {
+            Kokkos::Impl::throw_runtime_exception(
+                std::string("There was a synchronous SYCL error:\n") +=
+                e.what());
+          }
+        }
+      });
+}
+
+void SYCL::impl_initialize(InitializationSettings const& settings) {
+  const auto& visible_devices = ::Kokkos::Impl::get_visible_devices();
+  const auto id =
+      ::Kokkos::Impl::get_gpu(settings).value_or(visible_devices[0]);
+  std::vector<sycl::device> sycl_devices = Impl::get_sycl_devices();
+  Impl::SYCLInternal::default_instance =
+      Impl::HostSharedPtr(new Impl::SYCLInternal(sycl_devices[id]));
+  Impl::SYCLInternal::m_syclDev = id;
+#ifdef KOKKOS_IMPL_SYCL_DEVICE_GLOBAL_SUPPORTED
+  // Init the array for used for arbitrarily sized atomics
+  desul::Impl::init_lock_arrays();
+  desul::Impl::init_lock_arrays_sycl(
+      Impl::SYCLInternal::default_instance->m_queue);
+#endif
+}
+
+std::ostream& SYCL::impl_sycl_info(std::ostream& os,
+                                   const sycl::device& device) {
+  using namespace sycl::info;
+  return os << "Name: " << device.get_info<device::name>()
+            << "\nDriver Version: " << device.get_info<device::driver_version>()
+            << "\nIs CPU: " << device.is_cpu()
+            << "\nIs GPU: " << device.is_gpu()
+            << "\nIs Accelerator: " << device.is_accelerator()
+            << "\nVendor Id: " << device.get_info<device::vendor_id>()
+            << "\nMax Compute Units: "
+            << device.get_info<device::max_compute_units>()
+            << "\nMax Work Item Dimensions: "
+            << device.get_info<device::max_work_item_dimensions>()
+            << "\nMax Work Group Size: "
+            << device.get_info<device::max_work_group_size>()
+            << "\nPreferred Vector Width Char: "
+            << device.get_info<device::preferred_vector_width_char>()
+            << "\nPreferred Vector Width Short: "
+            << device.get_info<device::preferred_vector_width_short>()
+            << "\nPreferred Vector Width Int: "
+            << device.get_info<device::preferred_vector_width_int>()
+            << "\nPreferred Vector Width Long: "
+            << device.get_info<device::preferred_vector_width_long>()
+            << "\nPreferred Vector Width Float: "
+            << device.get_info<device::preferred_vector_width_float>()
+            << "\nPreferred Vector Width Double: "
+            << device.get_info<device::preferred_vector_width_double>()
+            << "\nPreferred Vector Width Half: "
+            << device.get_info<device::preferred_vector_width_half>()
+            << "\nNative Vector Width Char: "
+            << device.get_info<device::native_vector_width_char>()
+            << "\nNative Vector Width Short: "
+            << device.get_info<device::native_vector_width_short>()
+            << "\nNative Vector Width Int: "
+            << device.get_info<device::native_vector_width_int>()
+            << "\nNative Vector Width Long: "
+            << device.get_info<device::native_vector_width_long>()
+            << "\nNative Vector Width Float: "
+            << device.get_info<device::native_vector_width_float>()
+            << "\nNative Vector Width Double: "
+            << device.get_info<device::native_vector_width_double>()
+            << "\nNative Vector Width Half: "
+            << device.get_info<device::native_vector_width_half>()
+            << "\nAddress Bits: " << device.get_info<device::address_bits>()
+            << "\nMax Mem Alloc Size: "
+            << device.get_info<device::max_mem_alloc_size>()
+            << "\nMax Read Image Args: "
+            << device.get_info<device::max_read_image_args>()
+            << "\nImage2d Max Width: "
+            << device.get_info<device::image2d_max_width>()
+            << "\nImage2d Max Height: "
+            << device.get_info<device::image2d_max_height>()
+            << "\nImage3d Max Width: "
+            << device.get_info<device::image3d_max_width>()
+            << "\nImage3d Max Height: "
+            << device.get_info<device::image3d_max_height>()
+            << "\nImage3d Max Depth: "
+            << device.get_info<device::image3d_max_depth>()
+            << "\nImage Max Buffer Size: "
+            << device.get_info<device::image_max_buffer_size>()
+            << "\nMax Samplers: " << device.get_info<device::max_samplers>()
+            << "\nMax Parameter Size: "
+            << device.get_info<device::max_parameter_size>()
+            << "\nMem Base Addr Align: "
+            << device.get_info<device::mem_base_addr_align>()
+            << "\nGlobal Cache Mem Line Size: "
+            << device.get_info<device::global_mem_cache_line_size>()
+            << "\nGlobal Mem Cache Size: "
+            << device.get_info<device::global_mem_cache_size>()
+            << "\nGlobal Mem Size: "
+            << device.get_info<device::global_mem_size>()
+            << "\nLocal Mem Size: " << device.get_info<device::local_mem_size>()
+            << "\nError Correction Support: "
+            << device.get_info<device::error_correction_support>()
+            << "\nProfiling Timer Resolution: "
+            << device.get_info<device::profiling_timer_resolution>()
+            << "\nIs Available: " << device.get_info<device::is_available>()
+            << "\nVendor: " << device.get_info<device::vendor>()
+            << "\nVersion: " << device.get_info<device::version>()
+            << "\nPartition Max Sub Devices: "
+            << device.get_info<device::partition_max_sub_devices>()
+            << "\nReference Count: "
+            << device.get_info<device::reference_count>() << '\n';
+}
+
+namespace Impl {
+
+std::vector<sycl::device> get_sycl_devices() {
+#if defined(KOKKOS_ARCH_INTEL_GPU) || defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU) || \
+    defined(KOKKOS_ARCH_AMD_GPU)
+  std::vector<sycl::device> devices =
+      sycl::device::get_devices(sycl::info::device_type::gpu);
+#if defined(KOKKOS_ARCH_INTEL_GPU)
+  sycl::backend backend = sycl::backend::ext_oneapi_level_zero;
+#elif defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
+  sycl::backend backend = sycl::backend::ext_oneapi_cuda;
+#elif defined(KOKKOS_ARCH_AMD_GPU)
+  sycl::backend backend = sycl::backend::ext_oneapi_hip;
+#endif
+  devices.erase(std::remove_if(devices.begin(), devices.end(),
+                               [backend](const sycl::device& d) {
+                                 return d.get_backend() != backend;
+                               }),
+                devices.end());
+#else
+  std::vector<sycl::device> devices = sycl::device::get_devices();
+#endif
+  return devices;
+}
+
+int g_sycl_space_factory_initialized =
+    Kokkos::Impl::initialize_space_factory<SYCL>("170_SYCL");
+
+}  // namespace Impl
+}  // namespace Kokkos

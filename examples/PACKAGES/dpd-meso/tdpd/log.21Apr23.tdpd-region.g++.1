@@ -1,0 +1,174 @@
+LAMMPS (28 Mar 2023 - Development)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+########################################################################
+### Pure diffusion with a reaction source term analog of a periodic  ###
+### Poiseuille flow problem using transport DPD (tDPD) simulation    ###
+###                                                                  ###
+### Created  : Zhen Li (zhen_li@brown.edu)                           ###
+###            Division of Applied Mathematics, Brown University.    ###
+###                                                                  ###
+### tDPD system setup follows Fig.1 in the publication:              ###
+### Z. Li, A. Yazdani, A. Tartakovsky and G.E. Karniadakis.          ###
+### "Transport dissipative particle dynamics model for mesoscopic    ###
+### advection-diffusion-reaction problems. J. Chem. Phys.,           ###
+### 2015, 143: 014101. DOI: 10.1063/1.4923254                        ###
+########################################################################
+units                   lj
+dimension               3
+boundary                p p p
+neighbor                0.2 bin
+neigh_modify        every 1 delay 0 check yes
+
+atom_style              tdpd 2
+comm_modify  vel yes
+
+region     tdpd     block -10 10 -10 10 -5 5 units box
+create_box          1 tdpd
+Created orthogonal box = (-10 -10 -5) to (10 10 5)
+  1 by 1 by 1 MPI processor grid
+create_atoms        1 random 16000 276438 NULL
+Created 16000 atoms
+  using lattice units in orthogonal box = (-10 -10 -5) to (10 10 5)
+  create_atoms CPU = 0.002 seconds
+mass                1 1.0
+set                 atom * cc 1 1.0
+Setting atom values ...
+  16000 settings made for cc index 1
+set                 atom * cc 2 1.0
+Setting atom values ...
+  16000 settings made for cc index 2
+
+pair_style          tdpd 1.0 1.58 9872598
+pair_coeff          1 1 18.75 4.5 0.41 1.58 1.58 1.0 1.0E-5 2.0 3.0 1.0E-5 2.0
+
+compute             mythermo all temp
+thermo              50
+thermo_modify       temp mythermo
+thermo_modify       flush yes
+
+velocity            all create 1.0 432982 loop local dist gaussian
+
+region upper block -10.0  10.0   0.0 10.0 -5.0 5.0
+region lower block -10.0  10.0 -10.0  0.0 -5.0 5.0
+
+fix         mvv     all mvv/tdpd 0.5
+fix         upper1  all tdpd/source 1 region upper  0.01
+fix         lower1  all tdpd/source 1 region lower -0.01
+fix         upper2  all tdpd/source 2 region upper -0.01
+fix         lower2  all tdpd/source 2 region lower  0.01
+
+timestep            0.01
+run                 500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair tdpd command: doi:10.1063/1.4923254
+
+@Article{ZLi2015_JCP,
+ author = {Li, Z. and Yazdani, A. and Tartakovsky, A. and Karniadakis, G. E.},
+ title = {Transport Dissipative Particle Dynamics Model for Mesoscopic Advection-Diffusion-Reaction Problems},
+ journal = {The Journal of Chemical Physics},
+ year = {2015},
+ volume = {143},
+ number = {1},
+ pages = {014101}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.78
+  ghost atom cutoff = 1.78
+  binsize = 0.89, bins = 23 23 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tdpd, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.51 | 12.51 | 12.51 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1              48.942039      0              50.441946      201.70031    
+        50   1.011026       43.947278      0              45.463722      194.91628    
+       100   1.0038328      43.75705       0              45.262706      197.34972    
+       150   1.0024595      43.731513      0              45.235109      196.71302    
+       200   0.99175816     43.70274       0              45.190285      194.60811    
+       250   0.99533515     43.714618      0              45.207528      197.48663    
+       300   0.99335422     43.711138      0              45.201076      196.84197    
+       350   1.0012089      43.71311       0              45.214829      193.04504    
+       400   1.0085738      43.717565      0              45.230331      197.2073     
+       450   0.99147043     43.722807      0              45.209919      200.14351    
+       500   1.0005014      43.717024      0              45.217682      197.81942    
+Loop time of 60.8937 on 1 procs for 500 steps with 16000 atoms
+
+Performance: 7094.326 tau/day, 8.211 timesteps/s, 131.376 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 54.659     | 54.659     | 54.659     |   0.0 | 89.76
+Neigh   | 5.4068     | 5.4068     | 5.4068     |   0.0 |  8.88
+Comm    | 0.3543     | 0.3543     | 0.3543     |   0.0 |  0.58
+Output  | 0.000998   | 0.000998   | 0.000998   |   0.0 |  0.00
+Modify  | 0.40125    | 0.40125    | 0.40125    |   0.0 |  0.66
+Other   |            | 0.0716     |            |       |  0.12
+
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          14049 ave       14049 max       14049 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         749053 ave      749053 max      749053 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 749053
+Ave neighs/atom = 46.815812
+Neighbor list builds = 184
+Dangerous builds = 0
+reset_timestep      0
+
+compute     cc1     all tdpd/cc/atom 1
+compute     cc2     all tdpd/cc/atom 2
+compute     bin     all chunk/atom bin/1d y 0.0 1.0
+fix         stat    all ave/chunk 1 100 100 bin c_cc1 c_cc2 norm sample file cc.profile
+
+run                 100
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 13.01 | 13.01 | 13.01 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1.0005014      43.717024      0              45.217682      199.49297    
+        50   0.99569204     43.716832      0              45.210276      197.52311    
+       100   0.99430734     43.714806      0              45.206174      197.74323    
+Loop time of 13.6219 on 1 procs for 100 steps with 16000 atoms
+
+Performance: 6342.747 tau/day, 7.341 timesteps/s, 117.458 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 12.231     | 12.231     | 12.231     |   0.0 | 89.79
+Neigh   | 1.1657     | 1.1657     | 1.1657     |   0.0 |  8.56
+Comm    | 0.08547    | 0.08547    | 0.08547    |   0.0 |  0.63
+Output  | 0.00018984 | 0.00018984 | 0.00018984 |   0.0 |  0.00
+Modify  | 0.12218    | 0.12218    | 0.12218    |   0.0 |  0.90
+Other   |            | 0.01695    |            |       |  0.12
+
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          14065 ave       14065 max       14065 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         749621 ave      749621 max      749621 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 749621
+Ave neighs/atom = 46.851312
+Neighbor list builds = 36
+Dangerous builds = 0
+Total wall time: 0:01:14

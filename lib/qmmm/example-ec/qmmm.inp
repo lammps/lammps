@@ -1,0 +1,24 @@
+# configuration file for QMMM wrapper
+
+#mode     mech         # coupling choices: o(ff), m(echanical), e(lectrostatic)
+mode     e         # coupling choices: o(ff), m(echanical), e(lectrostatic)
+handle   qmmm         # name of sysv shmem handle
+steps    100           # number of QM/MM (MD) steps
+verbose  1  
+restart    water.restart  # checkpoint/restart file to write out at end
+
+# QM system config
+qmdir    qm-pw        # directory to run QM system in
+qminp    water.in     # input file for QM code
+qmout    NULL         # output file for QM code (or NULL to print to screen)
+
+# MM master config
+madir    mm-master    # directory to run MM master in
+mainp    water.in     # input file for MM master
+maout    water.out    # output file for MM master (or NULL to print to screen)
+
+# MM slave config
+sldir    mm-slave          # directory to run MM slave in
+slinp    water_single.in   # input file for MM slave
+slout    water_single.out  # output file for MM slave (or NULL to print to screen)
+

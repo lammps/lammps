@@ -1,0 +1,50 @@
+# Streitz-Mintmire potential with alpha-alumina
+# option to use with Ewald or Wolf sum
+# EAM (AlO.eam.alloy) includes 1994 SM and 2004 Zhou versions
+# Streitz Mintmire (coul/streitz) does not include 2004 Zhou modifications
+# Contributing authors: Ray Shan, Chris Weinberger (Sandia)
+
+units		metal
+atom_style	charge
+dimension       3
+boundary        p p p
+
+read_data    	data.streitz
+
+group    	type1 type 1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+
+variable   	qcat equal 2.8
+variable  	qani equal -${qcat}*count(type1)/count(type2)
+set   		group type1 charge ${qcat}
+set   		group type2 charge ${qani}
+variable   	qsum equal count(type1)*c_q1+count(type2)*c_q2
+
+# Ewald sum for coul/streitz
+pair_style  	hybrid/overlay coul/streitz 12.0 ewald eam/alloy
+kspace_style  	ewald 1e-6
+
+# Wolf sum for coul/streitz
+#pair_style  	hybrid/overlay coul/streitz 12.0 wolf 0.31 eam/alloy
+
+pair_coeff   	* * coul/streitz AlO.streitz Al O
+pair_coeff   	* * eam/alloy AlO.eam.alloy Al O
+
+neighbor	1.0 bin
+neigh_modify	every 10 delay 0 check yes
+timestep        0.0004
+
+thermo_style	custom step temp etotal pe evdwl ecoul elong &
+                c_q1 c_q2 v_qsum press spcpu
+thermo_modify  	norm yes
+thermo   	10
+
+velocity  	all create 300.0 42128
+fix     	1 all qeq/slater 1 12.0 1.0e-6 100 coul/streitz
+fix     	2 all nve
+
+run    		100

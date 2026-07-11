@@ -1,0 +1,407 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.6. Communication patterns &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_comm_ops.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.7. How a timestep works" href="Developer_flow.html" />
+    <link rel="prev" title="4.5. Accessing per-atom data" href="Developer_atom.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.6. Communication patterns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#owned-and-ghost-atoms">4.6.1. Owned and ghost atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#higher-level-communication">4.6.2. Higher level communication</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_updating.html">4.10. Notes for updating code written for older LAMMPS versions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.6. </span>Communication patterns</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_atom.html" class="btn btn-neutral float-left" title="4.5. Accessing per-atom data" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_flow.html" class="btn btn-neutral float-right" title="4.7. How a timestep works" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="communication-patterns">
+<h1><span class="section-number">4.6. </span>Communication patterns<a class="headerlink" href="#communication-patterns" title="Link to this heading"></a></h1>
+<p>This page describes various inter-processor communication operations
+provided by LAMMPS, mostly in the core <em>Comm</em> class.  These are operations
+for common tasks implemented using MPI library calls.  They are used by
+other classes to perform communication of different kinds.  These
+operations are useful to know about when writing new code for LAMMPS
+that needs to communicate data between processors.</p>
+<section id="owned-and-ghost-atoms">
+<h2><span class="section-number">4.6.1. </span>Owned and ghost atoms<a class="headerlink" href="#owned-and-ghost-atoms" title="Link to this heading"></a></h2>
+<p>As described on the <a class="reference internal" href="Developer_par_part.html"><span class="doc">parallel partitioning algorithms</span></a> page, LAMMPS spatially decomposes the simulation
+domain, either in a <em>brick</em> or <em>tiled</em> manner.  Each processor (MPI
+task) owns atoms within its subdomain and additionally stores ghost
+atoms within a cutoff distance of its subdomain.</p>
+<section id="forward-and-reverse-communication">
+<h3>Forward and reverse communication<a class="headerlink" href="#forward-and-reverse-communication" title="Link to this heading"></a></h3>
+<p>As described on the <a class="reference internal" href="Developer_par_comm.html"><span class="doc">parallel communication algorithms</span></a> page, the most common communication operations are
+first, <em>forward communication</em> which sends owned atom information from
+each processor to nearby processors to store with their ghost atoms.
+The need to do this communication arises when data from the owned atoms
+is updated (e.g. their positions) and this updated information needs to
+be <strong>copied</strong> to the corresponding ghost atoms.</p>
+<p>And second, <em>reverse communication</em>, which sends ghost atom information
+from each processor to the owning processor to <strong>accumulate</strong> (sum)
+the values with the corresponding owned atoms.  The need for this
+arises when data is computed and also stored with ghost atoms
+(e.g. forces when using a “half” neighbor list) and thus those terms
+need to be added to their corresponding atoms on the process where
+they are “owned” atoms.  Please note, that with the <a class="reference internal" href="newton.html"><span class="doc">newton off</span></a> setting this does not happen and the neighbor lists are
+constructed so that these interactions are computed on both MPI
+processes containing one of the atoms and only the data pertaining to
+the local atom is stored.</p>
+<p>The time-integration classes in LAMMPS invoke these operations each
+timestep via the <em>forward_comm()</em> and <em>reverse_comm()</em> methods in the
+<em>Comm</em> class.  Which per-atom data is communicated depends on the
+currently used <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> and whether
+<a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel</span></a> setting is “no” (default) or
+“yes”.</p>
+<p>Similarly, <em>Pair</em> style classes can invoke the <em>forward_comm(this)</em>
+and <em>reverse_comm(this)</em> methods in the <em>Comm</em> class to perform the
+same operations on per-atom data that is generated and stored within
+the pair style class. Note that this function requires passing the
+<code class="docutils literal notranslate"><span class="pre">this</span></code> pointer as the first argument to enable the <em>Comm</em> class to
+call the “pack” and “unpack” functions discussed below.  An example of
+the use of these functions are many-body pair styles like the
+embedded-atom method (EAM) which compute intermediate values in the
+first part of the compute() function that need to be stored by both
+owned and ghost atoms for the second part of the force computation.
+The <em>Comm</em> class methods perform the MPI communication for buffers of
+per-atom data.  They “call back” to the <em>Pair</em> class, so it can <em>pack</em>
+or <em>unpack</em> the buffer with data the <em>Pair</em> class owns.  There are 4
+such methods that the <em>Pair</em> class must define, assuming it uses both
+forward and reverse communication:</p>
+<ul class="simple">
+<li><p>pack_forward_comm()</p></li>
+<li><p>unpack_forward_comm()</p></li>
+<li><p>pack_reverse_comm()</p></li>
+<li><p>unpack_reverse_comm()</p></li>
+</ul>
+<p>The arguments to these methods include the buffer and a list of atoms
+to pack or unpack.  The <em>Pair</em> class also must set the <em>comm_forward</em>
+and <em>comm_reverse</em> variables, which store the number of values stored
+in the communication buffers for each operation.  This means, if
+desired, it can choose to store multiple per-atom values in the
+buffer, and they will be communicated together to minimize
+communication overhead.  The communication buffers are defined vectors
+containing <code class="docutils literal notranslate"><span class="pre">double</span></code> values.  To correctly store integers that may be
+64-bit (bigint, tagint, imageint) in the buffer, you need to use the
+<a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf"><span class="std std-ref">ubuf union</span></a> construct.</p>
+<p>The <em>Fix</em>, <em>Bond</em>, <em>Compute</em>, and <em>Dump</em> classes can also invoke the
+same kind of forward and reverse communication operations using the
+same <em>Comm</em> class methods.  Likewise, the same pack/unpack methods and
+comm_forward/comm_reverse variables must be defined by the calling
+<em>Fix</em>, <em>Bond</em>, <em>Compute</em>, or <em>Dump</em> class.</p>
+<p>For all of these classes, there is an optional second argument to the
+<em>forward_comm()</em> and <em>reverse_comm()</em> call which can be used when the
+class performs multiple modes of communication, with different numbers
+of values per atom.  The class should set the <em>comm_forward</em> and
+<em>comm_reverse</em> variables to the maximum value, but can invoke the
+communication for a particular mode with a smaller value.  For this
+to work, the <em>pack_forward_comm()</em>, etc. methods typically use a class
+member variable to choose which values to pack/unpack into/from the
+buffer.</p>
+<p>Finally, for reverse communications in <em>Fix</em> classes there is also the
+<em>reverse_comm_variable()</em> method that allows the communication to have
+a different amount of data per-atom.  It invokes these corresponding
+callback methods:</p>
+<ul class="simple">
+<li><p>pack_reverse_comm_size()</p></li>
+<li><p>unpack_reverse_comm_size()</p></li>
+</ul>
+<p>which have extra arguments to specify the amount of data stored
+in the buffer for each atom.</p>
+</section>
+</section>
+<section id="higher-level-communication">
+<h2><span class="section-number">4.6.2. </span>Higher level communication<a class="headerlink" href="#higher-level-communication" title="Link to this heading"></a></h2>
+<p>There are also several higher-level communication operations provided
+in LAMMPS which work for either <em>brick</em> or <em>tiled</em> decompositions.
+They may be useful for a new class to invoke if it requires more
+sophisticated communication than the <em>forward</em> and <em>reverse</em> methods
+provide.  The 3 communication operations described here are</p>
+<ul class="simple">
+<li><p>ring</p></li>
+<li><p>irregular</p></li>
+<li><p>rendezvous</p></li>
+</ul>
+<p>You can invoke these <em>grep</em> command in the LAMMPS src directory, to
+see a list of classes that invoke the 3 operations.</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">grep</span> <span class="pre">&quot;\-&gt;ring&quot;</span> <span class="pre">*.cpp</span> <span class="pre">*/*.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grep</span> <span class="pre">&quot;irregular\-&gt;&quot;</span> <span class="pre">*.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">grep</span> <span class="pre">&quot;\-&gt;rendezvous&quot;</span> <span class="pre">*.cpp</span> <span class="pre">*/*.cpp</span></code></p></li>
+</ul>
+<section id="ring-operation">
+<h3>Ring operation<a class="headerlink" href="#ring-operation" title="Link to this heading"></a></h3>
+<p>The <em>ring</em> operation is invoked via the <em>ring()</em> method in the <em>Comm</em>
+class.</p>
+<p>Each processor first creates a buffer with a list of values, typically
+associated with a subset of the atoms it owns.  Now think of the <em>P</em>
+processors as connected to each other in a <em>ring</em>.  Each processor <em>M</em>
+sends data to the next <em>M+1</em> processor.  It receives data from the
+preceding <em>M-1</em> processor.  The ring is periodic so that the last
+processor sends to the first processor, and the first processor
+receives from the last processor.</p>
+<p>Invoking the <em>ring()</em> method passes each processor’s buffer in <em>P</em>
+steps around the ring.  At each step a <em>callback</em> method, provided as
+an argument to ring(), in the caller is invoked.  This allows each
+processor to examine the data buffer provided by every other
+processor.  It may extract values needed by its atoms from the
+buffers, or it may alter placeholder values in the buffer.  In the
+latter case, when the <em>ring</em> operation is complete, each processor can
+examine its original buffer to extract modified values.</p>
+<p>Note that the <em>ring</em> operation is similar to an MPI_Alltoall()
+operation, where every processor effectively sends and receives data to
+every other processor.  The difference is that the <em>ring</em> operation
+does it one step at a time, so the total volume of data does not need
+to be stored by every processor.  However, the <em>ring</em> operation is
+also less efficient than MPI_Alltoall() because of the <em>P</em> stages
+required.  So it is typically only suitable for small data buffers and
+occasional operations that are not time-critical.</p>
+</section>
+<section id="irregular-operation">
+<h3>Irregular operation<a class="headerlink" href="#irregular-operation" title="Link to this heading"></a></h3>
+<p>The <em>irregular</em> operation is provided by the <em>Irregular</em> class.  What
+LAMMPS terms irregular communication is when each processor knows what
+data it needs to send to what processor, but does not know what
+processors are sending it data.  An example is when load-balancing is
+performed and each processor needs to send some of its atoms to new
+processors.</p>
+<p>The <em>Irregular</em> class provides 5 high-level methods useful in this
+context:</p>
+<ul class="simple">
+<li><p>create_data()</p></li>
+<li><p>exchange_data()</p></li>
+<li><p>create_atom()</p></li>
+<li><p>exchange_atom()</p></li>
+<li><p>migrate_atoms()</p></li>
+</ul>
+<p>For the <em>create_data()</em> method, each processor specifies a list of <em>N</em>
+datums to send, each to a specified processor.  Internally, the method
+creates efficient data structures for performing the communication.
+The <em>exchange_data()</em> method triggers the communication to be
+performed.  Each processor provides the vector of <em>N</em> datums to send,
+and the size of each datum.  All datums must be the same size.</p>
+<p>The <em>create_atom()</em> and <em>exchange_atom()</em> methods are similar, except
+that the size of each datum can be different.  Typically, this is used
+to communicate atoms, each with a variable amount of per-atom data, to
+other processors.</p>
+<p>The <em>migrate_atoms()</em> method is a convenience wrapper on the
+<em>create_atom()</em> and <em>exchange_atom()</em> methods to simplify
+communication of all the per-atom data associated with an atom so that
+the atom can effectively migrate to a new owning processor.  It is
+similar to the <em>exchange()</em> method in the <em>Comm</em> class invoked when
+atoms move to neighboring processors (in the regular or tiled
+decomposition) during timestepping, except that it allows atoms to
+have moved arbitrarily long distances and still be properly
+communicated to a new owning processor.</p>
+</section>
+<section id="rendezvous-operation">
+<h3>Rendezvous operation<a class="headerlink" href="#rendezvous-operation" title="Link to this heading"></a></h3>
+<p>Finally, the <em>rendezvous</em> operation is invoked via the <em>rendezvous()</em>
+method in the <em>Comm</em> class.  Depending on how much communication is
+needed and how many processors a LAMMPS simulation is running on, it
+can be a much more efficient choice than the <em>ring()</em> method.  It uses
+the <em>irregular</em> operation internally once or twice to do its
+communication.  The rendezvous algorithm is described in detail in
+<a class="reference internal" href="#plimpton"><span class="std std-ref">(Plimpton)</span></a>, including some LAMMPS use cases.</p>
+<p>For the <em>rendezvous()</em> method, each processor specifies a list of <em>N</em>
+datums to send and which processor to send each of them to.
+Internally, this communication is performed as an irregular operation.
+The received datums are returned to the caller via invocation of
+<em>callback</em> function, provided as an argument to <em>rendezvous()</em>.  The
+caller can then process the received datums and (optionally) assemble
+a new list of datums to communicate to a new list of specific
+processors.  When the callback function exits, the <em>rendezvous()</em>
+method performs a second irregular communication on the new list of
+datums.</p>
+<p>Examples in LAMMPS of use of the <em>rendezvous</em> operation are the
+<a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid/small</span></a> and <a class="reference internal" href="fix_shake.html"><span class="doc">fix shake</span></a> commands (for one-time identification of the rigid body
+atom clusters) and the identification of special_bond 1-2, 1-3 and 1-4
+neighbors within molecules.  See the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a>
+command for context.</p>
+<hr class="docutils" />
+<p id="plimpton"><strong>(Plimpton)</strong> Plimpton and Knight, JPDC, 147, 184-195 (2021).</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_atom.html" class="btn btn-neutral float-left" title="4.5. Accessing per-atom data" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_flow.html" class="btn btn-neutral float-right" title="4.7. How a timestep works" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,49 @@
+variable	sname index h2
+
+units 		electron
+newton		on
+boundary        p p p
+
+atom_style	electron
+
+read_data  	data.${sname}
+
+pair_style      eff/cut 6.447968 pressure/evirials
+pair_coeff 	* *
+
+comm_modify	vel yes
+
+min_style	cg
+min_modify	line quadratic
+minimize 	0 1.0e-6 1000 2000
+
+region 		part block INF 2.0 INF 2.0 INF 5.0 units box
+group		sub id < 32
+
+compute		effTemp all temp/eff
+compute         effPress all pressure effTemp
+compute 	regionT sub temp/region/eff part 
+
+compute		peratom all stress/atom NULL
+compute		p all reduce sum c_peratom[1] c_peratom[2] c_peratom[3]
+variable	press equal -(c_p[1]+c_p[2]+c_p[3])/(3*vol)
+
+thermo		100
+thermo_style	custom step etotal pe ke temp press v_press c_regionT
+thermo_modify	temp effTemp press effPress
+
+#velocity all create 300.0 4928459 rot yes dist gaussian
+
+fix 		3 all temp/rescale/eff 10 0.0 300.0 0.02 1.0
+fix		1 all nve/eff
+
+run		10000
+unfix		3
+
+#compute         1 all property/atom spin eradius
+#fix		1 all npt/eff temp 3000.0 3000.0 0.1 iso 1e7 1e7 1.0 drag 0.5
+#dump		1 all custom 100 dump.file id type q c_1[1] c_1[2] x y z
+
+#fix		1 all nve/eff
+
+run 		10000

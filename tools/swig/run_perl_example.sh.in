@@ -1,0 +1,66 @@
+#!/bin/sh
+
+if [ ! -f pllammps.so ]
+then \
+    echo "Need to compile 'pllammps.so' first for this script to work"
+    exit 1
+fi
+
+cat > example.pl <<EOF
+use pllammps;
+
+\$osinfo = pllammps::lammps_get_os_info(512);
+print("\$osinfo\n");
+
+\$lmp = pllammps::lammps_open_no_mpi(0,undef,undef);
+\$ver = pllammps::lammps_version(\$lmp);
+
+\$npair_styles = pllammps::lammps_style_count(\$lmp, "pair");
+print("LAMMPS includes \$npair_styles pair styles\n");
+for (my \$i=0; \$i < 10; ++\$i) {
+    @res = pllammps::lammps_style_name(\$lmp, "pair", \$i, 128);
+    if (\$res[0] == 1) {
+       print("Style \$i: \$res[1]\n");
+    }
+}
+
+pllammps::lammps_command(\$lmp, "units real");
+pllammps::lammps_command(\$lmp, "lattice fcc 2.5");
+pllammps::lammps_command(\$lmp, "region box block -5 5 -5 5 -5 5");
+pllammps::lammps_command(\$lmp, "create_box 1 box");
+pllammps::lammps_command(\$lmp, "create_atoms 1 box");
+
+\$boxlo_p = pllammps::new_double_1d(3);
+\$boxhi_p = pllammps::new_double_1d(3);
+\$xy_p = pllammps::new_double_p();
+\$yz_p = pllammps::new_double_p();
+\$xz_p = pllammps::new_double_p();
+\$pflags_p = pllammps::new_int_1d(3);
+\$boxflag_p = pllammps::new_int_p();
+
+pllammps::lammps_extract_box(\$lmp, \$boxlo_p, \$boxhi_p, \$xy_p, \$yz_p, \$xz_p, \$pflags_p, \$boxflag_p);
+
+printf "boxlo:    %g %g %g\n", pllammps::double_1d_getitem(\$boxlo_p, 0), pllammps::double_1d_getitem(\$boxlo_p, 1), pllammps::double_1d_getitem(\$boxlo_p, 2);
+printf "boxhi:    %g %g %g\n", pllammps::double_1d_getitem(\$boxhi_p, 0), pllammps::double_1d_getitem(\$boxhi_p, 1), pllammps::double_1d_getitem(\$boxhi_p, 2);
+printf "xy/yz/xz: %g %g %g\n", pllammps::double_p_value(\$xy_p), pllammps::double_p_value(\$yz_p), pllammps::double_p_value(\$xz_p);
+printf "periodicity: %d %d %d\n", pllammps::int_1d_getitem(\$pflags_p, 0), pllammps::int_1d_getitem(\$pflags_p, 1), pllammps::int_1d_getitem(\$pflags_p, 2);
+printf "boxflag:  %d\n", pllammps::int_p_value(\$boxflag_p);
+pllammps::delete_double_1d(\$boxlo_p);
+pllammps::delete_double_1d(\$boxhi_p);
+pllammps::delete_int_1d(\$pflags_p);
+pllammps::delete_double_p(\$xy_p);
+pllammps::delete_double_p(\$yz_p);
+pllammps::delete_double_p(\$xz_p);
+pllammps::delete_int_p(\$boxflag_p);
+
+print "LAMMPS version ", \$ver, "\n";
+print "Number of created atoms: ", pllammps::lammps_get_natoms(\$lmp), "\n";
+print "Current size of timestep: ", pllammps::double_p_value(pllammps::void_p_to_double_p(pllammps::lammps_extract_global(\$lmp,"dt"))), "\n";
+pllammps::lammps_close(\$lmp)
+EOF
+
+PERL5LIB=${PWD}:${PERL5LIB-${PWD}}
+
+export PERL5LIB
+
+@PERL_EXECUTABLE@ example.pl

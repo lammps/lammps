@@ -1,0 +1,63 @@
+
+boundary        p p p
+
+units		metal
+timestep	0.001
+
+lattice         fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region          box block 0 20 0 20 0 20
+create_box      1 box
+Created orthogonal box = (0 0 0) to (70.4 70.4 70.4)
+  2 by 2 by 4 MPI processor grid
+create_atoms    1 box
+Created 32000 atoms
+
+pair_style      none
+mass            * 58.71
+atom_modify     sort 0 0
+
+compute         XRD all xrd  1.541838 Ni 2Theta 40 80 c 2 2 2 LP 1 echo
+
+compute         SAED all saed 0.0251  Ni Kmax 0.85 Zone 1 0 0 c 0.025 0.025 0.025                  dR_Ewald 0.05 echo manual
+
+fix             1 all ave/histo 1 1 1 40 80 200 c_XRD[1] weights c_XRD[2]                 mode vector file $A.hist.xrd
+fix             1 all ave/histo 1 1 1 40 80 200 c_XRD[1] weights c_XRD[2]                 mode vector file bulkNi.hist.xrd
+
+fix             2 all saed/vtk 1 1 1 c_SAED file $A_001.saed
+fix             2 all saed/vtk 1 1 1 c_SAED file bulkNi_001.saed
+
+
+dump            1 all custom 1 $A.dump id x y z
+dump            1 all custom 1 bulkNi.dump id x y z
+run             0
+Memory usage per processor = 9.6642 Mbytes
+Step Temp E_pair E_mol TotEng Press 
+       0            0            0            0            0            0 
+Loop time of 1.30087e-05 on 16 procs for 0 steps with 32000 atoms
+
+Pair  time (%) = 0 (0)
+Neigh time (%) = 0 (0)
+Comm  time (%) = 0 (0)
+Outpt time (%) = 0 (0)
+Other time (%) = 1.30087e-05 (100)
+
+Nlocal:    2000 ave 2200 max 1800 min
+Histogram: 4 0 0 0 0 8 0 0 0 4
+Nghost:    370.75 ave 426 max 226 min
+Histogram: 4 0 0 0 0 0 0 0 4 8
+Neighs:    0 ave 0 max 0 min
+Histogram: 16 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+unfix           1
+unfix           2
+uncompute       XRD
+uncompute       SAED
+
+Please see the log.cite file for references relevant to this simulation
+

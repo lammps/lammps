@@ -1,0 +1,107 @@
+# 2d SRD test: big + small particles
+
+units		lj
+atom_style	sphere
+atom_modify	first big
+dimension	2
+
+# create big particles with sigma 1.0
+
+lattice		sq 0.4
+region		box block 0 10 0 10 -0.5 0.5
+create_box	2 box
+create_atoms	1 region box
+set		type 1 mass 1.0
+set		type 1 diameter 1.0
+
+group		big type 1
+velocity	big create 1.44 87287 loop geom
+
+# equilibrate big particles
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+neighbor	0.3 bin
+neigh_modify	delay 0 every 1 check yes
+
+fix		1 big nve
+fix		2 all enforce2d
+
+run		1000
+
+unfix		1
+unfix		2
+
+# add small particles as hi density lattice
+
+lattice		sq 0.4
+region		plane block 0 10 0 10 -0.001 0.001
+lattice		sq 85.0
+create_atoms	2 region plane
+set		type 2 mass 0.01
+set		type 2 diameter 0.0
+
+group		small type 2
+
+velocity	small create 1.0 593849 loop geom
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.5
+
+delete_atoms	overlap 0.5 small big
+
+# SRD run
+
+reset_timestep	0
+
+neighbor	0.3 multi
+neigh_modify	delay 0 every 1 check yes
+
+comm_modify	mode multi group big vel yes
+neigh_modify	include big
+
+# no pairwise interactions with small particles
+
+pair_style	lj/cut 2.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+# use fix SRD to push small particles out from inside big ones
+
+timestep	0.001
+
+fix		1 big nve
+fix	        2 small srd 20 big 1.0 0.25 49894 &
+		  radius 0.88 search 0.2 collision slip
+fix		3 all enforce2d
+
+# diagnostics
+
+compute		tbig big temp
+variable	pebig equal pe*atoms/count(big)
+variable	ebig equal etotal*atoms/count(big)
+thermo_style	custom step temp f_2[7] etotal v_pebig v_ebig press &
+		f_2[1] f_2[2] f_2[3] f_2[4] f_2[5] &
+		f_2[6] f_2[8] f_2[9] f_2[10]
+
+thermo_modify	temp tbig
+thermo		100
+
+#dump		1 all atom 250 dump.srd.mixture
+
+#dump		2 all image 250 image.*.jpg type type zoom 1.6
+#dump_modify	2 pad 4 adiam 1 1 adiam 2 0.2
+
+#dump		3 all movie 250 movie.mpg type type zoom 1.6
+#dump_modify	3 pad 4 adiam 1 1 adiam 2 0.2
+
+run		5000

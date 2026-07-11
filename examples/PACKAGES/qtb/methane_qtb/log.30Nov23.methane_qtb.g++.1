@@ -1,0 +1,174 @@
+LAMMPS (21 Nov 2023)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+  using 1 OpenMP thread(s) per MPI task
+## This script first constructs a liquid methane structure of a given size. It then uses fix qtb to equilibrate the computational cell to the specified temperature and pressure.
+variable                x_rep equal 2                                                                           #x-direction replication number
+variable                y_rep equal 2                                                                           #y-direction replication number
+variable                z_rep equal 2                                                                           #z-direction replication number
+variable                temperature equal 110.0                                                                 #Target quantum temperature (K in real units)
+variable                delta_t equal 0.25                                                                      #MD timestep length (fs in real units)
+variable                damp_qtb equal 200                                                                      #1/gamma where gamma is the friction coefficient in quantum thermal bath (fs in real units)
+
+
+## This part defines units, methane structure, and atomic information
+#General
+units                   real
+dimension               3
+boundary                p p p
+atom_style              charge
+
+#Lattice
+lattice                 custom 1.0                         a1      3.9783624 0 0                         a2      0 3.9783624 0                         a3      0 0 3.9783624                                                 basis   0.5 0.5 0.5                         basis   0.663 0.663 0.663                         basis   0.337 0.337 0.663                         basis   0.663 0.337 0.337                         basis   0.337 0.663 0.337
+Lattice spacing in x,y,z = 3.9783624 3.9783624 3.9783624
+
+#Computational Cell
+region                  simbox block 0 3.9783624 0 3.9783624 0 3.9783624 units box
+create_box              2 simbox
+Created orthogonal box = (0 0 0) to (3.9783624 3.9783624 3.9783624)
+  1 by 1 by 1 MPI processor grid
+create_atoms            1 box                         basis   1 1                         basis   2 2                         basis   3 2                         basis   4 2                         basis   5 2
+Created 5 atoms
+  using lattice units in orthogonal box = (0 0 0) to (3.9783624 3.9783624 3.9783624)
+  create_atoms CPU = 0.000 seconds
+replicate               ${x_rep} ${y_rep} ${z_rep}
+replicate               2 ${y_rep} ${z_rep}
+replicate               2 2 ${z_rep}
+replicate               2 2 2
+Replication is creating a 2x2x2 = 8 times larger system...
+  orthogonal box = (0 0 0) to (7.9567248 7.9567248 7.9567248)
+  1 by 1 by 1 MPI processor grid
+  40 atoms
+  replicate CPU = 0.001 seconds
+
+#Atomic Information
+mass                    1 12.011150
+mass                    2  1.007970
+
+
+## This part defines the reax pair potential in methane, force field coefficients are specified in "ffield.reax"
+#Pair Potentials
+pair_style              reaxff NULL
+pair_coeff              * * ffield.reax C H
+fix                     0 all qeq/reax 1 0.0 10.0 1.0e-6 reaxff
+
+#Neighbor Style
+neighbor                2.5 bin
+neigh_modify            every 10 delay 0 check no
+
+
+## This part equilibrates liquid methane to a temperature of ${temperature}(unit temperatureture) with quantum nuclear effects
+#Initialization
+velocity                all create ${temperature} 93 dist gaussian sum no mom yes rot yes loop all
+velocity                all create 110 93 dist gaussian sum no mom yes rot yes loop all
+
+#Setup output
+thermo_style            custom step temp press etotal vol
+thermo                  50
+
+#Colored thermal bath
+fix                     scapegoat_qtb all nve                                                                   #NVE does the time integration
+fix                     methane_qtb all qtb temp ${temperature} damp ${damp_qtb} seed 35082 f_max 0.3 N_f 50    #Change f_max if your Debye frequency is higher
+fix                     methane_qtb all qtb temp 110 damp ${damp_qtb} seed 35082 f_max 0.3 N_f 50    
+fix                     methane_qtb all qtb temp 110 damp 200 seed 35082 f_max 0.3 N_f 50    
+timestep                ${delta_t}
+timestep                0.25
+run                     1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 10 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.5
+  ghost atom cutoff = 12.5
+  binsize = 6.25, bins = 2 2 2
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 82.45 | 82.45 | 82.45 Mbytes
+   Step          Temp          Press          TotEng         Volume    
+         0   110           -15746.508     -3548.1354      503.73603    
+        50   191.27715     -7523.7503     -3530.4179      503.73603    
+       100   214.09982      12016.892     -3517.4544      503.73603    
+       150   317.38272      3098.2254     -3499.5793      503.73603    
+       200   338.76362     -4484.9241     -3490.3649      503.73603    
+       250   402.05826      3973.0488     -3474.81        503.73603    
+       300   340.80076      11193.4       -3470.8029      503.73603    
+       350   556.19747      8086.3266     -3451.5937      503.73603    
+       400   566.8737       5499.5505     -3439.2335      503.73603    
+       450   643.2883      -8270.5736     -3426.0767      503.73603    
+       500   613.09742     -12406.229     -3419.8547      503.73603    
+       550   669.28891     -9757.601      -3410.7281      503.73603    
+       600   600.66922      10407.403     -3408.3776      503.73603    
+       650   573.1485       30971.977     -3405.0744      503.73603    
+       700   726.22146      29573.798     -3386.3167      503.73603    
+       750   777.22659      13265.88      -3378.8462      503.73603    
+       800   652.46476     -9231.9331     -3388.7229      503.73603    
+       850   679.18414     -19802.254     -3384.6321      503.73603    
+       900   711.60594     -18792.396     -3373.2944      503.73603    
+       950   865.79013     -2837.6042     -3363.2971      503.73603    
+      1000   884.14995      6160.4875     -3360.6295      503.73603    
+Loop time of 7.87 on 1 procs for 1000 steps with 40 atoms
+
+Performance: 2.745 ns/day, 8.744 hours/ns, 127.065 timesteps/s, 5.083 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.3662     | 6.3662     | 6.3662     |   0.0 | 80.89
+Neigh   | 0.97757    | 0.97757    | 0.97757    |   0.0 | 12.42
+Comm    | 0.013653   | 0.013653   | 0.013653   |   0.0 |  0.17
+Output  | 0.00042319 | 0.00042319 | 0.00042319 |   0.0 |  0.01
+Modify  | 0.50971    | 0.50971    | 0.50971    |   0.0 |  6.48
+Other   |            | 0.00248    |            |       |  0.03
+
+Nlocal:             40 ave          40 max          40 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2552 ave        2552 max        2552 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          25110 ave       25110 max       25110 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 25110
+Ave neighs/atom = 627.75
+Neighbor list builds = 100
+Dangerous builds not checked
+unfix                   methane_qtb
+unfix                   scapegoat_qtb
+Total wall time: 0:00:07

@@ -1,0 +1,33 @@
+LAMMPS data file for water
+
+3 atoms
+0 bonds
+0 angles
+0 dihedrals
+0 impropers
+
+2 atom types
+0 bond types
+0 angle types
+0 dihedral types
+0 improper types
+
+0.0 9.865 xlo xhi
+0.0 9.865 ylo yhi
+0.0 9.865 zlo zhi
+
+Masses
+
+1 15.9994
+2 1.008
+
+Pair Coeffs
+
+1 0.102 3.188
+2 0.000 0.000
+
+Atoms
+
+1 0 1 0.00000 4.890520 4.325756 3.842052
+2 0 2 0.00000 3.893761 4.308535 3.950637
+3 0 2 0.00000 4.946166 4.514250 2.851741

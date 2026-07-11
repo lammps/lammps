@@ -1,0 +1,117 @@
+LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-125-g095d33dafb)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:99)
+  using 1 OpenMP thread(s) per MPI task
+atom_style              atomic
+units                   metal
+boundary                p p p
+atom_modify             sort 0 0.0
+
+lattice                 sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+region                  box block 0 10 0 10 0 10
+create_box              1 box
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 1 by 1 MPI processor grid
+create_atoms            1 region box
+Created 1000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+
+variable                l equal 47.6
+change_box              all x final 0 $l y final 0 $l z final 0 $l remap
+change_box              all x final 0 47.6 y final 0 $l z final 0 $l remap
+change_box              all x final 0 47.6 y final 0 47.6 z final 0 $l remap
+change_box              all x final 0 47.6 y final 0 47.6 z final 0 47.6 remap
+Changing box ...
+  orthogonal box = (0 0 0) to (47.6 10 10)
+  orthogonal box = (0 0 0) to (47.6 47.6 10)
+  orthogonal box = (0 0 0) to (47.6 47.6 47.6)
+region                  world block INF INF  INF INF  INF INF
+
+### interactions
+pair_style              hybrid/overlay pace dispersion/d3 bj pbe 16.0 16.0
+ACE version: 2023.11.25
+Recursive evaluator is used
+pair_coeff              * * pace potential_files/c_ace.yace C
+Loading potential_files/c_ace.yace
+Total number of basis functions
+	C: 20 (r=1) 455 (r>1)
+Mapping LAMMPS atom type #1(C) -> ACE species type #0
+pair_coeff              * * dispersion/d3 C
+
+mass                    1 12.011000
+velocity                all create 200 1234
+
+compute                 c1 all pair pace
+compute                 c2 all pair dispersion/d3
+
+# calculate the e/atom for each pair style individually
+variable                Upace equal c_c1/atoms
+variable                Ud3 equal c_c2/atoms
+
+### run
+timestep                0.001
+fix                     1 all nvt temp 200.0 200.0 0.01
+thermo_style            custom step temp pe press etotal v_Upace v_Ud3
+thermo                  10
+run                     100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair pace, perpetual
+      attributes: full, newton on, cut 7.5
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair dispersion/d3, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.225 | 4.225 | 4.225 Mbytes
+   Step          Temp          PotEng         Press          TotEng        v_Upace         v_Ud3     
+         0   200           -269.22784     -10163.81      -243.40166     -0.2577066     -0.011521241  
+        10   198.05578     -268.91992     -10128.61      -243.34481     -0.25738487    -0.01153505   
+        20   199.85092     -268.05146     -10018.116     -242.24454     -0.25647561    -0.011575851  
+        30   201.10902     -266.77119     -9847.2946     -240.80181     -0.2551274     -0.011643795  
+        40   195.0686      -265.42225     -9641.6992     -240.23287     -0.25368339    -0.011738855  
+        50   197.63706     -264.51951     -9390.1455     -238.99847     -0.25265765    -0.011861864  
+        60   205.01072     -264.86268     -9107.4427     -238.38947     -0.25284579    -0.012016888  
+        70   217.51797     -267.50863     -8890.9916     -239.42034     -0.25529813    -0.012210496  
+        80   244.30754     -273.91051     -8806.154      -242.36286     -0.26145652    -0.01245399   
+        90   296.72041     -287.2518      -8913.8963     -248.93603     -0.27448382    -0.012767981  
+       100   404.07337     -315.6103      -9266.1292     -263.43195     -0.3024416     -0.013168694  
+Loop time of 4.52709 on 1 procs for 100 steps with 1000 atoms
+
+Performance: 1.909 ns/day, 12.575 hours/ns, 22.089 timesteps/s, 22.089 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5223     | 4.5223     | 4.5223     |   0.0 | 99.89
+Neigh   | 0.0023631  | 0.0023631  | 0.0023631  |   0.0 |  0.05
+Comm    | 0.00088624 | 0.00088624 | 0.00088624 |   0.0 |  0.02
+Output  | 0.00027759 | 0.00027759 | 0.00027759 |   0.0 |  0.01
+Modify  | 0.0010211  | 0.0010211  | 0.0010211  |   0.0 |  0.02
+Other   |            | 0.0002737  |            |       |  0.01
+
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           3913 ave        3913 max        3913 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         116409 ave      116409 max      116409 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        17748 ave       17748 max       17748 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 116409
+Ave neighs/atom = 116.409
+Neighbor list builds = 1
+Dangerous builds = 0
+
+Total wall time: 0:00:04

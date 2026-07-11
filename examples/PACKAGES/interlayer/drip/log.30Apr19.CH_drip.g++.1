@@ -1,0 +1,111 @@
+LAMMPS (30 Apr 2019)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:88)
+  using 1 OpenMP thread(s) per MPI task
+# Define unit set and class of atomic model
+units metal
+atom_style molecular
+
+# BC
+boundary p p s
+
+# read config
+read_data      data.CH
+  triclinic box = (0 0 0) to (24.65 21.3475 30) with tilt (12.325 0 0)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  545 atoms
+  0 = max # of 1-2 neighbors
+  0 = max # of 1-3 neighbors
+  0 = max # of 1-4 neighbors
+  1 = max # of special neighbors
+  special bonds CPU = 0.000152826 secs
+  read_data CPU = 0.000973701 secs
+
+
+# potential
+pair_style hybrid/overlay drip rebo
+pair_coeff * * drip  C.drip     C NULL  # only applies to species 1, i.e. C
+Reading potential file C.drip with DATE: 2019-04-19
+pair_coeff * * rebo  CH.rebo  C H     # species 1 is C and species 2 is H
+Reading potential file CH.rebo with DATE: 2018-7-3
+
+
+compute        peratom all pe/atom
+
+# set what thermodynamic information to print to log
+thermo         10  # print every 1 timestep
+
+# set what information to write to dump file
+dump           id all custom 1 lammps.dump id type x y z fx fy fz c_peratom
+dump_modify    id every 10 format line "%d %d %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e %13.5e"
+dump_modify    id sort id
+
+# minimize energy
+minimize  1.0e-15 1.0e-15 100 100
+WARNING: Using 'neigh_modify every 1 delay 0 check yes' setting during minimization (src/min.cpp:168)
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 17.7
+  ghost atom cutoff = 17.7
+  binsize = 8.85, bins = 5 3 1
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair drip, perpetual, skip from (2)
+      attributes: full, newton on, ghost
+      pair build: skip/ghost
+      stencil: none
+      bin: none
+  (2) pair rebo, perpetual
+      attributes: full, newton on, ghost
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.92 | 12.92 | 12.92 Mbytes
+Step Temp E_pair E_mol TotEng Press Volume 
+       0            0   -2884.3731            0   -2884.3731     366196.9    2779.5956 
+      10            0   -3240.4807            0   -3240.4807   -20237.368    2779.5956 
+      20            0   -3281.0671            0   -3281.0671   -13303.696    2779.5956 
+      30            0   -3282.2176            0   -3282.2176   -19187.215    2779.5956 
+      40            0   -3282.4004            0   -3282.4004   -21740.059    2779.5956 
+      50            0   -3282.4755            0   -3282.4755   -22659.554    2779.5956 
+      57            0   -3282.5011            0   -3282.5011   -23313.198    2779.5956 
+Loop time of 3.04218 on 1 procs for 57 steps with 545 atoms
+
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max force evaluations
+  Energy initial, next-to-last, final = 
+        -2884.37307546     -3282.49993222      -3282.5010627
+  Force two-norm initial, final = 115.342 0.193154
+  Force max component initial, final = 12.0934 0.03617
+  Final line search alpha, max atom move = 1 0.03617
+  Iterations, force evaluations = 57 100
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.0291     | 3.0291     | 3.0291     |   0.0 | 99.57
+Bond    | 1.8835e-05 | 1.8835e-05 | 1.8835e-05 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0016081  | 0.0016081  | 0.0016081  |   0.0 |  0.05
+Output  | 0.0079796  | 0.0079796  | 0.0079796  |   0.0 |  0.26
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.003517   |            |       |  0.12
+
+Nlocal:    545 ave 545 max 545 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:    3175 ave 3175 max 3175 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    0 ave 0 max 0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  294122 ave 294122 max 294122 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 294122
+Ave neighs/atom = 539.673
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Total wall time: 0:00:03

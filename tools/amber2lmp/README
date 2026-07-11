@@ -1,0 +1,11 @@
+This folder used to contain Python scripts to convert coordinate,
+topology, and force field data from AMBER to LAMMPS.  These files
+have been unmaintained for a long time and also required Python 2
+so they were removed in Winter 2026.  If you need to access them,
+you have to download an old version of LAMMPS.
+
+Instead, we recommend to use the AMBER2LAMMPS tool from
+https://github.com/askforarun/AMBER2LAMMPS
+
+A tutorial for using it is available in the LAMMPS manual at
+https://docs.lammps.org/Howto_amber2lammps.html

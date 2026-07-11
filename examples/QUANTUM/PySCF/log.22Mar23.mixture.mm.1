@@ -1,0 +1,112 @@
+LAMMPS (22 Dec 2022)
+# mixture example
+
+units           real
+atom_style      full
+
+pair_style      lj/cut/coul/long 12
+pair_modify     mix arithmetic
+
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  none
+improper_style  none
+
+kspace_style    pppm 1e-5
+
+read_data       data.mixture
+Reading data file ...
+  orthogonal box = (0 0 0) to (31.351877 31.351877 31.351877)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3081 atoms
+  reading velocities ...
+  3081 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  reading bonds ...
+  2055 bonds
+  reading angles ...
+  1033 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     3 = max # of 1-3 neighbors
+     3 = max # of 1-4 neighbors
+     4 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.012 seconds
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+# MM dynamics
+
+timestep        0.01
+
+fix		1 all nve
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong                 pe etotal press
+
+thermo          10
+run		20
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (../kspace.cpp:342)
+  G vector (1/distance) = 0.25751777
+  grid = 24 24 24
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0020473396
+  estimated relative force accuracy = 6.1655023e-06
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 29791 13824
+Generated 21 of 21 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 26.76 | 26.76 | 26.76 Mbytes
+   Step          CPU            Temp          KinEng         E_vdwl         E_coul         E_pair         E_mol          E_long         PotEng         TotEng         Press     
+         0   0              0              0              2164.0602      35284.412     -12356.063      863.67442     -49804.536     -11492.389     -11492.389     -4362.0189    
+        10   0.14354809     0.0049877709   0.0457922      2164.0602      35284.445     -12356.031      863.59574     -49804.536     -11492.435     -11492.389     -4360.2561    
+        20   0.28788199     0.019888006    0.1825897      2164.0599      35284.545     -12355.932      863.36047     -49804.537     -11492.572     -11492.389     -4354.9791    
+Loop time of 0.2879 on 1 procs for 20 steps with 3081 atoms
+
+Performance: 0.060 ns/day, 399.861 hours/ns, 69.469 timesteps/s, 214.033 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.25532    | 0.25532    | 0.25532    |   0.0 | 88.69
+Bond    | 0.00081079 | 0.00081079 | 0.00081079 |   0.0 |  0.28
+Kspace  | 0.03016    | 0.03016    | 0.03016    |   0.0 | 10.48
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00095451 | 0.00095451 | 0.00095451 |   0.0 |  0.33
+Output  | 4.579e-05  | 4.579e-05  | 4.579e-05  |   0.0 |  0.02
+Modify  | 0.00029651 | 0.00029651 | 0.00029651 |   0.0 |  0.10
+Other   |            | 0.0003077  |            |       |  0.11
+
+Nlocal:           3081 ave        3081 max        3081 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          17741 ave       17741 max       17741 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.77144e+06 ave 1.77144e+06 max 1.77144e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1771437
+Ave neighs/atom = 574.95521
+Ave special neighs/atom = 2.004544
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

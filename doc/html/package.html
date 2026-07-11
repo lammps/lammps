@@ -1,0 +1,1108 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>package command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/package.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pair_coeff command" href="pair_coeff.html" />
+    <link rel="prev" title="next command" href="next.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_atoms.html">create_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">package command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#defaults">Defaults</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">package command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="next.html" class="btn btn-neutral float-left" title="next command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pair_coeff.html" class="btn btn-neutral float-right" title="pair_coeff command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="package-command">
+<span id="index-0"></span><h1>package command<a class="headerlink" href="#package-command" title="Link to this heading"></a></h1>
+<nav class="contents local" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#syntax" id="id1">Syntax</a></p></li>
+<li><p><a class="reference internal" href="#examples" id="id2">Examples</a></p></li>
+<li><p><a class="reference internal" href="#description" id="id3">Description</a></p>
+<ul>
+<li><p><a class="reference internal" href="#gpu-package-settings" id="id4">GPU package settings</a></p></li>
+<li><p><a class="reference internal" href="#intel-package-settings" id="id5">INTEL package settings</a></p></li>
+<li><p><a class="reference internal" href="#kokkos-package-settings" id="id6">KOKKOS package settings</a></p></li>
+<li><p><a class="reference internal" href="#openmp-package-settings" id="id7">OPENMP package settings</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#restrictions" id="id8">Restrictions</a></p></li>
+<li><p><a class="reference internal" href="#related-commands" id="id9">Related commands</a></p></li>
+<li><p><a class="reference internal" href="#defaults" id="id10">Defaults</a></p></li>
+</ul>
+</nav>
+<section id="syntax">
+<h2><a class="toc-backref" href="#contents" role="doc-backlink">Syntax</a><a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">package</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">args</span>
+</pre></div>
+</div>
+<ul>
+<li><p>style = <em>gpu</em> or <em>intel</em> or <em>kokkos</em> or <em>omp</em></p></li>
+<li><p>args = arguments specific to the style</p>
+<pre class="literal-block"><em>gpu</em> args = Ngpu keyword value ...
+  Ngpu = # of GPUs per node
+  zero or more keyword/value pairs may be appended
+  keywords = <em>neigh</em> or <em>newton</em> or <em>pair/only</em> or <em>binsize</em> or <em>split</em> or <em>gpuID</em> or <em>tpa</em> or <em>blocksize</em> or <em>omp</em> or <em>platform</em> or <em>device_type</em> or <em>ocl_args</em>
+    <em>neigh</em> value = <em>yes</em> or <em>no</em> or <em>hybrid</em>
+      <em>yes</em> = neighbor list build on GPU (default)
+      <em>no</em> = neighbor list build on CPU
+      <em>hybrid</em> = perform binning on the CPU but build neighbor list on the GPU
+    <em>newton</em> = <em>off</em> or <em>on</em>
+      <em>off</em> = set Newton pairwise flag off (default and required)
+      <em>on</em> = set Newton pairwise flag on (currently not allowed)
+    <em>pair/only</em> = <em>off</em> or <em>on</em>
+      <em>off</em> = apply &quot;gpu&quot; suffix to all available styles in the GPU package (default)
+      <em>on</em> = apply &quot;gpu&quot; suffix only pair styles
+    <em>binsize</em> value = size
+      size = bin size for neighbor list construction (distance units)
+    <em>split</em> = fraction
+      fraction = fraction of atoms assigned to GPU (default = 1.0)
+    <em>tpa</em> value = Nlanes
+      Nlanes = # of GPU vector lanes (CUDA threads) used per atom
+    <em>blocksize</em> value = size
+      size = thread block size for pair force computation
+    <em>omp</em> value = Nthreads
+      Nthreads = number of OpenMP threads to use on CPU (default = 0)
+    <em>platform</em> value = id
+      id = For OpenCL, platform ID for the GPU or accelerator
+    <em>gpuID</em> values = id
+      id = ID of first GPU to be used on each node
+    <em>device_type</em> value = <em>intelgpu</em> or <em>nvidiagpu</em> or <em>amdgpu</em> or <em>applegpu</em> or <em>generic</em> or <em>custom</em>,val1,val2,...
+      val1,val2,... = custom OpenCL accelerator configuration parameters (see below for details)
+    <em>ocl_args</em> value = args
+      args = List of additional OpenCL compiler arguments delimited by colons
+<em>intel</em> args = Narg keyword value ...
+  Narg = accepted for backward compatibility and ignored
+  zero or more keyword/value pairs may be appended
+  keywords = <em>mode</em> or <em>omp</em> or <em>lrt</em> or <em>pppm_table</em>
+    <em>mode</em> value = <em>single</em> or <em>mixed</em> or <em>double</em>
+      single = perform force calculations in single precision
+      mixed = perform force calculations in mixed precision
+      double = perform force calculations in double precision
+    <em>omp</em> value = Nthreads
+      Nthreads = number of OpenMP threads to use on CPU (default = 0)
+    <em>lrt</em> value = <em>yes</em> or <em>no</em>
+      <em>yes</em> = use additional thread dedicated for some PPPM calculations
+      <em>no</em> = do not dedicate an extra thread for some PPPM calculations
+    <em>pppm_table</em> value = <em>yes</em> or <em>no</em>
+      <em>yes</em> = Precompute pppm values in table (doesn't change accuracy)
+      <em>no</em> = Compute pppm values on the fly
+<em>kokkos</em> args = keyword value ...
+  zero or more keyword/value pairs may be appended
+  keywords = <em>neigh</em> or <em>neigh/qeq</em> or <em>neigh/thread</em> or <em>neigh/transpose</em> or <em>newton</em> or <em>binsize</em> or <em>comm</em> or <em>comm/exchange</em> or <em>comm/forward</em> or <em>comm/pair/forward</em> or <em>comm/fix/forward</em> or <em>comm/compute/forward</em> or <em>comm/reverse</em> or <em>comm/pair/reverse</em> or <em>comm/fix/reverse</em> or <em>sort</em> or <em>atom/map</em> or <em>gpu/aware</em> or <em>pair/only</em>
+    <em>neigh</em> value = <em>full</em> or <em>half</em>
+      full = full neighbor list
+      half = half neighbor list built in thread-safe manner
+    <em>neigh/qeq</em> value = <em>full</em> or <em>half</em>
+      full = full neighbor list
+      half = half neighbor list built in thread-safe manner
+    <em>neigh/thread</em> value = <em>off</em> or <em>on</em>
+      <em>off</em> = thread only over atoms
+      <em>on</em> = thread over both atoms and neighbors
+    <em>neigh/transpose</em> value = <em>off</em> or <em>on</em>
+      <em>off</em> = use same memory layout for GPU neigh list build as pair style
+      <em>on</em> = use transposed memory layout for GPU neigh list build
+    <em>newton</em> = <em>off</em> or <em>on</em>
+      <em>off</em> = set Newton pairwise and bonded flags off
+      <em>on</em> = set Newton pairwise and bonded flags on
+    <em>binsize</em> value = size
+      size = bin size for neighbor list construction (distance units)
+    <em>comm</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+      use value for comm/exchange and comm/forward and comm/pair/forward and comm/fix/forward and comm/compute/forward and comm/reverse and comm/fix/reverse
+    <em>comm/exchange</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+    <em>comm/forward</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+    <em>comm/pair/forward</em> value = <em>no</em> or <em>device</em>
+    <em>comm/fix/forward</em> value = <em>no</em> or <em>device</em>
+    <em>comm/compute/forward</em> value = <em>no</em> or <em>device</em>
+    <em>comm/reverse</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+      <em>no</em> = perform communication pack/unpack in non-KOKKOS mode
+      <em>host</em> = perform pack/unpack on host (e.g. with OpenMP threading)
+      <em>device</em> = perform pack/unpack on device (e.g. on GPU)
+    <em>comm/pair/reverse</em> value = <em>no</em> or <em>device</em>
+      <em>no</em> = perform communication pack/unpack in non-KOKKOS mode
+      <em>device</em> = perform pack/unpack on device (e.g. on GPU)
+    <em>comm/fix/reverse</em> value = <em>no</em> or <em>host</em> or <em>device</em>
+      <em>no</em> = perform communication pack/unpack in non-KOKKOS mode
+      <em>host</em> = perform pack/unpack on host (e.g. with OpenMP threading)
+      <em>device</em> = perform pack/unpack on device (e.g. on GPU)
+    <em>sort</em> value = <em>no</em> or <em>device</em>
+      <em>no</em> = perform atom sorting in non-KOKKOS mode
+      <em>device</em> = perform atom sorting on device (e.g. on GPU)
+    <em>atom/map</em> value = <em>no</em> or <em>device</em>
+      <em>no</em> = build atom map in non-KOKKOS mode
+      <em>device</em> = build atom map on device (e.g. on GPU)
+    <em>gpu/aware</em> = <em>off</em> or <em>on</em>
+      <em>off</em> = do not use GPU-aware MPI
+      <em>on</em> = use GPU-aware MPI (default)
+    <em>pair/only</em> = <em>off</em> or <em>on</em>
+      <em>off</em> = use device acceleration (e.g. GPU) for all available styles in the KOKKOS package (default)
+      <em>on</em>  = use device acceleration only for pair styles (and host acceleration for others)
+    <em>threads/per/atom</em> args = Ntpa
+      Ntpa = # of threads per atom for multiple GPU threads over the neighbor list per atom
+    <em>pair/team/size</em> args = Nteamsize
+      Nteamsize = # of threads per block used for the pair compute kernel
+    <em>nbin/atoms/per/bin = Natomsperbin
+      Natomsperbin = # of atoms per bin used for neighbor list builds
+    *nbor/chunk/size = chunksize
+      chunksize = # of iterations each thread will perform for the flat neighbor build method
+    *bond/chunk/size = blocksize
+      chunksize = # of iterations each thread will perform for the bond force computation
+    *auto/tuning = nevery nsamples mode reltol
+      nevery = # timesteps between auto-tuning adjustments (default = 0, no auto-tuning)
+      nsamples = # samples the tuner(s) collects for each parameter combination
+      mode = how to pick a performance value from the samples collected, i.e. maximum, average or median value
+      reltol = relative tolerance for performance degradation that triggers re-tuning of parameter values
+*omp</em> args = Nthreads keyword value ...
+  Nthreads = # of OpenMP threads to associate with each MPI process
+  zero or more keyword/value pairs may be appended
+  keywords = <em>neigh</em>
+    <em>neigh</em> value = <em>yes</em> or <em>no</em>
+      <em>yes</em> = threaded neighbor list build (default)
+      <em>no</em> = non-threaded neighbor list build</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#contents" role="doc-backlink">Examples</a><a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">package</span><span class="w"> </span><span class="n">gpu</span><span class="w"> </span><span class="m">0</span>
+<span class="k">package</span><span class="w"> </span><span class="n">gpu</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">split</span><span class="w"> </span><span class="m">0.75</span>
+<span class="k">package</span><span class="w"> </span><span class="n">gpu</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">split</span><span class="w"> </span><span class="o">-</span><span class="m">1.0</span>
+<span class="k">package</span><span class="w"> </span><span class="n">gpu</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">omp</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">device_type</span><span class="w"> </span><span class="n">intelgpu</span>
+<span class="k">package</span><span class="w"> </span><span class="n">kokkos</span><span class="w"> </span><span class="n">neigh</span><span class="w"> </span><span class="n">half</span><span class="w"> </span><span class="n">comm</span><span class="w"> </span><span class="n">device</span>
+<span class="k">package</span><span class="w"> </span><span class="n">omp</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">neigh</span><span class="w"> </span><span class="n">no</span>
+<span class="k">package</span><span class="w"> </span><span class="n">omp</span><span class="w"> </span><span class="m">4</span>
+<span class="k">package</span><span class="w"> </span><span class="n">intel</span><span class="w"> </span><span class="m">1</span>
+<span class="k">package</span><span class="w"> </span><span class="n">intel</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">omp</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="n">mode</span><span class="w"> </span><span class="n">mixed</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2><a class="toc-backref" href="#contents" role="doc-backlink">Description</a><a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>This command invokes package-specific settings for the various
+accelerator packages available in LAMMPS.  Currently the following
+packages use settings from this command: GPU, INTEL, KOKKOS, and
+OPENMP.</p>
+<p>If this command is specified in an input script, it must be near the
+top of the script, before the simulation box has been defined.  This
+is because it specifies settings that the accelerator packages use in
+their initialization, before a simulation is defined.</p>
+<p>This command can also be specified from the command-line when
+launching LAMMPS, using the “-pk” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>.  The syntax is exactly the same as when used
+in an input script.</p>
+<p>Note that all of the accelerator packages require the package command
+to be specified (except the OPT package), if the package is to be used
+in a simulation (LAMMPS can be built with an accelerator package
+without using it in a particular simulation).  However, in all cases,
+a default version of the command is typically invoked by other
+accelerator settings.</p>
+<p>The KOKKOS package requires a “-k on” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> respectively, which invokes a “package
+kokkos” command with default settings.</p>
+<p>For the GPU, INTEL, and OPENMP packages, if a “-sf gpu” or “-sf
+intel” or “-sf omp” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> is used to
+auto-append accelerator suffixes to various styles in the input
+script, then those switches also invoke a “package gpu”, “package
+intel”, or “package omp” command with default settings.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A package command for a particular style can be invoked multiple
+times when a simulation is setup, e.g. by the <a class="reference internal" href="Run_options.html"><span class="doc">-c on, -k on, -sf, and -pk command-line switches</span></a>, and by using this command
+in an input script.  Each time it is used all of the style options are
+set, either to default values or to specified settings.  I.e. settings
+from previous invocations do not persist across multiple invocations.</p>
+</div>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Accelerator packages</span></a> page for more details
+about using the various accelerator packages for speeding up LAMMPS
+simulations.</p>
+<section id="gpu-package-settings">
+<h3><a class="toc-backref" href="#contents" role="doc-backlink">GPU package settings</a><a class="headerlink" href="#gpu-package-settings" title="Link to this heading"></a></h3>
+<p>The <em>gpu</em> style invokes settings associated with the use of the
+<a class="reference internal" href="Packages_details.html#pkg-gpu"><span class="std std-ref">GPU package</span></a>.</p>
+<p>The <em>Ngpu</em> argument sets the number of GPUs per node. If <em>Ngpu</em> is 0
+and no other keywords are specified, GPU or accelerator devices are
+auto-selected. In this process, all platforms are searched for
+accelerator devices and GPUs are chosen if available. The device with
+the highest number of compute cores is selected. The number of devices
+is increased to be the number of matching accelerators with the same
+number of compute cores. If there are more devices than MPI tasks,
+the additional devices will be unused. The auto-selection of GPUs/
+accelerator devices and platforms can be restricted by specifying
+a non-zero value for <em>Ngpu</em> and / or using the <em>gpuID</em>, <em>platform</em>,
+and <em>device_type</em> keywords as described below. If there are more MPI
+tasks (per node) than GPUs, multiple MPI tasks will share each GPU.</p>
+<p>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Dec2025: </span>Updated description to the current state of the GPU package</p>
+</div>
+<p>The <em>neigh</em> keyword specifies where neighbor lists for pair style
+computation will be built.  If <em>neigh</em> is <em>yes</em>, which is the default,
+neighbor list building is performed on the GPU.  If <em>neigh</em> is <em>no</em>,
+neighbor list building is instead performed on the CPU.  If <em>neigh</em> is
+<em>hybrid</em> the binning step of the neighbor list build is performed on the
+CPU and the list themselves on the GPU.  GPU neighbor list building
+currently is not fully compatible with a triclinic box; if the behavior
+is significantly different from the CPU case, use the <em>neigh no</em>
+setting.  GPU neighbor lists are not accessible for commands that are
+not GPU-enabled.  When a non-GPU enabled command requires a neighbor
+list, it will be built on the CPU.  In these cases, it can be more
+efficient to only use CPU neighbor list builds, particularly if the CPU
+neighbor list is perpetual, i.e. used in every step.  If a GPU
+environment does not support building neighbor lists on the GPU, the
+default setting it will automatically change to <em>neigh no</em>.</p>
+<p>The <em>newton</em> keyword sets the Newton flags for pairwise (not bonded)
+interactions to <em>off</em> or <em>on</em>, the same as the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>
+command allows.  Currently, only an <em>off</em> value is allowed, since all
+the GPU package pair styles require this setting.  This means more
+computation is done, but less communication.  In the future a value of
+<em>on</em> may be allowed, so the <em>newton</em> keyword is included as an option
+for compatibility with the package command for other accelerator
+styles.  Note that the newton setting for bonded interactions is not
+affected by this keyword.</p>
+<p>The <em>pair/only</em> keyword can change how any “gpu” suffix is applied.
+By default a suffix is applied to all styles for which an accelerated
+variant is available.  However, that is not always the most effective
+way to use an accelerator.  With <em>pair/only</em> set to <em>on</em> the suffix
+will only by applied to supported pair styles, which tend to be the
+most effective in using an accelerator and their operation can be
+overlapped with all other computations on the CPU.</p>
+<p>The <em>binsize</em> keyword sets the size of bins used to bin atoms in
+neighbor list builds performed on the GPU, if <em>neigh</em> = <em>yes</em> is set.
+If <em>binsize</em> is set to 0.0 (the default), then the binsize is set
+automatically using heuristics in the GPU package.</p>
+<p>The <em>split</em> keyword can be used for load balancing force calculations
+between CPU and GPU cores in GPU-enabled pair styles. If 0 &lt; <em>split</em> &lt;
+1.0, a fixed fraction of particles is offloaded to the GPU while force
+calculation for the other particles occurs simultaneously on the CPU.
+If <em>split</em> &lt; 0.0, the optimal fraction (based on CPU and GPU timings)
+is calculated every 25 timesteps, i.e. dynamic load-balancing across
+the CPU and GPU is performed.  If <em>split</em> = 1.0, all force
+calculations for GPU accelerated pair styles are performed on the GPU.
+In this case, other <a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid</span></a> pair interactions,
+<a class="reference internal" href="bond_style.html"><span class="doc">bond</span></a>, <a class="reference internal" href="angle_style.html"><span class="doc">angle</span></a>,
+<a class="reference internal" href="dihedral_style.html"><span class="doc">dihedral</span></a>, <a class="reference internal" href="improper_style.html"><span class="doc">improper</span></a>, and
+<a class="reference internal" href="kspace_style.html"><span class="doc">long-range</span></a> calculations can be performed on the
+CPU while the GPU is performing force calculations for the GPU-enabled
+pair style.  If all CPU force computations complete before the GPU
+completes, LAMMPS will block until the GPU has finished before
+continuing the timestep.</p>
+<p>As an example, if you have two GPUs per node and 8 CPU cores per node,
+and would like to run on 4 nodes (32 cores) with dynamic balancing of
+force calculation across CPU and GPU cores, you could specify</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">32</span><span class="w"> </span>-sf<span class="w"> </span>gpu<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script<span class="w">    </span><span class="c1"># launch command</span>
+package<span class="w"> </span>gpu<span class="w"> </span><span class="m">2</span><span class="w"> </span>split<span class="w"> </span>-1<span class="w">                 </span><span class="c1"># input script command</span>
+</pre></div>
+</div>
+<p>In this case, all CPU cores and GPU devices on the nodes would be
+utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
+cores would perform force calculations for some fraction of the
+particles at the same time the GPUs performed force calculation for
+the other particles.</p>
+<p>The <em>gpuID</em> keyword is used to specify the first ID for the GPU or
+other accelerator that LAMMPS will use. For example, if the ID is
+1 and <em>Ngpu</em> is 3, GPUs 1-3 will be used. Device IDs should be
+determined from the output of nvc_get_devices, ocl_get_devices,
+or hip_get_devices
+as provided in the lib/gpu directory. When using OpenCL with
+accelerators that have main memory NUMA, the accelerators can be
+split into smaller virtual accelerators for more efficient use
+with MPI.</p>
+<p>The <em>tpa</em> keyword sets the number of GPU vector lanes per atom used to
+perform force calculations.  With a default value of 1, the number of
+lanes will be chosen based on the pair style, however, the value can
+be set explicitly with this keyword to fine-tune performance.  For
+large cutoffs or with a small number of particles per GPU, increasing
+the value can improve performance. The number of lanes per atom must
+be a power of 2 and currently cannot be greater than the SIMD width
+for the GPU / accelerator. In the case it exceeds the SIMD width, it
+will automatically be decreased to meet the restriction.</p>
+<p>The <em>blocksize</em> keyword allows you to tweak the number of threads used
+per thread block. This number should be a multiple of 32 (for GPUs)
+and its maximum depends on the specific GPU hardware. Typical choices
+are 64, 128, or 256. A larger block size increases occupancy of
+individual GPU cores, but reduces the total number of thread blocks,
+thus may lead to load imbalance. On modern hardware, the sensitivity
+to the blocksize is typically low.</p>
+<p>The <em>Nthreads</em> value for the <em>omp</em> keyword sets the number of OpenMP
+threads allocated for each MPI task. This setting controls OpenMP
+parallelism only for routines run on the CPUs. For more details on
+setting the number of OpenMP threads, see the discussion of the
+<em>Nthreads</em> setting on this page for the “package omp” command.
+The meaning of <em>Nthreads</em> is exactly the same for the GPU, INTEL,
+and GPU packages.</p>
+<p>The <em>platform</em> keyword is only used with OpenCL to specify the ID for
+an OpenCL platform. See the output from ocl_get_devices in the lib/gpu
+directory. In LAMMPS only one platform can be active at a time and by
+default (id=-1) the platform is auto-selected to find the GPU with the
+most compute cores. When <em>Ngpu</em> or other keywords are specified, the
+auto-selection is appropriately restricted. For example, if <em>Ngpu</em> is
+3, only platforms with at least 3 accelerators are considered. Similar
+restrictions can be enforced by the <em>gpuID</em> and <em>device_type</em> keywords.</p>
+<p>The <em>device_type</em> keyword can be used for OpenCL to specify the type of
+GPU to use or specify a custom configuration for an accelerator. In most
+cases this selection will be automatic and there is no need to use the
+keyword. The <em>applegpu</em> type is not specific to a particular GPU vendor,
+but is separate due to the more restrictive Apple OpenCL implementation.
+For expert users, to specify a custom configuration, the <em>custom</em> keyword
+followed by the next parameters can be specified:</p>
+<p>CONFIG_ID, SIMD_SIZE, MEM_THREADS, SHUFFLE_AVAIL, FAST_MATH,
+THREADS_PER_ATOM, THREADS_PER_CHARGE, THREADS_PER_THREE, BLOCK_PAIR,
+BLOCK_BIO_PAIR, BLOCK_ELLIPSE, PPPM_BLOCK_1D, BLOCK_NBOR_BUILD,
+BLOCK_CELL_2D, BLOCK_CELL_ID, MAX_SHARED_TYPES, MAX_BIO_SHARED_TYPES,
+PPPM_MAX_SPLINE, NBOR_PREFETCH.</p>
+<p>CONFIG_ID can be 0. SHUFFLE_AVAIL in {0,1} indicates that inline-PTX
+(NVIDIA) or OpenCL extensions (Intel) should be used for horizontal
+vector operations. FAST_MATH in {0,1} indicates that OpenCL fast math
+optimizations are used during the build and hardware-accelerated
+transcendental functions are used when available. THREADS_PER_* give the
+default <em>tpa</em> values for ellipsoidal models, styles using charge, and
+any other styles. The BLOCK_* parameters specify the block sizes for
+various kernel calls and the MAX_*SHARED_* parameters are used to
+determine the amount of local shared memory to use for storing model
+parameters.</p>
+<p>For OpenCL, the routines are compiled at runtime for the specified GPU
+or accelerator architecture. The <em>ocl_args</em> keyword can be used to
+specify additional flags for the runtime build.</p>
+</section>
+<section id="intel-package-settings">
+<h3><a class="toc-backref" href="#contents" role="doc-backlink">INTEL package settings</a><a class="headerlink" href="#intel-package-settings" title="Link to this heading"></a></h3>
+<p>The <em>intel</em> style invokes settings associated with the use of the INTEL
+package.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version 4Jul2026.</span></p>
+</div>
+<p>Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
+removed.  The leading numeric argument (formerly the number of
+co-processors per node) is ignored.</p>
+<p>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.</p>
+<p>The <em>Nthreads</em> value for the <em>omp</em> keyword sets the number of OpenMP
+threads allocated for each MPI task. This setting controls OpenMP
+parallelism only for routines run on the CPUs. For more details on
+setting the number of OpenMP threads, see the discussion of the
+<em>Nthreads</em> setting on this page for the “package omp” command.
+The meaning of <em>Nthreads</em> is exactly the same for the GPU, INTEL,
+and GPU packages.</p>
+<p>The <em>mode</em> keyword determines the precision mode to use for
+computing pair style forces on the CPU
+when using a INTEL supported <a class="reference internal" href="pair_style.html"><span class="doc">pair style</span></a>.  It
+can take a value of <em>single</em>, <em>mixed</em> which is the default, or
+<em>double</em>.  <em>Single</em> means single precision is used for the entire
+force calculation.  <em>Mixed</em> means forces between a pair of atoms are
+computed in single precision, but accumulated and stored in double
+precision, including storage of forces, torques, energies, and virial
+quantities.  <em>Double</em> means double precision is used for the entire
+force calculation.</p>
+<p>The <em>lrt</em> keyword can be used to enable “Long Range Thread (LRT)”
+mode. It can take a value of <em>yes</em> to enable and <em>no</em> to disable.
+LRT mode generates an extra thread (in addition to any OpenMP threads
+specified with the OMP_NUM_THREADS environment variable or the <em>omp</em>
+keyword). The extra thread is dedicated for performing part of the
+<a class="reference internal" href="kspace_style.html"><span class="doc">PPPM solver</span></a> computations and communications. This
+can improve parallel performance on processors supporting
+Simultaneous Multithreading (SMT) such as Hyper-Threading (HT) on Intel
+processors. In this mode, one additional thread is generated per MPI
+process. LAMMPS will generate a warning in the case that more threads
+are used than available in SMT hardware on a node. If the PPPM solver
+from the INTEL package is not used, then the LRT setting is
+ignored and no extra threads are generated. Enabling LRT will replace
+the <a class="reference internal" href="run_style.html"><span class="doc">run_style</span></a> with the <em>verlet/lrt/intel</em> style that
+is identical to the default <em>verlet</em> style aside from supporting the
+LRT feature. This feature requires setting the pre-processor flag
+-DLMP_INTEL_USELRT in the makefile when compiling LAMMPS.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 15Jun2023.</span></p>
+</div>
+<p>The <em>pppm_table</em> keyword with the argument yes allows to use a
+pre-computed table to efficiently spread the charge to the PPPM grid.
+This feature is enabled by default but can be turned off using the
+keyword with the argument <em>no</em>.</p>
+</section>
+<section id="kokkos-package-settings">
+<h3><a class="toc-backref" href="#contents" role="doc-backlink">KOKKOS package settings</a><a class="headerlink" href="#kokkos-package-settings" title="Link to this heading"></a></h3>
+<p>The <em>kokkos</em> style invokes settings associated with the use of the
+KOKKOS package.</p>
+<p>All of the settings are optional keyword/value pairs. Each has a default
+value as listed below.</p>
+<p>The <em>neigh</em> keyword determines how neighbor lists are built. A value of
+<em>half</em> uses a thread-safe variant of half-neighbor lists, the same as
+used by most pair styles in LAMMPS, which is the default when running on
+CPUs (i.e. the Kokkos CUDA back end is not enabled).</p>
+<p>A value of <em>full</em> uses a full neighbor lists and is the default when
+running on GPUs. This performs twice as much computation as the <em>half</em>
+option, however that is often a win because it is thread-safe and
+does not require atomic operations in the calculation of pair forces. For
+that reason, <em>full</em> is the default setting for GPUs. However, when
+running on CPUs, a <em>half</em> neighbor list is the default because it are
+often faster, just as it is for non-accelerated pair styles. Similarly,
+the <em>neigh/qeq</em> keyword determines how neighbor lists are built for
+<a class="reference internal" href="fix_qeq_reaxff.html"><span class="doc">fix qeq/reaxff/kk</span></a>.</p>
+<p>If the <em>neigh/thread</em> keyword is set to <em>off</em>, then the KOKKOS package
+threads only over atoms. However, for small systems, this may not expose
+enough parallelism to keep a GPU busy. When this keyword is set to <em>on</em>,
+the KOKKOS package threads over both atoms and neighbors of atoms. When
+using <em>neigh/thread</em> <em>on</em>, the <a class="reference internal" href="newton.html"><span class="doc">newton pair</span></a> setting must
+be “off”. Using <em>neigh/thread</em> <em>on</em> may be slower for large systems, so
+this this option is turned on by default only when running on one or
+more GPUs and there are 16k atoms or less owned by an MPI rank. Not all
+KOKKOS-enabled potentials support this keyword yet, and only thread over
+atoms. Many simple pairwise potentials such as Lennard-Jones do support
+threading over both atoms and neighbors.</p>
+<p>If the <em>neigh/transpose</em> keyword is set to <em>off</em>, then the KOKKOS
+package will use the same memory layout for building the neighbor list on
+GPUs as used for the pair style. When this keyword is set to <em>on</em> it
+will use a different (transposed) memory layout to build the neighbor
+list on GPUs. This can be faster in some cases (e.g. ReaxFF HNS
+benchmark) but slower in others (e.g. Lennard Jones benchmark). The
+copy between different memory layouts is done out of place and
+therefore doubles the memory overhead of the neighbor list, which can
+be significant.</p>
+<p>The <em>newton</em> keyword sets the Newton flags for pairwise and bonded
+interactions to <em>off</em> or <em>on</em>, the same as the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>
+command allows. The default for GPUs is <em>off</em> because this will almost
+always give better performance for the KOKKOS package. This means more
+computation is done, but less communication. However, when running on
+CPUs a value of <em>on</em> is the default since it can often be faster, just
+as it is for non-accelerated pair styles</p>
+<p>The <em>binsize</em> keyword sets the size of bins used to bin atoms during
+neighbor list builds. The same value can be set by the
+<a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify binsize</span></a> command. Making it an option
+in the package kokkos command allows it to be set from the command-line.
+The default value for CPUs is 0.0, which means the LAMMPS default will be
+used, which is bins = 1/2 the size of the pairwise cutoff + neighbor skin
+distance. This is fine when neighbor lists are built on the CPU. For GPU
+builds, a 2x larger binsize equal to the pairwise cutoff + neighbor skin
+is often faster, which is the default. Note that if you use a
+longer-than-usual pairwise cutoff, e.g. to allow for a smaller fraction
+of KSpace work with a <a class="reference internal" href="kspace_style.html"><span class="doc">long-range Coulombic solver</span></a>
+because the GPU is faster at performing pairwise interactions, then this
+rule of thumb may give too large a binsize and the default should be
+overridden with a smaller value.</p>
+<p>The <em>comm</em> and <em>comm/exchange</em> and <em>comm/forward</em> and
+<em>comm/pair/forward</em> and <em>comm/fix/forward</em> and <em>comm/compute/forward</em>
+and <em>comm/reverse</em> and <em>comm/pair/reverse</em> and <em>comm/fix/reverse</em>
+keywords determine whether the host or device performs the packing and
+unpacking of data when communicating per-atom data between processors.
+“Exchange” communication happens only on timesteps that neighbor lists
+are rebuilt. The data is only for atoms that migrate to new processors.
+“Forward” communication happens every timestep. “Reverse” communication
+happens every timestep if the <em>newton</em> option is on. The data is for
+atom coordinates and any other atom properties that needs to be updated
+for ghost atoms owned by each processor. “Comm/pair” controls additional
+communication in pair styles, such as pair_style EAM. “Comm/fix” controls
+additional communication in fixes, such as fix SHAKE. Similarly,
+“comm/compute” controls additional communication in computes.</p>
+<p>The <em>comm</em> keyword is simply a short-cut to set the same value for all
+the comm keywords.</p>
+<p>The value options for the keywords are <em>no</em> or <em>host</em> or <em>device</em>. A
+value of <em>no</em> means to use the standard non-KOKKOS method of
+packing/unpacking data for the communication. A value of <em>host</em> means to
+use the host, typically a multicore CPU, and perform the
+packing/unpacking in parallel with threads. A value of <em>device</em> means to
+use the device, typically a GPU, to perform the packing/unpacking
+operation.</p>
+<p>For the <em>comm/pair/forward</em> or <em>comm/fix/forward</em> or
+<em>comm/compute/forward</em> or <em>comm/pair/reverse</em> keywords, if a value of
+<em>host</em> is used it will be automatically be changed to <em>no</em> since these
+keywords don’t support <em>host</em> mode. The value of <em>no</em> will also always
+be used when running on the CPU, i.e. setting the value to <em>device</em>
+will have no effect if the pair/fix style is running on the CPU. For
+the <em>comm/fix/forward</em> or <em>comm/compute/forward</em> or
+<em>comm/pair/reverse</em> or <em>comm/fix/reverse</em> keywords, not all styles
+support <em>device</em> mode and in that case will run in <em>no</em> mode instead.</p>
+<p>The optimal choice for these keywords depends on the input script and
+the hardware used. The <em>no</em> value is useful for verifying that the
+Kokkos-based <em>host</em> and <em>device</em> values are working correctly. It is the
+default when running on CPUs since it is usually the fastest.</p>
+<p>When running on CPUs, the <em>host</em> and <em>device</em> values work
+identically. When using GPUs, the <em>device</em> value is the default since it
+will typically be optimal if all of your styles used in your input
+script are supported by the KOKKOS package. In this case data can stay
+on the GPU for many timesteps without being moved between the host and
+GPU, if you use the <em>device</em> value. If your script uses styles (e.g.
+fixes) which are not yet supported by the KOKKOS package, then data has
+to be moved between the host and device anyway, so it is typically faster
+to let the host handle communication, by using the <em>host</em> value. Using
+<em>host</em> instead of <em>no</em> will enable use of multiple threads to
+pack/unpack communicated data. When running small systems on a GPU,
+performing the exchange pack/unpack on the host CPU can give speedup
+since it reduces the number of CUDA kernel launches.</p>
+<p>The <em>sort</em> keyword determines whether the host or device performs atom
+sorting, see the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify sort</span></a> command.  The value
+options for the <em>sort</em> keyword are <em>no</em> or <em>device</em> similar to the <em>comm</em>
+keywords above. If a value of <em>host</em> is used it will be automatically be
+changed to <em>no</em> since the <em>sort</em> keyword does not support <em>host</em> mode. Not
+all fix styles with extra atom data support <em>device</em> mode and in that case
+a warning will be given and atom sorting will run in <em>no</em> mode instead.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 17Apr2024.</span></p>
+</div>
+<p>The <em>atom/map</em> keyword determines whether the host or device builds the
+atom_map, see the <a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify map</span></a> command.  The
+value options for the <em>atom/map</em> keyword are identical to the <em>sort</em>
+keyword above.</p>
+<p>The <em>gpu/aware</em> keyword chooses whether GPU-aware MPI will be used. When
+this keyword is set to <em>on</em>, buffers in GPU memory are passed directly
+through MPI send/receive calls. This reduces overhead of first copying
+the data to the host CPU.  However GPU-aware MPI is not supported on all
+systems, which can lead to segmentation faults and would require using a
+value of <em>off</em>. If LAMMPS can safely detect that GPU-aware MPI is not
+available (currently only possible with OpenMPI v2.0.0 or later), then
+the <em>gpu/aware</em> keyword is automatically set to <em>off</em> by default. When
+the <em>gpu/aware</em> keyword is set to <em>off</em> while any of the <em>comm</em>
+keywords are set to <em>device</em>, the value for these <em>comm</em> keywords will
+be automatically changed to <em>no</em>.  This setting has no effect if not
+running on GPUs or if using only one MPI rank. GPU-aware MPI is available
+for OpenMPI 1.8 (or later versions), Mvapich2 1.9 (or later) when the
+“MV2_USE_CUDA” environment variable is set to “1”, CrayMPI, and IBM
+Spectrum MPI when the “-gpu” flag is used.</p>
+<p>The <em>pair/only</em> keyword can change how the KOKKOS suffix “kk” is applied
+when using an accelerator device.  By default device acceleration is always
+used for all available styles.  With <em>pair/only</em> set to <em>on</em> the suffix
+setting will choose device acceleration only for pair styles and run all
+other force computations on the host CPU.  The <em>comm</em> flags, along with the
+<em>sort</em> and <em>atom/map</em> keywords will also automatically be changed to <em>no</em>.
+This can result in better performance for certain configurations and
+system sizes.</p>
+<p>The following parameters allow users to tune the overall performance
+depending on the simulated systems.  If not explicitly specified,
+their values will be set internally by the KOKKOS package.</p>
+<p>The <em>threads/per/atom</em> keyword sets the number of GPU vector lanes per atom
+used to perform force calculations.  This keyword is only applicable
+when <em>neigh/thread</em> is set to <em>on</em>.   For large cutoffs or with a small number
+of particles per GPU, increasing the value can improve performance.
+The number of lanes per atom must be a power of 2 and currently cannot be
+greater than the SIMD width for the GPU / accelerator.  In the case
+it exceeds the SIMD width, it will automatically be decreased to meet
+the restriction.</p>
+<p>The <em>pair/team/size</em> keyword sets the number of threads per block for
+the pair force compute kernel.  This keyword is only applicable
+when <em>neigh/thread</em> is set to <em>on</em>.  The default value of this parameter
+is determined based on the GPU architecture at runtime.</p>
+<p>The <em>nbin/atoms/per/bin</em> keyword sets the number of atoms per bin
+used for the neighbor list builds on the GPU, which then determines
+the number of GPU threads per bin.  The default value of this parameter is 16.</p>
+<p>The <em>nbor/chunk/size</em> keyword sets the number of iterations that a work item
+is scheduled for the neighbor list builds on the GPU using the flat method (i.e.,
+each thread finds the neighbor list of an atom).  If not specified, the default value
+of this parameter is determined based on the GPU architecture at runtime.</p>
+<p>The <em>bond/chunk/size</em> keyword sets the number of iterations that a work item
+is scheduled for the bond force kernel on the GPU.  The default value
+of this parameter is determined based on the GPU architecture at runtime.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 4Jul2026.</span></p>
+</div>
+<p>The <em>auto/tuning</em> keyword enables the auto-tuning feature of
+the KOKKOS package when using GPUs.  The following KOKKOS styles
+currently support auto-tuning:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="bond_class2.html"><span class="doc">bond/class2/kk</span></a></p></li>
+<li><p><a class="reference internal" href="bond_fene.html"><span class="doc">bond/fene/kk</span></a></p></li>
+<li><p><a class="reference internal" href="bond_harmonic.html"><span class="doc">bond/harmonic/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/long/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/long/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/cut/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_dpd.html"><span class="doc">dpd/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_sw.html"><span class="doc">sw/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff/kk</span></a></p></li>
+<li><p><a class="reference internal" href="pair_zbl.html"><span class="doc">zbl/kk</span></a></p></li>
+</ul>
+<p>These styles serve as templates for incorporating auto-tuners into other
+KOKKOS styles in the future. To avoid duplicated codes, one possibility
+is to refactor the tuners so that KOKKOS styles can request and enable
+them through a consistent API.</p>
+<p>It is recommended that auto-tuning is enabled only when the simulated
+system is in steady state.  The performance gain due to auto-tuning
+typically varies with the KOKKOS styles and the simulated system.  For
+the benchmark systems <em>bench/in.lj</em> and <em>bench/in.rhodo</em>, the speedup vs
+without auto-tuning could be 30% and 50%, respectively (figure below).</p>
+<p><a class="reference internal" href="_images/autotuning.png"><img alt="autotuning" src="_images/autotuning.png" style="width: 50%;" /></a></p>
+<p>When enabled, the tuner of the KOKKOS styles in use will scan through
+the possible values of kernel launch parameters, such as
+<em>pair/team/size</em> <em>threads/per/atom</em> for pair styles, <em>bond/chunk/size</em>
+for bond styles, and <em>nbin/atoms/per/bin</em> for neighbor builds.  When the
+scanning completes, the tuner stores the best overall performance (in
+terms of the number of time steps per second) with the corresponding
+kernel launch parameter combination.</p>
+<p>The tuner then uses the optimal parameter combination to launch the
+kernels on the GPU and monitors the simulation performance periodically.
+If the performance repeatedly drops below a certain relative tolerance
+from the last stored optimal value, the tuner may attempt to find the
+new optimal parameter combination by rerunning the scanning process.</p>
+<p>There could be multiple tuners active in a run, for instance, when
+<em>bench/in.rhodo</em> is run on the GPUs, both <a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/long/kk</span></a> and <a class="reference internal" href="bond_harmonic.html"><span class="doc">bond/harmonic/kk</span></a> have their
+tuners activated.  During the run, each tuner writes the current
+parameter combination and measured performance to a file named
+<em>tuning-[style-name].log</em>.</p>
+<p>The following parameters are needed for the auto-tuning process.</p>
+<blockquote>
+<div><p><strong>nevery:</strong> controls the interval used to estimate the overall
+performance for a combination of these two parameters.  <em>nevery</em>
+needs to be large enough to have a stable estimate of the
+performance, to achieve a sufficiently large number of kernel calls,
+while small enough to reduce the time required for scanning over all
+the combinations.  <em>nevery</em> = 100 is usually a reasonable value.</p>
+<p><strong>nsamples:</strong> indicates the number of samples the tuners will collect
+for each parameter combination.  <em>nsamples</em> = 5 is usually a
+reasonable value.</p>
+<p><strong>mode:</strong> determines how the performance of a collection of samples is
+<em>determined: max</em> means the maximum value, <em>ave</em> means the arithmetic
+<em>average value, and *median</em> means the median value.</p>
+<p><strong>reltol:</strong> sets the relative tolerance for performance degradation
+compared to the last optimal performance, which may trigger a re-scan
+of the parameter space.  Setting <em>reltol</em> to be equal or greater than
+1.0 will disable re-scanning.</p>
+</div></blockquote>
+<p>For example, suppose that <em>nevery</em> = 100, <em>nsamples</em> = 5, <em>mode</em> =
+median and <em>reltol</em> = 0.2. For a typical pair style, the tuner scans
+over 90 parameter combinations (<em>pair/team/size</em>, <em>threads/per/atom</em>):
+15 values of <em>pair/team/size</em> starting from 64 to 512 incremental by 32,
+and 6 values of <em>threads/per/atom</em>.  For each parameter combination, the
+tuner monitors and saves the performance after 100 steps.  When a scan
+over 90 combinations completes (9000 steps in this example), the best
+performance value is stored as a sample.  After <em>nsamples</em> = 5 samples
+are collected, the median value is stored and the optimal parameter
+combination (<em>pair/team/size</em>, <em>threads/per/atom</em>) will be used for the
+next kernel launches.  The figures above illustrate the simulation
+performance over time with auto-tuning using this setting for
+<em>bench/in.lj</em> (left panel) and <em>bench/in.rhodo</em> (right panel).  The
+plateau regions correspond to the regime where the kernels are launched
+with the corresponding optimal parameter combinations.</p>
+<p>Suppose that the last stored best performance is 1000 time steps per
+second.  After the optimal parameter combination is locked in, the tuner
+keeps monitoring the performance every <em>nevery</em> = 100 time steps. If the
+performance drops below (1 - <em>reltol</em>) * 1000 = 800 time steps per
+second by <em>nsamples</em> = 5 times (not necessarily consecutively) the tuner
+will trigger a re-scanning over the parameter combinations to find a new
+optimal parameter combination.</p>
+<p>If <em>nevery</em> is 0, auto-tuning is effectively disabled.  The 3 parameters
+<em>nsamples</em>, <em>mode</em> and <em>reltol</em> still need to be specified but have no
+effect to the run.</p>
+<p>One can also use the output in the log files <em>tuning-[style-name].log</em>
+as hints to select a combination of <em>pair/team/size and
+*threads/per/atom</em> to specify at command line arguments without enabling
+auto-tuning.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Do not use <em>auto/tuning</em> in tandem with <em>pair/team/size</em> and/or
+<em>threads/per/atom</em> in the same command line because the latter
+override the scanning process of the tuners.</p>
+</div>
+</section>
+<section id="openmp-package-settings">
+<h3><a class="toc-backref" href="#contents" role="doc-backlink">OPENMP package settings</a><a class="headerlink" href="#openmp-package-settings" title="Link to this heading"></a></h3>
+<p>The <em>omp</em> style invokes settings associated with the use of the
+OPENMP package.</p>
+<p>The <em>Nthreads</em> argument sets the number of OpenMP threads allocated for
+each MPI task.  For example, if your system has nodes with dual
+quad-core processors, it has a total of 8 cores per node.  You could
+use two MPI tasks per node (e.g. using the -ppn option of the mpirun
+command in MPICH or -npernode in OpenMPI), and set <em>Nthreads</em> = 4.
+This would use all 8 cores on each node.  Note that the product of MPI
+tasks * threads/task should not exceed the physical number of cores
+(on a node), otherwise performance will suffer.</p>
+<p>Setting <em>Nthreads</em> = 0 instructs LAMMPS to use whatever value is the
+default for the given OpenMP environment. This is usually determined
+via the <em>OMP_NUM_THREADS</em> environment variable or the compiler
+runtime.  Note that in most cases the default for OpenMP capable
+compilers is to use one thread for each available CPU core when
+<em>OMP_NUM_THREADS</em> is not explicitly set, which can lead to poor
+performance.</p>
+<p>Here are examples of how to set the environment variable when
+launching LAMMPS:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>env<span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">4</span><span class="w"> </span>lmp_machine<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+env<span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">2</span><span class="w"> </span>lmp_machine<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+mpirun<span class="w"> </span>-x<span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">2</span><span class="w"> </span>-np<span class="w"> </span><span class="m">2</span><span class="w"> </span>lmp_machine<span class="w"> </span>-sf<span class="w"> </span>omp<span class="w"> </span>-in<span class="w"> </span><span class="k">in</span>.script
+</pre></div>
+</div>
+<p>or you can set it permanently in your shell’s start-up script.
+All three of these examples use a total of 4 CPU cores.</p>
+<p>Note that different MPI implementations have different ways of passing
+the OMP_NUM_THREADS environment variable to all MPI processes.  The
+second example line above is for MPICH; the third example line with -x is
+for OpenMPI.  Check your MPI documentation for additional details.</p>
+<p>What combination of threads and MPI tasks gives the best performance
+is difficult to predict and can depend on many components of your
+input.  Not all features of LAMMPS support OpenMP threading via the
+OPENMP package and the parallel efficiency can be very different,
+too.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you build LAMMPS with the GPU, INTEL, and / or OPENMP
+packages, be aware these packages all allow setting of the <em>Nthreads</em>
+value via their package commands, but there is only a single global
+<em>Nthreads</em> value used by OpenMP.  Thus if multiple package commands are
+invoked, you should ensure the values are consistent.  If they are
+not, the last one invoked will take precedence, for all packages.
+Also note that if the <a class="reference internal" href="Run_options.html"><span class="doc">-sf hybrid intel omp command-line switch</span></a> is used, it invokes a “package intel” command, followed by a
+“package omp” command, both with a setting of <em>Nthreads</em> = 0. Likewise
+for a hybrid suffix for gpu and omp. Note that KOKKOS also supports
+setting the number of OpenMP threads from the command-line using the
+“-k on” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>. The default for
+KOKKOS is 1 thread per MPI task, so any other number of threads should
+be explicitly set using the “-k on” command-line switch (and this
+setting should be consistent with settings from any other packages
+used).</p>
+</div>
+<p>Optional keyword/value pairs can also be specified.  Each has a
+default value as listed below.</p>
+<p>The <em>neigh</em> keyword specifies whether neighbor list building will be
+multi-threaded in addition to force calculations.  If <em>neigh</em> is set
+to <em>no</em> then neighbor list calculation is performed only by MPI tasks
+with no OpenMP threading.  If <em>mode</em> is <em>yes</em> (the default), a
+multi-threaded neighbor list build is used.  Using <em>neigh</em> = <em>yes</em> is
+almost always faster and should produce identical neighbor lists at the
+expense of using more memory.  Specifically, neighbor list pages are
+allocated for all threads at the same time and each thread works
+within its own pages.</p>
+</section>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2><a class="toc-backref" href="#contents" role="doc-backlink">Restrictions</a><a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>This command cannot be used after the simulation box is defined by a
+<a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command.</p>
+<p>The <em>gpu</em> style of this command can only be invoked if LAMMPS was built
+with the GPU package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> doc
+page for more info.</p>
+<p>The <em>intel</em> style of this command can only be invoked if LAMMPS was
+built with the INTEL package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>The <em>kokkos</em> style of this command can only be invoked if LAMMPS was built
+with the KOKKOS package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a>
+doc page for more info.</p>
+<p>The <em>omp</em> style of this command can only be invoked if LAMMPS was built
+with the OPENMP package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a>
+doc page for more info.</p>
+</section>
+<section id="related-commands">
+<h2><a class="toc-backref" href="#contents" role="doc-backlink">Related commands</a><a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a>, <a class="reference internal" href="Run_options.html"><span class="doc">-pk command-line switch</span></a></p>
+</section>
+<section id="defaults">
+<h2><a class="toc-backref" href="#contents" role="doc-backlink">Defaults</a><a class="headerlink" href="#defaults" title="Link to this heading"></a></h2>
+<p>For the GPU package, the default parameters and settings are:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Ngpu = 0, neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, platform=-1.
+</pre></div>
+</div>
+<p>These settings are made automatically if the “-sf gpu”
+<a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> is used.  If it is not used,
+you must invoke the package gpu command in your input script or via the
+“-pk gpu” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>.</p>
+<p>For the INTEL package, the default parameters and settings are:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>omp = 0, mode = mixed, lrt = no, pppm_table = yes
+</pre></div>
+</div>
+<p>These settings are made automatically if the “-sf intel”
+<a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> is used.  If it is not used, you
+must invoke the package intel command in your input script or via the
+“-pk intel” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>.</p>
+<p>For the KOKKOS package when using GPUs, the option defaults are:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>neigh = full, neigh/qeq = full, newton = off, binsize = 2x LAMMPS default value, comm = device, sort = device, atom/map = device, neigh/transpose = off, gpu/aware = on, auto/tuning = disabled
+</pre></div>
+</div>
+<p>For GPUs, option neigh/thread = on when there are 16k atoms or less on
+an MPI rank, otherwise it is “off”. When LAMMPS can safely detect that
+GPU-aware MPI is not available, the default value of gpu/aware becomes
+“off”.</p>
+<p>For the KOKKOS package when using CPUs, the option defaults are:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>neigh = half, neigh/qeq = half, newton = on, binsize = 0.0, comm = no, sort = no, atom/map = no
+</pre></div>
+</div>
+<p>These settings are made automatically by
+the required “-k on” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>.  You can
+change them by using the package kokkos command in your input script or
+via the <a class="reference internal" href="Run_options.html"><span class="doc">-pk kokkos command-line switch</span></a>.</p>
+<p>For the OMP package, the defaults are</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>Nthreads = 0, neigh = yes
+</pre></div>
+</div>
+<p>These settings are made automatically if the “-sf omp”
+<a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a> is used.  If it is not used,
+you must invoke the package omp command in your input script or via the
+“-pk omp” <a class="reference internal" href="Run_options.html"><span class="doc">command-line switch</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="next.html" class="btn btn-neutral float-left" title="next command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pair_coeff.html" class="btn btn-neutral float-right" title="pair_coeff command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

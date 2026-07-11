@@ -1,0 +1,1181 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>5.2. Errors and warnings details &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Errors_details.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="5.3. Reporting bugs" href="Errors_bugs.html" />
+    <link rel="prev" title="5.1. Common issues that are often regarded as bugs" href="Errors_common.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Errors.html">5. Errors</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Errors_common.html">5.1. Common issues that are often regarded as bugs</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">5.2. Errors and warnings details</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#general-troubleshooting-advice">5.2.1. General troubleshooting advice</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unknown-identifier-in-data-file">5.2.2. Unknown identifier in data file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#incorrect-format-in-section-of-data-file">5.2.3. Incorrect format in … section of data file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#illegal-variable-command-expected-x-arguments-but-found-y">5.2.4. Illegal variable command: expected X arguments but found Y</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#out-of-range-atoms-cannot-compute">5.2.5. Out of range atoms - cannot compute …</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bond-or-angle-dihedral-improper-cmap-or-shake-atoms-missing">5.2.6. Bond (or angle, dihedral, improper, cmap, or shake) atoms missing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#non-numeric-atom-coords-or-pressure-or-box-dimensions-simulation-unstable">5.2.7. Non-numeric atom coords or pressure or box dimensions - simulation unstable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fix-used-in-not-computed-at-compatible-time">5.2.8. Fix used in … not computed at compatible time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lost-atoms">5.2.9. Lost atoms …</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#too-many-neighbor-bins">5.2.10. Too many neighbor bins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unrecognized-style">5.2.11. Unrecognized … style …</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#energy-or-stress-was-not-tallied-by-pair-style">5.2.12. Energy or stress was not tallied by pair style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fmt-format-error">5.2.13. fmt::format_error</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#substitution-for-illegal-variable">5.2.14. Substitution for illegal variable</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bond-atom-missing-in-image-check-or-box-size-check">5.2.15. Bond atom missing in image check or box size check</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cannot-use-neighbor-bins-box-size-cutoff">5.2.16. Cannot use neighbor bins - box size &lt;&lt; cutoff</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#did-not-assign-all-atoms-correctly">5.2.17. Did not assign all atoms correctly</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#domain-too-large-for-neighbor-bins">5.2.18. Domain too large for neighbor bins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#step-x-h-bondchk-failed">5.2.19. Step X: (h)bondchk failed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#numeric-index-x-is-out-of-bounds">5.2.20. Numeric index X is out of bounds</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#compute-fix-or-variable-vector-or-array-is-accessed-out-of-range">5.2.21. Compute, fix, or variable vector or array is accessed out-of-range</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#incorrect-args-for-pair-coefficients-also-bond-angle-dihedral-improper-coefficients">5.2.22. Incorrect args for pair coefficients (also bond/angle/dihedral/improper coefficients)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#energy-was-not-tallied-on-needed-timestep-also-virial-per-atom-energy-per-atom-virial">5.2.23. Energy was not tallied on needed timestep (also virial, per-atom energy, per-atom virial)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molecule-auto-special-bond-generation-overflow">5.2.24. Molecule auto special bond generation overflow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molecule-topology-atom-exceeds-system-topology-atom">5.2.25. Molecule topology/atom exceeds system topology/atom</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molecule-topology-type-exceeds-system-topology-type">5.2.26. Molecule topology type exceeds system topology type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#molecule-attributes-do-not-match-system-attributes">5.2.27. Molecule attributes do not match system attributes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inconsistent-image-flags">5.2.28. Inconsistent image flags</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#no-fixes-with-time-integration-atoms-won-t-move">5.2.29. No fixes with time integration, atoms won’t move</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#system-is-not-charge-neutral-net-charge">5.2.30. System is not charge neutral, net charge = …</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#variable-evaluation-before-simulation-box-is-defined">5.2.31. Variable evaluation before simulation box is defined</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#invalid-thermo-keyword-x-in-variable-formula">5.2.32. Invalid thermo keyword ‘X’ in variable formula</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#one-or-more-atoms-are-time-integrated-more-than-once">5.2.33. One or more atoms are time integrated more than once</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xxx-command-before-simulation-box-is-defined">5.2.34. XXX command before simulation box is defined</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#xxx-command-after-simulation-box-is-defined">5.2.35. XXX command after simulation box is defined</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-messages-ending-in-please-contact-the-lammps-developers">5.2.36. Error messages ending in ‘Please contact the LAMMPS developers’</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#neighbor-list-overflow-boost-neigh-modify-one">5.2.37. Neighbor list overflow, boost neigh_modify one</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#variable-compute-fix-does-not-compute-requested-property">5.2.38. Variable …: Compute/Fix … does not compute requested property</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-style-is-no-longer-available">5.2.39. The … style … is no longer available</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_bugs.html">5.3. Reporting bugs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_debug.html">5.4. Debugging crashes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_debug.html#debugging-when-lammps-appears-to-be-stuck">5.5. Debugging when LAMMPS appears to be stuck</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_messages.html">5.6. Error messages</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Errors_warnings.html">5.7. Warning messages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Errors.html"><span class="section-number">5. </span>Errors</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">5.2. </span>Errors and warnings details</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Errors_common.html" class="btn btn-neutral float-left" title="5.1. Common issues that are often regarded as bugs" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Errors_bugs.html" class="btn btn-neutral float-right" title="5.3. Reporting bugs" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="errors-and-warnings-details">
+<h1><span class="section-number">5.2. </span>Errors and warnings details<a class="headerlink" href="#errors-and-warnings-details" title="Link to this heading"></a></h1>
+<p>Many errors and warnings that LAMMPS outputs are self-explanatory and
+thus straightforward to resolve.  However, there are also cases where
+there is no single cause or simple explanation that can be provided in a
+short message printed by LAMMPS.  Therefore, more detailed discussions
+of such scenarios are provided here; first on a more general level and
+then for specific errors.  In the latter cases, LAMMPS will output a
+short message and then provide a URL that links to a specific section on
+this page.</p>
+<hr class="docutils" />
+<nav class="contents local" id="individual-paragraphs">
+<p class="topic-title">Individual paragraphs</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#general-troubleshooting-advice" id="id1">General troubleshooting advice</a></p>
+<ul>
+<li><p><a class="reference internal" href="#create-a-small-test-system" id="id2">Create a small test system</a></p></li>
+<li><p><a class="reference internal" href="#visualize-your-trajectory" id="id3">Visualize your trajectory</a></p></li>
+<li><p><a class="reference internal" href="#parallel-versus-serial" id="id4">Parallel versus serial</a></p></li>
+<li><p><a class="reference internal" href="#segmentation-fault" id="id5">Segmentation Fault</a></p></li>
+<li><p><a class="reference internal" href="#fast-moving-atoms" id="id6">Fast moving atoms</a></p></li>
+<li><p><a class="reference internal" href="#ignoring-lost-atoms" id="id7">Ignoring lost atoms</a></p></li>
+<li><p><a class="reference internal" href="#pressure-forces-positions-becoming-nan-or-inf" id="id8">Pressure, forces, positions becoming NaN or Inf</a></p></li>
+<li><p><a class="reference internal" href="#communication-cutoff" id="id9">Communication cutoff</a></p></li>
+<li><p><a class="reference internal" href="#neighbor-list-settings" id="id10">Neighbor list settings</a></p></li>
+<li><p><a class="reference internal" href="#units" id="id11">Units</a></p></li>
+<li><p><a class="reference internal" href="#no-error-message-printed" id="id12">No error message printed</a></p></li>
+<li><p><a class="reference internal" href="#errors-before-or-after-the-simulation-box-is-created" id="id13">Errors before or after the simulation box is created</a></p></li>
+<li><p><a class="reference internal" href="#illegal-command" id="id14">Illegal … command</a></p></li>
+</ul>
+</li>
+<li><p><a class="reference internal" href="#unknown-identifier-in-data-file" id="id15">Unknown identifier in data file</a></p></li>
+<li><p><a class="reference internal" href="#incorrect-format-in-section-of-data-file" id="id16">Incorrect format in … section of data file</a></p></li>
+<li><p><a class="reference internal" href="#illegal-variable-command-expected-x-arguments-but-found-y" id="id17">Illegal variable command: expected X arguments but found Y</a></p></li>
+<li><p><a class="reference internal" href="#out-of-range-atoms-cannot-compute" id="id18">Out of range atoms - cannot compute …</a></p></li>
+<li><p><a class="reference internal" href="#bond-or-angle-dihedral-improper-cmap-or-shake-atoms-missing" id="id19">Bond (or angle, dihedral, improper, cmap, or shake) atoms missing</a></p></li>
+<li><p><a class="reference internal" href="#non-numeric-atom-coords-or-pressure-or-box-dimensions-simulation-unstable" id="id20">Non-numeric atom coords or pressure or box dimensions - simulation unstable</a></p></li>
+<li><p><a class="reference internal" href="#fix-used-in-not-computed-at-compatible-time" id="id21">Fix used in … not computed at compatible time</a></p></li>
+<li><p><a class="reference internal" href="#lost-atoms" id="id22">Lost atoms …</a></p></li>
+<li><p><a class="reference internal" href="#too-many-neighbor-bins" id="id23">Too many neighbor bins</a></p></li>
+<li><p><a class="reference internal" href="#unrecognized-style" id="id24">Unrecognized … style …</a></p></li>
+<li><p><a class="reference internal" href="#energy-or-stress-was-not-tallied-by-pair-style" id="id25">Energy or stress was not tallied by pair style</a></p></li>
+<li><p><a class="reference internal" href="#fmt-format-error" id="id26">fmt::format_error</a></p></li>
+<li><p><a class="reference internal" href="#substitution-for-illegal-variable" id="id27">Substitution for illegal variable</a></p></li>
+<li><p><a class="reference internal" href="#bond-atom-missing-in-image-check-or-box-size-check" id="id28">Bond atom missing in image check or box size check</a></p></li>
+<li><p><a class="reference internal" href="#cannot-use-neighbor-bins-box-size-cutoff" id="id29">Cannot use neighbor bins - box size &lt;&lt; cutoff</a></p></li>
+<li><p><a class="reference internal" href="#did-not-assign-all-atoms-correctly" id="id30">Did not assign all atoms correctly</a></p></li>
+<li><p><a class="reference internal" href="#domain-too-large-for-neighbor-bins" id="id31">Domain too large for neighbor bins</a></p></li>
+<li><p><a class="reference internal" href="#step-x-h-bondchk-failed" id="id32">Step X: (h)bondchk failed</a></p></li>
+<li><p><a class="reference internal" href="#numeric-index-x-is-out-of-bounds" id="id33">Numeric index X is out of bounds</a></p></li>
+<li><p><a class="reference internal" href="#compute-fix-or-variable-vector-or-array-is-accessed-out-of-range" id="id34">Compute, fix, or variable vector or array is accessed out-of-range</a></p></li>
+<li><p><a class="reference internal" href="#incorrect-args-for-pair-coefficients-also-bond-angle-dihedral-improper-coefficients" id="id35">Incorrect args for pair coefficients (also bond/angle/dihedral/improper coefficients)</a></p></li>
+<li><p><a class="reference internal" href="#energy-was-not-tallied-on-needed-timestep-also-virial-per-atom-energy-per-atom-virial" id="id36">Energy was not tallied on needed timestep (also virial, per-atom energy, per-atom virial)</a></p></li>
+<li><p><a class="reference internal" href="#molecule-auto-special-bond-generation-overflow" id="id37">Molecule auto special bond generation overflow</a></p></li>
+<li><p><a class="reference internal" href="#molecule-topology-atom-exceeds-system-topology-atom" id="id38">Molecule topology/atom exceeds system topology/atom</a></p></li>
+<li><p><a class="reference internal" href="#molecule-topology-type-exceeds-system-topology-type" id="id39">Molecule topology type exceeds system topology type</a></p></li>
+<li><p><a class="reference internal" href="#molecule-attributes-do-not-match-system-attributes" id="id40">Molecule attributes do not match system attributes</a></p></li>
+<li><p><a class="reference internal" href="#inconsistent-image-flags" id="id41">Inconsistent image flags</a></p></li>
+<li><p><a class="reference internal" href="#no-fixes-with-time-integration-atoms-won-t-move" id="id42">No fixes with time integration, atoms won’t move</a></p></li>
+<li><p><a class="reference internal" href="#system-is-not-charge-neutral-net-charge" id="id43">System is not charge neutral, net charge = …</a></p></li>
+<li><p><a class="reference internal" href="#variable-evaluation-before-simulation-box-is-defined" id="id44">Variable evaluation before simulation box is defined</a></p></li>
+<li><p><a class="reference internal" href="#invalid-thermo-keyword-x-in-variable-formula" id="id45">Invalid thermo keyword ‘X’ in variable formula</a></p></li>
+<li><p><a class="reference internal" href="#one-or-more-atoms-are-time-integrated-more-than-once" id="id46">One or more atoms are time integrated more than once</a></p></li>
+<li><p><a class="reference internal" href="#xxx-command-before-simulation-box-is-defined" id="id47">XXX command before simulation box is defined</a></p></li>
+<li><p><a class="reference internal" href="#xxx-command-after-simulation-box-is-defined" id="id48">XXX command after simulation box is defined</a></p></li>
+<li><p><a class="reference internal" href="#error-messages-ending-in-please-contact-the-lammps-developers" id="id49">Error messages ending in ‘Please contact the LAMMPS developers’</a></p></li>
+<li><p><a class="reference internal" href="#neighbor-list-overflow-boost-neigh-modify-one" id="id50">Neighbor list overflow, boost neigh_modify one</a></p></li>
+<li><p><a class="reference internal" href="#variable-compute-fix-does-not-compute-requested-property" id="id51">Variable …: Compute/Fix … does not compute requested property</a></p></li>
+<li><p><a class="reference internal" href="#the-style-is-no-longer-available" id="id52">The … style … is no longer available</a></p></li>
+</ul>
+</nav>
+<hr class="docutils" />
+<section id="general-troubleshooting-advice">
+<h2><a class="toc-backref" href="#id1" role="doc-backlink"><span class="section-number">5.2.1. </span>General troubleshooting advice</a><a class="headerlink" href="#general-troubleshooting-advice" title="Link to this heading"></a></h2>
+<p>Below are suggestions that can help to understand the causes of problems
+with simulations leading to errors or unexpected results.</p>
+<section id="create-a-small-test-system">
+<span id="hint01"></span><h3><a class="toc-backref" href="#id2" role="doc-backlink">Create a small test system</a><a class="headerlink" href="#create-a-small-test-system" title="Link to this heading"></a></h3>
+<p>Debugging problems often requires running a simulation many times with
+small modifications, thus it can be a huge time saver to first assemble
+a small test system input that has the same issue, but will take much
+less time until it triggers the error condition.  Also, it will be
+easier to see what happens when visualizing the system or looking at
+output files.</p>
+</section>
+<section id="visualize-your-trajectory">
+<span id="hint02"></span><h3><a class="toc-backref" href="#id3" role="doc-backlink">Visualize your trajectory</a><a class="headerlink" href="#visualize-your-trajectory" title="Link to this heading"></a></h3>
+<p>To better understand what is causing problems, it is often very useful
+to visualize the system close to the point of failure.  It may be
+necessary to have LAMMPS output trajectory frames rather frequently.  To
+avoid gigantic files, you can use <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify delay</span></a>
+to delay output until the critical section is reached, and you can use a
+smaller test system (see above).</p>
+</section>
+<section id="parallel-versus-serial">
+<span id="hint03"></span><h3><a class="toc-backref" href="#id4" role="doc-backlink">Parallel versus serial</a><a class="headerlink" href="#parallel-versus-serial" title="Link to this heading"></a></h3>
+<p>Issues where something is “lost” or “missing” often exhibit that issue
+<em>only</em> when running in parallel.  That doesn’t mean there is no problem
+when running in serial, only the symptoms are not triggering an error.
+This may be because there is no domain decomposition with just one
+processor and thus all atoms are accessible, or it may be because the
+problem will manifest faster with smaller subdomains.  Correspondingly,
+errors may be triggered faster with more processors and thus smaller
+sub-domains.</p>
+</section>
+<section id="segmentation-fault">
+<span id="hint04"></span><h3><a class="toc-backref" href="#id5" role="doc-backlink">Segmentation Fault</a><a class="headerlink" href="#segmentation-fault" title="Link to this heading"></a></h3>
+<p>A segmentation fault is an error reported by the <strong>operating system</strong>
+and not LAMMPS itself.  It happens when a process tries to access a
+memory address that is not available.  This can have <strong>many</strong> reasons:
+memory has not been allocated, a memory buffer is not large enough, a
+memory address is computed from an incorrect index, a memory buffer is
+used after it has been freed, some general memory corruption.  When
+investigating a segmentation fault (aka segfault), it is important to
+determine which process is causing it; it may not always be LAMMPS.  For
+example, some MPI library implementations report a segmentation fault
+from their “mpirun” or “mpiexec” command when the application has been
+terminated unexpectedly.</p>
+<p>While a segmentation fault is likely an indication of a bug in LAMMPS,
+it need not always be; it can also be the consequence of too aggressive
+simulation settings.  For time critical code paths, LAMMPS will assume
+the user has chosen the settings carefully and will not make any checks
+to avoid performance penalties.</p>
+<p>A crucial step in resolving a segmentation fault is to identify the
+exact location in the code where it happens.  Please see
+<a class="reference internal" href="Errors_debug.html"><span class="doc">Debugging crashes</span></a> for a couple of examples showing how to do this on a
+Linux machine.  With this information – a simple way to reproduce the
+segmentation fault and the exact <a class="reference internal" href="Manual_version.html"><span class="doc">LAMMPS version</span></a>
+and platform you are running on – you can contact the LAMMPS developers
+or post in the LAMMPS forum to get assistance.</p>
+</section>
+<section id="fast-moving-atoms">
+<span id="hint05"></span><h3><a class="toc-backref" href="#id6" role="doc-backlink">Fast moving atoms</a><a class="headerlink" href="#fast-moving-atoms" title="Link to this heading"></a></h3>
+<p>Fast moving atoms may be “lost” or “missing” when their velocity becomes
+so large that they can cross a sub-domain within one timestep.  This
+often happens when atoms are too close, but atoms may also “move” too
+fast from sub-domain to sub-domain if the box changes rapidly.
+E.g. when setting a large initial box with <a class="reference internal" href="boundary.html"><span class="doc">shrink-wrap boundary
+conditions</span></a> that collapses on the first step (in this case
+the solution is often using ‘m’ instead of ‘s’ as a boundary condition).</p>
+<p>To reduce the impact of “close contacts”, one can remove those atoms or
+molecules with something like <a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms overlap 0.1 all all</span></a>.  With periodic boundaries, a close contact pair of
+atoms may be on opposite sides of the simulation box.  Another option
+would be to first run a minimization (aka quench) before starting
+the MD.  Reducing the time step can also help.  Many times, one just
+needs to “ease” the system into a balanced state and can then switch to
+more aggressive settings.</p>
+<p>The speed of atoms during an MD run depends on the steepness of the
+potential function and their mass.  Since the positions and velocities
+of atoms are computed with finite timesteps, the timestep needs to be
+small enough for stable numeric integration of the trajectory.  If the
+timestep is too large during initialization (or other instances of
+extreme dynamics), using <a class="reference internal" href="fix_nve_limit.html"><span class="doc">fix nve/limit</span></a> or
+<a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix dt/reset</span></a> temporarily can help to avoid too
+large updates or adapt the timestep according to the displacements.</p>
+</section>
+<section id="ignoring-lost-atoms">
+<span id="hint06"></span><h3><a class="toc-backref" href="#id7" role="doc-backlink">Ignoring lost atoms</a><a class="headerlink" href="#ignoring-lost-atoms" title="Link to this heading"></a></h3>
+<p>It is tempting to use the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify lost ignore</span></a> to avoid LAMMPS aborting with an error on lost atoms.
+This setting should, however, <em>only</em> be used when atoms <em>should</em> leave
+the system.  In general, ignoring a problem does not solve it.</p>
+</section>
+<section id="pressure-forces-positions-becoming-nan-or-inf">
+<span id="hint07"></span><h3><a class="toc-backref" href="#id8" role="doc-backlink">Pressure, forces, positions becoming NaN or Inf</a><a class="headerlink" href="#pressure-forces-positions-becoming-nan-or-inf" title="Link to this heading"></a></h3>
+<p>Some potentials can overflow or have a division by zero with close
+contacts or bad geometries (for the given force styles in use) leading
+to forces that can no longer be represented as numbers.  Those will show
+as “NaN” or “Inf”.  On most machines, the program will continue, but
+there is no way to recover from it and those NaN or Inf values will
+propagate.</p>
+<p>If the “NaN” or “Inf” appears in the first simulation step, the most
+common cause is overlapping atoms.  Note that when atoms are <em>very</em>
+close, this cannot be seen when visualizing the geometry, since the
+atoms are effectively sitting on top of each other.  A good test is to
+insert a command like <a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms 0.1 all all</span></a> and
+then monitor the output to see how many atoms are deleted, if any.  A
+non-zero number would be an indication of overlapping atoms. Note that
+atoms can also overlap through periodic boundaries when the box
+dimensions are too small (e.g. determined by min/max position of atoms
+without padding).</p>
+<p>So-called <a class="reference internal" href="pair_fep_soft.html"><span class="doc">“soft-core” potentials</span></a> or the
+<a class="reference internal" href="pair_soft.html"><span class="doc">“soft” repulsive-only pair style</span></a> are less prone for
+this behavior (depending on the settings in use) and can be used at the
+beginning of a simulation.  Also, single precision numbers can overflow
+much faster, so for the GPU, KOKKOS, or INTEL package it may be
+beneficial to run with double precision initially before switching to
+mixed or single precision for faster execution when the system has
+relaxed.</p>
+</section>
+<section id="communication-cutoff">
+<span id="hint08"></span><h3><a class="toc-backref" href="#id9" role="doc-backlink">Communication cutoff</a><a class="headerlink" href="#communication-cutoff" title="Link to this heading"></a></h3>
+<p>The communication cutoff determines the “overlap” between sub-domains
+and atoms in these regions are referred to in LAMMPS as “ghost atoms”.
+This region has to be large enough to contain all atoms of a bond,
+angle, dihedral, or improper with just one atom in the actual
+sub-domain.  Typically, this cutoff is set to the largest cutoff from
+the <a class="reference internal" href="pair_style.html"><span class="doc">pair style(s)</span></a> plus the <a class="reference internal" href="neighbor.html"><span class="doc">neighbor list skin
+distance</span></a> and will typically be sufficient for all bonded
+interactions.  But if the pair style cutoff is small (e.g. with a
+repulsive-only Lennard-Jones potential) this may not be enough.  It is
+even worse if there is no pair style defined (or the pair style is set
+to “none”), since then there will be no ghost atoms created at all.</p>
+<p>The communication cutoff can be set or adjusted with <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify
+cutoff &lt;value&gt;</span></a>, but setting this too large will waste
+CPU time and memory.  LAMMPS will print warnings in these cases.  For
+bonds it uses some heuristic based on the equilibrium bond length, but
+that still may not be sufficient for cases where the force constants are
+small and thus bonds may be stretched very far.</p>
+</section>
+<section id="neighbor-list-settings">
+<span id="hint09"></span><h3><a class="toc-backref" href="#id10" role="doc-backlink">Neighbor list settings</a><a class="headerlink" href="#neighbor-list-settings" title="Link to this heading"></a></h3>
+<p>Every time LAMMPS rebuilds the neighbor lists, LAMMPS will also check
+for “lost” or “missing” atoms.  Thus it can help to use very
+conservative <a class="reference internal" href="neigh_modify.html"><span class="doc">neighbor list settings</span></a> and then
+examine the neighbor list statistics if the neighbor list rebuild can be
+safely delayed.  Rebuilding the neighbor list less frequently
+(i.e. through increasing the <em>delay</em> or <em>every</em>) setting has diminishing
+returns and increasing risks.</p>
+</section>
+<section id="units">
+<span id="hint10"></span><h3><a class="toc-backref" href="#id11" role="doc-backlink">Units</a><a class="headerlink" href="#units" title="Link to this heading"></a></h3>
+<p>A frequent cause for a variety of problems is due to using the wrong
+<a class="reference internal" href="units.html"><span class="doc">units</span></a> settings for a particular potentials, especially
+when reading them from a potential file.  Most of the (example)
+potentials bundled with LAMMPS have a “UNITS:” tag that allows LAMMPS to
+check of the units are consistent with what is intended, but potential
+files from publications or potential parameter databases may lack this
+metadata information and thus will not error out or warn when using the
+wrong setting.  Most potential files usually use “metal” units, but some
+are parameterized for other settings, most notably <a class="reference internal" href="pair_reaxff.html"><span class="doc">ReaxFF
+potentials</span></a> that use “real” units.</p>
+<p>Also, individual parameters for <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> commands
+taken from publications or other MD software may need to be converted
+and sometimes in unexpected ways.  Thus some careful checking is
+recommended.</p>
+</section>
+<section id="no-error-message-printed">
+<span id="hint11"></span><h3><a class="toc-backref" href="#id12" role="doc-backlink">No error message printed</a><a class="headerlink" href="#no-error-message-printed" title="Link to this heading"></a></h3>
+<p>In some cases – especially when running in parallel with MPI – LAMMPS
+may stop without displaying an error.  But the fact that nothing was
+displayed does not mean there was not an error message. Instead it is
+highly likely that the message was written to a buffer and LAMMPS was
+aborted before the buffer was output.  Usually, output buffers are
+output for every line of output, but sometimes this is delayed until
+4096 or 8192 bytes of output have been accumulated.  This buffering for
+screen and logfile output can be disabled by using the <a class="reference internal" href="Run_options.html#nonbuf"><span class="std std-ref">-nb
+or -nonbuf</span></a> command-line flag.  This is most often needed when
+debugging crashing multi-replica calculations.</p>
+</section>
+<section id="errors-before-or-after-the-simulation-box-is-created">
+<span id="hint12"></span><h3><a class="toc-backref" href="#id13" role="doc-backlink">Errors before or after the simulation box is created</a><a class="headerlink" href="#errors-before-or-after-the-simulation-box-is-created" title="Link to this heading"></a></h3>
+<p>As critical step in a LAMMPS input is when the simulation box is
+defined, either with a <a class="reference internal" href="create_box.html"><span class="doc">create_box command</span></a>, a
+<a class="reference internal" href="read_data.html"><span class="doc">read_data command</span></a>, or a <a class="reference internal" href="read_restart.html"><span class="doc">read_restart command</span></a>.  After this step, certain settings are locked in (e.g.
+units, or number of atom, bond, angle, dihedral, improper types) and
+cannot be changed after that.  Consequently, commands that change such
+settings (e.g. <a class="reference internal" href="units.html"><span class="doc">units</span></a>) are only allowed before the box is
+defined.  Very few commands can be used before and after, like
+<a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> (but not <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>).
+Most LAMMPS commands must be used after the simulation box is created.</p>
+<p>Consequently, LAMMPS will stop with an error, if a command is used in
+the wrong place.  This is not always obvious.  So index or string style
+<a class="reference internal" href="variable.html"><span class="doc">variables</span></a> can be expanded anywhere in the input, but
+equal style (or similar) variables can only be expanded before the box
+is defined if they do not reference anything that cannot be defined
+before the box (e.g. a compute or fix reference or a thermo keyword).</p>
+</section>
+<section id="illegal-command">
+<span id="hint13"></span><h3><a class="toc-backref" href="#id14" role="doc-backlink">Illegal … command</a><a class="headerlink" href="#illegal-command" title="Link to this heading"></a></h3>
+<p>These are catchall error messages that used to be used a <em>lot</em> in LAMMPS
+(also programmers are sometimes lazy).  They usually include the name of
+the source file and the line where the error happened.  This can be used
+to track down what caused the error (most often some form of syntax error)
+by looking at the source code.  However, this has two disadvantages: 1. one
+has to check the source file from the exact same LAMMPS version, or else
+the line number would be different or the core may have been rewritten and
+that specific error does not exist anymore.</p>
+<p>The LAMMPS developers are committed to replace these too generic error
+messages with more descriptive errors, e.g. listing <em>which</em> keyword was
+causing the error, so that it will be much simpler to look up the
+correct syntax in the manual (and without referring to the source code).</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="unknown-identifier-in-data-file">
+<span id="err0001"></span><h2><a class="toc-backref" href="#id15" role="doc-backlink"><span class="section-number">5.2.2. </span>Unknown identifier in data file</a><a class="headerlink" href="#unknown-identifier-in-data-file" title="Link to this heading"></a></h2>
+<p>This error happens when LAMMPS encounters a line of text with an
+unexpected keyword while <a class="reference internal" href="read_data.html"><span class="doc">reading a data file</span></a>.  This
+would be either header keywords or section header keywords.  This is
+most commonly due to a mistyped keyword or due to a keyword that is
+inconsistent with the <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> used.</p>
+<p>The header section informs LAMMPS how many entries or lines are expected
+in the various sections (like Atoms, Masses, Pair Coeffs, <em>etc.</em>) of
+the data file.  If there is a mismatch, LAMMPS will either keep reading
+beyond the end of a section or stop reading before the section has
+ended.  In that case the next line will not contain a recognized
+keyword.</p>
+<p>Such a mismatch can also happen when the first line of the data is <em>not</em>
+a comment as required by the format, but a line with a valid header
+keyword.  That would result in LAMMPS expecting, for instance, 0 atoms
+because the “atoms” header line is the first line and thus treated as a
+comment.</p>
+<p>Another possibility to trigger this error is to have a keyword in the
+data file that corresponds to a fix (e.g. <a class="reference internal" href="fix_cmap.html"><span class="doc">fix cmap</span></a>)
+but the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command is missing the (optional)
+arguments that identify the fix and its header and section keywords.
+Alternatively, those arguments are inconsistent with the keywords in the
+data file.</p>
+</section>
+<section id="incorrect-format-in-section-of-data-file">
+<span id="err0002"></span><h2><a class="toc-backref" href="#id16" role="doc-backlink"><span class="section-number">5.2.3. </span>Incorrect format in … section of data file</a><a class="headerlink" href="#incorrect-format-in-section-of-data-file" title="Link to this heading"></a></h2>
+<p>This error happens when LAMMPS reads the contents of a section of a
+<a class="reference internal" href="read_data.html"><span class="doc">data file</span></a> and the number of parameters in the line
+differs from what is expected.  This most commonly happens when the atom
+style is different from what is expected for a specific data file since
+changing the atom style usually changes the format of the line.</p>
+<p>This error can also occur when the number of entries indicated in the
+header of a data file (e.g. the number of atoms) is larger than the
+number of lines provided (e.g. in the corresponding Atoms section)
+causing LAMMPS to continue reading into the next section which has a
+completely different format.</p>
+</section>
+<section id="illegal-variable-command-expected-x-arguments-but-found-y">
+<span id="err0003"></span><h2><a class="toc-backref" href="#id17" role="doc-backlink"><span class="section-number">5.2.4. </span>Illegal variable command: expected X arguments but found Y</a><a class="headerlink" href="#illegal-variable-command-expected-x-arguments-but-found-y" title="Link to this heading"></a></h2>
+<p>This error indicates that a variable command has either incorrectly
+formatted arguments or the wrong number of arguments.  A common reason
+for this is that a variable expression contains whitespace, but is not
+enclosed in single or double quotes.</p>
+<p>To explain, the LAMMPS input parser reads and processes lines.  The
+resulting line is broken down into “words”.  Those are usually
+individual commands, labels, names, and values separated by whitespace
+(a space or tab character).  For “words” that may contain whitespace,
+they have to be enclosed in single (’) or double (”) quotes.  The parser
+will then remove the outermost pair of quotes and pass that string as
+single argument to the variable command.</p>
+<p>Thus missing quotes or accidental extra whitespace will trigger this
+error because the unquoted whitespace will result in the text being
+broken into more “words” than expected, i.e. the variable expression
+being split.</p>
+</section>
+<section id="out-of-range-atoms-cannot-compute">
+<span id="err0004"></span><h2><a class="toc-backref" href="#id18" role="doc-backlink"><span class="section-number">5.2.5. </span>Out of range atoms - cannot compute …</a><a class="headerlink" href="#out-of-range-atoms-cannot-compute" title="Link to this heading"></a></h2>
+<p>The PPPM (and also PPPMDisp and MSM) methods need to assemble a grid of
+electron density data derived from the (partial) charges assigned to the
+atoms.  These charges are smeared out across multiple grid points (see
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify order</span></a>).  When running in parallel
+with MPI, LAMMPS uses a <a class="reference internal" href="Developer_par_part.html"><span class="doc">domain decomposition scheme</span></a> where each processor manages a subset of atoms and
+thus also a grid representing the density.  The processor’s grid covers
+the actual volume of the sub-domain and some extra space corresponding
+to the <a class="reference internal" href="neighbor.html"><span class="doc">neighbor list skin</span></a>.  These are then
+<a class="reference internal" href="Developer_par_long.html"><span class="doc">combined and redistributed</span></a> for parallel
+processing of the long-range component of the Coulomb interaction.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Out</span> <span class="pre">of</span> <span class="pre">range</span> <span class="pre">atoms</span></code> error can happen when atoms move too fast,
+the neighbor list skin is too small, or the neighbor lists are not
+updated frequently enough.  The smeared charges cannot then be fully
+assigned to the density grid for all atoms.  LAMMPS checks for this
+condition and stops with an error.  Most of the time, this is an
+indication of a system with very high forces, often at the beginning of
+a simulation or when boundary conditions are changed.  The error becomes
+more likely with more MPI processes.</p>
+<p>There are multiple options to explore for avoiding the error.  The best
+choice depends strongly on the individual system, and often a
+combination of changes is required.  For example, more conservative MD
+parameter settings can be used (larger neighbor skin, shorter time step,
+more frequent neighbor list updates).  Sometimes, it helps to revisit
+the system generation and avoid close contacts when building it.
+Otherwise one can use the <a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms overlap</span></a>
+command to delete those close contact atoms or run a minimization before
+the MD.  It can also help to temporarily use a cutoff-Coulomb pair style
+and no kspace style until the system has somewhat equilibrated and then
+switch to the long-range solver.</p>
+</section>
+<section id="bond-or-angle-dihedral-improper-cmap-or-shake-atoms-missing">
+<span id="err0005"></span><h2><a class="toc-backref" href="#id19" role="doc-backlink"><span class="section-number">5.2.6. </span>Bond (or angle, dihedral, improper, cmap, or shake) atoms missing</a><a class="headerlink" href="#bond-or-angle-dihedral-improper-cmap-or-shake-atoms-missing" title="Link to this heading"></a></h2>
+<p>The second atom needed to compute a particular bond (or the third or
+fourth atom for angle, dihedral, or improper) is missing on the
+indicated timestep and processor.  Typically, this is because the two
+bonded atoms have become too far apart relative to the communication
+cutoff distance for ghost atoms.  By default, the communication cutoff
+is set by the pair cutoff.  However, to accommodate larger distances
+between topologically connected atoms, it can be manually adjusted using
+<a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify</span></a> at the cost of increased communication
+and more ghost atoms.  However, missing bond atoms may also indicate
+that there are unstable dynamics which caused the atoms to blow apart.
+In this scenario, increasing the communication distance will not solve
+the underlying issue.  Rather, see <a class="reference internal" href="#hint05"><span class="std std-ref">Fast moving atoms</span></a> and
+<a class="reference internal" href="#hint09"><span class="std std-ref">Neighbor list settings</span></a> in the general troubleshooting
+section above for ideas to fix unstable dynamics.</p>
+<p>If atoms are intended to be lost during a simulation (e.g. due to open
+boundary conditions or <a class="reference internal" href="fix_evaporate.html"><span class="doc">fix evaporate</span></a>) such that
+two bonded atoms may be lost at different times from each other, this
+error can be converted to a warning or turned off using the <em>lost/bond</em>
+keyword in the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a> command.</p>
+</section>
+<section id="non-numeric-atom-coords-or-pressure-or-box-dimensions-simulation-unstable">
+<span id="err0006"></span><h2><a class="toc-backref" href="#id20" role="doc-backlink"><span class="section-number">5.2.7. </span>Non-numeric atom coords or pressure or box dimensions - simulation unstable</a><a class="headerlink" href="#non-numeric-atom-coords-or-pressure-or-box-dimensions-simulation-unstable" title="Link to this heading"></a></h2>
+<p>This error usually occurs due to overly aggressive simulation settings
+or issues with the system geometry or the potential.  See
+<a class="reference internal" href="#hint07"><span class="std std-ref">Pressure, forces, positions becoming NaN or Inf</span></a> above in
+the general troubleshooting section.  This error is more likely to
+happen during equilibration, so it can help to do a minimization before
+or even add a second or third minimization after running a few
+equilibration MD steps.  It also is more likely when directly using a
+Nose-Hoover (or other) barostat, and thus it may be advisable to run
+with only a thermostat for a bit until the potential energy has
+stabilized.</p>
+</section>
+<section id="fix-used-in-not-computed-at-compatible-time">
+<span id="err0007"></span><h2><a class="toc-backref" href="#id21" role="doc-backlink"><span class="section-number">5.2.8. </span>Fix used in … not computed at compatible time</a><a class="headerlink" href="#fix-used-in-not-computed-at-compatible-time" title="Link to this heading"></a></h2>
+<p>Many fix styles are invoked only every <em>nevery</em> timesteps, which means
+their data is only valid on those steps.  When data from a fix is used
+as input for a compute, a dump, another fix, or thermo output, it must
+read that data at timesteps when the fix in question was invoked, i.e.
+on timesteps that are multiples of its <em>nevery</em> setting.  If this is not
+the case, LAMMPS will stop with an error.  To remedy this, it may be
+required to change the output frequency or the <em>nevery</em> setting of the
+fix.</p>
+</section>
+<section id="lost-atoms">
+<span id="err0008"></span><h2><a class="toc-backref" href="#id22" role="doc-backlink"><span class="section-number">5.2.9. </span>Lost atoms …</a><a class="headerlink" href="#lost-atoms" title="Link to this heading"></a></h2>
+<p>A simulation stopping with an error due to lost atoms can have multiple
+causes.  By default, LAMMPS checks for whether the total number of atoms
+is consistent with the sum of atoms “owned” by MPI processors every time
+that thermodynamic output is written.  In the majority of cases, lost
+atoms are unexpected and a result of extremely high velocities causing
+instabilities in the system.  Such velocities can result from a variety
+of issues.  For ideas on how to track down issues with unexpected lost
+atoms, see <a class="reference internal" href="#hint05"><span class="std std-ref">Fast moving atoms</span></a> and <a class="reference internal" href="#hint09"><span class="std std-ref">Neighbor list
+settings</span></a> in the general troubleshooting section above.  In
+specific situations however, losing atoms is expected material behavior
+(e.g. with sputtering and surface evaporation simulations), and an
+unwanted crash can be avoided by changing the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify lost</span></a> keyword from the default ‘error’ to ‘warn’ or ‘ignore’
+(though heed the advice in <a class="reference internal" href="#hint06"><span class="std std-ref">Ignoring lost atoms</span></a> above!).</p>
+</section>
+<section id="too-many-neighbor-bins">
+<span id="err0009"></span><h2><a class="toc-backref" href="#id23" role="doc-backlink"><span class="section-number">5.2.10. </span>Too many neighbor bins</a><a class="headerlink" href="#too-many-neighbor-bins" title="Link to this heading"></a></h2>
+<p>The simulation box is or has become too large relative to the size of a
+neighbor bin (which in turn depends on the largest pair-wise cutoff by
+default) such that LAMMPS is unable to store the needed number of bins.
+This typically implies the simulation box has expanded too far.  That
+can occur when some atoms move rapidly apart with shrink-wrap boundaries
+or when a fix (like fix deform or a barostat) excessively grows the
+simulation box.  This can also happen if the largest pair-wise cutoff is
+small.  In this case, the error can be avoided by using the
+<a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify command</span></a> to either (a) set the bin width
+to a suitably large value or (b) use a hash table to store the bins for
+each atom. The latter option currently only supports the
+<a class="reference internal" href="neighbor.html"><span class="doc">multi</span></a> neighbor style and is intended for systems where
+there is a low particle density and a small cutoff. Namely, systems with
+very large ratios of minimum to maximum particle sizes/cutoffs. This may
+require adjustment of <a class="reference internal" href="atom_modify.html"><span class="doc">atom sort settings</span></a>.</p>
+</section>
+<section id="unrecognized-style">
+<span id="err0010"></span><h2><a class="toc-backref" href="#id24" role="doc-backlink"><span class="section-number">5.2.11. </span>Unrecognized … style …</a><a class="headerlink" href="#unrecognized-style" title="Link to this heading"></a></h2>
+<p>There are multiple variants of this error message.  The most common
+case is that there is a typo or syntax error in the input file and
+the style name of a command was not found in the LAMMPS executable.</p>
+<p>Another case is that the input is using the correct style command, but
+the LAMMPS executable in use was not compiled with the package
+containing that specific style.  LAMMPS executables include tables of
+all available packages and styles in the distribution, and thus will
+print in this case a message indicating which package is missing.  This
+indicates that the executable needs to be re-built after enabling the
+correct package.  See the <a class="reference internal" href="Build.html"><span class="doc">LAMMPS build instructions</span></a> for
+more details on including packages.  One can check if the expected
+package and style is present in the executable by running it with the
+<code class="docutils literal notranslate"><span class="pre">-help</span></code> (or <code class="docutils literal notranslate"><span class="pre">-h</span></code>) flag on the command line.  One common oversight,
+especially for LAMMPS users with limited experience in compiling
+software from source, is enabling the package but forgetting to rebuild
+or install the executable.  One can also check the documentation for the
+style in question for a “Restrictions” section, which should indicate
+which requirements apply to a given command.</p>
+<p>Finally, there is the case that the necessary package is included, but
+the missing style depends also on <em>another</em> style from a <em>different</em>
+package and <em>this</em> package is missing.  In that case, LAMMPS does not
+know which package is missing, and it is necessary to check the
+documentation for the missing style in the manual.</p>
+<p>If this error occurs with an executable that the user does not control
+(e.g., through a module on HPC clusters), the user will need to get in
+contact with the relevant person or people who can update the
+executable.  In rare cases, there may be licensing or portability issues
+that prevent including a package in publicly accessible binaries or in a
+specific environment.</p>
+</section>
+<section id="energy-or-stress-was-not-tallied-by-pair-style">
+<span id="err0011"></span><h2><a class="toc-backref" href="#id25" role="doc-backlink"><span class="section-number">5.2.12. </span>Energy or stress was not tallied by pair style</a><a class="headerlink" href="#energy-or-stress-was-not-tallied-by-pair-style" title="Link to this heading"></a></h2>
+<p>This warning can be printed by computes from the <a class="reference internal" href="Packages_details.html#pkg-tally"><span class="std std-ref">TALLY package</span></a>.  Those use a callback mechanism that only work for regular
+pair-wise additive pair styles like <a class="reference internal" href="pair_lj.html"><span class="doc">Lennard-Jones</span></a>,
+<a class="reference internal" href="pair_morse.html"><span class="doc">Morse</span></a>, <a class="reference internal" href="pair_born.html"><span class="doc">Born-Meyer-Huggins</span></a>, and
+similar.  Such required callbacks have not been implemented for
+many-body potentials so one would have to implement them to add
+compatibility with these computes (which may be difficult to do in a
+generic fashion).  Whether this warning indicates that contributions to
+the computed properties are missing depends on the groups used.  At any
+rate, careful testing of the results is advised when this warning
+appears.</p>
+</section>
+<section id="fmt-format-error">
+<span id="err0012"></span><h2><a class="toc-backref" href="#id26" role="doc-backlink"><span class="section-number">5.2.13. </span>fmt::format_error</a><a class="headerlink" href="#fmt-format-error" title="Link to this heading"></a></h2>
+<p>LAMMPS uses the <a class="reference external" href="https://fmt.dev">{fmt} library</a> for advanced string
+formatting tasks.  This is similar to the <code class="docutils literal notranslate"><span class="pre">printf()</span></code> family of
+functions from the standard C library, but more flexible.  If there is a
+bug in the LAMMPS code and the format string does not match the list of
+arguments or has some other error, this error message will be shown.
+You should contact the LAMMPS developers and report the bug as a <a class="reference external" href="https://github.com/lammps/lammps/issues">GitHub
+Bug Report Issue</a> along with
+sufficient information to easily reproduce it.</p>
+</section>
+<section id="substitution-for-illegal-variable">
+<span id="err0013"></span><h2><a class="toc-backref" href="#id27" role="doc-backlink"><span class="section-number">5.2.14. </span>Substitution for illegal variable</a><a class="headerlink" href="#substitution-for-illegal-variable" title="Link to this heading"></a></h2>
+<p>A variable in an input script or a variable expression was not found in
+the list of valid variables.  The most common reason for this is a typo
+somewhere in the input file such that the expression uses an invalid
+variable name.  The second most common reason is omitting the curly
+braces for a direct variable with a name that is not a single letter.
+For example:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable </span><span class="nv nv-Identifier">cutoff</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="m">10.0</span>
+<span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="nv">${cutoff}</span><span class="w">  </span><span class="c"># this is correct</span>
+<span class="k">pair_style</span><span class="w"> </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="nv">$cutoff</span><span class="w">    </span><span class="c"># this is incorrect, LAMMPS looks for &#39;c&#39; instead of &#39;cutoff&#39;</span>
+<span class="k">variable </span><span class="nv nv-Identifier">c</span><span class="w">      </span><span class="n">index</span><span class="w"> </span><span class="m">5.0</span><span class="w">    </span><span class="c"># if $c is defined, LAMMPS substitutes only &#39;$c&#39; and reads: 5utoff</span>
+</pre></div>
+</div>
+<p>Another potential source of this error may be invalid command line
+variables (-var or -v argument) used when launching LAMMPS from an
+interactive shell or shell scripts.  An uncommon source for this error
+is using the <a class="reference internal" href="next.html"><span class="doc">next command</span></a> to advance through a list of
+values provided by an index style variable.  If there is no remaining
+element in the list, LAMMPS will delete the variable and any following
+expansion or reference attempt will trigger the error.</p>
+<p>Users with harder-to-track variable errors might also find reading the
+<a class="reference internal" href="Commands_parse.html"><span class="doc">Parsing rules for input scripts</span></a> helpful.</p>
+</section>
+<section id="bond-atom-missing-in-image-check-or-box-size-check">
+<span id="err0014"></span><h2><a class="toc-backref" href="#id28" role="doc-backlink"><span class="section-number">5.2.15. </span>Bond atom missing in image check or box size check</a><a class="headerlink" href="#bond-atom-missing-in-image-check-or-box-size-check" title="Link to this heading"></a></h2>
+<p>This can be either an error or a warning depending on your
+<a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify settings</span></a>.  It is flagged in a part
+of the LAMMPS code where it updates the domain decomposition and before
+it builds the neighbor lists.  It checks that both atoms of a bond are
+within the communication cutoff of a subdomain.  It is usually caused by
+atoms moving too fast (see the <a class="reference internal" href="#hint05"><span class="std std-ref">paragraph on fast moving atoms</span></a>), or by the <a class="reference internal" href="comm_modify.html"><span class="doc">communication cutoff being too small</span></a>, or by waiting too long between <a class="reference internal" href="neigh_modify.html"><span class="doc">sub-domain and
+neighbor list updates</span></a>.</p>
+</section>
+<section id="cannot-use-neighbor-bins-box-size-cutoff">
+<span id="err0015"></span><h2><a class="toc-backref" href="#id29" role="doc-backlink"><span class="section-number">5.2.16. </span>Cannot use neighbor bins - box size &lt;&lt; cutoff</a><a class="headerlink" href="#cannot-use-neighbor-bins-box-size-cutoff" title="Link to this heading"></a></h2>
+<p>LAMMPS is unable to build neighbor bins since the size of the box is
+much smaller than an interaction cutoff in at least one of its
+dimensions.  Typically, this error is triggered when the simulation box
+has one very thin dimension. If a cubic neighbor bin had to fit exactly
+within the thin dimension, then an inordinate amount of bins would be
+created to fill space.  This error can be avoided using the generally
+slower <a class="reference internal" href="neighbor.html"><span class="doc">nsq neighbor style</span></a> or by increasing the size of
+the smallest box lengths.</p>
+</section>
+<section id="did-not-assign-all-atoms-correctly">
+<span id="err0016"></span><h2><a class="toc-backref" href="#id30" role="doc-backlink"><span class="section-number">5.2.17. </span>Did not assign all atoms correctly</a><a class="headerlink" href="#did-not-assign-all-atoms-correctly" title="Link to this heading"></a></h2>
+<p>This error happens most commonly when <a class="reference internal" href="read_data.html"><span class="doc">reading a data file</span></a> under <a class="reference internal" href="boundary.html"><span class="doc">non-periodic boundary conditions</span></a>.
+Only atoms with positions <strong>inside</strong> the simulation box will be read and
+thus any atoms outside the box will be skipped and the total atom count
+will not match, which triggers the error.  This does not happen with
+periodic boundary conditions where atoms outside the principal box will
+be “wrapped” into the principal box and their image flags set
+accordingly.</p>
+<p>Similar errors can happen with the <a class="reference internal" href="replicate.html"><span class="doc">replicate command</span></a>
+or the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart command</span></a>.  In these cases the
+cause may be a problematic geometry, an insufficient communication
+cutoff, or a bug in the LAMMPS source code.  In these cases it is
+advisable to set up <a class="reference internal" href="#hint01"><span class="std std-ref">small test case</span></a> for testing and
+debugging.  This will be required in case you need to get help from a
+LAMMPS developer.</p>
+</section>
+<section id="domain-too-large-for-neighbor-bins">
+<span id="err0017"></span><h2><a class="toc-backref" href="#id31" role="doc-backlink"><span class="section-number">5.2.18. </span>Domain too large for neighbor bins</a><a class="headerlink" href="#domain-too-large-for-neighbor-bins" title="Link to this heading"></a></h2>
+<p>The domain has become extremely large so that neighbor bins cannot be
+used.  Too many neighbor bins would need to be created to fill space.
+Most likely, one or more atoms have been blown a great distance out of
+the simulation box or a fix (like fix deform or a barostat) has
+excessively grown the simulation box.</p>
+</section>
+<section id="step-x-h-bondchk-failed">
+<span id="err0018"></span><h2><a class="toc-backref" href="#id32" role="doc-backlink"><span class="section-number">5.2.19. </span>Step X: (h)bondchk failed</a><a class="headerlink" href="#step-x-h-bondchk-failed" title="Link to this heading"></a></h2>
+<p>This error is a consequence of the heuristic memory allocations for
+buffers of the regular ReaxFF version.  In ReaxFF simulations, the lists
+of bonds and hydrogen bonds can change due to chemical reactions.  The
+default approach, however, assumes that these changes are not very
+large, so it allocates buffers for the current system setup plus a
+safety margin.  This can be adjusted with the <a class="reference internal" href="pair_reaxff.html"><span class="doc">safezone, mincap,
+and minhbonds settings of the pair style</span></a>, but only to
+some extent.  When equilibrating a new system, or simulating a sparse
+system in parallel, this can be difficult to control and become
+wasteful.  A simple workaround is often to break a simulation down in
+multiple chunks.  A better approach, however, is to compile and use the
+KOKKOS package version of ReaxFF (you do not need a GPU for that, but
+can also compile it in serial or OpenMP mode), which uses a more robust
+memory allocation approach.</p>
+</section>
+<section id="numeric-index-x-is-out-of-bounds">
+<span id="err0019"></span><h2><a class="toc-backref" href="#id33" role="doc-backlink"><span class="section-number">5.2.20. </span>Numeric index X is out of bounds</a><a class="headerlink" href="#numeric-index-x-is-out-of-bounds" title="Link to this heading"></a></h2>
+<p>This error most commonly happens when setting force field coefficients
+with either the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>, the <a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>, the <a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a>, the
+<a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a>, or the <a class="reference internal" href="improper_coeff.html"><span class="doc">improper_coeff</span></a> command.  These commands accept type labels, explicit
+numbers, and wildcards for ranges of numbers.  If the numeric value of
+any of these is outside the valid range (defined by the number of
+corresponding types), LAMMPS will stop with this error.  A few other
+commands and styles also allow ranges of numbers and check using the
+same method and thus print the same kind of error.</p>
+<p>The cause is almost always a typo in the input or a logic error when
+defining the values or ranges.  So one needs to carefully review the
+input.  Along with the error, LAMMPS will print the valid range as a
+hint.</p>
+</section>
+<section id="compute-fix-or-variable-vector-or-array-is-accessed-out-of-range">
+<span id="err0020"></span><h2><a class="toc-backref" href="#id34" role="doc-backlink"><span class="section-number">5.2.21. </span>Compute, fix, or variable vector or array is accessed out-of-range</a><a class="headerlink" href="#compute-fix-or-variable-vector-or-array-is-accessed-out-of-range" title="Link to this heading"></a></h2>
+<p>When accessing an individual element of a global vector or array or a
+per-atom vector or array provided by a compute or fix or atom-style or
+vector-style variable or data from a specific atom, an index in square
+brackets (”[ ]”) (or two indices) must be provided to determine which
+element to access and it must be in a valid range or else LAMMPS would
+access invalid data or crash with a segmentation fault.  In the two most
+common cases, where this data is accessed, <a class="reference internal" href="variable.html"><span class="doc">variable expressions</span></a> and <a class="reference internal" href="thermo_style.html"><span class="doc">thermodynamic output</span></a>, LAMMPS will
+check for valid indices and stop with an error otherwise.</p>
+<p>While LAMMPS is written in C++ (which uses 0 based indexing) these
+indices start at 1 (i.e. similar to Fortran).  Any index smaller than 1
+or larger than the maximum allowed value should trigger this error.
+Since this kind of error frequently happens with rather complex
+expressions, it is recommended to test these with small test systems,
+where the values can be tracked with output files for all relevant
+properties at every step.</p>
+</section>
+<section id="incorrect-args-for-pair-coefficients-also-bond-angle-dihedral-improper-coefficients">
+<span id="err0021"></span><h2><a class="toc-backref" href="#id35" role="doc-backlink"><span class="section-number">5.2.22. </span>Incorrect args for pair coefficients (also bond/angle/dihedral/improper coefficients)</a><a class="headerlink" href="#incorrect-args-for-pair-coefficients-also-bond-angle-dihedral-improper-coefficients" title="Link to this heading"></a></h2>
+<p>The parameters in the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command for a
+specified <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> have a missing or erroneous
+argument.  The same applies when seeing this error for <a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>, <a class="reference internal" href="angle_coeff.html"><span class="doc">angle_coeff</span></a>, <a class="reference internal" href="dihedral_coeff.html"><span class="doc">dihedral_coeff</span></a>, or <a class="reference internal" href="improper_coeff.html"><span class="doc">improper_coeff</span></a> and their
+respective style commands when using the MOLECULE or EXTRA-MOLECULE
+packages.  The cases below describe some ways to approach pair
+coefficient errors, but the same strategies apply to bonded systems as
+well.</p>
+<p>Outside of normal typos, this error can have several sources.  In all
+cases, the first step is to compare the command arguments to the
+expected format found in the corresponding <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> page.  This can reveal cases where, for example, a pair
+style was changed, but the pair coefficients were not updated.  This can
+happen especially with pair style variants such as <a class="reference internal" href="pair_eam.html"><span class="doc">pair_style eam</span></a> vs. <a class="reference internal" href="pair_style.html"><span class="doc">pair_style eam/alloy</span></a> that look very
+similar but accept different parameters (the latter ‘eam/alloy’ variant
+takes element type names while ‘eam’ does not).</p>
+<p>Another common source of coefficient errors is when using multiple pair
+styles with commands such as <a class="reference internal" href="pair_hybrid.html"><span class="doc">pair_style hybrid</span></a>.
+Using hybrid pair styles requires adding an extra “label” argument in
+the coefficient commands that designates which pair style the command
+line refers to.  Moreover, if the same pair style is used multiple
+times, this label must be followed by an additional numeric argument.
+Also, different pair styles may require different arguments.</p>
+<p>This error message might also require a close look at other LAMMPS input
+files that are read in by the input script, such as data files or
+restart files.</p>
+</section>
+<section id="energy-was-not-tallied-on-needed-timestep-also-virial-per-atom-energy-per-atom-virial">
+<span id="err0022"></span><h2><a class="toc-backref" href="#id36" role="doc-backlink"><span class="section-number">5.2.23. </span>Energy was not tallied on needed timestep (also virial, per-atom energy, per-atom virial)</a><a class="headerlink" href="#energy-was-not-tallied-on-needed-timestep-also-virial-per-atom-energy-per-atom-virial" title="Link to this heading"></a></h2>
+<p>This error is generated when LAMMPS attempts to access an out-of-date or
+non-existent energy, pressure, or virial.  For efficiency reasons,
+LAMMPS does <em>not</em> calculate these quantities when the forces are
+calculated on every timestep or iteration.  Global quantities are only
+calculated when they are needed for <a class="reference internal" href="thermo_style.html"><span class="doc">thermo</span></a> output
+(at the beginning, end, and at regular intervals specified by the
+<a class="reference internal" href="thermo.html"><span class="doc">thermo</span></a> command).  Similarly, per-atom quantities are
+only calculated if they are needed to write per-atom energy or virial to
+a dump file.  This system works fine for simple input scripts.  However,
+the many user-specified <cite>variable</cite>, <cite>fix</cite>, and <cite>compute</cite> commands that
+LAMMPS provides make it difficult to anticipate when a quantity will be
+requested.  In some use cases, LAMMPS will figure out that a quantity is
+needed and arrange for it to be calculated on that timestep e.g. if it
+is requested by <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a> or similar commands.
+If that fails, it can be detected by a mismatch between the current
+timestep and when a quantity was last calculated, in which case an error
+message of this type is generated.</p>
+<p>The most common cause of this type of error is requesting a quantity
+before the start of the simulation.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="c"># run 0 post no               # this will fix the error</span>
+<span class="k">variable </span><span class="nv nv-Identifier">e</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="n">pe</span><span class="w">           </span><span class="c"># requesting energy compute</span>
+<span class="k">print</span><span class="w"> </span><span class="s">&quot;Potential energy = $e&quot;</span><span class="w"> </span><span class="c"># this will generate the error</span>
+<span class="k">run</span><span class="w"> </span><span class="m">1000</span><span class="w">                      </span><span class="c"># start of simulation</span>
+</pre></div>
+</div>
+<p>This situation can be avoided by adding in a “run 0” command, as
+explained in more detail in the “Variable Accuracy” section of the
+<a class="reference internal" href="variable.html"><span class="doc">variable</span></a> doc page.</p>
+<p>Another cause is requesting a quantity on a timestep that is not a
+thermo or dump output timestep.  This can often be remedied by
+increasing the frequency of thermo or dump output.</p>
+</section>
+<section id="molecule-auto-special-bond-generation-overflow">
+<span id="err0023"></span><h2><a class="toc-backref" href="#id37" role="doc-backlink"><span class="section-number">5.2.24. </span>Molecule auto special bond generation overflow</a><a class="headerlink" href="#molecule-auto-special-bond-generation-overflow" title="Link to this heading"></a></h2>
+<p>In order to correctly apply the <a class="reference internal" href="special_bonds.html"><span class="doc">special_bonds</span></a>
+settings (also known as “exclusions”), LAMMPS needs to maintain for each
+atom a list of atoms that are connected to this atom, either directly
+with a bond or indirectly through bonding with an intermediate atom(s).
+The purpose is to either remove or tag those pairs of atoms in the
+neighbor list.  This information is stored with individual atoms and
+thus the maximum number of such “special” neighbors is set when the
+simulation box is created.  When reading (relative) geometry and
+topology of a ‘molecule’ from a <a class="reference internal" href="molecule.html"><span class="doc">molecule file</span></a>, LAMMPS
+will build the list of such “special” neighbors for the molecule atom
+(if not given in the molecule file explicitly).  The error is triggered
+when the resulting list is too long for the space reserved when creating
+the simulation box.  The solution is to increase the corresponding
+setting.  Overestimating this value will only consume more memory, and
+is thus a safe choice.</p>
+</section>
+<section id="molecule-topology-atom-exceeds-system-topology-atom">
+<span id="err0024"></span><h2><a class="toc-backref" href="#id38" role="doc-backlink"><span class="section-number">5.2.25. </span>Molecule topology/atom exceeds system topology/atom</a><a class="headerlink" href="#molecule-topology-atom-exceeds-system-topology-atom" title="Link to this heading"></a></h2>
+<p>LAMMPS uses <a class="reference internal" href="Developer_par_part.html"><span class="doc">domain decomposition</span></a> to
+distribute data (i.e. atoms) across the MPI processes in parallel runs.
+This includes topology data about bonds, angles, dihedrals, impropers
+and <a class="reference internal" href="special_bonds.html"><span class="doc">“special” neighbors</span></a>.  This information is
+stored with either one or all atoms involved in such a topology entry
+(which of the two option applies depends on the <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>
+setting for bonds).  When reading a data file, LAMMPS analyzes the
+requirements for this file and then the values are “locked in” and
+cannot be extended.</p>
+<p>So loading a molecule file that requires more of the topology per atom
+storage or adding a data file with such needs will lead to an error.  To
+avoid the error, one or more of the <cite>extra/XXX/per/atom</cite> keywords are
+required to extend the corresponding storage.  It is no problem to
+choose those numbers generously and have more storage reserved than
+actually needed, but having these numbers set too small will lead to an
+error.</p>
+</section>
+<section id="molecule-topology-type-exceeds-system-topology-type">
+<span id="err0025"></span><h2><a class="toc-backref" href="#id39" role="doc-backlink"><span class="section-number">5.2.26. </span>Molecule topology type exceeds system topology type</a><a class="headerlink" href="#molecule-topology-type-exceeds-system-topology-type" title="Link to this heading"></a></h2>
+<p>The total number of atom, bond, angle, dihedral, and improper types is
+“locked in” when LAMMPS creates the simulation box.  This can happen
+through either the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>, the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>, or the <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command.  After
+this it is not possible to refer to an additional type.  So loading a
+molecule file that uses additional types or adding a data file that
+would require additional types will lead to an error.  To avoid the
+error, one or more of the <cite>extra/XXX/types</cite> keywords are required to
+extend the maximum number of the individual types.</p>
+</section>
+<section id="molecule-attributes-do-not-match-system-attributes">
+<span id="err0026"></span><h2><a class="toc-backref" href="#id40" role="doc-backlink"><span class="section-number">5.2.27. </span>Molecule attributes do not match system attributes</a><a class="headerlink" href="#molecule-attributes-do-not-match-system-attributes" title="Link to this heading"></a></h2>
+<p>Choosing an <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> in LAMMPS determines which
+per-atom properties are available.  In a <a class="reference internal" href="molecule.html"><span class="doc">molecule file</span></a>, however, it is possible to add sections (for example Masses
+or Charges) that are not supported by the atom style.  Masses for
+example, are usually not a per-atom property, but defined through the
+atom type.  Thus it would not be required to have a Masses section and
+the included data would be ignored.  LAMMPS prints this warning to
+inform about this case.</p>
+</section>
+<section id="inconsistent-image-flags">
+<span id="err0027"></span><h2><a class="toc-backref" href="#id41" role="doc-backlink"><span class="section-number">5.2.28. </span>Inconsistent image flags</a><a class="headerlink" href="#inconsistent-image-flags" title="Link to this heading"></a></h2>
+<p>This warning happens when the distance between the <em>unwrapped</em> x-, y-,
+or z-components of the coordinates of a bond is larger than half the box
+with periodic boundaries or larger than the box with non-periodic
+boundaries.  It means that the positions and image flags have become
+inconsistent.  LAMMPS will still compute bonded interactions based on
+the closest periodic images of the atoms and thus in most cases the
+results will be correct.  However they can cause problems when such
+atoms are used with the fix rigid or replicate commands.  Thus, it is
+good practice to update the system so that the message does not appear.
+It will help with future manipulations of the system.</p>
+<p>There is one case where this warning <em>must</em> appear: when you have a
+chain of connected bonds that pass through the entire box and connect
+back to the first atom in the chain through periodic boundaries,
+i.e. some kind of “infinite polymer”.  In that case, the bond image
+flags <em>must</em> be inconsistent for the one bond that reaches back to the
+beginning of the chain.</p>
+</section>
+<section id="no-fixes-with-time-integration-atoms-won-t-move">
+<span id="err0028"></span><h2><a class="toc-backref" href="#id42" role="doc-backlink"><span class="section-number">5.2.29. </span>No fixes with time integration, atoms won’t move</a><a class="headerlink" href="#no-fixes-with-time-integration-atoms-won-t-move" title="Link to this heading"></a></h2>
+<p>This warning will be issued if LAMMPS encounters a <a class="reference internal" href="run.html"><span class="doc">run</span></a>
+command that does not have a preceding <a class="reference internal" href="fix.html"><span class="doc">fix</span></a> command that
+updates atom/object positions and velocities per step.  In other words,
+there are no fixes detected that perform velocity-Verlet time
+integration, such as <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a>.  Note that this alert
+does not mean that there are no active fixes.  LAMMPS has a very wide
+variety of fixes, many of which do not move objects but also operate
+through steps, such as printing outputs (e.g. <a class="reference internal" href="fix_print.html"><span class="doc">fix print</span></a>), performing calculations (e.g. <a class="reference internal" href="fix_ave_time.html"><span class="doc">fix ave/time</span></a>), or changing other system parameters (e.g. <a class="reference internal" href="fix_dt_reset.html"><span class="doc">fix
+dt/reset</span></a>).  It is up to the user to determine whether
+the lack of a time-integrating fix is intentional or not.</p>
+</section>
+<section id="system-is-not-charge-neutral-net-charge">
+<span id="err0029"></span><h2><a class="toc-backref" href="#id43" role="doc-backlink"><span class="section-number">5.2.30. </span>System is not charge neutral, net charge = …</a><a class="headerlink" href="#system-is-not-charge-neutral-net-charge" title="Link to this heading"></a></h2>
+<p>The sum of charges in the system is not zero.  When a system is not
+charge-neutral, methods that evolve/manipulate per-atom charges,
+evaluate Coulomb interactions, evaluate Coulomb forces, or
+evaluate/manipulate other properties relying on per-atom charges may
+raise this warning.  A non-zero net charge most commonly arises after
+setting per-atom charges <a class="reference internal" href="set.html"><span class="doc">set</span></a> such that the sum is non-zero
+or by reading in a system through <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> where the
+per-atom charges do not sum to zero.  However, a loss of charge
+neutrality may occur in other less common ways, like when charge
+equilibration methods (e.g., <a class="reference internal" href="fix_qeq.html"><span class="doc">fix qeq</span></a>) fail.</p>
+<p>A similar warning/error may be raised when using certain charge
+equilibration methods: <a class="reference internal" href="fix_qeq.html"><span class="doc">fix qeq</span></a>, <a class="reference internal" href="fix_qeq_comb.html"><span class="doc">fix qeq/comb</span></a>, <a class="reference internal" href="fix_qeq_reaxff.html"><span class="doc">fix qeq/reaxff</span></a>, and <a class="reference internal" href="fix_qtpie_reaxff.html"><span class="doc">fix
+qtpie/reaxff</span></a>.  In such cases, this warning/error
+will be raised for the fix <a class="reference internal" href="group.html"><span class="doc">group</span></a> when the group has a
+non-zero net charge.</p>
+<p>When the system is expected to be charge-neutral, this warning often
+arises due to an error in the lammps input (e.g., an incorrect <a class="reference internal" href="set.html"><span class="doc">set</span></a> command, error in the data file read by <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>, incorrectly grouping atoms with charge, etc.).  If the
+system is NOT expected to be charge-neutral, the user should make sure
+that the method(s) used are appropriate for systems with a non-zero net
+charge.  Some commonly used fixes for charge equilibration <a class="reference internal" href="fix_qeq.html"><span class="doc">fix qeq</span></a>, pair styles that include charge interactions
+<a class="reference internal" href="pair_coul.html"><span class="doc">pair_style coul/XXX</span></a>, and kspace methods
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style</span></a> can, in theory, support systems with
+non-zero net charge.  However, non-zero net charge can lead to spurious
+artifacts.  The severity of these artifacts depends on the magnitude of
+total charge, system size, and methods used.  Before running simulations
+or calculations for systems with non-zero net charge, users should test
+for artifacts and convergence of properties.</p>
+</section>
+<section id="variable-evaluation-before-simulation-box-is-defined">
+<span id="err0030"></span><h2><a class="toc-backref" href="#id44" role="doc-backlink"><span class="section-number">5.2.31. </span>Variable evaluation before simulation box is defined</a><a class="headerlink" href="#variable-evaluation-before-simulation-box-is-defined" title="Link to this heading"></a></h2>
+<p>This error happens, when trying to expand or use an equal- or atom-style
+variable (or an equivalent style), where the expression contains a
+reference to something (e.g. a compute reference, a property of an atom,
+or a thermo keyword) that is not allowed to be used before the
+simulation box is defined.  See the paragraph on <a class="reference internal" href="#hint12"><span class="std std-ref">errors before or
+after the simulation box is created</span></a> for additional
+information.</p>
+</section>
+<section id="invalid-thermo-keyword-x-in-variable-formula">
+<span id="err0031"></span><h2><a class="toc-backref" href="#id45" role="doc-backlink"><span class="section-number">5.2.32. </span>Invalid thermo keyword ‘X’ in variable formula</a><a class="headerlink" href="#invalid-thermo-keyword-x-in-variable-formula" title="Link to this heading"></a></h2>
+<p>This error message is often misleading.  It is caused when evaluating a
+<a class="reference internal" href="variable.html"><span class="doc">variable command</span></a> expression and LAMMPS comes across a
+string that it does not recognize.  LAMMPS first checks if a string is a
+reference to a compute, fix, custom property, or another variable by
+looking at the first 2-3 characters (and if it is, it checks whether the
+referenced item exists).  Next LAMMPS checks if the string matches one
+of the available functions or constants.  If that fails, LAMMPS will
+assume that this string is a <a class="reference internal" href="thermo_style.html"><span class="doc">thermo keyword</span></a> and
+let the code for printing thermodynamic output return the corresponding
+value.  However, if this fails too, since the string is not a thermo
+keyword, LAMMPS stops with the ‘Invalid thermo keyword’ error.  But it
+is also possible, that there is just a typo in the name of a valid
+variable function.  Thus it is recommended to check the failing variable
+expression very carefully.</p>
+</section>
+<section id="one-or-more-atoms-are-time-integrated-more-than-once">
+<span id="err0032"></span><h2><a class="toc-backref" href="#id46" role="doc-backlink"><span class="section-number">5.2.33. </span>One or more atoms are time integrated more than once</a><a class="headerlink" href="#one-or-more-atoms-are-time-integrated-more-than-once" title="Link to this heading"></a></h2>
+<p>This is probably an error since you typically do not want to advance the
+positions or velocities of an atom more than once per timestep.  This
+typically happens when there are multiple fix commands that advance atom
+positions with overlapping groups.  Also, for some fix styles it is not
+immediately obvious that they include time integration.  Please check
+the documentation carefully.</p>
+</section>
+<section id="xxx-command-before-simulation-box-is-defined">
+<span id="err0033"></span><h2><a class="toc-backref" href="#id47" role="doc-backlink"><span class="section-number">5.2.34. </span>XXX command before simulation box is defined</a><a class="headerlink" href="#xxx-command-before-simulation-box-is-defined" title="Link to this heading"></a></h2>
+<p>This error occurs when trying to execute a LAMMPS command that requires
+information about the system dimensions, or the number atom, bond,
+angle, dihedral, or improper types, or the number of atoms or similar
+data that is only available <em>after</em> the simulation box has been created.
+See the paragraph on <a class="reference internal" href="#hint12"><span class="std std-ref">errors before or after the simulation box is
+created</span></a> for additional information.</p>
+</section>
+<section id="xxx-command-after-simulation-box-is-defined">
+<span id="err0034"></span><h2><a class="toc-backref" href="#id48" role="doc-backlink"><span class="section-number">5.2.35. </span>XXX command after simulation box is defined</a><a class="headerlink" href="#xxx-command-after-simulation-box-is-defined" title="Link to this heading"></a></h2>
+<p>This error occurs when trying to execute a LAMMPS command that changes a
+global setting <em>after</em> it is locked in when the simulation box is
+created (for instance defining the <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a>,
+<a class="reference internal" href="dimension.html"><span class="doc">dimension</span></a>, <a class="reference internal" href="newton.html"><span class="doc">newton</span></a>, or <a class="reference internal" href="units.html"><span class="doc">units</span></a> setting).  These settings may only be changed <em>before</em> the
+simulation box has been created.  See the paragraph on <a class="reference internal" href="#hint12"><span class="std std-ref">errors
+before or after the simulation box is created</span></a> for additional
+information.</p>
+</section>
+<section id="error-messages-ending-in-please-contact-the-lammps-developers">
+<span id="err0035"></span><h2><a class="toc-backref" href="#id49" role="doc-backlink"><span class="section-number">5.2.36. </span>Error messages ending in ‘Please contact the LAMMPS developers’</a><a class="headerlink" href="#error-messages-ending-in-please-contact-the-lammps-developers" title="Link to this heading"></a></h2>
+<p>Such error messages indicate that something unexpected has happened and
+that it will require a good understanding of the details of the design
+of LAMMPS to resolve this.  This can be due to some bug in contributed
+code, an oversight when updating functionality, a feature that is
+scheduled to be removed or reaching a combination of flags and settings
+that should not be possible or similar.</p>
+<p>Even if you find a way to work around this error or warning, you should
+contact the LAMMPS developers and prepare a minimal set of inputs that
+can be used to reproduce this error or warning.  By providing the input,
+the LAMMPS developers can then assess whether additional action is
+needed and who else to contact about this, if needed.</p>
+<p>There are multiple ways to get into contact and report your issue. In
+order of preference there are:</p>
+<ul class="simple">
+<li><p>Submit a bug report <a class="reference external" href="https://github.com/lammps/lammps/issues">issue in the LAMMPS GitHub</a> repository</p></li>
+<li><p>Post a message in the “LAMMPS Development” forum in the
+<a class="reference external" href="https://matsci.org/c/lammps/lammps-development/42">MatSci Community Discourse</a></p></li>
+<li><p>Send an email to <code class="docutils literal notranslate"><span class="pre">developers&#64;lammps.org</span></code></p></li>
+<li><p>Send an email to an <a class="reference internal" href="Intro_authors.html"><span class="doc">individual LAMMPS developer</span></a>
+that you know and trust</p></li>
+</ul>
+</section>
+<section id="neighbor-list-overflow-boost-neigh-modify-one">
+<span id="err0036"></span><h2><a class="toc-backref" href="#id50" role="doc-backlink"><span class="section-number">5.2.37. </span>Neighbor list overflow, boost neigh_modify one</a><a class="headerlink" href="#neighbor-list-overflow-boost-neigh-modify-one" title="Link to this heading"></a></h2>
+<p>The neighbor list code in LAMMPS uses a special memory allocation strategy
+to speed up building and accessing neighbor lists.</p>
+<p>Instead of making a memory allocation for each list of neighbors of the atoms
+LAMMPS allocates “pages” that have room for several neighbor lists.  This has
+two main advantages:</p>
+<ol class="arabic simple">
+<li><p>It is not needed to first count how many neighbors there are for an
+atom to determine the storage required.  Since the pages are much
+larger than individual lists, LAMMPS just “fills up” the page until
+there is not enough space left and then allocates a new page.</p></li>
+<li><p>There are fewer calls to the memory allocator functions (which can be
+time consuming for long-running jobs and fragmented memory space) and
+the resulting neighbor lists are close to each other physically which
+improves cache efficiency.</p></li>
+</ol>
+<p>This is controlled by the two parameters “one” and “page”, respectively,
+that can be set via the <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify command</span></a>. The
+parameter “one” is the maximum number of entries in a list of neighbors
+for a single atom.  If an atom has more neighbors as the “one” parameter
+allows, the “overflow” error message is triggered.  The parameter “page”
+sets the size of the page.  The neighbor list code checks, if there are
+“one” entries left in the current page.  If not, a new page is allocated.</p>
+<p>The default settings are suitable for most systems.  They need to be
+changed, for instance, when simulating a system with a very high density
+or when setting a very long cutoff (e.g. <span class="math notranslate nohighlight">\(\gtrapprox 15 \AA\)</span> with
+<a class="reference internal" href="units.html"><span class="doc">units real</span></a>).  The value of “page” <strong>must</strong> be at least
+10x the value of “one”, but 50x to 100x are recommended to avoid wasting
+memory.  The neighbor list storage is typically the largest amount of
+RAM required by a LAMMPS calculation.</p>
+<p>Even though the LAMMPS error message recommends to increase the “one”
+parameter, this may not always be the correct solution.  The neighbor
+list overflow can also be a symptom for some other error that cannot be
+easily detected.  For example, a frequent reason for an (unexpected)
+high density are incorrect box dimensions (since LAMMPS wraps atoms back
+into the principal box with periodic boundaries) or coordinates provided
+as fractional coordinates (LAMMPS does not support this for data files).
+In both cases, LAMMPS cannot easily know whether the input geometry has
+such a high density (and thus requiring more neighbor list storage per
+atom) on purpose or by accident.  Rather than blindly increasing the
+“one” parameter, it is thus worth checking if this is justified by the
+combination of density and cutoff.  This is particularly recommended
+when using some tool(s) to convert input or data files.</p>
+<p>When boosting (= increasing) the “one” parameter, it is recommended to
+also increase the value for the “page” parameter to maintain the ratio
+between “one” and “page” to reduce waste of memory.  For some more
+details, please check out the documentation for the <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify
+command</span></a>.</p>
+</section>
+<section id="variable-compute-fix-does-not-compute-requested-property">
+<span id="err0037"></span><h2><a class="toc-backref" href="#id51" role="doc-backlink"><span class="section-number">5.2.38. </span>Variable …: Compute/Fix … does not compute requested property</a><a class="headerlink" href="#variable-compute-fix-does-not-compute-requested-property" title="Link to this heading"></a></h2>
+<p>Compute and fix styles can compute different kinds of properties: for
+example, global scalars, vectors, or arrays, or per-atom vectors or
+arrays.  In equal-style or similar variable, only scalar properties can
+be used, so to access a particular element in a vector one has to use
+square brackets with a suitable index to select it.  However, not all
+fixes and computes provide all types of properties.  So this error
+message will be shown if there is a mismatch, of if there are not
+enough or too many square brackets.  To differentiate between
+accessing an element of a global array or a per-atom array element of
+a specific atom, one has to use a reference with a lower case ‘c’
+(e.g. ‘c_name’) for the former and upper case ‘C’ (e.g. ‘C_name’) for
+the latter. The same applies to fix styles.  The full details are
+in the documentation for the <a class="reference internal" href="variable.html"><span class="doc">variable command</span></a>.</p>
+</section>
+<section id="the-style-is-no-longer-available">
+<span id="err0038"></span><h2><a class="toc-backref" href="#id52" role="doc-backlink"><span class="section-number">5.2.39. </span>The … style … is no longer available</a><a class="headerlink" href="#the-style-is-no-longer-available" title="Link to this heading"></a></h2>
+<p>While the LAMMPS developers try to keep the software backward compatible
+as far as input files and file formats are concerned, this is not always
+desired and changes are made and commands renamed or removed.  In that
+case an error message is printed describing why the command cannot be
+executed.  More details can be found on the manual page
+<a class="reference internal" href="Commands_removed.html"><span class="doc">Removed commands and packages</span></a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Errors_common.html" class="btn btn-neutral float-left" title="5.1. Common issues that are often regarded as bugs" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Errors_bugs.html" class="btn btn-neutral float-right" title="5.3. Reporting bugs" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

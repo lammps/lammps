@@ -1,0 +1,879 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>create_atoms command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/create_atoms.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="create_bonds command" href="create_bonds.html" />
+    <link rel="prev" title="compute_modify command" href="compute_modify.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="commands_list.html">Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="angle_coeff.html">angle_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_style.html">angle_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="angle_write.html">angle_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_modify.html">atom_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="atom_style.html">atom_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="balance.html">balance command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_coeff.html">bond_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_style.html">bond_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_write.html">bond_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="boundary.html">boundary command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="change_box.html">change_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="clear.html">clear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_modify.html">comm_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comm_style.html">comm_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute.html">compute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="compute_modify.html">compute_modify command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">create_atoms command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="create_bonds.html">create_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="create_box.html">create_box command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_atoms.html">delete_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="delete_bonds.html">delete_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dielectric.html">dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_coeff.html">dihedral_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_style.html">dihedral_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dihedral_write.html">dihedral_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dimension.html">dimension command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="displace_atoms.html">displace_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dynamical_matrix.html">dynamical_matrix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="echo.html">echo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix.html">fix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fix_modify.html">fix_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="fitpod_command.html">fitpod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="geturl.html">geturl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group.html">group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html">group2ndx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="group2ndx.html#ndx2group-command">ndx2group command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hyper.html">hyper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">if command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_coeff.html">improper_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="improper_style.html">improper_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">include command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="info.html">info command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="jump.html">jump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kim_commands.html">kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_modify.html">kspace_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="kspace_style.html">kspace_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="label.html">label command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="labelmap.html">labelmap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lattice.html">lattice command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="log.html">log command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mass.html">mass command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mdi.html">mdi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_modify.html">min_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html">min_style spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-cg-command">min_style spin/cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_spin.html#min-style-spin-lbfgs-command">min_style spin/lbfgs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html">min_style cg command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-hftn-command">min_style hftn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-sd-command">min_style sd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-quickmin-command">min_style quickmin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-fire-command">min_style fire command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-command"><span class="xref std std-doc">min_style spin</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-cg-command"><span class="xref std std-doc">min_style spin/cg</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="min_style.html#min-style-spin-lbfgs-command"><span class="xref std std-doc">min_style spin/lbfgs</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimize.html">minimize command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="molecule.html">molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb.html">neb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neb_spin.html">neb/spin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neigh_modify.html">neigh_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="neighbor.html">neighbor command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="newton.html">newton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="next.html">next command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="package.html">package command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coeff.html">pair_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_modify.html">pair_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_style.html">pair_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_write.html">pair_write command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="partition.html">partition command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plugin.html">plugin command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="prd.html">prd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="print.html">print command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="processors.html">processors command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python.html">python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quit.html">quit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_data.html">read_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_dump.html">read_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="read_restart.html">read_restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region.html">region command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="region2vmd.html">region2vmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="replicate.html">replicate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rerun.html">rerun command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_atoms.html">reset_atoms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="reset_timestep.html">reset_timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="restart.html">restart command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run.html">run command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="run_style.html">run_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="set.html">set command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="shell.html">shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="special_bonds.html">special_bonds command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="suffix.html">suffix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tad.html">tad command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper.html">temper command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_grem.html">temper/grem command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="temper_npt.html">temper/npt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo.html">thermo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_modify.html">thermo_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thermo_style.html">thermo_style command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="third_order.html">third_order command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timer.html">timer command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="timestep.html">timestep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="uncompute.html">uncompute command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="undump.html">undump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="unfix.html">unfix command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="units.html">units command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variable.html">variable command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="velocity.html">velocity command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_coeff.html">write_coeff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_data.html">write_data command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_dump.html">write_dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_molecule.html">write_molecule command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="write_restart.html">write_restart command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="commands_list.html">Commands</a></li>
+      <li class="breadcrumb-item active">create_atoms command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="compute_modify.html" class="btn btn-neutral float-left" title="compute_modify command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="create_bonds.html" class="btn btn-neutral float-right" title="create_bonds command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="create-atoms-command">
+<span id="index-0"></span><h1>create_atoms command<a class="headerlink" href="#create-atoms-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">create_atoms</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">args</span><span class="w"> </span><span class="n">keyword</span><span class="w"> </span><span class="n">values</span><span class="w"> </span><span class="n">...</span>
+</pre></div>
+</div>
+<ul>
+<li><p>type = atom type (1-Ntypes or type label) of atoms to create (offset for molecule creation)</p></li>
+<li><p>style = <em>box</em> or <em>region</em> or <em>single</em> or <em>mesh</em> or <em>random</em></p>
+<pre class="literal-block"><em>box</em> args = none
+<em>region</em> args = region-ID
+  region-ID = particles will only be created if contained in the region
+<em>single</em> args = x y z
+  x,y,z = coordinates of a single particle (distance units)
+<em>mesh</em> args = STL-file
+  STL-file = file with triangle mesh in STL format
+<em>random</em> args = N seed region-ID
+  N = number of particles to create
+  seed = random # seed (positive integer)
+  region-ID = create atoms within this region, use NULL for entire simulation box</pre>
+</li>
+<li><p>zero or more keyword/value pairs may be appended</p></li>
+<li><p>keyword = <em>mol</em> or <em>basis</em> or <em>ratio</em> or <em>subset</em> or <em>group</em> or <em>remap</em> or <em>var</em> or <em>set</em> or <em>radscale</em> or <em>meshmode</em> or <em>rotate</em> or <em>overlap</em> or <em>maxtry</em> or <em>units</em></p>
+<pre class="literal-block"><em>mol</em> values = template-ID seed
+  template-ID = ID of molecule template specified in a separate <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command
+  seed = random # seed (positive integer)
+<em>basis</em> values = M itype
+  M = which basis atom
+  itype = atom type (1-Ntypes or type label) to assign to this basis atom
+<em>ratio</em> values = frac seed
+  frac = fraction of lattice sites (0 to 1) to populate randomly
+  seed = random # seed (positive integer)
+<em>subset</em> values = Nsubset seed
+  Nsubset = # of lattice sites to populate randomly
+  seed = random # seed (positive integer)
+<em>group</em> value = group name
+<em>remap</em> value = <em>yes</em> or <em>no</em>
+<em>var</em> value = name = variable name to evaluate for test of atom creation
+<em>set</em> values = dim name
+  dim = <em>x</em> or <em>y</em> or <em>z</em>
+  name = name of variable to set with x, y, or z atom position
+<em>radscale</em> value = factor
+  factor = scale factor for setting atom radius
+<em>meshmode</em> values = mode arg
+  mode = <em>bisect</em> or <em>qrand</em>
+  <em>bisect</em> arg = radthresh
+    radthresh = threshold value for <em>mesh</em> to determine when to split triangles (distance units)
+  <em>qrand</em> arg = density
+    density = minimum number density for atoms place on <em>mesh</em> triangles (inverse distance squared units)
+<em>rotate</em> values = theta Rx Ry Rz
+  theta = rotation angle for single molecule (degrees)
+  Rx,Ry,Rz = rotation vector for single molecule
+<em>overlap</em> value = Doverlap
+  Doverlap = only insert if at least this distance from all existing atoms
+<em>maxtry</em> value = Ntry
+  Ntry = number of attempts to insert a particle before failure
+<em>units</em> value = <em>lattice</em> or <em>box</em>
+  <em>lattice</em> = the geometry is defined in lattice units
+  <em>box</em> = the geometry is defined in simulation box units</pre>
+</li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">box</span>
+
+<span class="k">labelmap</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">Pt</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="n">Pt</span><span class="w"> </span><span class="n">box</span>
+
+<span class="k">labelmap</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">Si</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="n">C</span><span class="w"> </span><span class="k">region </span><span class="nv nv-Identifier">regsphere</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">Si</span>
+
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="k">region </span><span class="nv nv-Identifier">regsphere</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">3</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="k">region </span><span class="nv nv-Identifier">regsphere</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">ratio</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="m">74637</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">single</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="k">group </span><span class="nv nv-Identifier">newatom</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">var</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">xpos</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">ypos</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="m">12345</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">overlap</span><span class="w"> </span><span class="m">2.0</span><span class="w"> </span><span class="n">maxtry</span><span class="w"> </span><span class="m">50</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">mesh</span><span class="w"> </span><span class="n">open_box.stl</span><span class="w"> </span><span class="n">meshmode</span><span class="w"> </span><span class="n">qrand</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">mesh</span><span class="w"> </span><span class="n">funnel.stl</span><span class="w"> </span><span class="n">meshmode</span><span class="w"> </span><span class="n">bisect</span><span class="w"> </span><span class="m">4.0</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">radscale</span><span class="w"> </span><span class="m">0.9</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>This command creates atoms (or molecules) within the simulation box,
+either on a lattice, or at random points, or on a surface defined by a
+triangulated mesh.  Or it creates a single atom (or molecule) at a
+specified point.  It is an alternative to reading in atom coordinates
+explicitly via a <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> or <a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command.</p>
+<p>To use this command a simulation box must already exist, which is
+typically created via the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command.
+Before using this command, a lattice must typically also be defined
+using the <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> command, unless you specify the
+<em>single</em> or <em>mesh</em> style with units = box or the <em>random</em> style.  To
+create atoms on a lattice for general triclinic boxes, see the
+discussion below.</p>
+<p>For the remainder of this doc page, a created atom or molecule is
+referred to as a “particle”.</p>
+<p>If created particles are individual atoms, they are assigned the
+specified atom <em>type</em>, though this can be altered via the <em>basis</em>
+keyword as discussed below.  If molecules are being created, the type
+of each atom in the created molecule is specified in a specified file
+read by the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, and those values are
+added to the specified atom <em>type</em> (e.g., if <em>type</em> = 2 and the file
+specifies atom types 1, 2, and 3, then each created molecule will have
+atom types 3, 4, and 5).</p>
+<div class="note admonition">
+<p class="admonition-title">Atoms outside the box</p>
+<p>You cannot use this command to create atoms that are outside the
+simulation box; they will just be ignored by LAMMPS.  This is true
+even if you are using shrink-wrapped box boundaries, as specified
+by the <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command.  However, you can first
+use the <a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a> command to temporarily
+expand the box, then add atoms via create_atoms, then finally use
+change_box command again if needed to re-shrink-wrap the new atoms.
+See the <a class="reference internal" href="change_box.html"><span class="doc">change_box</span></a> doc page for an example of
+how to do this, using the create_atoms <em>single</em> style to insert a
+new atom outside the current simulation box.</p>
+</div>
+<hr class="docutils" />
+<p>For the <em>box</em> style, the create_atoms command fills the entire
+simulation box with particles on the lattice.  If your simulation box
+is periodic, you should ensure its size is a multiple of the lattice
+spacings, to avoid unwanted atom overlaps at the box boundaries.  If
+your box is periodic and a multiple of the lattice spacing in a
+particular dimension, LAMMPS is careful to put exactly one particle at
+the boundary (on either side of the box), not zero or two.</p>
+<p>For the <em>region</em> style, a geometric volume is filled with particles on
+the lattice.  This volume is what is both inside the simulation box
+and also consistent with the region volume.  See the <a class="reference internal" href="region.html"><span class="doc">region</span></a> command for details.  Note that a region can be specified so
+that its “volume” is either inside or outside its geometric boundary.
+Also note that if a region is the same size as a periodic simulation
+box (in some dimension), LAMMPS does NOT implement the same logic
+described above for the <em>box</em> style, to ensure exactly one particle at
+periodic boundaries.  If this is desired, you should either use the
+<em>box</em> style, or tweak the region size to get precisely the particles
+you want.</p>
+<hr class="docutils" />
+<p>If the simulation box is formulated as a general triclinic box defined
+by arbitrary edge vectors <strong>A</strong>, <strong>B</strong>, <strong>C</strong>, then the <em>box</em> and
+<em>region</em> styles will create atoms on a lattice commensurate with those
+edge vectors.  See the <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto_triclinic</span></a> doc
+page for a detailed explanation of orthogonal, restricted triclinic,
+and general triclinic simulation boxes.  As with the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command, the <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> command used by
+this command must be of style <em>custom</em> and use its <em>triclinic/general</em>
+option.  The <em>a1, *a2</em>, <em>a3</em> settings of the <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>
+command define the edge vectors of a unit cell of the general
+triclinic lattice. The <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command creates
+a simulation box which replicates that unit cell along each of the
+<strong>A</strong>, <strong>B</strong>, <strong>C</strong> edge vectors.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>LAMMPS allows specification of general triclinic simulation boxes
+as a convenience for users who may be converting data from
+solid-state crystallographic representations or from DFT codes for
+input to LAMMPS.  However, as explained on the
+<a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto_triclinic</span></a> doc page, internally,
+LAMMPS only uses restricted triclinic simulation boxes.  This means
+the box created by the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command as
+well as the atoms created by this command with their per-atom
+information (e.g. coordinates, velocities) are converted (rotated)
+from general to restricted triclinic form when the two commands are
+invoked.  The <a class="reference internal" href="Howto_triclinic.html"><span class="doc">Howto_triclinic</span></a> doc page also
+discusses other LAMMPS commands which can input/output general
+triclinic representations of the simulation box and per-atom data.</p>
+</div>
+<p>The <em>box</em> style will fill the entire general triclinic box with
+particles on the lattice, as explained above.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <em>region</em> style also operates as explained above, but the check
+for particles inside the region is performed <em>after</em> the particle
+coordinates have been converted to the restricted triclinic box.
+This means the region must also be defined with respect to the
+restricted triclinic box, not the general triclinic box.</p>
+</div>
+<p>If the simulation box is general triclinic, the <em>single</em>, <em>random</em>,
+and <em>mesh</em> styles described next operate on the box <em>after</em> it has
+been converted to restricted triclinic.  So all the settings for those
+styles should be made in that context.</p>
+<hr class="docutils" />
+<p>For the <em>single</em> style, a single particle is added to the system at
+the specified coordinates.  This can be useful for debugging purposes
+or to create a tiny system with a handful of particles at specified
+positions.  For a 2d simulation the specified z coordinate must be
+0.0.</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2Jun2022.</span></p>
+</div>
+<p>The <em>porosity</em> style has been renamed to <em>random</em> with added functionality.</p>
+<p>For the <em>random</em> style, <em>N</em> particles are added to the system at
+randomly generated coordinates, which can be useful for generating an
+amorphous system.  For 2d simulations, the z coordinates of all added
+atoms will be 0.0.</p>
+<p>The particles are created one by one using the specified random number
+<em>seed</em>, resulting in the same set of particle coordinates, independent
+of how many processors are being used in the simulation.  Unless the
+<em>overlap</em> keyword is specified, particles created by the <em>random</em>
+style will typically be highly overlapped.  Various additional
+criteria can be used to accept or reject a random particle insertion;
+see the keyword discussion below.  Multiple attempts per particle are
+made (see the <em>maxtry</em> keyword) until the insertion is either
+successful or fails.  If this command fails to add all requested <em>N</em>
+particles, a warning will be output.</p>
+<p>If the <em>region-ID</em> argument is specified as NULL, then the randomly
+created particles will be anywhere in the simulation box.  If a
+<em>region-ID</em> is specified, a geometric volume is filled that is both
+inside the simulation box and is also consistent with the region
+volume.  See the <a class="reference internal" href="region.html"><span class="doc">region</span></a> command for details.  Note
+that a region can be specified so that its “volume” is either inside
+or outside its geometric boundary.</p>
+<p>Note that the create_atoms command adds particles to those that
+already exist.  This means it can be used to add particles to a system
+previously read in from a data or restart file.  Or the create_atoms
+command can be used multiple times, to add multiple sets of particles
+to the simulation.  For example, grain boundaries can be created, by
+interleaving the create_atoms command with <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>
+commands specifying different orientations.</p>
+<p>When this command is used, care should be taken to ensure the
+resulting system does not contain particles that are highly
+overlapped.  Such overlaps will cause many interatomic potentials to
+compute huge energies and forces, leading to bad dynamics.  There are
+several strategies to avoid this problem:</p>
+<ul class="simple">
+<li><p>Use the <a class="reference internal" href="delete_atoms.html"><span class="doc">delete_atoms overlap</span></a> command after
+create_atoms.  For example, this strategy can be used to overlay and
+surround a large protein molecule with a volume of water molecules,
+then delete water molecules that overlap with the protein atoms.</p></li>
+<li><p>For the <em>random</em> style, use the optional <em>overlap</em> keyword to avoid
+overlaps when each new particle is created.</p></li>
+<li><p>Before running dynamics on an overlapped system, perform an
+<a class="reference internal" href="minimize.html"><span class="doc">energy minimization</span></a>.  Or run initial dynamics with
+<a class="reference internal" href="pair_soft.html"><span class="doc">pair_style soft</span></a> or with <a class="reference internal" href="fix_nve_limit.html"><span class="doc">fix nve/limit</span></a> to un-overlap the particles, before running normal
+dynamics.</p></li>
+</ul>
+<figure class="align-right" style="width: 33%">
+<a class="reference external image-reference" href="_images/marble_race.jpg"><img alt="_images/marble_race.jpg" src="_images/marble_race.jpg" />
+</a>
+</figure>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2Jun2022.</span></p>
+</div>
+<p>For the <em>mesh</em> style, a file with a triangle mesh in <a class="reference external" href="https://en.wikipedia.org/wiki/STL_(file_format)">STL format</a> is read and one or
+more particles are placed into the area of each triangle.  The reader
+supports both ASCII and binary files conforming to the format on the
+Wikipedia page.  Binary STL files (e.g. as frequently offered for
+3d-printing) can also be first converted to ASCII for editing with the
+<a class="reference internal" href="Tools.html#stlconvert"><span class="std std-ref">stl_bin2txt tool</span></a>.  The use of the <em>units box</em> option
+is required. There are two algorithms available for placing atoms:
+<em>bisect</em> and <em>qrand</em>. They can be selected via the <em>meshmode</em> option;
+<em>bisect</em> is the default.  If the atom style allows it, the radius will
+be set to a value depending on the algorithm and the value of the
+<em>radscale</em> parameter (see below), and the atoms created from the mesh
+are assigned a new molecule ID.</p>
+<p>In <em>bisect</em> mode a particle is created at the center of each triangle
+unless the average distance of the triangle vertices from its center is
+larger than the <em>radthresh</em> value (default is lattice spacing in
+x-direction).  In case the average distance is over the threshold, the
+triangle is recursively split into two halves along the the longest side
+until the threshold is reached. There will be at least one sphere per
+triangle. The value of <em>radthresh</em> is set as an argument to <em>meshmode
+bisect</em>.  The average distance of the vertices from the center is also
+used to set the radius.</p>
+<p>In <em>qrand</em> mode a quasi-random sequence is used to distribute particles
+on mesh triangles using an approach by <a class="reference internal" href="#roberts2019"><span class="std std-ref">(Roberts)</span></a>.
+Particles are added to the triangle until the minimum number density is
+met or exceeded such that every triangle will have at least one
+particle.  The minimum number density is set as an argument to the
+<em>qrand</em> option.  The radius will be set so that the sum of the area of
+the radius of the particles created in place of a triangle will be equal
+to the area of that triangle.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The atom placement algorithms in the <em>mesh</em> style benefit from meshes
+where triangles are close to equilateral.  It is therefore
+recommended to pre-process STL files to optimize the mesh
+accordingly.  There are multiple open source and commercial software
+tools available with the capability to generate optimized meshes.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In most cases the atoms created in <em>mesh</em> style will become an
+immobile or rigid object that would not be time integrated or moved
+by <a class="reference internal" href="fix_move.html"><span class="doc">fix move</span></a> or <a class="reference internal" href="fix_rigid.html"><span class="doc">fix rigid</span></a>.  For
+computational efficiency <em>and</em> to avoid undesired contributions to
+pressure and potential energy due to close contacts, it is usually
+beneficial to exclude computing interactions between the created
+particles using <a class="reference internal" href="neigh_modify.html"><span class="doc">neigh_modify exclude</span></a>.</p>
+</div>
+<hr class="docutils" />
+<p>Individual atoms are inserted by this command, unless the <em>mol</em>
+keyword is used.  It specifies a <em>template-ID</em> previously defined
+using the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command, which reads a file that
+defines the molecule.  The coordinates, atom types, charges, etc, as
+well as any bond/angle/etc and special neighbor information for the
+molecule can be specified in the molecule file.  See the
+<a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a> command for details.  The only settings
+required to be in this file are the coordinates and types of atoms in
+the molecule.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are using the <em>mol</em> keyword in combination with the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom style template</span></a> command, they must use
+the same molecule template-ID.</p>
+</div>
+<p>Using a lattice to add molecules, e.g. via the <em>box</em> or <em>region</em> or
+<em>single</em> styles, is exactly the same as adding atoms on lattice
+points, except that entire molecules are added at each point, i.e. on
+the point defined by each basis atom in the unit cell as it tiles the
+simulation box or region.  This is done by placing the geometric
+center of the molecule at the lattice point, and (by default) giving
+the molecule a random orientation about the point.  The random <em>seed</em>
+specified with the <em>mol</em> keyword is used for this operation, and the
+random numbers generated by each processor are different.  This means
+the coordinates of individual atoms (in the molecules) will be
+different when running on different numbers of processors, unlike when
+atoms are being created in parallel.</p>
+<p>Note that with random rotations, it may be important to use a lattice
+with a large enough spacing that adjacent molecules will not overlap,
+regardless of their relative orientations.  See the description of the
+<em>rotate</em> keyword below, which overrides the default random orientation
+and inserts all molecules at a specified orientation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command is used to create
+the simulation box, followed by the create_atoms command with its
+<em>mol</em> option for adding molecules, then you typically need to use the
+optional keywords allowed by the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command
+for extra bonds (angles,etc) or extra special neighbors.  This is
+because by default, the <a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a> command sets up a
+non-molecular system that does not allow molecules to be added.</p>
+</div>
+<hr class="docutils" />
+<p>This is the meaning of the other optional keywords.</p>
+<p>The <em>basis</em> keyword is only used when atoms (not molecules) are being
+created.  It specifies an atom type that will be assigned to specific
+basis atoms as they are created that <em>overrides</em> the default atom type.
+See the <a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a> command for specifics on how basis
+atoms are defined for the unit cell of the lattice.  By default, all
+created atoms are assigned the argument <em>type</em> as their atom type.  To
+illustrate this please see the following 4 example <em>create_atom</em> command
+lines that all create the same system:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">lattice</span><span class="w"> </span><span class="n">diamond</span><span class="w"> </span><span class="m">4.36</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">2</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">2</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">2</span>
+<span class="k">create_atoms</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">basis</span><span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
+<p>The <em>ratio</em> and <em>subset</em> keywords can be used in conjunction with the
+<em>box</em> or <em>region</em> styles to limit the total number of particles
+inserted.  The lattice defines a set of <em>Nlatt</em> eligible sites for
+inserting particles, which may be limited by the <em>region</em> style or the
+<em>var</em> and <em>set</em> keywords.  For the <em>ratio</em> keyword, only the specified
+fraction of them (<span class="math notranslate nohighlight">\(0 \le f \le 1\)</span>) will be assigned particles.
+For the <em>subset</em> keyword only the specified <em>Nsubset</em> of them will be
+assigned particles.  In both cases the assigned lattice sites are
+chosen randomly.  An iterative algorithm is used that ensures the
+correct number of particles are inserted, in a perfectly random
+fashion.  Which lattice sites are selected will change with the number
+of processors used.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 12Jun2025.</span></p>
+</div>
+<p>The <em>group</em> keyword adds the newly created atoms to the named
+<a class="reference internal" href="group.html"><span class="doc">group</span></a>.  If the group does not yet exist it will be
+created.  There can be only one such group, thus if the <em>group</em> keyword
+is used multiple times, only the last one will be used.  All created
+atoms are always added to the group “all”.</p>
+<p>The <em>remap</em> keyword only applies to the <em>single</em> style.  If it is set
+to <em>yes</em>, then if the specified position is outside the simulation
+box, it will mapped back into the box, assuming the relevant
+dimensions are periodic.  If it is set to <em>no</em>, no remapping is done
+and no particle is created if its position is outside the box.</p>
+<p>The <em>var</em> and <em>set</em> keywords can be used together to provide a
+criterion for accepting or rejecting the addition of an individual
+atom, based on its coordinates.  They apply to all styles except
+<em>single</em>.  The <em>name</em> specified for the <em>var</em> keyword is the name of
+an <a class="reference internal" href="variable.html"><span class="doc">equal-style variable</span></a> that should evaluate to a
+zero or non-zero value based on one or two or three variables that
+will store the <em>x</em>, <em>y</em>, or <em>z</em> coordinates of an atom (one variable
+per coordinate).  If used, these other variables must be specified by
+the <em>set</em> keyword.  They are internal-style variable, because this
+command resets their values directly.  The internal-style variables do
+not need to be defined in the input script (though they can be); if
+one (or more) is not defined, then the <em>set</em> option creates an
+<a class="reference internal" href="variable.html"><span class="doc">internal-style variable</span></a> with the specified name.</p>
+<figure class="align-right" style="width: 50%">
+<a class="reference external image-reference" href="_images/sinusoid.jpg"><img alt="_images/sinusoid.jpg" src="_images/sinusoid.jpg" />
+</a>
+</figure>
+<p>When an atom is about to be created, its <span class="math notranslate nohighlight">\((x,y,z)\)</span> coordinates
+become the values for any <em>set</em> variable that is defined.  The <em>var</em>
+variable is then evaluated.  If the returned value is 0.0, the atom is
+not created.  If it is non-zero, the atom is created.</p>
+<p>As an example, these commands can be used in a 2d simulation, to
+create a sinusoidal surface.  Note that the surface is “rough” due to
+individual lattice points being “above” or “below” the mathematical
+expression for the sinusoidal curve.  If a finer lattice were used,
+the sinusoid would appear to be “smoother”.  Also note the use of the
+“xlat” and “ylat” <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style</span></a> keywords, which
+converts lattice spacings to distance.</p>
+<p>(Click on the image for a larger version)</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dimension</span><span class="w">   </span><span class="m">2</span>
+<span class="k">variable    </span><span class="nv nv-Identifier">x</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">100</span>
+<span class="k">variable    </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">25</span>
+<span class="k">lattice</span><span class="w">     </span><span class="n">hex</span><span class="w"> </span><span class="m">0.8442</span>
+<span class="k">region      </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="nv">$x</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="nv">$y</span><span class="w"> </span><span class="o">-</span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">create_box  </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">box</span>
+
+<span class="k">variable    </span><span class="nv nv-Identifier">v</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;(0.2*v_y*ylat * cos(v_xx/xlat * 2.0*PI*4.0/v_x) + 0.5*v_y*ylat - v_yy) &gt; 0.0&quot;</span>
+<span class="k">create_atoms</span><span class="w">  </span><span class="m">1</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">var</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">xx</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">yy</span>
+<span class="k">write_dump  </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="w"> </span><span class="n">sinusoid.lammpstrj</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>The <em>rotate</em> keyword allows specification of the orientation
+at which molecules are inserted.  The axis of rotation is
+determined by the rotation vector <span class="math notranslate nohighlight">\((R_x,R_y,R_z)\)</span> that goes through the
+insertion point.  The specified <em>theta</em> determines the angle of
+rotation around that axis.  Note that the direction of rotation for
+the atoms around the rotation axis is consistent with the right-hand
+rule: if your right-hand’s thumb points along <em>R</em>, then your fingers
+wrap around the axis in the direction of rotation.</p>
+<p>The <em>radscale</em> keyword only applies to the <em>mesh</em> style and adjusts the
+radius of created particles (see above), provided this is supported by
+the atom style.  Its value is a prefactor (must be <span class="math notranslate nohighlight">\(&gt;\)</span> 0.0, default is
+1.0) that is applied to the atom radius inferred from the size of the
+individual triangles in the triangle mesh that the particle corresponds
+to.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2Jun2022.</span></p>
+</div>
+<p>The <em>overlap</em> keyword only applies to the <em>random</em> style.  It prevents
+newly created particles from being created closer than the specified
+<em>Doverlap</em> distance from any other particle.  If particles have finite
+size (see <a class="reference internal" href="atom_style.html"><span class="doc">atom_style sphere</span></a> for example) <em>Doverlap</em>
+should be specified large enough to include the particle size in the
+non-overlapping criterion.  If molecules are being randomly inserted, then
+an insertion is only accepted if each particle in the molecule meets the
+overlap criterion with respect to other particles (not including particles
+in the molecule itself).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Checking for overlaps is a costly <span class="math notranslate nohighlight">\(\mathcal{O}(N(N+M))\)</span> operation for
+inserting <em>N</em> new particles into a system with <em>M</em> existing particles.
+This is because distances to all <em>M</em> existing particles are computed for
+each new particle that is added.  Thus the intended use of this
+keyword is to add relatively small numbers of particles to systems
+that remain at a relatively low density even after the new
+particles are created.  Careful use of the <em>maxtry</em> keyword in
+combination with <em>overlap</em> is recommended.  See the discussion
+above about systems with overlapped particles for alternate
+strategies that allow for overlapped insertions.</p>
+</div>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 2Jun2022.</span></p>
+</div>
+<p>The <em>maxtry</em> keyword only applies to the <em>random</em> style.  It limits
+the number of attempts to generate valid coordinates for a single new
+particle that satisfy all requirements imposed by the <em>region</em>, <em>var</em>,
+and <em>overlap</em> keywords.  The default is 10 attempts per particle
+before the loop over the requested <em>N</em> particles advances to the next
+particle.  Note that if insertion success is unlikely (e.g., inserting
+new particles into a dense system using the <em>overlap</em> keyword),
+setting the <em>maxtry</em> keyword to a large value may result in this
+command running for a long time.</p>
+<figure class="align-right" style="width: 30%">
+<a class="reference external image-reference" href="_images/overlap.png"><img alt="_images/overlap.png" src="_images/overlap.png" />
+</a>
+</figure>
+<p>Here is an example for the <em>random</em> style using these commands</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w">         </span><span class="n">lj</span>
+<span class="k">dimension</span><span class="w">     </span><span class="m">2</span>
+<span class="k">region        </span><span class="nv nv-Identifier">box</span><span class="w"> </span><span class="n">block</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="o">-</span><span class="m">0.5</span><span class="w"> </span><span class="m">0.5</span>
+<span class="k">create_box    </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">box</span>
+<span class="k">create_atoms</span><span class="w">  </span><span class="m">1</span><span class="w"> </span><span class="n">random</span><span class="w"> </span><span class="m">2000</span><span class="w"> </span><span class="m">13487</span><span class="w"> </span><span class="n">NULL</span><span class="w"> </span><span class="n">overlap</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">maxtry</span><span class="w"> </span><span class="m">50</span>
+<span class="k">pair_style</span><span class="w">    </span><span class="n">lj</span><span class="o">/</span><span class="n">cut</span><span class="w"> </span><span class="m">2.5</span>
+<span class="k">pair_coeff</span><span class="w">    </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">2.5</span>
+</pre></div>
+</div>
+<p>to produce a system as shown in the image with 1520 particles (out of
+2000 requested) that are moderately dense and which have no overlaps
+sufficient to prevent the LJ pair_style from running properly (because
+the overlap criterion is 1.0).  The create_atoms command ran for 0.3 s
+on a single CPU core.</p>
+<p>(Click on the image for a larger version)</p>
+<hr class="docutils" />
+<p>The <em>units</em> keyword determines the meaning of the distance units used
+by parameters for various styles.  A <em>box</em> value selects standard
+distance units as defined by the <a class="reference internal" href="units.html"><span class="doc">units</span></a> command (e.g.,
+<span class="math notranslate nohighlight">\(\AA\)</span> for units = <em>real</em> or <em>metal</em>.  A <em>lattice</em> value means
+the distance units are in lattice spacings.  These are affected settings:</p>
+<ul class="simple">
+<li><p>for <em>single</em> style: coordinates of the particle created</p></li>
+<li><p>for <em>random</em> style: overlap distance <em>Doverlap</em> by the <em>overlap</em> keyword</p></li>
+<li><p>for <em>mesh</em> style: <em>bisect</em> threshold value for <em>meshmode</em> = <em>bisect</em></p></li>
+<li><p>for <em>mesh</em> style: <em>radthresh</em> value for <em>meshmode</em> = <em>bisect</em></p></li>
+<li><p>for <em>mesh</em> style: <em>density</em> value for <em>meshmode</em> = <em>qrand</em></p></li>
+</ul>
+<p>Since <em>density</em> represents an area (distance ^2), the lattice spacing
+factor is also squared.</p>
+<hr class="docutils" />
+<p>Atom IDs are assigned to created atoms in the following way.  The
+collection of created atoms are assigned consecutive IDs that start
+immediately following the largest atom ID existing before the
+create_atoms command was invoked.  This is done by the processor’s
+communicating the number of atoms they each own, the first processor
+numbering its atoms from <span class="math notranslate nohighlight">\(1\)</span> to <span class="math notranslate nohighlight">\(N_1\)</span>, the second processor from
+<span class="math notranslate nohighlight">\(N_1+1\)</span> to <span class="math notranslate nohighlight">\(N_2\)</span>, and so on, where <span class="math notranslate nohighlight">\(N_1\)</span> is the number of
+atoms owned by the first processor, <span class="math notranslate nohighlight">\(N_2\)</span> is the number owned by the
+second processor, and so forth.  Thus, when the same simulation is performed on
+different numbers of processors, there is no guarantee a particular created
+atom will be assigned the same ID in both simulations.  If molecules are being
+created, molecule IDs are assigned to created molecules in a similar fashion.</p>
+<p>Aside from their ID, atom type, and <span class="math notranslate nohighlight">\(xyz\)</span> position, other properties of
+created atoms are set to default values, depending on which quantities
+are defined by the chosen <a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a>.  See the
+<a class="reference internal" href="atom_style.html"><span class="doc">atom style</span></a> command for more details.  See the
+<a class="reference internal" href="set.html"><span class="doc">set</span></a> and <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> commands for info on
+how to change these values.</p>
+<ul class="simple">
+<li><p>charge = 0.0</p></li>
+<li><p>dipole moment magnitude = 0.0</p></li>
+<li><p>diameter = 1.0</p></li>
+<li><p>shape = 0.0 0.0 0.0</p></li>
+<li><p>density = 1.0</p></li>
+<li><p>volume = 1.0</p></li>
+<li><p>velocity = 0.0 0.0 0.0</p></li>
+<li><p>angular velocity = 0.0 0.0 0.0</p></li>
+<li><p>angular momentum = 0.0 0.0 0.0</p></li>
+<li><p>quaternion = (1,0,0,0)</p></li>
+<li><p>bonds, angles, dihedrals, impropers = none</p></li>
+</ul>
+<p>If molecules are being created, these defaults can be overridden by
+values specified in the file read by the <a class="reference internal" href="molecule.html"><span class="doc">molecule</span></a>
+command. That is, the file typically defines bonds (angles, etc.) between
+atoms in the molecule, and can optionally define charges on each atom.</p>
+<p>Note that the <em>sphere</em> atom style sets the default particle diameter to
+1.0 as well as the density.  This means the mass for the particle is not
+1.0, but is <span class="math notranslate nohighlight">\(\frac{\pi}{6} d^3 = 0.5236\)</span>, where <span class="math notranslate nohighlight">\(d\)</span> is the
+diameter.  When using the <em>mesh</em> style, the particle diameter is adjusted from
+the size of the individual triangles in the triangle mesh.</p>
+<p>Note that the <em>ellipsoid</em> atom style sets the default particle shape
+to (0.0 0.0 0.0) and the density to 1.0, which means it is a point
+particle, not an ellipsoid, and has a mass of 1.0.</p>
+<p>Note that the <em>peri</em> style sets the default volume and density to 1.0
+and thus also set the mass for the particle to 1.0.</p>
+<p>The <a class="reference internal" href="set.html"><span class="doc">set</span></a> command can be used to override many of these
+default settings.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>An <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> must be previously defined to use this
+command.</p>
+<p>A rotation vector specified for a single molecule must be in
+the z-direction for a 2d model.</p>
+<p>For <a class="reference internal" href="molecule.html"><span class="doc">molecule templates</span></a> that are created from multiple
+files, i.e. contain multiple molecule <em>sets</em>, only the first set is
+used.  To create multiple molecules the files currently need to be
+merged and different molecule IDs assigned with a Molecules section.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="lattice.html"><span class="doc">lattice</span></a>, <a class="reference internal" href="region.html"><span class="doc">region</span></a>,
+<a class="reference internal" href="create_box.html"><span class="doc">create_box</span></a>, <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>,
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>The default for the <em>basis</em> keyword is that all created atoms are
+assigned the argument <em>type</em> as their atom type (when single atoms are
+being created).  The other defaults are <em>remap</em> = no, <em>rotate</em> = random,
+<em>radscale</em> = 1.0, <em>radthresh</em> = x-lattice spacing, <em>overlap</em> not
+checked, <em>maxtry</em> = 10, and <em>units</em> = lattice.</p>
+<hr class="docutils" />
+<p id="roberts2019"><strong>(Roberts)</strong> R. Roberts (2019) “Evenly Distributing Points in a Triangle.” Extreme Learning.  <a class="reference external" href="https://extremelearning.com.au/evenly-distributing-points-in-a-triangle/">https://extremelearning.com.au/evenly-distributing-points-in-a-triangle/</a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="compute_modify.html" class="btn btn-neutral float-left" title="compute_modify command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="create_bonds.html" class="btn btn-neutral float-right" title="create_bonds command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

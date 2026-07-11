@@ -1,0 +1,329 @@
+set(Kokkos_DEVICES @KOKKOS_ENABLED_DEVICES@)
+set(Kokkos_OPTIONS @KOKKOS_ENABLED_OPTIONS@)
+set(Kokkos_TPLS @KOKKOS_ENABLED_TPLS@)
+set(Kokkos_ARCH @KOKKOS_ENABLED_ARCH_LIST@)
+set(Kokkos_CXX_COMPILER "@CMAKE_CXX_COMPILER@")
+set(Kokkos_CXX_COMPILER_ID "@KOKKOS_CXX_COMPILER_ID@")
+set(Kokkos_CXX_COMPILER_VERSION "@KOKKOS_CXX_COMPILER_VERSION@")
+set(Kokkos_CXX_STANDARD @KOKKOS_CXX_STANDARD@)
+
+# Required to be a TriBITS-compliant external package
+if(NOT TARGET Kokkos::all_libs)
+  add_library(Kokkos::all_libs ALIAS Kokkos::kokkos)
+endif()
+
+# Export Kokkos_ENABLE_<BACKEND> for each backend that was enabled.
+# NOTE: "Devices" is a little bit of a misnomer here.  These are really
+# backends, e.g. Kokkos_ENABLE_OPENMP, Kokkos_ENABLE_CUDA, Kokkos_ENABLE_HIP,
+# or Kokkos_ENABLE_SYCL.
+foreach(DEV ${Kokkos_DEVICES})
+  set(Kokkos_ENABLE_${DEV} ON)
+endforeach()
+# Export relevant Kokkos_ENABLE<OPTION> variables, e.g.
+# Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE, Kokkos_ENABLE_DEBUG, etc.
+foreach(OPT ${Kokkos_OPTIONS})
+  set(Kokkos_ENABLE_${OPT} ON)
+endforeach()
+
+if(Kokkos_ENABLE_CUDA)
+  set(Kokkos_CUDA_ARCHITECTURES @KOKKOS_CUDA_ARCHITECTURES@)
+endif()
+
+if(Kokkos_ENABLE_HIP)
+  set(Kokkos_HIP_ARCHITECTURES @KOKKOS_HIP_ARCHITECTURES@)
+  # check if the GPU_TARGETS are the same as the arch in Kokkos
+  foreach(arch IN LISTS GPU_TARGETS)
+    if(NOT (arch STREQUAL @KOKKOS_HIP_ARCHITECTURES@))
+      if(@KOKKOS_ENABLE_DEPRECATED_CODE_5@)
+        set(MESSAGE_TYPE WARNING)
+      else()
+        set(MESSAGE_TYPE FATAL_ERROR)
+      endif()
+      message(
+        ${MESSAGE_TYPE}
+        "AMD GPU architectures given via GPU_TARGETS=\"${GPU_TARGETS}\" are not compatible with the architecture enabled in Kokkos which is @KOKKOS_HIP_ARCHITECTURES@. Kokkos allows only one device architecture to be active. To resolve this, configure with -DGPU_TARGETS=\"@KOKKOS_HIP_ARCHITECTURES@\" to prevent it from being set implicitly by find_package calls."
+      )
+      break()
+    endif()
+  endforeach()
+endif()
+
+if(NOT Kokkos_FIND_QUIETLY)
+  message(STATUS "Enabled Kokkos devices: ${Kokkos_DEVICES}")
+endif()
+
+if(Kokkos_ENABLE_CUDA)
+  # If we are building CUDA, we have tricked CMake because we declare a CXX project
+  # If the default C++ standard for a given compiler matches the requested
+  # standard, then CMake just omits the -std flag in later versions of CMake
+  # This breaks CUDA compilation (CUDA compiler can have a different default
+  # -std then the underlying host compiler by itself). Setting this variable
+  # forces CMake to always add the -std flag even if it thinks it doesn't need it
+  set(CMAKE_CXX_STANDARD_DEFAULT 98 CACHE INTERNAL "" FORCE)
+endif()
+
+set(KOKKOS_USE_CXX_EXTENSIONS @KOKKOS_USE_CXX_EXTENSIONS@)
+if(NOT DEFINED CMAKE_CXX_EXTENSIONS OR CMAKE_CXX_EXTENSIONS)
+  if(NOT KOKKOS_USE_CXX_EXTENSIONS)
+    message(
+      WARNING "The installed Kokkos configuration does not support CXX extensions. Forcing -DCMAKE_CXX_EXTENSIONS=Off"
+    )
+    set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "" FORCE)
+  endif()
+endif()
+
+#   This function makes sure that Kokkos was built with the requested backends
+#   and target architectures and generates a fatal error if it was not.
+#
+#   kokkos_check(
+#     [DEVICES <devices>...]   # Set of backends (e.g. "OpenMP" and/or "Cuda")
+#     [ARCH <archs>...]        # Target architectures (e.g. "Power9" and/or "Volta70")
+#     [OPTIONS <options>...]   # Optional settings (e.g. "TUNING")
+#     [TPLS <tpls>...]         # Third party libraries
+#     [RETURN_VALUE <result>]  # Set a variable that indicates the result of the
+#                              # check instead of a fatal error
+#   )
+function(kokkos_check)
+  set(ALLOWED_ARGS DEVICES ARCH OPTIONS TPLS)
+  cmake_parse_arguments(KOKKOS_CHECK "" "RETURN_VALUE" "${ALLOWED_ARGS}" ${ARGN})
+  foreach(_arg ${KOKKOS_CHECK_UNPARSED_ARGUMENTS})
+    message(SEND_ERROR "Argument '${_arg}' passed to kokkos_check() was not recognized")
+  endforeach()
+  # Get the list of keywords that were actually passed to the function.
+  set(REQUESTED_ARGS)
+  foreach(arg ${ALLOWED_ARGS})
+    if(KOKKOS_CHECK_${arg})
+      list(APPEND REQUESTED_ARGS ${arg})
+    endif()
+  endforeach()
+  set(KOKKOS_CHECK_SUCCESS TRUE)
+  foreach(arg ${REQUESTED_ARGS})
+    set(MISSING_OPTIONS "")
+    foreach(requested ${KOKKOS_CHECK_${arg}})
+      set(FOUND_MATCHING_OPTION FALSE)
+      foreach(provided ${Kokkos_${arg}})
+        string(TOUPPER ${requested} REQUESTED_UC)
+        string(TOUPPER ${provided} PROVIDED_UC)
+        if(PROVIDED_UC STREQUAL REQUESTED_UC)
+          set(FOUND_MATCHING_OPTION TRUE)
+        endif()
+      endforeach()
+      if(NOT FOUND_MATCHING_OPTION)
+        list(APPEND MISSING_OPTIONS ${requested})
+        set(KOKKOS_CHECK_SUCCESS FALSE)
+      endif()
+    endforeach()
+    if(NOT KOKKOS_CHECK_SUCCESS AND NOT KOKKOS_CHECK_RETURN_VALUE)
+      message(STATUS "Could NOT find Kokkos_${arg} (missing: ${MISSING_OPTIONS})")
+    endif()
+  endforeach()
+  if(NOT KOKKOS_CHECK_SUCCESS AND NOT KOKKOS_CHECK_RETURN_VALUE)
+    message(FATAL_ERROR "Kokkos does NOT provide all backends and/or architectures requested")
+  else()
+    set(${KOKKOS_CHECK_RETURN_VALUE} ${KOKKOS_CHECK_SUCCESS} PARENT_SCOPE)
+  endif()
+endfunction()
+
+# A test to check whether a downstream project set the C++ compiler to NVCC or not
+# this is called only when Kokkos was installed with Kokkos_ENABLE_CUDA=ON
+function(kokkos_compiler_is_nvcc VAR COMPILER)
+  # Check if the compiler is nvcc (which really means nvcc_wrapper).
+  execute_process(
+    COMMAND ${COMPILER} ${ARGN} --version
+    OUTPUT_VARIABLE INTERNAL_COMPILER_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    RESULT_VARIABLE RET
+  )
+  # something went wrong
+  if(RET GREATER 0)
+    set(${VAR} false PARENT_SCOPE)
+  else()
+    string(REPLACE "\n" " - " INTERNAL_COMPILER_VERSION_ONE_LINE ${INTERNAL_COMPILER_VERSION})
+    string(FIND ${INTERNAL_COMPILER_VERSION_ONE_LINE} "nvcc" INTERNAL_COMPILER_VERSION_CONTAINS_NVCC)
+    string(REGEX REPLACE "^ +" "" INTERNAL_HAVE_COMPILER_NVCC "${INTERNAL_HAVE_COMPILER_NVCC}")
+    if(${INTERNAL_COMPILER_VERSION_CONTAINS_NVCC} GREATER -1)
+      set(${VAR} true PARENT_SCOPE)
+    else()
+      set(${VAR} false PARENT_SCOPE)
+    endif()
+  endif()
+endfunction()
+
+# this function checks whether the current CXX compiler supports building CUDA
+function(kokkos_cxx_compiler_cuda_test _VAR _COMPILER)
+
+  file(
+    WRITE ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu
+    "
+#include <cuda.h>
+#include <cstdlib>
+
+__global__
+void kernel(int sz, double* data)
+{
+    int _beg = blockIdx.x * blockDim.x + threadIdx.x;
+    for(int i = _beg; i < sz; ++i)
+        data[i] += static_cast<double>(i);
+}
+
+int main()
+{
+    double* data = NULL;
+    int blocks = 64;
+    int grids = 64;
+    int ret = cudaMalloc(&data, blocks * grids * sizeof(double));
+    if(ret != cudaSuccess)
+        return EXIT_FAILURE;
+    kernel<<<grids, blocks>>>(blocks * grids, data);
+    cudaDeviceSynchronize();
+    return EXIT_SUCCESS;
+}
+"
+  )
+
+  # save the command for debugging
+  set(_COMMANDS "${_COMPILER} ${ARGN} -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu")
+
+  # use execute_process instead of try compile because we want to set custom compiler
+  execute_process(
+    COMMAND ${_COMPILER} ${ARGN} -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu
+    RESULT_VARIABLE _RET
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/compile_tests
+    TIMEOUT 15
+    OUTPUT_QUIET ERROR_QUIET
+  )
+
+  if(NOT _RET EQUAL 0)
+    # save the command for debugging
+    set(_COMMANDS
+        "${_COMMAND}\n${_COMPILER} --cuda-gpu-arch=sm_50 ${ARGN} -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu"
+    )
+    # try the compile test again with clang arguments
+    execute_process(
+      COMMAND ${_COMPILER} --cuda-gpu-arch=sm_50 -c ${PROJECT_BINARY_DIR}/compile_tests/compiles_cuda.cu
+      RESULT_VARIABLE _RET
+      WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/compile_tests
+      TIMEOUT 15
+      OUTPUT_QUIET ERROR_QUIET
+    )
+  endif()
+
+  set(${_VAR}_COMMANDS "${_COMMANDS}" PARENT_SCOPE)
+  set(${_VAR} ${_RET} PARENT_SCOPE)
+endfunction()
+
+# this function is provided to easily select which files use the same compiler as Kokkos
+# when it was installed (or nvcc_wrapper):
+#
+#       GLOBAL      --> all files
+#       TARGET      --> all files in a target
+#       SOURCE      --> specific source files
+#       DIRECTORY   --> all files in directory
+#       PROJECT     --> all files/targets in a project/subproject
+#
+# Use the COMPILER argument to specify a compiler, if needed. By default, it will
+# set the values to ${Kokkos_CXX_COMPILER} unless Kokkos_ENABLE_CUDA=ON and
+# Kokkos_CXX_COMPILER_ID is NVIDIA, then it will set it to nvcc_wrapper
+#
+# Use CHECK_CUDA_COMPILES to run a check when CUDA is enabled
+#
+function(kokkos_compilation)
+  cmake_parse_arguments(
+    COMP "GLOBAL;PROJECT;CHECK_CUDA_COMPILES" "COMPILER" "DIRECTORY;TARGET;SOURCE;COMMAND_PREFIX" ${ARGN}
+  )
+
+  # if built w/o CUDA support, we want to basically make this a no-op
+  set(_Kokkos_ENABLE_CUDA @Kokkos_ENABLE_CUDA@)
+
+  # search relative first and then absolute
+  set(_HINTS "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../../.." "@CMAKE_INSTALL_PREFIX@")
+
+  # find kokkos_launch_compiler
+  find_program(
+    Kokkos_COMPILE_LAUNCHER
+    NAMES kokkos_launch_compiler
+    HINTS ${_HINTS}
+    PATHS ${_HINTS}
+    PATH_SUFFIXES bin
+  )
+
+  if(NOT Kokkos_COMPILE_LAUNCHER)
+    message(
+      FATAL_ERROR
+        "Kokkos could not find 'kokkos_launch_compiler'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/launcher'"
+    )
+  endif()
+
+  # if COMPILER was not specified, assume Kokkos_CXX_COMPILER
+  if(NOT COMP_COMPILER)
+    set(COMP_COMPILER ${Kokkos_CXX_COMPILER})
+    if(_Kokkos_ENABLE_CUDA AND Kokkos_CXX_COMPILER_ID STREQUAL NVIDIA)
+      # find nvcc_wrapper
+      find_program(
+        Kokkos_NVCC_WRAPPER
+        NAMES nvcc_wrapper
+        HINTS ${_HINTS}
+        PATHS ${_HINTS}
+        PATH_SUFFIXES bin
+      )
+      # fatal if we can't nvcc_wrapper
+      if(NOT Kokkos_NVCC_WRAPPER)
+        message(
+          FATAL_ERROR "Kokkos could not find nvcc_wrapper. Please set '-DKokkos_NVCC_WRAPPER=/path/to/nvcc_wrapper'"
+        )
+      endif()
+      set(COMP_COMPILER ${Kokkos_NVCC_WRAPPER})
+    endif()
+  endif()
+
+  # check that the original compiler still exists!
+  if(NOT EXISTS ${COMP_COMPILER})
+    message(FATAL_ERROR "Kokkos could not find original compiler: '${COMP_COMPILER}'")
+  endif()
+
+  # try to ensure that compiling cuda code works!
+  if(_Kokkos_ENABLE_CUDA AND COMP_CHECK_CUDA_COMPILES)
+
+    # this may fail if kokkos_compiler launcher was used during install
+    kokkos_cxx_compiler_cuda_test(_COMPILES_CUDA ${Kokkos_COMPILE_LAUNCHER} ${COMP_COMPILER} ${CMAKE_CXX_COMPILER})
+
+    # if above failed, throw an error
+    if(NOT _COMPILES_CUDA)
+      message(FATAL_ERROR "kokkos_cxx_compiler_cuda_test failed! Test commands:\n${_COMPILES_CUDA_COMMANDS}")
+    endif()
+  endif()
+
+  if(COMP_COMMAND_PREFIX)
+    set(_PREFIX "${COMP_COMMAND_PREFIX}")
+    string(REPLACE ";" " " _PREFIX "${COMP_COMMAND_PREFIX}")
+    set(Kokkos_COMPILER_LAUNCHER "${_PREFIX} ${Kokkos_COMPILE_LAUNCHER}")
+  endif()
+
+  if(COMP_GLOBAL)
+    # if global, don't bother setting others
+    set_property(
+      GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${Kokkos_COMPILE_LAUNCHER} ${COMP_COMPILER} ${CMAKE_CXX_COMPILER}"
+    )
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK "${Kokkos_COMPILE_LAUNCHER} ${COMP_COMPILER} ${CMAKE_CXX_COMPILER}")
+  else()
+    foreach(_TYPE PROJECT DIRECTORY TARGET SOURCE)
+      # make project/subproject scoping easy, e.g. KokkosCompilation(PROJECT) after project(...)
+      if("${_TYPE}" STREQUAL "PROJECT" AND COMP_${_TYPE})
+        list(APPEND COMP_DIRECTORY ${PROJECT_SOURCE_DIR})
+        unset(COMP_${_TYPE})
+      endif()
+      # set the properties if defined
+      if(COMP_${_TYPE})
+        # MESSAGE(STATUS "Using ${COMP_COMPILER} :: ${_TYPE} :: ${COMP_${_TYPE}}")
+        set_property(
+          ${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_COMPILE
+                                             "${Kokkos_COMPILE_LAUNCHER} ${COMP_COMPILER} ${CMAKE_CXX_COMPILER}"
+        )
+        set_property(
+          ${_TYPE} ${COMP_${_TYPE}} PROPERTY RULE_LAUNCH_LINK
+                                             "${Kokkos_COMPILE_LAUNCHER} ${COMP_COMPILER} ${CMAKE_CXX_COMPILER}"
+        )
+      endif()
+    endforeach()
+  endif()
+endfunction()

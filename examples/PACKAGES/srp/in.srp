@@ -1,0 +1,42 @@
+units           lj
+atom_style      full
+boundary p p p
+
+special_bonds lj/coul 1 1 1
+newton on on
+
+# save an extra atom type for bond particles
+read_data data.chain
+
+neighbor        2.0 bin
+neigh_modify    every 10 check yes
+
+bond_style      harmonic
+bond_coeff      * 225.0 0.85
+
+comm_modify vel yes
+comm_modify cutoff 3.6
+
+# must use pair hybrid, since srp bond particles
+# do not interact with other atoms types
+pair_style      hybrid dpd 1.0 1.0 373692 srp 0.8 1 mid
+pair_coeff      1 1 dpd 60.0 4.5 1.0 
+pair_coeff      1 2 none
+pair_coeff      2 2 srp 100.0 
+
+# auto normalization of thermo quantities is turned off by pair srp
+# just divide by natoms 
+variable        natoms equal count(all)
+variable        nPotEng equal c_thermo_pe/v_natoms 
+
+thermo 50
+thermo_style custom step temp pe v_nPotEng press atoms v_natoms lx ly lz
+
+fix  1 all nve
+timestep        0.01
+
+#restart 500	mid-run-*.restart
+
+run          1000
+
+#write_restart   end-run.restart

@@ -1,0 +1,25 @@
+# LJ particles
+variable        T0 index 300.0
+variable        press index 0.0
+variable        lambda index 400.0
+variable        eta index -0.01
+variable        enthalpy index -30000.0
+
+units           real
+atom_style      full
+pair_style      lj/cut 5.0
+
+read_data       "restart_file"
+
+thermo          10
+thermo_style    custom step temp pe etotal press vol
+
+velocity        all create ${T0} 12427
+timestep        1.0
+
+fix             fxnvt all npt temp ${T0} ${T0} 1000.0 iso ${press} ${press} 10000.0 
+fix             fxgREM all grem ${lambda} ${eta} ${enthalpy} fxnvt
+thermo_modify   press fxgREM_press
+run             10000
+
+write_data      final_restart_file

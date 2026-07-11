@@ -1,0 +1,207 @@
+#===========================================================================#
+# Large colloidal sphere difusing around.                                   #
+#                                                                           #
+# In the first stage, the sphere is constructed by condensing atoms onto    #
+# the surface of a spherical region. There are a flag you can change to     #
+# either bond atoms into a spherical shell or integrate them as a rigid body#
+#                                                                           #
+# To run this example, LAMMPS needs to be compiled with a the following     #
+# packages: RIGID, LATBOTLZ                                                 #
+#                                                                           #
+# If you uncomment the "dump..." line, sample output from this run          #
+# can be found in the file:                                                 # 
+#   'dump.trapnewsphere.lammpstrj'                                          #
+# and viewed using, e.g., the VMD software.                                 #
+#                                                                           #
+#===========================================================================#
+
+units nano
+dimension 3
+boundary p p p
+
+region mybox block -24 24 -24 24 -24 24
+
+# flag indicating whether sphere will be bonded or rigid, 0 or 1
+variable is_bonded equal 0  
+# timestep for the LB run (setup uses different timesteps)
+variable tstep equal 0.00025
+# number of stencil points in any direction.  could be 2, 3, or 4
+variable stpts equal 2
+
+if "${is_bonded} == 1" then &
+   "create_box 1 mybox bond/types 10 extra/bond/per/atom 12" &
+else &
+   "create_box 1 mybox"
+
+#----------------------------------------------------------------------------
+# Create a spherical region and then fill it with atoms
+#----------------------------------------------------------------------------
+region mysphereinside sphere 0 0 0 4.0
+
+#variable n_nodes equal 216
+variable n_nodes equal 284
+create_atoms 1 random ${n_nodes} 1234 mysphereinside units box
+
+pair_style soft 1.0
+pair_coeff * * 0.0
+variable prefactor equal ramp(0,30)
+fix 1 all adapt 1 pair soft a * * v_prefactor
+
+mass * 1.0
+
+#----------------------------------------------------------------------------
+# Set up and do an initial run to push the atoms apart as the random creation
+#   could have them overlapping too much for stability.
+#----------------------------------------------------------------------------
+timestep 0.002
+
+# Define sphere where minimum of wall potential is at r=4 so
+# regions is 4 + (2/5)^(1/6) sigma
+region mysphere sphere 0 0 0 5.28756
+fix wall all wall/region mysphere lj93 15.0 1.5 5.28
+
+fix 2 all nve
+
+#dump mydump all atom 10000 dump.trapnewsphere.lammpstrj
+
+run 20000
+
+unfix wall
+fix wall all wall/region mysphere lj93 50.0 1.5 5.68
+
+unfix 1
+
+#----------------------------------------------------------------------------
+# Do a run to condense the atoms onto the spherical surface and anneal them 
+#   so they will be orderly aranged onto a semi-triangular mesh on the sphere
+#----------------------------------------------------------------------------
+pair_style lj/cut 1.68359
+#pair_coeff * * 0.002 1.5 1.68369
+pair_coeff * * 0.0005 1.5 1.68369
+
+fix 3 all langevin 1.5 0.01 100.0 5678
+
+neighbor 0.3 bin
+neigh_modify delay 0 every 1 check yes
+comm_modify cutoff 2.5
+
+run 500000
+
+minimize 0.0 1.0e-8 1000 100000
+
+unfix wall
+unfix 2
+unfix 3
+
+#----------------------------------------------------------------------------
+# If bonded, bond the atoms together at something close to their current  
+#   configuration
+#----------------------------------------------------------------------------
+
+variable total_mass equal 0.002398
+variable node_mass equal "v_total_mass / v_n_nodes"
+mass * ${node_mass}
+
+if "${is_bonded} == 1" then &
+"bond_style harmonic" &
+"bond_coeff 1 25.0 0.869333" &
+"bond_coeff 2 25.0 0.948" &
+"bond_coeff 3 25.0 1.026666" &
+"bond_coeff 4 25.0 1.105333" &
+"bond_coeff 5 25.0 1.184" &
+"bond_coeff 6 25.0 1.262666" &
+"bond_coeff 7 25.0 1.341333" &
+"bond_coeff 8 25.0 1.42" &
+"bond_coeff 9 25.0 1.498666" &
+"bond_coeff 10 25.0 1.577333" &
+"create_bonds many all all 1 0.83 0.908666" &
+"create_bonds many all all 2 0.908667 0.987333" &
+"create_bonds many all all 3 0.987334 1.066" &
+"create_bonds many all all 4 1.066001 1.144666" &
+"create_bonds many all all 5 1.144667 1.223333" &
+"create_bonds many all all 6 1.223334 1.302" &
+"create_bonds many all all 7 1.302001 1.380666" &
+"create_bonds many all all 8 1.380667 1.459333" &
+"create_bonds many all all 9 1.459334 1.538" &
+"create_bonds many all all 10 1.538001 1.61667"
+
+if "${is_bonded} == 1" then &
+ "pair_style lj/cut 5.05108" &
+ "pair_coeff * * 0.5 4.5" &
+else &
+ "pair_style lj/cut 1.2" &
+ "pair_coeff * * 0.0 0.0"
+
+timestep ${tstep}
+
+#----------------------------------------------------------------------------
+# You could uncomment the following lines and then turn off the noise and
+#   comment out the trap (following) to instead do a run that drags the
+#   sphere through the fluid to measure the drag force.
+#----------------------------------------------------------------------------
+#variable total_force equal 8.0
+#variable node_force equal "v_total_force / v_n_nodes"
+#variable oscillateY equal cos(step*0.0005)/(-0.004+50*v_tstep)/v_n_nodes
+#variable oscillateZ equal cos(step*0.0003)/(-0.004+50*v_tstep)/v_n_nodes
+#fix drag all addforce ${node_force} v_oscillateY v_oscillateZ
+
+#----------------------------------------------------------------------------
+# Trap the sphere along x (could be done experimentally using optical
+#    tweezers.
+#----------------------------------------------------------------------------
+variable fx atom -x*4.14195/284.0
+fix trap all addforce v_fx 0.0 0.0  # needs to go before fix lb/fluid and lb/viscous
+
+#----------------------------------------------------------------------------
+# Set up the lb/fluid parameters for water and at a temperature of 300 K.  If
+#   the colloid is integrated with the rigid fix, the dof are not
+#   automatically calculated correctly but as this would then be a rigid
+#   sphere it is clear it should have 6 degrees of freedom.
+#----------------------------------------------------------------------------
+if "${is_bonded} == 1" then &
+"fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920" &
+else &
+"fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920 dof 6"
+
+fix   2 all lb/viscous
+
+if "${is_bonded} == 1" then &
+   "fix   3 all nve" &
+else & 
+   "fix   3 all rigid group 1 all" 
+
+#equilibration run
+run 10000
+
+unfix 2
+unfix FL
+# data gathering run
+reset_timestep 0
+
+if "${is_bonded} == 1" then &
+"fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920" &
+else &
+"fix   FL all lb/fluid 1 1.0 0.0009982071 stencil ${stpts} dx 1.2 noise 300.0 181920 dof 6"
+
+fix   2 all lb/viscous
+#----------------------------------------------------------------------------
+# Create variables containing the positions/velocity of the colloids center 
+#   of mass.
+#----------------------------------------------------------------------------
+variable cmx equal xcm(all,x)
+variable cmy equal xcm(all,y)
+variable cmz equal xcm(all,z)
+
+variable vcmx equal vcm(all,x)
+variable vcmy equal vcm(all,y)
+variable vcmz equal vcm(all,z)
+
+if "${is_bonded} == 1" then &
+   "variable comdatafile string trap_nb${n_nodes}_st${stpts}_dt${tstep}.out" &
+else &
+   "variable comdatafile string trap_n${n_nodes}_st${stpts}_dt${tstep}.out" 
+
+#fix printCM all print 10 "$(step) $(f_FL) ${cmx} ${cmy} ${cmz} ${vcmx} ${vcmy} ${vcmz}" file ${comdatafile} screen no
+
+run 10000
+#run 25000000

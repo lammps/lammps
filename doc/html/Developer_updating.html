@@ -1,0 +1,833 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>4.10. Notes for updating code written for older LAMMPS versions &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Developer_updating.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="4.11. Writing plugins" href="Developer_plugins.html" />
+    <link rel="prev" title="4.9. Notes for developers and code maintainers" href="Developer_notes.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Developer.html">4. Information for Developers</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html">4.1. Source files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_org.html#class-topology">4.2. Class topology</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_code_design.html">4.3. Code design</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_parallel.html">4.4. Parallel algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_atom.html">4.5. Accessing per-atom data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_comm_ops.html">4.6. Communication patterns</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_flow.html">4.7. How a timestep works</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_write.html">4.8. Writing new styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_notes.html">4.9. Notes for developers and code maintainers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">4.10. Notes for updating code written for older LAMMPS versions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#setting-flags-in-the-constructor">4.10.1. Setting flags in the constructor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rename-of-pack-unpack-comm-to-pack-unpack-forward-comm">4.10.2. Rename of pack/unpack_comm() to pack/unpack_forward_comm()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-ev-init-to-initialize-variables-derived-from-eflag-and-vflag">4.10.3. Use ev_init() to initialize variables derived from eflag and vflag</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-utils-count-words-functions-instead-of-atom-count-words">4.10.4. Use utils::count_words() functions instead of atom-&gt;count_words()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-utils-numeric-functions-instead-of-force-numeric">4.10.5. Use utils::numeric() functions instead of force-&gt;numeric()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-utils-open-potential-function-to-open-potential-files">4.10.6. Use utils::open_potential() function to open potential files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-symbolic-atom-and-atomvec-constants-instead-of-numerical-values">4.10.7. Use symbolic Atom and AtomVec constants instead of numerical values</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simplify-customized-error-messages">4.10.8. Simplify customized error messages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-of-override-instead-of-virtual">4.10.9. Use of “override” instead of “virtual”</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simplified-function-names-for-forward-and-reverse-communication">4.10.10. Simplified function names for forward and reverse communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#simplified-and-more-compact-neighbor-list-requests">4.10.11. Simplified and more compact neighbor list requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#split-of-fix-store-into-fix-store-global-and-fix-store-peratom">4.10.12. Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rename-of-fix-store-peratom-to-fix-store-atom-and-change-of-arguments">4.10.13. Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-output-get-dump-by-id-instead-of-output-find-dump">4.10.14. Use Output::get_dump_by_id() instead of Output::find_dump()</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#refactored-grid-communication-using-grid3d-grid2d-classes-instead-of-gridcomm">4.10.15. Refactored grid communication using Grid3d/Grid2d classes instead of GridComm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#flerr-as-first-argument-to-minimum-image-functions-in-domain-class">4.10.16. FLERR as first argument to minimum image functions in Domain class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#use-utils-logmesg-instead-of-error-warning">4.10.17. Use utils::logmesg() instead of error-&gt;warning()</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_plugins.html">4.11. Writing plugins</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_unittest.html">4.12. Adding tests for unit testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Classes.html">4.13. C++ base classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_platform.html">4.14. Platform abstraction functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html">4.15. Utility functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#special-math-functions">4.16. Special Math functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#tokenizer-classes">4.17. Tokenizer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#argument-parsing-classes">4.18. Argument parsing classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#safe-pointer-classes">4.19. Safe pointer classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#file-reader-classes">4.20. File reader classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#type-label-support">4.21. Type label support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#memory-pool-classes">4.22. Memory pool classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#eigensolver-functions">4.23. Eigensolver functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_utils.html#communication-buffer-coding-with-ubuf">4.24. Communication buffer coding with <em>ubuf</em></a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_internal.html">4.25. Internal Styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Developer_grid.html">4.26. Use of distributed grids within style classes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Developer.html"><span class="section-number">4. </span>Information for Developers</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">4.10. </span>Notes for updating code written for older LAMMPS versions</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Developer_notes.html" class="btn btn-neutral float-left" title="4.9. Notes for developers and code maintainers" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_plugins.html" class="btn btn-neutral float-right" title="4.11. Writing plugins" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="notes-for-updating-code-written-for-older-lammps-versions">
+<h1><span class="section-number">4.10. </span>Notes for updating code written for older LAMMPS versions<a class="headerlink" href="#notes-for-updating-code-written-for-older-lammps-versions" title="Link to this heading"></a></h1>
+<p>This section documents how C++ source files that are available <em>outside
+of the LAMMPS source distribution</em> (e.g. in external USER packages or as
+source files provided as a supplement to a publication) that are written
+for an older version of LAMMPS and thus need to be updated to be
+compatible with the current version of LAMMPS.  Due to the active
+development of LAMMPS it is likely to always be incomplete.  Please
+contact <a class="reference external" href="mailto:developers&#37;&#52;&#48;lammps&#46;org">developers<span>&#64;</span>lammps<span>&#46;</span>org</a> in case you run across an issue that is not
+(yet) listed here.  Please also review the latest information about the
+LAMMPS <a class="reference internal" href="Modify_style.html"><span class="doc">programming style conventions</span></a>, especially
+if you are considering to submit the updated version for inclusion into
+the LAMMPS distribution.</p>
+<p>Available topics in mostly chronological order are:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#setting-flags-in-the-constructor">Setting flags in the constructor</a></p></li>
+<li><p><a class="reference internal" href="#rename-of-pack-unpack-comm-to-pack-unpack-forward-comm">Rename of pack/unpack_comm() to pack/unpack_forward_comm()</a></p></li>
+<li><p><a class="reference internal" href="#use-ev-init-to-initialize-variables-derived-from-eflag-and-vflag">Use ev_init() to initialize variables derived from eflag and vflag</a></p></li>
+<li><p><a class="reference internal" href="#use-utils-count-words-functions-instead-of-atom-count-words">Use utils::count_words() functions instead of atom-&gt;count_words()</a></p></li>
+<li><p><a class="reference internal" href="#use-utils-numeric-functions-instead-of-force-numeric">Use utils::numeric() functions instead of force-&gt;numeric()</a></p></li>
+<li><p><a class="reference internal" href="#use-utils-open-potential-function-to-open-potential-files">Use utils::open_potential() function to open potential files</a></p></li>
+<li><p><a class="reference internal" href="#use-symbolic-atom-and-atomvec-constants-instead-of-numerical-values">Use symbolic Atom and AtomVec constants instead of numerical values</a></p></li>
+<li><p><a class="reference internal" href="#simplify-customized-error-messages">Simplify customized error messages</a></p></li>
+<li><p><a class="reference internal" href="#use-of-override-instead-of-virtual">Use of “override” instead of “virtual”</a></p></li>
+<li><p><a class="reference internal" href="#simplified-and-more-compact-neighbor-list-requests">Simplified and more compact neighbor list requests</a></p></li>
+<li><p><a class="reference internal" href="#split-of-fix-store-into-fix-store-global-and-fix-store-peratom">Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM</a></p></li>
+<li><p><a class="reference internal" href="#rename-of-fix-store-peratom-to-fix-store-atom-and-change-of-arguments">Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments</a></p></li>
+<li><p><a class="reference internal" href="#use-output-get-dump-by-id-instead-of-output-find-dump">Use Output::get_dump_by_id() instead of Output::find_dump()</a></p></li>
+<li><p><a class="reference internal" href="#refactored-grid-communication-using-grid3d-grid2d-classes-instead-of-gridcomm">Refactored grid communication using Grid3d/Grid2d classes instead of GridComm</a></p></li>
+<li><p><a class="reference internal" href="#flerr-as-first-argument-to-minimum-image-functions-in-domain-class">FLERR as first argument to minimum image functions in Domain class</a></p></li>
+<li><p><a class="reference internal" href="#use-utils-logmesg-instead-of-error-warning">Use utils::logmesg() instead of error-&gt;warning()</a></p></li>
+</ul>
+<hr class="docutils" />
+<section id="setting-flags-in-the-constructor">
+<h2><span class="section-number">4.10.1. </span>Setting flags in the constructor<a class="headerlink" href="#setting-flags-in-the-constructor" title="Link to this heading"></a></h2>
+<p>As LAMMPS gains additional functionality, new flags may need to be set
+in the constructor or a class to signal compatibility with such features.
+Most of the time the defaults are chosen conservatively, but sometimes
+the conservative choice is the uncommon choice, and then those settings
+need to be made when updating code.</p>
+<p>Pair styles:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">manybody_flag</span></code>: set to 1 if your pair style is not pair-wise additive</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">restartinfo</span></code>: set to 0 if your pair style does not store data in restart files</p></li>
+</ul>
+</div></blockquote>
+</section>
+<section id="rename-of-pack-unpack-comm-to-pack-unpack-forward-comm">
+<h2><span class="section-number">4.10.2. </span>Rename of pack/unpack_comm() to pack/unpack_forward_comm()<a class="headerlink" href="#rename-of-pack-unpack-comm-to-pack-unpack-forward-comm" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 8Aug2014.</span></p>
+</div>
+<p>In this change set, the functions to pack/unpack data into communication buffers
+for <a class="reference internal" href="Developer_comm_ops.html"><span class="doc">forward communications</span></a> were renamed from
+<code class="docutils literal notranslate"><span class="pre">pack_comm()</span></code> and <code class="docutils literal notranslate"><span class="pre">unpack_comm()</span></code> to <code class="docutils literal notranslate"><span class="pre">pack_forward_comm()</span></code> and
+<code class="docutils literal notranslate"><span class="pre">unpack_forward_comm()</span></code>, respectively.  Also the meaning of the return
+value of these functions was changed: rather than returning the number
+of items per atom stored in the buffer, now the total number of items
+added (or unpacked) needs to be returned.  Here is an example from the
+<cite>PairEAM</cite> class.  Of course the member function declaration in corresponding
+header file needs to be updated accordingly.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">PairEAM::pack_comm</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pbc_flag</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">pbc</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fp</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">PairEAM::pack_forward_comm</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">list</span><span class="p">,</span><span class="w"> </span><span class="kt">double</span><span class="w"> </span><span class="o">*</span><span class="n">buf</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">pbc_flag</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">*</span><span class="n">pbc</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="kt">int</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">n</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">list</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+<span class="w">    </span><span class="n">buf</span><span class="p">[</span><span class="n">m</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fp</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="n">m</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Because the various “pack” and “unpack” functions are defined in the
+respective base classes as dummy functions doing nothing, and because
+of the the name mismatch the custom versions in the derived class
+will no longer be called, there will be no compilation error when
+this change is not applied.  Only calculations will suddenly produce
+incorrect results because the required forward communication calls
+will cease to function correctly.</p>
+</div>
+</section>
+<section id="use-ev-init-to-initialize-variables-derived-from-eflag-and-vflag">
+<h2><span class="section-number">4.10.3. </span>Use ev_init() to initialize variables derived from eflag and vflag<a class="headerlink" href="#use-ev-init-to-initialize-variables-derived-from-eflag-and-vflag" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 29Mar2019.</span></p>
+</div>
+<p>There are several variables that need to be initialized based on
+the values of the “eflag” and “vflag” variables and since sometimes
+there are new bits added and new variables need to be set to 1 or 0.
+To make this consistent across all styles, there is now an inline
+function <code class="docutils literal notranslate"><span class="pre">ev_init(eflag,</span> <span class="pre">vflag)</span></code> that makes those settings
+consistently and calls either <code class="docutils literal notranslate"><span class="pre">ev_setup()</span></code> or <code class="docutils literal notranslate"><span class="pre">ev_unset()</span></code>.
+Example from a pair style:</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">eflag</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">vflag</span><span class="p">)</span><span class="w"> </span><span class="n">ev_setup</span><span class="p">(</span><span class="n">eflag</span><span class="p">,</span><span class="w"> </span><span class="n">vflag</span><span class="p">);</span>
+<span class="k">else</span><span class="w"> </span><span class="n">evflag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vflag_fdotr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eflag_global</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">eflag_atom</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">ev_init</span><span class="p">(</span><span class="n">eflag</span><span class="p">,</span><span class="w"> </span><span class="n">vflag</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Not applying this change will not cause a compilation error, but
+can lead to inconsistent behavior and incorrect tallying of
+energy or virial.</p>
+</section>
+<section id="use-utils-count-words-functions-instead-of-atom-count-words">
+<h2><span class="section-number">4.10.4. </span>Use utils::count_words() functions instead of atom-&gt;count_words()<a class="headerlink" href="#use-utils-count-words-functions-instead-of-atom-count-words" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 2Jun2020.</span></p>
+</div>
+<p>The “count_words()” functions for parsing text have been moved from the
+Atom class to the <a class="reference internal" href="Developer_utils.html"><span class="doc">utils namespace</span></a>.  The
+“count_words()” function in “utils” uses the Tokenizer class internally
+to split a line into words and count them, thus it will not modify the
+argument string as the function in the Atoms class did and thus had a
+variant using a copy buffer.  Unlike the old version, the new version
+does not remove comments. For that you can use the
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils12trim_commentERKNSt6stringE" title="LAMMPS_NS::utils::trim_comment"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::trim_comment()</span> <span class="pre">function</span></code></a> as shown in the example below.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">nwords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">count_words</span><span class="p">(</span><span class="n">line</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">nwords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">count_words</span><span class="p">(</span><span class="n">buf</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">nwords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">count_words</span><span class="p">(</span><span class="n">line</span><span class="p">);</span>
+<span class="kt">int</span><span class="w"> </span><span class="n">nwords</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">count_words</span><span class="p">(</span><span class="n">utils</span><span class="o">::</span><span class="n">trim_comment</span><span class="p">(</span><span class="n">buf</span><span class="p">));</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils11count_wordsEPKc" title="LAMMPS_NS::utils::count_words"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::count_words()</span></code></a>,
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils12trim_commentERKNSt6stringE" title="LAMMPS_NS::utils::trim_comment"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::trim_comment()</span></code></a></p>
+</div>
+</section>
+<section id="use-utils-numeric-functions-instead-of-force-numeric">
+<h2><span class="section-number">4.10.5. </span>Use utils::numeric() functions instead of force-&gt;numeric()<a class="headerlink" href="#use-utils-numeric-functions-instead-of-force-numeric" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 18Sep2020.</span></p>
+</div>
+<p>The “numeric()” conversion functions (including “inumeric()”,
+“bnumeric()”, and “tnumeric()”) have been moved from the Force class to
+the <a class="reference internal" href="Developer_utils.html"><span class="doc">utils namespace</span></a>.  Also they take an
+additional argument that selects whether the <code class="docutils literal notranslate"><span class="pre">Error::all()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">Error::one()</span></code> function should be called in case of an error.  The
+former should be used when <em>all</em> MPI processes call the conversion
+function and the latter <em>must</em> be used when they are called from only
+one or a subset of the MPI processes.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force</span><span class="o">-&gt;</span><span class="n">numeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">]);</span>
+<span class="n">num</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force</span><span class="o">-&gt;</span><span class="n">inumeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">]);</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">val</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">numeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="nb">true</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">lmp</span><span class="p">);</span>
+<span class="n">num</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">inumeric</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="nb">false</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">lmp</span><span class="p">);</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils7numericEPKciRKNSt6stringEbP6LAMMPS" title="LAMMPS_NS::utils::numeric"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::numeric()</span></code></a>,
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils8inumericEPKciRKNSt6stringEbP6LAMMPS" title="LAMMPS_NS::utils::inumeric"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::inumeric()</span></code></a>,
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils8bnumericEPKciRKNSt6stringEbP6LAMMPS" title="LAMMPS_NS::utils::bnumeric"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::bnumeric()</span></code></a>,
+<a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils8tnumericEPKciRKNSt6stringEbP6LAMMPS" title="LAMMPS_NS::utils::tnumeric"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::tnumeric()</span></code></a></p>
+</div>
+</section>
+<section id="use-utils-open-potential-function-to-open-potential-files">
+<h2><span class="section-number">4.10.6. </span>Use utils::open_potential() function to open potential files<a class="headerlink" href="#use-utils-open-potential-function-to-open-potential-files" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 18Sep2020.</span></p>
+</div>
+<p>The <a class="reference internal" href="Developer_utils.html#_CPPv4N9LAMMPS_NS5utils14open_potentialERKNSt6stringEP6LAMMPSPi" title="LAMMPS_NS::utils::open_potential"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::open_potential()</span></code></a> function must be used to replace
+calls to <code class="docutils literal notranslate"><span class="pre">force-&gt;open_potential()</span></code> and should be used to replace
+<code class="docutils literal notranslate"><span class="pre">fopen()</span></code> for opening potential files for reading.  The custom
+function does three additional steps compared to <code class="docutils literal notranslate"><span class="pre">fopen()</span></code>: 1) it will
+try to parse the <code class="docutils literal notranslate"><span class="pre">UNITS:</span></code> and <code class="docutils literal notranslate"><span class="pre">DATE:</span></code> metadata and will stop with an
+error on a units mismatch and will print the date info, if present, in
+the log file; 2) for pair styles that support it, it will set up
+possible automatic unit conversions based on the embedded unit
+information and LAMMPS’ current units setting; 3) it will not only try
+to open a potential file at the given path, but will also search in the
+folders listed in the <code class="docutils literal notranslate"><span class="pre">LAMMPS_POTENTIALS</span></code> environment variable.  This
+allows potential files to reside in a common location instead of having to
+copy them around for simulations.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">fp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">force</span><span class="o">-&gt;</span><span class="n">open_potential</span><span class="p">(</span><span class="n">filename</span><span class="p">);</span>
+<span class="n">fp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fopen</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;r&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">fp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">open_potential</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">lmp</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="use-symbolic-atom-and-atomvec-constants-instead-of-numerical-values">
+<h2><span class="section-number">4.10.7. </span>Use symbolic Atom and AtomVec constants instead of numerical values<a class="headerlink" href="#use-symbolic-atom-and-atomvec-constants-instead-of-numerical-values" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 18Sep2020.</span></p>
+</div>
+<p>Properties in LAMMPS that were represented by integer values (0, 1,
+2, 3) to indicate settings in the <code class="docutils literal notranslate"><span class="pre">Atom</span></code> and <code class="docutils literal notranslate"><span class="pre">AtomVec</span></code> classes (or
+classes derived from it) (and its derived classes) have been converted
+to use scoped enumerators instead.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 23.2%" />
+<col style="width: 10.1%" />
+<col style="width: 23.2%" />
+<col style="width: 10.1%" />
+<col style="width: 23.2%" />
+<col style="width: 10.1%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Symbolic Constant</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Symbolic Constant</p></th>
+<th class="head"><p>Value</p></th>
+<th class="head"><p>Symbolic Constant</p></th>
+<th class="head"><p>Value</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Atom::GROW</p></td>
+<td><p>0</p></td>
+<td><p>Atom::ATOMIC</p></td>
+<td><p>0</p></td>
+<td><p>Atom::MAP_NONE</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-odd"><td><p>Atom::RESTART</p></td>
+<td><p>1</p></td>
+<td><p>Atom::MOLECULAR</p></td>
+<td><p>1</p></td>
+<td><p>Atom::MAP_ARRAY</p></td>
+<td><p>1</p></td>
+</tr>
+<tr class="row-even"><td><p>Atom::BORDER</p></td>
+<td><p>2</p></td>
+<td><p>Atom::TEMPLATE</p></td>
+<td><p>2</p></td>
+<td><p>Atom::MAP_HASH</p></td>
+<td><p>2</p></td>
+</tr>
+<tr class="row-odd"><td><p>AtomVec::PER_ATOM</p></td>
+<td><p>0</p></td>
+<td><p>AtomVec::PER_TYPE</p></td>
+<td><p>1</p></td>
+<td><p>Atom::MAP_YES</p></td>
+<td><p>3</p></td>
+</tr>
+</tbody>
+</table>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">molecular</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="n">mass_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">molecular</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">map_style</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
+<span class="n">atom</span><span class="o">-&gt;</span><span class="n">add_callback</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+<span class="n">atom</span><span class="o">-&gt;</span><span class="n">delete_callback</span><span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="mi">1</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">molecular</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Atom</span><span class="o">::</span><span class="n">ATOMIC</span><span class="p">;</span>
+<span class="n">mass_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AtomVec</span><span class="o">::</span><span class="n">PER_TYPE</span><span class="p">;</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">molecular</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Atom</span><span class="o">::</span><span class="n">TEMPLATE</span><span class="p">)</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">atom</span><span class="o">-&gt;</span><span class="n">map_style</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Atom</span><span class="o">::</span><span class="n">MAP_HASH</span><span class="p">)</span>
+<span class="n">atom</span><span class="o">-&gt;</span><span class="n">add_callback</span><span class="p">(</span><span class="n">Atom</span><span class="o">::</span><span class="n">GROW</span><span class="p">);</span>
+<span class="n">atom</span><span class="o">-&gt;</span><span class="n">delete_callback</span><span class="p">(</span><span class="n">id</span><span class="p">,</span><span class="n">Atom</span><span class="o">::</span><span class="n">RESTART</span><span class="p">);</span>
+</pre></div>
+</div>
+</section>
+<section id="simplify-customized-error-messages">
+<h2><span class="section-number">4.10.8. </span>Simplify customized error messages<a class="headerlink" href="#simplify-customized-error-messages" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 14May2021.</span></p>
+</div>
+<p>Aided by features of the bundled {fmt} library, error messages now
+can have a variable number of arguments and the string will be interpreted
+as a {fmt} style format string so that error messages can be
+easily customized without having to use temporary buffers and <code class="docutils literal notranslate"><span class="pre">sprintf()</span></code>.
+Example:</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">fptr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kt">char</span><span class="w"> </span><span class="n">str</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span>
+<span class="w">  </span><span class="n">sprintf</span><span class="p">(</span><span class="n">str</span><span class="p">,</span><span class="s">&quot;Cannot open AEAM potential file %s&quot;</span><span class="p">,</span><span class="n">filename</span><span class="p">);</span>
+<span class="w">  </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">one</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="n">str</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">fptr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">nullptr</span><span class="p">)</span>
+<span class="w">  </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">one</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;Cannot open AEAM potential file {}: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">getsyserror</span><span class="p">());</span>
+</pre></div>
+</div>
+</section>
+<section id="use-of-override-instead-of-virtual">
+<h2><span class="section-number">4.10.9. </span>Use of “override” instead of “virtual”<a class="headerlink" href="#use-of-override-instead-of-virtual" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 17Feb2022.</span></p>
+</div>
+<p>Since LAMMPS requires C++17, we switched to use the “override” keyword
+instead of “virtual” to indicate polymorphism in derived classes.  This
+allows the C++ compiler to better detect inconsistencies when an
+override is intended or not.  Please note that “override” has to be
+added to <strong>all</strong> polymorph functions in derived classes and “virtual”
+<em>only</em> to the function in the base class (or the destructor).  Here is
+an example from the <code class="docutils literal notranslate"><span class="pre">FixWallReflect</span></code> class:</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">FixWallReflect</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">);</span>
+<span class="k">virtual</span><span class="w"> </span><span class="o">~</span><span class="n">FixWallReflect</span><span class="p">();</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">setmask</span><span class="p">();</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">init</span><span class="p">();</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">post_integrate</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">FixWallReflect</span><span class="p">(</span><span class="k">class</span><span class="w"> </span><span class="nc">LAMMPS</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="p">,</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">**</span><span class="p">);</span>
+<span class="o">~</span><span class="n">FixWallReflect</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="kt">int</span><span class="w"> </span><span class="nf">setmask</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">init</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+<span class="kt">void</span><span class="w"> </span><span class="nf">post_integrate</span><span class="p">()</span><span class="w"> </span><span class="k">override</span><span class="p">;</span>
+</pre></div>
+</div>
+<p>This change set will neither cause a compilation failure, nor will it
+change functionality, but if you plan to submit the updated code for
+inclusion into the LAMMPS distribution, it will be requested for achieve
+a consistent <a class="reference internal" href="Modify_style.html"><span class="doc">programming style</span></a>.</p>
+</section>
+<section id="simplified-function-names-for-forward-and-reverse-communication">
+<h2><span class="section-number">4.10.10. </span>Simplified function names for forward and reverse communication<a class="headerlink" href="#simplified-function-names-for-forward-and-reverse-communication" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 24Mar2022.</span></p>
+</div>
+<p>Rather than using the function name to distinguish between the different
+forward and reverse communication functions for styles, LAMMPS now uses
+the type of the “this” pointer argument.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">forward_comm_pair</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">forward_comm_fix</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">forward_comm_compute</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">forward_comm_dump</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">reverse_comm_pair</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">reverse_comm_fix</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">reverse_comm_compute</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">reverse_comm_dump</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">forward_comm</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="n">comm</span><span class="o">-&gt;</span><span class="n">reverse_comm</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This change is <strong>required</strong> or else the code will not compile.</p>
+</section>
+<section id="simplified-and-more-compact-neighbor-list-requests">
+<h2><span class="section-number">4.10.11. </span>Simplified and more compact neighbor list requests<a class="headerlink" href="#simplified-and-more-compact-neighbor-list-requests" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 24Mar2022.</span></p>
+</div>
+<p>This change set reduces the amount of code required to request a
+neighbor list.  It enforces consistency and no longer requires to change
+internal data of the request.  More information on neighbor list
+requests can be <a class="reference internal" href="Developer_notes.html"><span class="doc">found here</span></a>. Example from the
+<code class="docutils literal notranslate"><span class="pre">ComputeRDF</span></code> class:</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">irequest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="n">instance_me</span><span class="p">);</span>
+<span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">requests</span><span class="p">[</span><span class="n">irequest</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">pair</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">requests</span><span class="p">[</span><span class="n">irequest</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">compute</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">requests</span><span class="p">[</span><span class="n">irequest</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">occasional</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cutflag</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">requests</span><span class="p">[</span><span class="n">irequest</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">cut</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="w">  </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">requests</span><span class="p">[</span><span class="n">irequest</span><span class="p">]</span><span class="o">-&gt;</span><span class="n">cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mycutneigh</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">req</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">neighbor</span><span class="o">-&gt;</span><span class="n">add_request</span><span class="p">(</span><span class="k">this</span><span class="p">,</span><span class="w"> </span><span class="n">NeighConst</span><span class="o">::</span><span class="n">REQ_OCCASIONAL</span><span class="p">);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">cutflag</span><span class="p">)</span><span class="w"> </span><span class="n">req</span><span class="o">-&gt;</span><span class="n">set_cutoff</span><span class="p">(</span><span class="n">mycutneigh</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Public access to the <code class="docutils literal notranslate"><span class="pre">NeighRequest</span></code> class data members has been
+removed so this update is <strong>required</strong> to avoid compilation failure.</p>
+</section>
+<section id="split-of-fix-store-into-fix-store-global-and-fix-store-peratom">
+<h2><span class="section-number">4.10.12. </span>Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM<a class="headerlink" href="#split-of-fix-store-into-fix-store-global-and-fix-store-peratom" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 15Sep2022.</span></p>
+</div>
+<p>This change splits the GLOBAL and PERATOM modes of fix STORE into two
+separate fixes STORE/GLOBAL and STORE/PERATOM.  There was very little
+shared code between the two fix STORE modes and the two different code
+paths had to be prefixed with if statements.  Furthermore, some flags
+were used differently in the two modes leading to confusion.  Splitting
+the code into two fix styles, makes it more easily maintainable.  Since
+these are internal fixes, there is no user visible change.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;fix_store.h&quot;</span>
+
+<span class="n">FixStore</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStore</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span>
+<span class="w">   </span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">add_fix</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{} {} STORE peratom 1 13&quot;</span><span class="p">,</span><span class="n">id_pole</span><span class="p">,</span><span class="n">group</span><span class="o">-&gt;</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span>
+
+<span class="n">FixStore</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStore</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">get_fix_by_id</span><span class="p">(</span><span class="n">id_pole</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;fix_store_peratom.h&quot;</span>
+
+<span class="n">FixStorePeratom</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStorePeratom</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span>
+<span class="w">   </span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">add_fix</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{} {} STORE/PERATOM 1 13&quot;</span><span class="p">,</span><span class="n">id_pole</span><span class="p">,</span><span class="n">group</span><span class="o">-&gt;</span><span class="n">names</span><span class="p">[</span><span class="mi">0</span><span class="p">]));</span>
+
+<span class="n">FixStorePeratom</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStorePeratom</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">get_fix_by_id</span><span class="p">(</span><span class="n">id_pole</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;fix_store.h&quot;</span>
+
+<span class="n">FixStore</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStore</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span>
+<span class="w">   </span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">add_fix</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{} {} STORE global 1 1&quot;</span><span class="p">,</span><span class="n">id_fix</span><span class="p">,</span><span class="n">group</span><span class="o">-&gt;</span><span class="n">names</span><span class="p">[</span><span class="n">igroup</span><span class="p">]));</span>
+
+<span class="n">FixStore</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStore</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">get_fix_by_id</span><span class="p">(</span><span class="n">id_fix</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&quot;fix_store_global.h&quot;</span>
+
+<span class="n">FixStoreGlobal</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStoreGlobal</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span>
+<span class="w">   </span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">add_fix</span><span class="p">(</span><span class="n">fmt</span><span class="o">::</span><span class="n">format</span><span class="p">(</span><span class="s">&quot;{} {} STORE/GLOBAL 1 1&quot;</span><span class="p">,</span><span class="n">id_fix</span><span class="p">,</span><span class="n">group</span><span class="o">-&gt;</span><span class="n">names</span><span class="p">[</span><span class="n">igroup</span><span class="p">]));</span>
+
+<span class="n">FixStoreGlobal</span><span class="w"> </span><span class="o">*</span><span class="n">fix</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">dynamic_cast</span><span class="o">&lt;</span><span class="n">FixStoreGlobal</span><span class="w"> </span><span class="o">*&gt;</span><span class="p">(</span><span class="n">modify</span><span class="o">-&gt;</span><span class="n">get_fix_by_id</span><span class="p">(</span><span class="n">id_fix</span><span class="p">));</span>
+</pre></div>
+</div>
+<p>This change is <strong>required</strong> or else the code will not compile.</p>
+</section>
+<section id="rename-of-fix-store-peratom-to-fix-store-atom-and-change-of-arguments">
+<h2><span class="section-number">4.10.13. </span>Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments<a class="headerlink" href="#rename-of-fix-store-peratom-to-fix-store-atom-and-change-of-arguments" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 28Mar2023.</span></p>
+</div>
+<p>The available functionality of the internal fix to store per-atom
+properties was expanded to enable storing data with ghost atoms and to
+support binary restart files.  With those changes, the fix was renamed
+to fix STORE/ATOM and the number and order of (required) arguments has
+changed.</p>
+<p>Old syntax: <code class="docutils literal notranslate"><span class="pre">ID</span> <span class="pre">group-ID</span> <span class="pre">STORE/PERATOM</span> <span class="pre">rflag</span> <span class="pre">n1</span> <span class="pre">n2</span> <span class="pre">[n3]</span></code></p>
+<ul class="simple">
+<li><p><em>rflag</em> = 0/1, <em>no</em>/<em>yes</em> store per-atom values in restart file</p></li>
+<li><p><span class="math notranslate nohighlight">\(n1 = 1, n2 = 1, \mathrm{no}\;n3 \to\)</span> per-atom vector, single value per atom</p></li>
+<li><p><span class="math notranslate nohighlight">\(n1 = 1, n2 &gt; 1, \mathrm{no}\;n3 \to\)</span> per-atom array, <em>n2</em> values per atom</p></li>
+<li><p><span class="math notranslate nohighlight">\(n1 = 1, n2 &gt; 0, n3 &gt; 0 \to\)</span> per-atom tensor, <em>n2</em> x <em>n3</em> values per atom</p></li>
+</ul>
+<p>New syntax:  <code class="docutils literal notranslate"><span class="pre">ID</span> <span class="pre">group-ID</span> <span class="pre">STORE/ATOM</span> <span class="pre">n1</span> <span class="pre">n2</span> <span class="pre">gflag</span> <span class="pre">rflag</span></code></p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(n1 = 1, n2 = 0 \to\)</span> per-atom vector, single value per atom</p></li>
+<li><p><span class="math notranslate nohighlight">\(n1 &gt; 1, n2 = 0 \to\)</span> per-atom array, <em>n1</em> values per atom</p></li>
+<li><p><span class="math notranslate nohighlight">\(n1 &gt; 0, n2 &gt; 0 \to\)</span> per-atom tensor, <em>n1</em> x <em>n2</em> values per atom</p></li>
+<li><p><em>gflag</em> = 0/1, <em>no</em>/<em>yes</em> communicate per-atom values with ghost atoms</p></li>
+<li><p><em>rflag</em> = 0/1, <em>no</em>/<em>yes</em> store per-atom values in restart file</p></li>
+</ul>
+<p>Since this is an internal fix, there is no user visible change.</p>
+</section>
+<section id="use-output-get-dump-by-id-instead-of-output-find-dump">
+<h2><span class="section-number">4.10.14. </span>Use Output::get_dump_by_id() instead of Output::find_dump()<a class="headerlink" href="#use-output-get-dump-by-id-instead-of-output-find-dump" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 15Sep2022.</span></p>
+</div>
+<p>The accessor function to individual dump style instances has been changed
+from <code class="docutils literal notranslate"><span class="pre">Output::find_dump()</span></code> returning the index of the dump instance in
+the list of dumps to <code class="docutils literal notranslate"><span class="pre">Output::get_dump_by_id()</span></code> returning a pointer to
+the dump directly.  Example:</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="n">idump</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">output</span><span class="o">-&gt;</span><span class="n">find_dump</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">idump</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
+<span class="w">  </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="s">&quot;Dump ID in hyper command does not exist&quot;</span><span class="p">);</span>
+<span class="n">memory</span><span class="o">-&gt;</span><span class="n">grow</span><span class="p">(</span><span class="n">dumplist</span><span class="p">,</span><span class="n">ndump</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="s">&quot;hyper:dumplist&quot;</span><span class="p">);</span>
+<span class="n">dumplist</span><span class="p">[</span><span class="n">ndump</span><span class="o">++</span><span class="p">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">idump</span><span class="p">;</span>
+
+<span class="p">[...]</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dumpflag</span><span class="p">)</span>
+<span class="w">  </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">idump</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"> </span><span class="n">idump</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ndump</span><span class="p">;</span><span class="w"> </span><span class="n">idump</span><span class="o">++</span><span class="p">)</span>
+<span class="w">    </span><span class="n">output</span><span class="o">-&gt;</span><span class="n">dump</span><span class="p">[</span><span class="n">dumplist</span><span class="p">[</span><span class="n">idump</span><span class="p">]]</span><span class="o">-&gt;</span><span class="n">write</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">auto</span><span class="w"> </span><span class="n">idump</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">output</span><span class="o">-&gt;</span><span class="n">get_dump_by_id</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]);</span>
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">idump</span><span class="p">)</span><span class="w"> </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">all</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="s">&quot;Dump ID {} in hyper command does not exist&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">arg</span><span class="p">[</span><span class="n">iarg</span><span class="o">+</span><span class="mi">1</span><span class="p">]);</span>
+<span class="n">dumplist</span><span class="p">.</span><span class="n">emplace_back</span><span class="p">(</span><span class="n">idump</span><span class="p">);</span>
+
+<span class="p">[...]</span>
+
+<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dumpflag</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="n">idump</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">dumplist</span><span class="p">)</span><span class="w"> </span><span class="n">idump</span><span class="o">-&gt;</span><span class="n">write</span><span class="p">();</span>
+</pre></div>
+</div>
+<p>This change is <strong>required</strong> or else the code will not compile.</p>
+</section>
+<section id="refactored-grid-communication-using-grid3d-grid2d-classes-instead-of-gridcomm">
+<h2><span class="section-number">4.10.15. </span>Refactored grid communication using Grid3d/Grid2d classes instead of GridComm<a class="headerlink" href="#refactored-grid-communication-using-grid3d-grid2d-classes-instead-of-gridcomm" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 22Dec2022.</span></p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">GridComm</span></code> class was for creating and communicating distributed
+grids was replaced by the <code class="docutils literal notranslate"><span class="pre">Grid3d</span></code> class with added functionality.
+A <code class="docutils literal notranslate"><span class="pre">Grid2d</span></code> class was also added for additional flexibility.</p>
+<p>The new functionality and commands using the two grid classes are
+discussed on the following documentation pages:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="Howto_grid.html"><span class="doc">Using distributed grids</span></a></p></li>
+<li><p><a class="reference internal" href="Developer_grid.html"><span class="doc">Use of distributed grids within style classes</span></a></p></li>
+</ul>
+<p>If you have custom LAMMPS code, which uses the GridComm class, here are some notes
+on how to adapt it for using the Grid3d class.</p>
+<ol class="arabic simple">
+<li><p>The constructor has changed to allow the <code class="docutils literal notranslate"><span class="pre">Grid3d</span></code> / <code class="docutils literal notranslate"><span class="pre">Grid2d</span></code>
+classes to partition the global grid across processors, both for
+owned and ghost grid cells.  Previously any class which called
+<code class="docutils literal notranslate"><span class="pre">GridComm</span></code> performed the partitioning itself and that information
+was passed in the <code class="docutils literal notranslate"><span class="pre">GridComm::GridComm()</span></code> constructor.  There are
+several “set” functions which can be called to alter how <code class="docutils literal notranslate"><span class="pre">Grid3d</span></code>
+/ <code class="docutils literal notranslate"><span class="pre">Grid2d</span></code> perform the partitioning.  They should be sufficient
+for most use cases of the grid classes.</p></li>
+<li><p>The partitioning is triggered by the <code class="docutils literal notranslate"><span class="pre">setup_grid()</span></code> method.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">setup()</span></code> method of the <code class="docutils literal notranslate"><span class="pre">GridComm</span></code> class has been replaced
+by the <code class="docutils literal notranslate"><span class="pre">setup_comm()</span></code> method in the new grid classes.  The syntax
+for the <code class="docutils literal notranslate"><span class="pre">forward_comm()</span></code> and <code class="docutils literal notranslate"><span class="pre">reverse_comm()</span></code> methods is
+slightly altered as is the syntax of the associated pack/unpack
+callback methods.  But the functionality of these operations is the
+same as before.</p></li>
+<li><p>The new <code class="docutils literal notranslate"><span class="pre">Grid3d</span></code> / <code class="docutils literal notranslate"><span class="pre">Grid2d</span></code> classes have additional
+functionality for dynamic load-balancing of grids and their
+associated data across processors.  This did not exist in the
+<code class="docutils literal notranslate"><span class="pre">GridComm</span></code> class.</p></li>
+</ol>
+<p>This and more is explained in detail on the <a class="reference internal" href="Developer_grid.html"><span class="doc">Use of distributed grids within style classes</span></a> page.
+The following LAMMPS source files can be used as illustrative examples
+for how the new grid classes are used by computes, fixes, and various
+KSpace solvers which use distributed FFT grids:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">src/fix_ave_grid.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/compute_property_grid.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/EXTRA-FIX/fix_ttm_grid.cpp</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">src/KSPACE/pppm.cpp</span></code></p></li>
+</ul>
+<p>This change is <strong>required</strong> or else the code will not compile.</p>
+</section>
+<section id="flerr-as-first-argument-to-minimum-image-functions-in-domain-class">
+<h2><span class="section-number">4.10.16. </span>FLERR as first argument to minimum image functions in Domain class<a class="headerlink" href="#flerr-as-first-argument-to-minimum-image-functions-in-domain-class" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 12Jun2025.</span></p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Domain::minimum_image()</span></code> and <code class="docutils literal notranslate"><span class="pre">Domain::minimum_image_big()</span></code>
+functions were changed to take the <code class="docutils literal notranslate"><span class="pre">FLERR</span></code> macros as first argument.
+This way the error message indicates <em>where</em> the function was called
+instead of pointing to the implementation of the function.  Example:</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="n">delx1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">dely1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">delz1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+<span class="n">domain</span><span class="o">-&gt;</span><span class="n">minimum_image</span><span class="p">(</span><span class="n">delx1</span><span class="p">,</span><span class="w"> </span><span class="n">dely1</span><span class="p">,</span><span class="w"> </span><span class="n">delz1</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="n">delx1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delx1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dely1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dely1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delz1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delz1</span><span class="p">);</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">delx2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">dely2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">delz2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+<span class="n">domain</span><span class="o">-&gt;</span><span class="n">minimum_image_big</span><span class="p">(</span><span class="n">delx2</span><span class="p">,</span><span class="w"> </span><span class="n">dely2</span><span class="p">,</span><span class="w"> </span><span class="n">delz2</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="n">delx2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delx2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dely2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dely2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delz2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delz2</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="kt">double</span><span class="w"> </span><span class="n">delx1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">dely1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">delz1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i1</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+<span class="n">domain</span><span class="o">-&gt;</span><span class="n">minimum_image</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">delx1</span><span class="p">,</span><span class="w"> </span><span class="n">dely1</span><span class="p">,</span><span class="w"> </span><span class="n">delz1</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">r1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="n">delx1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delx1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dely1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dely1</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delz1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delz1</span><span class="p">);</span>
+
+<span class="kt">double</span><span class="w"> </span><span class="n">delx2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i3</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">0</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">dely2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i3</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">1</span><span class="p">];</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">delz2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i3</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">x</span><span class="p">[</span><span class="n">i2</span><span class="p">][</span><span class="mi">2</span><span class="p">];</span>
+<span class="n">domain</span><span class="o">-&gt;</span><span class="n">minimum_image_big</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="n">delx2</span><span class="p">,</span><span class="w"> </span><span class="n">dely2</span><span class="p">,</span><span class="w"> </span><span class="n">delz2</span><span class="p">);</span>
+<span class="kt">double</span><span class="w"> </span><span class="n">r2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sqrt</span><span class="p">(</span><span class="n">delx2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delx2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dely2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dely2</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">delz2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">delz2</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This change is <strong>required</strong> or else the code will not compile.</p>
+</section>
+<section id="use-utils-logmesg-instead-of-error-warning">
+<h2><span class="section-number">4.10.17. </span>Use utils::logmesg() instead of error-&gt;warning()<a class="headerlink" href="#use-utils-logmesg-instead-of-error-warning" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 22Jul2025.</span></p>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">Error::message()</span></code> method has been removed since its functionality
+has been superseded by the <a class="reference internal" href="Developer_utils.html#_CPPv4IDpEN9LAMMPS_NS5utils7logmesgEvP6LAMMPSRKNSt6stringEDpRR4Args" title="LAMMPS_NS::utils::logmesg"><code class="xref cpp cpp-func docutils literal notranslate"><span class="pre">utils::logmesg()</span></code></a> function.</p>
+<p>Old:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">me</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="n">error</span><span class="o">-&gt;</span><span class="n">message</span><span class="p">(</span><span class="n">FLERR</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;INFO: About to read data file: {}&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">filename</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>New:</p>
+<div class="highlight-c++ notranslate"><div class="highlight"><pre><span></span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">comm</span><span class="o">-&gt;</span><span class="n">me</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="n">utils</span><span class="o">::</span><span class="n">logmesg</span><span class="p">(</span><span class="n">lmp</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;INFO: About to read data file: {}</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">filename</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>This change is <strong>required</strong> or else the code will not compile.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Developer_notes.html" class="btn btn-neutral float-left" title="4.9. Notes for developers and code maintainers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Developer_plugins.html" class="btn btn-neutral float-right" title="4.11. Writing plugins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

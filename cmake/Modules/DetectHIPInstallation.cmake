@@ -1,0 +1,8 @@
+if(NOT DEFINED ROCM_PATH)
+    if(NOT DEFINED ENV{ROCM_PATH})
+        set(ROCM_PATH "/opt/rocm" CACHE PATH "Path to ROCm installation")
+    else()
+        set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "Path to ROCm installation")
+    endif()
+endif()
+list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH})

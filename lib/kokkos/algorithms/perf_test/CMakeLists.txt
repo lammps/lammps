@@ -1,0 +1,2 @@
+kokkos_add_benchmark(PerformanceTest_InclusiveScan SOURCES test_inclusive_scan.cpp)
+kokkos_add_benchmark(PerformanceTest_Random SOURCES test_random.cpp)

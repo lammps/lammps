@@ -1,0 +1,16 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  units           index  metal
+variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.manybody-charge
+variable  pair_style      index 'zero 8.0'
+
+atom_style       charge
+atom_modify      map array
+neigh_modify     delay 2 every 2 check no
+units            ${units}
+timestep         0.0001
+newton           ${newton_pair} ${newton_bond}
+
+pair_style       ${pair_style}
+read_data        ${data_file}

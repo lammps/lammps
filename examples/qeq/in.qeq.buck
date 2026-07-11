@@ -1,0 +1,68 @@
+# This example demonstrates the use of various fix qeq variants with 
+#   a pair style using charges, in this case pair_style buck/coul/long
+
+units           metal
+atom_style      charge
+
+read_data 	data.aC
+#replicate  	2 2 2
+
+pair_style 	buck/coul/long 12.0 
+pair_coeff 	2 2 1388.77 .3623188 175.0
+pair_coeff  	1 2 18003   .2052124  133.5381
+pair_coeff 	1 1 0 .1 0
+
+fix        	2 all qeq/shielded    1 10 1.0e-20 10 param.qeq2
+
+include buck.inc
+
+velocity  	all create 300.0 1281937 
+run             0 post no
+
+write_restart   qeq.restart
+
+clear
+
+print "Using fix qeq/point"
+read_restart   qeq.restart
+fix        	2 all qeq/point    1 10 1.0e-6 100 param.qeq2
+include buck.inc
+
+run 100
+
+clear
+
+print "Using fix qeq/shielded"
+read_restart   qeq.restart
+fix        	2 all qeq/shielded    1 10 1.0e-6 100 param.qeq2
+include buck.inc
+
+run 100
+
+
+clear
+
+print "Using fix qeq/slater"
+read_restart   qeq.restart
+fix        	2 all qeq/shielded    1 10 1.0e-6 100 param.qeq2
+include buck.inc
+
+run 100
+
+clear
+
+print "Using fix qeq/dynamic"
+read_restart   qeq.restart
+fix        	2 all qeq/dynamic    1 10 1.0e-3 100 param.qeq2
+include buck.inc
+
+run 100
+
+clear
+
+print "Using fix qeq/fire"
+read_restart   qeq.restart
+fix        	2 all qeq/fire     1 10 1.0e-3 100 param.qeq2
+include buck.inc
+
+run 100

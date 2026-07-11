@@ -1,0 +1,26 @@
+# DATE: 2011-09-15 CONTRIBUTOR: Unknown CITATION: Justo, Bazant, Kaxiras, Bulatov and Yip, Phys Rev B, 58, 2539 (1998)
+
+# EDIP parameters for various elements and mixtures
+# multiple entries can be added to this file, LAMMPS reads the ones it needs
+# these entries are in LAMMPS "metal" units
+
+# format of a single entry (one or more lines)
+#
+#   element 1, element 2, element 3, 
+#     A   B   cutoffA   cutoffC   alpha   beta   eta 
+#     gamma   lambda    mu   rho   sigma   Q0 
+#     u1   u2   u3   u4
+#
+# units for each parameters:
+#     A , lambda are in eV  
+#     B, cutoffA, cutoffC, gamma, sigma are in Angstrom
+#     alpha, beta, eta, mu, rho, Q0, u1-u4 are pure numbers 
+
+# Here are the original parameters in metal units, for Silicon from:
+# J. F. Justo, M. Z. Bazant, E. Kaxiras, V. V. Bulatov, S. Yip
+#       Phys. Rev. B 58, 2539 (1998)
+#
+
+Si Si Si 7.9821730 1.5075463 3.1213820 2.5609104 3.1083847 0.0070975 0.2523244
+         1.1247945 1.4533108 0.6966326 1.2085196 0.5774108 312.1341346
+         -0.165799 32.557 0.286198 0.66

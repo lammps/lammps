@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2.3.8. Compute, fixes, variables &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Python_objects.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="2.3.9. Scatter/gather operations" href="Python_scatter.html" />
+    <link rel="prev" title="2.3.7. Per-atom properties" href="Python_atoms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Python_overview.html">2.1. Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_install.html">2.2. Installation</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Python_run.html">2.3. Run LAMMPS from Python</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html">2.3.1. Running LAMMPS and Python in serial</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html#running-lammps-and-python-in-parallel-with-mpi">2.3.2. Running LAMMPS and Python in parallel with MPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_launch.html#running-python-scripts">2.3.3. Running Python scripts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_create.html">2.3.4. Creating or deleting a LAMMPS object</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_execute.html">2.3.5. Executing commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_properties.html">2.3.6. System properties</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_atoms.html">2.3.7. Per-atom properties</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">2.3.8. Compute, fixes, variables</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_scatter.html">2.3.9. Scatter/gather operations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_neighbor.html">2.3.10. Neighbor list access</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Python_config.html">2.3.11. Configuration information</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Python_module.html">2.4. The <code class="docutils literal notranslate"><span class="pre">lammps</span></code> Python module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_ext.html">2.5. Extending the Python interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_call.html">2.6. Calling Python from LAMMPS</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_formats.html">2.7. Output Readers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_examples.html">2.8. Example Python scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_jupyter.html">2.9. Using LAMMPS in IPython notebooks and Jupyter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_error.html">2.10. Handling LAMMPS errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Python_trouble.html">2.11. Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Python_head.html"><span class="section-number">2. </span>Use Python with LAMMPS</a></li>
+          <li class="breadcrumb-item"><a href="Python_run.html"><span class="section-number">2.3. </span>Run LAMMPS from Python</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">2.3.8. </span>Compute, fixes, variables</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Python_atoms.html" class="btn btn-neutral float-left" title="2.3.7. Per-atom properties" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Python_scatter.html" class="btn btn-neutral float-right" title="2.3.9. Scatter/gather operations" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="compute-fixes-variables">
+<h1><span class="section-number">2.3.8. </span>Compute, fixes, variables<a class="headerlink" href="#compute-fixes-variables" title="Link to this heading"></a></h1>
+<p>This section documents accessing or modifying data from objects like
+computes, fixes, or variables in LAMMPS using the <a class="reference internal" href="Python_module.html#module-lammps" title="lammps"><code class="xref py py-mod docutils literal notranslate"><span class="pre">lammps</span></code></a> module.</p>
+<p>For <a class="reference internal" href="Python_module.html#lammps.lammps.extract_compute" title="lammps.lammps.extract_compute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_compute()</span></code></a> and
+<a class="reference internal" href="Python_module.html#lammps.lammps.extract_fix" title="lammps.lammps.extract_fix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_fix()</span></code></a>, the global, per-atom,
+or local data calculated by the compute or fix can be accessed. What is returned
+depends on whether the compute or fix calculates a scalar or vector or array.
+For a scalar, a single double value is returned.  If the compute or fix calculates
+a vector or array, a pointer to the internal LAMMPS data is returned, which you can
+use via normal Python subscripting.</p>
+<p>The one exception is that for a fix that calculates a
+global vector or array, a single double value from the vector or array
+is returned, indexed by I (vector) or I and J (array).  I,J are
+zero-based indices.
+See the <a class="reference internal" href="Howto_output.html"><span class="doc">Howto output</span></a> page for a discussion of
+global, per-atom, and local data, and of scalar, vector, and array
+data types.  See the doc pages for individual <a class="reference internal" href="compute.html"><span class="doc">computes</span></a>
+and <a class="reference internal" href="fix.html"><span class="doc">fixes</span></a> for a description of what they calculate and
+store.</p>
+<p>For <a class="reference internal" href="Python_module.html#lammps.lammps.extract_variable" title="lammps.lammps.extract_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_variable()</span></code></a>,
+an <a class="reference internal" href="variable.html"><span class="doc">equal-style or atom-style variable</span></a> is evaluated and
+its result returned.</p>
+<p>For equal-style variables a single <code class="docutils literal notranslate"><span class="pre">c_double</span></code> value is returned and the
+group argument is ignored.  For atom-style variables, a vector of
+<code class="docutils literal notranslate"><span class="pre">c_double</span></code> is returned, one value per atom, which you can use via normal
+Python subscripting. The values will be zero for atoms not in the
+specified group.</p>
+<p><a class="reference internal" href="Python_module.html#lammps.numpy_wrapper.numpy_wrapper.extract_compute" title="lammps.numpy_wrapper.numpy_wrapper.extract_compute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.extract_compute()</span></code></a>,
+<a class="reference internal" href="Python_module.html#lammps.numpy_wrapper.numpy_wrapper.extract_fix" title="lammps.numpy_wrapper.numpy_wrapper.extract_fix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.extract_fix()</span></code></a>, and
+<a class="reference internal" href="Python_module.html#lammps.numpy_wrapper.numpy_wrapper.extract_variable" title="lammps.numpy_wrapper.numpy_wrapper.extract_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.extract_variable()</span></code></a> are
+equivalent NumPy implementations that return NumPy arrays instead of <code class="docutils literal notranslate"><span class="pre">ctypes</span></code> pointers.</p>
+<p>The <a class="reference internal" href="Python_module.html#lammps.lammps.set_variable" title="lammps.lammps.set_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.set_variable()</span></code></a> method sets an
+existing string-style variable to a new string value, so that subsequent LAMMPS
+commands can access the variable.</p>
+<p><strong>Methods</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.extract_compute" title="lammps.lammps.extract_compute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_compute()</span></code></a>: extract value(s) from a compute</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.extract_fix" title="lammps.lammps.extract_fix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_fix()</span></code></a>: extract value(s) from a fix</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.extract_variable" title="lammps.lammps.extract_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.extract_variable()</span></code></a>: extract value(s) from a variable</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.lammps.set_variable" title="lammps.lammps.set_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.set_variable()</span></code></a>: set existing named string-style variable to value</p></li>
+</ul>
+<p><strong>NumPy Methods</strong>:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="Python_module.html#lammps.numpy_wrapper.numpy_wrapper.extract_compute" title="lammps.numpy_wrapper.numpy_wrapper.extract_compute"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.extract_compute()</span></code></a>: extract value(s) from a compute, return arrays as numpy arrays</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.numpy_wrapper.numpy_wrapper.extract_fix" title="lammps.numpy_wrapper.numpy_wrapper.extract_fix"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.extract_fix()</span></code></a>: extract value(s) from a fix, return arrays as numpy arrays</p></li>
+<li><p><a class="reference internal" href="Python_module.html#lammps.numpy_wrapper.numpy_wrapper.extract_variable" title="lammps.numpy_wrapper.numpy_wrapper.extract_variable"><code class="xref py py-meth docutils literal notranslate"><span class="pre">lammps.numpy.extract_variable()</span></code></a>: extract value(s) from a variable, return arrays as numpy arrays</p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Python_atoms.html" class="btn btn-neutral float-left" title="2.3.7. Per-atom properties" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Python_scatter.html" class="btn btn-neutral float-right" title="2.3.9. Scatter/gather operations" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

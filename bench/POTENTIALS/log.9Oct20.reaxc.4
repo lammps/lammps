@@ -1,0 +1,96 @@
+LAMMPS (9 Oct 2020)
+  using 1 OpenMP thread(s) per MPI task
+# ReaxFF benchmark: simulation of PETN crystal, replicated unit cell
+
+units		real
+atom_style	charge
+
+read_data	data.reax
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (9.4910650 9.4910650 6.9912300)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  58 atoms
+  read_data CPU = 0.000 seconds
+
+replicate	7 8 10
+Replicating atoms ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (66.437455 75.928520 69.912300)
+  1 by 2 by 2 MPI processor grid
+  32480 atoms
+  replicate CPU = 0.001 seconds
+
+velocity	all create 300.0 9999
+
+pair_style	reax/c NULL
+pair_coeff      * * ffield.reax C H O N
+WARNING: Changed valency_val to valency_boc for X (src/REAXFF/reaxc_ffield.cpp:315)
+
+timestep	0.1
+fix		1 all nve
+fix             2 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+
+thermo		10
+thermo_style	custom step temp ke pe pxx pyy pzz etotal
+
+run		100
+Neighbor list info ...
+  update every 1 steps, delay 10 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 12 13 12
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reax/c, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/newtoff/ghost
+      stencil: half/ghost/bin/3d/newtoff
+      bin: standard
+  (2) fix qeq/reax, perpetual, copy from (1)
+      attributes: half, newton off, ghost
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 647.0 | 647.0 | 647.0 Mbytes
+Step Temp KinEng PotEng Pxx Pyy Pzz TotEng 
+       0          300    29044.119   -3232140.8    22804.879   -29365.593    6302.5638   -3203096.6 
+      10    299.37479     28983.59   -3232075.2    21746.771   -23987.411    7610.2901   -3203091.6 
+      20    295.58551    28616.736   -3231710.1    18178.439   -10871.954    10603.303   -3203093.3 
+      30    289.48844    28026.456   -3231123.2    12146.289    4985.5678    13364.519   -3203096.8 
+      40    282.66406    27365.762   -3230467.4    4284.8179    18133.406    14134.156   -3203101.7 
+      50    274.97009     26620.88   -3229730.3   -3718.6796    25520.338    12552.205   -3203109.5 
+      60    266.11302    25763.394   -3228883.8   -9271.5644    27307.146    9753.1034   -3203120.4 
+      70    259.32636    25106.352   -3228237.1    -11150.66    24238.705    6578.7141   -3203130.8 
+      80    260.33966    25204.454   -3228344.1   -9576.2474    16737.753    3454.7607   -3203139.7 
+      90    269.90207    26130.226   -3229275.5   -5905.8809    5246.1687    467.42114   -3203145.2 
+     100    280.76722    27182.122   -3230330.6   -1363.4752   -8133.2096   -1689.5922   -3203148.5 
+Loop time of 69.1187 on 4 procs for 100 steps with 32480 atoms
+
+Performance: 0.013 ns/day, 1919.965 hours/ns, 1.447 timesteps/s
+97.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 45.964     | 48.533     | 51.423     |  29.3 | 70.22
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.19604    | 3.0913     | 5.6647     | 116.3 |  4.47
+Output  | 0.00074649 | 0.0011722  | 0.0023553  |   2.0 |  0.00
+Modify  | 17.48      | 17.485     | 17.489     |   0.1 | 25.30
+Other   |            | 0.008528   |            |       |  0.01
+
+Nlocal:        8120.00 ave        8120 max        8120 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        21992.0 ave       21992 max       21992 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:    3.48274e+06 ave 3.48274e+06 max 3.48274e+06 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 13930976
+Ave neighs/atom = 428.90936
+Neighbor list builds = 0
+Dangerous builds = 0
+
+Please see the log.cite file for references relevant to this simulation
+
+Total wall time: 0:01:10

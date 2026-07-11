@@ -1,0 +1,37 @@
+units metal
+boundary p p p
+atom_style atomic
+
+read_data data.lmp
+
+pair_style eam/alloy
+pair_coeff * * @FORTRANFILE@ @ELEM1@ @ELEM2@
+
+variable etot equal etotal
+variable press equal press
+thermo_style custom pe etotal press
+
+run 0 post no
+
+variable efor equal ${etot}
+variable pfor equal ${press}
+thermo_style custom pe etotal v_efor press v_pfor
+
+run 0 post no
+
+pair_coeff * * @PYTHONFILE@ @ELEM1@ @ELEM2@
+
+variable epyt equal ${etot}
+variable ppyt equal ${press}
+thermo_style custom pe etotal v_epyt press v_ppyt
+
+run 0 post no
+
+variable e equal "1 - v_epyt/v_efor"
+variable p equal "1 - v_ppyt/v_pfor"
+variable de equal v_epyt-v_efor
+variable dp equal v_ppyt-v_pfor
+
+print "Relative energy and pressure error for pair @ELEM1@ @ELEM2@ de = $e; dp = $p" append ../errors.dat
+print "Absolute energy and pressure error for pair @ELEM1@ @ELEM2@ de = ${de}; dp = ${dp}" append ../errors.dat
+

@@ -1,0 +1,47 @@
+# Gay-Berne benchmark
+# biaxial ellipsoid mesogens in isotropic phase
+# shape: 2 1.5 1
+# cutoff 4.0 with skin 0.8
+
+variable        N index on      # Newton Setting
+variable        w index 10	# Warmup Timesteps
+variable        t index 840	# Main Run Timesteps
+variable        m index 1	# Main Run Timestep Multiplier
+variable        n index 0	# Use NUMA Mapping for Multi-Node
+variable	p index 0	# Use Power Measurement
+
+variable        x index 4
+variable        y index 2
+variable        z index 2
+
+variable        rr equal floor($t*$m)
+
+newton          $N
+if "$n > 0"	then "processors * * * grid numa"
+
+units		lj
+atom_style	ellipsoid
+pair_style	gayberne 1.0 3.0 1.0 4.0
+read_restart	restart.lc
+replicate       $x $y $z
+
+compute		rot all temp/asphere
+group		spheroid type 1
+variable	dof equal count(spheroid)+3
+compute_modify	rot extra ${dof}
+
+pair_style	gayberne 1.0 3.0 1.0 4.0
+pair_coeff	1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
+
+neighbor	0.8 bin
+
+timestep	0.002
+
+thermo		100
+
+fix		1 all nve/asphere
+
+if "$p > 0"	then "run_style verlet/power"
+
+if "$w > 0"	then "run $w"
+run             ${rr}

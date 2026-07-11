@@ -1,0 +1,667 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3.6. Optional build settings &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/tabs.css?v=a5c4661c" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Build_settings.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+      <script src="_static/tabs.js?v=3030b3cb"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="3.7. Include packages in build" href="Build_package.html" />
+    <link rel="prev" title="3.5. Basic build options" href="Build_basics.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Build.html">3. Build LAMMPS</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Build_prerequisites.html">3.1. Prerequisites</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_cmake.html">3.2. Build LAMMPS with CMake</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_make.html">3.3. Build LAMMPS with make</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_link.html">3.4. Link LAMMPS as a library to another code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_basics.html">3.5. Basic build options</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">3.6. Optional build settings</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#c-17-standard-compliance">3.6.1. C++17 standard compliance</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fft-library">3.6.2. FFT library</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#size-of-lammps-integer-types-and-size-limits">3.6.3. Size of LAMMPS integer types and size limits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#read-or-write-compressed-files">3.6.4. Read or write compressed files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#support-for-downloading-files-from-the-input">3.6.5. Support for downloading files from the input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prevent-download-of-large-potential-files">3.6.6. Prevent download of large potential files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-allocation-alignment">3.6.7. Memory allocation alignment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workaround-for-long-long-integers">3.6.8. Workaround for long long integers</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exception-handling-when-using-lammps-as-a-library">3.6.9. Exception handling when using LAMMPS as a library</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Build_package.html">3.7. Include packages in build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_extras.html">3.8. Packages with extra build options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_manual.html">3.9. Build the LAMMPS documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_windows.html">3.10. Notes for building LAMMPS on Windows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_diskspace.html">3.11. Notes for saving disk space when building LAMMPS from source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Build_development.html">3.12. Development build options</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Build.html"><span class="section-number">3. </span>Build LAMMPS</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">3.6. </span>Optional build settings</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Build_basics.html" class="btn btn-neutral float-left" title="3.5. Basic build options" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_package.html" class="btn btn-neutral float-right" title="3.7. Include packages in build" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="optional-build-settings">
+<h1><span class="section-number">3.6. </span>Optional build settings<a class="headerlink" href="#optional-build-settings" title="Link to this heading"></a></h1>
+<p>LAMMPS can be built with several optional settings.  Each subsection
+explains how to do this for building both with CMake and make.</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#c-17-standard-compliance">C++17 standard compliance</a> when building all of LAMMPS</p></li>
+<li><p><a class="reference internal" href="#fft-library">FFT library</a> for use with the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a> command</p></li>
+<li><p><a class="reference internal" href="#size-of-lammps-integer-types-and-size-limits">Size of LAMMPS integer types and size limits</a></p></li>
+<li><p><a class="reference internal" href="#read-or-write-compressed-files">Read or write compressed files</a></p></li>
+<li><p><a class="reference internal" href="#support-for-downloading-files-from-the-input">Support for downloading files from the input</a></p></li>
+<li><p><a class="reference internal" href="#prevent-download-of-large-potential-files">Prevent download of large potential files</a></p></li>
+<li><p><a class="reference internal" href="#memory-allocation-alignment">Memory allocation alignment</a></p></li>
+<li><p><a class="reference internal" href="#workaround-for-long-long-integers">Workaround for long long integers</a></p></li>
+<li><p><a class="reference internal" href="#exception-handling-when-using-lammps-as-a-library">Exception handling when using LAMMPS as a library</a> to capture errors</p></li>
+</ul>
+<hr class="docutils" />
+<section id="c-17-standard-compliance">
+<span id="cxx17"></span><h2><span class="section-number">3.6.1. </span>C++17 standard compliance<a class="headerlink" href="#c-17-standard-compliance" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 10Sep2025.</span></p>
+</div>
+<p>A C++17 standard compatible compiler is currently the minimum
+requirement for compiling LAMMPS.  LAMMPS version 22 July 2025 is the
+last version compatible with the C++11 standard for the core code and
+most packages. Most currently used C++ compilers are compatible with
+C++17, but some older ones may need extra flags to enable C++17
+compliance.</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">CCFLAGS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-g<span class="w"> </span>-O3<span class="w"> </span>-std<span class="o">=</span>c++17
+</pre></div>
+</div>
+<p>Individual packages may require compliance with a later C++ standard
+like C++20.  These requirements will be documented with the
+<a class="reference internal" href="Packages_details.html"><span class="doc">individual packages</span></a>.</p>
+<hr class="docutils" />
+</section>
+<section id="fft-library">
+<span id="fft"></span><h2><span class="section-number">3.6.2. </span>FFT library<a class="headerlink" href="#fft-library" title="Link to this heading"></a></h2>
+<p>When the KSPACE package is included in a LAMMPS build, the
+<a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a> command performs 3d FFTs which
+require use of an FFT library to compute 1d FFTs.  The KISS FFT
+library is included with LAMMPS, but other libraries can be faster.
+LAMMPS can use them if they are available on your system.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 7Feb2024.</span></p>
+</div>
+<p>Alternatively, LAMMPS can use the <a class="reference external" href="https://icl-utk-edu.github.io/heffte/">heFFTe</a> library for the MPI
+communication algorithms, which comes with many optimizations for
+special cases, e.g. leveraging available 2D and 3D FFTs in the back end
+libraries and better pipelining for packing and communication.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">FFT</span><span class="o">=</span>value<span class="w">              </span><span class="c1"># FFTW3 or MKL or NVPL or KISS,</span>
+<span class="w">                          </span><span class="c1"># default is FFTW3 if found, else KISS</span>
+-D<span class="w"> </span><span class="nv">FFT_KOKKOS</span><span class="o">=</span>value<span class="w">       </span><span class="c1"># FFTW3 or MKL or NVPL or KISS or CUFFT</span>
+<span class="w">                          </span><span class="c1"># or HIPFFT or MKL_GPU, default is KISS</span>
+-D<span class="w"> </span><span class="nv">FFT_SINGLE</span><span class="o">=</span>value<span class="w">       </span><span class="c1"># yes or no (default), no = double precision</span>
+-D<span class="w"> </span><span class="nv">FFT_PACK</span><span class="o">=</span>value<span class="w">         </span><span class="c1"># array (default) or pointer or memcpy</span>
+-D<span class="w"> </span><span class="nv">FFT_USE_HEFFTE</span><span class="o">=</span>value<span class="w">   </span><span class="c1"># yes or no (default), yes links to heFFTe</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When the Kokkos variant of a package is compiled and selected at run time,
+the FFT library selected by the <code class="docutils literal notranslate"><span class="pre">FFT_KOKKOS</span></code> variable applies. Otherwise,
+the FFT library selected by the FFT variable applies.
+The same FFT settings apply to both. <code class="docutils literal notranslate"><span class="pre">FFT_KOKKOS</span></code> must be compatible with the
+Kokkos back end - for example, when using the CUDA back end of Kokkos,
+you must use either <code class="docutils literal notranslate"><span class="pre">CUFFT</span></code> or <code class="docutils literal notranslate"><span class="pre">KISS</span></code>.</p>
+</div>
+<p>Usually these settings are all that is needed.  If FFTW3 is
+selected, then CMake will try to detect, if threaded FFTW
+libraries are available and enable them by default.  This setting
+is independent of whether OpenMP threads are enabled and a package
+like KOKKOS or OPENMP is used.  If CMake cannot detect the FFT
+library, you can set these variables to assist:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">FFTW3_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">   </span><span class="c1"># path to FFTW3 include files</span>
+-D<span class="w"> </span><span class="nv">FFTW3_LIBRARY</span><span class="o">=</span>path<span class="w">       </span><span class="c1"># path to FFTW3 libraries</span>
+-D<span class="w"> </span><span class="nv">FFTW3_OMP_LIBRARY</span><span class="o">=</span>path<span class="w">   </span><span class="c1"># path to FFTW3 OpenMP wrapper libraries</span>
+-D<span class="w"> </span><span class="nv">FFT_FFTW_THREADS</span><span class="o">=</span>on<span class="w">      </span><span class="c1"># enable using OpenMP threaded FFTW3 libraries</span>
+-D<span class="w"> </span><span class="nv">MKL_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">     </span><span class="c1"># ditto for Intel MKL library</span>
+-D<span class="w"> </span><span class="nv">FFT_MKL_THREADS</span><span class="o">=</span>on<span class="w">       </span><span class="c1"># enable using threaded FFTs with MKL libraries</span>
+-D<span class="w"> </span><span class="nv">MKL_LIBRARY</span><span class="o">=</span>path<span class="w">         </span><span class="c1"># path to MKL libraries</span>
+-D<span class="w"> </span><span class="nv">FFT_HEFFTE_BACKEND</span><span class="o">=</span>value<span class="w"> </span><span class="c1"># FFTW or MKL or empty/undefined for the stock</span>
+<span class="w">                            </span><span class="c1"># heFFTe back end</span>
+-D<span class="w"> </span><span class="nv">Heffte_ROOT</span><span class="o">=</span>path<span class="w">         </span><span class="c1"># path to an existing heFFTe installation</span>
+-D<span class="w"> </span><span class="nv">nvpl_fft_INCLUDE_DIR</span><span class="o">=</span>path<span class="w"> </span><span class="c1"># path to NVPL FFT include files</span>
+-D<span class="w"> </span><span class="nv">nvpl_fft_LIBRARY_DIR</span><span class="o">=</span>path<span class="w"> </span><span class="c1"># path to NVPL FFT libraries</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>heFFTe comes with a builtin (= stock) back end for FFTs, i.e. a
+default internal FFT implementation; however, this stock back
+end is intended for testing purposes only and is not optimized
+for production runs.</p>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><p>To change the FFT library to be used and its options, you have to edit
+your machine Makefile. Below are examples how the makefile variables
+could be changed.</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_&lt;NAME&gt;<span class="w">        </span><span class="c1"># where &lt;NAME&gt; is KISS (default), FFTW3,</span>
+<span class="c">                              # FFTW (same as FFTW3), NVPL, or MKL</span>
+<span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_KOKKOS_&lt;NAME&gt;<span class="w"> </span><span class="c1"># where &lt;NAME&gt; is KISS (default), FFTW3,</span>
+<span class="c">                              # FFTW (same as FFTW3), NVPL, MKL, CUFFT,</span>
+<span class="c">                              # HIPFFT, or MKL_GPU</span>
+<span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_SINGLE<span class="w">       </span><span class="c1"># do not specify for double precision</span>
+<span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_FFTW_THREADS<span class="w"> </span><span class="c1"># enable using threaded FFTW3 libraries</span>
+<span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_MKL_THREADS<span class="w">  </span><span class="c1"># enable using threaded FFTs with MKL libraries</span>
+<span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_PACK_ARRAY<span class="w">   </span><span class="c1"># or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY</span>
+<span class="c">                             # default is FFT_PACK_ARRAY if not specified</span>
+</pre></div>
+</div>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-I/usr/local/include
+<span class="nv">FFT_PATH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-L/usr/local/lib
+
+<span class="c"># hipFFT either precision</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lhipfft
+
+<span class="c"># cuFFT either precision</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lcufft
+
+<span class="c"># MKL_GPU either precision</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-lmkl_sycl_dft<span class="w"> </span>-lmkl_intel_ilp64<span class="w"> </span>-lmkl_tbb_thread<span class="w"> </span>-lmkl_core<span class="w"> </span>-ltbb
+
+<span class="c"># FFTW3 double precision</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lfftw3
+
+<span class="c"># FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lfftw3<span class="w"> </span>-lfftw3_omp
+
+<span class="c"># FFTW3 single precision</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lfftw3<span class="w"> </span>-lfftw3f
+
+<span class="c"># serial MKL with Intel compiler</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lmkl_intel_lp64<span class="w"> </span>-lmkl_sequential<span class="w"> </span>-lmkl_core
+
+<span class="c"># serial MKL with GNU compiler</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lmkl_gf_lp64<span class="w"> </span>-lmkl_sequential<span class="w"> </span>-lmkl_core
+
+<span class="c"># threaded MKL with Intel compiler</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lmkl_intel_lp64<span class="w"> </span>-lmkl_intel_thread<span class="w"> </span>-lmkl_core
+
+<span class="c"># threaded MKL with GNU compiler</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lmkl_gf_lp64<span class="w"> </span>-lmkl_gnu_thread<span class="w"> </span>-lmkl_core
+
+<span class="c"># MKL with automatic runtime selection of interface libs</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lmkl_rt
+
+<span class="c"># threaded NVPL FFT</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w">  </span>-lnvpl_fftw
+</pre></div>
+</div>
+<p>As with CMake, you do not need to set paths in <code class="docutils literal notranslate"><span class="pre">FFT_INC</span></code> or
+<code class="docutils literal notranslate"><span class="pre">FFT_PATH</span></code>, if the compiler can find the FFT header and library
+files in its default search path.  You must specify <code class="docutils literal notranslate"><span class="pre">FFT_LIB</span></code>
+with the appropriate FFT libraries to include in the link.</p>
+<p>Traditional make can also link to heFFTe using an existing installation</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="cp">include &lt;path-to-heffte-installation&gt;/share/heffte/HeffteMakefile.in</span>
+<span class="nv">FFT_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DFFT_HEFFTE<span class="w"> </span>-DFFT_HEFFTE_FFTW<span class="w"> </span><span class="k">$(</span>heffte_include<span class="k">)</span>
+<span class="nv">FFT_PATH</span><span class="w"> </span><span class="o">=</span>
+<span class="nv">FFT_LIB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">$(</span>heffte_link<span class="k">)</span><span class="w"> </span><span class="k">$(</span>heffte_libs<span class="k">)</span>
+</pre></div>
+</div>
+<p>The heFFTe install path will contain <code class="docutils literal notranslate"><span class="pre">HeffteMakefile.in</span></code>.
+which will define the <code class="docutils literal notranslate"><span class="pre">heffte_</span></code> include variables needed to link to heFFTe from
+an external project using traditional make.
+The <code class="docutils literal notranslate"><span class="pre">-DFFT_HEFFTE</span></code> is required to switch to using heFFTe, while the optional <code class="docutils literal notranslate"><span class="pre">-DFFT_HEFFTE_FFTW</span></code>
+selects the desired heFFTe back end, e.g., <code class="docutils literal notranslate"><span class="pre">-DFFT_HEFFTE_FFTW</span></code> or <code class="docutils literal notranslate"><span class="pre">-DFFT_HEFFTE_MKL</span></code>,
+omitting the variable will default to the <cite>stock</cite> back end.
+The heFFTe <cite>stock</cite> back end is intended to be used for testing and debugging,
+but is not performance optimized for large scale production runs.</p>
+</div></div>
+<p>The <a class="reference external" href="https://github.com/mborgerding/kissfft">KISS FFT library</a> is
+included in the LAMMPS distribution.  It is portable across all
+platforms.  Depending on the size of the FFTs and the number of
+processors used, the other libraries listed here can be faster.</p>
+<p>However, note that long-range Coulombics are only a portion of the
+per-timestep CPU cost, FFTs are only a portion of long-range Coulombics,
+and 1d FFTs are only a portion of the FFT cost (parallel communication
+can be costly).  A breakdown of these timings is printed to the screen
+at the end of a run when using the <a class="reference internal" href="kspace_style.html"><span class="doc">kspace_style pppm</span></a> command. The <a class="reference internal" href="Run_output.html"><span class="doc">Screen and logfile output</span></a> page gives more details.  A more detailed (and time
+consuming) report of the FFT performance is generated with the
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify fftbench yes</span></a> command.</p>
+<p>FFTW is a fast, portable FFT library that should also work on any
+platform and can be faster than the KISS FFT library.  You can download
+it from <a class="reference external" href="https://www.fftw.org">www.fftw.org</a>.  LAMMPS requires version
+3.X; the legacy version 2.1.X is no longer supported.</p>
+<p>Building FFTW for your box should be as simple as <code class="docutils literal notranslate"><span class="pre">./configure;</span> <span class="pre">make;</span>
+<span class="pre">make</span> <span class="pre">install</span></code>.  The install command typically requires root privileges
+(e.g. invoke it via sudo), unless you specify a local directory with
+the <code class="docutils literal notranslate"><span class="pre">--prefix</span></code> option of configure.  Type <code class="docutils literal notranslate"><span class="pre">./configure</span> <span class="pre">--help</span></code> to see
+various options.</p>
+<p>The Intel MKL math library is part of the Intel compiler suite.  It
+can be used with the Intel or GNU compiler (see the <code class="docutils literal notranslate"><span class="pre">FFT_LIB</span></code> setting
+above).</p>
+<p>The NVIDIA Performance Libraries (NVPL) FFT library is optimized for NVIDIA
+Grace Armv9.0 architecture. You can download it from <a class="reference external" href="https://docs.nvidia.com/nvpl/">https://docs.nvidia.com/nvpl/</a></p>
+<p>The cuFFT and hipFFT FFT libraries are packaged with NVIDIA’s CUDA and
+AMD’s HIP installations, respectively. These FFT libraries require the
+Kokkos acceleration package to be enabled and the Kokkos back end to be
+GPU-resident (i.e., HIP or CUDA). Similarly, GPU offload of FFTs on
+Intel GPUs with oneMKL currently requires the Kokkos acceleration
+package to be enabled with the SYCL back end.</p>
+<p>Performing 3d FFTs in parallel can be time-consuming due to data access
+and required communication.  This cost can be reduced by performing
+single-precision FFTs instead of double precision.  Single precision
+means the real and imaginary parts of a complex datum are 4-byte floats.
+Double precision means they are 8-byte doubles.  Note that Fourier
+transform and related PPPM operations are somewhat less sensitive to
+floating point truncation errors, and thus the resulting error is
+generally less than the difference in precision. Using the
+<code class="docutils literal notranslate"><span class="pre">-DFFT_SINGLE</span></code> setting trades off a little accuracy for reduced memory
+use and parallel communication costs for transposing 3d FFT data.</p>
+<p>When using <code class="docutils literal notranslate"><span class="pre">-DFFT_SINGLE</span></code> with FFTW3, you may need to ensure that
+the FFTW3 installation includes support for single-precision.</p>
+<p>When compiling FFTW3 from source, you can do the following, which should
+produce the additional libraries <code class="docutils literal notranslate"><span class="pre">libfftw3f.a</span></code> and <code class="docutils literal notranslate"><span class="pre">libfftw3f.so</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>clean
+./configure<span class="w"> </span>--enable-single<span class="p">;</span><span class="w"> </span>make<span class="p">;</span><span class="w"> </span>make<span class="w"> </span>install
+</pre></div>
+</div>
+<p>Performing 3d FFTs requires communication to transpose the 3d FFT
+grid.  The data packing/unpacking for this can be done in one of 3
+modes (ARRAY, POINTER, MEMCPY) as set by the <code class="docutils literal notranslate"><span class="pre">FFT_PACK</span></code> syntax above.
+Depending on the machine, the size of the FFT grid, the number of
+processors used, one option may be slightly faster.  The default is
+ARRAY mode.</p>
+<p>When using <code class="docutils literal notranslate"><span class="pre">-DFFT_HEFFTE</span></code> CMake will first look for an existing
+install with hints provided by <code class="docutils literal notranslate"><span class="pre">-DHeffte_ROOT</span></code>, as recommended by the
+CMake standard and note that the name is case sensitive. If CMake cannot
+find a heFFTe installation with the correct back end (e.g., FFTW or
+MKL), it will attempt to download and build the library automatically.
+In this case, LAMMPS CMake will also accept all heFFTe specific
+variables listed in the <a class="reference external" href="https://icl-utk-edu.github.io/heffte/md_doxygen_installation.html">heFFTe documentation</a>
+and those variables will be passed into the heFFTe build.</p>
+<hr class="docutils" />
+</section>
+<section id="size-of-lammps-integer-types-and-size-limits">
+<span id="size"></span><h2><span class="section-number">3.6.3. </span>Size of LAMMPS integer types and size limits<a class="headerlink" href="#size-of-lammps-integer-types-and-size-limits" title="Link to this heading"></a></h2>
+<p>LAMMPS uses a few custom integer data types, which can be defined as
+either 4-byte (= 32-bit) or 8-byte (= 64-bit) integers at compile time.
+This has an impact on the size of a system that can be simulated, or how
+large counters can become before “rolling over”.  The default setting of
+“smallbig” is almost always adequate.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">Traditional build</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><p>With CMake the choice of integer types is made via setting a
+variable during configuration.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">LAMMPS_SIZES</span><span class="o">=</span>value<span class="w">   </span><span class="c1"># smallbig (default) or bigbig</span>
+</pre></div>
+</div>
+<p>If the variable is not set explicitly, “smallbig” is used.</p>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><p>If you want a setting different from the default, you need to edit the
+<code class="docutils literal notranslate"><span class="pre">LMP_INC</span></code> variable setting your machine Makefile.</p>
+<div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_SMALLBIG<span class="w">    </span><span class="c1"># or -DLAMMPS_BIGBIG</span>
+</pre></div>
+</div>
+<p>The default setting is <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_SMALLBIG</span></code> if nothing is specified</p>
+</div></div>
+<section id="lammps-system-size-restrictions">
+<h3>LAMMPS system size restrictions<a class="headerlink" href="#lammps-system-size-restrictions" title="Link to this heading"></a></h3>
+<table class="docutils align-center">
+<colgroup>
+<col style="width: 27.0%" />
+<col style="width: 36.0%" />
+<col style="width: 37.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"></th>
+<th class="head"><p>smallbig</p></th>
+<th class="head"><p>bigbig</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Total atom count</p></td>
+<td><p><span class="math notranslate nohighlight">\(2^{63}\)</span> atoms (= <span class="math notranslate nohighlight">\(9.223 \cdot 10^{18}\)</span>)</p></td>
+<td><p><span class="math notranslate nohighlight">\(2^{63}\)</span> atoms (= <span class="math notranslate nohighlight">\(9.223 \cdot 10^{18}\)</span>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Total timesteps</p></td>
+<td><p><span class="math notranslate nohighlight">\(2^{63}\)</span> steps (= <span class="math notranslate nohighlight">\(9.223 \cdot 10^{18}\)</span>)</p></td>
+<td><p><span class="math notranslate nohighlight">\(2^{63}\)</span> steps (= <span class="math notranslate nohighlight">\(9.223 \cdot 10^{18}\)</span>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Atom ID values</p></td>
+<td><p><span class="math notranslate nohighlight">\(1 \le i \le 2^{31} (= 2.147 \cdot 10^9)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 \le i \le 2^{63} (= 9.223 \cdot 10^{18})\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>Image flag values</p></td>
+<td><p><span class="math notranslate nohighlight">\(-512 \le i \le 511\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(- 1\,048\,576 \le i \le 1\,048\,575\)</span></p></td>
+</tr>
+</tbody>
+</table>
+<p>The “bigbig” setting increases the size of image flags and atom IDs over
+the default “smallbig” setting.</p>
+<p>These are limits for the core of the LAMMPS code, specific features or
+some styles may impose additional limits.  Also, there are limitations
+when using the library interface where some functions with known issues
+have been replaced by dummy calls printing a corresponding error message
+rather than crashing randomly or corrupting data.</p>
+<p>Atom IDs are not required for atomic systems which do not store bond
+topology information, though IDs are enabled by default.  The
+<a class="reference internal" href="atom_modify.html"><span class="doc">atom_modify id no</span></a> command will turn them off.  Atom
+IDs are required for molecular systems with bond topology (bonds,
+angles, dihedrals, etc).  Similarly, some force or compute or fix styles
+require atom IDs.  Thus, if you model a molecular system or use one of
+those styles with more than 2 billion atoms, you need the “bigbig”
+setting.</p>
+<p>Regardless of the total system size limits, the maximum number of atoms
+per MPI rank (local + ghost atoms) is limited to 2 billion for atomic
+systems and 500 million for systems with bonds (the additional
+restriction is due to using the 2 upper bits of the local atom index
+in neighbor lists for storing special bonds info).</p>
+<p>Image flags store 3 values per atom in a single integer, which count the
+number of times an atom has moved through the periodic box in each
+dimension.  See the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> manual page for a discussion.  If
+an atom moves through the periodic box more than this limit, the value
+will “roll over”, e.g. from 511 to -512, which can cause diagnostics
+like the mean-squared displacement, as calculated by the <a class="reference internal" href="compute_msd.html"><span class="doc">compute
+msd</span></a> command, to be faulty.</p>
+<p>Also note that the GPU package requires its lib/gpu library to be
+compiled with the same size setting, or the link will fail.  A CMake
+build does this automatically.  When building with make, the setting
+in whichever <code class="docutils literal notranslate"><span class="pre">lib/gpu/Makefile</span></code> is used must be the same as above.</p>
+<hr class="docutils" />
+</section>
+</section>
+<section id="read-or-write-compressed-files">
+<span id="gzip"></span><h2><span class="section-number">3.6.4. </span>Read or write compressed files<a class="headerlink" href="#read-or-write-compressed-files" title="Link to this heading"></a></h2>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 11Feb2026: </span>Added support for <code class="docutils literal notranslate"><span class="pre">brotli</span></code> and <code class="docutils literal notranslate"><span class="pre">7-zip</span></code></p>
+</div>
+<p>If this option is enabled, large files can be read or written with
+compression by <code class="docutils literal notranslate"><span class="pre">gzip</span></code> or similar tools by several LAMMPS commands,
+including <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a>, <a class="reference internal" href="write_data.html"><span class="doc">write_data</span></a>,
+<a class="reference internal" href="rerun.html"><span class="doc">rerun</span></a>, <a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, and <a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a>.  Supported compression tools and algorithms are currently
+<code class="docutils literal notranslate"><span class="pre">gzip</span></code>, <code class="docutils literal notranslate"><span class="pre">bzip2</span></code>, <code class="docutils literal notranslate"><span class="pre">zstd</span></code>, <code class="docutils literal notranslate"><span class="pre">xz</span></code>, <code class="docutils literal notranslate"><span class="pre">lz4</span></code>, <code class="docutils literal notranslate"><span class="pre">lzma</span></code> (via xz),
+<code class="docutils literal notranslate"><span class="pre">brotli</span></code>, and <code class="docutils literal notranslate"><span class="pre">7-zip</span> <span class="pre">(via</span> <span class="pre">7z)</span></code>.  LAMMPS checks at runtime, which
+compression commands are available and adjusts the check for supported
+suffixes accordingly.  The list of available compression formats and
+suffixes is shown when running LAMMPS with the <a class="reference internal" href="Run_options.html"><span class="doc">-help or -h
+command_line flag</span></a>.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-2-2-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-2-2-0" name="2-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-2-2-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-2-2-1" name="2-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-2-2-0" class="sphinx-tabs-panel" id="panel-2-2-0" name="2-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">WITH_GZIP</span><span class="o">=</span>value<span class="w">  </span><span class="c1"># yes or no</span>
+<span class="w">                    </span><span class="c1"># default is yes if CMake can find the gzip program</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-2-2-1" class="sphinx-tabs-panel" hidden="true" id="panel-2-2-1" name="2-1" role="tabpanel" tabindex="0"><div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_GZIP<span class="w">   </span>&lt;other<span class="w"> </span>LMP_INC<span class="w"> </span>settings&gt;
+</pre></div>
+</div>
+</div></div>
+<p>This option requires that your operating system fully supports the
+“popen()” function in the standard runtime library and that a <code class="docutils literal notranslate"><span class="pre">gzip</span></code>
+or other executable can be found by LAMMPS in the standard search path
+during a run.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>On clusters with high-speed networks, using the “fork()” library call
+(required by “popen()”) can interfere with the fast communication
+library and lead to simulations using compressed output or input to
+hang or crash. For selected operations, compressed file I/O is also
+available using a compression library instead, which is what the
+<a class="reference internal" href="Packages_details.html#pkg-compress"><span class="std std-ref">COMPRESS package</span></a> provides.</p>
+</div>
+<hr class="docutils" />
+</section>
+<section id="support-for-downloading-files-from-the-input">
+<span id="libcurl"></span><h2><span class="section-number">3.6.5. </span>Support for downloading files from the input<a class="headerlink" href="#support-for-downloading-files-from-the-input" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 29Aug2024.</span></p>
+</div>
+<p>The <a class="reference internal" href="geturl.html"><span class="doc">geturl command</span></a> command uses the <a class="reference external" href="https://curl.se/libcurl/">the libcurl library</a> to download files.  This requires that
+LAMMPS is compiled accordingly which needs the following settings:</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-3-3-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-3-3-0" name="3-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-3-3-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-3-3-1" name="3-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-3-3-0" class="sphinx-tabs-panel" id="panel-3-3-0" name="3-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">WITH_CURL</span><span class="o">=</span>value<span class="w">      </span><span class="c1"># yes or no</span>
+<span class="w">                        </span><span class="c1"># default = yes if CMake finds CURL development files, else no</span>
+</pre></div>
+</div>
+<p>Usually these settings are all that is needed.  If CMake cannot
+find the graphics header, library, executable files, you can set
+these variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">CURL_INCLUDE_DIR</span><span class="o">=</span>path<span class="w">    </span><span class="c1"># path to folder which contains curl.h header file</span>
+-D<span class="w"> </span><span class="nv">CURL_LIBRARY</span><span class="o">=</span>path<span class="w">        </span><span class="c1"># path to libcurls.a (.so) file</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-3-3-1" class="sphinx-tabs-panel" hidden="true" id="panel-3-3-1" name="3-1" role="tabpanel" tabindex="0"><div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_CURL<span class="w">  </span>&lt;other<span class="w"> </span>LMP_INC<span class="w"> </span>settings&gt;
+
+<span class="nv">CURL_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-I/usr/local/include<span class="w">   </span><span class="c1"># path to curl folder with curl.h</span>
+<span class="nv">CURL_PATH</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-L/usr/lib<span class="w">            </span><span class="c1"># paths to libcurl.a(.so) if make cannot find it</span>
+<span class="nv">CURL_LIB</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-lcurl<span class="w">                 </span><span class="c1"># library names</span>
+</pre></div>
+</div>
+<p>As with CMake, you do not need to set <code class="docutils literal notranslate"><span class="pre">CURL_INC</span></code> or <code class="docutils literal notranslate"><span class="pre">CURL_PATH</span></code>,
+if make can find the libcurl header and library files in their
+default system locations.  You must specify <code class="docutils literal notranslate"><span class="pre">CURL_LIB</span></code> with a
+paths or linker flags to link to libcurl.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="prevent-download-of-large-potential-files">
+<span id="download-pot"></span><h2><span class="section-number">3.6.6. </span>Prevent download of large potential files<a class="headerlink" href="#prevent-download-of-large-potential-files" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 8Feb2023.</span></p>
+</div>
+<p>LAMMPS bundles a selection of potential files in the <code class="docutils literal notranslate"><span class="pre">potentials</span></code>
+folder as examples of how those kinds of potential files look like and
+for use with the provided input examples in the <code class="docutils literal notranslate"><span class="pre">examples</span></code> tree.  To
+keep the size of the distributed LAMMPS source package small, very large
+potential files (&gt; 5 MBytes) are not bundled, but only downloaded on
+demand when the <a class="reference internal" href="Packages.html"><span class="doc">corresponding package</span></a> is
+installed.  This automatic download can be prevented when <a class="reference internal" href="Build_cmake.html"><span class="doc">building
+LAMMPS with CMake</span></a> by adding the setting <cite>-D
+DOWNLOAD_POTENTIALS=off</cite> when configuring.</p>
+<hr class="docutils" />
+</section>
+<section id="memory-allocation-alignment">
+<span id="align"></span><h2><span class="section-number">3.6.7. </span>Memory allocation alignment<a class="headerlink" href="#memory-allocation-alignment" title="Link to this heading"></a></h2>
+<p>This setting enables the use of the <code class="docutils literal notranslate"><span class="pre">posix_memalign()</span></code> call instead of
+<code class="docutils literal notranslate"><span class="pre">malloc()</span></code> when LAMMPS allocates large chunks of memory.  Vector
+instructions on CPUs may become more efficient, if dynamically allocated
+memory is aligned on larger-than-default byte boundaries.  On most
+current operating systems, the <code class="docutils literal notranslate"><span class="pre">malloc()</span></code> implementation returns
+pointers that are aligned to 16-byte boundaries. Using SSE vector
+instructions efficiently, however, requires memory blocks being aligned
+on 64-byte boundaries.</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-4-4-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-4-4-0" name="4-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-4-4-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-4-4-1" name="4-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-4-4-0" class="sphinx-tabs-panel" id="panel-4-4-0" name="4-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">LAMMPS_MEMALIGN</span><span class="o">=</span>value<span class="w">            </span><span class="c1"># 0, 8, 16, 32, 64 (default)</span>
+</pre></div>
+</div>
+<p>Use a <code class="docutils literal notranslate"><span class="pre">LAMMPS_MEMALIGN</span></code> value of 0 to disable using
+<code class="docutils literal notranslate"><span class="pre">posix_memalign()</span></code> and revert to using the <code class="docutils literal notranslate"><span class="pre">malloc()</span></code> C-library
+function instead.  When compiling LAMMPS for Windows systems,
+<code class="docutils literal notranslate"><span class="pre">malloc()</span></code> will always be used and this setting is ignored.</p>
+</div><div aria-labelledby="tab-4-4-1" class="sphinx-tabs-panel" hidden="true" id="panel-4-4-1" name="4-1" role="tabpanel" tabindex="0"><div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_MEMALIGN<span class="o">=</span>value<span class="w">   </span><span class="c1"># 8, 16, 32, 64</span>
+</pre></div>
+</div>
+<p>Do not set <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_MEMALIGN</span></code>, if you want to have memory
+allocated with the <code class="docutils literal notranslate"><span class="pre">malloc()</span></code> function call
+instead. <code class="docutils literal notranslate"><span class="pre">-DLAMMPS_MEMALIGN</span></code> <strong>cannot</strong> be used on Windows, as
+Windows different function calls with different semantics for
+allocating aligned memory, that are not compatible with how LAMMPS
+manages its dynamical memory.</p>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="workaround-for-long-long-integers">
+<span id="longlong"></span><h2><span class="section-number">3.6.8. </span>Workaround for long long integers<a class="headerlink" href="#workaround-for-long-long-integers" title="Link to this heading"></a></h2>
+<p>If your system or MPI version does not recognize “long long” data
+types, the following setting will be needed.  It converts “long long”
+to a “long” data type, which should be the desired 8-byte integer on
+those systems:</p>
+<div class="sphinx-tabs docutils container">
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-5-5-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-5-5-0" name="5-0" role="tab" tabindex="0">CMake build</button><button aria-controls="panel-5-5-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-5-5-1" name="5-1" role="tab" tabindex="-1">Traditional make</button></div><div aria-labelledby="tab-5-5-0" class="sphinx-tabs-panel" id="panel-5-5-0" name="5-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>-D<span class="w"> </span><span class="nv">LAMMPS_LONGLONG_TO_LONG</span><span class="o">=</span>value<span class="w">     </span><span class="c1"># yes or no (default)</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-5-5-1" class="sphinx-tabs-panel" hidden="true" id="panel-5-5-1" name="5-1" role="tabpanel" tabindex="0"><div class="highlight-make notranslate"><div class="highlight"><pre><span></span><span class="nv">LMP_INC</span><span class="w"> </span><span class="o">=</span><span class="w"> </span>-DLAMMPS_LONGLONG_TO_LONG<span class="w">  </span>&lt;other<span class="w"> </span>LMP_INC<span class="w"> </span>settings&gt;
+</pre></div>
+</div>
+</div></div>
+<hr class="docutils" />
+</section>
+<section id="exception-handling-when-using-lammps-as-a-library">
+<span id="exceptions"></span><h2><span class="section-number">3.6.9. </span>Exception handling when using LAMMPS as a library<a class="headerlink" href="#exception-handling-when-using-lammps-as-a-library" title="Link to this heading"></a></h2>
+<p>LAMMPS errors do not kill the calling code, but throw an exception.  In
+the C-library interface, the call stack is unwound and control returns
+to the caller, e.g. to Python or a code that is coupled to LAMMPS. The
+error status can then be queried.  When using C++ directly, the calling
+code has to be set up to <em>catch</em> exceptions thrown from within LAMMPS.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>When LAMMPS is running in parallel, it is not always possible to
+cleanly recover from an exception since not all parallel ranks may
+throw an exception and thus other MPI ranks may get stuck waiting for
+messages from the ones with errors.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Build_basics.html" class="btn btn-neutral float-left" title="3.5. Basic build options" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Build_package.html" class="btn btn-neutral float-right" title="3.7. Include packages in build" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

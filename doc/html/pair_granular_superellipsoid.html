@@ -1,0 +1,952 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>pair_style granular/superellipsoid command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/pair_granular_superellipsoid.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pair_style lj/gromacs command" href="pair_gromacs.html" />
+    <link rel="prev" title="pair_style granular command" href="pair_granular.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pairs.html">Pair Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="pair_adp.html">pair_style adp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_agni.html">pair_style agni command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_aip_water_2dm.html">pair_style aip/water/2dm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html">pair_style airebo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-morse-command">pair_style airebo/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-airebo-bc-command">pair_style airebo/bc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_airebo.html#pair-style-rebo-command">pair_style rebo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_amoeba.html">pair_style amoeba command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_amoeba.html#pair-style-hippo-command">pair_style hippo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_atm.html">pair_style atm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_beck.html">pair_style beck command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body_nparticle.html">pair_style body/nparticle command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body_rounded_polygon.html">pair_style body/rounded/polygon command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_body_rounded_polyhedron.html">pair_style body/rounded/polyhedron command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bondval.html">pair_style bondval command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bondval.html#pair-style-bondval-vec-command">pair_style bondval/vec command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bop.html">pair_style bop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html">pair_style born command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-long-command">pair_style born/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-msm-command">pair_style born/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-wolf-command">pair_style born/coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born.html#pair-style-born-coul-dsf-command">pair_style born/coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_born_gauss.html">pair_style born/gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_bpm_spring.html">pair_style bpm/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html">pair_style brownian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_brownian.html#pair-style-brownian-poly-command">pair_style brownian/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html">pair_style buck command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-cut-command">pair_style buck/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-long-command">pair_style buck/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck.html#pair-style-buck-coul-msm-command">pair_style buck/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck6d_coul_gauss.html">pair_style buck6d/coul/gauss/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck6d_coul_gauss.html#pair-style-buck6d-coul-gauss-long-command">pair_style buck6d/coul/gauss/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_buck_long.html">pair_style buck/long/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html">pair_style lj/charmm/coul/charmm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-charmm-implicit-command">pair_style lj/charmm/coul/charmm/implicit command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-long-command">pair_style lj/charmm/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmm-coul-msm-command">pair_style lj/charmm/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmmfsw-coul-charmmfsh-command">pair_style lj/charmmfsw/coul/charmmfsh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_charmm.html#pair-style-lj-charmmfsw-coul-long-command">pair_style lj/charmmfsw/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html">pair_style lj/class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-cut-command">pair_style lj/class2/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_class2.html#pair-style-lj-class2-coul-long-command">pair_style lj/class2/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_colloid.html">pair_style colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html">pair_style comb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_comb.html#pair-style-comb3-command">pair_style comb3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cosine_squared.html">pair_style cosine/squared command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html">pair_style coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-cut-global-command">pair_style coul/cut/global command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-ctip-command">pair_style coul/ctip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-debye-command">pair_style coul/debye command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-dsf-command">pair_style coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-exclude-command">pair_style coul/exclude command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-long-command">pair_style coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-msm-command">pair_style coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-streitz-command">pair_style coul/streitz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-coul-wolf-command">pair_style coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-cut-command">pair_style tip4p/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul.html#pair-style-tip4p-long-command">pair_style tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_diel.html">pair_style coul/diel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_shield.html">pair_style coul/shield command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_slater.html">pair_style coul/slater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_slater.html#pair-style-coul-slater-cut-command">pair_style coul/slater/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_slater.html#pair-style-coul-slater-long-command">pair_style coul/slater/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_coul_tt.html">pair_style coul/tt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html">pair_style born/coul/dsf/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-born-coul-long-cs-command">pair_style born/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-born-coul-wolf-cs-command">pair_style born/coul/wolf/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-buck-coul-long-cs-command">pair_style buck/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-coul-long-cs-command">pair_style coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-coul-wolf-cs-command">pair_style coul/wolf/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-lj-cut-coul-long-cs-command">pair_style lj/cut/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_cs.html#pair-style-lj-class2-coul-long-cs-command">pair_style lj/class2/coul/long/cs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html">pair_style coul/cut/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-coul-long-dielectric-command">pair_style coul/long/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-cut-dielectric-command">pair_style lj/cut/coul/cut/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-debye-dielectric-command">pair_style lj/cut/coul/debye/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-long-dielectric-command">pair_style lj/cut/coul/long/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-cut-coul-msm-dielectric-command">pair_style lj/cut/coul/msm/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dielectric.html#pair-style-lj-long-coul-long-dielectric-command">pair_style lj/long/coul/long/dielectric command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html">pair_style lj/cut/dipole/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-sf-dipole-sf-command">pair_style lj/sf/dipole/sf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-cut-dipole-long-command">pair_style lj/cut/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dipole.html#pair-style-lj-long-dipole-long-command">pair_style lj/long/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dispersion_d3.html">pair_style dispersion/d3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html">pair_style dpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd.html#pair-style-dpd-tstat-command">pair_style dpd/tstat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_coul_slater_long.html">pair_style dpd/coul/slater/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_ext.html">pair_style dpd/ext command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_ext.html#pair-style-dpd-ext-tstat-command">pair_style dpd/ext/tstat command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_fdt.html">pair_style dpd/fdt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dpd_fdt.html#pair-style-dpd-fdt-energy-command">pair_style dpd/fdt/energy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_drip.html">pair_style drip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_dsmc.html">pair_style dsmc command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_e3b.html">pair_style e3b command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html">pair_style eam command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-alloy-command">pair_style eam/alloy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-cd-command">pair_style eam/cd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-cd-old-command">pair_style eam/cd/old command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-fs-command">pair_style eam/fs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam.html#pair-style-eam-he-command">pair_style eam/he command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam_apip.html">pair_style eam/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eam_apip.html#pair-style-eam-fs-apip-command">pair_style eam/fs/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_edip.html">pair_style edip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_edip.html#pair-style-edip-multi-command">pair_style edip/multi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eff.html">pair_style eff/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_eim.html">pair_style eim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_exp6_rx.html">pair_style exp6/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_extep.html">pair_style extep command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html">pair_style lj/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-soft-gapsys-command">pair_style lj/cut/soft/gapsys command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-coul-cut-soft-command">pair_style lj/cut/coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-coul-long-soft-command">pair_style lj/cut/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-cut-tip4p-long-soft-command">pair_style lj/cut/tip4p/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-charmm-coul-long-soft-command">pair_style lj/charmm/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-class2-soft-command">pair_style lj/class2/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-class2-coul-cut-soft-command">pair_style lj/class2/coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-lj-class2-coul-long-soft-command">pair_style lj/class2/coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-coul-cut-soft-command">pair_style coul/cut/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-coul-cut-soft-gapsys-command">pair_style coul/cut/soft/gapsys command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-coul-long-soft-command">pair_style coul/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-tip4p-long-soft-command">pair_style tip4p/long/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_fep_soft.html#pair-style-morse-soft-command">pair_style morse/soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html">pair_style gauss command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gauss.html#pair-style-gauss-cut-command">pair_style gauss/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gayberne.html">pair_style gayberne command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html">pair_style gran/hooke command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hooke-history-command">pair_style gran/hooke/history command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gran.html#pair-style-gran-hertz-history-command">pair_style gran/hertz/history command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_granular.html">pair_style granular command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pair_style granular/superellipsoid command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mixing-shift-table-tail-correction-restart-rrespa-info">Mixing, shift, table, tail correction, restart, rRESPA info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html">pair_style lj/gromacs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gromacs.html#pair-style-lj-gromacs-coul-gromacs-command">pair_style lj/gromacs/coul/gromacs command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gw.html">pair_style gw command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_gw.html#pair-style-gw-zbl-command">pair_style gw/zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_harmonic_cut.html">pair_style harmonic/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html">pair_style hbond/dreiding/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-lj-angleoffset-command">pair_style hbond/dreiding/lj/angleoffset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-morse-command">pair_style hbond/dreiding/morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hbond_dreiding.html#pair-style-hbond-dreiding-morse-angleoffset-command">pair_style hbond/dreiding/morse/angleoffset command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hdnnp.html">pair_style hdnnp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html">pair_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-molecular-command">pair_style hybrid/molecular command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-overlay-command">pair_style hybrid/overlay command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_hybrid.html#pair-style-hybrid-scaled-command">pair_style hybrid/scaled command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ilp_graphene_hbn.html">pair_style ilp/graphene/hbn command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ilp_tmd.html">pair_style ilp/tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kim.html">pair_style kim command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kolmogorov_crespi_full.html">pair_style kolmogorov/crespi/full command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_kolmogorov_crespi_z.html">pair_style kolmogorov/crespi/z command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_input_apip.html">pair_style lambda/input/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_input_apip.html#pair-style-lambda-input-csp-apip-command">pair_style lambda/input/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_input_apip.html#id1">pair_style lambda/input/csp/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lambda_zone_apip.html">pair_style lambda/zone/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lcbop.html">pair_style lcbop command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ldd.html">pair_style ldd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lebedeva_z.html">pair_style lebedeva/z command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lepton.html">pair_style lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lepton.html#pair-style-lepton-coul-command">pair_style lepton/coul command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lepton.html#pair-style-lepton-sphere-command">pair_style lepton/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_line_lj.html">pair_style line/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_list.html">pair_style list command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj.html">pair_style lj/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj96.html">pair_style lj96/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cubic.html">pair_style lj/cubic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html">pair_style lj/cut/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-debye-command">pair_style lj/cut/coul/debye command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-dsf-command">pair_style lj/cut/coul/dsf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-long-command">pair_style lj/cut/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-msm-command">pair_style lj/cut/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_coul.html#pair-style-lj-cut-coul-wolf-command">pair_style lj/cut/coul/wolf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_sphere.html">pair_style lj/cut/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_tip4p.html">pair_style lj/cut/tip4p/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_cut_tip4p.html#pair-style-lj-cut-tip4p-long-command">pair_style lj/cut/tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html">pair_style lj/expand command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand.html#pair-style-lj-expand-coul-long-command">pair_style lj/expand/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_expand_sphere.html">pair_style lj/expand/sphere command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html">pair_style lj/long/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_long.html#pair-style-lj-long-tip4p-long-command">pair_style lj/long/tip4p/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_pirani.html">pair_style lj/pirani command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_relres.html">pair_style lj/relres command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth.html">pair_style lj/smooth command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_smooth_linear.html">pair_style lj/smooth/linear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_switch3_coulgauss_long.html">pair_style lj/switch3/coulgauss/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lj_switch3_coulgauss_long.html#pair-style-mm3-switch3-coulgauss-long-command">pair_style mm3/switch3/coulgauss/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_local_density.html">pair_style local/density command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html">pair_style lubricate command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricate.html#pair-style-lubricate-poly-command">pair_style lubricate/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricateU.html">pair_style lubricateU command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_lubricateU.html#pair-style-lubricateu-poly-command">pair_style lubricateU/poly command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mbx.html">pair_style mbx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html">pair_style lj/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html#pair-style-buck-mdf-command">pair_style buck/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mdf.html#pair-style-lennard-mdf-command">pair_style lennard/mdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam.html">pair_style meam command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam.html#pair-style-meam-ms-command">pair_style meam/ms command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_spline.html">pair_style meam/spline command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_meam_sw_spline.html">pair_style meam/sw/spline command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesocnt.html">pair_style mesocnt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesocnt.html#pair-style-mesocnt-viscous-command">pair_style mesocnt/viscous command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html">pair_style edpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html#pair-style-mdpd-command">pair_style mdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html#pair-style-mdpd-rhosum-command">pair_style mdpd/rhosum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mesodpd.html#pair-style-tdpd-command">pair_style tdpd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mgpt.html">pair_style mgpt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mie.html">pair_style mie/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_mliap.html">pair_style mliap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_momb.html">pair_style momb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html">pair_style morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_morse.html#pair-style-morse-smooth-linear-command">pair_style morse/smooth/linear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_multi_lucy.html">pair_style multi/lucy command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_multi_lucy_rx.html">pair_style multi/lucy/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nb3b.html">pair_style nb3b/harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nb3b.html#pair-style-nb3b-screened-command">pair_style nb3b/screened command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html">pair_style nm/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-split-command">pair_style nm/cut/split command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-cut-command">pair_style nm/cut/coul/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_nm.html#pair-style-nm-cut-coul-long-command">pair_style nm/cut/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_none.html">pair_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html">pair_style oxdna/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-stk-command">pair_style oxdna/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-hbond-command">pair_style oxdna/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-xstk-command">pair_style oxdna/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna.html#pair-style-oxdna-coaxstk-command">pair_style oxdna/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna2.html">pair_style oxdna2/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna2.html#pair-style-oxdna2-stk-command">pair_style oxdna2/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna2.html#pair-style-oxdna2-hbond-command">pair_style oxdna2/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna2.html#pair-style-oxdna2-xstk-command">pair_style oxdna2/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna2.html#pair-style-oxdna2-coaxstk-command">pair_style oxdna2/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna2.html#pair-style-oxdna2-dh-command">pair_style oxdna2/dh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html">pair_style oxdna3/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-stk-command">pair_style oxdna3/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-hbond-command">pair_style oxdna3/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-xstk-command">pair_style oxdna3/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-coaxstk-command">pair_style oxdna3/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxdna3.html#pair-style-oxdna3-dh-command">pair_style oxdna3/dh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html">pair_style oxrna2/excv command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-stk-command">pair_style oxrna2/stk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-hbond-command">pair_style oxrna2/hbond command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-xstk-command">pair_style oxrna2/xstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-coaxstk-command">pair_style oxrna2/coaxstk command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_oxrna2.html#pair-style-oxrna2-dh-command">pair_style oxrna2/dh command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace.html">pair_style pace command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace.html#pair-style-pace-extrapolation-command">pair_style pace/extrapolation command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace_apip.html">pair_style pace/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace_apip.html#pair-style-pace-fast-apip-command">pair_style pace/fast/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pace_apip.html#pair-style-pace-precise-apip-command">pair_style pace/precise/apip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pedone.html">pair_style pedone command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html">pair_style peri/pmb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-lps-command">pair_style peri/lps command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-ves-command">pair_style peri/ves command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_peri.html#pair-style-peri-eps-command">pair_style peri/eps command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_pod.html">pair_style pod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_polymorphic.html">pair_style polymorphic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_python.html">pair_style python command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_quip.html">pair_style quip command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rann.html">pair_style rann command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_reaxff.html">pair_style reaxff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rebomos.html">pair_style rebomos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_resquared.html">pair_style resquared command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rheo.html">pair_style rheo command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_rheo_solid.html">pair_style rheo/solid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_runner.html">pair_style runner command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_saip_metal.html">pair_style saip/metal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_saip_metal.html#pair-style-saip-metal-tmd-command">pair_style saip/metal/tmd command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sdpd_taitwater_isothermal.html">pair_style sdpd/taitwater/isothermal command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smatb.html">pair_style smatb command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smatb.html#pair-style-smatb-single-command">pair_style smatb/single command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_hertz.html">pair_style smd/hertz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_tlsph.html">pair_style smd/tlsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_triangulated_surface.html">pair_style smd/tri_surface command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smd_ulsph.html">pair_style smd/ulsph command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_smtbq.html">pair_style smtbq command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_snap.html">pair_style snap command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_soft.html">pair_style soft command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_heatconduction.html">pair_style sph/heatconduction command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_idealgas.html">pair_style sph/idealgas command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_lj.html">pair_style sph/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_rhosum.html">pair_style sph/rhosum command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_taitwater.html">pair_style sph/taitwater command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sph_taitwater_morris.html">pair_style sph/taitwater/morris command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spica.html">pair_style lj/spica command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spica.html#pair-style-lj-spica-coul-long-command">pair_style lj/spica/coul/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spica.html#pair-style-lj-spica-coul-msm-command">pair_style lj/spica/coul/msm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_dipole.html">pair_style spin/dipole/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_dipole.html#pair-style-spin-dipole-long-command">pair_style spin/dipole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_dmi.html">pair_style spin/dmi command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_exchange.html">pair_style spin/exchange command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_exchange.html#pair-style-spin-exchange-biquadratic-command">pair_style spin/exchange/biquadratic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_magelec.html">pair_style spin/magelec command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_spin_neel.html">pair_style spin/neel command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_srp.html">pair_style srp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_srp.html#pair-style-srp-react-command">pair_style srp/react command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_surf_granular.html">pair_style surf/granular command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html">pair_style sw command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw.html#pair-style-sw-mod-command">pair_style sw/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_sw_angle_table.html">pair_style sw/angle/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table.html">pair_style table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_table_rx.html">pair_style table/rx command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html">pair_style tersoff command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff.html#pair-style-tersoff-table-command">pair_style tersoff/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html">pair_style tersoff/mod command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_mod.html#pair-style-tersoff-mod-c-command">pair_style tersoff/mod/c command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tersoff_zbl.html">pair_style tersoff/zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html">pair_style thole command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_thole.html#pair-style-lj-cut-thole-long-command">pair_style lj/cut/thole/long command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_threebody_table.html">pair_style threebody/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tracker.html">pair_style tracker command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_tri_lj.html">pair_style tri/lj command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_uf3.html">pair_style uf3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ufm.html">pair_style ufm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html">pair_style vashishta command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_vashishta.html#pair-style-vashishta-table-command">pair_style vashishta/table command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_wf_cut.html">pair_style wf/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_ylz.html">pair_style ylz command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa.html">pair_style yukawa command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_yukawa_colloid.html">pair_style yukawa/colloid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zbl.html">pair_style zbl command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pair_zero.html">pair_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="pairs.html">Pair Styles</a></li>
+      <li class="breadcrumb-item active">pair_style granular/superellipsoid command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="pair_granular.html" class="btn btn-neutral float-left" title="pair_style granular command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pair_gromacs.html" class="btn btn-neutral float-right" title="pair_style lj/gromacs command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="pair-style-granular-superellipsoid-command">
+<span id="index-0"></span><h1>pair_style granular/superellipsoid command<a class="headerlink" href="#pair-style-granular-superellipsoid-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">granular</span><span class="o">/</span><span class="n">superellipsoid</span><span class="w"> </span><span class="n">cutoff</span><span class="w"> </span><span class="n">no_bounding_box</span><span class="w"> </span><span class="n">curvature_gaussian</span>
+
+<span class="n">Optional</span><span class="w"> </span><span class="n">settings</span>,<span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="n">discussion</span><span class="w"> </span><span class="n">below.</span>
+<span class="o">*</span><span class="w"> </span><span class="n">cutoff</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">global</span><span class="w"> </span><span class="n">cutoff</span><span class="w"> </span><span class="n">value</span>
+<span class="o">*</span><span class="w"> </span><span class="n">no_bounding_box</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">skip</span><span class="w"> </span><span class="n">oriented</span><span class="w"> </span><span class="n">bounding</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">check</span>
+<span class="o">*</span><span class="w"> </span><span class="n">curvature_gaussian</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">gaussian</span><span class="w"> </span><span class="n">curvature</span><span class="w"> </span><span class="n">coeff</span><span class="w"> </span><span class="n">approximation</span><span class="w"> </span><span class="n">for</span><span class="w"> </span><span class="n">contact</span><span class="w"> </span><span class="n">patch</span>
+</pre></div>
+</div>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">pair_style</span><span class="w"> </span><span class="n">granular</span><span class="o">/</span><span class="n">superellipsoid</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hooke</span><span class="w"> </span><span class="m">1000.0</span><span class="w"> </span><span class="m">50.0</span><span class="w"> </span><span class="n">tangential</span><span class="w"> </span><span class="n">linear_history</span><span class="w"> </span><span class="m">1000.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">damping</span><span class="w"> </span><span class="n">mass_velocity</span>
+
+<span class="k">pair_style</span><span class="w"> </span><span class="n">granular</span><span class="o">/</span><span class="n">superellipsoid</span><span class="w"> </span><span class="m">10.0</span><span class="w"> </span><span class="n">curvature_gaussian</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">hertz</span><span class="w"> </span><span class="m">1000.0</span><span class="w"> </span><span class="m">50.0</span><span class="w"> </span><span class="n">tangential</span><span class="w"> </span><span class="n">linear_history</span><span class="w"> </span><span class="m">500.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.4</span><span class="w"> </span><span class="n">damping</span><span class="w"> </span><span class="n">viscoelastic</span>
+<span class="k">pair_coeff</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="n">hertz</span><span class="w"> </span><span class="m">500.0</span><span class="w"> </span><span class="m">50.0</span><span class="w"> </span><span class="n">tangential</span><span class="w"> </span><span class="n">linear_history</span><span class="w"> </span><span class="m">250.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="n">damping</span><span class="w"> </span><span class="n">viscoelastic</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 30Mar2026.</span></p>
+</div>
+<p>The <em>granular/superellipsoid</em> style calculates granular contact forces
+between superellipsoidal particles (see <a class="reference internal" href="atom_style.html"><span class="doc">atom style ellipsoid</span></a>).  Similar to the <a class="reference internal" href="pair_granular.html"><span class="doc">granular pairstyle</span></a> which is designed for spherical particles, various
+normal, damping, and tangential contact models are available (rolling
+and twisting may be added later).  The total computed forces and torques
+are the sum of various models selected.</p>
+<p>All model choices and parameters are entered in the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command, as described below.  Coefficient values are not
+global, but can be set to different values for different combinations of
+particle types, as determined by the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>
+command.  If the contact model choice is the same for two particle
+types, the mixing for the cross-coefficients can be carried out
+automatically.  This is shown in the last example, where model choices
+are the same for type 1 - type 1 as for type 2 - type2 interactions, but
+coefficients are different.  In this case, the mixed coefficients for
+type 1 - type 2 interactions can be determined from mixing rules
+discussed below.  For additional flexibility, coefficients as well as
+model forms can vary between particle types.</p>
+<hr class="docutils" />
+<p>This pair_style allows granular contact between two superellipsoid
+particles whose surface is implicitly defined as:</p>
+<div class="math notranslate nohighlight">
+\[f(\mathbf{x}) = \left(
+\left|\frac{x}{a}\right|^{n_2} + \left|\frac{y}{b}\right|^{n_2}
+\right)^{n_1 / n_2}
++ \left|\frac{z}{c}\right|^{n_1} - 1 = 0\]</div>
+<p>for a point <span class="math notranslate nohighlight">\(\mathbf{x} = (x, y, z)\)</span> where the coordinates are
+given in the reference of the principal directions of inertia of the
+particle.  The half-diameters <span class="math notranslate nohighlight">\(a\)</span>, <span class="math notranslate nohighlight">\(b\)</span>, and <span class="math notranslate nohighlight">\(c\)</span>
+correspond to the <em>shape</em> property, and the exponents <span class="math notranslate nohighlight">\(n_1\)</span> and
+<span class="math notranslate nohighlight">\(n_2\)</span> to the <em>block</em> property of the ellipsoid atom.  See the doc
+page for the <a class="reference internal" href="set.html"><span class="doc">set</span></a> command for more details.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The contact solver strictly requires convex particle shapes to
+ensure a mathematically unique point of deepest penetration.
+Therefore, the blockiness parameters must be <span class="math notranslate nohighlight">\(n_1 \ge 2.0\)</span> and
+<span class="math notranslate nohighlight">\(n_2 \ge 2.0\)</span>.  Attempting to simulate concave or “pointy”
+particles (<span class="math notranslate nohighlight">\(n &lt; 2.0\)</span>) will result in an error.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For particles with high blockiness exponents (<span class="math notranslate nohighlight">\(n &gt; 4.0\)</span>)
+involved in edge-to-edge or corner-to-corner contacts, the surface
+normal vector varies rapidly over small distances.  The Newton
+solver may occasionally fail to converge to the strict gradient
+alignment tolerance (typically <span class="math notranslate nohighlight">\(10^{-10}\)</span>).  You may see
+warning messages in the log indicating that the solver returned a
+sub-optimal solution, but the simulation will proceed using this
+best-effort contact point.</p>
+</div>
+<p>Contact detection for these aspherical particles uses the so-called
+“midway” minimization approach from <a class="reference internal" href="#houlsby"><span class="std std-ref">(Houlsby)</span></a>.
+Considering two particles with shape functions, <span class="math notranslate nohighlight">\(F_i\)</span> and
+<span class="math notranslate nohighlight">\(F_j\)</span>, the contact point <span class="math notranslate nohighlight">\(\mathbf{X}_0\)</span> in the global frame
+is obtained as:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{X}_0 = \underset{\mathbf{X}}{\text{argmin}}
+               \ F_i(\mathbf{X}) + F_j(\mathbf{X})
+               \text{, subject to } F_i(\mathbf{X}) = F_j(\mathbf{X})\]</div>
+<p>where the shape function is given by <span class="math notranslate nohighlight">\(F_i(\mathbf{X}) =
+f_i(\mathbf{R}_i^T (\mathbf{X} - \mathbf{X}_i))\)</span> and where
+<span class="math notranslate nohighlight">\(\mathbf{X}_i\)</span> and <span class="math notranslate nohighlight">\(\mathbf{R}_i\)</span> are the center of mass and
+rotation matrix of the particle, respectively.  The constrained
+minimization problem is solved using Lagrange multipliers and Newton’s
+method with a line search as described by <a class="reference internal" href="#podlozhnyuk"><span class="std std-ref">(Podlozhnyuk)</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The shape function <span class="math notranslate nohighlight">\(F\)</span> is not a signed distance function and
+does not have unit gradient <span class="math notranslate nohighlight">\(\|\nabla F \| \neq 1\)</span> so that the
+so-called “midway” point is not actually located at an equal
+distance from the surface of both particles.  For contact between
+non-identical particles, the contact point tends to be closer to the
+surface of the smaller and blockier particle.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This formulation leads to a 4x4 system of non-linear equations.
+Tikhonov regularization and step clumping is used to ensure
+robustness of the direct solver and high convergence rate, even for
+blocky particles with near flat faces.</p>
+</div>
+<p>The particles overlap if both shape functions are negative at the
+contact point.  The contact normal is obtained as:
+<span class="math notranslate nohighlight">\(\mathbf{n}_{ij} = \nabla F_i(\mathbf{X}_0) / \| \nabla
+F_i(\mathbf{X}_0)\| = - \nabla F_j(\mathbf{X}_0) / \| \nabla
+F_j(\mathbf{X}_0)\|\)</span> and the overlap <span class="math notranslate nohighlight">\(\delta =
+\|\mathbf{X}_j^{\mathrm{surf}} - \mathbf{X}_i^{\mathrm{surf}}\|\)</span> is
+computed as the distance between the points on the particles surfaces
+that are closest to the contact point in the direction of the contact
+normal: <span class="math notranslate nohighlight">\(F_i(\mathbf{X}_i^{\mathrm{surf}} = \mathbf{X}_0 +
+\lambda_i \mathbf{n}_{ij}) = 0\)</span> and
+<span class="math notranslate nohighlight">\(F_j(\mathbf{X}_j^{\mathrm{surf}} = \mathbf{X}_0 + \lambda_j
+\mathbf{n}_{ij}) = 0\)</span>.  Newton’s method is used to solve this equation
+for the scalars <span class="math notranslate nohighlight">\(\lambda_i\)</span> and <span class="math notranslate nohighlight">\(\lambda_j\)</span> and find the
+surface points <span class="math notranslate nohighlight">\(\mathbf{X}_i^{\mathrm{surf}}\)</span> and
+<span class="math notranslate nohighlight">\(\mathbf{X}_j^{\mathrm{surf}}\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A modified representation of the particle surface is defined as
+<span class="math notranslate nohighlight">\(G(\mathbf{X}) = (F(\mathbf{X})+1)^{1/n_1}-1\)</span> which is a
+quasi-radial distance function formulation.  This formulation is used
+to compute the surface points once the “midway” contact point is
+found.  This formulation is also used when the <em>geometric</em> keyword is
+specified in the pair_style command and the following optimization
+problem is solved instead for the contact point: <span class="math notranslate nohighlight">\(\mathbf{X}_0
+= \underset{\mathbf{X}}{\text{argmin}} \, \left( r_i
+G_i(\mathbf{X}) + r_j G_j(\mathbf{X}) \right) \text{, subject to }
+r_i G_i(\mathbf{X}) = r_j G_j(\mathbf{X})\)</span>, where <span class="math notranslate nohighlight">\(r_i\)</span> and
+<span class="math notranslate nohighlight">\(r_j\)</span> are the average radii of the two particles.  The
+geometric formulation thus yields a better approximation of the
+contact point for particles with different sizes, and it is slightly
+more robust for particles with high <em>block</em> exponents, albeit more
+computationally expensive.</p>
+</div>
+<p>A hierarchical approach is used to limit the cost of contact detection.
+First, intersection of the bounding spheres of the two particles of
+bounding radii <span class="math notranslate nohighlight">\(r_i\)</span> and <span class="math notranslate nohighlight">\(r_j\)</span> is checked.  If the distance
+between the particles center is more than the sum of the radii
+<span class="math notranslate nohighlight">\(\|\mathbf{X}_j - \mathbf{X}_j\| &gt; r_i + r_j\)</span>, the particles do
+not intersect.  Then, if the bounding spheres intersect, intersection of
+the oriented bounding box is checked.  This is done following the
+equations of <a class="reference internal" href="#geometrictools"><span class="std std-ref">(Eberly)</span></a>.  This check is always
+performed, unless the <em>no_bounding_box</em> keyword is used.  This is
+advantageous for all particle shapes except for superellipses with
+aspect ratio close to one and both blockiness indexes close to 2.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The Newton-Raphson minimization used to find the midway contact
+point can fail to converge if the initial starting guess is too far
+from the true physical surface.  This typically occurs if a user
+specifies a manual global <em>cutoff</em> that is significantly larger than
+the particles <strong>and</strong> enables the <em>no_bounding_box</em> keyword.  Under
+these conditions, the solver attempts to resolve contacts between
+widely separated particles, which might cause the math to diverge
+and instantly crashing the simulation.  It is strongly recommended
+to keep bounding box checks enabled if a large cutoff is specified.</p>
+</div>
+<hr class="docutils" />
+<p>This section provides an overview of the various normal, tangential, and
+damping contact models available.  For additional context, see the
+discussion in the <a class="reference internal" href="pair_granular.html"><span class="doc">granular pairstyle</span></a> doc page
+which includes all of these options.</p>
+<p>The first required keyword for the <em>pair_coeff</em> command is the normal
+contact model.  Currently supported options for normal contact models
+and their required arguments are:</p>
+<ol class="arabic simple">
+<li><p><em>hooke</em> : <span class="math notranslate nohighlight">\(k_n\)</span>, <span class="math notranslate nohighlight">\(\eta_{n0}\)</span> (or <span class="math notranslate nohighlight">\(e\)</span>)</p></li>
+<li><p><em>hertz</em> : <span class="math notranslate nohighlight">\(k_n\)</span>, <span class="math notranslate nohighlight">\(\eta_{n0}\)</span> (or <span class="math notranslate nohighlight">\(e\)</span>)</p></li>
+</ol>
+<p>Here, <span class="math notranslate nohighlight">\(k_n\)</span> is spring stiffness (with units that depend on model
+choice, see below); <span class="math notranslate nohighlight">\(\eta_{n0}\)</span> is a damping prefactor (or, in its
+place a coefficient of restitution <span class="math notranslate nohighlight">\(e\)</span>, depending on the choice of
+damping mode, see below).</p>
+<p>For the <em>hooke</em> model, the normal, elastic component of force acting on
+particle <em>i</em> due to contact with particle <em>j</em> is given by:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_{ne, Hooke} = k_n \delta_{ij} \mathbf{n}\]</div>
+<p>Where <span class="math notranslate nohighlight">\(\delta_{ij}\)</span> is the particle overlap, (note the i-j
+ordering so that <span class="math notranslate nohighlight">\(\mathbf{F}_{ne}\)</span> is positive for repulsion), and
+<span class="math notranslate nohighlight">\(\mathbf{n}\)</span> is the contact normal vector at the contact point.
+Therefore, for <em>hooke</em>, the units of the spring constant <span class="math notranslate nohighlight">\(k_n\)</span> are
+<em>force</em>/<em>distance</em>, or equivalently <em>mass</em>/<em>time^2</em>.</p>
+<p>For the <em>hertz</em> model, the normal component of force is given by:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_{ne, Hertz} = k_n R_{eff}^{1/2}\delta_{ij}^{3/2} \mathbf{n}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(R_{eff} = R = \frac{R_i R_j}{R_i + R_j}\)</span> is the effective
+radius, and <span class="math notranslate nohighlight">\(R_i\)</span> is the equivalent radius of the i-th particle at
+the surface contact point with the j-th particle.  This radius is either
+the inverse of the mean curvature coefficient, <span class="math notranslate nohighlight">\(R_i = 2 /
+(\kappa_1 + \kappa_2)\)</span>, or the gaussian curvature coefficient <span class="math notranslate nohighlight">\(R_i
+= 1 / \sqrt{\kappa_1 \kappa_2}\)</span>, where <span class="math notranslate nohighlight">\(\kappa_{1,2}\)</span> are the
+principal curvatures of the particle surface at the contact point.  For
+<em>hertz</em>, the units of the spring constant <span class="math notranslate nohighlight">\(k_n\)</span> are <em>force</em>/<em>length</em>^2, or equivalently <em>pressure</em>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To ensure numerical stability and preserve physical realism, the
+computed contact radius is mathematically capped.  For highly blocky
+particles undergoing flat-on-flat contact, the theoretical curvature
+approaches zero, which would yield an infinite contact radius and
+cause a force explosion.  To prevent this, the maximum contact
+radius is capped at the physical bounding radius of the smallest
+interacting particle.  Conversely, for sharp corner contacts where
+curvature approaches infinity, the calculated radius would drop to
+zero, eliminating the repulsive force entirely.  The contact radius
+is therefore lower-bounded by a minimum fraction of the physical
+radius (<span class="math notranslate nohighlight">\(10^{-4} \min(r_i, r_j)\)</span>) to prevent particles from
+unphysically interpenetrating.</p>
+</div>
+<p>In addition, the normal force is augmented by a damping term of the
+following general form:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_{n,damp} = -\eta_n \mathbf{v}_{n,rel}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot
+\mathbf{n}\ \mathbf{n}\)</span> is the component of relative velocity along
+<span class="math notranslate nohighlight">\(\mathbf{n}\)</span>.</p>
+<p>The optional <em>damping</em> keyword to the <em>pair_coeff</em> command followed by a
+keyword determines the model form of the damping factor <span class="math notranslate nohighlight">\(\eta_n\)</span>,
+and the interpretation of the <span class="math notranslate nohighlight">\(\eta_{n0}\)</span> or <span class="math notranslate nohighlight">\(e\)</span>
+coefficients specified as part of the normal contact model settings.
+The <em>damping</em> keyword and corresponding model form selection may be
+appended anywhere in the <em>pair coeff</em> command.  Note that the choice of
+damping model affects both the normal and tangential damping.  The
+options for the damping model currently supported are:</p>
+<ol class="arabic simple">
+<li><p><em>mass_velocity</em></p></li>
+<li><p><em>viscoelastic</em></p></li>
+</ol>
+<p>If the <em>damping</em> keyword is not specified, the <em>viscoelastic</em> model is
+used by default.</p>
+<p>For <em>damping mass_velocity</em>, the normal damping is given by:</p>
+<div class="math notranslate nohighlight">
+\[\eta_n = \eta_{n0} m_{eff}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\eta_{n0}\)</span> is the damping coefficient specified for the
+normal contact model, in units of 1/<em>time</em> and <span class="math notranslate nohighlight">\(m_{eff} = m_i
+m_j/(m_i + m_j)\)</span> is the effective mass.  Use <em>damping mass_velocity</em> to
+reproduce the damping behavior of <em>pair gran/hooke/*</em>.</p>
+<p>The <em>damping viscoelastic</em> model is based on the viscoelastic treatment
+of <a class="reference internal" href="#brill1996-2"><span class="std std-ref">(Brilliantov et al)</span></a>, where the normal damping is
+given by:</p>
+<div class="math notranslate nohighlight">
+\[\eta_n = \eta_{n0}\ a m_{eff}\]</div>
+<p>Here, <em>a</em> is the contact radius, given by <span class="math notranslate nohighlight">\(a =\sqrt{R\delta}\)</span> for
+all models.  For <em>damping viscoelastic</em>, <span class="math notranslate nohighlight">\(\eta_{n0}\)</span> is in units
+of 1/(<em>time</em>*<em>distance</em>).</p>
+<p>The total normal force is computed as the sum of the elastic and damping
+components:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_n = \mathbf{F}_{ne} + \mathbf{F}_{n,damp}\]</div>
+<hr class="docutils" />
+<p>The <em>pair_coeff</em> command also requires specification of the tangential
+contact model.  The required keyword <em>tangential</em> is expected, followed
+by the model choice and associated parameters.  Currently there is only
+one supported tangential model with expected parameters as follows:</p>
+<ol class="arabic simple">
+<li><p><em>linear_history</em> : <span class="math notranslate nohighlight">\(k_t\)</span>, <span class="math notranslate nohighlight">\(x_{\gamma,t}\)</span>, <span class="math notranslate nohighlight">\(\mu_s\)</span></p></li>
+</ol>
+<p>Here, <span class="math notranslate nohighlight">\(x_{\gamma,t}\)</span> is a dimensionless multiplier for the normal
+damping <span class="math notranslate nohighlight">\(\eta_n\)</span> that determines the magnitude of the tangential
+damping, <span class="math notranslate nohighlight">\(\mu_t\)</span> is the tangential (or sliding) friction
+coefficient, and <span class="math notranslate nohighlight">\(k_t\)</span> is the tangential stiffness coefficient.</p>
+<p>The tangential damping force <span class="math notranslate nohighlight">\(\mathbf{F}_\mathrm{t,damp}\)</span> is given
+by:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}\]</div>
+<p>The tangential damping prefactor <span class="math notranslate nohighlight">\(\eta_t\)</span> is calculated by scaling
+the normal damping <span class="math notranslate nohighlight">\(\eta_n\)</span> (see above):</p>
+<div class="math notranslate nohighlight">
+\[\eta_t = -x_{\gamma,t} \eta_n\]</div>
+<p>The normal damping prefactor <span class="math notranslate nohighlight">\(\eta_n\)</span> is determined by the choice
+of the <em>damping</em> keyword, as discussed above.  Thus, the <em>damping</em>
+keyword also affects the tangential damping.  The parameter
+<span class="math notranslate nohighlight">\(x_{\gamma,t}\)</span> is a scaling coefficient.  Several works in the
+literature use <span class="math notranslate nohighlight">\(x_{\gamma,t} = 1\)</span> (<a class="reference internal" href="#marshall2009-2"><span class="std std-ref">Marshall</span></a>,
+<a class="reference internal" href="#tsuji1992-2"><span class="std std-ref">Tsuji et al</span></a>, <a class="reference internal" href="#silbert2001-2"><span class="std std-ref">Silbert et al</span></a>).
+The relative tangential velocity at the point of contact is given by
+<span class="math notranslate nohighlight">\(\mathbf{v}_{t, rel} = \mathbf{v}_{t} -
+(R_i\boldsymbol{\Omega}_i + R_j\boldsymbol{\Omega}_j) \times
+\mathbf{n}\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{v}_{t} = \mathbf{v}_r -
+\mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}\)</span>, <span class="math notranslate nohighlight">\(\mathbf{v}_r =
+\mathbf{v}_j - \mathbf{v}_i\)</span> .
+The normal force value <span class="math notranslate nohighlight">\(F_{n0}\)</span> used to compute the critical force
+depends on the form of the contact model.  It is given by the magnitude
+of the normal force:</p>
+<div class="math notranslate nohighlight">
+\[F_{n0} = \|\mathbf{F}_n\|\]</div>
+<p>The remaining tangential options all use accumulated tangential
+displacement (i.e. contact history).  The accumulated tangential
+displacement is discussed in details below in the context of the
+<em>linear_history</em> option.  The same treatment of the accumulated
+displacement will apply to other (future) options as well.</p>
+<p>For <em>tangential linear_history</em>, the tangential force is given by:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{F}_t =  \min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathbf{t}\)</span> is the direction of the tangential force given by:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{t} = \frac{-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}}{\|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|}\]</div>
+<p>and, <span class="math notranslate nohighlight">\(\mathbf{\xi}\)</span> is the tangential displacement accumulated
+during the entire duration of the contact:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{\xi} = \int_{t0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau\]</div>
+<p>This accumulated tangential displacement must be adjusted to account for
+changes in the frame of reference of the contacting pair of particles
+during contact.  This occurs due to the overall motion of the contacting
+particles in a rigid-body-like fashion during the duration of the
+contact.  There are two modes of motion that are relevant: the
+‘tumbling’ rotation of the contacting pair, which changes the
+orientation of the plane in which tangential displacement occurs; and
+‘spinning’ rotation of the contacting pair about the vector connecting
+their centers of mass (<span class="math notranslate nohighlight">\(\mathbf{n}\)</span>).  Corrections due to the
+former mode of motion are made by rotating the accumulated displacement
+into the plane that is tangential to the contact vector at each step, or
+equivalently removing any component of the tangential displacement that
+lies along <span class="math notranslate nohighlight">\(\mathbf{n}\)</span>, and rescaling to preserve the magnitude.
+This follows the discussion in <a class="reference internal" href="#luding2008-2"><span class="std std-ref">Luding</span></a>, see equation
+17 and relevant discussion in that work:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{\xi} = \left(\mathbf{\xi'} - (\mathbf{n} \cdot \mathbf{\xi'})\mathbf{n}\right) \frac{\|\mathbf{\xi'}\|}{\|\mathbf{\xi'} - (\mathbf{n}\cdot\mathbf{\xi'})\mathbf{n}\|}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\mathbf{\xi'}\)</span> is the accumulated displacement prior to the
+current time step and <span class="math notranslate nohighlight">\(\mathbf{\xi}\)</span> is the corrected
+displacement.  Corrections to the displacement due to the second mode of
+motion described above (rotations about <span class="math notranslate nohighlight">\(\mathbf{n}\)</span>) are not
+currently implemented, but are expected to be minor for most
+simulations.</p>
+<p>Furthermore, when the tangential force exceeds the critical force, the
+tangential displacement is re-scaled to match the value for the critical
+force (see <a class="reference internal" href="#luding2008-2"><span class="std std-ref">Luding</span></a>, equation 20 and related
+discussion):</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} - \mathbf{F}_{t,damp}\right)\]</div>
+<p>The tangential force is added to the total normal force (elastic plus
+damping) to produce the total force on the particle.</p>
+<p>Unlike perfect spheres, the surface normal at the contact point of a
+superellipsoid does not generally pass through the particle’s center of
+mass.  Therefore, both the normal and tangential forces act at the
+contact point to induce a torque on each particle.</p>
+<p>Using the exact contact point <span class="math notranslate nohighlight">\(\mathbf{X}_0\)</span> determined by the
+geometric solver, the branch vectors from the particle centers of mass
+to the contact point are defined as <span class="math notranslate nohighlight">\(\mathbf{r}_{ci} =
+\mathbf{X}_0 - \mathbf{x}_i\)</span> and <span class="math notranslate nohighlight">\(\mathbf{r}_{cj} = \mathbf{X}_0 -
+\mathbf{x}_j\)</span>.  The resulting torques are calculated as:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{\tau}_i = \mathbf{r}_{ci} \times \mathbf{F}_{tot}\]</div>
+<div class="math notranslate nohighlight">
+\[\mathbf{\tau}_j = -\mathbf{r}_{cj} \times \mathbf{F}_{tot}\]</div>
+<hr class="docutils" />
+<p>If two particles are moving away from each other while in contact, there
+is a possibility that the particles could experience an effective
+attractive force due to damping.  If the optional <em>limit_damping</em>
+keyword is used, this option will zero out the normal component of the
+force if there is an effective attractive force.</p>
+<hr class="docutils" />
+<p>LAMMPS automatically sets pairwise cutoff values for <em>pair_style
+granular/superellipsoid</em> based on particle radii.  In the vast majority
+of situations, this is adequate.  However, a cutoff value can optionally
+be appended to the <em>pair_style granular/superellipsoid</em> command to
+specify a global cutoff (i.e.  a cutoff for all atom types).  This
+option may be useful in some rare cases where the automatic cutoff
+determination is not sufficient.</p>
+</section>
+<hr class="docutils" />
+<section id="mixing-shift-table-tail-correction-restart-rrespa-info">
+<h2>Mixing, shift, table, tail correction, restart, rRESPA info<a class="headerlink" href="#mixing-shift-table-tail-correction-restart-rrespa-info" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="pair_modify.html"><span class="doc">pair_modify</span></a> mix, shift, table, and tail options
+are not relevant for granular pair styles.</p>
+<p>Mixing of coefficients is carried out using geometric averaging for most
+quantities, e.g. if friction coefficient for type 1-type 1 interactions
+is set to <span class="math notranslate nohighlight">\(\mu_1\)</span>, and friction coefficient for type 2-type 2
+interactions is set to <span class="math notranslate nohighlight">\(\mu_2\)</span>, the friction coefficient for
+type1-type2 interactions is computed as <span class="math notranslate nohighlight">\(\sqrt{\mu_1\mu_2}\)</span>
+(unless explicitly specified to a different value by a <em>pair_coeff 1 2
+…</em> command).</p>
+<p>This pair style writes its information to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so a pair_style command does not need to be specified in an
+input script that reads a restart file.</p>
+<p>This pair style can only be used via the <em>pair</em> keyword of the
+<a class="reference internal" href="run_style.html"><span class="doc">run_style respa</span></a> command.  It does not support the
+<em>inner</em>, <em>middle</em>, <em>outer</em> keywords.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">single()</span></code> function of these pair styles returns 0.0 for the
+energy of a pairwise interaction, since energy is not conserved in these
+dissipative potentials.  It also returns only the normal component of
+the pairwise interaction force.</p>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>The <em>atom_style</em> must be set to <em>ellipsoid superellipsoid</em> to enable
+superellipsoid particles’ shape parameters (3 lengths and two blockiness
+parameters), see <a class="reference internal" href="atom_style.html"><span class="doc">atom_style</span></a> for more details.</p>
+<p>This pair style require Newton’s third law be set to <em>off</em> for pair
+interactions.</p>
+<p>There are currently no versions of <em>fix wall/gran</em> or <em>fix
+wall/gran/region</em> that are compatible with superellipsoid particles.</p>
+<p>This pair style is part of the ASPHERE package.  It is only enabled if
+LAMMPS was built with that package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>This pair style requires that atoms store per-particle bounding radius,
+shapes, blockiness, inertia, torque, and angular momentum (omega) as
+defined by the <a class="reference internal" href="atom_style.html"><span class="doc">atom_style ellipsoid superellipsoid</span></a>.</p>
+<p>This pair style requires you to use the <a class="reference internal" href="comm_modify.html"><span class="doc">comm_modify vel yes</span></a> command so that velocities are stored by ghost atoms.</p>
+<p>This pair style will not restart exactly when using the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command, though it should provide
+statistically similar results.  This is because the forces it computes
+depend on atom velocities and the atom velocities have been propagated
+half a timestep between the force computation and when the restart is
+written, due to using Velocity Verlet time integration.  See the
+<a class="reference internal" href="read_restart.html"><span class="doc">read_restart</span></a> command for more details.</p>
+<p>Accumulated values for individual contacts are saved to restart files
+but are not saved to data files.  Therefore, forces may differ
+significantly when a system is reloaded using the <a class="reference internal" href="read_data.html"><span class="doc">read_data</span></a> command.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a>
+<a class="reference internal" href="pair_granular.html"><span class="doc">pair granular</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>For the <em>pair_coeff</em> settings: <em>damping viscoelastic</em></p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<p id="brill1996-2"><strong>(Brilliantov et al, 1996)</strong> Brilliantov, N. V., Spahn, F., Hertzsch,
+J. M., &amp; Poschel, T. (1996).  Model for collisions in granular
+gases. Physical review E, 53(5), 5382.</p>
+<p id="tsuji1992-2"><strong>(Tsuji et al, 1992)</strong> Tsuji, Y., Tanaka, T., &amp; Ishida,
+T. (1992). Lagrangian numerical simulation of plug flow of
+cohesionless particles in a horizontal pipe. Powder technology, 71(3),
+239-250.</p>
+<p id="luding2008-2"><strong>(Luding, 2008)</strong> Luding, S. (2008). Cohesive, frictional powders:
+contact models for tension. Granular matter, 10(4), 235.</p>
+<p id="marshall2009-2"><strong>(Marshall, 2009)</strong> Marshall, J. S. (2009). Discrete-element modeling
+of particulate aerosol flows.  Journal of Computational Physics,
+228(5), 1541-1561.</p>
+<p id="silbert2001-2"><strong>(Silbert, 2001)</strong> Silbert, L. E., Ertas, D., Grest, G. S., Halsey,
+T. C., Levine, D., &amp; Plimpton, S. J. (2001).  Granular flow down an
+inclined plane: Bagnold scaling and rheology. Physical Review E,
+64(5), 051302.</p>
+<p id="thornton1991-2"><strong>(Thornton, 1991)</strong> Thornton, C. (1991). Interparticle sliding in the
+presence of adhesion.  J. Phys. D: Appl. Phys. 24 1942</p>
+<p id="thornton2013-2"><strong>(Thornton et al, 2013)</strong> Thornton, C., Cummins, S. J., &amp; Cleary,
+P. W. (2013).  An investigation of the comparative behavior of
+alternative contact force models during inelastic collisions. Powder
+Technology, 233, 30-46.</p>
+<p id="waltonpc-2"><strong>(Otis R. Walton)</strong> Walton, O.R., Personal Communication</p>
+<p id="podlozhnyuk"><strong>(Podlozhnyuk)</strong> Podlozhnyuk, Pirker, Kloss, Comp. Part. Mech., 4:101-118 (2017).</p>
+<p id="houlsby"><strong>(Houlsby)</strong> Houlsby, Computers and Geotechnics, 36, 953-959 (2009).</p>
+<p id="geometrictools"><strong>(Eberly)</strong> Eberly, Geometric Tools: Dynamic Collision Detection Using Oriented Bounding Boxes (2008).</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="pair_granular.html" class="btn btn-neutral float-left" title="pair_style granular command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pair_gromacs.html" class="btn btn-neutral float-right" title="pair_style lj/gromacs command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,35 @@
+# Detect convergence in a simulation using the relative change in
+# moments. This demonstrates the "history" option.
+# ---------------------------------------------------------------------
+
+# create pure copper system
+units metal
+lattice fcc 3.75
+region box block 0 6 0 6 0 6
+create_box 2 box
+
+timestep 0.002
+create_atoms 1 box
+
+pair_style eam/alloy
+pair_coeff * * AlCu.eam.alloy Cu Al
+
+# Initialize to a high temperature, then cool in npt ensemble
+velocity all create 1000.0 6567345
+fix 1 all npt temp 300.0 300.0 $(500*dt) iso 0.0 0.0 $(100*dt)
+
+# compute mean and stddev over the preceding 5000 steps, every 20 steps
+variable toteng equal "etotal"
+fix 2 all ave/moments 10 500 200 v_toteng mean stddev history 5
+
+# Convergence criterion: stddev is smaller than threshold and was previously larger
+# This avoids issues with system oscillations in the order of the averaging window
+# that would otherwise lead to "nodes" in the stddev.
+variable conv equal "(f_2[2] < 2.0) && (f_2[2][1] < f_2[2][5])"
+fix 3 all halt 100 v_conv == 1
+
+thermo_style custom step temp press etotal f_2[*][1] f_2[*][5] v_conv
+
+thermo 100
+run 10000
+

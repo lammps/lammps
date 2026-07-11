@@ -1,0 +1,185 @@
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
+
+#ifndef KOKKOS_HIP_PARALLEL_FOR_TEAM_HPP
+#define KOKKOS_HIP_PARALLEL_FOR_TEAM_HPP
+
+#include <Kokkos_Parallel.hpp>
+
+#include <HIP/Kokkos_HIP_KernelLaunch.hpp>
+#include <HIP/Kokkos_HIP_Team.hpp>
+#include <HIP/Kokkos_HIP_Instance.hpp>
+#include <HIP/Kokkos_HIP_TeamPolicyInternal.hpp>
+
+namespace Kokkos {
+namespace Impl {
+
+template <typename FunctorType, typename... Properties>
+class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP> {
+ public:
+  using Policy       = TeamPolicy<Properties...>;
+  using functor_type = FunctorType;
+  using size_type    = HIP::size_type;
+
+ private:
+  using member_type   = typename Policy::member_type;
+  using work_tag      = typename Policy::work_tag;
+  using launch_bounds = typename Policy::launch_bounds;
+
+  // Algorithmic constraints: blockDim.y is a power of two AND
+  // blockDim.y  == blockDim.z == 1 shared memory utilization:
+  //
+  //  [ team   reduce space ]
+  //  [ team   shared space ]
+
+  FunctorType const m_functor;
+  Policy const m_policy;
+  size_type const m_league_size;
+  int m_team_size;
+  size_type const m_vector_size;
+  int m_shmem_begin;
+  int m_shmem_size;
+  void* m_scratch_ptr[2];
+  size_t m_scratch_size[2];
+  int m_scratch_pool_id = -1;
+  int32_t* m_scratch_locks;
+  size_t m_num_scratch_locks;
+
+  template <typename TagType>
+  __device__ inline std::enable_if_t<std::is_void_v<TagType>> exec_team(
+      const member_type& member) const {
+    m_functor(member);
+  }
+
+  template <typename TagType>
+  __device__ inline std::enable_if_t<!std::is_void_v<TagType>> exec_team(
+      const member_type& member) const {
+    m_functor(TagType(), member);
+  }
+
+ public:
+  ParallelFor() = delete;
+
+  __device__ inline void operator()() const {
+    // Iterate this block through the league
+    int64_t threadid = 0;
+    if (m_scratch_size[1] > 0) {
+      threadid = hip_get_scratch_index(m_league_size, m_scratch_locks,
+                                       m_num_scratch_locks);
+    }
+
+    int const int_league_size = static_cast<int>(m_league_size);
+    for (int league_rank = blockIdx.x; league_rank < int_league_size;
+         league_rank += gridDim.x) {
+      this->template exec_team<work_tag>(typename Policy::member_type(
+          kokkos_impl_hip_shared_memory<void>(), m_shmem_begin, m_shmem_size,
+          static_cast<void*>(
+              static_cast<char*>(m_scratch_ptr[1]) +
+              ptrdiff_t(threadid /
+                        static_cast<size_t>(blockDim.x * blockDim.y)) *
+                  m_scratch_size[1]),
+          m_scratch_size[1], league_rank, m_league_size));
+    }
+    if (m_scratch_size[1] > 0) {
+      hip_release_scratch_index(m_scratch_locks, threadid);
+    }
+  }
+
+  inline void execute() const {
+    int64_t const shmem_size_total = m_shmem_begin + m_shmem_size;
+    dim3 const grid(static_cast<int>(m_league_size), 1, 1);
+    dim3 const block(static_cast<int>(m_vector_size),
+                     static_cast<int>(m_team_size), 1);
+
+    using closure_type =
+        ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>, HIP>;
+    Impl::hip_parallel_launch<closure_type, launch_bounds>(
+        *this, grid, block, shmem_size_total,
+        m_policy.space().impl_internal_space_instance(),
+        true);  // copy to device and execute
+
+    if (m_scratch_pool_id >= 0) {
+      m_policy.space()
+          .impl_internal_space_instance()
+          ->release_team_scratch_space(m_scratch_pool_id);
+    }
+  }
+
+  ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
+      : m_functor(arg_functor),
+        m_policy(arg_policy),
+        m_league_size(m_policy.league_size()),
+        m_team_size(m_policy.team_size()),
+        m_vector_size(m_policy.impl_vector_length()) {
+    auto internal_space_instance =
+        m_policy.space().impl_internal_space_instance();
+    if (m_team_size < 0) {
+      m_team_size = m_policy.team_size_recommended(m_functor, ParallelForTag());
+      if (m_team_size <= 0)
+        Kokkos::Impl::throw_runtime_exception(
+            "Kokkos::Impl::ParallelFor<HIP, TeamPolicy> could not find a "
+            "valid execution configuration.");
+    }
+
+    m_shmem_begin = (sizeof(double) * (m_team_size + 2));
+    m_shmem_size =
+        (m_policy.scratch_size(0, m_team_size) +
+         FunctorTeamShmemSize<FunctorType>::value(m_functor, m_team_size));
+    m_scratch_size[0]   = m_policy.scratch_size(0, m_team_size);
+    m_scratch_size[1]   = m_policy.scratch_size(1, m_team_size);
+    m_scratch_locks     = internal_space_instance->m_scratch_locks;
+    m_num_scratch_locks = internal_space_instance->m_num_scratch_locks;
+
+    // Functor's reduce memory, team scan memory, and team shared memory depend
+    // upon team size.
+    m_scratch_ptr[0] = nullptr;
+    if (m_team_size <= 0) {
+      m_scratch_ptr[1] = nullptr;
+    } else {
+      m_scratch_pool_id = internal_space_instance->acquire_team_scratch_space();
+      m_scratch_ptr[1]  = internal_space_instance->resize_team_scratch_space(
+          m_scratch_pool_id,
+          static_cast<std::int64_t>(m_scratch_size[1]) *
+              (std::min(
+                  static_cast<std::int64_t>(m_policy.space().concurrency() /
+                                            (m_team_size * m_vector_size)),
+                  static_cast<std::int64_t>(m_league_size))));
+    }
+
+    unsigned int const shmem_size_total = m_shmem_begin + m_shmem_size;
+
+    auto maxShmemPerBlock =
+        internal_space_instance->m_deviceProp.sharedMemPerBlock;
+    if (maxShmemPerBlock < shmem_size_total) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<HIP>: Requested too much scratch memory "
+               "on level 0. Requested: "
+            << m_shmem_size
+            << ", Maximum: " << maxShmemPerBlock - m_shmem_begin;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+
+    if (m_scratch_size[1] > static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<HIP>: Requested too much scratch memory "
+               "on level 1. Requested: "
+            << m_scratch_size[1]
+            << ", Maximum: " << m_policy.scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+
+    int max_size = arg_policy.team_size_max(arg_functor, ParallelForTag());
+    if (m_team_size > max_size) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<HIP>: Requested too large team size. "
+               "Requested: "
+            << m_team_size << ", Maximum: " << max_size;
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+  }
+};
+
+}  // namespace Impl
+}  // namespace Kokkos
+
+#endif

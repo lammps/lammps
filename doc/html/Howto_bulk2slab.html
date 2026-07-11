@@ -1,0 +1,329 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.2.9. Convert bulk system to slab &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_bulk2slab.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.2.10. Broken Bonds" href="Howto_broken_bonds.html" />
+    <link rel="prev" title="10.2.8. Long-range dispersion settings" href="Howto_dispersion.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_2d.html">10.2.1. 2d simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_type_labels.html">10.2.2. Type labels</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_triclinic.html">10.2.3. Triclinic (non-orthogonal) simulation boxes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_thermostat.html">10.2.4. Thermostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_barostat.html">10.2.5. Barostats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_walls.html">10.2.6. Walls</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_nemd.html">10.2.7. NEMD simulations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_dispersion.html">10.2.8. Long-range dispersion settings</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.2.9. Convert bulk system to slab</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_broken_bonds.html">10.2.10. Broken Bonds</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.2.9. </span>Convert bulk system to slab</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_dispersion.html" class="btn btn-neutral float-left" title="10.2.8. Long-range dispersion settings" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_broken_bonds.html" class="btn btn-neutral float-right" title="10.2.10. Broken Bonds" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="convert-bulk-system-to-slab">
+<h1><span class="section-number">10.2.9. </span>Convert bulk system to slab<a class="headerlink" href="#convert-bulk-system-to-slab" title="Link to this heading"></a></h1>
+<p>A regularly encountered simulation problem is how to convert a bulk
+system that has been run for a while to equilibrate into a slab system
+with some vacuum space and free surfaces.  The challenge here is that
+one cannot just change the box dimensions with the <a class="reference internal" href="change_box.html"><span class="doc">change_box
+command</span></a> or edit the box boundaries in a data file because
+some atoms will have non-zero image flags from diffusing around.</p>
+<p>Changing the box dimensions results in an undesired displacement of
+those atoms, since the image flags indicate how many times the box
+length in x-, y-, or z-direction needs to be added or subtracted to get
+the “unwrapped” coordinates.  By changing the box dimension this
+distance is changed and thus those atoms move unphysically relative to
+their neighbors with zero image flags.  Setting image flags forcibly to
+zero creates problems because that could break apart molecules by having
+one atom of a bond on the top of the system and the other at the bottom.</p>
+<figure class="align-center align-default" id="id1" style="width: 80%">
+<span id="bulk2slab"></span><img alt="_images/rhodo-both.jpg" src="_images/rhodo-both.jpg" />
+<figcaption>
+<p><span class="caption-text">Snapshots of the bulk Rhodopsin in lipid layer and water system (right)
+and the generated slab geometry (left)</span><a class="headerlink" href="#id1" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<div class="note admonition">
+<p class="admonition-title">Disclaimer</p>
+<p>The following workflow will work for many bulk systems, but not all.
+Some systems cannot be converted (e.g. polymers with bonds to the
+same molecule across periodic boundaries, sometimes called “infinite
+polymers”).  The amount of vacuum that needs to be added depends on
+the length of the molecules where the system is split (the example
+here splits where there is water with short molecules).  In some
+cases, the system may need to be re-centered in the box first using
+the <a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms command</span></a>.  Also, the time
+spent on strong thermalization and equilibration will depend on the
+specific system and its thermodynamic conditions.</p>
+</div>
+<p>Below is a suggested workflow using the <a class="reference internal" href="Speed_bench.html"><span class="doc">Rhodopsin benchmark input</span></a> for demonstration.  The figure shows the state <em>before</em>
+the procedure on the left (with unwrapped atoms that have diffused out
+of the box) and <em>after</em> on the right (with the vacuum added above and
+below).  The procedure is implemented by modifying a copy of the
+<code class="docutils literal notranslate"><span class="pre">in.rhodo</span></code> input file.  The first lines up to and including the
+<a class="reference internal" href="read_data.html"><span class="doc">read_data command</span></a> remain unchanged.  Then we insert
+the following lines to add vacuum to the z direction above and below the
+system:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">variable       </span><span class="nv nv-Identifier">delta</span><span class="w"> </span><span class="n">index</span><span class="w"> </span><span class="m">10.0</span>
+<span class="k">reset_atoms</span><span class="w">    </span><span class="n">image</span><span class="w"> </span><span class="n">all</span>
+<span class="k">write_dump     </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="n">rhodo</span><span class="o">-</span><span class="n">unwrap.lammpstrj</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">xu</span><span class="w"> </span><span class="n">yu</span><span class="w"> </span><span class="n">zu</span>
+<span class="k">change_box     </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">final</span><span class="w"> </span><span class="nv">$(zlo-2.0*v_delta)</span><span class="w"> </span><span class="nv">$(zhi+2.0*v_delta)</span><span class="sc"> &amp;</span>
+<span class="k">                   boundary</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="n">p</span><span class="w"> </span><span class="n">f</span>
+<span class="k">read_dump</span><span class="w">      </span><span class="n">rhodo</span><span class="o">-</span><span class="n">unwrap.lammpstrj</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">replace</span><span class="w"> </span><span class="n">yes</span>
+<span class="k">kspace_modify</span><span class="w">  </span><span class="n">slab</span><span class="w"> </span><span class="n">auto</span>
+</pre></div>
+</div>
+<p>Specifically, the <a class="reference internal" href="variable.html"><span class="doc">variable delta</span></a> (set to 10.0)
+represents a distance that determines the amount of vacuum added: we add
+twice its value in each direction to the z-dimension; thus in total
+<span class="math notranslate nohighlight">\(40 \AA\)</span> get added.  The <a class="reference internal" href="reset_atoms.html"><span class="doc">reset_atoms image all</span></a> command shall reset any image flags to become either 0 or
+<span class="math notranslate nohighlight">\(\pm 1\)</span> and thus have the minimum distance from the center of the
+simulation box, but the correct relative distance for bonded atoms.</p>
+<p>Using <code class="docutils literal notranslate"><span class="pre">kspace_modify</span> <span class="pre">slab</span> <span class="pre">auto</span></code> lets the solver choose the near-optimal
+virtual vacuum used by the reciprocal-space slab correction from the
+current long-range accuracy target and box geometry.  A fixed value such
+as <code class="docutils literal notranslate"><span class="pre">slab</span> <span class="pre">3.0</span></code> can still be used if a manual override is preferred.</p>
+<p>The <a class="reference internal" href="write_dump.html"><span class="doc">write_dump command</span></a> then writes out the resulting
+<em>unwrapped</em> coordinates of the system.  After expanding the box,
+coordinates that were outside the box should now be inside and the
+unwrapped coordinates will become “wrapped”, while atoms outside the
+periodic boundaries will be wrapped back into the box and their image
+flags in those directions restored.</p>
+<p>The <a class="reference internal" href="change_box.html"><span class="doc">change_box command</span></a> adds the desired
+distance to the low and high box boundary in z-direction and then changes
+the <a class="reference internal" href="boundary.html"><span class="doc">boundary to “p p f”</span></a> which will force the image
+flags in z-direction to zero and create an undesired displacement for
+the atoms with non-zero image flags.</p>
+<p>With the <a class="reference internal" href="read_dump.html"><span class="doc">read_dump command</span></a> we read back and replace
+partially incorrect coordinates with the previously saved, unwrapped
+coordinates.  It is important to ignore the box dimensions stored in the
+dump file.  We want to preserve the expanded box.  Finally, we turn on
+the slab correction for the PPPM long-range solver with the
+<a class="reference internal" href="kspace_modify.html"><span class="doc">kspace_modify command</span></a> as required when using a
+long range Coulomb solver for non-periodic z-dimension.</p>
+<p>Next we replace the <a class="reference internal" href="fix_nh.html"><span class="doc">fix npt command</span></a> with:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">fix            </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">10.0</span>
+</pre></div>
+</div>
+<p>We now have an open system and thus the adjustment of the cell in
+z-direction is no longer required.  Since splitting the bulk water
+region where the vacuum is inserted, creates surface atoms with high
+potential energy, we reduce the thermostat time constant from 100.0 to
+10.0 to remove excess kinetic energy resulting from that change faster.</p>
+<p>Also the high potential energy of the surface atoms can cause that some
+of them are ejected from the slab.  In order to suppress that, we add
+soft harmonic walls to push back any atoms that want to leave the slab.
+To determine the position of the wall, we first need to determine the
+extent of the atoms in z-direction and then place the harmonic walls
+based on that information:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">compute         </span><span class="nv nv-Identifier">zmin</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">reduce</span><span class="w"> </span><span class="n">min</span><span class="w"> </span><span class="n">z</span>
+<span class="k">compute         </span><span class="nv nv-Identifier">zmax</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">reduce</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="n">z</span>
+<span class="k">thermo_style</span><span class="w">    </span><span class="n">custom</span><span class="w"> </span><span class="n">zlo</span><span class="w"> </span><span class="n">c_zmin</span><span class="w"> </span><span class="n">zhi</span><span class="w"> </span><span class="n">c_zmax</span>
+<span class="k">run</span><span class="w">             </span><span class="m">0</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="n">no</span>
+<span class="k">fix             </span><span class="nv nv-Identifier">3</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">wall</span><span class="o">/</span><span class="n">harmonic</span><span class="w"> </span><span class="n">zhi</span><span class="w"> </span><span class="nv">$(c_zmax+v_delta)</span><span class="w"> </span><span class="m">10.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="nv">${delta}</span><span class="sc"> &amp;</span>
+<span class="w">                                    </span><span class="n">zlo</span><span class="w"> </span><span class="nv">$(c_zmin-v_delta)</span><span class="w"> </span><span class="m">10.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="nv">${delta}</span>
+</pre></div>
+</div>
+<p>The two <a class="reference internal" href="compute_reduce.html"><span class="doc">compute reduce</span></a> command determine the
+minimum and maximum z-coordinate across all atoms.  In order to trigger
+the execution of the compute commands we need to “consume” them.  This
+is done with the <a class="reference internal" href="thermo_style.html"><span class="doc">thermo_style custom</span></a> command
+followed by the <a class="reference internal" href="run.html"><span class="doc">run 0</span></a> command.  This avoids and error
+accessing the min/max values determined by the compute commands to
+compute the location of the wall in lower and upper direction.  This
+uses the previously defined <em>delta</em> variable to determine the distance
+of the wall from the extent of the system and the cutoff for the wall
+interaction.  This way only atoms that move beyond the min/max values in
+z-direction will experience a restoring force, nudging them back to the
+slab.  The force constant of <span class="math notranslate nohighlight">\(10.0 \frac{\mathrm{kcal/mol}}{\AA}\)</span>
+was determined empirically.</p>
+<p>Adding these “restoring” soft walls assists in making the free surfaces
+above and below the slab flat, instead of having rugged or undulated
+surfaces.  The impact of the walls can be changed by adjusting the force
+constant, cutoff, and position of the wall.</p>
+<p>Finally, we replace the <a class="reference internal" href="run.html"><span class="doc">run 100</span></a> of the original input with:</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">run</span><span class="w">             </span><span class="m">1000</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="n">no</span>
+
+<span class="k">unfix           </span><span class="nv nv-Identifier">3</span>
+<span class="k">fix             </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nvt</span><span class="w"> </span><span class="n">temp</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">300.0</span><span class="w"> </span><span class="m">100.0</span>
+<span class="k">run</span><span class="w">             </span><span class="m">1000</span><span class="w"> </span><span class="n">post</span><span class="w"> </span><span class="n">no</span>
+
+<span class="k">write_data      </span><span class="nv nv-Identifier">data.rhodo-slab</span>
+</pre></div>
+</div>
+<p>This runs the system converted to a slab first for 1000 MD steps using
+the walls and stronger Nose-Hoover thermostat.  Then the walls are
+removed with <a class="reference internal" href="unfix.html"><span class="doc">unfix 3</span></a> and the thermostat time constant
+reset to 100.0 and the system run for another 1000 steps.  Finally the
+resulting slab geometry is written to a new data file
+<code class="docutils literal notranslate"><span class="pre">data.rhodo-slab</span></code> with a <a class="reference internal" href="write_data.html"><span class="doc">write_data command</span></a>.  The
+number of MD steps required to reach a proper equilibrium state is very
+likely larger.  The number of 1000 steps (corresponding to 2
+picoseconds) was chosen for demonstration purposes, so that the
+procedure can be easily and quickly tested.</p>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_dispersion.html" class="btn btn-neutral float-left" title="10.2.8. Long-range dispersion settings" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_broken_bonds.html" class="btn btn-neutral float-right" title="10.2.10. Broken Bonds" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

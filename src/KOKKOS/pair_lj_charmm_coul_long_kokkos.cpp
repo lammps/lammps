@@ -1,0 +1,504 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Ray Shan (SNL)
+------------------------------------------------------------------------- */
+
+#include "pair_lj_charmm_coul_long_kokkos.h"
+
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "error.h"
+#include "ewald_const.h"
+#include "force.h"
+#include "kokkos.h"
+#include "memory_kokkos.h"
+#include "neigh_list.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+#include "respa.h"
+#include "tune_kokkos.h"
+#include "update.h"
+
+#include <cmath>
+#include <cstring>
+
+using namespace LAMMPS_NS;
+using namespace EwaldConst;
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+PairLJCharmmCoulLongKokkos<DeviceType>::PairLJCharmmCoulLongKokkos(LAMMPS *lmp):PairLJCharmmCoulLong(lmp)
+{
+  respa_enable = 0;
+  tuner = nullptr;
+
+  kokkosable = 1;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+PairLJCharmmCoulLongKokkos<DeviceType>::~PairLJCharmmCoulLongKokkos()
+{
+  if (copymode) return;
+
+  if (allocated) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->destroy_kokkos(k_cutsq,cutsq);
+  }
+
+  delete tuner;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairLJCharmmCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+{
+  eflag = eflag_in;
+  vflag = vflag_in;
+
+  if (neighflag == FULL) no_virial_fdotr_compute = 1;
+
+  ev_init(eflag,vflag,0);
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    d_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
+  }
+
+  atomKK->sync(execution_space,datamask_read);
+  k_cutsq.template sync<DeviceType>();
+  k_params.template sync<DeviceType>();
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
+  x = atomKK->k_x.view<DeviceType>();
+  c_x = atomKK->k_x.view<DeviceType>();
+  f = atomKK->k_f.view<DeviceType>();
+  q = atomKK->k_q.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
+  nlocal = atom->nlocal;
+  nall = atom->nlocal + atom->nghost;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
+  newton_pair = force->newton_pair;
+
+  g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
+  denom_lj_inv_kk = static_cast<KK_FLOAT>(1.0 / denom_lj);
+  cut_ljsq_kk = static_cast<KK_FLOAT>(cut_ljsq);
+  cut_lj_innersq_kk = static_cast<KK_FLOAT>(cut_lj_innersq);
+
+  // loop over neighbors of my atoms
+
+  copymode = 1;
+
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
+  EV_FLOAT ev;
+  if (ncoultablebits)
+    ev = pair_compute<PairLJCharmmCoulLongKokkos<DeviceType>,CoulLongTable<1> >
+      (this,(NeighListKokkos<DeviceType>*)list);
+  else
+    ev = pair_compute<PairLJCharmmCoulLongKokkos<DeviceType>,CoulLongTable<0> >
+      (this,(NeighListKokkos<DeviceType>*)list);
+
+
+  if (eflag) {
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
+  }
+  if (vflag_global) {
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.sync_host();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.sync_host();
+  }
+
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+
+  copymode = 0;
+}
+
+/* ----------------------------------------------------------------------
+   compute LJ CHARMM pair force between atoms i and j
+   ---------------------------------------------------------------------- */
+template<class DeviceType>
+template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT forcelj, switch1, switch2, englj;
+
+  forcelj = r6inv *
+    ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
+     (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
+
+  if (rsq > cut_lj_innersq_kk) {
+    switch1 = (cut_ljsq_kk-rsq) * (cut_ljsq_kk-rsq) *
+              (cut_ljsq_kk + static_cast<KK_FLOAT>(2.0)*rsq - static_cast<KK_FLOAT>(3.0)*cut_lj_innersq_kk) * denom_lj_inv_kk;
+    switch2 = static_cast<KK_FLOAT>(12.0)*rsq * (cut_ljsq_kk-rsq) * (rsq-cut_lj_innersq_kk) * denom_lj_inv_kk;
+    englj = r6inv *
+            ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+             (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
+    forcelj = forcelj*switch1 + englj*switch2;
+  }
+
+  return forcelj*r2inv;
+}
+
+/* ----------------------------------------------------------------------
+   compute LJ CHARMM pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
+template<class DeviceType>
+template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+              const int& itype, const int& jtype) const {
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT englj, switch1;
+
+  englj = r6inv *
+    ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
+     (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
+
+  if (rsq > cut_lj_innersq_kk) {
+    switch1 = (cut_ljsq_kk-rsq) * (cut_ljsq_kk-rsq) *
+      (cut_ljsq_kk + static_cast<KK_FLOAT>(2.0)*rsq - static_cast<KK_FLOAT>(3.0)*cut_lj_innersq_kk) * denom_lj_inv_kk;
+    englj *= switch1;
+  }
+  return englj;
+}
+
+/* ----------------------------------------------------------------------
+   compute coulomb pair force between atoms i and j
+   ---------------------------------------------------------------------- */
+template<class DeviceType>
+template<bool STACKPARAMS,  class Specialisation>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/,
+              const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
+  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
+    KK_FLOAT forcecoul = qtmp*q[j] * table;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q[j] * table;
+      forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    }
+    return forcecoul/rsq;
+  } else {
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
+    KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+
+    return forcecoul*rinv*rinv;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute coulomb pair potential energy between atoms i and j
+   ---------------------------------------------------------------------- */
+template<class DeviceType>
+template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT PairLJCharmmCoulLongKokkos<DeviceType>::
+compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
+  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
+    KK_FLOAT ecoul = qtmp*q[j] * table;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q[j] * table;
+      ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    }
+    return ecoul;
+  } else {
+    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
+    KK_FLOAT ecoul = prefactor * erfc;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    return ecoul;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   allocate all arrays
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairLJCharmmCoulLongKokkos<DeviceType>::allocate()
+{
+  PairLJCharmmCoulLong::allocate();
+
+  int n = atom->ntypes;
+
+  memory->destroy(cutsq);
+  memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
+  d_cutsq = k_cutsq.template view<DeviceType>();
+
+  d_cut_ljsq = typename AT::t_kkfloat_2d("pair:cut_ljsq",n+1,n+1);
+
+  d_cut_coulsq = typename AT::t_kkfloat_2d("pair:cut_coulsq",n+1,n+1);
+
+  k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulLong::params",n+1,n+1);
+  params = k_params.template view<DeviceType>();
+}
+
+template<class DeviceType>
+void PairLJCharmmCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
+{
+  Pair::init_tables(cut_coul,cut_respa);
+
+  typedef typename AT::t_kkfloat_1d table_type;
+  typedef HAT::t_kkfloat_1d host_table_type;
+
+  int ntable = 1;
+  for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
+  tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
+
+  // Copy rtable and drtable
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(rtable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_rtable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(drtable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_drtable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+
+  // Copy ftable and dftable
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(ftable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_ftable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(dftable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_dftable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+
+  // Copy ctable and dctable
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(ctable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_ctable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(dctable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_dctable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+
+  // Copy etable and detable
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(etable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_etable = d_table;
+  }
+
+  {
+  host_table_type h_table("HostTable",ntable);
+  table_type d_table("DeviceTable",ntable);
+
+  for (int i = 0; i < ntable; i++) {
+    h_table(i) = static_cast<KK_FLOAT>(detable[i]);
+  }
+  Kokkos::deep_copy(d_table,h_table);
+  d_detable = d_table;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairLJCharmmCoulLongKokkos<DeviceType>::init_style()
+{
+  PairLJCharmmCoulLong::init_style();
+
+  Kokkos::deep_copy(d_cut_ljsq,static_cast<KK_FLOAT>(cut_ljsq));
+  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
+
+  // error if rRESPA with inner levels
+
+  if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
+    int respa = 0;
+    if (((Respa *) update->integrate)->level_inner >= 0) respa = 1;
+    if (((Respa *) update->integrate)->level_middle >= 0) respa = 2;
+    if (respa)
+      error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
+  }
+
+  // adjust neighbor list request for KOKKOS
+
+  neighflag = lmp->kokkos->neighflag;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+  if (neighflag == FULL) request->enable_full();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    if (!force->newton_pair)
+      tuner = new TuneKokkos(lmp, TuneKokkos::PAIR, lmp->kokkos->autotuning,
+        2, "pair-lj-charmm-coul-long");
+    else
+      error->warning(FLERR,"Autotuner for lj/charm/coul/long/kk is disabled with 'newton on'.");
+  }
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairLJCharmmCoulLongKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairLJCharmmCoulLong::init_one(i,j);
+
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  //k_params.view_host()(i,j).offset = offset[i][j];
+  k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(cut_ljsq);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
+
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
+  if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsq);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
+  }
+
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
+  k_cutsq.modify_host();
+  k_params.modify_host();
+
+  return cutone;
+}
+
+namespace LAMMPS_NS {
+template class PairLJCharmmCoulLongKokkos<LMPDeviceType>;
+#ifdef LMP_KOKKOS_GPU
+template class PairLJCharmmCoulLongKokkos<LMPHostType>;
+#endif
+}

@@ -1,0 +1,40 @@
+# multiple W conformations with NWChem
+
+# configs that don't currently work well
+# w.bcc_222 w.fcc_001
+
+variable        datafile index w.bcc w.diamond w.sc_001
+variable        p equal extract_setting(world_size)
+
+mdi             connect
+
+label           loop
+
+  units		  metal
+  atom_style	  atomic
+  atom_modify     map yes
+  comm_modify     cutoff 2.0
+
+  log             log.series.${datafile}.$p
+
+  read_data       data.${datafile}
+
+  mass		  1 183.84
+
+  neighbor	  1.0 bin
+  neigh_modify	  delay 0 every 1 check yes
+
+  fix             1 all mdi/qm elements W connect no
+  fix_modify      1 energy yes
+
+  #dump            1 all custom 1 dump.series.${datafile}.$p id x y z fx fy fz
+
+  run		  0
+
+  clear
+
+next            datafile
+
+jump            SELF loop
+
+mdi             exit

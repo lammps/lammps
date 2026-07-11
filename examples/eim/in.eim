@@ -1,0 +1,34 @@
+# NaCl test problem for embedded atom method (EIM) potential
+
+units		metal
+atom_style      atomic
+
+boundary	p p p
+
+lattice         diamond 5.0
+read_data       data.eim
+
+pair_style      eim
+pair_coeff      * * Na Cl ffield.eim Na Cl 
+
+neighbor	0.3 bin
+neigh_modify	delay 0
+
+timestep        0.001
+thermo_style    custom step pe pxx pyy pzz temp
+thermo          50
+
+velocity        all create 1400.0 43454 dist gaussian mom yes
+fix             int all npt temp 1400.0 300.0 0.1 aniso 0.0 0.0 0.1
+
+#dump		id all atom 100 dump.eim
+
+#dump		2 all image 25 image.*.jpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	2 pad 3 element Na Cl
+
+#dump		3 all movie 25 movie.mpg element element &
+#		axes yes 0.8 0.02 view 60 -30
+#dump_modify	3 pad 3 element Na Cl
+
+run             500

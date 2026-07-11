@@ -1,0 +1,81 @@
+package require psfgen   
+topology top_all27_na.rtf
+pdbalias residue A ADE 
+pdbalias residue T THY 
+pdbalias residue G GUA 
+pdbalias residue C CYT 
+pdbalias atom ADE O3* O3'
+pdbalias atom THY O3* O3'
+pdbalias atom GUA O3* O3'
+pdbalias atom CYT O3* O3'
+pdbalias atom ADE O4* O4'
+pdbalias atom THY O4* O4'
+pdbalias atom GUA O4* O4'
+pdbalias atom CYT O4* O4'
+pdbalias atom ADE O5* O5'
+pdbalias atom THY O5* O5'
+pdbalias atom GUA O5* O5'
+pdbalias atom CYT O5* O5'
+pdbalias atom ADE C1* C1'
+pdbalias atom THY C1* C1'
+pdbalias atom GUA C1* C1'
+pdbalias atom CYT C1* C1'
+pdbalias atom ADE C2* C2'
+pdbalias atom THY C2* C2'
+pdbalias atom GUA C2* C2'
+pdbalias atom CYT C2* C2'
+pdbalias atom ADE C3* C3'
+pdbalias atom THY C3* C3'
+pdbalias atom GUA C3* C3'
+pdbalias atom CYT C3* C3'
+pdbalias atom ADE C4* C4'
+pdbalias atom THY C4* C4'
+pdbalias atom GUA C4* C4'
+pdbalias atom CYT C4* C4'
+pdbalias atom ADE C5* C5'
+pdbalias atom THY C5* C5'
+pdbalias atom GUA C5* C5'
+pdbalias atom CYT C5* C5'
+pdbalias atom ADE H1* H1'
+pdbalias atom THY H1* H1'
+pdbalias atom GUA H1* H1'
+pdbalias atom CYT H1* H1'
+pdbalias atom ADE H3* H3'
+pdbalias atom THY H3* H3'
+pdbalias atom GUA H3* H3'
+pdbalias atom CYT H3* H3'
+pdbalias atom ADE H4* H4'
+pdbalias atom THY H4* H4'
+pdbalias atom GUA H4* H4'
+pdbalias atom CYT H4* H4'
+pdbalias atom ADE 1H5* H5'
+pdbalias atom THY 1H5* H5'
+pdbalias atom GUA 1H5* H5'
+pdbalias atom CYT 1H5* H5'
+pdbalias atom ADE 2H5* H5''
+pdbalias atom THY 2H5* H5''
+pdbalias atom GUA 2H5* H5''
+pdbalias atom CYT 2H5* H5''
+pdbalias atom ADE 1H2* H2'
+pdbalias atom THY 1H2* H2'
+pdbalias atom GUA 1H2* H2'
+pdbalias atom CYT 1H2* H2'
+pdbalias atom ADE 2H2* H2''
+pdbalias atom THY 2H2* H2''
+pdbalias atom GUA 2H2* H2''
+pdbalias atom CYT 2H2* H2''
+pdbalias atom GUA 1H2 H21
+pdbalias atom GUA 2H2 H22
+pdbalias atom CYT 1H4 H41
+pdbalias atom CYT 2H4 H42
+pdbalias atom ADE 1H6 H61
+pdbalias atom ADE 2H6 H62
+pdbalias atom THY 1H5M H51
+pdbalias atom THY 2H5M H52
+pdbalias atom THY 3H5M H53
+segment A {pdb 1ac7_pared.pdb}   
+coordpdb 1ac7_pared.pdb A   
+guesscoord   
+writepdb 1ac7.pdb   
+writepsf charmm 1ac7.psf  
+exit 

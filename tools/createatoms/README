@@ -1,0 +1,18 @@
+The createAtoms tool
+
+createAtoms.f is a Fortran program which can generate a variety of
+interesting crystal structures and geometries and output the resulting
+list of atom coordinates in LAMMPS or other formats.
+
+See the included Manual.pdf for details of how to create input files
+for createAtoms and run it.
+
+The tool is authored by Xiaowang Zhou (Sandia) who can be contacted at
+xzhou at sandia.gov for questions.
+
+Sample build of program:
+gfortran createAtoms.f which produces a.out
+
+This tool can be used in conjunction with the ipp tool for creating
+its input commands.  See tools/ipp/README.txt for an example.
+

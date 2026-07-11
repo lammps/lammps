@@ -1,0 +1,228 @@
+.TH asphere_vis 1 "October 22, 2007" "asphere_vis (Graphics Utilities) 0.2" "Graphics Utilities"
+.SH NAME
+\fBasphere_vis\fR - Tools for ellipsoid visualization in PyMol of a LAMMPS trajectory.
+.PD 2
+.SH VERSION
+.PD 1
+Version 0.2
+.PD 2
+.SH SYNOPSIS
+.PD 1
+.TP
+\fBasphere_vis\fR flavor_file dump_file output_py_file [\fB-b\fR] [\fB-f\fR \fImax_frame\fR] [\fB-h\fR] [\fB-i\fR \fIstart_frame\fR \fIskip\fR \fIend_frame\fR] [\fB-n\fR \fInotice_level\fR] [\fB-o\fR] [\fB-r\fR \fIellip_res\fR] [\fB-s\fR]
+.br
+.PD 2
+.SH DESCRIPTION
+.PD 1
+Tool for converting LAMMPS trajectories into compiled graphics objects for visualization in PyMol. The \fIflavor_file\fR is an input file that describes the color, transparency, and size/shape of each atom type. The \fIflavor_file\fR consists of two possible line formats. For spherical particles, the format is:
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	\fIatom_type color alpha diameter\fR
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+where alpha is used to adjust the transparency of the particle. For ellipsoidal particles, the format is:
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	\fIatom_type color alpha diameter_x diameter_y diameter_z\fR
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+Ellipsoidal and spherical line formats can be mixed in the same \fIflavor_file\fR For any atom type not listed in the \fIflavor_file\fR a blue sphere of size 1 is assumed.
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+The \fIdump_file\fR is a LAMMPS trajectory. For atom types specified as spherical in the \fIflavor_file\fR, the \fIdump_file\fR must contain \fItag type x y z\fR as the first columns. For atom types specified as ellipsoidal in the \fIflavor_file\fR, the columns are \fItag type x y z quatw quati quatj quatk\fR.The latter can be gerenated, for example, with the LAMMPS dump_style custom command with the following arguments in order:
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	\fItag type x y z quatw quati quatj quatk\fR
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+The output file is a python file for input to Pymol. This can be viewed from the command line using \fIpymol output.py\fR or by using the \fIrun\fR command from within Pymol.
+.PD 2
+.SH PARAMETERS
+.PD 1
+.TP
+\fB-b\fR
+When used with \fB-s\fR, the option will number the filenames based on the frame number. By default, they are numbered consequtively from zero.
+.TP
+\fB-f\fR \fImax_frame\fR
+.PD 0
+.TP
+.PP
+.PD 1
+Do not write more than \fImax_frame\fR frames to the output file.
+.TP
+\fB-h\fR
+Print out the man page for help
+.TP
+\fB-i\fR \fIstart_frame\fR \fIskip\fR \fIend_frame\fR
+.PD 0
+.TP
+.PP
+.PD 1
+Render the specified frame interval inclusive between \fIstart_frame\fR and \fIend_frame\fR. \fIskip\fR gives the number of frames to \fIskip\fR between each rendered frame. A value of 0 outputs every frame between \fIstart_frame\fR and \fIend_frame\fR. The first frame in the dump file is frame 0.
+.TP
+\fB-n\fR \fInotice_level\fR
+.PD 0
+.TP
+.PP
+.PD 1
+Set the degree of program output.  Use: 
+.PD 0
+.PP
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	\fB-n\fR  0	No output
+.PD 0
+.PP
+.PD 1
+	\fB-n\fR 10	Normal program output
+.PD 0
+.PP
+.PD 1
+	\fB-n\fR 20	Parameters useful for reproducing the results
+.PD 0
+.PP
+.PD 1
+	\fB-n\fR 30	All output
+.TP
+\fB-o\fR
+Do not output the outline for the simulation box.
+.TP
+\fB-r\fR \fIellip_res\fR
+.PD 0
+.TP
+.PP
+.PD 1
+Resolution of ellipsoids in PyMol. The number of triangles per ellipsoid is equal to 2*(\fIellip_res\fR^2). Default is 10.
+.TP
+\fB-s\fR
+Output the results into separate .py files. The filename and extension for the output files is taken from \fIoutput_py_file\fR.
+.PD 2
+.SH AVAILABLE COLORS
+.PD 1
+
+.PD 0
+.PP
+.PD 1
+	black
+.PD 0
+.PP
+.PD 1
+	blue
+.PD 0
+.PP
+.PD 1
+	brown
+.PD 0
+.PP
+.PD 1
+	cmyk_blue
+.PD 0
+.PP
+.PD 1
+	cmyk_marine
+.PD 0
+.PP
+.PD 1
+	deep
+.PD 0
+.PP
+.PD 1
+	forest
+.PD 0
+.PP
+.PD 1
+	green
+.PD 0
+.PP
+.PD 1
+	grey
+.PD 0
+.PP
+.PD 1
+	hotpink
+.PD 0
+.PP
+.PD 1
+	magenta
+.PD 0
+.PP
+.PD 1
+	marine
+.PD 0
+.PP
+.PD 1
+	orange
+.PD 0
+.PP
+.PD 1
+	purple
+.PD 0
+.PP
+.PD 1
+	red
+.PD 0
+.PP
+.PD 1
+	slate
+.PD 0
+.PP
+.PD 1
+	teal
+.PD 0
+.PP
+.PD 1
+	wheat
+.PD 0
+.PP
+.PD 1
+	white
+.PD 0
+.PP
+.PD 1
+	yellow
+.PD 0
+.PP
+.PD 1
+
+.PD 2
+.SH AUTHORS
+.PD 1
+W. Michael Brown

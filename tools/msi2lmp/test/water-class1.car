@@ -1,0 +1,10 @@
+!BIOSYM archive 3
+PBC=ON
+Materials Studio Generated CAR File
+!DATE Tue Jul 02 12:42:22 2013
+PBC   10.0000   10.0000   10.0000   90.0000   90.0000   90.0000 (P1)
+O1       5.000000000    5.000000000    5.000000000 TIP3 1      otip    O  -0.834
+H2       4.000000000    5.000000000    5.000000000 TIP3 1      htip    H   0.417
+H3       5.000000000    4.000000000    5.000000000 TIP3 1      htip    H   0.417
+end
+end

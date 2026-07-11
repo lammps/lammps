@@ -1,0 +1,38 @@
+# Ca-O melt with Pedone potential
+
+units metal
+atom_style charge
+
+lattice fcc 4.8105  # experimental lattice parameter for fcc-lattice Ca cations
+
+region box block 0 4 0 4 0 4
+create_box 2 box
+create_atoms 1 box
+
+lattice fcc 4.8105 origin 0.5 0.5 0.5 # O anion lattice shifted by half a unit cell
+create_atoms 2 box
+
+mass 1 40.078
+mass 2 15.999
+
+set type 1 charge 1.2
+set type 2 charge -1.2
+
+timestep 0.002
+neigh_modify delay 5 every 1 check yes
+
+pair_style hybrid/overlay pedone 15.0 coul/long 15.0
+kspace_style pppm 1.0e-6
+
+pair_coeff * * coul/long
+pair_coeff 1 2 pedone 0.030211 2.241334 2.923245 5.0
+pair_coeff 2 2 pedone 0.042395 1.379316 3.618701 22.0
+
+velocity all create 6000.0 98347
+
+fix 1 all nvt temp 3000.0 3000.0 0.1
+
+# dump 1 all atom 500 Ca-O-melt.lammpstrj
+
+thermo 100
+run 1000

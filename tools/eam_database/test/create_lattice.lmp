@@ -1,0 +1,20 @@
+# Creates an "NaCl like" structure in data.lmp file
+# Assigns a type 2 to the second atom of a bcc lattice
+# replicate the box in every direction 5x5x5=250 atoms
+units metal
+boundary p p p
+atom_style atomic
+
+lattice bcc 5.4
+region Myreg block 0 1 0 1 0 1 units lattice
+
+create_box 2 Myreg
+create_atoms 1 box
+
+set atom 2 type 2
+
+mass * 1.
+
+replicate 5 5 5
+
+write_data data.lmp

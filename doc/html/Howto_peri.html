@@ -1,0 +1,1103 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>10.5.10. Peridynamics with LAMMPS &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Howto_peri.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="10.5.11. Manifolds (surfaces)" href="Howto_manifold.html" />
+    <link rel="prev" title="10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS" href="Howto_drude2.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Howto.html">10. Howto discussions</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#general-howto">10.1. General howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#settings-howto">10.2. Settings howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#analysis-howto">10.3. Analysis howto</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#force-fields-howto">10.4. Force fields howto</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="Howto.html#packages-howto">10.5. Packages howto</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="Howto_spherical.html">10.5.1. Finite-size spherical and aspherical particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular.html">10.5.2. Granular models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_granular_surfaces.html">10.5.3. Granular surfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_body.html">10.5.4. Body particles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_bpm.html">10.5.5. Bonded particle models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_polarizable.html">10.5.6. Polarizable models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_coreshell.html">10.5.7. Adiabatic core/shell model</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude.html">10.5.8. Drude induced dipoles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_drude2.html">10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">10.5.10. Peridynamics with LAMMPS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_manifold.html">10.5.11. Manifolds (surfaces)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_rheo.html">10.5.12. Reproducing hydrodynamics and elastic objects (RHEO)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_spins.html">10.5.13. Magnetic spins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_apip.html">10.5.14. Adaptive-precision interatomic potentials (APIP)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="Howto_ldd.html">10.5.15. Local Density Dependent Potentials via LDD</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="Howto.html#tutorials-howto">10.6. Tutorials howto</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Howto.html"><span class="section-number">10. </span>Howto discussions</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">10.5.10. </span>Peridynamics with LAMMPS</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Howto_drude2.html" class="btn btn-neutral float-left" title="10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_manifold.html" class="btn btn-neutral float-right" title="10.5.11. Manifolds (surfaces)" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="peridynamics-with-lammps">
+<h1><span class="section-number">10.5.10. </span>Peridynamics with LAMMPS<a class="headerlink" href="#peridynamics-with-lammps" title="Link to this heading"></a></h1>
+<p>This Howto is based on the Sandia report 2010-5549 by Michael L. Parks,
+Pablo Seleson, Steven J. Plimpton, Richard B. Lehoucq, and
+Stewart A. Silling.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Peridynamics is a nonlocal extension of classical continuum mechanics.
+The discrete peridynamic model has the same computational structure as a
+molecular dynamics model.  This Howto provides a brief overview of the
+peridynamic model of a continuum, then discusses how the peridynamic
+model is discretized within LAMMPS as described in the original article
+<a class="reference internal" href="#parks2"><span class="std std-ref">(Parks)</span></a>.  An example problem with comments is also
+included.</p>
+</section>
+<section id="quick-start">
+<h2>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h2>
+<p>The peridynamics styles are included in the optional <a class="reference internal" href="Packages_details.html#pkg-peri"><span class="std std-ref">PERI package</span></a>.  If your LAMMPS executable does not already include the
+PERI package, you can see the <a class="reference internal" href="Build_package.html"><span class="doc">build instructions for packages</span></a> for how to enable the package when compiling a custom
+version of LAMMPS from source.</p>
+<p>Here is a minimal example for setting up a peridynamics simulation.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">units</span><span class="w">         </span><span class="n">si</span>
+<span class="k">boundary</span><span class="w">      </span><span class="n">s</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">s</span>
+<span class="k">lattice</span><span class="w">       </span><span class="n">sc</span><span class="w"> </span><span class="m">0.0005</span>
+<span class="k">atom_style</span><span class="w">    </span><span class="n">peri</span>
+<span class="k">atom_modify</span><span class="w">   </span><span class="n">map</span><span class="w"> </span><span class="n">array</span>
+<span class="k">neighbor</span><span class="w">      </span><span class="m">0.0010</span><span class="w"> </span><span class="n">bin</span>
+<span class="k">region        </span><span class="nv nv-Identifier">target</span><span class="w"> </span><span class="n">cylinder</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0050</span><span class="w"> </span><span class="o">-</span><span class="m">0.0050</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">create_box    </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">target</span>
+<span class="k">create_atoms</span><span class="w">  </span><span class="m">1</span><span class="w"> </span><span class="k">region </span><span class="nv nv-Identifier">target</span>
+
+<span class="k">pair_style</span><span class="w">    </span><span class="n">peri</span><span class="o">/</span><span class="n">pmb</span>
+<span class="k">pair_coeff</span><span class="w">    </span><span class="o">*</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1.6863e22</span><span class="w"> </span><span class="m">0.0015001</span><span class="w"> </span><span class="m">0.0005</span><span class="w"> </span><span class="m">0.25</span>
+<span class="k">set</span><span class="w">           </span><span class="k">group </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">density</span><span class="w"> </span><span class="m">2200</span>
+<span class="k">set</span><span class="w">           </span><span class="k">group </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">volume</span><span class="w"> </span><span class="m">1.25e-10</span>
+<span class="k">velocity      </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="k">fix           </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nve</span>
+<span class="k">compute       </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">damage</span><span class="o">/</span><span class="n">atom</span>
+<span class="k">timestep</span><span class="w">      </span><span class="m">1.0e-7</span>
+</pre></div>
+</div>
+<p>Some notes on this input example:</p>
+<ul class="simple">
+<li><p>peridynamics simulations typically use SI <a class="reference internal" href="units.html"><span class="doc">units</span></a></p></li>
+<li><p>particles must be created on a <a class="reference internal" href="lattice.html"><span class="doc">simple cubic lattice</span></a></p></li>
+<li><p>using the <a class="reference internal" href="atom_style.html"><span class="doc">atom style peri</span></a> is required</p></li>
+<li><p>an <a class="reference internal" href="atom_modify.html"><span class="doc">atom map</span></a> is required for indexing particles</p></li>
+<li><p>The <a class="reference internal" href="neighbor.html"><span class="doc">skin distance</span></a> used when computing neighbor lists
+should be defined appropriately for your choice of simulation
+parameters. The <em>skin</em> should be set to a value such that the
+peridynamic horizon plus the skin distance is larger than the maximum
+possible distance between two bonded particles (before their bond
+breaks). Here it is set to 0.001 meters.</p></li>
+<li><p>a <a class="reference internal" href="pair_peri.html"><span class="doc">peridynamics pair style</span></a> is required.  Available
+choices are currently: <em>peri/eps</em>, <em>peri/lps</em>, <em>peri/pmb</em>, and
+<em>peri/ves</em>.  The model parameters are set with a <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command.</p></li>
+<li><p>the mass density and volume fraction for each particle must be
+defined.  This is done with the two <a class="reference internal" href="set.html"><span class="doc">set</span></a> commands for
+<em>density</em> and <em>volume</em>.  For a simple cubic lattice, the volume of a
+particle should be equal to the cube of the lattice constant, here
+<span class="math notranslate nohighlight">\(V_i = \Delta x ^3\)</span>.</p></li>
+<li><p>with the <a class="reference internal" href="velocity.html"><span class="doc">velocity</span></a> command all particles are initially at rest</p></li>
+<li><p>a plain <a class="reference internal" href="fix_nve.html"><span class="doc">velocity-Verlet time integrator</span></a> is used,
+which is algebraically equivalent to a centered difference in time,
+but numerically more stable</p></li>
+<li><p>you can compute the damage at the location of each particle with
+<a class="reference internal" href="compute_damage_atom.html"><span class="doc">compute damage/atom</span></a></p></li>
+<li><p>finally, the timestep is set to 0.1 microseconds with the
+<a class="reference internal" href="timestep.html"><span class="doc">timestep</span></a> command.</p></li>
+</ul>
+</section>
+<section id="peridynamic-model-of-a-continuum">
+<h2>Peridynamic Model of a Continuum<a class="headerlink" href="#peridynamic-model-of-a-continuum" title="Link to this heading"></a></h2>
+<p>The following is not a complete overview of peridynamics, but a
+discussion of only those details specific to the model we have
+implemented within LAMMPS. For more on the peridynamic theory, the
+reader is referred to <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>. To begin,
+we define the notation we will use.</p>
+<section id="basic-notation">
+<h3>Basic Notation<a class="headerlink" href="#basic-notation" title="Link to this heading"></a></h3>
+<p>Within the peridynamic literature, the following notational conventions
+are generally used. The position of a given point in the reference
+configuration is <span class="math notranslate nohighlight">\(\textbf{x}\)</span>. Let
+<span class="math notranslate nohighlight">\(\mathbf{u}(\mathbf{x},t)\)</span> and <span class="math notranslate nohighlight">\(\mathbf{y}(\mathbf{x},t)\)</span>
+denote the displacement and position, respectively, of the point
+<span class="math notranslate nohighlight">\(\mathbf{x}\)</span> at time <span class="math notranslate nohighlight">\(t\)</span>. Define the relative position and
+displacement vectors of two bonded points <span class="math notranslate nohighlight">\(\textbf{x}\)</span> and
+<span class="math notranslate nohighlight">\(\textbf{x}^\prime\)</span> as <span class="math notranslate nohighlight">\(\mathbf{\xi} = \textbf{x}^\prime -
+\textbf{x}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{\eta} = \textbf{u}(\textbf{x}^\prime,t) -
+\textbf{u}(\textbf{x},t)\)</span>, respectively. We note here that
+<span class="math notranslate nohighlight">\(\mathbf{\eta}\)</span> is time-dependent, and that <span class="math notranslate nohighlight">\(\mathbf{\xi}\)</span>
+is not. It follows that the relative position of the two bonded points
+in the current configuration can be written as <span class="math notranslate nohighlight">\(\boldsymbol{\xi} +
+\boldsymbol{\eta} =
+\mathbf{y}(\mathbf{x}^{\prime},t)-\mathbf{y}(\mathbf{x},t)\)</span>.</p>
+<p>Peridynamic models are frequently written using <em>states</em>, which we
+briefly describe here. For the purposes of our discussion, all states
+are operators that act on vectors in <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span>. For a more
+complete discussion of states, see <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>. A <em>vector state</em> is an operator whose image is a
+vector, and may be viewed as a generalization of a second-rank
+tensor. Similarly, a <em>scalar state</em> is an operator whose image is a
+scalar. Of particular interest is the vector force state
+<span class="math notranslate nohighlight">\(\underline{\mathbf{T}}\left[ \mathbf{x},t \right]\left&lt;
+\mathbf{x}^{\prime}-\mathbf{x} \right&gt;\)</span>, which is a mapping, having
+units of force per volume squared, of the vector
+<span class="math notranslate nohighlight">\(\mathbf{x}^{\prime}-\mathbf{x}\)</span> to the force vector state
+field. The vector state operator <span class="math notranslate nohighlight">\(\underline{\mathbf{T}}\)</span> may
+itself be a function of <span class="math notranslate nohighlight">\(\mathbf{x}\)</span> and <span class="math notranslate nohighlight">\(t\)</span>. The
+constitutive model is completely contained within
+<span class="math notranslate nohighlight">\(\underline{\mathbf{T}}\)</span>.</p>
+<p>In the peridynamic theory, the deformation at a point depends
+collectively on all points interacting with that point. Using the
+notation of <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>, we write the
+peridynamic equation of motion as</p>
+<div class="math notranslate nohighlight" id="perinewtonii">
+\[\rho(\mathbf{x}) \ddot{\mathbf{u}}(\mathbf{x},t) =
+\int_{\mathcal{H}_{\mathbf{x}}} \left\{
+\underline{\mathbf{T}}\left[\mathbf{x},t
+\right]\left&lt;\mathbf{x}^{\prime}-\mathbf{x} \right&gt; -
+\underline{\mathbf{T}}\left[\mathbf{x}^{\prime},t
+\right]\left&lt;\mathbf{x}-\mathbf{x}^{\prime} \right&gt; \right\}
+{d}V_{\mathbf{x}^\prime} + \mathbf{b}(\mathbf{x},t), \qquad\qquad\textrm{(1)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\rho\)</span> represents the mass density,
+<span class="math notranslate nohighlight">\(\underline{\mathbf{T}}\)</span> the force vector state, and
+<span class="math notranslate nohighlight">\(\mathbf{b}\)</span> an external body force density. A point
+<span class="math notranslate nohighlight">\(\mathbf{x}\)</span> interacts with all the points
+<span class="math notranslate nohighlight">\(\mathbf{x}^{\prime}\)</span> within the neighborhood
+<span class="math notranslate nohighlight">\(\mathcal{H}_{\mathbf{x}}\)</span>, assumed to be a spherical region of
+radius <span class="math notranslate nohighlight">\(\delta&gt;0\)</span> centered at <span class="math notranslate nohighlight">\(\mathbf{x}\)</span>. <span class="math notranslate nohighlight">\(\delta\)</span>
+is called the <em>horizon</em>, and is analogous to the cutoff radius used in
+molecular dynamics. Conditions on <span class="math notranslate nohighlight">\(\underline{\mathbf{T}}\)</span> for
+which <a class="reference internal" href="#perinewtonii"><span class="std std-ref">(1)</span></a> satisfies the balance of linear and angular
+momentum are given in <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>.</p>
+<p>We consider only force vector states that can be written as</p>
+<div class="math notranslate nohighlight">
+\[\underline{\mathbf{T}} = \underline{t}\,\underline{\mathbf{M}},\]</div>
+<p>with <span class="math notranslate nohighlight">\(\underline{t}\)</span> a <em>scalar force state</em> and
+<span class="math notranslate nohighlight">\(\underline{\mathbf{M}}\)</span> the <em>deformed direction vector
+state</em>, defined by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\underline{\mathbf{M}}\left&lt; \boldsymbol{\xi} \right&gt; =
+\left\{ \begin{array}{cl}
+\frac{\boldsymbol{\xi} + \boldsymbol{\eta}}{
+\left\Vert \boldsymbol{\xi} + \boldsymbol{\eta} \right\Vert
+} &amp; \left\Vert \boldsymbol{\xi} + \boldsymbol{\eta} \right\Vert \neq 0 \\
+\boldsymbol{0}  &amp; \textrm{otherwise}
+\end{array}
+\right. . \qquad\qquad\textrm{(2)}\end{split}\]</div>
+<p>Such force states correspond to so-called <em>ordinary</em> materials
+<a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>. These are the materials for which
+the force between any two interacting points <span class="math notranslate nohighlight">\(\textbf{x}\)</span> and
+<span class="math notranslate nohighlight">\(\textbf{x}^\prime\)</span> acts along the line between the points.</p>
+</section>
+<section id="linear-peridynamic-solid-lps-model">
+<h3>Linear Peridynamic Solid (LPS) Model<a class="headerlink" href="#linear-peridynamic-solid-lps-model" title="Link to this heading"></a></h3>
+<p>We summarize the linear peridynamic solid (LPS) material model. For more
+on this model, the reader is referred to <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>.  This model is a nonlocal analogue to a classical
+linear elastic isotropic material. The elastic properties of a
+classical linear elastic isotropic material are determined by (for
+example) the bulk and shear moduli. For the LPS model, the elastic
+properties are analogously determined by the bulk and shear moduli,
+along with the horizon <span class="math notranslate nohighlight">\(\delta\)</span>.</p>
+<p>The LPS model has a force scalar state</p>
+<div class="math notranslate nohighlight">
+\[\underline{t} = \frac{3K\theta}{m}\underline{\omega}\,\underline{x} +
+\alpha \underline{\omega}\,\underline{e}^\mathrm{d}, \qquad\qquad\textrm{(3)}\]</div>
+<p>with <span class="math notranslate nohighlight">\(K\)</span> the bulk modulus and <span class="math notranslate nohighlight">\(\alpha\)</span> related to the shear
+modulus <span class="math notranslate nohighlight">\(G\)</span> as</p>
+<div class="math notranslate nohighlight">
+\[\alpha = \frac{15 G}{m}.\]</div>
+<p>The remaining components of the model are described as follows. Define
+the reference position scalar state <span class="math notranslate nohighlight">\(\underline{x}\)</span> so that
+<span class="math notranslate nohighlight">\(\underline{x}\left&lt;\boldsymbol{\xi} \right&gt; = \left\Vert
+\boldsymbol{\xi} \right\Vert\)</span>. Then, the weighted volume <span class="math notranslate nohighlight">\(m\)</span> is
+defined as</p>
+<div class="math notranslate nohighlight">
+\[m\left[ \mathbf{x} \right] = \int_{\mathcal{H}_\mathbf{x}}
+\underline{\omega} \left&lt;\boldsymbol{\xi}\right&gt;
+\underline{x}\left&lt;\boldsymbol{\xi} \right&gt;
+\underline{x}\left&lt;\boldsymbol{\xi} \right&gt;{d}V_{\boldsymbol{\xi} }.  \qquad\qquad\textrm{(4)}\]</div>
+<p>Let</p>
+<div class="math notranslate nohighlight">
+\[\underline{e}\left[ \mathbf{x},t \right] \left&lt;\boldsymbol{\xi}
+\right&gt; = \left\Vert \boldsymbol{\xi} + \boldsymbol{\eta}
+\right\Vert - \left\Vert \boldsymbol{\xi} \right\Vert\]</div>
+<p>be the extension scalar state, and</p>
+<div class="math notranslate nohighlight">
+\[\theta\left[ \mathbf{x}, t \right] = \frac{3}{m\left[ \mathbf{x}
+\right]}\int_{\mathcal{H}_\mathbf{x}} \underline{\omega}
+\left&lt;\boldsymbol{\xi}\right&gt; \underline{x}\left&lt;\boldsymbol{\xi}
+\right&gt; \underline{e}\left[ \mathbf{x},t
+\right]\left&lt;\boldsymbol{\xi} \right&gt;{d}V_{\boldsymbol{\xi}}\]</div>
+<p>be the dilatation. The isotropic and deviatoric parts of the extension
+scalar state are defined, respectively, as</p>
+<div class="math notranslate nohighlight">
+\[\underline{e}^\mathrm{i}=\frac{\theta \underline{x}}{3}, \qquad
+\underline{e}^\mathrm{d} = \underline{e}- \underline{e}^\mathrm{i},\]</div>
+<p>where the arguments of the state functions and the vectors on which they
+operate are omitted for simplicity. We note that the LPS model is linear
+in the dilatation <span class="math notranslate nohighlight">\(\theta\)</span>, and in the deviatoric part of the
+extension <span class="math notranslate nohighlight">\(\underline{e}^\mathrm{d}\)</span>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The weighted volume <span class="math notranslate nohighlight">\(m\)</span> is time-independent, and does
+not change as bonds break. It is computed with respect to the bond
+family defined at the reference (initial) configuration.</p>
+</div>
+<p>The non-negative scalar state <span class="math notranslate nohighlight">\(\underline{\omega}\)</span> is an
+<em>influence function</em> <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>. For more on
+influence functions, see <a class="reference internal" href="#seleson2010"><span class="std std-ref">(Seleson 2010)</span></a>. If an
+influence function <span class="math notranslate nohighlight">\(\underline{\omega}\)</span> depends only upon the
+scalar <span class="math notranslate nohighlight">\(\left\Vert \boldsymbol{\xi} \right\Vert\)</span>, (i.e.,
+<span class="math notranslate nohighlight">\(\underline{\omega}\left&lt;\boldsymbol{\xi}\right&gt; =
+\underline{\omega}\left&lt;\left\Vert \boldsymbol{\xi} \right\Vert\right&gt;\)</span>), then <span class="math notranslate nohighlight">\(\underline{\omega}\)</span> is a spherical influence function.
+For a spherical influence function, the LPS model is isotropic
+<a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the LAMMPS implementation of the LPS model, the influence function
+<span class="math notranslate nohighlight">\(\underline{\omega}\left&lt;\left\Vert \boldsymbol{\xi}
+\right\Vert\right&gt; = 1 / \left\Vert \boldsymbol{\xi} \right\Vert\)</span> is
+used. However, the user can define their own influence function by
+altering the method “influence_function” in the file
+<code class="docutils literal notranslate"><span class="pre">pair_peri_lps.cpp</span></code>. The LAMMPS peridynamics code permits both
+spherical and non-spherical influence functions (e.g., isotropic and
+non-isotropic materials).</p>
+</div>
+</section>
+<section id="prototype-microelastic-brittle-pmb-model">
+<h3>Prototype Microelastic Brittle (PMB) Model<a class="headerlink" href="#prototype-microelastic-brittle-pmb-model" title="Link to this heading"></a></h3>
+<p>We summarize the prototype microelastic brittle (PMB) material
+model. For more on this model, the reader is referred to
+<a class="reference internal" href="#silling2000-2"><span class="std std-ref">(Silling 2000)</span></a> and <a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling 2005)</span></a>.  This model is a special case of the LPS model; see
+<a class="reference internal" href="#seleson2010"><span class="std std-ref">(Seleson 2010)</span></a> for the derivation. The elastic
+properties of the PMB model are determined by the bulk modulus <span class="math notranslate nohighlight">\(K\)</span>
+and the horizon <span class="math notranslate nohighlight">\(\delta\)</span>.</p>
+<p>The PMB model is expressed using the scalar force state field</p>
+<div class="math notranslate nohighlight" id="peripmbstate">
+\[\underline{t}\left[ \mathbf{x},t \right]\left&lt; \boldsymbol{\xi} \right&gt; = \frac{1}{2} f\left( \boldsymbol{\eta} ,\boldsymbol{\xi} \right), \qquad\qquad\textrm{(5)}\]</div>
+<p>with <span class="math notranslate nohighlight">\(f\)</span> a scalar-valued function. We assume that <span class="math notranslate nohighlight">\(f\)</span> takes
+the form</p>
+<div class="math notranslate nohighlight">
+\[f = c s,\]</div>
+<p>where</p>
+<div class="math notranslate nohighlight" id="peric">
+\[c = \frac{18K}{\pi \delta^4}, \qquad\qquad\textrm{(6)}\]</div>
+<p>with <span class="math notranslate nohighlight">\(K\)</span> the bulk modulus and <span class="math notranslate nohighlight">\(\delta\)</span> the horizon, and
+<span class="math notranslate nohighlight">\(s\)</span> the bond stretch, defined as</p>
+<div class="math notranslate nohighlight">
+\[s(t,\mathbf{\eta},\mathbf{\xi}) = \frac{ \left\Vert {\mathbf{\eta}+\mathbf{\xi}} \right\Vert - \left\Vert {\mathbf{\xi}} \right\Vert }{\left\Vert {\mathbf{\xi}} \right\Vert}.\]</div>
+<p>Bond stretch is a unitless quantity, and identical to a one-dimensional
+definition of strain. As such, we see that a bond at its equilibrium
+length has stretch <span class="math notranslate nohighlight">\(s=0\)</span>, and a bond at twice its equilibrium
+length has stretch <span class="math notranslate nohighlight">\(s=1\)</span>.  The constant <span class="math notranslate nohighlight">\(c\)</span> given above is
+appropriate for 3D models only. For more on the origins of the constant
+<span class="math notranslate nohighlight">\(c\)</span>, see <a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling 2005)</span></a>. For the derivation
+of <span class="math notranslate nohighlight">\(c\)</span> for 1D and 2D models, see <a class="reference internal" href="#emmrich2007"><span class="std std-ref">(Emmrich)</span></a>.</p>
+<p>Given <a class="reference internal" href="#peripmbstate"><span class="std std-ref">(5)</span></a>, <a class="reference internal" href="#perinewtonii"><span class="std std-ref">(1)</span></a> reduces to</p>
+<div class="math notranslate nohighlight">
+\[\rho(\mathbf{x}) \ddot{\mathbf{u}}(\mathbf{x},t) = \int_{\mathcal{H}_\mathbf{x}} \mathbf{f} \left( \boldsymbol{\eta},\boldsymbol{\xi} \right){d}V_{\boldsymbol{\xi}} + \mathbf{b}(\mathbf{x},t), \qquad\qquad\textrm{(7)}\]</div>
+<p>with</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{f} \left( \boldsymbol{\eta},  \boldsymbol{\xi}\right) =f \left( \boldsymbol{\eta},  \boldsymbol{\xi}\right)  \frac{\boldsymbol{\xi}+ \boldsymbol{\eta}}{ \left\Vert {\boldsymbol{\xi} + \boldsymbol{\eta}} \right\Vert}.\]</div>
+<p>Unlike the LPS model, the PMB model has a Poisson ratio of
+<span class="math notranslate nohighlight">\(\nu=1/4\)</span> in 3D, and <span class="math notranslate nohighlight">\(\nu=1/3\)</span> in 2D. This is reflected in
+the input for the PMB model, which requires only the bulk modulus of the
+material, whereas the LPS model requires both the bulk and shear moduli.</p>
+</section>
+<section id="damage">
+<span id="peridamage"></span><h3>Damage<a class="headerlink" href="#damage" title="Link to this heading"></a></h3>
+<p>Bonds are made to break when they are stretched beyond a given
+limit. Once a bond fails, it is failed forever <a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling)</span></a>. Further, new bonds are never created during the course
+of a simulation. We discuss only one criterion for bond breaking, called
+the <em>critical stretch</em> criterion.</p>
+<p>Define <span class="math notranslate nohighlight">\(\mu\)</span> to be the history-dependent scalar
+boolean function</p>
+<div class="math notranslate nohighlight" id="perimu">
+\[\begin{split}\mu(t,\mathbf{\eta},\mathbf{\xi}) = \left\{
+\begin{array}{cl}
+1 &amp; \mbox{if $s(t^\prime,\mathbf{\eta},\mathbf{\xi})&lt; \min \left(s_0(t^\prime,\mathbf{\eta},\mathbf{\xi}) , s_0(t^\prime,\mathbf{\eta}^\prime,\mathbf{\xi}^\prime) \right)$ for all $0 \leq t^\prime \leq t$} \\
+0 &amp; \mbox{otherwise}
+\end{array}\right\}.  \qquad\qquad\textrm{(8)}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{\eta}^\prime = \textbf{u}(\textbf{x}^{\prime
+\prime},t) - \textbf{u}(\textbf{x}^\prime,t)\)</span> and
+<span class="math notranslate nohighlight">\(\mathbf{\xi}^\prime = \textbf{x}^{\prime \prime} -
+\textbf{x}^\prime\)</span>. Here, <span class="math notranslate nohighlight">\(s_0(t,\mathbf{\eta},\mathbf{\xi})\)</span> is a
+critical stretch defined as</p>
+<div class="math notranslate nohighlight" id="peris0">
+\[s_0(t,\mathbf{\eta},\mathbf{\xi}) = s_{00} - \alpha s_{\min}(t,\mathbf{\eta},\mathbf{\xi}), \qquad s_{\min}(t) = \min_{\mathbf{\xi}} s(t,\mathbf{\eta},\mathbf{\xi}), \qquad\qquad\textrm{(9)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_{00}\)</span> and <span class="math notranslate nohighlight">\(\alpha\)</span> are material-dependent
+constants. The history function <span class="math notranslate nohighlight">\(\mu\)</span> breaks bonds when the
+stretch <span class="math notranslate nohighlight">\(s\)</span> exceeds the critical stretch <span class="math notranslate nohighlight">\(s_0\)</span>.</p>
+<p>Although <span class="math notranslate nohighlight">\(s_0(t,\mathbf{\eta},\mathbf{\xi})\)</span> is expressed as a
+property of a particle, bond breaking must be a symmetric operation for
+all particle pairs sharing a bond. That is, particles <span class="math notranslate nohighlight">\(\textbf{x}\)</span>
+and <span class="math notranslate nohighlight">\(\textbf{x}^\prime\)</span> must utilize the same test when deciding
+to break their common bond. This can be done by any method that treats
+the particles symmetrically. In the definition of <span class="math notranslate nohighlight">\(\mu\)</span> above, we
+have chosen to take the minimum of the two <span class="math notranslate nohighlight">\(s_0\)</span> values for
+particles <span class="math notranslate nohighlight">\(\textbf{x}\)</span> and <span class="math notranslate nohighlight">\(\textbf{x}^\prime\)</span> when
+determining if the <span class="math notranslate nohighlight">\(\textbf{x}\)</span>–<span class="math notranslate nohighlight">\(\textbf{x}^\prime\)</span> bond
+should be broken.</p>
+<p>Following <a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling)</span></a>, we can define the damage at a
+point <span class="math notranslate nohighlight">\(\textbf{x}\)</span> as</p>
+<div class="math notranslate nohighlight" id="peridamageeq">
+\[\varphi(\textbf{x}, t) = 1 - \frac{\int_{\mathcal{H}_{\textbf{x}}} \mu(t,\mathbf{\eta},\mathbf{\xi}) dV_{\textbf{x}^\prime}
+}{ \int_{\mathcal{H}_{\textbf{x}}} dV_{\textbf{x}^\prime} }.  \qquad\qquad\textrm{(10)}\]</div>
+</section>
+</section>
+<section id="discrete-peridynamic-model-and-lammps-implementation">
+<h2>Discrete Peridynamic Model and LAMMPS Implementation<a class="headerlink" href="#discrete-peridynamic-model-and-lammps-implementation" title="Link to this heading"></a></h2>
+<p>In LAMMPS, instead of <a class="reference internal" href="#perinewtonii"><span class="std std-ref">(1)</span></a>, we model this equation of
+motion:</p>
+<div class="math notranslate nohighlight">
+\[\rho(\mathbf{x}) \ddot{\textbf{y}}(\mathbf{x},t) = \int_{\mathcal{H}_{\mathbf{x}}}
+\left\{ \underline{\mathbf{T}}\left[ \mathbf{x},t \right]\left&lt;\mathbf{x}^{\prime}-\mathbf{x} \right&gt;
+- \underline{\mathbf{T}}\left[\mathbf{x}^{\prime},t \right]\left&lt;\mathbf{x}-\mathbf{x}^{\prime} \right&gt; \right\}
+  {d}V_{\mathbf{x}^\prime} + \mathbf{b}(\mathbf{x},t),\]</div>
+<p>where we explicitly track and store at each timestep the positions and
+not the displacements of the particles. We observe that
+<span class="math notranslate nohighlight">\(\ddot{\textbf{y}}(\textbf{x}, t) = \ddot{\textbf{x}} +
+\ddot{\textbf{u}}(\textbf{x}, t) = \ddot{\textbf{u}}(\textbf{x}, t)\)</span>, so
+that this is equivalent to <a class="reference internal" href="#perinewtonii"><span class="std std-ref">(1)</span></a>.</p>
+<section id="spatial-discretization">
+<h3>Spatial Discretization<a class="headerlink" href="#spatial-discretization" title="Link to this heading"></a></h3>
+<p>The region defining a peridynamic material is discretized into particles
+forming a simple cubic lattice with lattice constant <span class="math notranslate nohighlight">\(\Delta x\)</span>,
+where each particle <span class="math notranslate nohighlight">\(i\)</span> is associated with some volume fraction
+<span class="math notranslate nohighlight">\(V_i\)</span>. For any particle <span class="math notranslate nohighlight">\(i\)</span>, let <span class="math notranslate nohighlight">\(\mathcal{F}_i\)</span>
+denote the family of particles for which particle <span class="math notranslate nohighlight">\(i\)</span> shares a
+bond in the reference configuration.  That is,</p>
+<div class="math notranslate nohighlight" id="peribondfamily">
+\[\mathcal{F}_i = \{ p ~ | ~ \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert \leq \delta \}. \qquad\qquad\textrm{(11)}\]</div>
+<p>The discretized equation of motion replaces <a class="reference internal" href="#perinewtonii"><span class="std std-ref">(1)</span></a> with</p>
+<div class="math notranslate nohighlight" id="peridiscretenewtonii">
+\[\rho \ddot{\textbf{y}}_i^n =
+\sum_{p \in \mathcal{F}_i}
+\left\{ \underline{\mathbf{T}}\left[ \textbf{x}_i,t \right]\left&lt;\textbf{x}_p^{\prime}-\textbf{x}_i \right&gt;
+- \underline{\mathbf{T}}\left[\textbf{x}_p,t \right]\left&lt;\textbf{x}_i-\textbf{x}_p \right&gt; \right\}
+  V_{p} + \textbf{b}_i^n, \qquad\qquad\textrm{(12)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(n\)</span> is the timestep number and subscripts denote the particle number.</p>
+</section>
+<section id="short-range-forces">
+<h3>Short-Range Forces<a class="headerlink" href="#short-range-forces" title="Link to this heading"></a></h3>
+<p>In the model discussed so far, particles interact only through their
+bond forces. A particle with no bonds becomes a free non-interacting
+particle. To account for contact forces, short-range forces are
+introduced <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a>. We add to the force in
+<a class="reference internal" href="#peridiscretenewtonii"><span class="std std-ref">(12)</span></a> the following force</p>
+<div class="math notranslate nohighlight">
+\[\textbf{f}_S(\textbf{y}_p,\textbf{y}_i) = \min \left\{ 0, \frac{c_S}{\delta}(\left\Vert {\textbf{y}_p-\textbf{y}_i} \right\Vert - d_{pi}) \right\}
+\frac{\textbf{y}_p-\textbf{y}_i}{\left\Vert {\textbf{y}_p-\textbf{y}_i} \right\Vert}, \qquad\qquad\textrm{(13)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(d_{pi}\)</span> is the short-range interaction distance between
+particles <span class="math notranslate nohighlight">\(p\)</span> and <span class="math notranslate nohighlight">\(i\)</span>, and <span class="math notranslate nohighlight">\(c_S\)</span> is a multiple of the
+constant <span class="math notranslate nohighlight">\(c\)</span> from <a class="reference internal" href="#peric"><span class="std std-ref">(6)</span></a>. Note that the short-range force
+is always repulsive, never attractive. In practice, we choose</p>
+<div class="math notranslate nohighlight" id="perics">
+\[c_S = 15 \frac{18K}{\pi \delta^4}. \qquad\qquad\textrm{(14)}\]</div>
+<p>For the short-range interaction distance, we choose <a class="reference internal" href="#silling2007-2"><span class="std std-ref">(Silling 2007)</span></a></p>
+<div class="math notranslate nohighlight">
+\[d_{pi} = \min \left\{ 0.9 \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert, 1.35 (r_p + r_i) \right\}, \qquad\qquad\textrm{(15)}\]</div>
+<p>where <span class="math notranslate nohighlight">\(r_i\)</span> is called the <em>node radius</em> of particle
+<span class="math notranslate nohighlight">\(i\)</span>. Given a discrete lattice, we choose <span class="math notranslate nohighlight">\(r_i\)</span> to be half
+the lattice constant.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For a simple cubic lattice, <span class="math notranslate nohighlight">\(\Delta x = \Delta y = \Delta z\)</span>.</p>
+</div>
+<p>Given this definition of <span class="math notranslate nohighlight">\(d_{pi}\)</span>, contact forces appear only when
+particles are under compression.</p>
+<p>When accounting for short-range forces, it is convenient to define the
+short-range family of particles</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{F}^S_i = \{ p ~ | ~ \left\Vert {\textbf{y}_p - \textbf{y}_i} \right\Vert \leq d_{pi} \}.\]</div>
+</section>
+<section id="modification-to-the-particle-volume">
+<h3>Modification to the Particle Volume<a class="headerlink" href="#modification-to-the-particle-volume" title="Link to this heading"></a></h3>
+<p>The right-hand side of <a class="reference internal" href="#peridiscretenewtonii"><span class="std std-ref">(12)</span></a> may be thought of as
+a midpoint quadrature of <a class="reference internal" href="#perinewtonii"><span class="std std-ref">(1)</span></a>. To slightly improve the
+accuracy of this quadrature, we discuss a modification to the particle
+volume used in <a class="reference internal" href="#peridiscretenewtonii"><span class="std std-ref">(12)</span></a>. In a situation where two
+particles share a bond with <span class="math notranslate nohighlight">\(\left\Vert { \textbf{x}_p -
+\textbf{x}_i }\right\Vert = \delta\)</span>, for example, we suppose that only
+approximately half the volume of each particle is “seen” by the other
+<a class="reference internal" href="pair_peri.html#silling2007"><span class="std std-ref">(Silling 2007)</span></a>. When computing the force of each
+particle on the other we use <span class="math notranslate nohighlight">\(V_p / 2\)</span> rather than <span class="math notranslate nohighlight">\(V_p\)</span> in
+<a class="reference internal" href="#peridiscretenewtonii"><span class="std std-ref">(12)</span></a>. As such, we introduce a nodal volume
+scaling function for all bonded particles where <span class="math notranslate nohighlight">\(\delta - r_i \leq
+\left\Vert { \textbf{x}_p - \textbf{x}_i } \right\Vert \leq \delta\)</span> (see
+the Figure below).</p>
+<p>We choose to use a linear unitless nodal volume scaling function</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\nu(\textbf{x}_p - \textbf{x}_i) = \left\{
+\begin{array}{cl}
+-\frac{1}{2 r_i} \left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert + \left( \frac{\delta}{2 r_i} + \frac{1}{2} \right) &amp; \mbox{if }
+\delta - r_i \leq \left\Vert {\textbf{x}_p - \textbf{x}_i } \right\Vert \leq \delta \\
+1 &amp; \mbox{if } \left\Vert {\textbf{x}_p - \textbf{x}_i } \right\Vert \leq \delta - r_i \\
+0 &amp; \mbox{otherwise}
+\end{array}
+\right\}\end{split}\]</div>
+<p>If <span class="math notranslate nohighlight">\(\left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert = \delta\)</span>, <span class="math notranslate nohighlight">\(\nu = 0.5\)</span>, and if
+<span class="math notranslate nohighlight">\(\left\Vert {\textbf{x}_p - \textbf{x}_i} \right\Vert = \delta - r_i\)</span>, <span class="math notranslate nohighlight">\(\nu = 1.0\)</span>, for
+example.</p>
+<figure class="align-center align-default" id="id2" style="width: 80%">
+<img alt="_images/pdlammps_fig1.png" src="_images/pdlammps_fig1.png" />
+<figcaption>
+<p><span class="caption-text">Diagram showing horizon of a particular particle, demonstrating that
+the volume associated with particles near the boundary of the horizon is
+not completely contained within the horizon.</span><a class="headerlink" href="#id2" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="temporal-discretization">
+<h3>Temporal Discretization<a class="headerlink" href="#temporal-discretization" title="Link to this heading"></a></h3>
+<p>When discretizing time in LAMMPS, we use a velocity-Verlet scheme, where
+both the position and velocity of the particle are stored
+explicitly. The velocity-Verlet scheme is generally expressed in three
+steps. In <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, <span class="math notranslate nohighlight">\(\rho_i\)</span> denotes the
+mass density of a particle and <span class="math notranslate nohighlight">\(\widetilde{\textbf{f}}_i^n\)</span>
+denotes the net force density on particle <span class="math notranslate nohighlight">\(i\)</span> at timestep
+<span class="math notranslate nohighlight">\(n\)</span>. The LAMMPS command <a class="reference internal" href="fix_nve.html"><span class="doc">fix nve</span></a> performs a
+velocity-Verlet integration.</p>
+<blockquote>
+<div><div class="tip admonition" id="algvelverlet">
+<p class="admonition-title">Algorithm 1: Velocity Verlet</p>
+<div class="line-block">
+<div class="line">1: <span class="math notranslate nohighlight">\(\textbf{v}_i^{n + 1/2} = \textbf{v}_i^n + \frac{\Delta t}{2 \rho_i} \widetilde{\textbf{f}}_i^n\)</span></div>
+<div class="line">2: <span class="math notranslate nohighlight">\(\textbf{y}_i^{n+1}     = \textbf{y}_i^n + \Delta t \textbf{v}_i^{n + 1/2}\)</span></div>
+<div class="line">3: <span class="math notranslate nohighlight">\(\textbf{v}_i^{n+1} = \textbf{v}_i^{n+1/2} + \frac{\Delta t}{2 \rho_i} \widetilde{\textbf{f}}_i^{n+1}\)</span></div>
+</div>
+</div>
+</div></blockquote>
+</section>
+<section id="breaking-bonds">
+<h3>Breaking Bonds<a class="headerlink" href="#breaking-bonds" title="Link to this heading"></a></h3>
+<p>During the course of simulation, it may be necessary to break bonds, as
+described in the <a class="reference internal" href="#peridamage"><span class="std std-ref">Damage section</span></a>. Bonds are recorded
+as broken in a simulation by removing them from the bond family
+<span class="math notranslate nohighlight">\(\mathcal{F}_i\)</span> (see <a class="reference internal" href="#peribondfamily"><span class="std std-ref">(11)</span></a>).</p>
+<p>A naive implementation would have us first loop over all bonds and
+compute <span class="math notranslate nohighlight">\(s_{min}\)</span> in <a class="reference internal" href="#peris0"><span class="std std-ref">(9)</span></a>, then loop over all bonds
+again and break bonds with a stretch <span class="math notranslate nohighlight">\(s &gt; s_0\)</span> as in
+<a class="reference internal" href="#perimu"><span class="std std-ref">(8)</span></a>, and finally loop over all particles and compute forces
+for the next step of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>. For reasons of
+computational efficiency, we instead store the per-particle minimum stretch
+<span class="math notranslate nohighlight">\(s_{min}\)</span> from the <em>previous</em> timestep and, when deciding whether to
+break a bond, form its critical stretch <span class="math notranslate nohighlight">\(s_0 = s_{00} - \alpha\,
+s_{min}\)</span> from that bond’s own <span class="math notranslate nohighlight">\(s_{00}\)</span> and <span class="math notranslate nohighlight">\(\alpha\)</span>.  This keeps
+the criterion correct when <span class="math notranslate nohighlight">\(s_{00}\)</span> and <span class="math notranslate nohighlight">\(\alpha\)</span> differ between
+atom-type pairs (for example, a deliberately weakened interface).</p>
+<div class="versionchanged">
+<p><span class="versionmodified changed">Changed in version 4Jul2026.</span></p>
+</div>
+<p>Earlier versions stored a single per-particle critical stretch <span class="math notranslate nohighlight">\(s_0\)</span>
+(the maximum of <span class="math notranslate nohighlight">\(s_{00} - \alpha s\)</span> over a particle’s bonds), which
+reproduces <a class="reference internal" href="#peris0"><span class="std std-ref">(9)</span></a> only when <span class="math notranslate nohighlight">\(s_{00}\)</span> and <span class="math notranslate nohighlight">\(\alpha\)</span>
+are identical for all atom-type pairs.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For the first timestep, <span class="math notranslate nohighlight">\(s_0\)</span> is initialized to
+<span class="math notranslate nohighlight">\(\mathbf{\infty}\)</span> for all nodes. This means that no bonds may
+be broken until the second timestep. As such, it is recommended that
+the first few timesteps of the peridynamic simulation not involve any
+actions that might result in the breaking of bonds. As a practical
+example, the projectile in the <a class="reference internal" href="#periexample"><span class="std std-ref">commented example below</span></a> is placed such that it does not impact the target
+brittle plate until several timesteps into the simulation.</p>
+</div>
+</section>
+<section id="lps-pseudocode">
+<h3>LPS Pseudocode<a class="headerlink" href="#lps-pseudocode" title="Link to this heading"></a></h3>
+<p>A sketch of the LPS model implementation in the PERI package appears in
+<a class="reference internal" href="#algperilps"><span class="std std-ref">Algorithm 2</span></a>. This algorithm makes use of the
+routines in <a class="reference internal" href="#algperilpsm"><span class="std std-ref">Algorithm 3</span></a> and <a class="reference internal" href="#algperilpstheta"><span class="std std-ref">Algorithm 4</span></a>.</p>
+<blockquote>
+<div><div class="tip admonition" id="algperilps">
+<p class="admonition-title">Algorithm 2: LPS Peridynamic Model Pseudocode</p>
+<div class="line-block">
+<div class="line">Fix <span class="math notranslate nohighlight">\(s_{00}\)</span>, <span class="math notranslate nohighlight">\(\alpha\)</span>, horizon <span class="math notranslate nohighlight">\(\delta\)</span>, bulk modulus <span class="math notranslate nohighlight">\(K\)</span>, shear modulus <span class="math notranslate nohighlight">\(G\)</span>, timestep <span class="math notranslate nohighlight">\(\Delta t\)</span>, and generate initial lattice of particles with lattice constant <span class="math notranslate nohighlight">\(\Delta x\)</span>. Let there be <span class="math notranslate nohighlight">\(N\)</span> particles. Define constant <span class="math notranslate nohighlight">\(c_S\)</span> for repulsive short-range forces.</div>
+<div class="line">Initialize bonds between all particles <span class="math notranslate nohighlight">\(i \neq j\)</span> where <span class="math notranslate nohighlight">\(\left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert \leq \delta\)</span></div>
+<div class="line">Initialize weighted volume <span class="math notranslate nohighlight">\(m\)</span> for all particles using <a class="reference internal" href="#algperilpsm"><span class="std std-ref">Algorithm 3</span></a></div>
+<div class="line">Initialize <span class="math notranslate nohighlight">\(s_0 = \mathbf{\infty}\)</span> {<em>Initialize each entry to MAX_DOUBLE</em>}</div>
+<div class="line"><strong>while</strong> not done <strong>do</strong></div>
+<div class="line-block">
+<div class="line">Perform step 1 of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, updating velocities of all particles</div>
+<div class="line">Perform step 2 of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, updating positions of all particles</div>
+<div class="line"><span class="math notranslate nohighlight">\(\tilde{s}_0 = \mathbf{\infty}\)</span> {<em>Initialize each entry to MAX_DOUBLE</em>}</div>
+<div class="line"><strong>for</strong> <span class="math notranslate nohighlight">\(i=1\)</span> to <span class="math notranslate nohighlight">\(N\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line">{Compute short-range forces}</div>
+<div class="line"><strong>for all</strong> particles <span class="math notranslate nohighlight">\(j \in \mathcal{F}^S_i\)</span> (the short-range family of nodes for particle <span class="math notranslate nohighlight">\(i\)</span>) <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(r = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(dr = \min \{ 0, r - d \}\)</span> {<em>Short-range forces are only repulsive, never attractive</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(k = \frac{c_S}{\delta} V_k dr\)</span> {<span class="math notranslate nohighlight">\(c_S\)</span> <em>defined in :ref:`(14) &lt;pericS&gt;`</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(\textbf{f} = \textbf{f} + k \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+<div class="line">Compute the dilatation for each particle using <a class="reference internal" href="#algperilpstheta"><span class="std std-ref">Algorithm 4</span></a></div>
+<div class="line"><strong>for</strong> <span class="math notranslate nohighlight">\(i=1\)</span> to <span class="math notranslate nohighlight">\(N\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line">{Compute bond forces}</div>
+<div class="line"><strong>for all</strong> particles <span class="math notranslate nohighlight">\(j\)</span> sharing an unbroken bond with particle <span class="math notranslate nohighlight">\(i\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(e = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert - \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\omega_+ = \underline{\omega}\left&lt;\textbf{x}_j - \textbf{x}_i\right&gt;\)</span> {<em>Influence function evaluation</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(\omega_- = \underline{\omega}\left&lt;\textbf{x}_i - \textbf{x}_j\right&gt;\)</span> {<em>Influence function evaluation</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(\hat{f} = \left[ (3K-5G)\left( \frac{\theta(i)}{m(i)}\omega_+ + \frac{\theta(j)}{m(j)}\omega_- \right) \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert + 15G \left( \frac{\omega_+}{m(i)} + \frac{\omega_-}{m(j)} \right) e \right] \nu(\textbf{x}_j - \textbf{x}_i) V_j\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\textbf{f} = \textbf{f} + \hat{f} \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}\)</span></div>
+<div class="line"><strong>if</strong> <span class="math notranslate nohighlight">\((dr / \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert) &gt; \min(s_0(i), s_0(j))\)</span> <strong>then</strong></div>
+<div class="line-block">
+<div class="line">Break <span class="math notranslate nohighlight">\(i\)</span>’s bond with <span class="math notranslate nohighlight">\(j\)</span> {<span class="math notranslate nohighlight">\(j\)</span> <em>‘s bond with</em> <span class="math notranslate nohighlight">\(i\)</span> <em>will be broken when this loop iterates on</em> <span class="math notranslate nohighlight">\(j\)</span>}</div>
+</div>
+<div class="line"><strong>end if</strong></div>
+<div class="line"><span class="math notranslate nohighlight">\(\tilde{s}_0(i) = \min (\tilde{s}_0(i),s_{00}-\alpha(dr / \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert))\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+<div class="line"><span class="math notranslate nohighlight">\(s_0 = \tilde{s}_0\)</span> {<em>Store for use in next timestep</em>}</div>
+<div class="line">Perform step 3 of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, updating velocities of all particles</div>
+</div>
+<div class="line"><strong>end while</strong></div>
+</div>
+</div>
+<div class="tip admonition" id="algperilpsm">
+<p class="admonition-title">Algorithm 3: Computation of Weighted Volume <em>m</em></p>
+<div class="line-block">
+<div class="line"><strong>for</strong> <span class="math notranslate nohighlight">\(i=1\)</span> to <span class="math notranslate nohighlight">\(N\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(m(i) = 0.0\)</span></div>
+<div class="line"><strong>for all</strong> particles <span class="math notranslate nohighlight">\(j\)</span> sharing a bond with particle <span class="math notranslate nohighlight">\(i\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(m(i) = m(i) + \underline{\omega}\left&lt;\textbf{x}_j - \textbf{x}_i\right&gt; \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert^2 \nu(\textbf{x}_j - \textbf{x}_i) V_j\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+</div>
+<div class="tip admonition" id="algperilpstheta">
+<p class="admonition-title">Algorithm 4: Computation of Dilatation <span class="math notranslate nohighlight">\(\theta\)</span></p>
+<div class="line-block">
+<div class="line"><strong>for</strong> <span class="math notranslate nohighlight">\(i=1\)</span> to <span class="math notranslate nohighlight">\(N\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(\theta(i) = 0.0\)</span></div>
+<div class="line"><strong>for all</strong> particles <span class="math notranslate nohighlight">\(j\)</span> sharing an unbroken bond with particle <span class="math notranslate nohighlight">\(i\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(e = \left\Vert {\textbf{y}_i - \textbf{y}_j} \right\Vert - \left\Vert {\textbf{x}_i - \textbf{x}_j} \right\Vert\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(\theta(i) = \theta(i) + \underline{\omega}\left&lt;\textbf{x}_j - \textbf{x}_i\right&gt; \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert e  \nu(\textbf{x}_j - \textbf{x}_i) V_j\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+<div class="line"><span class="math notranslate nohighlight">\(\theta(i) = \frac{3}{m(i)}\theta(i)\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+</div>
+</div></blockquote>
+</section>
+<section id="pmb-pseudocode">
+<h3>PMB Pseudocode<a class="headerlink" href="#pmb-pseudocode" title="Link to this heading"></a></h3>
+<p>A sketch of the PMB model implementation in the PERI package appears in
+<a class="reference internal" href="#algperipmb"><span class="std std-ref">Algorithm 5</span></a>.</p>
+<blockquote>
+<div><div class="tip admonition" id="algperipmb">
+<p class="admonition-title">Algorithm 5: PMB Peridynamic Model Pseudocode</p>
+<div class="line-block">
+<div class="line">Fix <span class="math notranslate nohighlight">\(s_{00}\)</span>, <span class="math notranslate nohighlight">\(\alpha\)</span>, horizon <span class="math notranslate nohighlight">\(\delta\)</span>, spring constant <span class="math notranslate nohighlight">\(c\)</span>, timestep <span class="math notranslate nohighlight">\(\Delta t\)</span>, and generate initial lattice of particles with lattice constant <span class="math notranslate nohighlight">\(\Delta x\)</span>. Let there be <span class="math notranslate nohighlight">\(N\)</span> particles.</div>
+<div class="line">Initialize bonds between all particles <span class="math notranslate nohighlight">\(i \neq j\)</span> where <span class="math notranslate nohighlight">\(\left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert \leq \delta\)</span></div>
+<div class="line">Initialize <span class="math notranslate nohighlight">\(s_0 = \mathbf{\infty}\)</span> {<em>Initialize each entry to MAX_DOUBLE</em>}</div>
+<div class="line"><strong>while</strong> not done <strong>do</strong></div>
+<div class="line-block">
+<div class="line">Perform step 1 of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, updating velocities of all particles</div>
+<div class="line">Perform step 2 of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, updating positions of all particles</div>
+<div class="line"><span class="math notranslate nohighlight">\(\tilde{s}_0 = \mathbf{\infty}\)</span> {<em>Initialize each entry to MAX_DOUBLE</em>}</div>
+<div class="line"><strong>for</strong> <span class="math notranslate nohighlight">\(i=1\)</span> to <span class="math notranslate nohighlight">\(N\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line">{Compute short-range forces}</div>
+<div class="line"><strong>for all</strong> particles <span class="math notranslate nohighlight">\(j \in \mathcal{F}^S_i\)</span> (the short-range family of nodes for particle <span class="math notranslate nohighlight">\(i\)</span>) <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(r = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(dr = \min \{ 0, r - d \}\)</span> {<em>Short-range forces are only repulsive, never attractive</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(k = \frac{c_S}{\delta} V_k dr\)</span> {<span class="math notranslate nohighlight">\(c_S\)</span> <em>defined in :ref:`(14) &lt;pericS&gt;`</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(\textbf{f} = \textbf{f} + k \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+<div class="line"><strong>for</strong> <span class="math notranslate nohighlight">\(i=1\)</span> to <span class="math notranslate nohighlight">\(N\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line">{Compute bond forces}</div>
+<div class="line"><strong>for all</strong> particles <span class="math notranslate nohighlight">\(j\)</span> sharing an unbroken bond with particle <span class="math notranslate nohighlight">\(i\)</span> <strong>do</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(r = \left\Vert {\textbf{y}_j - \textbf{y}_i} \right\Vert\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(dr = r - \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert\)</span></div>
+<div class="line"><span class="math notranslate nohighlight">\(k = \frac{c}{\left\Vert {\textbf{x}_i - \textbf{x}_j} \right\Vert} \nu(\textbf{x}_i - \textbf{x}_j) V_j dr\)</span> {<span class="math notranslate nohighlight">\(c\)</span> <em>defined in :ref:`(6) &lt;peric&gt;`</em>}</div>
+<div class="line"><span class="math notranslate nohighlight">\(\textbf{f} = \textbf{f} + k \frac{\textbf{y}_j-\textbf{y}_i}{\left\Vert {\textbf{y}_j-\textbf{y}_i} \right\Vert}\)</span></div>
+<div class="line"><strong>if</strong> <span class="math notranslate nohighlight">\((dr / \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert) &gt; \min(s_0(i), s_0(j))\)</span> <strong>then</strong></div>
+<div class="line-block">
+<div class="line">Break <span class="math notranslate nohighlight">\(i\)</span>’s bond with <span class="math notranslate nohighlight">\(j\)</span> {<span class="math notranslate nohighlight">\(j\)</span><em>‘s bond with</em> <span class="math notranslate nohighlight">\(i\)</span> <em>will be broken when this loop iterates on</em> <span class="math notranslate nohighlight">\(j\)</span>}</div>
+</div>
+<div class="line"><strong>end if</strong></div>
+<div class="line"><span class="math notranslate nohighlight">\(\tilde{s}_0(i) = \min (\tilde{s}_0(i),s_{00}-\alpha(dr / \left\Vert {\textbf{x}_j - \textbf{x}_i} \right\Vert))\)</span></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+</div>
+<div class="line"><strong>end for</strong></div>
+<div class="line"><span class="math notranslate nohighlight">\(s_0 = \tilde{s}_0\)</span> {<em>Store for use in next timestep</em>}</div>
+<div class="line">Perform step 3 of <a class="reference internal" href="#algvelverlet"><span class="std std-ref">Algorithm 1</span></a>, updating velocities of all particles</div>
+</div>
+<div class="line"><strong>end while</strong></div>
+</div>
+</div>
+</div></blockquote>
+</section>
+<section id="id1">
+<h3>Damage<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>The damage associated with every particle (see <a class="reference internal" href="#peridamageeq"><span class="std std-ref">(10)</span></a>) can
+optionally be computed and output with a LAMMPS data dump. To do this,
+your input script must contain the command <a class="reference internal" href="compute_damage_atom.html"><span class="doc">compute damage/atom</span></a> This enables a LAMMPS per-atom compute to
+calculate the damage associated with each particle every time a LAMMPS
+<a class="reference internal" href="dump.html"><span class="doc">data dump</span></a> frame is written.</p>
+</section>
+<section id="visualizing-simulation-results">
+<h3>Visualizing Simulation Results<a class="headerlink" href="#visualizing-simulation-results" title="Link to this heading"></a></h3>
+<p>There are multiple ways to visualize the simulation results. Typically,
+you want to display the particles and color code them by the value
+computed with the <a class="reference internal" href="compute_damage_atom.html"><span class="doc">compute damage/atom</span></a>
+command.</p>
+<p>This can be done, for example, by using the built-in visualizer of the
+<a class="reference internal" href="dump_image.html"><span class="doc">dump image or dump movie</span></a> command to create snapshot
+images or a movie. Below are example command for using dump image with
+the <a class="reference internal" href="#periexample"><span class="std std-ref">example listed below</span></a> and a set of images
+created for steps 300, 600, and 2000 this way.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump            </span><span class="nv nv-Identifier">D2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">image</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.peri.</span><span class="o">*</span><span class="n">.png</span><span class="w"> </span><span class="n">c_C1</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">box</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">view</span><span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="m">60</span><span class="w"> </span><span class="n">zoom</span><span class="w"> </span><span class="m">1.5</span><span class="w"> </span><span class="n">up</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="m">0</span><span class="w"> </span><span class="o">-</span><span class="m">1</span><span class="w">  </span><span class="n">ssao</span><span class="w"> </span><span class="n">yes</span><span class="w"> </span><span class="m">4539</span><span class="w"> </span><span class="m">0.6</span>
+<span class="k">dump_modify     </span><span class="nv nv-Identifier">D2</span><span class="w"> </span><span class="n">pad</span><span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="n">adiam</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">0.001</span><span class="w"> </span><span class="n">amap</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">1.0</span><span class="w"> </span><span class="n">ca</span><span class="w"> </span><span class="m">0.1</span><span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="n">min</span><span class="w"> </span><span class="n">blue</span><span class="w"> </span><span class="m">0.5</span><span class="w"> </span><span class="n">yellow</span><span class="w"> </span><span class="n">max</span><span class="w"> </span><span class="n">red</span>
+</pre></div>
+</div>
+<p><a class="reference internal" href="_images/dump.peri.300.png"><img alt="periimage1" src="_images/dump.peri.300.png" style="width: 32%;" /></a>  <a class="reference internal" href="_images/dump.peri.600.png"><img alt="periimage2" src="_images/dump.peri.600.png" style="width: 32%;" /></a>  <a class="reference internal" href="_images/dump.peri.2000.png"><img alt="periimage3" src="_images/dump.peri.2000.png" style="width: 32%;" /></a></p>
+<p>For interactive visualization, the <a class="reference external" href="https://ovito.org">Ovito</a> is very
+convenient to use. Below are steps to create a visualization of the
+<a class="reference internal" href="#periexample"><span class="std std-ref">same example from below</span></a> now using the generated
+trajectory in the <code class="docutils literal notranslate"><span class="pre">dump.peri</span></code> file.</p>
+<ul class="simple">
+<li><p>Launch Ovito</p></li>
+<li><p>File -&gt; Load File -&gt; <code class="docutils literal notranslate"><span class="pre">dump.peri</span></code></p></li>
+<li><p>Select “-&gt; Particle types” and under “Appearance” set “Display radius:” to 0.0005</p></li>
+<li><p>From the “Add modification:” drop down list select “Color coding”</p></li>
+<li><p>Under “Color coding” select from the “Color gradient” drop down list “Jet”</p></li>
+<li><p>Also under “Color coding” set “Start value:” to 0 and “End value:” to 1</p></li>
+<li><p>You can improve the image quality by adding the “Ambient occlusion” modification</p></li>
+</ul>
+<figure class="align-center align-default" id="id3" style="width: 80%">
+<img alt="_images/ovito-peri-snap.png" src="_images/ovito-peri-snap.png" />
+<figcaption>
+<p><span class="caption-text">Screenshot of visualizing a trajectory with Ovito</span><a class="headerlink" href="#id3" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+</section>
+<section id="pitfalls">
+<h3>Pitfalls<a class="headerlink" href="#pitfalls" title="Link to this heading"></a></h3>
+<p><strong>Parallel Scalability</strong></p>
+<p>LAMMPS operates in parallel in a <a class="reference internal" href="Developer_par_part.html"><span class="doc">spatial-decomposition mode</span></a>, where each processor owns a spatial subdomain of
+the overall simulation domain and communicates with its neighboring
+processors via distributed-memory message passing (MPI) to acquire ghost
+atom information to allow forces on the atoms it owns to be
+computed. LAMMPS also uses Verlet neighbor lists which are recomputed
+every few timesteps as particles move. On these timesteps, particles
+also migrate to new processors as needed. LAMMPS decomposes the overall
+simulation domain so that spatial subdomains of nearly equal volume are
+assigned to each processor. When each subdomain contains nearly the
+same number of particles, this results in a reasonable load balance
+among all processors. As is more typical with some peridynamic
+simulations, some subdomains may contain many particles while other
+subdomains contain few particles, resulting in a load imbalance that
+impacts parallel scalability.</p>
+<p><strong>Setting the “skin” distance</strong></p>
+<p>The <a class="reference internal" href="neighbor.html"><span class="doc">neighbor</span></a> command with LAMMPS is used to set the
+so-called “skin” distance used when building neighbor lists. All atom
+pairs within a cutoff distance equal to the horizon <span class="math notranslate nohighlight">\(\delta\)</span> plus
+the skin distance are stored in the list. Unexpected crashes in LAMMPS
+may be due to too small a skin distance. The skin should be set to a
+value such that <span class="math notranslate nohighlight">\(\delta\)</span> plus the skin distance is larger than the
+maximum possible distance between two bonded particles. For example, if
+<span class="math notranslate nohighlight">\(s_{00}\)</span> is increased, the skin distance may also need to be
+increased.</p>
+<p><strong>“Lost” particles</strong></p>
+<p>All particles are contained within the “simulation box” of LAMMPS. The
+boundaries of this box may change with time, or not, depending on how
+the LAMMPS <a class="reference internal" href="boundary.html"><span class="doc">boundary</span></a> command has been set. If a
+particle drifts outside the simulation box during the course of a
+simulation, it is called <em>lost</em>.</p>
+<p>As an option of the <a class="reference internal" href="thermo_modify.html"><span class="doc">thermo_modify</span></a> command of
+LAMMPS, the lost keyword determines whether LAMMPS checks for lost atoms
+each time it computes thermodynamics and what it does if atoms are
+lost. If the value is <em>ignore</em>, LAMMPS does not check for lost atoms. If
+the value is <em>error</em> or <em>warn</em>, LAMMPS checks and either issues an error
+or warning. The code will exit with an error and continue with a
+warning. This can be a useful debugging option. The default behavior of
+LAMMPS is to exit with an error if a particle is lost.</p>
+<p>The peridynamic module within LAMMPS does not check for lost atoms. If a
+particle with unbroken bonds is lost, those bonds are marked as broken
+by the remaining particles.</p>
+<p><strong>Defining the peridynamic horizon</strong> <span class="math notranslate nohighlight">\(\mathbf{\delta}\)</span></p>
+<p>In the <a class="reference internal" href="pair_coeff.html"><span class="doc">pair_coeff</span></a> command, the user must specify the
+horizon <span class="math notranslate nohighlight">\(\delta\)</span>. This argument determines which particles are
+bonded when the simulation is initialized. It is recommended that
+<span class="math notranslate nohighlight">\(\delta\)</span> be set to a small fraction of a lattice constant larger than
+desired.</p>
+<p>For example, if the lattice constant is 0.0005 and you wish to set the
+horizon to three times the lattice constant, then set <span class="math notranslate nohighlight">\(\delta\)</span> to
+be 0.0015001, a value slightly larger than three times the lattice
+constant. This guarantees that particles three lattice constants away
+from each other are still bonded. If <span class="math notranslate nohighlight">\(\delta\)</span> is set to 0.0015,
+for example, floating point error may result in some pairs of particles
+three lattice constants apart not being bonded.</p>
+<p><strong>Breaking bonds too early</strong></p>
+<p>For technical reasons, the bonds in the simulation are not created until
+the end of the first timestep of the simulation. Therefore, one should
+not attempt to break bonds until at least the second step of the
+simulation.</p>
+</section>
+<section id="bugs">
+<h3>Bugs<a class="headerlink" href="#bugs" title="Link to this heading"></a></h3>
+<p>The user is cautioned that this code is a beta release. If you are
+confident that you have found a bug in the peridynamic module, please
+report it in a <cite>GitHub Issue &lt;https://github.com/lammps/lammps/issues&gt;</cite>
+or send an email to the LAMMPS developers. First, check the <a class="reference external" href="https://www.lammps.org/bug.html">New
+features and bug fixes</a> section of
+the LAMMPS website site to see if the bug has already been reported or
+fixed. If not, the most useful thing you can do for us is to isolate the
+problem. Run it on the smallest number of atoms and fewest number of
+processors and with the simplest input script that reproduces the
+bug. In your message, describe the problem and any ideas you have as to
+what is causing it or where in the code the problem might be.  We’ll
+request your input script and data files if necessary.</p>
+</section>
+<section id="modifying-and-extending-the-peridynamic-module">
+<h3>Modifying and Extending the Peridynamic Module<a class="headerlink" href="#modifying-and-extending-the-peridynamic-module" title="Link to this heading"></a></h3>
+<p>To add new features or peridynamic potentials to the peridynamic module,
+the user is referred to the <a class="reference internal" href="Modify.html"><span class="doc">Modifying &amp; extending LAMMPS</span></a>
+section. To develop a new bond-based material, start with the <em>peri/pmb</em>
+pair style as a template. To develop a new state-based material, start
+with the <em>peri/lps</em> pair style as a template.</p>
+</section>
+</section>
+<section id="a-numerical-example">
+<h2>A Numerical Example<a class="headerlink" href="#a-numerical-example" title="Link to this heading"></a></h2>
+<p>To introduce the peridynamic implementation within LAMMPS, we replicate
+a numerical experiment taken from section 6 of <a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling 2005)</span></a>.</p>
+<section id="problem-description-and-setup">
+<h3>Problem Description and Setup<a class="headerlink" href="#problem-description-and-setup" title="Link to this heading"></a></h3>
+<p>We consider the impact of a rigid sphere on a homogeneous disk of
+brittle material. The sphere has diameter <span class="math notranslate nohighlight">\(0.01\)</span> m and velocity
+100 m/s directed normal to the surface of the target. The target
+material has density <span class="math notranslate nohighlight">\(\rho = 2200\)</span> kg/m:math:<cite>^3</cite>. A PMB material
+model is used with <span class="math notranslate nohighlight">\(K = 14.9\)</span> GPa and critical bond stretch
+parameters given by <span class="math notranslate nohighlight">\(s_{00} = 0.0005\)</span> and <span class="math notranslate nohighlight">\(\alpha = 0.25\)</span>. A
+three-dimensional simple cubic lattice is constructed with lattice
+constant <span class="math notranslate nohighlight">\(0.0005\)</span> m and horizon <span class="math notranslate nohighlight">\(0.0015\)</span> m. (The horizon is
+three times the lattice constant.) The target is a cylinder of diameter
+<span class="math notranslate nohighlight">\(0.074\)</span> m and thickness <span class="math notranslate nohighlight">\(0.0025\)</span> m, and the associated
+lattice contains 103,110 particles. Each particle <span class="math notranslate nohighlight">\(i\)</span> has volume
+fraction <span class="math notranslate nohighlight">\(V_i = 1.25 \times 10^{-10} \textrm{m}^3\)</span>.</p>
+<p>The spring constant in the PMB material model is (see <a class="reference internal" href="#peric"><span class="std std-ref">(6)</span></a>)</p>
+<div class="math notranslate nohighlight">
+\[c = \frac{18k}{\pi \delta^4} = \frac{18 (14.9 \times 10^9)}{ \pi (1.5 \times 10^{-3})^4} \approx 1.6863 \times 10^{22}.\]</div>
+<p>The CFL analysis from <a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling2005)</span></a> shows that a
+timestep of <span class="math notranslate nohighlight">\(1.0 \times 10^{-7}\)</span> is safe.</p>
+<p>We observe here that in IEEE double-precision floating point arithmetic
+when computing the bond stretch <span class="math notranslate nohighlight">\(s(t,\mathbf{\eta},\mathbf{\xi})\)</span>
+at each iteration where <span class="math notranslate nohighlight">\(\left\Vert {\mathbf{\eta}+\mathbf{\xi}}
+\right\Vert\)</span> is computed during the iteration and <span class="math notranslate nohighlight">\(\left\Vert
+{\mathbf{\xi}} \right\Vert\)</span> was computed and stored for the initial
+lattice, it may be that <span class="math notranslate nohighlight">\(fl(s) = \varepsilon\)</span> with <span class="math notranslate nohighlight">\(\left|
+\varepsilon \right| \leq \varepsilon_{machine}\)</span> for an unstretched
+bond. Taking <span class="math notranslate nohighlight">\(\varepsilon = 2.220446049250313 \times 10^{-16}\)</span>, we
+see that the value <span class="math notranslate nohighlight">\(c s V_i \approx 4.68 \times 10^{-4}\)</span>, computed
+when determining <span class="math notranslate nohighlight">\(f\)</span>, is perhaps larger than we would like,
+especially when the true force should be zero. One simple way to avoid
+this issue is to insert the following instructions in Algorithm
+<a class="reference internal" href="#algperipmb"><span class="std std-ref">Algorithm 5</span></a> after instruction 21 (and similarly for
+Algorithm <a class="reference internal" href="#algperilps"><span class="std std-ref">Algorithm 2</span></a>):</p>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><strong>if</strong> <span class="math notranslate nohighlight">\(\left| dr \right| &lt; \varepsilon_{machine}\)</span> <strong>then</strong></div>
+<div class="line-block">
+<div class="line"><span class="math notranslate nohighlight">\(dr = 0\)</span></div>
+</div>
+<div class="line"><strong>end if</strong></div>
+</div>
+</div></blockquote>
+<p>Qualitatively, this says that displacements from equilibrium on the
+order of <span class="math notranslate nohighlight">\(10^{-16}\)</span>m are taken to be exactly zero, a seemingly
+reasonable assumption.</p>
+</section>
+<section id="the-projectile">
+<h3>The Projectile<a class="headerlink" href="#the-projectile" title="Link to this heading"></a></h3>
+<p>The projectile used in the following experiments is not the one used in
+<a class="reference internal" href="#silling2005"><span class="std std-ref">(Silling 2005)</span></a>. The projectile used here exerts a
+force</p>
+<div class="math notranslate nohighlight">
+\[F(r) = - k_s (r - R)^2\]</div>
+<p>on each atom where <span class="math notranslate nohighlight">\(k_s\)</span> is a specified force constant, <span class="math notranslate nohighlight">\(r\)</span> is
+the distance from the atom to the center of the indenter, and <span class="math notranslate nohighlight">\(R\)</span>
+is the radius of the projectile. The force is repulsive and <span class="math notranslate nohighlight">\(F(r) =
+0\)</span> for <span class="math notranslate nohighlight">\(r &gt; R\)</span>. For our problem, the projectile radius <span class="math notranslate nohighlight">\(R =
+0.05\)</span> m, and we have chosen <span class="math notranslate nohighlight">\(k_s = 1.0 \times 10^{17}\)</span> (compare
+with <a class="reference internal" href="#peric"><span class="std std-ref">(6)</span></a> above).</p>
+</section>
+<section id="writing-the-lammps-input-file">
+<h3>Writing the LAMMPS Input File<a class="headerlink" href="#writing-the-lammps-input-file" title="Link to this heading"></a></h3>
+<p>We discuss the example input script <a class="reference internal" href="#periexample"><span class="std std-ref">listed below</span></a>.
+In line 2 we specify that SI units are to be used. We specify the
+dimension (3) and boundary conditions (“shrink-wrapped”) for the
+computational domain in lines 3 and 4. In line 5 we specify that
+peridynamic particles are to be used for this simulation. In line 7, we
+set the “skin” distance used in building the LAMMPS neighbor list. In
+line 8 we set the lattice constant (in meters) and in line 10 we define
+the spatial region where the target will be placed. In line 12 we
+specify a rectangular box enclosing the target region that defines the
+simulation domain. Line 14 fills the target region with atoms. Lines 15
+and 17 define the peridynamic material model, and lines 19 and 21 set
+the particle density and particle volume, respectively. The particle
+volume should be set to the cube of the lattice constant for a simple
+cubic lattice. Line 23 sets the initial velocity of all particles to
+zero. Line 25 instructs LAMMPS to integrate time with velocity-Verlet,
+and lines 27-30 create the spherical projectile, sending it with a
+velocity of 100 m/s towards the target. Line 32 declares a compute style
+for the damage (percentage of broken bonds) associated with each
+particle.  Line 33 sets the timestep, line 34 instructs LAMMPS to
+provide a screen dump of thermodynamic quantities every 200 timesteps,
+and line 35 instructs LAMMPS to create a data file (<code class="docutils literal notranslate"><span class="pre">dump.peri</span></code>) with
+a complete snapshot of the system every 100 timesteps. This file can be
+used to create still images or movies. Finally, line 36 instructs LAMMPS
+to run for 2000 timesteps.</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<span id="periexample"></span><div class="code-block-caption"><span class="caption-text">Peridynamics Example LAMMPS Input Script</span><a class="headerlink" href="#id4" title="Link to this code"></a></div>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c"># 3D Peridynamic simulation with projectile&quot;</span>
+<span class="linenos"> 2</span><span class="k">units</span><span class="w">           </span><span class="n">si</span>
+<span class="linenos"> 3</span><span class="k">dimension</span><span class="w">       </span><span class="m">3</span>
+<span class="linenos"> 4</span><span class="k">boundary</span><span class="w">        </span><span class="n">s</span><span class="w"> </span><span class="n">s</span><span class="w"> </span><span class="n">s</span>
+<span class="linenos"> 5</span><span class="k">atom_style</span><span class="w">      </span><span class="n">peri</span>
+<span class="linenos"> 6</span><span class="k">atom_modify</span><span class="w">     </span><span class="n">map</span><span class="w"> </span><span class="n">array</span>
+<span class="linenos"> 7</span><span class="k">neighbor</span><span class="w">        </span><span class="m">0.0010</span><span class="w"> </span><span class="n">bin</span>
+<span class="linenos"> 8</span><span class="k">lattice</span><span class="w">         </span><span class="n">sc</span><span class="w"> </span><span class="m">0.0005</span>
+<span class="linenos"> 9</span><span class="c"># Create desired target</span>
+<span class="linenos">10</span><span class="k">region          </span><span class="nv nv-Identifier">target</span><span class="w"> </span><span class="n">cylinder</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.037</span><span class="w"> </span><span class="o">-</span><span class="m">0.0025</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="linenos">11</span><span class="c"># Make 1 atom type</span>
+<span class="linenos">12</span><span class="k">create_box      </span><span class="nv nv-Identifier">1</span><span class="w"> </span><span class="nv nv-Identifier">target</span>
+<span class="linenos">13</span><span class="c"># Create the atoms in the simulation region</span>
+<span class="linenos">14</span><span class="k">create_atoms</span><span class="w">    </span><span class="m">1</span><span class="w"> </span><span class="k">region </span><span class="nv nv-Identifier">target</span>
+<span class="linenos">15</span><span class="k">pair_style</span><span class="w">      </span><span class="n">peri</span><span class="o">/</span><span class="n">pmb</span>
+<span class="linenos">16</span><span class="c">#               &lt;type1&gt; &lt;type2&gt;    &lt;c&gt;    &lt;horizon&gt;  &lt;s00&gt; &lt;alpha&gt;</span>
+<span class="linenos">17</span><span class="k">pair_coeff</span><span class="w">         </span><span class="o">*</span><span class="w">       </span><span class="o">*</span><span class="w">    </span><span class="m">1.6863e22</span><span class="w"> </span><span class="m">0.0015001</span><span class="w"> </span><span class="m">0.0005</span><span class="w">  </span><span class="m">0.25</span>
+<span class="linenos">18</span><span class="c"># Set mass density</span>
+<span class="linenos">19</span><span class="k">set</span><span class="w">             </span><span class="k">group </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">density</span><span class="w"> </span><span class="m">2200</span>
+<span class="linenos">20</span><span class="c"># volume = lattice constant^3</span>
+<span class="linenos">21</span><span class="k">set</span><span class="w">             </span><span class="k">group </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">volume</span><span class="w"> </span><span class="m">1.25e-10</span>
+<span class="linenos">22</span><span class="c"># Zero out velocities of particles</span>
+<span class="linenos">23</span><span class="k">velocity        </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="m">0.0</span><span class="w"> </span><span class="n">sum</span><span class="w"> </span><span class="n">no</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="linenos">24</span><span class="c"># Use velocity-Verlet time integrator</span>
+<span class="linenos">25</span><span class="k">fix             </span><span class="nv nv-Identifier">F1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">nve</span>
+<span class="linenos">26</span><span class="c"># Construct spherical indenter to shatter target</span>
+<span class="linenos">27</span><span class="k">variable        </span><span class="nv nv-Identifier">y0</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="m">0.00510</span>
+<span class="linenos">28</span><span class="k">variable        </span><span class="nv nv-Identifier">vy</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="o">-</span><span class="m">100</span>
+<span class="linenos">29</span><span class="k">variable        </span><span class="nv nv-Identifier">y</span><span class="w"> </span><span class="n">equal</span><span class="w"> </span><span class="s">&quot;v_y0 + step*dt*v_vy&quot;</span>
+<span class="linenos">30</span><span class="k">fix             </span><span class="nv nv-Identifier">F2</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">indent</span><span class="w"> </span><span class="m">1e17</span><span class="w"> </span><span class="n">sphere</span><span class="w"> </span><span class="m">0.0000</span><span class="w"> </span><span class="n">v_y</span><span class="w"> </span><span class="m">0.0000</span><span class="w"> </span><span class="m">0.0050</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="n">box</span>
+<span class="linenos">31</span><span class="c"># Compute damage for each particle</span>
+<span class="linenos">32</span><span class="k">compute         </span><span class="nv nv-Identifier">C1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">damage</span><span class="o">/</span><span class="n">atom</span>
+<span class="linenos">33</span><span class="k">timestep</span><span class="w">        </span><span class="m">1.0e-7</span>
+<span class="linenos">34</span><span class="k">thermo</span><span class="w">          </span><span class="m">200</span>
+<span class="linenos">35</span><span class="k">dump            </span><span class="nv nv-Identifier">D1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.peri</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span><span class="w"> </span><span class="n">c_C1</span>
+<span class="linenos">36</span><span class="k">run</span><span class="w">             </span><span class="m">2000</span>
+</pre></div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To use the LPS model, replace line 15 with <a class="reference internal" href="pair_peri.html"><span class="doc">pair_style peri/lps</span></a> and modify line 16 accordingly.</p>
+</div>
+</section>
+<section id="numerical-results-and-discussion">
+<h3>Numerical Results and Discussion<a class="headerlink" href="#numerical-results-and-discussion" title="Link to this heading"></a></h3>
+<p>We ran the <a class="reference internal" href="#periexample"><span class="std std-ref">input script from above</span></a>. Images of the
+disk (projectile not shown) appear in Figure below.  The plot of damage
+on the top monolayer was created by coloring each particle according to
+its damage.</p>
+<p>The symmetry in the computed solution arises because a “perfect” lattice
+was used, and a because a perfectly spherical projectile impacted the
+lattice at its geometric center. To break the symmetry in the solution,
+the nodes in the peridynamic body may be perturbed slightly from the
+lattice sites. To do this, the lattice of points can be slightly
+perturbed using the <a class="reference internal" href="displace_atoms.html"><span class="doc">displace_atoms</span></a> command.</p>
+<figure class="align-center align-default" id="id5" style="width: 80%">
+<span id="figperitarget"></span><img alt="_images/pdlammps_fig2.png" src="_images/pdlammps_fig2.png" />
+<figcaption>
+<p><span class="caption-text">Target during (a) and after (b,c) impact</span><a class="headerlink" href="#id5" title="Link to this image"></a></p>
+</figcaption>
+</figure>
+<hr class="docutils" />
+<p id="emmrich2007"><strong>(Emmrich)</strong> Emmrich, Weckner, Commun. Math. Sci., 5, 851-864 (2007),</p>
+<p id="parks2"><strong>(Parks)</strong> Parks, Lehoucq, Plimpton, Silling, Comp Phys Comm, 179(11), 777-783 (2008).</p>
+<p id="silling2000-2"><strong>(Silling 2000)</strong> Silling, J Mech Phys Solids, 48, 175-209 (2000).</p>
+<p id="silling2005"><strong>(Silling 2005)</strong> Silling Askari, Computer and Structures, 83, 1526-1535 (2005).</p>
+<p id="silling2007-2"><strong>(Silling 2007)</strong> Silling, Epton, Weckner, Xu, Askari, J Elasticity, 88, 151-184 (2007).</p>
+<p id="seleson2010"><strong>(Seleson 2010)</strong> Seleson, Parks, Int J Mult Comp Eng 9(6), pp. 689-706, 2011.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Howto_drude2.html" class="btn btn-neutral float-left" title="10.5.9. Tutorial for Thermalized Drude oscillators in LAMMPS" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Howto_manifold.html" class="btn btn-neutral float-right" title="10.5.11. Manifolds (surfaces)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,97 @@
+# Parallel replica dynamics model for a single vacancy in bulk Si
+# events occur when a neighboring atom diffuses to the vacant site
+# run this on multiple partitions as
+#   mpirun -np 4 lmp_g++ -partition 4x1 -in in.prd
+
+#log             none
+
+units           metal
+
+atom_style      atomic
+atom_modify     map array
+boundary        p p p
+atom_modify	sort 0 0.0
+
+# temperature
+
+variable t equal 1800.0
+
+# coordination number cutoff
+
+variable r equal 2.835
+
+# minimization parameters
+
+variable etol equal 1.0e-5
+variable ftol equal 1.0e-5
+variable maxiter equal 100
+variable maxeval equal 100
+variable dmax equal 1.0e-1
+
+# diamond unit cell
+
+variable a equal 5.431
+lattice         custom $a               &
+                a1 1.0 0.0 0.0          &
+                a2 0.0 1.0 0.0          &
+                a3 0.0 0.0 1.0          &
+                basis 0.0 0.0 0.0       &
+                basis 0.0 0.5 0.5       &
+                basis 0.5 0.0 0.5       &
+                basis 0.5 0.5 0.0       &
+                basis 0.25 0.25 0.25    &
+                basis 0.25 0.75 0.75    &
+                basis 0.75 0.25 0.75    &
+                basis 0.75 0.75 0.25
+
+region          myreg block     0 4 &
+                                0 4 &
+                                0 4
+create_box      1 myreg
+create_atoms    1 region myreg
+
+mass            1       28.06
+
+group Si type 1
+
+velocity all create $t 5287287 mom yes rot yes dist gaussian
+
+# make a vacancy
+
+group del id 300
+delete_atoms group del
+
+pair_style      sw
+pair_coeff * * Si.sw Si
+
+thermo          10
+
+fix             1 all nvt temp $t $t 0.1
+
+timestep        1.0e-3
+neighbor        1.0 bin
+neigh_modify    every 1 delay 10 check yes
+
+# equilibrate
+
+run             100
+
+# only output atoms near vacancy
+
+compute coord all coord/atom cutoff $r
+
+#dump events all custom 1 dump.prd id type x y z
+#dump_modify events thresh c_coord != 4
+
+compute  patom all pe/atom
+compute  pe all reduce sum c_patom
+compute  satom all stress/atom NULL
+compute  str all reduce sum c_satom[1] c_satom[2] c_satom[3]
+variable press equal (c_str[1]+c_str[2]+c_str[3])/(3*vol)
+
+thermo_style custom step temp pe c_pe press v_press
+
+compute         1 all event/displace 0.5
+
+prd  2000 100 10 10 100 1 54985 temp $t &
+     min ${etol} ${ftol} ${maxiter} ${maxeval} vel all uniform

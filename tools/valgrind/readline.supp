@@ -1,0 +1,169 @@
+{
+   Readline_init_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:strdup
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part5
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:tgetent_sp
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part6
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:tgetent_sp
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part7
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   ...
+   fun:tgetent_sp
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part8
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:tgetent_sp
+   ...
+   fun:rl_initialize
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_init_part9
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   ...
+   fun:tgetstr_sp
+   ...
+   fun:rl_initialize
+   fun:readline
+   obj:*
+}
+{
+   Readline_prompt_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:realloc
+   fun:xrealloc
+   ...
+   fun:rl_set_prompt
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_prompt_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   ...
+   fun:rl_set_prompt
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_history_part1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   ...
+   fun:readline_internal_teardown
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_history_part2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   ...
+   fun:readline_internal_teardown
+   fun:readline
+   ...
+   obj:*
+}
+{
+   Readline_history_part3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:xmalloc
+   ...
+   fun:add_history
+   fun:shell_cmd
+   ...
+   obj:*
+}

@@ -1,0 +1,4 @@
+single 0,0,0:ACGTA
+single_helix 0,0,0:ACGTA
+duplex 0,0,0:ACGTA
+duplex_array 10,10:-112.0:ACGTA

@@ -1,0 +1,642 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>6.8. Pair styles &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/Commands_pair.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="6.9. Bond styles" href="Commands_bond.html" />
+    <link rel="prev" title="6.7. Compute styles" href="Commands_compute.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="Commands.html">6. Commands</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="Commands_input.html">6.1. LAMMPS input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_parse.html">6.2. Parsing rules for input scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_structure.html">6.3. Input script structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_category.html">6.4. Commands by category</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_all.html">6.5. General commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_fix.html">6.6. Fix styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_compute.html">6.7. Compute styles</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">6.8. Pair styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html">6.9. Bond styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#angle-styles">6.10. Angle styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#dihedral-styles">6.11. Dihedral styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_bond.html#improper-styles">6.12. Improper styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_kspace.html">6.13. KSpace styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_dump.html">6.14. Dump styles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Commands_removed.html">6.15. Removed commands and packages</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="Commands.html"><span class="section-number">6. </span>Commands</a></li>
+      <li class="breadcrumb-item active"><span class="section-number">6.8. </span>Pair styles</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="Commands_compute.html" class="btn btn-neutral float-left" title="6.7. Compute styles" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Commands_bond.html" class="btn btn-neutral float-right" title="6.9. Bond styles" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="Commands_all.html"><span class="doc">General commands</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_fix.html"><span class="doc">Fix styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_compute.html"><span class="doc">Compute styles</span></a></p></td>
+<td><p><a class="reference internal" href="#"><span class="doc">Pair styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_bond.html#bond"><span class="std std-ref">Bond styles</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="Commands_bond.html#angle"><span class="std std-ref">Angle styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_bond.html#dihedral"><span class="std std-ref">Dihedral styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_bond.html#improper"><span class="std std-ref">Improper styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_kspace.html"><span class="doc">KSpace styles</span></a></p></td>
+<td><p><a class="reference internal" href="Commands_dump.html"><span class="doc">Dump styles</span></a></p></td>
+</tr>
+</tbody>
+</table>
+<section id="pair-styles">
+<h1><span class="section-number">6.8. </span>Pair styles<a class="headerlink" href="#pair-styles" title="Link to this heading"></a></h1>
+<p>All LAMMPS <a class="reference internal" href="pair_style.html"><span class="doc">pair_style</span></a> commands.  Some styles have
+accelerated versions.  This is indicated by additional letters in
+parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.</p>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_none.html"><span class="doc">none</span></a></p></td>
+<td><p><a class="reference internal" href="pair_zero.html"><span class="doc">zero</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid/molecular (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid/overlay (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hybrid.html"><span class="doc">hybrid/scaled (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_kim.html"><span class="doc">kim</span></a></p></td>
+<td><p><a class="reference internal" href="pair_list.html"><span class="doc">list</span></a></p></td>
+<td><p><a class="reference internal" href="pair_tracker.html"><span class="doc">tracker</span></a></p></td>
+</tr>
+<tr class="row-even"><td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_adp.html"><span class="doc">adp (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_agni.html"><span class="doc">agni (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_aip_water_2dm.html"><span class="doc">aip/water/2dm (t)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_airebo.html"><span class="doc">airebo (io)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_airebo.html"><span class="doc">airebo/bc (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_airebo.html"><span class="doc">airebo/morse (io)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_amoeba.html"><span class="doc">amoeba (g)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_atm.html"><span class="doc">atm (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_beck.html"><span class="doc">beck (gko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_body_nparticle.html"><span class="doc">body/nparticle (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_body_rounded_polygon.html"><span class="doc">body/rounded/polygon (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_body_rounded_polyhedron.html"><span class="doc">body/rounded/polyhedron (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_bondval.html"><span class="doc">bondval (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_bondval.html"><span class="doc">bondval/vec (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_bop.html"><span class="doc">bop</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_born.html"><span class="doc">born (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/dsf (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_cs.html"><span class="doc">born/coul/dsf/cs (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/long (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_cs.html"><span class="doc">born/coul/long/cs (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/msm (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_born.html"><span class="doc">born/coul/wolf (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_cs.html"><span class="doc">born/coul/wolf/cs (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_born_gauss.html"><span class="doc">born/gauss (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_bpm_spring.html"><span class="doc">bpm/spring</span></a></p></td>
+<td><p><a class="reference internal" href="pair_brownian.html"><span class="doc">brownian (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_brownian.html"><span class="doc">brownian/poly (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_buck.html"><span class="doc">buck (giko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/cut (giko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/long (giko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_cs.html"><span class="doc">buck/coul/long/cs (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_buck.html"><span class="doc">buck/coul/msm (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_buck_long.html"><span class="doc">buck/long/coul/long (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_mdf.html"><span class="doc">buck/mdf (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_buck6d_coul_gauss.html"><span class="doc">buck6d/coul/gauss/dsf (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_buck6d_coul_gauss.html"><span class="doc">buck6d/coul/gauss/long (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_colloid.html"><span class="doc">colloid (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_comb.html"><span class="doc">comb (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_comb.html"><span class="doc">comb3</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_cosine_squared.html"><span class="doc">cosine/squared (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/ctip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/cut (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">coul/cut/dielectric</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/cut/global (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">coul/cut/soft (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">coul/cut/soft/gapsys (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/debye (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul_diel.html"><span class="doc">coul/diel (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/dsf (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/esp</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/exclude (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/long (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_cs.html"><span class="doc">coul/long/cs (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">coul/long/dielectric</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">coul/long/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/msm (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul_slater.html"><span class="doc">coul/slater/cut (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_coul_slater.html"><span class="doc">coul/slater/long (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul_shield.html"><span class="doc">coul/shield (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/streitz (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_coul_tt.html"><span class="doc">coul/tt</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">coul/wolf (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_cs.html"><span class="doc">coul/wolf/cs (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_dispersion_d3.html"><span class="doc">dispersion/d3</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dpd.html"><span class="doc">dpd (giko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dpd_coul_slater_long.html"><span class="doc">dpd/coul/slater/long (g)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_dpd_ext.html"><span class="doc">dpd/ext (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dpd_ext.html"><span class="doc">dpd/ext/tstat (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">dpd/fdt</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_dpd_fdt.html"><span class="doc">dpd/fdt/energy (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dpd.html"><span class="doc">dpd/tstat (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dsmc.html"><span class="doc">dsmc</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_e3b.html"><span class="doc">e3b (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_drip.html"><span class="doc">drip (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eam.html"><span class="doc">eam (gikot)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_eam.html"><span class="doc">eam/alloy (gikot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eam.html"><span class="doc">eam/cd</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eam.html"><span class="doc">eam/cd/old</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_eam.html"><span class="doc">eam/fs (gikot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eam_apip.html"><span class="doc">eam/fs/apip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eam.html"><span class="doc">eam/he</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_eam_apip.html"><span class="doc">eam/apip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_edip.html"><span class="doc">edip (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_edip.html"><span class="doc">edip/multi</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_mesodpd.html"><span class="doc">edpd (g)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eff.html"><span class="doc">eff/cut</span></a></p></td>
+<td><p><a class="reference internal" href="pair_eim.html"><span class="doc">eim (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_exp6_rx.html"><span class="doc">exp6/rx (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_extep.html"><span class="doc">extep (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gauss.html"><span class="doc">gauss (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_gauss.html"><span class="doc">gauss/cut (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gayberne.html"><span class="doc">gayberne (gio)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gran.html"><span class="doc">gran/hertz/history (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_gran.html"><span class="doc">gran/hooke (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gran.html"><span class="doc">gran/hooke/history (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_granular.html"><span class="doc">granular</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_granular_superellipsoid.html"><span class="doc">granular/superellipsoid</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gw.html"><span class="doc">gw (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gw.html"><span class="doc">gw/zbl (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_harmonic_cut.html"><span class="doc">harmonic/cut (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">hbond/dreiding/lj (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">hbond/dreiding/lj/angleoffset (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">hbond/dreiding/morse (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hbond_dreiding.html"><span class="doc">hbond/dreiding/morse/angleoffset (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_hdnnp.html"><span class="doc">hdnnp</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_amoeba.html"><span class="doc">hippo (g)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_ilp_graphene_hbn.html"><span class="doc">ilp/graphene/hbn (t)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_ilp_tmd.html"><span class="doc">ilp/tmd (t)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_kolmogorov_crespi_full.html"><span class="doc">kolmogorov/crespi/full</span></a></p></td>
+<td><p><a class="reference internal" href="pair_kolmogorov_crespi_z.html"><span class="doc">kolmogorov/crespi/z</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lambda_input_apip.html"><span class="doc">lambda/input/apip</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lambda_input_apip.html"><span class="doc">lambda/input/csp/apip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lambda_zone_apip.html"><span class="doc">lambda/zone/apip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lcbop.html"><span class="doc">lcbop (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_ldd.html"><span class="doc">ldd</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lebedeva_z.html"><span class="doc">lebedeva/z</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mdf.html"><span class="doc">lennard/mdf (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lepton.html"><span class="doc">lepton (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lepton.html"><span class="doc">lepton/coul (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lepton.html"><span class="doc">lepton/sphere (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_line_lj.html"><span class="doc">line/lj (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/charmm (giko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/charmm/implicit (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/long (gikot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/charmm/coul/long/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmm/coul/msm (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmmfsw/coul/charmmfsh (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_charmm.html"><span class="doc">lj/charmmfsw/coul/long (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_class2.html"><span class="doc">lj/class2 (gko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_class2.html"><span class="doc">lj/class2/coul/cut (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/class2/coul/cut/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_class2.html"><span class="doc">lj/class2/coul/long (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_cs.html"><span class="doc">lj/class2/coul/long/cs (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/class2/coul/long/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/class2/soft (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lj_cubic.html"><span class="doc">lj/cubic (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj.html"><span class="doc">lj/cut (gikot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/cut (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">lj/cut/coul/cut/dielectric (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/cut/coul/cut/soft (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/debye (gko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">lj/cut/coul/debye/dielectric (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/dsf (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/esp</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/long (gikot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_cs.html"><span class="doc">lj/cut/coul/long/cs (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">lj/cut/coul/long/dielectric (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/cut/coul/long/soft (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/msm (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">lj/cut/coul/msm/dielectric</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_lj_cut_coul.html"><span class="doc">lj/cut/coul/wolf (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/cut (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/long (go)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/cut/dipole/sf (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/cut/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/cut/soft/gapsys</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_lj_cut_sphere.html"><span class="doc">lj/cut/sphere (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_thole.html"><span class="doc">lj/cut/thole/long (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_cut_tip4p.html"><span class="doc">lj/cut/tip4p/cut (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lj_cut_tip4p.html"><span class="doc">lj/cut/tip4p/long (got)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">lj/cut/tip4p/long/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_expand.html"><span class="doc">lj/expand (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_lj_expand.html"><span class="doc">lj/expand/coul/long (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_expand_sphere.html"><span class="doc">lj/expand/sphere (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_gromacs.html"><span class="doc">lj/gromacs (gko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_gromacs.html"><span class="doc">lj/gromacs/coul/gromacs (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_long.html"><span class="doc">lj/long/coul/long (iot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dielectric.html"><span class="doc">lj/long/coul/long/dielectric</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/long/dipole/long</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_long.html"><span class="doc">lj/long/tip4p/long (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mdf.html"><span class="doc">lj/mdf (ko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lj_pirani.html"><span class="doc">lj/pirani (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_relres.html"><span class="doc">lj/relres (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spica.html"><span class="doc">lj/spica (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_spica.html"><span class="doc">lj/spica/coul/long (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spica.html"><span class="doc">lj/spica/coul/msm (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_dipole.html"><span class="doc">lj/sf/dipole/sf (go)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lj_smooth.html"><span class="doc">lj/smooth (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_smooth_linear.html"><span class="doc">lj/smooth/linear (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lj_switch3_coulgauss_long.html"><span class="doc">lj/switch3/coulgauss/long (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_lj96.html"><span class="doc">lj96/cut (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_local_density.html"><span class="doc">local/density (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lubricate.html"><span class="doc">lubricate (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_lubricate.html"><span class="doc">lubricate/poly (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lubricateU.html"><span class="doc">lubricateU</span></a></p></td>
+<td><p><a class="reference internal" href="pair_lubricateU.html"><span class="doc">lubricateU/poly</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_mbx.html"><span class="doc">mbx</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mesodpd.html"><span class="doc">mdpd (g)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mesodpd.html"><span class="doc">mdpd/rhosum</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_meam.html"><span class="doc">meam (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_meam.html"><span class="doc">meam/ms (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_meam_spline.html"><span class="doc">meam/spline (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_meam_sw_spline.html"><span class="doc">meam/sw/spline</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mesocnt.html"><span class="doc">mesocnt</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mesocnt.html"><span class="doc">mesocnt/viscous</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_mgpt.html"><span class="doc">mgpt</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mie.html"><span class="doc">mie/cut (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mliap.html"><span class="doc">mliap (k)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_lj_switch3_coulgauss_long.html"><span class="doc">mm3/switch3/coulgauss/long (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_momb.html"><span class="doc">momb (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_morse.html"><span class="doc">morse (gkot)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_morse.html"><span class="doc">morse/smooth/linear (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">morse/soft (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_multi_lucy.html"><span class="doc">multi/lucy</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_multi_lucy_rx.html"><span class="doc">multi/lucy/rx (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_nb3b.html"><span class="doc">nb3b/harmonic (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_nb3b.html"><span class="doc">nb3b/screened</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut/coul/cut (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut/coul/long (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_nm.html"><span class="doc">nm/cut/split (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna.html"><span class="doc">oxdna/coaxstk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna.html"><span class="doc">oxdna/excv</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_oxdna.html"><span class="doc">oxdna/hbond</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna.html"><span class="doc">oxdna/stk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna.html"><span class="doc">oxdna/xstk</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_oxdna2.html"><span class="doc">oxdna2/coaxstk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna2.html"><span class="doc">oxdna2/dh</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna2.html"><span class="doc">oxdna2/excv</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_oxdna2.html"><span class="doc">oxdna2/hbond</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna2.html"><span class="doc">oxdna2/stk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna2.html"><span class="doc">oxdna2/xstk</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_oxdna3.html"><span class="doc">oxdna3/coaxstk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna3.html"><span class="doc">oxdna3/dh</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna3.html"><span class="doc">oxdna3/excv</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_oxdna3.html"><span class="doc">oxdna3/hbond</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna3.html"><span class="doc">oxdna3/stk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxdna3.html"><span class="doc">oxdna3/xstk</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_oxrna2.html"><span class="doc">oxrna2/excv</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxrna2.html"><span class="doc">oxrna2/hbond</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxrna2.html"><span class="doc">oxrna2/dh</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_oxrna2.html"><span class="doc">oxrna2/stk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxrna2.html"><span class="doc">oxrna2/xstk</span></a></p></td>
+<td><p><a class="reference internal" href="pair_oxrna2.html"><span class="doc">oxrna2/coaxstk</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_pace.html"><span class="doc">pace (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_pace.html"><span class="doc">pace/extrapolation (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_pace_apip.html"><span class="doc">pace/apip</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_pace_apip.html"><span class="doc">pace/fast/apip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_pace_apip.html"><span class="doc">pace/precise/apip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_pedone.html"><span class="doc">pedone (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_pod.html"><span class="doc">pod (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_peri.html"><span class="doc">peri/eps</span></a></p></td>
+<td><p><a class="reference internal" href="pair_peri.html"><span class="doc">peri/lps (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_peri.html"><span class="doc">peri/pmb (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_peri.html"><span class="doc">peri/ves</span></a></p></td>
+<td><p><a class="reference internal" href="pair_polymorphic.html"><span class="doc">polymorphic</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_python.html"><span class="doc">python</span></a></p></td>
+<td><p><a class="reference internal" href="pair_quip.html"><span class="doc">quip</span></a></p></td>
+<td><p><a class="reference internal" href="pair_rann.html"><span class="doc">rann</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_reaxff.html"><span class="doc">reaxff (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_airebo.html"><span class="doc">rebo (io)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_rebomos.html"><span class="doc">rebomos (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_resquared.html"><span class="doc">resquared (go)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_rheo.html"><span class="doc">rheo</span></a></p></td>
+<td><p><a class="reference internal" href="pair_rheo_solid.html"><span class="doc">rheo/solid</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_runner.html"><span class="doc">runner</span></a></p></td>
+<td><p><a class="reference internal" href="pair_saip_metal.html"><span class="doc">saip/metal (t)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_saip_metal.html"><span class="doc">saip/metal/tmd (t)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_sdpd_taitwater_isothermal.html"><span class="doc">sdpd/taitwater/isothermal</span></a></p></td>
+<td><p><a class="reference internal" href="pair_smatb.html"><span class="doc">smatb</span></a></p></td>
+<td><p><a class="reference internal" href="pair_smatb.html"><span class="doc">smatb/single</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_smd_hertz.html"><span class="doc">smd/hertz</span></a></p></td>
+<td><p><a class="reference internal" href="pair_smd_tlsph.html"><span class="doc">smd/tlsph</span></a></p></td>
+<td><p><a class="reference internal" href="pair_smd_triangulated_surface.html"><span class="doc">smd/tri_surface</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_smd_ulsph.html"><span class="doc">smd/ulsph</span></a></p></td>
+<td><p><a class="reference internal" href="pair_smtbq.html"><span class="doc">smtbq</span></a></p></td>
+<td><p><a class="reference internal" href="pair_snap.html"><span class="doc">snap (ik)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_soft.html"><span class="doc">soft (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_sph_heatconduction.html"><span class="doc">sph/heatconduction (g)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_sph_idealgas.html"><span class="doc">sph/idealgas</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_sph_lj.html"><span class="doc">sph/lj (g)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_sph_rhosum.html"><span class="doc">sph/rhosum</span></a></p></td>
+<td><p><a class="reference internal" href="pair_sph_taitwater.html"><span class="doc">sph/taitwater (g)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_sph_taitwater_morris.html"><span class="doc">sph/taitwater/morris</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spin_dipole.html"><span class="doc">spin/dipole/cut</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spin_dipole.html"><span class="doc">spin/dipole/long</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_spin_dmi.html"><span class="doc">spin/dmi</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spin_exchange.html"><span class="doc">spin/exchange</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spin_exchange.html"><span class="doc">spin/exchange/biquadratic</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_spin_magelec.html"><span class="doc">spin/magelec</span></a></p></td>
+<td><p><a class="reference internal" href="pair_spin_neel.html"><span class="doc">spin/neel</span></a></p></td>
+<td><p><a class="reference internal" href="pair_srp.html"><span class="doc">srp</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_srp.html"><span class="doc">srp/react</span></a></p></td>
+<td><p><a class="reference internal" href="pair_surf_granular.html"><span class="doc">surf/granular</span></a></p></td>
+<td><p><a class="reference internal" href="pair_sw.html"><span class="doc">sw (giko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_sw_angle_table.html"><span class="doc">sw/angle/table</span></a></p></td>
+<td><p><a class="reference internal" href="pair_sw.html"><span class="doc">sw/mod (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_table.html"><span class="doc">table (gko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_table_rx.html"><span class="doc">table/rx (k)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_mesodpd.html"><span class="doc">tdpd</span></a></p></td>
+<td><p><a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff (giko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_tersoff_mod.html"><span class="doc">tersoff/mod (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_tersoff_mod.html"><span class="doc">tersoff/mod/c (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_tersoff.html"><span class="doc">tersoff/table (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_tersoff_zbl.html"><span class="doc">tersoff/zbl (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_thole.html"><span class="doc">thole</span></a></p></td>
+<td><p><a class="reference internal" href="pair_threebody_table.html"><span class="doc">threebody/table (o)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_coul.html"><span class="doc">tip4p/cut (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_coul.html"><span class="doc">tip4p/long (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_fep_soft.html"><span class="doc">tip4p/long/soft (o)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_tri_lj.html"><span class="doc">tri/lj (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_ufm.html"><span class="doc">ufm (gkot)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_uf3.html"><span class="doc">uf3 (k)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_vashishta.html"><span class="doc">vashishta (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_vashishta.html"><span class="doc">vashishta/table (o)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_wf_cut.html"><span class="doc">wf/cut (ko)</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="pair_ylz.html"><span class="doc">ylz (ko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_yukawa.html"><span class="doc">yukawa (gko)</span></a></p></td>
+<td><p><a class="reference internal" href="pair_yukawa_colloid.html"><span class="doc">yukawa/colloid (gko)</span></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="pair_zbl.html"><span class="doc">zbl (gko)</span></a></p></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="Commands_compute.html" class="btn btn-neutral float-left" title="6.7. Compute styles" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="Commands_bond.html" class="btn btn-neutral float-right" title="6.9. Bond styles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

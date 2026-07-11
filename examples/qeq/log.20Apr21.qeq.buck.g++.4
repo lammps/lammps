@@ -1,0 +1,650 @@
+LAMMPS (8 Apr 2021)
+  using 1 OpenMP thread(s) per MPI task
+# This example demonstrates the use of various fix qeq variants with
+#   a pair style using charges, in this case pair_style buck/coul/long
+
+units           metal
+atom_style      charge
+
+read_data 	data.aC
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (25.158320 25.158320 28.020256)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1200 atoms
+  read_data CPU = 0.009 seconds
+#replicate  	2 2 2
+
+pair_style 	buck/coul/long 12.0
+pair_coeff 	2 2 1388.77 .3623188 175.0
+pair_coeff  	1 2 18003   .2052124  133.5381
+pair_coeff 	1 1 0 .1 0
+
+fix        	2 all qeq/shielded    1 10 1.0e-20 10 param.qeq2
+
+include buck.inc
+
+kspace_style  	pppm 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+variable        nqeq equal f_2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot v_nqeq
+thermo 		10
+thermo_modify   format line "%4d %12.9g %12.8f %12.8f %16.12f %6.0f"
+
+timestep 	0.0001
+
+fix  		1 all nve
+
+velocity  	all create 300.0 1281937
+run             0 post no
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.30705229
+  grid = 48 48 54
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.8909403e-05
+  estimated relative force accuracy = 1.3131854e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 57970 32256
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix qeq/shielded, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+WARNING: Fix qeq CG convergence failed (4.299911728887494e-19) after 10 iterations at step 0 (src/QEQ/fix_qeq.cpp:410)
+WARNING: Fix qeq CG convergence failed (5.273380778822746e-18) after 10 iterations at step 0 (src/QEQ/fix_qeq.cpp:410)
+Per MPI rank memory allocation (min/avg/max) = 14.97 | 15.02 | 15.08 Mbytes
+Step PotEng c_q1 c_q2 v_qtot v_nqeq 
+   0  -2879.00327   0.76536977  -0.38268489   0.000000000000     10 
+Loop time of 3.33786e-06 on 4 procs for 0 steps with 1200 atoms
+
+
+write_restart   qeq.restart
+System init for write_restart ...
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.27644401
+  grid = 27 27 30
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4502702e-05
+  estimated relative force accuracy = 1.0071569e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 14960 5832
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+print "Using fix qeq/point"
+Using fix qeq/point
+read_restart   qeq.restart
+Reading restart file ...
+  restart file = 8 Apr 2021, LAMMPS = 8 Apr 2021
+  restoring atom style charge from restart
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (25.158320 25.158320 28.020256)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style buck/coul/long from restart
+  1200 atoms
+  read_restart CPU = 0.001 seconds
+fix        	2 all qeq/point    1 10 1.0e-6 100 param.qeq2
+include buck.inc
+
+kspace_style  	pppm 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+variable        nqeq equal f_2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot v_nqeq
+thermo 		10
+thermo_modify   format line "%4d %12.9g %12.8f %12.8f %16.12f %6.0f"
+
+timestep 	0.0001
+
+fix  		1 all nve
+
+run 100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.27644401
+  grid = 27 27 30
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4502702e-05
+  estimated relative force accuracy = 1.0071569e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 14960 5832
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix qeq/point, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.10 | 11.14 | 11.16 Mbytes
+Step PotEng c_q1 c_q2 v_qtot v_nqeq 
+   0  -3432.17988   0.85228288  -0.42614144  -0.000000000000      3 
+  10  -3452.03328   0.85475605  -0.42737803  -0.000000000000      8 
+  20  -3497.57515   0.85994936  -0.42997468   0.000000000000      8 
+  30  -3568.22095   0.86767937  -0.43383969   0.000000000000      8 
+  40  -3633.24956   0.87335551  -0.43667775  -0.000000000000      8 
+  50  -3700.10219   0.87805056  -0.43902528   0.000000000000      8 
+  60  -3784.36769   0.88402303  -0.44201151   0.000000000000      8 
+  70  -3877.51378   0.89008950  -0.44504475   0.000000000000      8 
+  80  -3965.29722   0.89431515  -0.44715757   0.000000000000      8 
+  90  -4048.36764   0.89698588  -0.44849294  -0.000000000000      8 
+ 100  -4118.65809   0.89719102  -0.44859551   0.000000000000      8 
+Loop time of 3.30911 on 4 procs for 100 steps with 1200 atoms
+
+Performance: 0.261 ns/day, 91.920 hours/ns, 30.220 timesteps/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67613    | 0.68904    | 0.71562    |   1.9 | 20.82
+Kspace  | 0.36056    | 0.3881     | 0.39892    |   2.6 | 11.73
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.013339   | 0.017982   | 0.019974   |   2.0 |  0.54
+Output  | 0.0006721  | 0.00099713 | 0.0019572  |   0.0 |  0.03
+Modify  | 2.2109     | 2.211      | 2.211      |   0.0 | 66.81
+Other   |            | 0.002041   |            |       |  0.06
+
+Nlocal:        300.000 ave         300 max         300 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        4875.00 ave        4880 max        4870 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        91900.0 ave       91900 max       91900 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      183800.0 ave      183800 max      183800 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 735200
+Ave neighs/atom = 612.66667
+Neighbor list builds = 0
+Dangerous builds = 0
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+print "Using fix qeq/shielded"
+Using fix qeq/shielded
+read_restart   qeq.restart
+Reading restart file ...
+  restart file = 8 Apr 2021, LAMMPS = 8 Apr 2021
+  restoring atom style charge from restart
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (25.158320 25.158320 28.020256)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style buck/coul/long from restart
+  1200 atoms
+  read_restart CPU = 0.006 seconds
+fix        	2 all qeq/shielded    1 10 1.0e-6 100 param.qeq2
+include buck.inc
+
+kspace_style  	pppm 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+variable        nqeq equal f_2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot v_nqeq
+thermo 		10
+thermo_modify   format line "%4d %12.9g %12.8f %12.8f %16.12f %6.0f"
+
+timestep 	0.0001
+
+fix  		1 all nve
+
+run 100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.27644401
+  grid = 27 27 30
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4502702e-05
+  estimated relative force accuracy = 1.0071569e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 14960 5832
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix qeq/shielded, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.10 | 11.14 | 11.16 Mbytes
+Step PotEng c_q1 c_q2 v_qtot v_nqeq 
+   0  -2879.00309   0.76536977  -0.38268489   0.000000000000      3 
+  10  -2882.50998   0.76536972  -0.38268486   0.000000000000      2 
+  20  -2893.89472   0.76536950  -0.38268475  -0.000000000000      2 
+  30   -2913.6181   0.76536875  -0.38268438  -0.000000000000      1 
+  40  -2942.24129   0.76536939  -0.38268470   0.000000000000      1 
+  50  -2980.18817   0.76536780  -0.38268390   0.000000000000      2 
+  60  -3027.60957   0.76536804  -0.38268402  -0.000000000000      2 
+  70  -3084.12552   0.76536573  -0.38268287   0.000000000000      2 
+  80   -3148.8697   0.76536550  -0.38268275   0.000000000000      1 
+  90  -3220.43086   0.76536380  -0.38268190   0.000000000000      2 
+ 100   -3297.0618   0.76536251  -0.38268126   0.000000000000      2 
+Loop time of 2.25559 on 4 procs for 100 steps with 1200 atoms
+
+Performance: 0.383 ns/day, 62.655 hours/ns, 44.334 timesteps/s
+97.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67442    | 0.69181    | 0.70907    |   2.0 | 30.67
+Kspace  | 0.39381    | 0.41151    | 0.43023    |   2.6 | 18.24
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.012851   | 0.01426    | 0.015146   |   0.7 |  0.63
+Output  | 0.00066686 | 0.00098681 | 0.0019395  |   0.0 |  0.04
+Modify  | 1.1349     | 1.135      | 1.135      |   0.0 | 50.32
+Other   |            | 0.002035   |            |       |  0.09
+
+Nlocal:        300.000 ave         300 max         300 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        4875.00 ave        4880 max        4870 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        91900.0 ave       91900 max       91900 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      183800.0 ave      183800 max      183800 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 735200
+Ave neighs/atom = 612.66667
+Neighbor list builds = 0
+Dangerous builds = 0
+
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+print "Using fix qeq/slater"
+Using fix qeq/slater
+read_restart   qeq.restart
+Reading restart file ...
+  restart file = 8 Apr 2021, LAMMPS = 8 Apr 2021
+  restoring atom style charge from restart
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (25.158320 25.158320 28.020256)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style buck/coul/long from restart
+  1200 atoms
+  read_restart CPU = 0.012 seconds
+fix        	2 all qeq/shielded    1 10 1.0e-6 100 param.qeq2
+include buck.inc
+
+kspace_style  	pppm 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+variable        nqeq equal f_2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot v_nqeq
+thermo 		10
+thermo_modify   format line "%4d %12.9g %12.8f %12.8f %16.12f %6.0f"
+
+timestep 	0.0001
+
+fix  		1 all nve
+
+run 100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.27644401
+  grid = 27 27 30
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4502702e-05
+  estimated relative force accuracy = 1.0071569e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 14960 5832
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix qeq/shielded, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.10 | 11.14 | 11.16 Mbytes
+Step PotEng c_q1 c_q2 v_qtot v_nqeq 
+   0  -2879.00309   0.76536977  -0.38268489   0.000000000000      3 
+  10  -2882.50998   0.76536972  -0.38268486   0.000000000000      2 
+  20  -2893.89472   0.76536950  -0.38268475  -0.000000000000      2 
+  30   -2913.6181   0.76536875  -0.38268438  -0.000000000000      1 
+  40  -2942.24129   0.76536939  -0.38268470   0.000000000000      1 
+  50  -2980.18817   0.76536780  -0.38268390   0.000000000000      2 
+  60  -3027.60957   0.76536804  -0.38268402  -0.000000000000      2 
+  70  -3084.12552   0.76536573  -0.38268287   0.000000000000      2 
+  80   -3148.8697   0.76536550  -0.38268275   0.000000000000      1 
+  90  -3220.43086   0.76536380  -0.38268190   0.000000000000      2 
+ 100   -3297.0618   0.76536251  -0.38268126   0.000000000000      2 
+Loop time of 2.39249 on 4 procs for 100 steps with 1200 atoms
+
+Performance: 0.361 ns/day, 66.458 hours/ns, 41.797 timesteps/s
+96.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.6751     | 0.70301    | 0.71919    |   2.1 | 29.38
+Kspace  | 0.45569    | 0.47315    | 0.49885    |   2.6 | 19.78
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.012967   | 0.018681   | 0.020909   |   2.4 |  0.78
+Output  | 0.00066733 | 0.00099397 | 0.0019579  |   0.0 |  0.04
+Modify  | 1.1945     | 1.1946     | 1.1947     |   0.0 | 49.93
+Other   |            | 0.002046   |            |       |  0.09
+
+Nlocal:        300.000 ave         300 max         300 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        4875.00 ave        4880 max        4870 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        91900.0 ave       91900 max       91900 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:      183800.0 ave      183800 max      183800 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 735200
+Ave neighs/atom = 612.66667
+Neighbor list builds = 0
+Dangerous builds = 0
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+print "Using fix qeq/dynamic"
+Using fix qeq/dynamic
+read_restart   qeq.restart
+Reading restart file ...
+  restart file = 8 Apr 2021, LAMMPS = 8 Apr 2021
+  restoring atom style charge from restart
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (25.158320 25.158320 28.020256)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style buck/coul/long from restart
+  1200 atoms
+  read_restart CPU = 0.002 seconds
+fix        	2 all qeq/dynamic    1 10 1.0e-3 100 param.qeq2
+include buck.inc
+
+kspace_style  	pppm 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+variable        nqeq equal f_2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot v_nqeq
+thermo 		10
+thermo_modify   format line "%4d %12.9g %12.8f %12.8f %16.12f %6.0f"
+
+timestep 	0.0001
+
+fix  		1 all nve
+
+run 100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.27644401
+  grid = 27 27 30
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4502702e-05
+  estimated relative force accuracy = 1.0071569e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 14960 5832
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix qeq/dynamic, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 9.195 | 9.246 | 9.278 Mbytes
+Step PotEng c_q1 c_q2 v_qtot v_nqeq 
+   0  -3432.38094   0.85231286  -0.42615643  -0.000000000001     43 
+  10  -3452.05217   0.85475894  -0.42737947  -0.000000000003     17 
+  20   -3497.8643   0.85999180  -0.42999590   0.000000000000     22 
+  30  -3568.53169   0.86772479  -0.43386239  -0.000000000000     22 
+  40  -3633.43753   0.87338291  -0.43669146   0.000000000006     22 
+  50  -3700.27953   0.87807632  -0.43903816   0.000000000003     22 
+  60   -3784.4004   0.88402822  -0.44201411   0.000000000009     17 
+  70  -3877.73706   0.89012201  -0.44506100   0.000000000010     22 
+  80  -3965.36111   0.89432486  -0.44716243   0.000000000011     17 
+  90  -4048.57901   0.89701688  -0.44850844   0.000000000012     22 
+ 100  -4118.62736   0.89718691  -0.44859346   0.000000000013     17 
+Loop time of 5.27704 on 4 procs for 100 steps with 1200 atoms
+
+Performance: 0.164 ns/day, 146.584 hours/ns, 18.950 timesteps/s
+98.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.68437    | 0.69096    | 0.69826    |   0.7 | 13.09
+Kspace  | 0.38484    | 0.38941    | 0.39524    |   0.7 |  7.38
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.012609   | 0.01529    | 0.016842   |   1.3 |  0.29
+Output  | 0.00067735 | 0.0010006  | 0.0019588  |   1.7 |  0.02
+Modify  | 4.1783     | 4.1783     | 4.1784     |   0.0 | 79.18
+Other   |            | 0.002027   |            |       |  0.04
+
+Nlocal:        300.000 ave         300 max         300 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        4875.00 ave        4880 max        4870 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        91900.0 ave       93081 max       90719 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 367600
+Ave neighs/atom = 306.33333
+Neighbor list builds = 0
+Dangerous builds = 0
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+print "Using fix qeq/fire"
+Using fix qeq/fire
+read_restart   qeq.restart
+Reading restart file ...
+  restart file = 8 Apr 2021, LAMMPS = 8 Apr 2021
+  restoring atom style charge from restart
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (25.158320 25.158320 28.020256)
+  1 by 2 by 2 MPI processor grid
+  restoring pair style buck/coul/long from restart
+  1200 atoms
+  read_restart CPU = 0.001 seconds
+fix        	2 all qeq/fire     1 10 1.0e-3 100 param.qeq2
+include buck.inc
+
+kspace_style  	pppm 1e-6
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+group    	type1 type 1
+400 atoms in group type1
+compute   	charge1 type1 property/atom q
+compute   	q1 type1 reduce ave c_charge1
+group    	type2 type 2
+800 atoms in group type2
+compute   	charge2 type2 property/atom q
+compute   	q2 type2 reduce ave c_charge2
+variable   	qtot equal count(type1)*c_q1+count(type2)*c_q2
+variable        nqeq equal f_2
+
+thermo_style  	custom step pe c_q1 c_q2 v_qtot v_nqeq
+thermo 		10
+thermo_modify   format line "%4d %12.9g %12.8f %12.8f %16.12f %6.0f"
+
+timestep 	0.0001
+
+fix  		1 all nve
+
+run 100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb (src/kspace.cpp:339)
+  G vector (1/distance) = 0.27644401
+  grid = 27 27 30
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.4502702e-05
+  estimated relative force accuracy = 1.0071569e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 14960 5832
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 13
+  ghost atom cutoff = 13
+  binsize = 6.5, bins = 4 4 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d/newton
+      bin: standard
+  (2) fix qeq/fire, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 9.195 | 9.246 | 9.278 Mbytes
+Step PotEng c_q1 c_q2 v_qtot v_nqeq 
+   0  -3432.05316   0.85226679  -0.42613339   0.000000000001     37 
+  10  -3452.04937   0.85475813  -0.42737906   0.000000000001     10 
+  20  -3497.83659   0.85998739  -0.42999370   0.000000000002     13 
+  30  -3568.47793   0.86771599  -0.43385799   0.000000000002     13 
+  40  -3633.35326   0.87337029  -0.43668514   0.000000000002     13 
+  50  -3700.16079   0.87805847  -0.43902924   0.000000000000     13 
+  60  -3784.31906   0.88401635  -0.44200818  -0.000000000001     11 
+  70  -3877.60163   0.89010162  -0.44505081  -0.000000000000     13 
+  80  -3965.28179   0.89431356  -0.44715678   0.000000000001     11 
+  90  -4048.33861   0.89698069  -0.44849034   0.000000000001     13 
+ 100  -4118.63861   0.89718818  -0.44859409   0.000000000002     12 
+Loop time of 3.88026 on 4 procs for 100 steps with 1200 atoms
+
+Performance: 0.223 ns/day, 107.785 hours/ns, 25.771 timesteps/s
+98.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.68424    | 0.69912    | 0.73572    |   2.5 | 18.02
+Kspace  | 0.38093    | 0.41715    | 0.43168    |   3.2 | 10.75
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.012711   | 0.013318   | 0.014003   |   0.4 |  0.34
+Output  | 0.00066566 | 0.00098735 | 0.0019317  |   0.0 |  0.03
+Modify  | 2.7477     | 2.7477     | 2.7477     |   0.0 | 70.81
+Other   |            | 0.002004   |            |       |  0.05
+
+Nlocal:        300.000 ave         300 max         300 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        4875.00 ave        4880 max        4870 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:        91900.0 ave       93081 max       90719 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 367600
+Ave neighs/atom = 306.33333
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:17

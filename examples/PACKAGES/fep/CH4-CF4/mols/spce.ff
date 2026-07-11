@@ -1,0 +1,14 @@
+# SPC/E water (kJ/mol, A, deg)
+
+ATOMS
+#   type  m/uma    q/e    pot   pars
+Ow  Ow   15.999   -0.8476 lj    3.1655   0.6503
+Hw  Hw    1.008    0.4238 lj    1.0000   0.0000
+
+BONDS
+# i j    pot    re/A    ka/kJmol-1
+Ow  Hw   cons   1.000   4331.53
+
+ANGLES
+# i  j  k    pot    th/deg   ka/kjmol-1
+Hw  Ow  Hw   cons   109.47   317.57

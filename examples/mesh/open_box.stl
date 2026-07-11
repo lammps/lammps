@@ -1,0 +1,72 @@
+solid Open Box
+    facet normal  0.0 0.0 1.0
+        outer loop
+            vertex 100.0 100.0 100.0
+            vertex 200.0 100.0 100.0
+            vertex 200.0 200.0 100.0
+        endloop
+    endfacet
+    facet normal  0.0 0.0 1.0
+        outer loop
+            vertex 100.0 100.0 100.0
+            vertex 100.0 200.0 100.0
+            vertex 200.0 200.0 100.0
+        endloop
+    endfacet
+    facet normal  0.0 0.0 -1.0
+        outer loop
+            vertex 100.0 100.0 200.0
+            vertex 200.0 100.0 200.0
+            vertex 200.0 200.0 200.0
+        endloop
+    endfacet
+    facet normal  0.0 0.0 -1.0
+        outer loop
+            vertex 100.0 100.0 200.0
+            vertex 100.0 200.0 200.0
+            vertex 200.0 200.0 200.0
+        endloop
+    endfacet
+    facet normal  0.0 1.0 0.0
+        outer loop
+            vertex 100.0 100.0 100.0
+            vertex 200.0 100.0 100.0
+            vertex 200.0 100.0 200.0
+        endloop
+    endfacet
+    facet normal  0.0 1.0 0.0
+        outer loop
+            vertex 100.0 100.0 100.0
+            vertex 100.0 100.0 200.0
+            vertex 200.0 100.0 200.0
+        endloop
+    endfacet
+    facet normal  0.0 -1.0 0.0
+        outer loop
+            vertex 100.0 200.0 100.0
+            vertex 200.0 200.0 100.0
+            vertex 200.0 200.0 200.0
+        endloop
+    endfacet
+    facet normal  0.0 -1.0 0.0
+        outer loop
+            vertex 100.0 200.0 100.0
+            vertex 100.0 200.0 200.0
+            vertex 200.0 200.0 200.0
+        endloop
+    endfacet
+    facet normal -1.0 0.0 0.0
+        outer loop
+            vertex 200.0 100.0 100.0
+            vertex 200.0 200.0 100.0
+            vertex 200.0 200.0 200.0
+        endloop
+    endfacet
+    facet normal  -1.0 0.0 0.0
+        outer loop
+            vertex 200.0 100.0 100.0
+            vertex 200.0 100.0 200.0
+            vertex 200.0 200.0 200.0
+        endloop
+    endfacet
+endsolid

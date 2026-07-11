@@ -1,0 +1,31 @@
+# Example problem demonstrating the use of synchronized_verlet 
+# Refer https://doi.org/10.1016/j.cpc.2025.109524 for further details
+
+units	        si
+atom_style	sphere
+newton off
+
+boundary   	p p f
+read_data       3ps.dat 
+
+group           ps type 1
+group           fine type 2
+
+pair_style granular
+pair_coeff * * hooke 1e4 0.5 tangential linear_history 8235 0 0.5 damping coeff_restitution synchronized_verlet
+# pair_coeff * * hertz/material 5e8 0.5 0.3 tangential mindlin  NULL 0.0 0.5 damping coeff_restitution #synchronized_verlet
+
+timestep        1e-6
+fix             frz ps freeze 
+fix             g fine gravity 9.81 vector 0 0 -1
+fix             1 fine nve/sphere
+fix             2 all wall/gran granular hooke 1e4 0.5 tangential linear_history 8235 0 0.5 damping coeff_restitution zplane $(zlo) $(zhi)
+
+# dump            1 all custom 3000 op.dump id x y z vx vy vz type diameter 
+
+comm_modify     vel yes
+
+thermo          3000
+thermo_style    custom step ke
+run_style       verlet
+run             300000

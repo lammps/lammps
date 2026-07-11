@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dump atom/adios command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/dump_adios.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="dump cfg/uef command" href="dump_cfg_uef.html" />
+    <link rel="prev" title="dump command" href="dump.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="bonds.html">Bond Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="dumps.html">Dump Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="dump.html">dump command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-vtk-command"><span class="xref std std-doc">dump vtk</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-h5md-command"><span class="xref std std-doc">dump h5md</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-molfile-command"><span class="xref std std-doc">dump molfile</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-netcdf-command"><span class="xref std std-doc">dump netcdf</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-image-command"><span class="xref std std-doc">dump image</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-movie-command"><span class="xref std std-doc">dump movie</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-atom-adios-command"><span class="xref std std-doc">dump atom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-custom-adios-command"><span class="xref std std-doc">dump custom/adios</span> command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump.html#dump-cfg-uef-command"><span class="xref std std-doc">dump cfg/uef</span> command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">dump atom/adios  command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dump-custom-adios-command">dump custom/adios command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="dump_cfg_uef.html">dump cfg/uef command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_h5md.html">dump h5md command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html">dump image command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-movie-command">dump movie command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_image.html#dump-modify-options-for-dump-image-movie">dump_modify options for dump image/movie</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html">dump_modify command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_modify.html#dump-modify-command-for-image-movie-options"><span class="xref std std-doc">dump_modify</span> command for image/movie options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_molfile.html">dump molfile command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html">dump netcdf command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_netcdf.html#dump-netcdf-mpiio-command">dump netcdf/mpiio command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dump_vtk.html">dump vtk command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="dumps.html">Dump Styles</a></li>
+      <li class="breadcrumb-item active">dump atom/adios  command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="dump.html" class="btn btn-neutral float-left" title="dump command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dump_cfg_uef.html" class="btn btn-neutral float-right" title="dump cfg/uef command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="dump-atom-adios-command">
+<span id="index-1"></span><span id="index-0"></span><h1>dump atom/adios  command<a class="headerlink" href="#dump-atom-adios-command" title="Link to this heading"></a></h1>
+</section>
+<section id="dump-custom-adios-command">
+<h1>dump custom/adios command<a class="headerlink" href="#dump-custom-adios-command" title="Link to this heading"></a></h1>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">atom</span><span class="o">/</span><span class="n">adios</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">file.bp</span>
+<span class="k">dump </span><span class="nv nv-Identifier">ID</span><span class="w"> </span><span class="nv nv-Identifier">group-ID</span><span class="w"> </span><span class="n">custom</span><span class="o">/</span><span class="n">adios</span><span class="w"> </span><span class="n">N</span><span class="w"> </span><span class="n">file.bp</span><span class="w"> </span><span class="n">args</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>ID = user-assigned name for the dump</p></li>
+<li><p>group-ID = ID of the group of atoms to be imaged</p></li>
+<li><p>adios = style of dump command (other styles <em>atom</em> or <em>cfg</em> or <em>dcd</em> or <em>xtc</em> or <em>xyz</em> or <em>local</em> or <em>custom</em> are discussed on the <a class="reference internal" href="dump.html"><span class="doc">dump</span></a> doc page)</p></li>
+<li><p>N = dump every this many timesteps</p></li>
+<li><p>file.bp = name of file/stream to write to</p></li>
+<li><p>args = same options as in <a class="reference internal" href="dump.html"><span class="doc">dump custom</span></a> command</p></li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">adios1</span><span class="w"> </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="o">/</span><span class="n">adios</span><span class="w">   </span><span class="m">100</span><span class="w"> </span><span class="n">atoms.bp</span>
+<span class="k">dump </span><span class="nv nv-Identifier">4a</span><span class="w">     </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">custom</span><span class="o">/</span><span class="n">adios</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump_adios.bp</span><span class="w"> </span><span class="n">id</span><span class="w"> </span><span class="n">v_p</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="n">y</span><span class="w"> </span><span class="n">z</span>
+<span class="k">dump </span><span class="nv nv-Identifier">2</span><span class="w"> </span><span class="nv nv-Identifier">subgroup</span><span class="w"> </span><span class="n">custom</span><span class="o">/</span><span class="n">adios</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump_adios.bp</span><span class="w"> </span><span class="n">mass</span><span class="w"> </span><span class="n">type</span><span class="w"> </span><span class="n">xs</span><span class="w"> </span><span class="n">ys</span><span class="w"> </span><span class="n">zs</span><span class="w"> </span><span class="n">vx</span><span class="w"> </span><span class="n">vy</span><span class="w"> </span><span class="n">vz</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Dump a snapshot of atom coordinates every <span class="math notranslate nohighlight">\(N\)</span> timesteps in the <a class="reference external" href="https://github.com/ornladios/ADIOS2">ADIOS</a>-based “BP” file format, or using different I/O solutions in
+ADIOS, to a stream that can be read on-line by another program.
+ADIOS-BP files are binary, portable, and self-describing.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>To be able to use ADIOS, a file <code class="docutils literal notranslate"><span class="pre">adios2_config.xml</span></code> with specific
+configuration settings is expected in the current working directory.
+If the file is not present, LAMMPS will try to create a minimal
+default file.  Please refer to the ADIOS documentation for details on
+how to adjust this file for optimal performance and desired features.</p>
+</div>
+<p><strong>Use from write_dump:</strong></p>
+<p>It is possible to use these dump styles with the
+<a class="reference internal" href="write_dump.html"><span class="doc">write_dump</span></a> command.  In this case, the sub-intervals
+must not be set at all.  The write_dump command can be used to
+create a new file at each individual dump.</p>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">dump </span><span class="nv nv-Identifier">4</span><span class="w">     </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="o">/</span><span class="n">adios</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="n">dump.bp</span>
+<span class="k">write_dump </span><span class="nv nv-Identifier">all</span><span class="w"> </span><span class="n">atom</span><span class="o">/</span><span class="n">adios</span><span class="w"> </span><span class="n">singledump.bp</span>
+</pre></div>
+</div>
+</section>
+<hr class="docutils" />
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>The number of atoms per snapshot <strong>can</strong> change with the adios style.
+When using the ADIOS tool ‘bpls’ to list the content of a .bp file,
+bpls will print <em>__</em> for the size of the output table indicating that
+its size is changing every step.</p>
+<p>The <em>atom/adios</em> and <em>custom/adios</em> dump styles are part of the ADIOS
+package.  They are only enabled if LAMMPS was built with that package.
+See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+</section>
+<hr class="docutils" />
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="dump.html"><span class="doc">dump</span></a>, <a class="reference internal" href="dump_modify.html"><span class="doc">dump_modify</span></a>, <a class="reference internal" href="undump.html"><span class="doc">undump</span></a></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="dump.html" class="btn btn-neutral float-left" title="dump command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="dump_cfg_uef.html" class="btn btn-neutral float-right" title="dump cfg/uef command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,5 @@
+The LAMMPS input script and data file were built to
+match the Cerius Dreiding files included
+in this directory (ch3oh.box.*) so that you
+can compare LAMMPS output to a Dreiding implementation
+in the Cerius code.

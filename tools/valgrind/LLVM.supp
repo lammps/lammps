@@ -1,0 +1,140 @@
+{
+   LLVM_addOption1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*
+   fun:*
+   fun:Allocate
+   ...
+   fun:insert
+   ...
+   fun:forEachSubCommand
+   fun:addOption
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   LLVM_addOption2
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*
+   fun:*
+   fun:Allocate
+   ...
+   fun:insert
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   fun:forEachSubCommand
+   fun:addOption
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   LLVM_addOption3
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:safe_calloc
+   fun:insert
+   ...
+   fun:forEachSubCommand
+   fun:addOption
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   LLVM_addOption4
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:safe_calloc
+   ...
+   fun:insert
+   ...
+   fun:forEachSubCommand
+   fun:addOption
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   LLVM_insert1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*
+   fun:*
+   fun:Allocate
+   ...
+   fun:insert
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   LLVM_init1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*
+   fun:call
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}
+{
+   LLVM_register1
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:*
+   fun:*
+   fun:*
+   fun:*
+   fun:*
+   fun:registerCategory
+   ...
+   fun:Option
+   ...
+   fun:call_init
+   fun:call_init
+   fun:_dl_init
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}

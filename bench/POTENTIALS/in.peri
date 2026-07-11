@@ -1,0 +1,86 @@
+# Crack growth in notched 3D Peridynamic block
+
+# Mesh spacing
+variable    	h equal 5.00e-4
+# Peridynamic horizon
+variable    	delta equal 3.0*${h}
+# Height of plate (meters)
+variable    	height equal 31.5*${h}
+# Width of plate (meters)
+variable    	width equal 39.5*${h}
+# Thickness of plate (meters)
+variable    	depth equal 24.5*${h}
+# Height of notch
+variable	crackheight equal 10*${h}
+# Density of plate
+variable	mydensity equal 2440.0
+# Elastic modulus of material
+variable	myE equal 72.0e9
+# Strain energy release rate at branching
+variable	myG equal 135.0
+# constant, but define it as a variable here
+variable    	pi equal 3.14159265358979323846
+
+units 		si
+boundary        s s s
+atom_style      peri
+atom_modify	map array
+variable 	myskin equal 2.0*${h}
+neighbor	${myskin} bin
+
+lattice         sc $h
+variable	myxmin equal 0.0
+variable	myxmax equal ${width}
+variable	myymin equal 0.0
+variable	myymax equal ${height}
+variable	myzmin equal 0.0
+variable	myzmax equal ${depth}
+region          plate block &
+		${myxmin} ${myxmax} ${myymin} ${myymax} ${myzmin} ${myzmax} &
+		units box
+create_box      3 plate
+create_atoms    1 region plate
+
+
+pair_style      peri/pmb
+variable	myk equal (2.0/3.0)*${myE}
+
+variable	myc equal ((18.0*${myk})/(${pi}*(${delta}^4)))
+variable	mydelta equal (${delta}+(${delta}/100.0))
+variable	mys0 equal sqrt((5.0*${myG})/(9.0*${myk}*${delta}))
+
+variable	tmpvar1 equal ${myymax}-${crackheight}
+variable	tmpvar2 equal 0.5*${width}
+
+region		topleft  block &
+		0.0 ${tmpvar2} ${tmpvar1} ${myymax} ${myzmin} ${myzmax} &
+		units box
+region		topright block &
+		${tmpvar2} ${myxmax} ${tmpvar1} ${myymax} ${myzmin} ${myzmax} &
+		units box
+set 		region topleft  type 2
+set 		region topright type 3
+pair_coeff      1 1 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      2 2 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      3 3 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      2 3 ${myc}        0.0 ${mys0} 0.0
+pair_coeff      1 2 ${myc} ${mydelta} ${mys0} 0.0
+pair_coeff      1 3 ${myc} ${mydelta} ${mys0} 0.0
+set             group all density ${mydensity}
+variable	myvolume equal ($h)^3
+set             group all volume ${myvolume}
+
+velocity        all set 0.0 0.0 0.0 sum no units box
+
+fix             F1 all nve
+
+compute         C1 all damage/atom
+
+velocity 	all ramp vx -10.0 10.0 x ${myxmin} ${myxmax} units box
+
+variable	mystep equal &
+		0.8*sqrt((2.0*${mydensity})/(512*(${myc}/$h)*${myvolume}))
+timestep        ${mystep}
+thermo		20
+
+run             100

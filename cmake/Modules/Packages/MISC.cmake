@@ -1,0 +1,13 @@
+# pair style and fix srp/react depend on the fixes bond/break and bond/create from the MC package
+if(NOT PKG_MC)
+  get_property(LAMMPS_FIX_HEADERS GLOBAL PROPERTY FIX)
+  list(REMOVE_ITEM LAMMPS_FIX_HEADERS ${LAMMPS_SOURCE_DIR}/MISC/fix_srp_react.h)
+  set_property(GLOBAL PROPERTY FIX "${LAMMPS_FIX_HEADERS}")
+  get_property(LAMMPS_PAIR_HEADERS GLOBAL PROPERTY PAIR)
+  list(REMOVE_ITEM LAMMPS_PAIR_HEADERS ${LAMMPS_SOURCE_DIR}/MISC/pair_srp_react.h)
+  set_property(GLOBAL PROPERTY PAIR "${LAMMPS_PAIR_HEADERS}")
+  get_target_property(LAMMPS_SOURCES lammps SOURCES)
+  list(REMOVE_ITEM LAMMPS_SOURCES ${LAMMPS_SOURCE_DIR}/MISC/fix_srp_react.cpp)
+  list(REMOVE_ITEM LAMMPS_SOURCES ${LAMMPS_SOURCE_DIR}/MISC/pair_srp_react.cpp)
+  set_property(TARGET lammps PROPERTY SOURCES "${LAMMPS_SOURCES}")
+endif()

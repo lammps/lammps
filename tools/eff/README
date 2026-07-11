@@ -1,0 +1,48 @@
+The directory structure_generators includes several scripts for
+generating LAMMPS structure files:
+
+- Be-solid.pl: beryllium solid box
+- h2.pl: rectangular lattice of hydrogen atoms
+- Diamond.pl: diamond A4 box
+- Li-hydride: Lithium hydride solid box
+- Li-solid: Lithium solid box (Li-solid-angstromg produces data file in Angstroms)
+- Uniform-electron-gas.pl: uniform electron gas on an NaCl lattice
+
+- bohr2ang.py: converts an eFF structure file described in bohr to 
+  its corresponding version in Angstroms
+
+And other useful scripts for processing pEFF related information are
+included, such as:
+
+- cfg2lammps.py: Python script for converting an eff cfg file into a
+  LAMMPS data/script file pair
+
+- lmp2radii.py/pyx: Python/Cython scripts for post-processing a lammps
+  trajectory to extract electron radii/frame.
+
+Note: the corresponding .c, and .so files are the c source and binary
+library (loadable Python module) created by Cython automatically when
+compiling lmp2radii.pyx in place with Cython (python setup.py
+build_ext --inplace).
+
+- radii.vmd: a TCL script for adding radial changes per trajectory
+  frame to an xyz LAMMPS trajectory of an pEFF run.
+
+- lmp2any.py: Python scipt for extracting quantities from a custom
+  lammps dump
+
+- lmp2radii-col.py: Same as lmp2radii.py, but takes a column
+  descriptor for the radius
+
+- VMD-input.py: Automatically calls the necessary scripts to produce a
+  VMD ready script that loads variable radii into VMD
+
+NOTE: you must set the graphical representation in VMD to represent
+electrons using transparency (this requires selecting and applying the
+corresponding atom types).
+
+For further details see the descriptors in each file, or contact:
+Andres Jaramillo-Botero: ajaramil@wag.caltech.edu
+
+Acknowledgments: Thanks to Axel Kohlmeyer (Temple Univ) for his help
+with VMD.

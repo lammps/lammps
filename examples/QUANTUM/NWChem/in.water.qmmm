@@ -1,0 +1,61 @@
+# QMMM with NWChem
+
+units		real
+atom_style	full
+
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.water.qmmm
+
+# QM atoms are 1st water
+# MM atoms are 2nd water
+
+group           qm molecule 1
+group           mm molecule 2
+
+# remove bonds/angles between QM atoms
+
+delete_bonds    qm multi remove special
+
+# pair style must define stand-alone short-range Coulombics
+# must specify mixing explicitly b/c hybrid/overlay
+# QM O,H = types 1,2
+# MM O,H = types 3,4
+# QM O,H atoms do not LJ interact with each other
+# only MM O atoms LJ interact with other b/c MM H is zero
+# MM/QM O do LJ interact with each other, same as pair of MM O atoms
+# MM O and QM H do LJ interact with each other with non-zero H epsilon = 0.044
+#   geometric mixing for epsilon, arithmetic for sigma
+#   this is to provide stability for QM H atoms
+
+# mixing only for MM-O/QM-O and MM-O/QM-H
+
+pair_style      hybrid/overlay lj/cut 6.0 coul/cut 6.0
+pair_coeff      1 1 lj/cut 0.0 3.165558         
+pair_coeff      2 2 lj/cut 0.0 0.7   
+pair_coeff      3 3 lj/cut 0.155394 3.165558         
+pair_coeff      4 4 lj/cut 0.0 0.7         
+pair_coeff      1 3 lj/cut 0.155394 3.165558         
+pair_coeff      2 3 lj/cut 0.08268818537130924 1.932779
+pair_coeff      * * coul/cut
+
+neighbor	1.0 bin
+neigh_modify	delay 0 every 1 check yes
+
+velocity        all create 300.0 87287 loop geom
+
+# QMMM dynamics
+
+timestep        0.1
+
+fix		1 all nve
+
+fix             2 qm mdi/qmmm potential elements O H O H
+fix_modify      2 energy yes
+
+thermo_style    custom step cpu temp ke evdwl ecoul epair emol elong &
+                f_2 pe etotal press
+
+thermo          1
+run		10

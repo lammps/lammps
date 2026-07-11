@@ -1,0 +1,60 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifdef REGION_CLASS
+// clang-format off
+RegionStyle(union,RegUnion);
+// clang-format on
+#else
+
+#ifndef LMP_REGION_UNION_H
+#define LMP_REGION_UNION_H
+
+#include "region.h"
+
+namespace LAMMPS_NS {
+
+class RegUnion : public Region {
+ public:
+  RegUnion(class LAMMPS *, int, char **);
+  ~RegUnion() override;
+  void init() override;
+  int inside(double, double, double) override;
+  void prematch() override;
+  int surface_interior(double *, double) override;
+  int surface_exterior(double *, double) override;
+  void shape_update() override;
+  void pretransform() override;
+  int surface(double, double, double, double) override;
+  int match(double, double, double) override;
+  void set_velocity() override;
+  void velocity_contact(double *, double *, int) override;
+  void length_restart_string(int &) override;
+  void write_restart(FILE *) override;
+  int restart(char *, int &) override;
+  void reset_vel() override;
+
+ private:
+  char **idsub;
+
+  struct ContactIndx {
+    int ilist;         // index of contact in list of regions
+    int ic;            // index in subregions list of contacts
+  };
+  ContactIndx *contact_indx;
+};
+
+}    // namespace LAMMPS_NS
+
+#endif
+#endif

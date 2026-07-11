@@ -1,0 +1,44 @@
+# test script for fix mol/swap
+# initial system is 50/50 chains of type 1 and type 2
+# b/c epsilon12 is set to 1.02 (weakly same as 1/1 or 1/2) the
+#   system will stay in equilibrium as a mix of both chain types
+# fix mol/swap helps this happen quickly
+# see the last 2 columns of thermo output for counts of 2 chain types
+
+units              lj
+atom_style         angle
+neighbor           0.36 bin
+neigh_modify       delay 0
+
+pair_style         lj/cut 1.1224620483
+bond_style         fene
+angle_style        cosine
+special_bonds      lj 0.0 1.0 1.0
+
+read_data          data.bead
+
+pair_coeff         * * 1.0 1.0 1.1224620483
+pair_coeff         1 2 1.02 1.0 1.1224620483
+bond_coeff         1 30.0 1.5 1.0 1.0
+angle_coeff        1 1.500
+pair_modify        shift yes
+
+variable           vt1 atom type==1
+variable           vt2 atom type==2
+group              g1 dynamic all var vt1 every 100
+group              g2 dynamic all var vt2 every 100
+variable           count1 equal count(g1)
+variable           count2 equal count(g2)
+
+timestep           0.010
+
+fix                1 all langevin 1.0 1.0 100.0 702547
+fix                2 all nve
+fix                3 all mol/swap 100 1 1 2 482794 1.0
+
+compute            p all pressure thermo_temp
+thermo             1000
+thermo_style       custom step temp etotal press f_3[1] f_3[2] v_count1 v_count2
+
+run                50000
+

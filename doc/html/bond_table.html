@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bond_style table command &mdash; LAMMPS documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+      <link rel="stylesheet" type="text/css" href="_static/css/lammps.css?v=3a007f32" />
+
+  
+    <link rel="shortcut icon" href="_static/lammps.ico"/>
+    <link rel="canonical" href="https://docs.lammps.org/bond_table.html" />
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=59edd34a"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script src="_static/design-tabs.js?v=f930bc37"></script>
+      <script defer="defer" src="_static/mathjax/tex-mml-chtml.js?v=8fcd0c82"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="bond_style zero command" href="bond_zero.html" />
+    <link rel="prev" title="bond_style special command" href="bond_special.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      
+      <div class="wy-side-scroll" id="lammps-navbar">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          
+          <div id="sidebar-top-target"></div>
+          <a href="Manual.html">
+            
+              <img src="_static/lammps-logo.png" class="logo" alt="Logo"/>
+          </a>
+
+          
+            <div class="lammps_version">Version: <b>4 Jul 2026</b></div>
+            <div class="lammps_release">git info: 4July2026</div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Intro.html">1. Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Install.html">2. Install LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Build.html">3. Build LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Run_head.html">4. Run LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Errors.html">5. Errors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Commands.html">6. Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Speed.html">7. Accelerate performance</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Packages.html">8. Optional packages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Tools.html">9. Auxiliary tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Howto.html">10. Howto discussions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Examples.html">11. Example scripts</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Programmer Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Library.html">1. LAMMPS Library Interfaces</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Python_head.html">2. Use Python with LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Modify.html">3. Modifying &amp; extending LAMMPS</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Developer.html">4. Information for Developers</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Command Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="commands_list.html">Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fixes.html">Fix Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="computes.html">Compute Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pairs.html">Pair Styles</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="bonds.html">Bond Styles</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="bond_bpm_rotational.html">bond_style bpm/rotational command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_bpm_spring.html">bond_style bpm/spring command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_bpm_spring_plastic.html">bond_style bpm/spring/plastic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_class2.html">bond_style class2 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene.html">bond_style fene command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene.html#bond-style-fene-nm-command">bond_style fene/nm command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_fene_expand.html">bond_style fene/expand command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_gaussian.html">bond_style gaussian command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_gromos.html">bond_style gromos command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic.html">bond_style harmonic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_restrain.html">bond_style harmonic/restrain command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_shift.html">bond_style harmonic/shift command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_harmonic_shift_cut.html">bond_style harmonic/shift/cut command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_hybrid.html">bond_style hybrid command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_lepton.html">bond_style lepton command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_mesocnt.html">bond_style mesocnt command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_mm3.html">bond_style mm3 command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_morse.html">bond_style morse command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_none.html">bond_style none command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_nonlinear.html">bond_style nonlinear command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_oxdna.html">bond_style oxdna/fene command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_oxdna.html#bond-style-oxdna2-fene-command">bond_style oxdna2/fene command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_oxdna.html#bond-style-oxdna3-fene-command">bond_style oxdna3/fene command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_oxdna.html#bond-style-oxrna2-fene-command">bond_style oxrna2/fene command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_quartic.html">bond_style quartic command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_quartic_exp.html">bond_style quartic/exp command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_rheo_shell.html">bond_style rheo/shell command</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bond_special.html">bond_style special command</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">bond_style table command</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#syntax">Syntax</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#description">Description</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restart-info">Restart info</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#related-commands">Related commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#default">Default</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="bond_zero.html">bond_style zero command</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="angles.html">Angle Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dihedrals.html">Dihedral Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="impropers.html">Improper Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dumps.html">Dump Styles</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Bibliography.html">Bibliography</a></li>
+</ul>
+
+          
+          <div class="local-toc"><span class="caption-text"><a href="genindex.html">Index</a></span></div>
+        </div>
+      </div>
+      
+      <div style="position: fixed; bottom: 0px; width: 300px; height: 64px; padding: 4px; background-color: #272525; text-align: center">
+        <button onclick="JumpToTop()" class="fa fa-caret-up" style="color:white; background-color: #272525; border-style: none;" title="Go to top">&nbsp;Go to top</button>
+      </div>
+      <script>
+        let navbar = document.getElementById("lammps-navbar");
+        function JumpToTop() {
+            navbar.scrollTop = 0;
+        }
+      </script>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="Manual.html">LAMMPS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content style-external-links">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="Manual.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="bonds.html">Bond Styles</a></li>
+      <li class="breadcrumb-item active">bond_style table command</li>
+      <li class="wy-breadcrumbs-aside">
+          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+      </li>
+  </ul><div class="rst-breadcrumbs-buttons" role="navigation" aria-label="Sequential page navigation">
+        <a href="bond_special.html" class="btn btn-neutral float-left" title="bond_style special command" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bond_zero.html" class="btn btn-neutral float-right" title="bond_style zero command" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+  </div>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="https://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <p><span class="math notranslate nohighlight">\(\renewcommand{\AA}{\text{Å}}\)</span></p>
+<section id="bond-style-table-command">
+<span id="index-1"></span><span id="index-0"></span><h1>bond_style table command<a class="headerlink" href="#bond-style-table-command" title="Link to this heading"></a></h1>
+<p>Accelerator Variants: <em>table/omp</em></p>
+<section id="syntax">
+<h2>Syntax<a class="headerlink" href="#syntax" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">bond_style</span><span class="w"> </span><span class="n">table</span><span class="w"> </span><span class="n">style</span><span class="w"> </span><span class="n">N</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>style = <em>linear</em> or <em>spline</em> = method of interpolation</p></li>
+<li><p>N = use N values in table</p></li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<div class="highlight-LAMMPS notranslate"><div class="highlight"><pre><span></span><span class="k">bond_style</span><span class="w"> </span><span class="n">table</span><span class="w"> </span><span class="n">linear</span><span class="w"> </span><span class="m">1000</span>
+<span class="k">bond_coeff</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="n">file.table</span><span class="w"> </span><span class="n">ENTRY1</span>
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Link to this heading"></a></h2>
+<p>Style <em>table</em> creates interpolation tables of length <em>N</em> from bond
+potential and force values listed in a file(s) as a function of bond
+length.  The files are read by the <a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>
+command.</p>
+<p>The interpolation tables are created by fitting cubic splines to the
+file values and interpolating energy and force values at each of <em>N</em>
+distances.  During a simulation, these tables are used to interpolate
+energy and force values as needed.  The interpolation is done in one
+of 2 styles: <em>linear</em> or <em>spline</em>.</p>
+<p>For the <em>linear</em> style, the bond length is used to find 2 surrounding
+table values from which an energy or force is computed by linear
+interpolation.</p>
+<p>For the <em>spline</em> style, a cubic spline coefficients are computed and
+stored at each of the <em>N</em> values in the table.  The bond length is
+used to find the appropriate set of coefficients which are used to
+evaluate a cubic polynomial which computes the energy or force.</p>
+<p>The following coefficients must be defined for each bond type via the
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a> command as in the example above.</p>
+<ul class="simple">
+<li><p>filename</p></li>
+<li><p>keyword</p></li>
+</ul>
+<p>The filename specifies a file containing tabulated energy and force
+values.  The keyword specifies a section of the file.  The format of
+this file is described below.</p>
+<hr class="docutils" />
+<p>Suitable tables for use with this bond style can be created by LAMMPS
+itself from existing bond styles using the <a class="reference internal" href="bond_write.html"><span class="doc">bond_write</span></a> command.  This can be useful to have a template file for
+testing the bond style settings and to build a compatible custom file.
+Another option to generate tables is the Python code in the
+<code class="docutils literal notranslate"><span class="pre">tools/tabulate</span></code> folder of the LAMMPS source code distribution.</p>
+<p>The format of a tabulated file is as follows (without the
+parenthesized comments):</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span># Bond potential for harmonic (one or more comment or blank lines)
+
+HAM                           (keyword is the first text on line)
+N 101 FP 0 0 EQ 0.5           (N, FP, EQ  parameters)
+                              (blank line)
+1 0.00 338.0000 1352.0000     (index, bond-length, energy, force)
+2 0.01 324.6152 1324.9600
+...
+101 1.00 338.0000 -1352.0000
+</pre></div>
+</div>
+<p>A section begins with a non-blank line whose first character is not a
+“#”; blank lines or lines starting with “#” can be used as comments
+between sections.  The first line begins with a keyword which
+identifies the section.  The line can contain additional text, but the
+initial text must match the argument specified in the
+<a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a> command.  The next line lists (in any
+order) one or more parameters for the table.  Each parameter is a
+keyword followed by one or more numeric values.</p>
+<p>The parameter “N” is required and its value is the number of table
+entries that follow.  Note that this may be different than the <em>N</em>
+specified in the <a class="reference internal" href="bond_style.html"><span class="doc">bond_style table</span></a> command.  Let
+Ntable = <em>N</em> in the bond_style command, and Nfile = “N” in the
+tabulated file.  What LAMMPS does is a preliminary interpolation by
+creating splines using the Nfile tabulated values as nodal points.  It
+uses these to interpolate as needed to generate energy and force
+values at Ntable different points.  The resulting tables of length
+Ntable are then used as described above, when computing energy and
+force for individual bond lengths.  This means that if you want the
+interpolation tables of length Ntable to match exactly what is in the
+tabulated file (with effectively no preliminary interpolation), you
+should set Ntable = Nfile.</p>
+<p>The “FP” parameter is optional.  If used, it is followed by two values
+fplo and fphi, which are the derivatives of the force at the innermost
+and outermost bond lengths.  These values are needed by the spline
+construction routines.  If not specified by the “FP” parameter, they
+are estimated (less accurately) by the first two and last two force
+values in the table.</p>
+<p>The “EQ” parameter is also optional.  If used, it is followed by a the
+equilibrium bond length, which is used, for example, by the <a class="reference internal" href="fix_shake.html"><span class="doc">fix
+shake</span></a> command.  If not used, the equilibrium bond length is
+to the distance in the table with the lowest potential energy.</p>
+<p>Following a blank line, the next N lines list the tabulated values.
+On each line, the first value is the index from 1 to N, the second value is
+the bond length r (in distance units), the third value is the energy (in
+energy units), and the fourth is the force (in force units).  The bond
+lengths must range from a LO value to a HI value, and increase from
+one line to the next.  If the actual bond length is ever smaller than
+the LO value or larger than the HI value, then the calculation is
+aborted with an error, so it is advisable to cover the whole range
+of possible bond lengths.</p>
+<p>Note that one file can contain many sections, each with a tabulated
+potential.  LAMMPS reads the file section by section until it finds
+one that matches the specified keyword.</p>
+<hr class="docutils" />
+<p>Styles with a <em>gpu</em>, <em>intel</em>, <em>kk</em>, <em>omp</em>, or <em>opt</em> suffix are
+functionally the same as the corresponding style without the suffix.
+They have been optimized to run faster, depending on your available
+hardware, as discussed on the <a class="reference internal" href="Speed_packages.html"><span class="doc">Accelerator packages</span></a>
+page.  The accelerated styles take the same arguments and should
+produce the same results, except for round-off and precision issues.</p>
+<p>These accelerated styles are part of the GPU, INTEL, KOKKOS,
+OPENMP, and OPT packages, respectively.  They are only enabled if
+LAMMPS was built with those packages.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more info.</p>
+<p>You can specify the accelerated styles explicitly in your input script
+by including their suffix, or you can use the <a class="reference internal" href="Run_options.html"><span class="doc">-suffix command-line switch</span></a> when you invoke LAMMPS, or you can use the
+<a class="reference internal" href="suffix.html"><span class="doc">suffix</span></a> command in your input script.</p>
+<p>See the <a class="reference internal" href="Speed_packages.html"><span class="doc">Accelerator packages</span></a> page for more
+instructions on how to use the accelerated styles effectively.</p>
+</section>
+<hr class="docutils" />
+<section id="restart-info">
+<h2>Restart info<a class="headerlink" href="#restart-info" title="Link to this heading"></a></h2>
+<p>This bond style writes the settings for the “bond_style table” command
+to <a class="reference internal" href="restart.html"><span class="doc">binary restart files</span></a>, so a bond_style command does
+not need to specified in an input script that reads a restart file.
+However, the coefficient information is not stored in the restart file,
+since it is tabulated in the potential files.  Thus, bond_coeff commands
+do need to be specified in the restart input script.</p>
+</section>
+<section id="restrictions">
+<h2>Restrictions<a class="headerlink" href="#restrictions" title="Link to this heading"></a></h2>
+<p>This bond style can only be used if LAMMPS was built with the MOLECULE
+package.  See the <a class="reference internal" href="Build_package.html"><span class="doc">Build package</span></a> page for more
+info.</p>
+</section>
+<section id="related-commands">
+<h2>Related commands<a class="headerlink" href="#related-commands" title="Link to this heading"></a></h2>
+<p><a class="reference internal" href="bond_coeff.html"><span class="doc">bond_coeff</span></a>, <a class="reference internal" href="delete_bonds.html"><span class="doc">delete_bonds</span></a>,
+<a class="reference internal" href="bond_write.html"><span class="doc">bond_write</span></a></p>
+</section>
+<section id="default">
+<h2>Default<a class="headerlink" href="#default" title="Link to this heading"></a></h2>
+<p>none</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="bond_special.html" class="btn btn-neutral float-left" title="bond_style special command" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="bond_zero.html" class="btn btn-neutral float-right" title="bond_style zero command" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2003-2026 Sandia Corporation.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(false);
+      });
+  </script> 
+
+</body>
+</html>

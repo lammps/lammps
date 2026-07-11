@@ -1,0 +1,10 @@
+10     		:n_con_files
+0    		:n_con_files_to_skip
+1000    		:n_frames_per_con_file
+1				:n_frames_per_dump_to_dcd
+1000			:max_dcd_dumps_per_dcd_file
+0      		:n_dcd_files_to_skip
+31666   	:n_atoms_dump
+31666		:n_atoms_recenter
+/scratch2/pscrozi/dotap/con
+/scratch2/pscrozi/dotap/dotap

@@ -189,6 +189,9 @@ void PairColloid::compute(int eflag, int vflag)
         if (r <= K[1])
           error->one(FLERR,"Overlapping large/large in pair colloid");
         break;
+
+      default:
+        error->one(FLERR,"Unknown colloid interaction form");
       }
 
       if (eflag) evdwl *= factor_lj;

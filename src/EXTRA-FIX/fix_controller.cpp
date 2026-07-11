@@ -107,6 +107,10 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   control = input->variable->compute_equal(ivariable);
 
   firsttime = 1;
+
+  // so compute_vector() returns zeros until the first end_of_step()
+
+  err = olderr = sumerr = deltaerr = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

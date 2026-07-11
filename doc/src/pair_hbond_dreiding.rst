@@ -89,8 +89,8 @@ Here, *r* is the radial distance between the donor (D) and acceptor
 (A) atoms and :math:`\theta` is the bond angle between the acceptor, the
 hydrogen (H) and the donor atoms:
 
-.. image:: JPG/dreiding_hbond.jpg
-   :align: center
+.. image:: JPG/dreiding_hbond.png
+   :width: 66%
 
 These 3-body interactions can be defined for pairs of acceptor and donor
 atoms, based on atom types.  For each donor/acceptor atom pair, the

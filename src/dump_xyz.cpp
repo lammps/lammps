@@ -31,7 +31,7 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  typenames(nullptr)
+  typenames(nullptr), write_choice(nullptr)
 {
   if (narg != 5) error->all(FLERR, Error::NOPOINTER, "Illegal dump {} command", style);
   if (binary || multiproc) error->all(FLERR, 4, "Invalid dump {} filename", style);

@@ -181,7 +181,7 @@ void FixSurface::corner_connection3d(const double *inorm, const double *jnorm, i
 ------------------------------------------------------------------------- */
 
 void FixSurface::extract_from_molecule(char *molID,
-                                       std::map<std::tuple<double, double, double, int>, int> *hash,
+                                       std::map<std::tuple<double, double, double, int>, int> &hash,
                                        int &npoints, int &maxpoints, Point *&points, int &nlines,
                                        Line *&lines, int &ntris, Tri *&tris)
 {
@@ -227,36 +227,36 @@ void FixSurface::extract_from_molecule(char *molID,
 
         // only lines in the same molecule are connected
         auto key = std::make_tuple(epts[i][0], epts[i][1], 0.0, molline[i]);
-        if (hash->find(key) == hash->end()) {
+        if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
             maxpoints += DELTA;
             points =
                 (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
           }
-          (*hash)[key] = npoints;
+          hash[key] = npoints;
           points[npoints].x[0] = epts[i][0];
           points[npoints].x[1] = epts[i][1];
           points[npoints].x[2] = 0.0;
           lines[iline].p1 = npoints;
           npoints++;
         } else
-          lines[iline].p1 = (*hash)[key];
+          lines[iline].p1 = hash[key];
 
         key = std::make_tuple(epts[i][2], epts[i][3], 0.0, molline[i]);
-        if (hash->find(key) == hash->end()) {
+        if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
             maxpoints += DELTA;
             points =
                 (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
           }
-          (*hash)[key] = npoints;
+          hash[key] = npoints;
           points[npoints].x[0] = epts[i][2];
           points[npoints].x[1] = epts[i][3];
           points[npoints].x[2] = 0.0;
           lines[iline].p2 = npoints;
           npoints++;
         } else
-          lines[iline].p2 = (*hash)[key];
+          lines[iline].p2 = hash[key];
 
         iline++;
       }
@@ -274,52 +274,52 @@ void FixSurface::extract_from_molecule(char *molID,
 
         // only tris in the same molecule are connected
         auto key = std::make_tuple(cpts[i][0], cpts[i][1], cpts[i][2], moltri[i]);
-        if (hash->find(key) == hash->end()) {
+        if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
             maxpoints += DELTA;
             points =
                 (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
           }
-          (*hash)[key] = npoints;
+          hash[key] = npoints;
           points[npoints].x[0] = cpts[i][0];
           points[npoints].x[1] = cpts[i][1];
           points[npoints].x[2] = cpts[i][2];
           tris[itri].p1 = npoints;
           npoints++;
         } else
-          tris[itri].p1 = (*hash)[key];
+          tris[itri].p1 = hash[key];
 
         key = std::make_tuple(cpts[i][3], cpts[i][4], cpts[i][5], moltri[i]);
-        if (hash->find(key) == hash->end()) {
+        if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
             maxpoints += DELTA;
             points =
                 (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
           }
-          (*hash)[key] = npoints;
+          hash[key] = npoints;
           points[npoints].x[0] = cpts[i][3];
           points[npoints].x[1] = cpts[i][4];
           points[npoints].x[2] = cpts[i][5];
           tris[itri].p2 = npoints;
           npoints++;
         } else
-          tris[itri].p2 = (*hash)[key];
+          tris[itri].p2 = hash[key];
 
         key = std::make_tuple(cpts[i][6], cpts[i][7], cpts[i][8], moltri[i]);
-        if (hash->find(key) == hash->end()) {
+        if (hash.find(key) == hash.end()) {
           if (npoints == maxpoints) {
             maxpoints += DELTA;
             points =
                 (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
           }
-          (*hash)[key] = npoints;
+          hash[key] = npoints;
           points[npoints].x[0] = cpts[i][6];
           points[npoints].x[1] = cpts[i][7];
           points[npoints].x[2] = cpts[i][8];
           tris[itri].p3 = npoints;
           npoints++;
         } else
-          tris[itri].p3 = (*hash)[key];
+          tris[itri].p3 = hash[key];
 
         itri++;
       }
@@ -334,7 +334,7 @@ void FixSurface::extract_from_molecule(char *molID,
 ------------------------------------------------------------------------- */
 
 void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
-                                      std::map<std::tuple<double, double, double, int>, int> *hash,
+                                      std::map<std::tuple<double, double, double, int>, int> &hash,
                                       int &npoints, int &maxpoints, Point *&points, int &ntris,
                                       Tri *&tris)
 {
@@ -367,49 +367,49 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
     // only tris in the same molecule are connected
     auto key =
         std::make_tuple(stltris[itri_new][0], stltris[itri_new][1], stltris[itri_new][2], smol);
-    if (hash->find(key) == hash->end()) {
+    if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
         maxpoints += DELTA;
         points = (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
       }
-      (*hash)[key] = npoints;
+      hash[key] = npoints;
       points[npoints].x[0] = stltris[itri_new][0];
       points[npoints].x[1] = stltris[itri_new][1];
       points[npoints].x[2] = stltris[itri_new][2];
       tris[itri].p1 = npoints;
       npoints++;
     } else
-      tris[itri].p1 = (*hash)[key];
+      tris[itri].p1 = hash[key];
 
     key = std::make_tuple(stltris[itri_new][3], stltris[itri_new][4], stltris[itri_new][5], smol);
-    if (hash->find(key) == hash->end()) {
+    if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
         maxpoints += DELTA;
         points = (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
       }
-      (*hash)[key] = npoints;
+      hash[key] = npoints;
       points[npoints].x[0] = stltris[itri_new][3];
       points[npoints].x[1] = stltris[itri_new][4];
       points[npoints].x[2] = stltris[itri_new][5];
       tris[itri].p2 = npoints;
       npoints++;
     } else
-      tris[itri].p2 = (*hash)[key];
+      tris[itri].p2 = hash[key];
 
     key = std::make_tuple(stltris[itri_new][6], stltris[itri_new][7], stltris[itri_new][8], smol);
-    if (hash->find(key) == hash->end()) {
+    if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
         maxpoints += DELTA;
         points = (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
       }
-      (*hash)[key] = npoints;
+      hash[key] = npoints;
       points[npoints].x[0] = stltris[itri_new][6];
       points[npoints].x[1] = stltris[itri_new][7];
       points[npoints].x[2] = stltris[itri_new][8];
       tris[itri].p3 = npoints;
       npoints++;
     } else
-      tris[itri].p3 = (*hash)[key];
+      tris[itri].p3 = hash[key];
   }
 }
 

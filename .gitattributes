@@ -1,6 +1,7 @@
 .gitattributes export-ignore
 .gitignore export-ignore
 .github export-ignore
+.claude export-ignore
 .lgtm.yml export-ignore
 SECURITY.md export-ignore
 CITATION.cff export-ignore

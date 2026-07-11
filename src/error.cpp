@@ -33,9 +33,18 @@ static std::string truncpath(const std::string &path)
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp)
-  : Pointers(lmp), numwarn(0), maxwarn(100), allwarn(0), showerror(1)
+void Error::reset_warn()
 {
+  numwarn = allwarn = 0;
+  maxwarn = 100;
+}
+
+/* ---------------------------------------------------------------------- */
+
+Error::Error(LAMMPS *lmp)
+  : Pointers(lmp), showerror(1)
+{
+  Error::reset_warn();
   last_error_message.clear();
   last_error_type = ERROR_NONE;
 }

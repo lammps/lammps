@@ -657,11 +657,11 @@ void Thermo::modify_params(int narg, char **arg)
         error->set_maxwarn(0);
       else if (strcmp(arg[iarg + 1], "reset") == 0) {
         error->set_numwarn(0);
+        error->set_allwarn(0);
         warnbefore = 0;
       } else if (strcmp(arg[iarg + 1], "default") == 0) {
         warnbefore = 0;
-        error->set_numwarn(0);
-        error->set_maxwarn(100);
+        error->reset_warn();
       } else
         error->set_maxwarn(utils::inumeric(FLERR, arg[iarg + 1], false, lmp));
       iarg += 2;

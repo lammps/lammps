@@ -216,6 +216,14 @@ void PairGauss::coeff(int narg, char **arg)
 double PairGauss::init_one(int i, int j)
 {
   if (setflag[i][j] == 0) {
+    // mixing determines the width of the mixed gaussian from the widths of the
+    // i,i and j,j gaussians, which is not possible when either b is 0.0
+
+    if ((b[i][i] == 0.0) || (b[j][j] == 0.0))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Cannot mix pair gauss coefficients for atom types {} and {} when b is 0.0; "
+                 "must use a pair_coeff command to set them explicitly", i, j);
+
     double sign_bi = (b[i][i] >= 0.0) ? 1.0 : -1.0;
     double sign_bj = (b[j][j] >= 0.0) ? 1.0 : -1.0;
     double si = sqrt(0.5 / fabs(b[i][i]));

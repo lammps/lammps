@@ -196,7 +196,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
         epot[i] += epot_i;
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
             else {

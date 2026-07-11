@@ -59,6 +59,7 @@ CommTiled::CommTiled(LAMMPS *lmp) :
   init_pointers();
   init_buffers_flag = 0;
   maxswap = 0;
+  dimension = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,6 +77,7 @@ CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   init_pointers();
   init_buffers_flag = 0;
   maxswap = 0;
+  dimension = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,6 +130,23 @@ void CommTiled::init_pointers()
   nexchprocmax = nullptr;
   exchproc = nullptr;
   exchnum = nullptr;
+
+  prd = nullptr;
+  boxlo = boxhi = nullptr;
+  sublo = subhi = nullptr;
+
+  box_drop = nullptr;
+  box_other = nullptr;
+  box_touch = nullptr;
+  point_drop = nullptr;
+
+  maxsend = maxrecv = 0;
+  maxoverlap = 0;
+  nswap = 0;
+  noverlap = 0;
+  smaxone = rmaxone = 0;
+  smaxall = rmaxall = 0;
+  maxrequest = 0;
 }
 
 /* ----------------------------------------------------------------------

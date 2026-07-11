@@ -49,8 +49,8 @@ static constexpr int DELTA_RVOUS = 1024;    // must be >= 8
 
 enum { INTERNAL = 0, EXTERNAL, UNCONNECTED };
 
-static constexpr double FLATTHRESH =
-    0.00015230484360876085;        // = 1.0-cos(MY_PI/180.0); = 1 degree
+// = 1.0-cos(MY_PI/180.0); = 1 degree
+static constexpr double FLATTHRESH = 0.00015230484360876085;
 static constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 
 enum { MOLTEMPLATE, STLFILE };
@@ -156,7 +156,7 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
   // initializations
 
   atom2connect = nullptr;
-  grow_arrays(atom->nmax);
+  FixSurfaceLocal::grow_arrays(atom->nmax);
   atom->add_callback(0);
   atom->add_callback(2);
 
@@ -300,8 +300,7 @@ void FixSurfaceLocal::post_constructor()
     lines = nullptr;
     tris = nullptr;
 
-    std::map<std::tuple<double, double, double, int>, int> *hash =
-        new std::map<std::tuple<double, double, double, int>, int>();
+    std::map<std::tuple<double, double, double, int>, int> hash;
 
     for (int i = 0; i < ninput; i++) {
       int mode = input_modes[i];
@@ -325,8 +324,7 @@ void FixSurfaceLocal::post_constructor()
         extract_from_stlfile(sourceID, stype, smol, hash, npoints, maxpoints, points, ntris, tris);
       }
     }
-
-    delete hash;
+    hash.clear();    // free memory
 
     memory->sfree(input_modes);
     for (int i = 0; i < ninput; i++) delete[] input_sources[i];
@@ -1700,10 +1698,10 @@ double FixSurfaceLocal::memory_usage()
 
   if (dimension == 2) {
     bytes = nmax_connect * sizeof(Connect2d);
-    bytes = nmax_connect * sizeof(Pool2d);
+    bytes += nmax_connect * sizeof(Pool2d);
   } else {
     bytes = nmax_connect * sizeof(Connect3d);
-    bytes = nmax_connect * sizeof(Pool3d);
+    bytes += nmax_connect * sizeof(Pool3d);
   }
 
   bytes += atom->nmax * sizeof(int);      // atom2connect vector
@@ -1875,7 +1873,7 @@ void FixSurfaceLocal::connectivity2d_local()
   char *buf;
   int nreturn = comm->rendezvous(RVOUS, ncount, (char *) inbuf, sizeof(InRvous), 0, proclist,
                                  point_match, 0, buf, sizeof(OutRvous), (void *) this);
-  auto outbuf = (OutRvous *) buf;
+  auto *outbuf = (OutRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -2021,7 +2019,7 @@ void FixSurfaceLocal::connectivity2d_local()
 
 void FixSurfaceLocal::connectivity3d_local()
 {
-  int k, m, n;
+  int m, n;
 
   avec_tri = (AtomVecTri *) atom->style_match("tri");
 
@@ -2174,7 +2172,7 @@ void FixSurfaceLocal::connectivity3d_local()
   char *buf;
   int nreturn = comm->rendezvous(RVOUS, ncount, (char *) inbuf, sizeof(InRvous), 0, proclist,
                                  point_match, 0, buf, sizeof(OutRvous), (void *) this);
-  auto outbuf = (OutRvous *) buf;
+  auto *outbuf = (OutRvous *) buf;
 
   memory->destroy(proclist);
   memory->sfree(inbuf);
@@ -2570,7 +2568,7 @@ int FixSurfaceLocal::point_match(int n, char *inbuf, int &rflag, int *&proclist,
 {
   // access class data for epssq and bin count
 
-  auto fslptr = (FixSurfaceLocal *) ptr;
+  auto *fslptr = (FixSurfaceLocal *) ptr;
   Memory *memory = fslptr->memory;
   Comm *comm = fslptr->comm;
 
@@ -2595,7 +2593,7 @@ int FixSurfaceLocal::point_match(int n, char *inbuf, int &rflag, int *&proclist,
   for (int i = 0; i < nmine; i++) num[i] = 0;
   for (int i = 0; i < nmine; i++) first[i] = -1;
 
-  auto in = (InRvous *) inbuf;
+  auto *in = (InRvous *) inbuf;
 
   int ibin, whichbin;
 
@@ -3598,11 +3596,13 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][1], cpts[jconnect][2]))
         jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(cpts[iconnect][1], cpts[iconnect][0], iedge);
-      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
-                        flatthresh, connect3d[iconnect].fflag_e1[m],
-                        connect3d[iconnect].ewhich_e1[m], connect3d[iconnect].nside_e1[m],
-                        connect3d[iconnect].aflag_e1[m]);
+      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond, flatthresh,
+                        connect3d[iconnect].fflag_e1[m], connect3d[iconnect].ewhich_e1[m],
+                        connect3d[iconnect].nside_e1[m], connect3d[iconnect].aflag_e1[m]);
     }
 
     for (int m = 0; m < connect3d[iconnect].ne2; m++) {
@@ -3626,11 +3626,13 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][2], cpts[jconnect][2]))
         jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(cpts[iconnect][2], cpts[iconnect][1], iedge);
-      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
-                        flatthresh, connect3d[iconnect].fflag_e2[m],
-                        connect3d[iconnect].ewhich_e2[m], connect3d[iconnect].nside_e2[m],
-                        connect3d[iconnect].aflag_e2[m]);
+      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond, flatthresh,
+                        connect3d[iconnect].fflag_e2[m], connect3d[iconnect].ewhich_e2[m],
+                        connect3d[iconnect].nside_e2[m], connect3d[iconnect].aflag_e2[m]);
     }
 
     for (int m = 0; m < connect3d[iconnect].ne3; m++) {
@@ -3654,11 +3656,13 @@ void FixSurfaceLocal::connectivity3d_complete()
       else if (same_point(cpts[iconnect][0], cpts[jconnect][2]))
         jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(cpts[iconnect][0], cpts[iconnect][2], iedge);
-      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond,
-                        flatthresh, connect3d[iconnect].fflag_e3[m],
-                        connect3d[iconnect].ewhich_e3[m], connect3d[iconnect].nside_e3[m],
-                        connect3d[iconnect].aflag_e3[m]);
+      edge_connection3d(normals[iconnect], normals[jconnect], iedge, jpfirst, jpsecond, flatthresh,
+                        connect3d[iconnect].fflag_e3[m], connect3d[iconnect].ewhich_e3[m],
+                        connect3d[iconnect].nside_e3[m], connect3d[iconnect].aflag_e3[m]);
     }
   }
 

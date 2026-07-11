@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Editable vector source for the compute hbond/local documentation figure
      doc/src/JPG/hbond-diagram.png .
      Rasterize to PNG with Inkscape or rsvg-convert (crop to the drawing,
@@ -7,28 +7,659 @@
      export-width 1600, export-background-opacity 0, output ../JPG/hbond-diagram.png
      Water-dimer geometry shared between both figures; here the angle shown is the H-donor-acceptor angle at the DONOR vertex.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 470" width="980" height="470" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif">
-<defs><marker id="cgs" markerWidth="9" markerHeight="9" refX="6.5" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M1,1 L8,4 L1,7 Z" fill="#5b6b7a"/></marker><marker id="cge" markerWidth="9" markerHeight="9" refX="2.5" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M8,1 L1,4 L8,7 Z" fill="#5b6b7a"/></marker><linearGradient id="cgcone" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1c7084" stop-opacity="0.30"/><stop offset="1" stop-color="#1c7084" stop-opacity="0.05"/></linearGradient><radialGradient id="cgO" cx="0.34" cy="0.30" r="0.85"><stop offset="0" stop-color="#dd8f83"/><stop offset="0.45" stop-color="#b02525"/><stop offset="1" stop-color="#571212"/></radialGradient><radialGradient id="cgH" cx="0.34" cy="0.30" r="0.85"><stop offset="0" stop-color="#f1f3f5"/><stop offset="0.55" stop-color="#ccd2d8"/><stop offset="1" stop-color="#828d99"/></radialGradient><filter id="cgsh" x="-45%" y="-45%" width="190%" height="200%"><feGaussianBlur in="SourceAlpha" stdDeviation="6"/><feOffset dx="0" dy="6" result="o"/><feFlood flood-color="#0b1a2b" flood-opacity="0.28"/><feComposite in2="o" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter><radialGradient id="cgspec" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#ffffff" stop-opacity="0.9"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient><linearGradient id="cgcov" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8c97a3"/><stop offset="0.5" stop-color="#d7dde3"/><stop offset="1" stop-color="#4a5560"/></linearGradient></defs>
-<path d="M 200.0,255.0 L 416.0,255.0 A 216,216 0 0 0 374.7,128.0 Z" fill="url(#cgcone)" stroke="#1c7084" stroke-width="2.4" stroke-dasharray="7 5" stroke-opacity="0.85"/>
-<rect x="369.7" y="97.0" width="60.2" height="23.0" rx="6" fill="#dfebef" stroke="#95bfca" stroke-width="1.3"/><text x="378.7" y="114.1" text-anchor="start" font-family="'DejaVu Sans Mono','Menlo',monospace" font-size="17" font-weight="700" fill="#1c7084">acut</text><text x="378.7" y="133.1" text-anchor="start" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif" font-size="12" fill="#1c7084" paint-order="stroke" stroke="#ffffff" stroke-width="5" stroke-linejoin="round">max H-donor-acceptor angle</text>
-<path d="M 669.8,407.7 A 494,494 0 0 0 669.8,102.3" fill="none" stroke="#1c7084" stroke-width="3.6" stroke-dasharray="10 7"/>
-<line x1="666.0" y1="255.0" x2="694.0" y2="255.0" stroke="#1c7084" stroke-width="2.8" stroke-dasharray="5 5" opacity="0.8"/>
-<rect x="691.2" y="176.5" width="60.2" height="23.0" rx="6" fill="#dfebef" stroke="#95bfca" stroke-width="1.3"/><text x="700.2" y="193.6" text-anchor="start" font-family="'DejaVu Sans Mono','Menlo',monospace" font-size="17" font-weight="700" fill="#1c7084">rcut</text><text x="700.2" y="212.6" text-anchor="start" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif" font-size="12" fill="#1c7084" paint-order="stroke" stroke="#ffffff" stroke-width="5" stroke-linejoin="round">max donor-acceptor distance</text>
-<line x1="252.0" y1="255.0" x2="558.0" y2="255.0" stroke="#5b6b7a" stroke-width="3.6" stroke-dasharray="12 8" marker-start="url(#cgs)" marker-end="url(#cge)"/>
-<path d="M 284.0,255.0 A 84,84 0 0 0 270.4,209.2" fill="none" stroke="#1f2d3d" stroke-width="2.8"/>
-<g opacity="0.25"><line x1="200.0" y1="255.0" x2="81.6" y2="186.7" stroke="url(#cgcov)" stroke-width="13" stroke-linecap="round"/><line x1="200.0" y1="255.0" x2="81.6" y2="186.7" stroke="#ffffff" stroke-opacity="0.30" stroke-width="3.1" stroke-linecap="round"/></g>
-<g opacity="0.25"><line x1="610.0" y1="255.0" x2="631.1" y2="374.2" stroke="url(#cgcov)" stroke-width="13" stroke-linecap="round"/><line x1="610.0" y1="255.0" x2="631.1" y2="374.2" stroke="#ffffff" stroke-opacity="0.30" stroke-width="3.1" stroke-linecap="round"/></g>
-<g opacity="0.25"><line x1="610.0" y1="255.0" x2="496.3" y2="296.3" stroke="url(#cgcov)" stroke-width="13" stroke-linecap="round"/><line x1="610.0" y1="255.0" x2="496.3" y2="296.3" stroke="#ffffff" stroke-opacity="0.30" stroke-width="3.1" stroke-linecap="round"/></g>
-<g><line x1="200.0" y1="255.0" x2="327.8" y2="172.0" stroke="url(#cgcov)" stroke-width="15" stroke-linecap="round"/><line x1="200.0" y1="255.0" x2="327.8" y2="172.0" stroke="#ffffff" stroke-opacity="0.30" stroke-width="3.6" stroke-linecap="round"/></g>
-<line x1="362.3" y1="182.2" x2="556.3" y2="239.2" stroke="#c34a3f" stroke-width="6.5" stroke-linecap="round" stroke-dasharray="0.5 14"/>
-<g opacity="0.25"><g filter="url(#cgsh)"><circle cx="81.6" cy="186.7" r="30.0" fill="url(#cgH)" stroke="#7c8792" stroke-width="1.2"/></g><ellipse cx="72.6" cy="175.9" rx="12.6" ry="8.1" fill="url(#cgspec)" transform="rotate(-27 72.6 175.9)"/></g>
-<g opacity="0.25"><g filter="url(#cgsh)"><circle cx="631.1" cy="374.2" r="30.0" fill="url(#cgH)" stroke="#7c8792" stroke-width="1.2"/></g><ellipse cx="622.1" cy="363.4" rx="12.6" ry="8.1" fill="url(#cgspec)" transform="rotate(-27 622.1 363.4)"/></g>
-<g opacity="0.25"><g filter="url(#cgsh)"><circle cx="496.3" cy="296.3" r="30.0" fill="url(#cgH)" stroke="#7c8792" stroke-width="1.2"/></g><ellipse cx="487.3" cy="285.5" rx="12.6" ry="8.1" fill="url(#cgspec)" transform="rotate(-27 487.3 285.5)"/></g>
-<g filter="url(#cgsh)"><circle cx="327.8" cy="172.0" r="32.0" fill="url(#cgH)" stroke="#7c8792" stroke-width="1.2"/></g><ellipse cx="318.2" cy="160.5" rx="13.4" ry="8.6" fill="url(#cgspec)" transform="rotate(-27 318.2 160.5)"/><text x="327.8" y="182.9" text-anchor="middle" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif" font-size="27" font-weight="700" fill="#33424f">H</text>
-<g filter="url(#cgsh)"><circle cx="200.0" cy="255.0" r="52.0" fill="url(#cgO)" stroke="#521212" stroke-width="1.2"/></g><ellipse cx="184.4" cy="236.3" rx="21.8" ry="14.0" fill="url(#cgspec)" transform="rotate(-27 184.4 236.3)"/><text x="200.0" y="272.7" text-anchor="middle" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif" font-size="44" font-weight="700" fill="#ffffff">D</text>
-<g filter="url(#cgsh)"><circle cx="610.0" cy="255.0" r="52.0" fill="url(#cgO)" stroke="#521212" stroke-width="1.2"/></g><ellipse cx="594.4" cy="236.3" rx="21.8" ry="14.0" fill="url(#cgspec)" transform="rotate(-27 594.4 236.3)"/><text x="610.0" y="272.7" text-anchor="middle" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif" font-size="44" font-weight="700" fill="#ffffff">A</text>
-<rect x="368.5" y="271.0" width="73.0" height="28" rx="6" fill="#eef2f6" stroke="#c4cfd9" stroke-width="1.3"/><text x="405.0" y="292.5" text-anchor="middle" font-family="'DejaVu Sans Mono','Menlo',monospace" font-size="22" font-weight="700" fill="#1f2d3d">dist</text>
-<rect x="416.3" y="163.7" width="86.0" height="28" rx="6" fill="#eef2f6" stroke="#c4cfd9" stroke-width="1.3"/><text x="459.3" y="185.2" text-anchor="middle" font-family="'DejaVu Sans Mono','Menlo',monospace" font-size="22" font-weight="700" fill="#1f2d3d">hdist</text>
-<rect x="283.0" y="218.0" width="86.0" height="28" rx="6" fill="#eef2f6" stroke="#c4cfd9" stroke-width="1.3"/><text x="326.0" y="239.5" text-anchor="middle" font-family="'DejaVu Sans Mono','Menlo',monospace" font-size="22" font-weight="700" fill="#1f2d3d">angle</text>
-<text x="60" y="438" font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif" font-size="25" text-anchor="start"><tspan font-family="'DejaVu Sans Mono','Menlo',monospace" font-weight="700" fill="#b02525">D</tspan><tspan fill="#5b6b7a" dx="7">= Donor</tspan><tspan font-family="'DejaVu Sans Mono','Menlo',monospace" font-weight="700" fill="#64707b" dx="30">H</tspan><tspan fill="#5b6b7a" dx="7">= Hydrogen</tspan><tspan font-family="'DejaVu Sans Mono','Menlo',monospace" font-weight="700" fill="#b02525" dx="30">A</tspan><tspan fill="#5b6b7a" dx="7">= Acceptor</tspan></text>
+
+<svg
+   viewBox="0 0 980 470"
+   width="980"
+   height="470"
+   font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif"
+   version="1.1"
+   id="svg42"
+   sodipodi:docname="hbond-diagram.svg"
+   inkscape:version="1.4.4 (dcaf3e7d9e, 2026-05-05)"
+   inkscape:export-filename="hbond-diagram.png"
+   inkscape:export-xdpi="100"
+   inkscape:export-ydpi="100"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview42"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1"
+     inkscape:cx="322"
+     inkscape:cy="374"
+     inkscape:window-width="2576"
+     inkscape:window-height="1515"
+     inkscape:window-x="1005"
+     inkscape:window-y="129"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg42" />
+  <defs
+     id="defs14">
+    <rect
+       x="-12"
+       y="-9"
+       width="907"
+       height="471"
+       id="rect44" />
+    <rect
+       x="688"
+       y="201"
+       width="216"
+       height="20"
+       id="rect43" />
+    <marker
+       id="cgs"
+       markerWidth="9"
+       markerHeight="9"
+       refX="6.5"
+       refY="4"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M1,1 L8,4 L1,7 Z"
+         fill="#5b6b7a"
+         id="path1" />
+    </marker>
+    <marker
+       id="cge"
+       markerWidth="9"
+       markerHeight="9"
+       refX="2.5"
+       refY="4"
+       orient="auto"
+       markerUnits="userSpaceOnUse">
+      <path
+         d="M8,1 L1,4 L8,7 Z"
+         fill="#5b6b7a"
+         id="path2" />
+    </marker>
+    <linearGradient
+       id="cgcone"
+       x1="0"
+       y1="0"
+       x2="1"
+       y2="0">
+      <stop
+         offset="0"
+         stop-color="#1c7084"
+         stop-opacity="0.30"
+         id="stop2" />
+      <stop
+         offset="1"
+         stop-color="#1c7084"
+         stop-opacity="0.05"
+         id="stop3" />
+    </linearGradient>
+    <radialGradient
+       id="cgO"
+       cx="0.34"
+       cy="0.30"
+       r="0.85">
+      <stop
+         offset="0"
+         stop-color="#dd8f83"
+         id="stop4" />
+      <stop
+         offset="0.45"
+         stop-color="#b02525"
+         id="stop5" />
+      <stop
+         offset="1"
+         stop-color="#571212"
+         id="stop6" />
+    </radialGradient>
+    <radialGradient
+       id="cgH"
+       cx="0.34"
+       cy="0.30"
+       r="0.85">
+      <stop
+         offset="0"
+         stop-color="#f1f3f5"
+         id="stop7" />
+      <stop
+         offset="0.55"
+         stop-color="#ccd2d8"
+         id="stop8" />
+      <stop
+         offset="1"
+         stop-color="#828d99"
+         id="stop9" />
+    </radialGradient>
+    <filter
+       id="cgsh"
+       x="-0.25"
+       y="-0.25"
+       width="1.5"
+       height="1.6">
+      <feGaussianBlur
+         in="SourceAlpha"
+         stdDeviation="6"
+         id="feGaussianBlur9" />
+      <feOffset
+         dx="0"
+         dy="6"
+         result="o"
+         id="feOffset9" />
+      <feFlood
+         flood-color="#0b1a2b"
+         flood-opacity="0.28"
+         id="feFlood9" />
+      <feComposite
+         in2="o"
+         operator="in"
+         id="feComposite9" />
+      <feMerge
+         id="feMerge10">
+        <feMergeNode
+           id="feMergeNode9" />
+        <feMergeNode
+           in="SourceGraphic"
+           id="feMergeNode10" />
+      </feMerge>
+    </filter>
+    <radialGradient
+       id="cgspec"
+       cx="0.5"
+       cy="0.5"
+       r="0.5">
+      <stop
+         offset="0"
+         stop-color="#ffffff"
+         stop-opacity="0.9"
+         id="stop10" />
+      <stop
+         offset="1"
+         stop-color="#ffffff"
+         stop-opacity="0"
+         id="stop11" />
+    </radialGradient>
+    <linearGradient
+       id="cgcov"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0"
+         stop-color="#8c97a3"
+         id="stop12" />
+      <stop
+         offset="0.5"
+         stop-color="#d7dde3"
+         id="stop13" />
+      <stop
+         offset="1"
+         stop-color="#4a5560"
+         id="stop14" />
+    </linearGradient>
+  </defs>
+  <path
+     d="M 200.0,255.0 L 416.0,255.0 A 216,216 0 0 0 374.7,128.0 Z"
+     fill="url(#cgcone)"
+     stroke="#1c7084"
+     stroke-width="2.4"
+     stroke-dasharray="7 5"
+     stroke-opacity="0.85"
+     id="path14" />
+  <rect
+     x="370.70001"
+     y="96"
+     width="60.200001"
+     height="23"
+     rx="6"
+     fill="#dfebef"
+     stroke="#95bfca"
+     stroke-width="1.3"
+     id="rect14" />
+  <text
+     x="379.70001"
+     y="113.1"
+     text-anchor="start"
+     font-family="'DejaVu Sans Mono', Menlo, monospace"
+     font-size="17px"
+     font-weight="700"
+     fill="#1c7084"
+     id="text14">acut</text>
+  <text
+     x="396.70001"
+     y="135.10001"
+     text-anchor="start"
+     font-family="'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif"
+     font-size="12px"
+     fill="#1c7084"
+     paint-order="stroke"
+     stroke="#ffffff"
+     stroke-width="5"
+     stroke-linejoin="round"
+     id="text15">max H-donor-acceptor angle</text>
+  <path
+     d="M 669.8,407.7 A 494,494 0 0 0 669.8,102.3"
+     fill="none"
+     stroke="#1c7084"
+     stroke-width="3.6"
+     stroke-dasharray="10 7"
+     id="path15" />
+  <line
+     x1="666.0"
+     y1="255.0"
+     x2="694.0"
+     y2="255.0"
+     stroke="#1c7084"
+     stroke-width="2.8"
+     stroke-dasharray="5 5"
+     opacity="0.8"
+     id="line15" />
+  <rect
+     x="710.20001"
+     y="168.5"
+     width="60.200001"
+     height="23"
+     rx="6"
+     fill="#dfebef"
+     stroke="#95bfca"
+     stroke-width="1.3"
+     id="rect15" />
+  <text
+     x="719.20001"
+     y="185.60001"
+     text-anchor="start"
+     font-family="'DejaVu Sans Mono', Menlo, monospace"
+     font-size="17px"
+     font-weight="700"
+     fill="#1c7084"
+     id="text16">rcut</text>
+  <text
+     x="700.20001"
+     y="212.60001"
+     text-anchor="start"
+     font-family="'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif"
+     font-size="12px"
+     fill="#1c7084"
+     paint-order="stroke"
+     stroke="#ffffff"
+     stroke-width="5"
+     stroke-linejoin="round"
+     id="text17">max donor-acceptor distance</text>
+  <line
+     x1="252.0"
+     y1="255.0"
+     x2="558.0"
+     y2="255.0"
+     stroke="#5b6b7a"
+     stroke-width="3.6"
+     stroke-dasharray="12 8"
+     marker-start="url(#cgs)"
+     marker-end="url(#cge)"
+     id="line17" />
+  <path
+     d="M 284.0,255.0 A 84,84 0 0 0 270.4,209.2"
+     fill="none"
+     stroke="#1f2d3d"
+     stroke-width="2.8"
+     id="path17" />
+  <g
+     opacity="0.25"
+     id="g19">
+    <line
+       x1="200.0"
+       y1="255.0"
+       x2="81.6"
+       y2="186.7"
+       stroke="url(#cgcov)"
+       stroke-width="13"
+       stroke-linecap="round"
+       id="line18" />
+    <line
+       x1="200.0"
+       y1="255.0"
+       x2="81.6"
+       y2="186.7"
+       stroke="#ffffff"
+       stroke-opacity="0.30"
+       stroke-width="3.1"
+       stroke-linecap="round"
+       id="line19" />
+  </g>
+  <g
+     opacity="0.25"
+     id="g21">
+    <line
+       x1="610.0"
+       y1="255.0"
+       x2="631.1"
+       y2="374.2"
+       stroke="url(#cgcov)"
+       stroke-width="13"
+       stroke-linecap="round"
+       id="line20" />
+    <line
+       x1="610.0"
+       y1="255.0"
+       x2="631.1"
+       y2="374.2"
+       stroke="#ffffff"
+       stroke-opacity="0.30"
+       stroke-width="3.1"
+       stroke-linecap="round"
+       id="line21" />
+  </g>
+  <g
+     opacity="0.25"
+     id="g23">
+    <line
+       x1="610.0"
+       y1="255.0"
+       x2="496.3"
+       y2="296.3"
+       stroke="url(#cgcov)"
+       stroke-width="13"
+       stroke-linecap="round"
+       id="line22" />
+    <line
+       x1="610.0"
+       y1="255.0"
+       x2="496.3"
+       y2="296.3"
+       stroke="#ffffff"
+       stroke-opacity="0.30"
+       stroke-width="3.1"
+       stroke-linecap="round"
+       id="line23" />
+  </g>
+  <g
+     id="g25">
+    <line
+       x1="200.0"
+       y1="255.0"
+       x2="327.8"
+       y2="172.0"
+       stroke="url(#cgcov)"
+       stroke-width="15"
+       stroke-linecap="round"
+       id="line24" />
+    <line
+       x1="200.0"
+       y1="255.0"
+       x2="327.8"
+       y2="172.0"
+       stroke="#ffffff"
+       stroke-opacity="0.30"
+       stroke-width="3.6"
+       stroke-linecap="round"
+       id="line25" />
+  </g>
+  <line
+     x1="362.3"
+     y1="182.2"
+     x2="556.3"
+     y2="239.2"
+     stroke="#c34a3f"
+     stroke-width="6.5"
+     stroke-linecap="round"
+     stroke-dasharray="0.5 14"
+     id="line26" />
+  <g
+     opacity="0.25"
+     id="g27">
+    <g
+       filter="url(#cgsh)"
+       id="g26">
+      <circle
+         cx="81.6"
+         cy="186.7"
+         r="30.0"
+         fill="url(#cgH)"
+         stroke="#7c8792"
+         stroke-width="1.2"
+         id="circle26" />
+    </g>
+    <ellipse
+       cx="72.6"
+       cy="175.9"
+       rx="12.6"
+       ry="8.1"
+       fill="url(#cgspec)"
+       transform="rotate(-27 72.6 175.9)"
+       id="ellipse26" />
+  </g>
+  <g
+     opacity="0.25"
+     id="g29">
+    <g
+       filter="url(#cgsh)"
+       id="g28">
+      <circle
+         cx="631.1"
+         cy="374.2"
+         r="30.0"
+         fill="url(#cgH)"
+         stroke="#7c8792"
+         stroke-width="1.2"
+         id="circle27" />
+    </g>
+    <ellipse
+       cx="622.1"
+       cy="363.4"
+       rx="12.6"
+       ry="8.1"
+       fill="url(#cgspec)"
+       transform="rotate(-27 622.1 363.4)"
+       id="ellipse28" />
+  </g>
+  <g
+     opacity="0.25"
+     id="g31">
+    <g
+       filter="url(#cgsh)"
+       id="g30">
+      <circle
+         cx="496.3"
+         cy="296.3"
+         r="30.0"
+         fill="url(#cgH)"
+         stroke="#7c8792"
+         stroke-width="1.2"
+         id="circle29" />
+    </g>
+    <ellipse
+       cx="487.3"
+       cy="285.5"
+       rx="12.6"
+       ry="8.1"
+       fill="url(#cgspec)"
+       transform="rotate(-27 487.3 285.5)"
+       id="ellipse30" />
+  </g>
+  <g
+     filter="url(#cgsh)"
+     id="g32">
+    <circle
+       cx="327.8"
+       cy="172.0"
+       r="32.0"
+       fill="url(#cgH)"
+       stroke="#7c8792"
+       stroke-width="1.2"
+       id="circle31" />
+  </g>
+  <ellipse
+     cx="318.2"
+     cy="160.5"
+     rx="13.4"
+     ry="8.6"
+     fill="url(#cgspec)"
+     transform="rotate(-27 318.2 160.5)"
+     id="ellipse32" />
+  <text
+     x="327.8"
+     y="182.9"
+     text-anchor="middle"
+     font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif"
+     font-size="27"
+     font-weight="700"
+     fill="#33424f"
+     id="text32">H</text>
+  <g
+     filter="url(#cgsh)"
+     id="g33">
+    <circle
+       cx="200.0"
+       cy="255.0"
+       r="52.0"
+       fill="url(#cgO)"
+       stroke="#521212"
+       stroke-width="1.2"
+       id="circle32" />
+  </g>
+  <ellipse
+     cx="184.4"
+     cy="236.3"
+     rx="21.8"
+     ry="14.0"
+     fill="url(#cgspec)"
+     transform="rotate(-27 184.4 236.3)"
+     id="ellipse33" />
+  <text
+     x="200.0"
+     y="272.7"
+     text-anchor="middle"
+     font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif"
+     font-size="44"
+     font-weight="700"
+     fill="#ffffff"
+     id="text33">D</text>
+  <g
+     filter="url(#cgsh)"
+     id="g34">
+    <circle
+       cx="610.0"
+       cy="255.0"
+       r="52.0"
+       fill="url(#cgO)"
+       stroke="#521212"
+       stroke-width="1.2"
+       id="circle33" />
+  </g>
+  <ellipse
+     cx="594.4"
+     cy="236.3"
+     rx="21.8"
+     ry="14.0"
+     fill="url(#cgspec)"
+     transform="rotate(-27 594.4 236.3)"
+     id="ellipse34" />
+  <text
+     x="610.0"
+     y="272.7"
+     text-anchor="middle"
+     font-family="'DejaVu Sans','Helvetica Neue',Arial,sans-serif"
+     font-size="44"
+     font-weight="700"
+     fill="#ffffff"
+     id="text34">A</text>
+  <rect
+     x="368.5"
+     y="271.0"
+     width="73.0"
+     height="28"
+     rx="6"
+     fill="#eef2f6"
+     stroke="#c4cfd9"
+     stroke-width="1.3"
+     id="rect34" />
+  <text
+     x="405.0"
+     y="292.5"
+     text-anchor="middle"
+     font-family="'DejaVu Sans Mono','Menlo',monospace"
+     font-size="22"
+     font-weight="700"
+     fill="#1f2d3d"
+     id="text35">dist</text>
+  <rect
+     x="416.3"
+     y="163.7"
+     width="86.0"
+     height="28"
+     rx="6"
+     fill="#eef2f6"
+     stroke="#c4cfd9"
+     stroke-width="1.3"
+     id="rect35" />
+  <text
+     x="459.3"
+     y="185.2"
+     text-anchor="middle"
+     font-family="'DejaVu Sans Mono','Menlo',monospace"
+     font-size="22"
+     font-weight="700"
+     fill="#1f2d3d"
+     id="text36">hdist</text>
+  <rect
+     x="283.0"
+     y="218.0"
+     width="86.0"
+     height="28"
+     rx="6"
+     fill="#eef2f6"
+     stroke="#c4cfd9"
+     stroke-width="1.3"
+     id="rect36" />
+  <text
+     x="326.0"
+     y="239.5"
+     text-anchor="middle"
+     font-family="'DejaVu Sans Mono','Menlo',monospace"
+     font-size="22"
+     font-weight="700"
+     fill="#1f2d3d"
+     id="text37">angle</text>
+  <text
+     x="45"
+     y="400"
+     font-family="'DejaVu Sans', 'Helvetica Neue', Arial, sans-serif"
+     font-size="25px"
+     text-anchor="start"
+     id="text42"><tspan
+       font-family="'DejaVu Sans Mono', Menlo, monospace"
+       font-weight="700"
+       fill="#b02525"
+       id="tspan37">D</tspan><tspan
+       fill="#5b6b7a"
+       dx="7"
+       id="tspan38">= Donor</tspan><tspan
+       font-family="'DejaVu Sans Mono', Menlo, monospace"
+       font-weight="700"
+       fill="#64707b"
+       dx="30"
+       id="tspan39">H</tspan><tspan
+       fill="#5b6b7a"
+       dx="7"
+       id="tspan40">= Hydrogen</tspan><tspan
+       font-family="'DejaVu Sans Mono', Menlo, monospace"
+       font-weight="700"
+       fill="#b02525"
+       dx="30"
+       id="tspan41">A</tspan><tspan
+       fill="#5b6b7a"
+       dx="7"
+       id="tspan42">= Acceptor</tspan></text>
+  <text
+     xml:space="preserve"
+     id="text43"
+     style="writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect43);display:inline;fill:#000000" />
+  <text
+     xml:space="preserve"
+     id="text44"
+     style="fill:#000000;text-orientation:auto;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect44)" />
 </svg>

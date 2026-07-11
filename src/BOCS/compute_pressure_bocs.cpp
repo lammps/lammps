@@ -56,6 +56,13 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
   p_match_flag = 0;
   phi_coeff = nullptr;
 
+  // no pressure correction is applied until fix bocs provides one via send_cg_info()
+
+  p_basis_type = -1;
+  N_basis = 0;
+  N_mol = 0;
+  vavg = 0.0;
+
   // store temperature ID used by pressure computation
   // ensure it is valid for temperature computation
 
@@ -109,11 +116,16 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
                "Compute pressure/bocs requires temperature ID to include kinetic energy");
 
   vector = new double[size_vector];
+  dimension = domain->dimension;
+  boltz = force->boltz;
+  nktv2p = force->nktv2p;
+  inv_volume = 0.0;
   nvirial = 0;
   vptr = nullptr;
 
   splines = nullptr;
   spline_length = 0;
+  temperature = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

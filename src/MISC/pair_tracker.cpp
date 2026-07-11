@@ -593,6 +593,7 @@ void PairTracker::read_restart_settings(FILE *fp)
   int n;
   if (comm->me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&n, 1, MPI_INT, 0, world);
+  if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix ID length in restart file");
 
   id_fix_store_local = new char[n];
   if (comm->me == 0) utils::sfread(FLERR, id_fix_store_local, sizeof(char), n, fp, nullptr, error);
@@ -601,6 +602,8 @@ void PairTracker::read_restart_settings(FILE *fp)
   if (comm->me == 0)
     utils::sfread(FLERR, &nvalues_restart, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&nvalues_restart, 1, MPI_INT, 0, world);
+  if ((nvalues_restart < 0) || (nvalues_restart > 4096))
+    error->all(FLERR, "Invalid number of values in restart file");
 
   saved_choices.clear();
   delete[] pack_choice;

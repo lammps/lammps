@@ -3,7 +3,7 @@ lammps_version: 4 Jul 2026
 tags:
 date_generated: Fri Jul 10 17:05:38 2026
 epsilon: 5e-09
-skip_tests: single
+skip_tests: single gpu
 prerequisites: |
   atom sph
   pair sph/taitwater

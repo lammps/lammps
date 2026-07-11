@@ -84,6 +84,8 @@ public:
   int max_jclusters;
   int cluster_hash_sh = 0;         // shared-mem hash slots for the cluster build (power of 2)
   bigint cluster_built_step = -1;  // timestep of the flat-list build the cluster list mirrors
+  int cluster_newton_built = -1;   // mode of the last cluster build (1 = cluster-level Newton
+                                   // over a full-style flat list, 0 = legacy per-side tiles)
   typename AT::t_int_1d d_cluster_numneigh;
   typename AT::t_int_2d d_cluster_jlist;
   // d_cluster_excl(ci, 2*cj_idx)   = bits 0..31: sbmask(2 bits) for pairs  0..15

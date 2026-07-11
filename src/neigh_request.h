@@ -146,6 +146,7 @@ class NeighRequest : protected Pointers {
   void enable_ghost();
   void enable_intel();
 
+  [[nodiscard]] int get_full() const { return full; }
   [[nodiscard]] int get_size() const { return size; }
   [[nodiscard]] void *get_requestor() const { return requestor; }
 };

@@ -24,6 +24,7 @@
 #include "domain.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
+#include "neigh_request.h"
 #include "math_special.h"
 #include "update.h"
 #include "Kokkos_Macros.hpp"
@@ -88,12 +89,15 @@ struct PairComputeFunctor  {
   KKScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,KKDeviceType,KKScatterSum,DUP> dup_vatom;
 
   NeighListKokkos<device_type> list;
-  int use_cluster;   // 1 = use cluster-pair force kernel (GPU only)
-  int nall;          // nlocal + nghost, for j-cluster bounds checking
+  int use_cluster;     // 1 = use cluster-pair force kernel (GPU only)
+  int cluster_newton;  // 1 = cluster-level Newton: i-clusters are cluster-order
+                       // slots (locals first) and each unordered tile holds both
+                       // directions' pairs, built from a full-style flat list
+  int nall;            // nlocal + nghost, for j-cluster bounds checking
 
   PairComputeFunctor(PairStyle* c_ptr,
                           NeighListKokkos<device_type>* list_ptr):
-  c(*c_ptr),list(*list_ptr),use_cluster(0),nall(0) {
+  c(*c_ptr),list(*list_ptr),use_cluster(0),cluster_newton(0),nall(0) {
     // allocate duplicated memory
     f = c.f;
     d_eatom = c.d_eatom;
@@ -754,6 +758,10 @@ struct PairComputeFunctor  {
   // scratch per tile and computes CI*CJ=32 pairs per tile (full warp utilization).
   // Supports FULL lists (newton off) and HALF/HALFTHREAD lists (newton on/off):
   // Phase D applies Newton 3rd law forces (and energy/virial) to j-atoms atomically.
+  // cluster_newton mode (newton on + full-style flat list): i-clusters are
+  // cluster-order slots (locals first) and each unordered (ci,cj) tile holds
+  // both directions' pairs, roughly doubling tile occupancy; the per-pair
+  // force/EV math is unchanged from the HALF+newton path.
 
   static constexpr int CI = 8;   // i-atoms per i-cluster (one warp = CI*CJ threads)
   static constexpr int CJ = 4;   // j-atoms per j-cluster tile
@@ -809,10 +817,22 @@ struct PairComputeFunctor  {
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
-        const int i = list.d_ilist[start_ii + ki];
-        s_iatom(ki) = i;
-        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
-        s_itype(ki) = c.type(i);
+        if (cluster_newton) {
+          // Newton mode: i-cluster ci covers cluster-order slots
+          // [ci*CI, ci*CI+CI) which are all locals (locals-first sort);
+          // read i data from the packed cluster arrays (coalesced)
+          const int slot = start_ii + ki;
+          const int i = list.d_cl2atom(slot);
+          s_iatom(ki) = i;
+          s_xi(ki) = list.d_xcl(slot,0); s_yi(ki) = list.d_xcl(slot,1);
+          s_zi(ki) = list.d_xcl(slot,2);
+          s_itype(ki) = list.d_typecl(slot);
+        } else {
+          const int i = list.d_ilist[start_ii + ki];
+          s_iatom(ki) = i;
+          s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+          s_itype(ki) = c.type(i);
+        }
       }
     });
     team.team_barrier();
@@ -958,10 +978,22 @@ struct PairComputeFunctor  {
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
-        const int i = list.d_ilist[start_ii + ki];
-        s_iatom(ki) = i;
-        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
-        s_itype(ki) = c.type(i);
+        if (cluster_newton) {
+          // Newton mode: i-cluster ci covers cluster-order slots
+          // [ci*CI, ci*CI+CI) which are all locals (locals-first sort);
+          // read i data from the packed cluster arrays (coalesced)
+          const int slot = start_ii + ki;
+          const int i = list.d_cl2atom(slot);
+          s_iatom(ki) = i;
+          s_xi(ki) = list.d_xcl(slot,0); s_yi(ki) = list.d_xcl(slot,1);
+          s_zi(ki) = list.d_xcl(slot,2);
+          s_itype(ki) = list.d_typecl(slot);
+        } else {
+          const int i = list.d_ilist[start_ii + ki];
+          s_iatom(ki) = i;
+          s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+          s_itype(ki) = c.type(i);
+        }
       }
     });
     team.team_barrier();
@@ -1113,10 +1145,22 @@ struct PairComputeFunctor  {
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
-        const int i = list.d_ilist[start_ii + ki];
-        s_iatom(ki) = i;
-        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
-        s_itype(ki) = c.type(i);
+        if (cluster_newton) {
+          // Newton mode: i-cluster ci covers cluster-order slots
+          // [ci*CI, ci*CI+CI) which are all locals (locals-first sort);
+          // read i data from the packed cluster arrays (coalesced)
+          const int slot = start_ii + ki;
+          const int i = list.d_cl2atom(slot);
+          s_iatom(ki) = i;
+          s_xi(ki) = list.d_xcl(slot,0); s_yi(ki) = list.d_xcl(slot,1);
+          s_zi(ki) = list.d_xcl(slot,2);
+          s_itype(ki) = list.d_typecl(slot);
+        } else {
+          const int i = list.d_ilist[start_ii + ki];
+          s_iatom(ki) = i;
+          s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+          s_itype(ki) = c.type(i);
+        }
       }
     });
     team.team_barrier();
@@ -1334,10 +1378,22 @@ struct PairComputeFunctor  {
     Kokkos::parallel_for(Kokkos::TeamThreadRange(team, CI), [&](int ki) {
       s_fxi(ki) = 0; s_fyi(ki) = 0; s_fzi(ki) = 0;
       if (ki < n_i) {
-        const int i = list.d_ilist[start_ii + ki];
-        s_iatom(ki) = i;
-        s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
-        s_itype(ki) = c.type(i);
+        if (cluster_newton) {
+          // Newton mode: i-cluster ci covers cluster-order slots
+          // [ci*CI, ci*CI+CI) which are all locals (locals-first sort);
+          // read i data from the packed cluster arrays (coalesced)
+          const int slot = start_ii + ki;
+          const int i = list.d_cl2atom(slot);
+          s_iatom(ki) = i;
+          s_xi(ki) = list.d_xcl(slot,0); s_yi(ki) = list.d_xcl(slot,1);
+          s_zi(ki) = list.d_xcl(slot,2);
+          s_itype(ki) = list.d_typecl(slot);
+        } else {
+          const int i = list.d_ilist[start_ii + ki];
+          s_iatom(ki) = i;
+          s_xi(ki) = c.x(i,0); s_yi(ki) = c.x(i,1); s_zi(ki) = c.x(i,2);
+          s_itype(ki) = c.type(i);
+        }
       }
     });
     team.team_barrier();
@@ -1693,12 +1749,17 @@ struct ClusterBuildFunctor {
   typename AT::t_int_2d             d_cluster_excl;
   typename AT::t_int_2d             d_cluster_pres;
   typename AT::t_int_1d_const       d_atom2cl;
+  typename AT::t_int_1d_const       d_cl2atom;
+  typename AT::t_kkfloat_1d_3_lr    d_xcl;     // coords in cluster order (Newton ghost rule)
   typename AT::t_int_1d             d_scratch;
   int inum;
   int max_jclusters;
   int hash_sh;   // shared-mem hash slots (power of 2, HASH_MIN..HASH_MAX)
+  int newton_cluster;  // 1 = flat list is FULL-style; keep each unordered pair once
+  int nlocal;
 
-  ClusterBuildFunctor(NeighListKokkos<DeviceType>* list) :
+  ClusterBuildFunctor(NeighListKokkos<DeviceType>* list, int newton_cluster_,
+                      int nlocal_) :
     d_neighbors(list->d_neighbors),
     d_numneigh(list->d_numneigh),
     d_ilist(list->d_ilist),
@@ -1707,10 +1768,14 @@ struct ClusterBuildFunctor {
     d_cluster_excl(list->d_cluster_excl),
     d_cluster_pres(list->d_cluster_pres),
     d_atom2cl(list->d_atom2cl),
+    d_cl2atom(list->d_cl2atom),
+    d_xcl(list->d_xcl),
     d_scratch(list->d_cluster_scratch),
     inum(list->inum),
     max_jclusters(list->max_jclusters),
-    hash_sh(list->cluster_hash_sh) {}
+    hash_sh(list->cluster_hash_sh),
+    newton_cluster(newton_cluster_),
+    nlocal(nlocal_) {}
 
   // Scratch layout (all ints):
   //   [0 .. hash_sh-1]           : j-cluster index per slot (-1 = empty)
@@ -1755,13 +1820,45 @@ struct ClusterBuildFunctor {
     for (int ii = start_ii; ii < end_ii; ii++) {
       if (scratch(4*hash_sh + 1)) break; // hash saturated
       const int ki   = ii - start_ii;   // i-atom index within i-cluster
-      const int i    = d_ilist(ii);
+      // Newton mode: i-clusters are cluster-order slots (all locals since the
+      // sort puts locals first), so ii doubles as i's cluster slot
+      const int i    = newton_cluster ? d_cl2atom(ii) : d_ilist(ii);
       const int jnum = d_numneigh(i);
 
       Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](int jj) {
         const int j_enc = d_neighbors(i, jj);
         const int j     = j_enc & NEIGHMASK;
         const int jcl   = d_atom2cl(j);        // cluster-order slot of j
+        if (newton_cluster) {
+          // cluster-level Newton over a FULL-style flat list: every pair
+          // appears from both owning sides; keep exactly one copy.
+          if (j >= nlocal) {
+            // ghost j: same "above and to the right" (z,y,x) ownership rule
+            // as the flat half+newton build, so each cross-rank/cross-image
+            // pair is computed on exactly one side globally
+            const auto zi = d_xcl(ii,2), zj = d_xcl(jcl,2);
+            if (zj < zi) return;
+            if (zj == zi) {
+              const auto yi = d_xcl(ii,1), yj = d_xcl(jcl,1);
+              if (yj < yi) return;
+              if (yj == yi && d_xcl(jcl,0) < d_xcl(ii,0)) return;
+            }
+          } else {
+            // local j: both i-clusters see the pair; keep it on exactly one
+            // side. Within the same i-cluster keep the upper triangle
+            // (jcl > ii); across i-clusters use a parity zig-zag (even block
+            // sum -> lower block keeps, odd -> higher) so every i-cluster
+            // keeps ~half its interaction ball -- balanced tile counts and
+            // no hash blow-up for Morton-early clusters
+            const int jblock = jcl / CI;
+            if (jblock == ci) {
+              if (jcl <= ii) return;
+            } else {
+              const bool keep = ((jblock + ci) & 1) ? (ci > jblock) : (ci < jblock);
+              if (!keep) return;
+            }
+          }
+        }
         const int cj    = jcl / CJ;
         const int kj    = jcl % CJ;            // j-atom position in j-cluster
         const int pidx  = ki * CJ + kj;        // pair index 0..CI*CJ-1
@@ -1838,8 +1935,8 @@ KOKKOS_FORCEINLINE_FUNCTION int cluster_order_spread10(int v) {
 
 template<class DeviceType, class XViewType>
 void build_cluster_order(NeighListKokkos<DeviceType>* list, XViewType x,
-                         const int nall, const double lo0, const double lo1,
-                         const double lo2, const double cellinv)
+                         const int nall, const int nlocal, const double lo0,
+                         const double lo1, const double lo2, const double cellinv)
 {
   list->grow_cluster_order(nall);
   Kokkos::View<unsigned int*, DeviceType> keys(
@@ -1855,7 +1952,11 @@ void build_cluster_order(NeighListKokkos<DeviceType>* list, XViewType x,
     cx = cx < 0 ? 0 : (cx > 1023 ? 1023 : cx);
     cy = cy < 0 ? 0 : (cy > 1023 ? 1023 : cy);
     cz = cz < 0 ? 0 : (cz > 1023 ? 1023 : cz);
-    keys(k) = static_cast<unsigned int>(cluster_order_spread10(cx) |
+    // Morton key uses bits 0..29; bit 30 sorts all ghosts after all locals so
+    // slots [0, nlocal) are exactly the locals (cluster-Newton i-clusters are
+    // pure locals and every local-ghost pair is kept from the local side)
+    const unsigned int ghostbit = (k >= nlocal) ? 0x40000000u : 0u;
+    keys(k) = ghostbit | static_cast<unsigned int>(cluster_order_spread10(cx) |
         (cluster_order_spread10(cy) << 1) | (cluster_order_spread10(cz) << 2));
     cl2atom(k) = k;
   });
@@ -1872,7 +1973,8 @@ void build_cluster_order(NeighListKokkos<DeviceType>* list, XViewType x,
 }
 
 template<class DeviceType>
-void build_cluster_list(NeighListKokkos<DeviceType>* list)
+void build_cluster_list(NeighListKokkos<DeviceType>* list, const int newton_cluster,
+                        const int nlocal)
 {
   if (list->inum == 0) return;
   const int CI            = ClusterBuildFunctor<DeviceType>::CI;
@@ -1892,7 +1994,7 @@ void build_cluster_list(NeighListKokkos<DeviceType>* list)
     h(0) = 0; h(1) = list->max_jclusters; h(2) = 0;
     Kokkos::deep_copy(list->d_cluster_scratch, h);
 
-    ClusterBuildFunctor<DeviceType> ff(list);
+    ClusterBuildFunctor<DeviceType> ff(list, newton_cluster, nlocal);
     PolicyType policy(num_iclusters, TEAM_SIZE);
     policy = policy.set_scratch_size(0, Kokkos::PerTeam(
         ClusterBuildFunctor<DeviceType>::scratch_size_needed(list->cluster_hash_sh)));
@@ -1941,8 +2043,8 @@ void build_cluster_list(NeighListKokkos<DeviceType>* list)
         p += static_cast<int>((((v + (v >> 4)) & 0x0F0F0F0Fu) * 0x01010101u) >> 24);
       }
     }, pairs);
-    printf("CLUSTER_STATS: iclusters %d tiles %lld pairs %lld occ %.4f avg_tiles/ic %.1f max_jc %d\n",
-           num_iclusters, tiles, pairs,
+    printf("CLUSTER_STATS: newton %d iclusters %d tiles %lld pairs %lld occ %.4f avg_tiles/ic %.1f max_jc %d\n",
+           newton_cluster, num_iclusters, tiles, pairs,
            (double)pairs / ((double)tiles * 32.0),
            (double)tiles / num_iclusters, list->max_jclusters);
   }
@@ -1992,15 +2094,40 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     using DeviceType = typename PairStyle::device_type;
     using PolicyType = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>>;
 
-    const int nall = fpair->atom->nlocal + fpair->atom->nghost;
+    const int nlocal = fpair->atom->nlocal;
+    const int nall = nlocal + fpair->atom->nghost;
     auto d_x    = fpair->lmp->atomKK->k_x.template view<DeviceType>();
     auto d_type = fpair->lmp->atomKK->k_type.template view<DeviceType>();
+
+    // Cluster-level Newton: when the pair style dispatches with HALF/HALFTHREAD
+    // semantics under newton on AND its init_style morphed the flat request to
+    // FULL, the builder keeps each unordered pair exactly once (~2x tile
+    // density vs per-side tiles) and Phase D scatters -f to j. Styles that did
+    // not opt in keep a half flat list and take the legacy per-side path.
+    // (requests[] entries are deleted after Neighbor::init(); the persistent,
+    // index-aligned copies live in old_requests[])
+    const int cluster_newton = (NEIGHFLAG != FULL) && fpair->newton_pair &&
+        fpair->lmp->neighbor->old_requests[list->index]->get_full();
+    if (cluster_newton) {
+      if (list->inum != nlocal)
+        list->cluster_fatal(FLERR,
+            "neigh/cluster newton mode requires the pair list to cover all "
+            "local atoms (inum == nlocal). Use 'package kokkos neigh/cluster no'.");
+      if (fpair->lmp->domain->triclinic)
+        list->cluster_fatal(FLERR,
+            "neigh/cluster newton mode does not yet support triclinic boxes. "
+            "Use 'package kokkos neigh/cluster no'.");
+    }
 
     // Rebuild the cluster ordering + cluster list from the flat list after
     // each reneighbor. The stamp lives in the list itself so it stays correct
     // across multiple pair styles, run resets, and library re-use in one process.
-    if (list->cluster_built_step != fpair->lmp->neighbor->lastcall) {
+    const bool cluster_rebuild =
+        (list->cluster_built_step != fpair->lmp->neighbor->lastcall) ||
+        (list->cluster_newton_built != cluster_newton);
+    if (cluster_rebuild) {
       list->cluster_built_step = fpair->lmp->neighbor->lastcall;
+      list->cluster_newton_built = cluster_newton;
       const Domain* domain = fpair->lmp->domain;
       const double cutneigh = fpair->lmp->neighbor->cutneighmax;
       const double lo0 = domain->boxlo[0] - cutneigh;
@@ -2014,13 +2141,14 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       // the grid at 1024 cells per axis
       double cell = cutneigh / 8.0;
       if (range / cell > 1024.0) cell = range / 1024.0;
-      build_cluster_order<DeviceType>(list, d_x, nall, lo0, lo1, lo2, 1.0/cell);
-      build_cluster_list<DeviceType>(list);
+      build_cluster_order<DeviceType>(list, d_x, nall, nlocal, lo0, lo1, lo2, 1.0/cell);
     }
 
     // Gather packed coordinates and types in cluster order (every step:
     // positions move between reneighbors, and the tiles must read them
-    // coalesced from d_xcl rather than scattered from x)
+    // coalesced from d_xcl rather than scattered from x). On rebuild steps
+    // this runs before the cluster build, whose Newton ghost-ownership rule
+    // reads coordinates from d_xcl.
     {
       auto xcl = list->d_xcl;
       auto typecl = list->d_typecl;
@@ -2034,6 +2162,9 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       });
     }
 
+    if (cluster_rebuild)
+      build_cluster_list<DeviceType>(list, cluster_newton, nlocal);
+
     using PCF = PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation>;
     constexpr int cluster_ts = PCF::CI * PCF::CJ;  // CI*CJ = 32 threads per team
     const int num_iclusters = (inum + PCF::CI - 1) / PCF::CI;
@@ -2042,7 +2173,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
 
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation> ff(fpair,list);
-      ff.use_cluster = 1; ff.nall = nall;
+      ff.use_cluster = 1; ff.cluster_newton = cluster_newton; ff.nall = nall;
       PolicyType policy(num_iclusters, cluster_ts, 1);
       policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
@@ -2050,7 +2181,7 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       ff.contribute();
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation> ff(fpair,list);
-      ff.use_cluster = 1; ff.nall = nall;
+      ff.use_cluster = 1; ff.cluster_newton = cluster_newton; ff.nall = nall;
       PolicyType policy(num_iclusters, cluster_ts, 1);
       policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
       if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);

@@ -83,6 +83,20 @@ void NeighListKokkos<DeviceType>::grow_clusters(int num_iclusters, int max_jc)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+void NeighListKokkos<DeviceType>::grow_cluster_order(int nall)
+{
+  cluster_nall = nall;
+  if ((int)d_cl2atom.extent(0) < nall) {
+    d_cl2atom = typename AT::t_int_1d(Kokkos::NoInit("neighlist:cl2atom"), nall);
+    d_atom2cl = typename AT::t_int_1d(Kokkos::NoInit("neighlist:atom2cl"), nall);
+    d_xcl     = typename AT::t_kkfloat_1d_3_lr(Kokkos::NoInit("neighlist:xcl"), nall);
+    d_typecl  = typename AT::t_int_1d(Kokkos::NoInit("neighlist:typecl"), nall);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 void NeighListKokkos<DeviceType>::cluster_fatal(
     const std::string &file, int line, const std::string &msg)
 {

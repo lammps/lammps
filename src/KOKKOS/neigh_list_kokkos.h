@@ -94,6 +94,15 @@ public:
   // and ghost ownership exactly; pairs without their bit are never computed.
   typename AT::t_int_2d d_cluster_pres;
   typename AT::t_int_1d d_cluster_scratch;  // [0]=overflow flag (1=jlist,2=hash), [1]=new max j-clusters, [2]=hash-full sentinel
+  // Dedicated j-side cluster ordering over all atoms including ghosts (which
+  // comm leaves spatially unsorted). Built per reneighbor; d_xcl/d_typecl are
+  // regathered every step so the force kernels read packed, coalesced tiles.
+  int cluster_nall = 0;
+  typename AT::t_int_1d d_cl2atom;        // cluster slot -> atom index
+  typename AT::t_int_1d d_atom2cl;        // atom index -> cluster slot
+  typename AT::t_kkfloat_1d_3_lr d_xcl;   // coords in cluster order
+  typename AT::t_int_1d d_typecl;         // types in cluster order
+  void grow_cluster_order(int nall);
   void grow_clusters(int num_iclusters, int max_jc);
   [[noreturn]] void cluster_fatal(const std::string &file, int line, const std::string &msg);
 

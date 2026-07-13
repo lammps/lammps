@@ -66,6 +66,16 @@ class FixWallGran : public Fix {
   double Twall;
   char *idregion;
 
+  // wall position and velocity set by equal-style variables
+
+  int xstyle[2], xvar[2];    // style and variable index for lo/hi wall position
+  char *xstr[2];             // variable names for lo/hi wall position
+  int vstyle[2], vvar[2];    // style and variable index for lo/hi wall velocity
+  char *vstr[2];             // variable names for lo/hi wall velocity
+  double velwall[2];         // current velocity of lo/hi wall
+  int velflag;               // 1 if vel keyword was used
+  int varflag;               // 1 if any wall attribute is set by a variable
+
   int use_history;       // if particle/wall interaction stores history
   int history_update;    // flag for whether shear history is updated
   int size_history;      // # of shear history values per contact

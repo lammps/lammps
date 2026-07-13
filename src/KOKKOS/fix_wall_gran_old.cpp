@@ -333,8 +333,16 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // wallstyle args
+  // wall positions set by equal-style variables are only supported
+  // by the non-accelerated version of fix wall/gran
 
   idregion = nullptr;
+
+  if (((strcmp(arg[iarg],"xplane") == 0) || (strcmp(arg[iarg],"yplane") == 0) ||
+       (strcmp(arg[iarg],"zplane") == 0)) && (narg > iarg+2)) {
+    if (utils::strmatch(arg[iarg+1],"^v_") || utils::strmatch(arg[iarg+2],"^v_"))
+      error->all(FLERR,"Fix {} does not support wall positions set by a variable", style);
+  }
 
   if (strcmp(arg[iarg],"xplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
@@ -404,6 +412,8 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
       size_peratom_cols = 8;
       peratom_freq = 1;
       iarg += 1;
+    } else if (strcmp(arg[iarg],"vel") == 0) {
+      error->all(FLERR,"Fix {} does not support the vel keyword", style);
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
 

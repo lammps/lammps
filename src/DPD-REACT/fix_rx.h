@@ -42,6 +42,8 @@ class FixRX : public Fix {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
+  int modify_param(int, char **) override;
+
  protected:
   class NeighList *list;
 
@@ -134,6 +136,8 @@ class FixRX : public Fix {
 
   //!< ODE Solver diagnostics.
   void odeDiagnostics();
+
+  bool skipChemistry;
 
  protected:
   std::string kineticsFile;

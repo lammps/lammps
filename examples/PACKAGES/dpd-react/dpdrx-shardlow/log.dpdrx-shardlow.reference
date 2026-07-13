@@ -1,3 +1,8 @@
+LAMMPS (4 Jul 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Example for running DPD-RX
+
 boundary        p p p
 units           metal  # ev, ps
 atom_style      dpd
@@ -5,36 +10,47 @@ atom_modify     map array
 fix             4 all rx kinetics.dpdrx none dense lammps_rk4 1
 
 lattice         hcp 6.6520898 origin 0.0833333333333 0.25 0.25 orient z 1 0 0 orient x 0 1 0 orient y 0 0 1
-Lattice spacing in x,y,z = 11.5218 10.8628 6.65209
+Lattice spacing in x,y,z = 11.521758 10.862817 6.6520898
 region          box block 0 6.0 0 6.0 0.0 6.0 units lattice
 create_box      2 box
-Created orthogonal box = (0 0 0) to (69.1305 65.1769 39.9125)
+Created orthogonal box = (0 0 0) to (69.130545 65.176903 39.912539)
   1 by 1 by 1 MPI processor grid
 region          atoms block 0 6.0 0 6.0 0.0 6.0 units lattice
 create_atoms    1 region atoms
 Created 864 atoms
+  using lattice units in orthogonal box = (0 0 0) to (69.130545 65.176903 39.912539)
+  create_atoms CPU = 0.002 seconds
 
 comm_modify     mode single vel yes
 mass            * 222.12
 
 #Set concentrations
 set             atom * d_rdx 1.00
+Setting atom values ...
   864 settings made for d_rdx
 set             atom * d_h2 0.0
+Setting atom values ...
   864 settings made for d_h2
 set             atom * d_no2 0.0
+Setting atom values ...
   864 settings made for d_no2
 set             atom * d_n2 0.0
+Setting atom values ...
   864 settings made for d_n2
 set             atom * d_hcn 0.0
+Setting atom values ...
   864 settings made for d_hcn
 set             atom * d_no 0.0
+Setting atom values ...
   864 settings made for d_no
 set             atom * d_h2o 0.0
+Setting atom values ...
   864 settings made for d_h2o
 set             atom * d_co 0.0
+Setting atom values ...
   864 settings made for d_co
 set             atom * d_co2 0.0
+Setting atom values ...
   864 settings made for d_co2
 
 #Set the kinetic temperature of the particles
@@ -42,6 +58,7 @@ velocity	all create 2065.0 875661 dist gaussian
 
 #Set the internal temperature of the particles
 set             atom * dpd/theta 2065.00
+Setting atom values ...
   864 settings made for dpd/theta
 
 timestep        0.001
@@ -67,59 +84,97 @@ thermo_modify   format float %15.8f flush yes
 dump            2 all custom 1 dump.dpdrx id x y z vx vy vz c_dpdUatom[1] c_dpdUatom[2] c_dpdUatom[3] c_dpdUatom[4] c_crdx
 dump_modify     2 sort id
 
-run             10
+fix_modify      4 rx_chemistry off # Turning off reaction chemistry
+run             10                 # for initial equilibration
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix shardlow command: https://doi.org/10.1016/j.cpc.2014.03.029, https://doi.org/10.1063/1.3660209
+
+@Article{Larentzos14,
+ author = {J. P. Larentzos and J. K. Brennan and J. D. Moore and M. Lisal and W. D. Mattson},
+ title = {Parallel Implementation of Isothermal and Isoenergetic Dissipative Particle Dynamics Using {S}hardlow-Like Splitting Algorithms},
+ journal = {Comput.\ Phys.\ Commun.},
+ year =    2014,
+ volume =  185
+ pages =   {1987--1998}
+}
+
+@Article{Lisal11,
+ author = {M. Lisal and  J. K. Brennan and J. Bonet Avalos},
+ title = {Dissipative Particle Dynamics at Isothermal, Isobaric, Isoenergetic, and Isoenthalpic Conditions Using {S}hardlow-Like Splitting Algorithms},
+ journal = {J.~Chem.\ Phys.},
+ year =    2011,
+ volume =  135,
+ number =  20,
+ pages =   {204105}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 18
   ghost atom cutoff = 18
   binsize = 9, bins = 8 8 5
-  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
   (1) pair dpd/fdt/energy, perpetual
-      pair build: half/bin/newton
-      stencil: half/bin/3d/newton
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
       bin: standard
   (2) pair exp6/rx, perpetual, copy from (1)
+      attributes: half, newton on
       pair build: copy
       stencil: none
       bin: none
-  (3) fix shardlow, perpetual, ssa
+  (3) fix rx, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) fix shardlow, perpetual
+      attributes: half, newton on, ghost, ssa
       pair build: half/bin/newton/ssa
-      stencil: half/bin/3d/newton/ssa
+      stencil: half/bin/3d/ssa
       bin: ssa
-Memory usage per processor = 8.39564 Mbytes
-Step Temp Press Volume PotEng KinEng c_dpdU[1] c_dpdU[2] c_dpdU[3] v_totEnergy c_dpdU[4] 
-       0   2065.00000000   1368.17463335 179834.51777865      0.00000000    230.35385810      0.00000000   7682.84786557      0.00000000   7682.84786557   2065.00000000 
-       1   2064.93210437   1368.12964881 179834.51777865      0.00000000    230.34628424      0.00000000   7682.85543943      0.00000000   7682.85543943   2065.20275230 
-       2   2067.82089565   1370.04362990 179834.51777865     -0.00000000    230.66853326      0.00000000   7682.53319042      0.00000000   7682.53319042   2065.32453473 
-       3   2070.45225169   1371.78704616 179834.51777865     -0.00000000    230.96206499      0.00000000   7682.23965869      0.00000000   7682.23965869   2065.45336917 
-       4   2075.00241157   1374.80177416 179834.51777865     -0.00000000    231.46964217      0.00000000   7681.73208151      0.00000000   7681.73208151   2065.52973333 
-       5   2073.96509212   1374.11449370 179834.51777865     -0.00000000    231.35392762     -0.00000000   7681.84779605      0.00000000   7681.84779605   2065.76011517 
-       6   2074.26516936   1374.31331117 179834.51777865     -0.00000000    231.38740169     -0.00000000   7681.81432198      0.00000000   7681.81432198   2065.95399323 
-       7   2071.41069700   1372.42206822 179834.51777865     -0.00000000    231.06898100     -0.00000000   7682.13274267      0.00000000   7682.13274267   2066.23407076 
-       8   2071.35844957   1372.38745146 179834.51777865     -0.00000000    231.06315272      0.00000000   7682.13857095      0.00000000   7682.13857095   2066.43766287 
-       9   2071.35676496   1372.38633532 179834.51777865     -0.00000000    231.06296480      0.00000000   7682.13875887      0.00000000   7682.13875887   2066.64001166 
-      10   2066.53172340   1369.18948328 179834.51777865     -0.00000000    230.52472415      0.00000000   7682.67699952      0.00000000   7682.67699952   2066.97516855 
-Loop time of 0.611304 on 1 procs for 10 steps with 864 atoms
+Per MPI rank memory allocation (min/avg/max) = 11.27 | 11.27 | 11.27 Mbytes
+   Step          Temp          Press          Volume         PotEng         KinEng       c_dpdU[1]      c_dpdU[2]      c_dpdU[3]     v_totEnergy     c_dpdU[4]   
+         0    2065.00000000   1368.17463335 179834.51777865      0.00000000    230.35385810      0.00000000   7682.84786557      0.00000000   7682.84786557   2065.00000000
+         1    2065.64279286   1368.60051853 179834.51777865      0.00000000    230.42556262      0.00000000   7682.77616106      0.00000000   7682.77616106   2064.98035847
+         2    2069.18961623   1370.95048160 179834.51777865      0.00000000    230.82121610     -0.00000000   7682.38050758      0.00000000   7682.38050758   2064.88117058
+         3    2072.41877809   1373.08997669 179834.51777865      0.00000000    231.18143397     -0.00000000   7682.02028971      0.00000000   7682.02028971   2064.79101473
+         4    2075.94950325   1375.42927383 179834.51777865      0.00000000    231.57529167      0.00000000   7681.62643200      0.00000000   7681.62643200   2064.69270925
+         5    2077.15864664   1376.23039699 179834.51777865      0.00000000    231.71017344     -0.00000000   7681.49155024      0.00000000   7681.49155024   2064.65760688
+         6    2074.91168771   1374.74166468 179834.51777865      0.00000000    231.45952179     -0.00000000   7681.74220189      0.00000000   7681.74220189   2064.71714887
+         7    2075.92297060   1375.41169451 179834.51777865      0.00000000    231.57233192     -0.00000000   7681.62939176      0.00000000   7681.62939176   2064.68712768
+         8    2077.99244308   1376.78283241 179834.51777865      0.00000000    231.80318468     -0.00000000   7681.39853899      0.00000000   7681.39853899   2064.62858721
+         9    2074.66559465   1374.57861467 179834.51777865      0.00000000    231.43206973     -0.00000000   7681.76965394      0.00000000   7681.76965394   2064.71775617
+        10    2082.04582236   1379.46841628 179834.51777865      0.00000000    232.25534524     -0.00000000   7680.94637843      0.00000000   7680.94637843   2064.51318934
+Loop time of 0.24931 on 1 procs for 10 steps with 864 atoms
 
-Performance: 1.413 ns/day, 16.981 hours/ns, 16.358 timesteps/s
-98.2% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 3.466 ns/day, 6.925 hours/ns, 40.111 timesteps/s, 34.656 katom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.34177    | 0.34177    | 0.34177    |   0.0 | 55.91
+Pair    | 0.082776   | 0.082776   | 0.082776   |   0.0 | 33.20
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0013342  | 0.0013342  | 0.0013342  |   0.0 |  0.22
-Output  | 0.083583   | 0.083583   | 0.083583   |   0.0 | 13.67
-Modify  | 0.18451    | 0.18451    | 0.18451    |   0.0 | 30.18
-Other   |            | 0.0001087  |            |       |  0.02
+Comm    | 0.0015018  | 0.0015018  | 0.0015018  |   0.0 |  0.60
+Output  | 0.028228   | 0.028228   | 0.028228   |   0.0 | 11.32
+Modify  | 0.1367     | 0.1367     | 0.1367     |   0.0 | 54.83
+Other   |            | 0.0001071  |            |       |  0.04
 
-Nlocal:    864 ave 864 max 864 min
+Nlocal:            864 ave         864 max         864 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    2700 ave 2700 max 2700 min
+Nghost:           2700 ave        2700 max        2700 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    55296 ave 55296 max 55296 min
+Neighs:          55296 ave       55296 max       55296 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 55296
@@ -127,6 +182,46 @@ Ave neighs/atom = 64
 Neighbor list builds = 0
 Dangerous builds = 0
 
-Please see the log.cite file for references relevant to this simulation
+fix_modify      4 rx_chemistry on # Turning chemistry back on
+run             10                # actual simulation of reactions
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 13.32 | 13.32 | 13.32 Mbytes
+   Step          Temp          Press          Volume         PotEng         KinEng       c_dpdU[1]      c_dpdU[2]      c_dpdU[3]     v_totEnergy     c_dpdU[4]   
+        10    2082.04582236   1379.46841628 179834.51777865      0.00000000    232.25534524      0.00000000   7680.94637843      0.00000000   7680.94637843   2064.51318934
+        11    2084.82237595   1381.30803381 179834.51777865      0.00000000    232.56507398     -0.00000000   7680.63664970      0.00000000   7680.63664970   2064.63769547
+        12    2085.92009064   1382.03532940 179834.51777865     -0.00000000    232.68752570     -0.00000000   7680.51419797      0.00000000   7680.51419797   2064.80839672
+        13    2085.28523218   1381.61470119 179834.51777865     -0.00000000    232.61670629     -0.00000000   7680.58501739      0.00000000   7680.58501739   2065.02628390
+        14    2083.90696436   1380.70152392 179834.51777865     -0.00000000    232.46295844     -0.00000000   7680.73876524      0.00000000   7680.73876524   2065.26435193
+        15    2083.37015644   1380.34585952 179834.51777865     -0.00000000    232.40307670      0.00000000   7680.79864697      0.00000000   7680.79864697   2065.47942914
+        16    2083.56247970   1380.47328413 179834.51777865     -0.00000000    232.42453065      0.00000000   7680.77719302      0.00000000   7680.77719302   2065.67449583
+        17    2088.50719121   1383.74942401 179834.51777865     -0.00000000    232.97612067      0.00000000   7680.22560301      0.00000000   7680.22560301   2065.73997684
+        18    2090.69135240   1385.19654940 179834.51777865     -0.00000000    233.21976713     -0.00000000   7679.98195654      0.00000000   7679.98195654   2065.88148335
+        19    2088.57467296   1383.79413433 179834.51777865     -0.00000000    232.98364836     -0.00000000   7680.21807532      0.00000000   7680.21807532   2066.14179597
+        20    2089.76620139   1384.58358662 179834.51777865     -0.00000000    233.11656515     -0.00000000   7680.08515853      0.00000000   7680.08515853   2066.31173237
+Loop time of 0.394247 on 1 procs for 10 steps with 864 atoms
 
+Performance: 2.192 ns/day, 10.951 hours/ns, 25.365 timesteps/s, 21.915 katom-step/s
+99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.19712    | 0.19712    | 0.19712    |   0.0 | 50.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0015038  | 0.0015038  | 0.0015038  |   0.0 |  0.38
+Output  | 0.029564   | 0.029564   | 0.029564   |   0.0 |  7.50
+Modify  | 0.16595    | 0.16595    | 0.16595    |   0.0 | 42.09
+Other   |            | 0.0001107  |            |       |  0.03
+
+Nlocal:            864 ave         864 max         864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2700 ave        2700 max        2700 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          56228 ave       56228 max       56228 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 56228
+Ave neighs/atom = 65.078704
+Neighbor list builds = 0
+Dangerous builds = 0
 Total wall time: 0:00:00

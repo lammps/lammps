@@ -47,7 +47,7 @@ Syntax
          lo,hi = position of lower and upper plane (distance units), each can be NULL or an equal-style variable as v_name (see below)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle* or *shear* or *contacts* or *temperature* or *vel*
+* keyword = *wiggle* or *shear* or *contacts* or *temperature*
 
   .. parsed-literal::
 
@@ -62,9 +62,6 @@ Syntax
          generate contact information for each particle
       *temperature* value = temperature
          specify temperature of wall
-      *vel* values = vlo vhi
-         vlo,vhi = velocity of the lower and upper wall (velocity units)
-           each can be a constant, an equal-style variable as v_name, or NULL
 
 
 Examples
@@ -79,8 +76,8 @@ Examples
    fix 5 all wall/gran granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji heat 10 region myCone temperature 1.0
    fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
 
-   variable zhi equal 20.0-0.5*time
-   fix 7 all wall/gran hooke 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 v_zhi vel NULL -0.5
+   variable zhi equal ramp(20.0,15.0)
+   fix 7 all wall/gran hooke 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 v_zhi
 
 Description
 """""""""""
@@ -184,18 +181,19 @@ variable name.  The variable is evaluated at every timestep, so the wall
 position can change during a run, for example to model a piston
 compressing a bed of granular particles.  Since the damping and friction
 forces of granular models depend on the relative velocity between
-particle and wall, the velocity of a wall whose position is set by a
-variable must be provided with the *vel* keyword.  The two values of the
-*vel* keyword set the velocity of the *lo* and the *hi* wall,
-respectively.  Each value can be a constant, an equal-style variable
-specified as v_name that is evaluated at every timestep, or NULL.  The
-velocity value NULL is required for a wall whose position is *not* set
-by a variable; a wall whose position is set by a variable requires a
-velocity value other than NULL.  It is up to the user to provide a
-velocity that is consistent with the change of the wall position over
-time.  LAMMPS stops with an error if the *lo* wall position does not
-remain below the *hi* wall position during a run.  A wall position set
-by a variable cannot be combined with the *wiggle* or *shear* keyword.
+particle and wall, the velocity of such a wall is inferred from the
+change of the wall position between consecutive timesteps, in the same
+manner as for moving regions with :doc:`fix wall/gran/region
+<fix_wall_gran_region>`: there is no analytic formula for the velocity
+of a wall position defined by a variable.  The wall position should
+therefore be a continuous function of the elapsed time; see the
+discussion of the *move* keyword of the :doc:`region <region>` command
+for examples, including how to make the motion span consecutive runs in
+a continuous fashion.  The wall velocity is zero when the variable is
+evaluated for the first time.  LAMMPS stops with an error if the *lo*
+wall position does not remain below the *hi* wall position during a run.
+A wall position set by a variable cannot be combined with the *wiggle*
+or *shear* keyword.
 
 Optionally, the wall can be moving, if the *wiggle* or *shear*
 keywords are appended.  Both keywords cannot be used together.
@@ -336,8 +334,8 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 
 Any dimension (xyz) that has a granular wall must be non-periodic.
 
-The *wall/gran/kk* style does not support wall positions or velocities
-set by an equal-style variable.
+The *wall/gran/kk* style does not support wall positions set by an
+equal-style variable.
 
 Related commands
 """"""""""""""""

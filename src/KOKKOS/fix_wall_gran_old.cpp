@@ -412,8 +412,6 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
       size_peratom_cols = 8;
       peratom_freq = 1;
       iarg += 1;
-    } else if (strcmp(arg[iarg],"vel") == 0) {
-      error->all(FLERR,"Fix {} does not support the vel keyword", style);
     } else error->all(FLERR,"Illegal fix wall/gran command");
   }
 

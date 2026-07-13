@@ -134,11 +134,12 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if (iarg >= narg) error->all(FLERR, "Illegal fix wall/gran command");
 
   for (int m = 0; m < 2; m++) {
-    xstyle[m] = vstyle[m] = NONE;
-    xvar[m] = vvar[m] = -1;
-    xstr[m] = vstr[m] = nullptr;
-    velwall[m] = 0.0;
+    xstyle[m] = NONE;
+    xvar[m] = -1;
+    xstr[m] = nullptr;
+    velwall[m] = prevwall[m] = 0.0;
   }
+  velstep = -1;
   velflag = varflag = 0;
 
   if ((strcmp(arg[iarg],"xplane") == 0) || (strcmp(arg[iarg],"yplane") == 0) ||
@@ -216,21 +217,6 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
       vshear = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       wshear = 1;
       iarg += 3;
-    } else if (strcmp(arg[iarg],"vel") == 0) {
-      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"fix wall/gran vel", error);
-      for (int m = 0; m < 2; m++) {
-        if (strcmp(arg[iarg+1+m],"NULL") == 0) {
-          vstyle[m] = NONE;
-        } else if (utils::strmatch(arg[iarg+1+m],"^v_")) {
-          vstr[m] = utils::strdup(arg[iarg+1+m]+2);
-          vstyle[m] = EQUAL;
-        } else {
-          velwall[m] = utils::numeric(FLERR,arg[iarg+1+m],false,lmp);
-          vstyle[m] = CONSTANT;
-        }
-      }
-      velflag = 1;
-      iarg += 3;
     } else if (strcmp(arg[iarg],"contacts") == 0) {
       peratom_flag = 1;
       size_peratom_cols = 8 + model->nsvector;
@@ -272,18 +258,11 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if ((wiggle || wshear) && wallstyle == REGION)
     error->all(FLERR,"Cannot wiggle or shear with fix wall/gran/region");
 
-  // consistency checks for wall positions and velocities from variables
+  // walls with a position variable cannot be combined with prescribed wall motion
 
-  if ((wiggle || wshear) && ((xstyle[0] == EQUAL) || (xstyle[1] == EQUAL)))
+  if ((xstyle[0] == EQUAL) || (xstyle[1] == EQUAL)) velflag = 1;
+  if ((wiggle || wshear) && velflag)
     error->all(FLERR,"Cannot wiggle or shear a fix wall/gran wall with a position variable");
-  for (int m = 0; m < 2; m++) {
-    if ((xstyle[m] == EQUAL) && (vstyle[m] == NONE))
-      error->all(FLERR,"Fix wall/gran wall with a position variable requires "
-                 "setting its velocity with the vel keyword");
-    if ((xstyle[m] != EQUAL) && (vstyle[m] != NONE))
-      error->all(FLERR,"Fix wall/gran vel keyword requires the position of "
-                 "the corresponding wall to be set by a variable");
-  }
 
   // setup oscillations
 
@@ -355,10 +334,8 @@ FixWallGran::~FixWallGran()
   delete model;
   delete[] tstr;
   delete[] idregion;
-  for (int m = 0; m < 2; m++) {
-    delete[] xstr[m];
-    delete[] vstr[m];
-  }
+  delete[] xstr[0];
+  delete[] xstr[1];
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
 
@@ -434,15 +411,6 @@ void FixWallGran::init()
                    "an equal style variable", xstr[m]);
       varflag = 1;
     }
-    if (vstyle[m] == EQUAL) {
-      vvar[m] = input->variable->find(vstr[m]);
-      if (vvar[m] < 0)
-        error->all(FLERR, "Variable {} for fix wall/gran wall velocity does not exist", vstr[m]);
-      if (! input->variable->equalstyle(vvar[m]))
-        error->all(FLERR, "Variable {} for fix wall/gran wall velocity must be "
-                   "an equal style variable", vstr[m]);
-      varflag = 1;
-    }
   }
 }
 
@@ -510,8 +478,22 @@ void FixWallGran::post_force(int /*vflag*/)
   if ((xstyle[0] != NONE) && (xstyle[1] != NONE) && (wlo >= whi))
     error->all(FLERR, Error::NOLASTLINE,
                "Fix wall/gran lo wall position {} must remain below hi wall position {}", wlo, whi);
-  if (vstyle[0] == EQUAL) velwall[0] = input->variable->compute_equal(vvar[0]);
-  if (vstyle[1] == EQUAL) velwall[1] = input->variable->compute_equal(vvar[1]);
+
+  // infer velocity of walls with a position variable from the change of the wall
+  // position since the previous evaluation, as done for moving regions: there is
+  // no analytic formula for the velocity of a variable-defined wall position.
+  // the velocity is zero at the very first evaluation; re-evaluations on the
+  // same timestep (e.g. during setup of a continued run) keep the velocity.
+
+  if (velflag && (update->ntimestep != velstep)) {
+    if (velstep >= 0) {
+      if (xstyle[0] == EQUAL) velwall[0] = (wlo - prevwall[0]) / update->dt;
+      if (xstyle[1] == EQUAL) velwall[1] = (whi - prevwall[1]) / update->dt;
+    }
+    prevwall[0] = wlo;
+    prevwall[1] = whi;
+    velstep = update->ntimestep;
+  }
   if (wiggle) {
     double arg = omega * (update->ntimestep - time_origin) * dt;
     if (wallstyle == axis) {

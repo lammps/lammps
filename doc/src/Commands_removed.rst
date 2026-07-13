@@ -17,6 +17,17 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+ML-RANN package
+---------------
+
+.. deprecated:: TBD
+
+.. index:: pair_style rann
+
+The ML-RANN package and its pair style *rann* have been removed because
+they were unmaintained in LAMMPS for a long time.  The ML-RANN
+developers are maintaining an independent fork of their code.
+
 Pair style agni
 ---------------
 

@@ -269,7 +269,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`polymorphic <pair_polymorphic>`
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
-   * :doc:`rann <pair_rann>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`rebomos (o) <pair_rebomos>`

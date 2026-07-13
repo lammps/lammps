@@ -21,6 +21,7 @@ PairStyle(mesont/tpm,PairDeprecated);
 PairStyle(awpmd/cut,PairDeprecated);
 PairStyle(agni,PairDeprecated);
 PairStyle(agni/omp,PairDeprecated);
+PairStyle(rann,PairDeprecated);
 // clang-format on
 #else
 

@@ -338,11 +338,6 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style hdnnp <pair_hdnnp>`
      - ``PACKAGES/hdnnp``
      - ext
-   * - :ref:`ML-RUNNER <PKG-ML-RUNNER>`
-     - Second-, third-, and fourth-generation high-dimensional neural network potentials
-     - :doc:`pair_style runner <pair_runner>`
-     - ``PACKAGES/runner``
-     - ext
    * - :ref:`ML-IAP <PKG-ML-IAP>`
      - multiple machine learning potentials
      - :doc:`pair_style mliap <pair_mliap>`
@@ -363,11 +358,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style quip <pair_quip>`
      - ``PACKAGES/quip``
      - ext
-   * - :ref:`ML-RANN <PKG-ML-RANN>`
-     - Pair style for RANN potentials
-     - :doc:`pair rann <pair_rann>`
-     - ``PACKAGES/rann``
-     - no
+   * - :ref:`ML-RUNNER <PKG-ML-RUNNER>`
+     - Second-, third-, and fourth-generation high-dimensional neural network potentials
+     - :doc:`pair_style runner <pair_runner>`
+     - ``PACKAGES/runner``
+     - ext
    * - :ref:`ML-SNAP <PKG-ML-SNAP>`
      - quantum-fitted potential
      - :doc:`pair_style snap <pair_snap>`

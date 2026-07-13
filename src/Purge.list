@@ -62,6 +62,8 @@ mliap_unified_couple_kokkos.h
 # removed in July 2026
 pair_agni.cpp
 pair_agni.h
+pair_rann.cpp
+pair_rann.h
 # moved to new GRAPHICS package in Jan 2026
 dump_image.cpp
 dump_image.h

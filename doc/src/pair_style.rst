@@ -361,7 +361,6 @@ accelerated styles exist.
 * :doc:`polymorphic <pair_polymorphic>` - Polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
-* :doc:`rann <pair_rann>` -
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - Second generation REBO potential of Brenner
 * :doc:`rebomos <pair_rebomos>` - REBOMoS potential for MoS2

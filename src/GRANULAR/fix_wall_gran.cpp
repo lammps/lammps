@@ -152,6 +152,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg+1],"NULL") == 0) {
       lo = -BIG;
     } else if (utils::strmatch(arg[iarg+1],"^v_")) {
+      delete[] xstr[0];
       xstr[0] = utils::strdup(arg[iarg+1]+2);
       xstyle[0] = EQUAL;
       lo = 0.0;
@@ -164,6 +165,7 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg+2],"NULL") == 0) {
       hi = BIG;
     } else if (utils::strmatch(arg[iarg+2],"^v_")) {
+      delete[] xstr[1];
       xstr[1] = utils::strdup(arg[iarg+2]+2);
       xstyle[1] = EQUAL;
       hi = 0.0;

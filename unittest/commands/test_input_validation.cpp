@@ -126,23 +126,23 @@ TEST_F(InputValidationTest, fix_store_state_no_atoms)
     SUCCEED();
 }
 
-TEST_F(InputValidationTest, pair_eam_empty_potential)
+TEST_F(InputValidationTest, pair_tersoff_empty_potential)
 {
     if (!Info::has_package("MANYBODY")) GTEST_SKIP();
 
     // an empty or comment-only potential file used to hang forever
 
     {
-        std::ofstream out("empty_test.eam");
-        out << "DATE: 2007-06-11\n\n";
+        std::ofstream out("empty_test.tersoff");
+        out << "# DATE: 2007-06-11\n\n";
     }
     atomic_box();
     BEGIN_HIDE_OUTPUT();
-    command("pair_style eam");
+    command("pair_style tersoff");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*Missing line in eam potential filefile).*",
-                 command("pair_coeff * * empty_test.eam X"););
-    delete_file("empty_test.eam");
+    TEST_FAILURE(".*Potential file is missing an entry for.*",
+                 command("pair_coeff * * empty_test.tersoff X"););
+    delete_file("empty_test.tersoff");
 }
 
 int main(int argc, char **argv)

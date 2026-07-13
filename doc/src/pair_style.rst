@@ -114,7 +114,6 @@ accelerated styles exist.
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
-* :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
 * :doc:`airebo/bc <pair_airebo>` - AIREBO with bond-centric P_CC (Hur and Stuart)

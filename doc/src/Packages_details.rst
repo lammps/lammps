@@ -1854,7 +1854,6 @@ listing, ``ls src/MISC``, to see the list of commands.
 * :doc:`fix accelerate/cos <fix_accelerate_cos>`
 * :doc:`fix imd <fix_imd>`
 * :doc:`fix ipi <fix_ipi>`
-* :doc:`pair_style agni <pair_agni>`
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`

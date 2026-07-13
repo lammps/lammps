@@ -133,12 +133,10 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   numwalls = 0;
   if (iarg >= narg) error->all(FLERR, "Illegal fix wall/gran command");
 
-  for (int m = 0; m < 2; m++) {
-    xstyle[m] = NONE;
-    xvar[m] = -1;
-    xstr[m] = nullptr;
-    velwall[m] = prevwall[m] = 0.0;
-  }
+  xstyle[0] = xstyle[1] = NONE;
+  xvar[0] = xvar[1] = -1;
+  xstr[0] = xstr[1] = nullptr;
+  velwall[0] = velwall[1] = prevwall[0] = prevwall[1] = 0.0;
   velstep = -1;
   velflag = varflag = 0;
 

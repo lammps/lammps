@@ -739,9 +739,36 @@ void FixContinuumChunk::end_of_step()
 
   auto wall_fixes = modify->get_fix_by_style("wall/gran");
 
-  for (i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit && ichunk[i] > 0)
-      count_one[ichunk[i]-1]++;
+  for (i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit && ichunk[i] > 0) {
+      m = ichunk[i] - 1;
+
+      MathExtra::zero3(xbin0);
+      for (a = 0; a < ncoord; a++) {
+        if (reducedflag) {
+          domain->lamda2x(coord[m], coordx);
+          xbin0[cdim[a]] = coordx[a];
+        } else {
+          xbin0[cdim[a]] = coord[m][a];
+        }
+      }
+
+      for (auto &stencil_offset : stencil) {
+        xbin[0] = xbin0[0] + stencil_offset.dx[0];
+        xbin[1] = xbin0[1] + stencil_offset.dx[1];
+        xbin[2] = xbin0[2] + stencil_offset.dx[2];
+
+        mtmp = shifted_bin(m, stencil_offset.dn);
+        if (mtmp == -1) continue; // skip contributions outside of box
+
+        MathExtra::sub3(x[i], xbin, dx_atom_bin);
+        rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+        if (rsq_atom_bin > w_cut_sq) continue;
+
+        count_one[mtmp]++;
+      }
+    }
+  }
 
   modify->clearstep_compute();
 
@@ -782,8 +809,8 @@ void FixContinuumChunk::end_of_step()
         MathExtra::sub3(x[i], xbin, dx_atom_bin);
         rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
 
-        //if (rsq_atom_bin > w_cut_sq) continue;
         w = calc_w(sqrt(rsq_atom_bin));
+        // w = 0 if r > cutoff
 
         // contributions from single atoms (excluding boundary)
 
@@ -1168,7 +1195,7 @@ void FixContinuumChunk::end_of_step()
     if (overwrite) (void) platform::fseek(fp,filepos);
     double count = 0.0;
     for (m = 0; m < nchunk; m++) count += count_total[m];
-    fmt::print(fp, "{} {} {}\n", ntimestep, nchunk, count);
+    fprintf(fp, "%d %d %d\n", ntimestep, nchunk, count);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;

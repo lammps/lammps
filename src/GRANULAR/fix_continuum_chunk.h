@@ -62,8 +62,9 @@ class FixContinuumChunk : public Fix {
   int ave, nwindow;
   int normcount, iwindow, window_limit;
 
-  int nchunk, maxchunk;
-  int *nlayers;
+  double *delta;
+  int nchunk, maxchunk, ncoord, reducedflag;
+  int *nlayers, *chunk_dim;
   char *idchunk;
   class ComputeChunkAtom *cchunk;
   int lockforever;

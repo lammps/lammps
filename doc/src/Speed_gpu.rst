@@ -163,9 +163,11 @@ in OpenCL mode on CPUs (which uses vectorization and multithreading) is
 usually resulting in inferior performance compared to using LAMMPS' native
 threading and vectorization support in the OPENMP and INTEL packages.
 
-See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS website for performance of the GPU package on various
-hardware, including the Titan HPC platform at ORNL.
+..
+   FIXME:
+   See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
+   LAMMPS website for performance of the GPU package on various
+   hardware, including the Titan HPC platform at ORNL.
 
 You should also experiment with how many MPI tasks per GPU to use to
 give the best performance for your problem and machine.  This is also

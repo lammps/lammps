@@ -871,15 +871,12 @@ Bugs
 The user is cautioned that this code is a beta release. If you are
 confident that you have found a bug in the peridynamic module, please
 report it in a `GitHub Issue <https://github.com/lammps/lammps/issues>`
-or send an email to the LAMMPS developers. First, check the `New
-features and bug fixes <https://www.lammps.org/bug.html>`_ section of
-the LAMMPS website site to see if the bug has already been reported or
-fixed. If not, the most useful thing you can do for us is to isolate the
-problem. Run it on the smallest number of atoms and fewest number of
-processors and with the simplest input script that reproduces the
-bug. In your message, describe the problem and any ideas you have as to
-what is causing it or where in the code the problem might be.  We'll
-request your input script and data files if necessary.
+or send an email to the LAMMPS developers.  Run it on the smallest
+number of atoms and fewest number of processors and with the simplest
+input script that reproduces the bug. In your message, describe the
+problem and any ideas you have as to what is causing it or where in the
+code the problem might be.  We'll request your input script and data
+files if necessary.
 
 Modifying and Extending the Peridynamic Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

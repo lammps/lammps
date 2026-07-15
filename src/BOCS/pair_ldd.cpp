@@ -34,8 +34,6 @@
 
 #include "ldd_indicator.h"
 #include "ldd_potential.h"
-#include "ldd_indicator_styles.h"
-#include "ldd_potential_styles.h"
 
 #include <cmath>
 #include <cstring>
@@ -80,10 +78,9 @@ constexpr char cite_pair_ldd2_c[] =
 /* ---------------------------------------------------------------------- */
 
 PairLdd::PairLdd(LAMMPS *lmp) :
-    Pair(lmp), indicator_map(nullptr), potential_map(nullptr), self_interaction(nullptr),
-    ignore_pair(nullptr), ignore_me(nullptr), bGradient(nullptr), Inds(nullptr), Potls(nullptr),
-    GradPotls(nullptr), local_density(nullptr), grad_density(nullptr), ld_energy(nullptr),
-    ld_grad_energy(nullptr), total_energy(nullptr)
+    Pair(lmp), self_interaction(nullptr), ignore_pair(nullptr), ignore_me(nullptr),
+    bGradient(nullptr), Inds(nullptr), Potls(nullptr), GradPotls(nullptr), local_density(nullptr),
+    grad_density(nullptr), ld_energy(nullptr), ld_grad_energy(nullptr), total_energy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_ldd1_c);
   if (lmp->citeme) lmp->citeme->add(cite_pair_ldd2_c);
@@ -103,34 +100,6 @@ PairLdd::PairLdd(LAMMPS *lmp) :
   nmax = 0;
 
   map = new int[atom->ntypes + 1];
-
-  LDD_factory();
-}
-
-// analogous to void _noopt Force::create_factories()
-
-void PairLdd::LDD_factory()
-{
-
-  indicator_map = new IndicatorCreatorMap();
-
-#define LDD_INDICATOR_CLASS
-#define LddIndicatorStyle(key, Class) (*indicator_map)[#key] = &indicator_creator<Class>;
-
-#include "ldd_indicator_styles.h"
-
-#undef LddIndicatorStyle
-#undef LDD_INDICATOR_CLASS
-
-  potential_map = new PotentialCreatorMap();
-
-#define LDD_POTENTIAL_CLASS
-#define LddPotentialStyle(key, Class) (*potential_map)[#key] = &potential_creator<Class>;
-
-#include "ldd_potential_styles.h"
-
-#undef LddPotentialStyle
-#undef LDD_POTENTIAL_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,9 +137,6 @@ PairLdd::~PairLdd()
   memory->destroy(ld_energy);
   memory->destroy(ld_grad_energy);
   memory->destroy(total_energy);
-
-  delete indicator_map;
-  delete potential_map;
 }
 
 /* ----------------------------------------------------------------------
@@ -446,35 +412,20 @@ void PairLdd::settings(int narg, char ** /*arg*/)
 
 /* ---------------------------------------------------------------------- */
 
-// Again, these are analogous to what is done in force.h
 LddIndicator *PairLdd::new_indicator(const std::string &wtype)
 {
-  if (indicator_map->find(wtype) != indicator_map->end()) {
-    IndicatorCreator indicator_creator = (*indicator_map)[wtype];
-    return indicator_creator(lmp);
-  }
+  for (int i = 0; i < num_ldd_indicator; ++i)
+    if (wtype == ldd_indicator_table[i].name) return ldd_indicator_table[i].creator(lmp);
   error->all(FLERR, utils::check_packages_for_style("LddIndicator", wtype, lmp));
   return nullptr;
 }
 
-template <typename T> LddIndicator *PairLdd::indicator_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
-}
-
 LddPotential *PairLdd::new_potential(const std::string &ptype)
 {
-  if (potential_map->find(ptype) != potential_map->end()) {
-    PotentialCreator potential_creator = (*potential_map)[ptype];
-    return potential_creator(lmp);
-  }
+  for (int i = 0; i < num_ldd_potential; ++i)
+    if (ptype == ldd_potential_table[i].name) return ldd_potential_table[i].creator(lmp);
   error->all(FLERR, utils::check_packages_for_style("LddPotential", ptype, lmp));
   return nullptr;
-}
-
-template <typename T> LddPotential *PairLdd::potential_creator(LAMMPS *lmp)
-{
-  return new T(lmp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -579,8 +530,7 @@ void PairLdd::coeff_ldd(int si, int sj, int narg, char **arg)
       if (si == sj)
         self_interaction[si][sj] = true;
       else
-        error->warning(FLERR,
-                       "ldd self interaction requested for distinct species {} {}; ignoring",
+        error->warning(FLERR, "ldd self interaction requested for distinct species {} {}; ignoring",
                        elements[si], elements[sj]);
     }
   }
@@ -895,7 +845,7 @@ void PairLdd::read_file(char *filename)
   }
 
   // track which ordered species pairs have been defined (duplicate/completeness checks)
-  std::vector<int> seen((std::size_t)nelements * nelements, 0);
+  std::vector<int> seen((std::size_t) nelements * nelements, 0);
 
   char line[MAXLINE];
   int done = 0;

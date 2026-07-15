@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "output.h"
-#include "style_dump.h"         // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
@@ -55,12 +54,15 @@ struct Particle {
 }
 
 /* ----------------------------------------------------------------------
-   one instance per dump style in style_dump.h
+   process-global registry of dump style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_dump_styles().
 ------------------------------------------------------------------------- */
 
-template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** arg)
+CreatorRegistry<Output::DumpCreator> &Output::dump_styles()
 {
-  return new T(lmp, narg, arg);
+  static CreatorRegistry<Output::DumpCreator> registry;
+  return registry;
 }
 
 /* ----------------------------------------------------------------------
@@ -106,14 +108,6 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
   var_restart_single = var_restart_double = nullptr;
   restart = nullptr;
 
-  dump_map = new DumpCreatorMap();
-
-#define DUMP_CLASS
-#define DumpStyle(key,Class) \
-  (*dump_map)[#key] = &dump_creator<Class>;
-#include "style_dump.h"         // IWYU pragma: keep
-#undef DumpStyle
-#undef DUMP_CLASS
 }
 
 /* ----------------------------------------------------------------------
@@ -140,8 +134,6 @@ Output::~Output()
   delete[] var_restart_single;
   delete[] var_restart_double;
   delete restart;
-
-  delete dump_map;
 
   delete thermo;
   delete[] var_thermo;
@@ -966,8 +958,7 @@ Dump *Output::add_dump(int narg, char **arg)
   // create the Dump
   int idump = ndump;
 
-  if (dump_map->find(arg[2]) != dump_map->end()) {
-    DumpCreator &dump_creator = (*dump_map)[arg[2]];
+  if (DumpCreator dump_creator = dump_styles().find(arg[2])) {
     dump[idump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 

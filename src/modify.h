@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -211,15 +213,11 @@ class Modify : protected Pointers {
 
  public:
   using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);
-  using ComputeCreatorMap = std::map<std::string, ComputeCreator>;
-  ComputeCreatorMap *compute_map;
-
   using FixCreator = Fix *(*) (LAMMPS *, int, char **);
-  using FixCreatorMap = std::map<std::string, FixCreator>;
-  FixCreatorMap *fix_map;
 
- protected:
-  void create_factories();
+  // global registries of fix and compute style factory functions
+  static CreatorRegistry<FixCreator> &fix_styles();
+  static CreatorRegistry<ComputeCreator> &compute_styles();
 };
 
 }    // namespace LAMMPS_NS

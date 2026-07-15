@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "domain.h"
-#include "style_region.h"   // IWYU pragma: keep
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -49,12 +48,16 @@ static constexpr double SMALL = 1.0e-4;
 static constexpr double BONDSTRETCH = 1.1;
 
 /* ----------------------------------------------------------------------
-   one instance per region style in style_region.h
+   process-global registry of region style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_region_styles(); plugins
+   add/override entries at runtime.
 ------------------------------------------------------------------------- */
 
-template <typename T> static Region *region_creator(LAMMPS *lmp, int narg, char ** arg)
+CreatorRegistry<Domain::RegionCreator> &Domain::region_styles()
 {
-  return new T(lmp, narg, arg);
+  static CreatorRegistry<Domain::RegionCreator> registry;
+  return registry;
 }
 
 /* ----------------------------------------------------------------------
@@ -107,16 +110,6 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   delete[] args;
 
   copymode = 0;
-
-  region_map = new RegionCreatorMap();
-
-#define REGION_CLASS
-#define RegionStyle(key,Class) \
-  (*region_map)[#key] = &region_creator<Class>;
-#include "style_region.h"   // IWYU pragma: keep
-
-#undef RegionStyle
-#undef REGION_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,7 +121,6 @@ Domain::~Domain()
   for (const auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
-  delete region_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2130,24 +2122,20 @@ void Domain::add_region(int narg, char **arg)
   if (lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->non_pair_suffix();
-      if (region_map->find(estyle) != region_map->end()) {
-        RegionCreator &region_creator = (*region_map)[estyle];
-        newregion = region_creator(lmp, narg, arg);
-      }
+      RegionCreator region_creator = region_styles().find(estyle);
+      if (region_creator) newregion = region_creator(lmp, narg, arg);
     }
 
     if (!newregion && lmp->suffix2) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
-      if (region_map->find(estyle) != region_map->end()) {
-        RegionCreator &region_creator = (*region_map)[estyle];
-        newregion = region_creator(lmp, narg, arg);
-      }
+      RegionCreator region_creator = region_styles().find(estyle);
+      if (region_creator) newregion = region_creator(lmp, narg, arg);
     }
   }
 
-  if (!newregion && (region_map->find(arg[1]) != region_map->end())) {
-    RegionCreator &region_creator = (*region_map)[arg[1]];
-    newregion = region_creator(lmp, narg, arg);
+  if (!newregion) {
+    if (RegionCreator region_creator = region_styles().find(arg[1]))
+      newregion = region_creator(lmp, narg, arg);
   }
 
   if (!newregion)

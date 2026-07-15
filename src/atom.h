@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
 #include "json_fwd.h"
 
 #include <map>
@@ -311,8 +312,9 @@ class Atom : protected Pointers {
   // AtomVec factory types and map
 
   using AtomVecCreator = AtomVec *(*)(LAMMPS *);
-  using AtomVecCreatorMap = std::map<std::string, AtomVecCreator>;
-  AtomVecCreatorMap *avec_map;
+
+  // global registry of atom (AtomVec) style factory functions
+  static CreatorRegistry<AtomVecCreator> &avec_styles();
 
   // --------------------------------------------------------------------
   // functions

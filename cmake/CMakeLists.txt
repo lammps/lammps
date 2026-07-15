@@ -261,6 +261,20 @@ if(PKG_PLUGIN AND (NOT ((CMAKE_SYSTEM_NAME STREQUAL "Windows"))))
 endif()
 install(TARGETS lmp EXPORT LAMMPS_Targets DESTINATION ${CMAKE_INSTALL_BINDIR})
 
+# The ROCm hipcc wrapper compiles every .cpp in HIP language mode by default,
+# which triggers an extra device-code compilation pass (e.g. --offload-arch=gfxNNN)
+# and applies HIP host/device call restrictions even to the host pass.  The LAMMPS
+# host library and executable contain no HIP device code, but some host-only headers
+# - most notably the bundled nlohmann/json - use template metaprogramming that clang
+# rejects in HIP language mode: its is_detected SFINAE disables the JSON conversion
+# operators, breaking molecule.cpp, info.cpp, library.cpp, and others.  Force these
+# translation units to be compiled as plain C++ so hipcc skips the HIP passes for
+# them.  The GPU kernel library (lib/gpu) is built by separate targets and keeps HIP.
+if(LAMMPS_CXX_COMPILER_NAME STREQUAL "hipcc")
+  target_compile_options(lammps PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+  target_compile_options(lmp PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+endif()
+
 option(CMAKE_VERBOSE_MAKEFILE "Generate verbose Makefiles" OFF)
 
 set(STANDARD_PACKAGES

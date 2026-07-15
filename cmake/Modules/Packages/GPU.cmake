@@ -434,8 +434,8 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_USE_DEVICE_SORT)
     if(HIP_PLATFORM STREQUAL "amd")
-      # newer version of ROCm (5.1+) require c++14 for rocprim
-      set_property(TARGET gpu PROPERTY CXX_STANDARD 14)
+      # ROCm 5.1+ requires c++14 for rocprim; ROCm 6+/7+ rocprim requires c++17
+      set_property(TARGET gpu PROPERTY CXX_STANDARD 17)
     endif()
     # add hipCUB
     find_package(hipcub REQUIRED)

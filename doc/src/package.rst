@@ -377,7 +377,7 @@ INTEL package settings
 The *intel* style invokes settings associated with the use of the INTEL
 package.
 
-.. deprecated:: 4Jul2026
+.. versionremoved:: 4Jul2026
 
 Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
 removed.  The leading numeric argument (formerly the number of

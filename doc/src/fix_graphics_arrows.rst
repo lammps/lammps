@@ -137,6 +137,24 @@ scalar (see below).
 
 -----------
 
+.. image:: JPG/dipole-arrows.jpg
+   :width: 25%
+   :align: right
+
+A simple example to use fix *graphics/arrows* to represent point-dipole
+particles for the ``examples/dipole/in.dipole`` input is given below:
+
+.. code-block:: LAMMPS
+
+   variable dumpfreq index 250
+   fix      arrows   all graphics/arrows ${dumpfreq} dipole 1.2 0.15
+   dump     viz      all image ${dumpfreq} dipole-2d-*.ppm type type atom no &
+                         size 600 600 zoom 1.8 shiny 0.2  fsaa yes ssao yes 31257 0.3 &
+                         box yes 0.015 fix arrows const 0 0  center s 0.5 0.5 0
+   dump_modify  viz pad 6 fcolor arrows steelblue ftrans arrows 1
+
+-----------
+
 Dump image info
 """""""""""""""
 

@@ -14,6 +14,7 @@
 #include "fix_surface.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "fix_move.h"
@@ -531,6 +532,33 @@ void FixSurface::connectivity2d_global(int npoints, int nlines, Line *lines, Con
 }
 
 /* ----------------------------------------------------------------------
+   count tris in list of tris connected to a corner point of tri I which
+   are connected to tri I only at that corner point
+   exclude tri I itself and any tri connected to one of the 2 tri I edges
+   which share the corner point (their edge neighbor lists are passed in)
+------------------------------------------------------------------------- */
+
+static int count_corner_tris(int i, int *clist, int nclist, int nea, int *neigh_ea, int neb,
+                             int *neigh_eb)
+{
+  int num = 0;
+  for (int m = 0; m < nclist; m++) {
+    int n = clist[m];
+    if (n == i) continue;
+
+    int skipflag = 0;
+    for (int medge = 0; medge < nea; medge++)
+      if (n == neigh_ea[medge]) skipflag = 1;
+    for (int medge = 0; medge < neb; medge++)
+      if (n == neigh_eb[medge]) skipflag = 1;
+    if (skipflag) continue;
+
+    num++;
+  }
+  return num;
+}
+
+/* ----------------------------------------------------------------------
    create and initialize Connect3d info for global triangles
    global triangles were read from molecule or STL file(s)
    creates connect3d data structs
@@ -541,6 +569,14 @@ int FixSurface::connectivity3d_global(int npoints, int ntris, Tri *tris, Connect
                                       int **&neigh_c1, int **&neigh_c2, int **&neigh_c3)
 {
   int p1, p2, p3;
+
+  // degenerate tris with duplicate corner points corrupt the
+  // edge and corner connectivity logic below and must be rejected
+
+  for (int i = 0; i < ntris; i++)
+    if ((tris[i].p1 == tris[i].p2) || (tris[i].p2 == tris[i].p3) || (tris[i].p1 == tris[i].p3))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix {}: degenerate triangle {} with duplicate corner points", style, i + 1);
 
   connect3d = (Connect3d *) memory->smalloc(ntris * sizeof(Connect3d), "surface:connect3d");
 
@@ -735,6 +771,9 @@ int FixSurface::connectivity3d_global(int npoints, int ntris, Tri *tris, Connect
   // c123_counts = # of tris connecting to corner points c123 of each tri
   // do NOT include self or tris which connect to an edge
   // only include tris which only connect at the corner point
+  // must count with the same logic used to fill the neigh_c123 vectors below,
+  //   simply subtracting the edge neighbor counts from the corner point counts
+  //   undercounts when 2 tris share more than one edge (e.g. duplicate tris)
 
   int *c1_counts, *c2_counts, *c3_counts;
   memory->create(c1_counts, ntris, "surface:c1_counts");
@@ -742,12 +781,15 @@ int FixSurface::connectivity3d_global(int npoints, int ntris, Tri *tris, Connect
   memory->create(c3_counts, ntris, "surface:c3_counts");
 
   for (int i = 0; i < ntris; i++) {
-    c1_counts[i] = counts[tris[i].p1] - 1;
-    c1_counts[i] -= connect3d[i].ne3 + connect3d[i].ne1;
-    c2_counts[i] = counts[tris[i].p2] - 1;
-    c2_counts[i] -= connect3d[i].ne1 + connect3d[i].ne2;
-    c3_counts[i] = counts[tris[i].p3] - 1;
-    c3_counts[i] -= connect3d[i].ne2 + connect3d[i].ne3;
+    c1_counts[i] = count_corner_tris(i, ctris[tris[i].p1], counts[tris[i].p1], connect3d[i].ne3,
+                                     connect3d[i].neigh_e3, connect3d[i].ne1,
+                                     connect3d[i].neigh_e1);
+    c2_counts[i] = count_corner_tris(i, ctris[tris[i].p2], counts[tris[i].p2], connect3d[i].ne1,
+                                     connect3d[i].neigh_e1, connect3d[i].ne2,
+                                     connect3d[i].neigh_e2);
+    c3_counts[i] = count_corner_tris(i, ctris[tris[i].p3], counts[tris[i].p3], connect3d[i].ne2,
+                                     connect3d[i].neigh_e2, connect3d[i].ne3,
+                                     connect3d[i].neigh_e3);
   }
 
   // allocate all corner ragged arrays which Connect3d will point to

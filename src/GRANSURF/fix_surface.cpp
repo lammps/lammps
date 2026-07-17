@@ -348,69 +348,86 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
 
   STLReader stl(lmp);
   double **stltris;    // automatically freed when stl goes out of scope
-  int ntris_old = ntris;
   int ntris_new = stl.read_file(filename, stltris);
   if (ntris_new < 0) error->one(FLERR, Error::NOLASTLINE, "Failed to read STL file {}", filename);
-  ntris += ntris_new;
 
-  tris = (Tri *) memory->srealloc(tris, ntris * sizeof(Tri), "surface:tris");
+  tris = (Tri *) memory->srealloc(tris, (ntris + ntris_new) * sizeof(Tri), "surface:tris");
 
   // loop over STL tris
+  // skip degenerate tris, i.e. tris with duplicate or collinear corner points,
+  //   which have an exactly zero cross product of their edge vectors
   // populate points and tris data structs
-  // for each tri: set molID = 1 and type = stype
+  // for each tri: set molID = smol and type = stype
+
+  int nskip = 0;
 
   for (int itri_new = 0; itri_new < ntris_new; itri_new++) {
-    int itri = itri_new + ntris_old;
+    double *corners = stltris[itri_new];
+
+    double edge1[3], edge2[3], cross[3];
+    MathExtra::sub3(&corners[3], &corners[0], edge1);
+    MathExtra::sub3(&corners[6], &corners[0], edge2);
+    MathExtra::cross3(edge1, edge2, cross);
+    if (cross[0] == 0.0 && cross[1] == 0.0 && cross[2] == 0.0) {
+      nskip++;
+      continue;
+    }
+
+    int itri = ntris;
     tris[itri].mol = smol;
     tris[itri].type = stype;
 
     // only tris in the same molecule are connected
-    auto key =
-        std::make_tuple(stltris[itri_new][0], stltris[itri_new][1], stltris[itri_new][2], smol);
+    auto key = std::make_tuple(corners[0], corners[1], corners[2], smol);
     if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
         maxpoints += DELTA;
         points = (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
       }
       hash[key] = npoints;
-      points[npoints].x[0] = stltris[itri_new][0];
-      points[npoints].x[1] = stltris[itri_new][1];
-      points[npoints].x[2] = stltris[itri_new][2];
+      points[npoints].x[0] = corners[0];
+      points[npoints].x[1] = corners[1];
+      points[npoints].x[2] = corners[2];
       tris[itri].p1 = npoints;
       npoints++;
     } else
       tris[itri].p1 = hash[key];
 
-    key = std::make_tuple(stltris[itri_new][3], stltris[itri_new][4], stltris[itri_new][5], smol);
+    key = std::make_tuple(corners[3], corners[4], corners[5], smol);
     if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
         maxpoints += DELTA;
         points = (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
       }
       hash[key] = npoints;
-      points[npoints].x[0] = stltris[itri_new][3];
-      points[npoints].x[1] = stltris[itri_new][4];
-      points[npoints].x[2] = stltris[itri_new][5];
+      points[npoints].x[0] = corners[3];
+      points[npoints].x[1] = corners[4];
+      points[npoints].x[2] = corners[5];
       tris[itri].p2 = npoints;
       npoints++;
     } else
       tris[itri].p2 = hash[key];
 
-    key = std::make_tuple(stltris[itri_new][6], stltris[itri_new][7], stltris[itri_new][8], smol);
+    key = std::make_tuple(corners[6], corners[7], corners[8], smol);
     if (hash.find(key) == hash.end()) {
       if (npoints == maxpoints) {
         maxpoints += DELTA;
         points = (Point *) memory->srealloc(points, maxpoints * sizeof(Point), "surface:points");
       }
       hash[key] = npoints;
-      points[npoints].x[0] = stltris[itri_new][6];
-      points[npoints].x[1] = stltris[itri_new][7];
-      points[npoints].x[2] = stltris[itri_new][8];
+      points[npoints].x[0] = corners[6];
+      points[npoints].x[1] = corners[7];
+      points[npoints].x[2] = corners[8];
       tris[itri].p3 = npoints;
       npoints++;
     } else
       tris[itri].p3 = hash[key];
+
+    ntris++;
   }
+
+  if (nskip && (comm->me == 0))
+    error->warning(FLERR, "Skipped {} degenerate triangle(s) in STL file {}", nskip, filename);
 }
 
 /* ----------------------------------------------------------------------

@@ -2238,7 +2238,7 @@ void FixSurfaceLocal::connectivity3d_local()
       atomID = outbuf[i].atomID;
       np = n2_counts[iconnect];
       neigh = tneigh2[iconnect];
-      for (int j = 0; j < np; j++)
+      for (j = 0; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -2248,7 +2248,7 @@ void FixSurfaceLocal::connectivity3d_local()
       atomID = outbuf[i].atomID;
       np = n3_counts[iconnect];
       neigh = tneigh3[iconnect];
-      for (int j = 0; j < np; j++)
+      for (j = 0; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -3251,7 +3251,6 @@ void FixSurfaceLocal::assign3d()
         for (int j = 0; j < num; j++) {
           local[j] = global[j] + idmaxall + 1;
           connect3d[nlocal_connect].ewhich_e2[j] = 0;
-          connect3d[nlocal_connect].nside_e2[j] = 0;
           connect3d[nlocal_connect].nside_e2[j] = 0;
           connect3d[nlocal_connect].aflag_e2[j] = 0;
           connect3d[nlocal_connect].fflag_e2[j] = 0;

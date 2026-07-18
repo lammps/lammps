@@ -74,6 +74,7 @@ PairSurfGranular::PairSurfGranular(LAMMPS *lmp) :
 
   emax = 0;
   cmax = 0;
+  missing_surf_warn = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -875,10 +876,21 @@ void PairSurfGranular::prewalk_connections2d()
         ktag = connect2d[jconnect].neigh_p2[nconnect - connect2d[jconnect].np1];
         nsidek = connect2d[jconnect].nside_p2[nconnect - connect2d[jconnect].np1];
       }
+      // skip surfs not stored on this proc: they cannot be in contact with atom i,
+      // since all surfs within the contact distance of an owned atom are ghosted.
+      // this can happen when a connected surf was deleted (e.g. lost) or when the
+      // walk over connected surfs reaches beyond the ghost atom cutoff
+
       k = atom->map(ktag);
-      if (k == -1)
-        error->one(FLERR, Error::NOLASTLINE, "Surface mesh atom {} missing at step {}", ktag,
-                   update->ntimestep);
+      if (k == -1) {
+        if (missing_surf_warn) {
+          error->warning(FLERR,
+                         "Skipping connected surface atom {} not found on this processor "
+                         "at step {}", ktag, update->ntimestep);
+          missing_surf_warn = 0;
+        }
+        continue;
+      }
 
       // Skip if not in contact
       if (contacts_map.find(k) == contacts_map.end()) continue;
@@ -945,10 +957,21 @@ void PairSurfGranular::prewalk_connections3d()
         ktag = connect3d[jconnect].neigh_e3[nc];
         nsidek = connect3d[jconnect].nside_e3[nc];
       }
+      // skip surfs not stored on this proc: they cannot be in contact with atom i,
+      // since all surfs within the contact distance of an owned atom are ghosted.
+      // this can happen when a connected surf was deleted (e.g. lost) or when the
+      // walk over connected surfs reaches beyond the ghost atom cutoff
+
       k = atom->map(ktag);
-      if (k == -1)
-        error->one(FLERR, Error::NOLASTLINE, "Surface mesh atom {} missing at step {}", ktag,
-                   update->ntimestep);
+      if (k == -1) {
+        if (missing_surf_warn) {
+          error->warning(FLERR,
+                         "Skipping connected surface atom {} not found on this processor "
+                         "at step {}", ktag, update->ntimestep);
+          missing_surf_warn = 0;
+        }
+        continue;
+      }
 
       // Skip if not in contact
       if (contacts_map.find(k) == contacts_map.end()) continue;
@@ -979,10 +1002,21 @@ void PairSurfGranular::prewalk_connections3d()
         nsidek = connect3d[jconnect].nside_c3[nc];
       }
 
+      // skip surfs not stored on this proc: they cannot be in contact with atom i,
+      // since all surfs within the contact distance of an owned atom are ghosted.
+      // this can happen when a connected surf was deleted (e.g. lost) or when the
+      // walk over connected surfs reaches beyond the ghost atom cutoff
+
       k = atom->map(ktag);
-      if (k == -1)
-        error->one(FLERR, Error::NOLASTLINE, "Surface mesh atom {} missing at step {}", ktag,
-                   update->ntimestep);
+      if (k == -1) {
+        if (missing_surf_warn) {
+          error->warning(FLERR,
+                         "Skipping connected surface atom {} not found on this processor "
+                         "at step {}", ktag, update->ntimestep);
+          missing_surf_warn = 0;
+        }
+        continue;
+      }
 
       // Skip if not in contact
       if (contacts_map.find(k) == contacts_map.end()) continue;

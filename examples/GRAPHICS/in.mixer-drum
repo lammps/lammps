@@ -5,7 +5,7 @@ atom_style      tri
 atom_modify     map array
 boundary        m m m
 dimension       3
-comm_modify     vel yes cutoff 11.0
+comm_modify     vel yes cutoff 14.0
 
 # need a rather large box to accommodate the coordinates of the STL file
 region          box block -500 0 -500 0 0 500 units box
@@ -45,7 +45,7 @@ displace_atoms all move $(-1.0*v_comx) $(-1.0*v_comy) $(-1.0*v_comz)
 run 0 post no
 
 # rotate it around x axis
-displace_atoms all rotate 0.0 0.0 0.0 1.0 0.0 0.0 60.0
+displace_atoms all rotate 0.0 0.0 0.0 1.0 0.0 0.0 -60.0
 
 # re-adjust the box for the rotated drum and switch to fixed boundaries so we can lose atoms
 # NOTE: the box needs to be large enough so we won't lose tris from the surface
@@ -97,6 +97,6 @@ unfix ins
 
 # trigger rotation central axis of drum.
 # since we centered the drum on the origin this is rather simple math
-fix             1 tri move rotate 0 0 0 0 -0.87 0.5 500.0
+fix             1 tri move rotate 0 0 0 0 -0.87 -0.5 400.0
 run             275000
 

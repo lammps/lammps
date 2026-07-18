@@ -715,8 +715,10 @@ void FixSurfaceLocal::setup_pre_neighbor()
 
   const double cutghost = MAX(neighbor->cutneighmax, comm->cutghostuser);
   if (cutghost < 2 * max_radius)
-    error->warning(FLERR, "Maximum triangle diameter {} may be less than ghost cutoff {}",
-                   2 * max_radius, cutghost);
+    error->warning(FLERR,
+                   "Ghost cutoff {} is smaller than the maximum surface element diameter {}: "
+                   "connected surfaces may be missed; increase it with comm_modify cutoff",
+                   cutghost, 2 * max_radius);
 
   // one-time calculation of remaining fields in Connect2d/3d
   // cannot do until now, b/c need ghost connection info via border comm

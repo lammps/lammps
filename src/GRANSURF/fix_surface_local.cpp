@@ -1561,10 +1561,13 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       ne1 = (int) ubuf(buf[m++]).i;
       ne2 = (int) ubuf(buf[m++]).i;
       ne3 = (int) ubuf(buf[m++]).i;
+      checkmaxpool(FLERR, ne1, error);
+      checkmaxpool(FLERR, ne2, error);
+      checkmaxpool(FLERR, ne3, error);
+
       connect3d[nlocal_connect].ne1 = ne1;
       connect3d[nlocal_connect].ne2 = ne2;
       connect3d[nlocal_connect].ne3 = ne3;
-
       connect3d[nlocal_connect].external_edge[0] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_edge[1] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_edge[2] = (int) ubuf(buf[m++]).i;
@@ -1635,10 +1638,13 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       nc1 = (int) ubuf(buf[m++]).i;
       nc2 = (int) ubuf(buf[m++]).i;
       nc3 = (int) ubuf(buf[m++]).i;
+      checkmaxpool(FLERR, nc1, error);
+      checkmaxpool(FLERR, nc2, error);
+      checkmaxpool(FLERR, nc3, error);
+
       connect3d[nlocal_connect].nc1 = nc1;
       connect3d[nlocal_connect].nc2 = nc2;
       connect3d[nlocal_connect].nc3 = nc3;
-
       connect3d[nlocal_connect].external_cor[0] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_cor[1] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_cor[2] = (int) ubuf(buf[m++]).i;

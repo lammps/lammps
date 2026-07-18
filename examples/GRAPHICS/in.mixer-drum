@@ -47,9 +47,9 @@ run 0 post no
 # rotate it around x axis
 displace_atoms all rotate 0.0 0.0 0.0 1.0 0.0 0.0 60.0
 
-# re-adjust the box for the rotated drum and switch
-# to fixed boundaries so we can lose atoms
-change_box all x final -200 200 y final -200 200 z final -200 200
+# re-adjust the box for the rotated drum and switch to fixed boundaries so we can lose atoms
+# NOTE: the box needs to be large enough so we won't lose tris from the surface
+change_box all x final -250 250 y final -250 250 z final -250 250
 change_box all boundary f f f
 
 # insert polydisperse particles in batches inside the drum
@@ -61,7 +61,6 @@ fix     ins sphere pour ${pour} 1 4767548 vol 0.4 10 &
 compute         2 sphere temp/sphere
 compute_modify  2 dynamic/dof yes
 
-
 # use a dynamic group to cut away part of the drum so we can look inside
 variable dumpfreq index 200
 variable select atom "(type==2 && x>-60) || (type==1)"
@@ -71,7 +70,11 @@ variable added equal atoms-v_tris
 
 thermo          1000
 thermo_style    custom step atoms v_tris v_added temp press ke
-thermo_modify   lost ignore temp 2
+thermo_modify   lost warn temp 2
+
+# performance optimization: exclude non-interacting pairs and add load-balancing
+neigh_modify    exclude group tri tri
+fix             bal all  balance 1000 1.0 shift xyz 5 1.1 weight group 2 sphere 5.0 tri 1.0
 
 # visualize granular particles and tris triangles as flat triangles.
 

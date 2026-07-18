@@ -383,10 +383,13 @@ void FixSurfaceLocal::post_constructor()
     }
   }
 
-  // set max size for comm of connection info
-  // 2d = 2 end points, 4 vectors, each of length npmaxall
-  // 3d = 3 edges, 4 vectors, each of length nemaxall
-  //      plus 3 corner points, 2 vectors, each of length ncmaxall
+  // set max size for comm of connection info, matching pack_border():
+  // 2d = flag + 2 end point counts + 2 external_pt flags
+  //      plus 2 end points, 5 vectors, each of length npmaxall
+  // 3d = flag + 3 edge counts + 3 external_edge flags
+  //      plus 3 corner point counts + 3 external_cor flags
+  //      plus 3 edges, 5 vectors, each of length nemaxall
+  //      plus 3 corner points, 4 vectors, each of length ncmaxall
 
   if (dimension == 2) {
     int nlocal = atom->nlocal;
@@ -403,7 +406,8 @@ void FixSurfaceLocal::post_constructor()
 
     int npmaxall;
     MPI_Allreduce(&npmax, &npmaxall, 1, MPI_INT, MPI_MAX, world);
-    comm_border = comm_forward = 3 + 2 * 5 * npmaxall;
+    comm_border = comm_forward = 5 + 2 * 5 * npmaxall;
+    maxexchange = comm_border;
 
   } else if (dimension == 3) {
     int nlocal = atom->nlocal;
@@ -426,7 +430,8 @@ void FixSurfaceLocal::post_constructor()
     int nemaxall, ncmaxall;
     MPI_Allreduce(&nemax, &nemaxall, 1, MPI_INT, MPI_MAX, world);
     MPI_Allreduce(&ncmax, &ncmaxall, 1, MPI_INT, MPI_MAX, world);
-    comm_border = comm_forward = 7 + 3 * 5 * nemaxall + 3 * 4 * ncmaxall;
+    comm_border = comm_forward = 13 + 3 * 5 * nemaxall + 3 * 4 * ncmaxall;
+    maxexchange = comm_border;
   }
 
   // error checks on duplicate surfs or zero-size surfs

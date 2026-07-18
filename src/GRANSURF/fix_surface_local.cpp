@@ -1158,12 +1158,12 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         }
 
         if (np2) {
-          connect2d[j].neigh_p2 = tpc->get(np1, pool2d[j].neigh_p2);
-          connect2d[j].pwhich_p2 = ipc->get(np1, pool2d[j].pwhich_p2);
-          connect2d[j].nside_p2 = ipc->get(np1, pool2d[j].nside_p2);
-          connect2d[j].aflag_p2 = ipc->get(np1, pool2d[j].aflag_p2);
-          connect2d[j].fflag_p2 = ipc->get(np1, pool2d[j].fflag_p2);
-          for (int k = 0; k < np1; k++) {
+          connect2d[j].neigh_p2 = tpc->get(np2, pool2d[j].neigh_p2);
+          connect2d[j].pwhich_p2 = ipc->get(np2, pool2d[j].pwhich_p2);
+          connect2d[j].nside_p2 = ipc->get(np2, pool2d[j].nside_p2);
+          connect2d[j].aflag_p2 = ipc->get(np2, pool2d[j].aflag_p2);
+          connect2d[j].fflag_p2 = ipc->get(np2, pool2d[j].fflag_p2);
+          for (int k = 0; k < np2; k++) {
             connect2d[j].neigh_p2[k] = (tagint) ubuf(buf[m++]).i;
             connect2d[j].pwhich_p2[k] = (int) ubuf(buf[m++]).i;
             connect2d[j].nside_p2[k] = (int) ubuf(buf[m++]).i;

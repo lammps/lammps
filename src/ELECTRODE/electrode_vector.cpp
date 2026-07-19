@@ -80,13 +80,35 @@ void ElectrodeVector::setup(class Pair *fix_pair, class NeighList *fix_neighlist
   list = fix_neighlist;
   this->timer_flag = timer_flag;
 
+  int itmp = 0;
+
+  tip4pflag = false;
+
+  auto *p_qdist = (double *) pair->extract("qdist", itmp);
+
+  if (p_qdist) {
+    auto *p_typeO = (int *) pair->extract("typeO", itmp);
+    auto *p_typeH = (int *) pair->extract("typeH", itmp);
+    auto *p_typeA = (int *) pair->extract("typeA", itmp);
+    auto *p_typeB = (int *) pair->extract("typeB", itmp);
+
+    if (!p_typeO || !p_typeH || !p_typeA || !p_typeB)
+      error->all(FLERR, "Pair style provides incomplete TIP4P information");
+
+    tip4pflag = true;
+    qdist = *p_qdist;
+    typeO = *p_typeO;
+    typeH = *p_typeH;
+    typeA = *p_typeA;
+    typeB = *p_typeB;
+  }
+
   electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
   if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
   g_ewald = force->kspace->g_ewald;
 }
 
 /* ---------------------------------------------------------------------- */
-
 void ElectrodeVector::setup_tf(const std::map<int, double> &tf_types)
 {
   tfflag = true;

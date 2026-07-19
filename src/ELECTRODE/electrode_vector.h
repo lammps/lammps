@@ -47,6 +47,13 @@ class ElectrodeVector : protected Pointers {
   class NeighList *list;
   class ElectrodeKSpace *electrode_kspace;
 
+  bool tip4pflag;
+  double qdist;
+  int typeO;
+  int typeH;
+  int typeA;
+  int typeB;
+
   void pair_contribution(double *);
   void self_contribution(double *);
   void tf_contribution(double *);

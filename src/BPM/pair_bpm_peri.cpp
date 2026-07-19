@@ -16,10 +16,10 @@
    Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
 
    Short-range contact pair style for the BPM peridynamics model. It supplies
-   the repulsive contact force between non-bonded near pairs (bonded pairs are
-   excluded via the 1-2 special weight and handled by bond_style bpm/peri).
-   Companion to bond_style bpm/peri. Derived from the contact term in the PERI
-   package pair_peri_pmb.cpp (Mike Parks, SNL).
+   the repulsive contact force between non-bonded pairs of nearby atoms.
+   (bonded atoms are excluded via the 1-2 special weight and handled by
+   bond_style bpm/peri). Companion to bond_style bpm/peri. Derived from the
+   contact term in the PERI package pair_peri_pmb.cpp (Mike Parks, SNL).
 ------------------------------------------------------------------------- */
 
 #include "pair_bpm_peri.h"
@@ -84,9 +84,9 @@ void PairBPMPeri::compute(int eflag, int vflag)
   double *vfrac = atom->dvector[index_vfrac];
 
   const double lc = domain->lattice->xlattice;
-  // contact onset distance. Legacy uses min(0.9*r0_ref, 1.35*lc); for non-bonded
-  // pairs (reference separation exceeds the horizon) this is always 1.35*lc, so
-  // the dropped reference positions (x0) are not needed here.
+  // contact onset distance. Legacy uses min(0.9*r0_ref, 1.35*lc).
+  // For non-bonded atoms (reference separation exceeds the horizon) this is always 1.35*lc,
+  // => the dropped reference positions (x0) are not needed here
   const double d_ij = 1.35 * lc;
 
   inum = list->inum;

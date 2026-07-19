@@ -30,29 +30,18 @@
 
 #include <cstring>
 
+#include "lammps_gpu.h"
+
 #if (LAL_USE_OMP == 1)
 #include <omp.h>
 #endif
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using namespace LAMMPS_GPU;
 
 // must match definition in lib/gpu/lal_device.h
 enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH, GPU_DEFAULT};
-
-// functions provided by the GPU library
-extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
-                           const int first_gpu_id, const int gpu_mode,
-                           const double particle_split, const int t_per_atom,
-                           const double cell_size, char *opencl_args,
-                           const int ocl_platform, char *device_type_flags,
-                           const int block_pair);
-extern void lmp_clear_device();
-extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
-                             double *virial, double &ecoul, int &err_flag);
-extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
-                                      const int nlocal, const double cut);
-extern bool lmp_gpu_requires_host_neighbor();
 
 static const char cite_gpu_package[] =
   "GPU package (short-range, long-range and three-body potentials): https://doi.org/10.1016/j.cpc.2010.12.021, https://doi.org/10.1016/j.cpc.2011.10.012, https://doi.org/10.1016/j.cpc.2013.08.002, https://doi.org/10.1016/j.commatsci.2014.10.068, https://doi.org/10.1016/j.cpc.2016.10.020, https://doi.org/10.3233/APC200086\n\n"
@@ -131,7 +120,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   // options
 
   _gpu_mode = GPU_DEFAULT;
-  _particle_split = 1.0;
   int nthreads = 0;
   int newtonflag = force->newton_pair;
   int threads_per_atom = -1;
@@ -166,9 +154,9 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"split") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu split", error);
-      _particle_split = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      if (_particle_split == 0.0 || _particle_split > 1.0)
-        error->all(FLERR,iarg+1+ioffs,"Illegal package gpu split value {}", _particle_split);
+      if (comm->me == 0)
+        error->warning(FLERR, "The 'split' keyword is deprecated. Host/device particle "
+                       "splitting is no longer supported. The value is ignored.");
       iarg += 2;
     } else if (strcmp(arg[iarg],"gpuID") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu gpuID", error);
@@ -234,18 +222,13 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   if (force->newton_pair || force->newton_bond) force->newton = 1;
   else force->newton = 0;
 
-  // require newton pair off if _particle_split < 1
-
-  if (force->newton_pair == 1 && _particle_split < 1)
-    error->all(FLERR,"Cannot use newton pair on for split less than 1 for now");
-
   // pass params to GPU library
   // change binsize default (0.0) to -1.0 used by GPU lib
 
   if (binsize == 0.0) binsize = -1.0;
   _binsize = binsize;
   int gpu_flag = lmp_init_device(universe->uworld, world, ngpu, first_gpu_id,
-                                 _gpu_mode, _particle_split, threads_per_atom,
+                                 _gpu_mode, threads_per_atom,
                                  binsize, opencl_args, ocl_platform,
                                  device_type_flags, block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);

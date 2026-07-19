@@ -50,7 +50,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
                double rhomax, int nrhor, int nrho, int nz2r, int nfrho, int nr,
                const int nlocal, const int nall, const int max_nbors,
                const int maxspecial, const double cell_size,
-               const double gpu_split, FILE *_screen)
+                           FILE *_screen)
 {
   int max_shared_types=this->device->max_shared_types();
 
@@ -68,7 +68,7 @@ int EAMT::init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
 
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,eam,"k_eam",onetype);
+                            _screen,eam,"k_eam",onetype);
 
   if (success!=0)
     return success;
@@ -311,7 +311,6 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
                    int *ilist, int *numj, int **firstneigh,
                    const bool eflag_in, const bool vflag_in,
                    const bool /*eatom*/, const bool /*vatom*/,
-                   int &host_start, const double cpu_time,
                    bool &success, void **fp_ptr) {
   this->acc_timers();
   int eflag, vflag;
@@ -345,17 +344,15 @@ void EAMT::compute(const int f_ago, const int inum_full, const int nlocal,
   // ----------------------------------------------------------------
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
     return;
   }
 
-  int ago=this->hd_balancer.ago_first(f_ago);
-  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // -----------------------------------------------------------------
 
@@ -387,8 +384,8 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
                     double *subhi, tagint *tag, int **nspecial,
                     tagint **special, const bool eflag_in,
                     const bool vflag_in, const bool /*eatom*/,
-                    const bool /*vatom*/, int &host_start, int **ilist, int **jnum,
-                    const double cpu_time, bool &success, int &inum,
+                    const bool /*vatom*/, int **ilist, int **jnum,
+                    bool &success, int &inum,
                     void **fp_ptr, double *prd, int *periodicity) {
   this->acc_timers();
   int eflag, vflag;
@@ -422,18 +419,14 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   // -----------------------------------------------------------------
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
     return nullptr;
   }
 
-  // load balance, returning the atom count on the device (inum)
-  this->hd_balancer.balance(cpu_time);
-  inum=this->hd_balancer.get_gpu_count(ago,inum_full);
+  inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -458,7 +451,7 @@ int** EAMT::compute(const int ago, const int inum_full, const int nall,
   time_fp1.stop();
   time_fp1.sync_stop();
 
-  return this->nbor->host_jlist.begin()-host_start;
+  return this->nbor->host_jlist.begin()-inum;
 }
 
 // ---------------------------------------------------------------------------
@@ -470,7 +463,6 @@ void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
   if (this->ans->inum()==0)
     return;
 
-  this->hd_balancer.start_timer();
   time_fp2.start();
   this->add_fp_data();
   time_fp2.stop();
@@ -482,7 +474,6 @@ void EAMT::compute2(int *ilist, const bool eflag, const bool vflag,
     this->ans->copy_answers(eflag,vflag,eatom,vatom, ilist, this->ans->inum());
 
   this->device->add_ans_object(this->ans);
-  this->hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------

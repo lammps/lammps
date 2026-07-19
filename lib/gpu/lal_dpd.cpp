@@ -51,7 +51,7 @@ int DPDT::init(const int ntypes,
                const int nlocal, const int nall,
                const int max_nbors, const int maxspecial,
                const double cell_size,
-               const double gpu_split, FILE *_screen) {
+                           FILE *_screen) {
   const int max_shared_types=this->device->max_shared_types();
 
   int onetype=0;
@@ -70,7 +70,7 @@ int DPDT::init(const int ntypes,
 
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd,"k_dpd",onetype);
+                            _screen,dpd,"k_dpd",onetype);
   if (success!=0)
     return success;
 

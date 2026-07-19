@@ -27,33 +27,16 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int sw_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                const double cell_size, int &gpu_mode, FILE *screen, double **ncutsq, double **ncut,
-                double **sigma, double **powerp, double **powerq, double **sigma_gamma, double **c1,
-                double **c2, double **c3, double **c4, double **c5, double **c6,
-                double ***lambda_epsilon, double ***costheta, const int *map, int ***e2param);
-void sw_gpu_clear();
-int **sw_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                       int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                       const bool vatom, int &host_start, int **ilist, int **jnum,
-                       const double cpu_time, bool &success);
-void sw_gpu_compute(const int ago, const int nloc, const int nall, const int ln, double **host_x,
-                    int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                    const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success);
-double sw_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
 PairSWGPU::PairSWGPU(LAMMPS *lmp) : PairSW(lmp), gpu_mode(GPU_FORCE)
 {
-  cpu_time = 0.0;
   reinitflag = 0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -79,7 +62,7 @@ void PairSWGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -99,7 +82,7 @@ void PairSWGPU::compute(int eflag, int vflag)
     firstneigh =
         sw_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                          atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                         host_start, &ilist, &numneigh, cpu_time, success);
+                         &ilist, &numneigh, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -107,8 +90,7 @@ void PairSWGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
 
     sw_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type, ilist,
-                   numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                   success);
+                   numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

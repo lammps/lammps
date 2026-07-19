@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_coul_debye.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static CoulDebye<PRECISION,ACC_PRECISION> CDEMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                     double *host_special_coul, const int inum,
                     const int nall, const int max_nbors, const int maxspecial,
@@ -34,7 +37,6 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                     const double qqrd2e, const double kappa) {
   CDEMF.clear();
   gpu_mode=CDEMF.device->gpu_mode();
-  double gpu_split=CDEMF.device->particle_split();
   int first_gpu=CDEMF.device->first_device();
   int last_gpu=CDEMF.device->last_device();
   int world_me=CDEMF.device->world_me();
@@ -55,7 +57,7 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
   int init_ok=0;
   if (world_me==0)
     init_ok=CDEMF.init(ntypes, host_scale, cutsq, host_special_coul, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen, qqrd2e, kappa);
+                       maxspecial, cell_size, screen, qqrd2e, kappa);
 
   CDEMF.device->world_barrier();
   if (message)
@@ -72,7 +74,7 @@ int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CDEMF.init(ntypes, host_scale, cutsq, host_special_coul, inum, nall, max_nbors,
-                         maxspecial, cell_size, gpu_split, screen, qqrd2e, kappa);
+                         maxspecial, cell_size, screen, qqrd2e, kappa);
 
     CDEMF.device->serialize_init();
     if (message)
@@ -115,24 +117,21 @@ int** cdebye_gpu_compute_n(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            double *sublo, double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, double *host_q, double *boxlo,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, double *host_q, double *boxlo,
                            double *prd, int *periodicity) {
   return CDEMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
-                        vatom, host_start, ilist, jnum, cpu_time, success,
+                        vatom, ilist, jnum, success,
                         host_q, boxlo, prd, periodicity);
 }
 
 void cdebye_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q,
+                        const bool eatom, const bool vatom, bool &success, double *host_q,
                         const int nlocal, double *boxlo, double *prd) {
   CDEMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,firstneigh,eflag,
-                vflag,eatom,vatom,host_start,cpu_time,success,host_q,
+                vflag,eatom,vatom,success,host_q,
                 nlocal,boxlo,prd);
 }
 
@@ -140,4 +139,4 @@ double cdebye_gpu_bytes() {
   return CDEMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

@@ -27,37 +27,16 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                       const double cell_size, int &gpu_mode, FILE *screen, int *host_map,
-                       const int nelements, int ***host_elem3param, const int nparams,
-                       const double *cutsq, const double *r0, const double *gamma,
-                       const double *eta, const double *lam1inv, const double *lam4inv,
-                       const double *zizj, const double *mbigd, const double *dvrc,
-                       const double *big6w, const double *heta, const double *bigh,
-                       const double *bigw, const double *c0, const double *costheta,
-                       const double *bigb, const double *big2b, const double *bigc);
-void vashishta_gpu_clear();
-int **vashishta_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                              int *host_type, double *sublo, double *subhi, tagint *tag,
-                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                              const bool eatom, const bool vatom, int &host_start, int **ilist,
-                              int **jnum, const double cpu_time, bool &success);
-void vashishta_gpu_compute(const int ago, const int nloc, const int nall, const int ln,
-                           double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
-                           const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time, bool &success);
-double vashishta_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
 PairVashishtaGPU::PairVashishtaGPU(LAMMPS *lmp) : PairVashishta(lmp), gpu_mode(GPU_FORCE)
 {
-  cpu_time = 0.0;
   reinitflag = 0;
   gpu_allocated = false;
   suffix_flag |= Suffix::GPU;
@@ -84,7 +63,7 @@ void PairVashishtaGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -104,7 +83,7 @@ void PairVashishtaGPU::compute(int eflag, int vflag)
     firstneigh =
         vashishta_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                 atom->tag, atom->nspecial, atom->special, eflag, vflag, eflag_atom,
-                                vflag_atom, host_start, &ilist, &numneigh, cpu_time, success);
+                                vflag_atom, &ilist, &numneigh, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -112,8 +91,7 @@ void PairVashishtaGPU::compute(int eflag, int vflag)
     firstneigh = list->firstneigh;
 
     vashishta_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type, ilist,
-                          numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start,
-                          cpu_time, success);
+                          numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

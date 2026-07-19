@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_gayberne.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static GayBerne<PRECISION,ACC_PRECISION> GBMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int gb_gpu_init(const int ntypes, const double gamma,
                 const double upsilon, const double mu, double **shape,
                 double **well, double **cutsq, double **sigma,
@@ -38,7 +41,6 @@ int gb_gpu_init(const int ntypes, const double gamma,
                 FILE *screen) {
   GBMF.clear();
   gpu_mode=GBMF.device->gpu_mode();
-  double gpu_split=GBMF.device->particle_split();
   int first_gpu=GBMF.device->first_device();
   int last_gpu=GBMF.device->last_device();
   int world_me=GBMF.device->world_me();
@@ -61,8 +63,7 @@ int gb_gpu_init(const int ntypes, const double gamma,
     init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq,
                       sigma, epsilon, host_lshape, form, host_lj1,
                       host_lj2, host_lj3, host_lj4, offset, special_lj,
-                      inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
-                      screen);
+                      inum, nall, max_nbors, maxspecial, cell_size, screen);
 
   GBMF.device->world_barrier();
   if (message)
@@ -81,7 +82,7 @@ int gb_gpu_init(const int ntypes, const double gamma,
       init_ok=GBMF.init(ntypes, gamma, upsilon, mu, shape, well, cutsq,  sigma,
                         epsilon, host_lshape, form, host_lj1, host_lj2,
                         host_lj3, host_lj4, offset, special_lj,  inum, nall,
-                        max_nbors, maxspecial, cell_size, gpu_split,  screen);
+                        max_nbors, maxspecial, cell_size, screen);
 
     GBMF.device->serialize_init();
     if (message)
@@ -106,21 +107,18 @@ int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **ilist, int **numj, bool &success,
                 const int *ellipsoid, const EllipsoidBonus *bonus);
 
 int** gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, double *sublo,
                        double *subhi, tagint *tag, int **nspecial,
                        tagint **special, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       int **ilist, int **jnum, const double cpu_time,
-                       bool &success, const int *ellipsoid,
+                       const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, const int *ellipsoid,
                        const void *bonus) {
   return GBMF.compute(ago, inum_full, nall, host_x, host_type, sublo, subhi,
                       tag, nspecial, special, eflag, vflag, eatom, vatom,
-                      host_start, ilist, jnum, cpu_time, success,
+                      ilist, jnum, success,
                       ellipsoid,
                       static_cast<const EllipsoidBonus *>(bonus));
 }
@@ -128,12 +126,10 @@ int** gb_gpu_compute_n(const int ago, const int inum_full, const int nall,
 int * gb_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success,
+                     const bool eatom, const bool vatom, bool &success,
                      const int *ellipsoid, const void *bonus) {
   return GBMF.compute(ago, inum_full, nall, host_x, host_type, ilist,
-                      numj, firstneigh, eflag, vflag, eatom, vatom, host_start,
-                      cpu_time, success, ellipsoid,
+                      numj, firstneigh, eflag, vflag, eatom, vatom, success, ellipsoid,
                       static_cast<const EllipsoidBonus *>(bonus));
 }
 
@@ -144,3 +140,4 @@ double gb_gpu_bytes() {
   return GBMF.host_memory_usage();
 }
 
+} // namespace LAMMPS_GPU

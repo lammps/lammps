@@ -29,35 +29,12 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 using namespace EwaldConst;
 
-// External functions from cuda library for atom decomposition
-
-int spical_gpu_init(const int ntypes, double **cutsq, int **lj_type, double **host_lj1,
-                    double **host_lj2, double **host_lj3, double **host_lj4, double **offset,
-                    double *special_lj, const int nlocal, const int nall, const int max_nbors,
-                    const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
-                    double **host_cut_ljsq, double host_cut_coulsq, double *host_special_coul,
-                    const double qqrd2e, const double g_ewald);
-void spical_gpu_clear();
-int **spical_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                           int *host_type, double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start, int **ilist,
-                           int **jnum, const double cpu_time, bool &success, double *host_q,
-                           double *boxlo, double *prd, int *periodicity);
-void spical_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
-                        int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                        const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q, const int nlocal,
-                        double *boxlo, double *prd);
-double spical_gpu_bytes();
-
-#include "lj_spica_common.h"
-
-using namespace LJSPICAParms;
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,7 +43,6 @@ PairLJSPICACoulLongGPU::PairLJSPICACoulLongGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -87,7 +63,7 @@ void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -106,8 +82,8 @@ void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = spical_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                       atom->tag, atom->nspecial, atom->special, eflag, vflag,
-                                      eflag_atom, vflag_atom, host_start, &ilist, &numneigh,
-                                      cpu_time, success, atom->q, domain->boxlo, domain->prd,
+                                      eflag_atom, vflag_atom, &ilist, &numneigh,
+                                      success, atom->q, domain->boxlo, domain->prd,
                                       domain->periodicity);
   } else {
     inum = list->inum;
@@ -115,24 +91,13 @@ void PairLJSPICACoulLongGPU::compute(int eflag, int vflag)
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     spical_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                       eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
+                       eflag, vflag, eflag_atom, vflag_atom, success, atom->q,
                        atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    if (evflag) {
-      if (eflag)
-        cpu_compute<1, 1>(host_start, inum, ilist, numneigh, firstneigh);
-      else
-        cpu_compute<1, 0>(host_start, inum, ilist, numneigh, firstneigh);
-    } else
-      cpu_compute<0, 0>(host_start, inum, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -191,148 +156,4 @@ double PairLJSPICACoulLongGPU::memory_usage()
   return bytes + spical_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-template <int EVFLAG, int EFLAG>
-void PairLJSPICACoulLongGPU::cpu_compute(int start, int inum, int *ilist, int *numneigh,
-                                         int **firstneigh)
-{
-  int i, j, ii, jj;
-  double qtmp, xtmp, ytmp, ztmp;
-  double r2inv, forcecoul, forcelj, factor_coul, factor_lj;
 
-  const double *const *const x = atom->x;
-  double *const *const f = atom->f;
-  const double *const q = atom->q;
-  const int *const type = atom->type;
-  const double *const special_coul = force->special_coul;
-  const double *const special_lj = force->special_lj;
-  const double qqrd2e = force->qqrd2e;
-  double fxtmp, fytmp, fztmp;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    fxtmp = fytmp = fztmp = 0.0;
-
-    const int itype = type[i];
-    const int *const jlist = firstneigh[i];
-    const int jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
-      j &= NEIGHMASK;
-
-      const double delx = xtmp - x[j][0];
-      const double dely = ytmp - x[j][1];
-      const double delz = ztmp - x[j][2];
-      const double rsq = delx * delx + dely * dely + delz * delz;
-      const int jtype = type[j];
-
-      double evdwl = 0.0;
-      double ecoul = 0.0;
-      double fpair = 0.0;
-
-      if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0 / rsq;
-        const int ljt = lj_type[itype][jtype];
-
-        if (rsq < cut_coulsq) {
-          if (!ncoultablebits || rsq <= tabinnersq) {
-            const double r = sqrt(rsq);
-            const double grij = g_ewald * r;
-            const double expm2 = exp(-grij * grij);
-            const double t = 1.0 / (1.0 + EWALD_P * grij);
-            const double erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-            const double prefactor = qqrd2e * qtmp * q[j] / r;
-            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2);
-            if (EFLAG) ecoul = prefactor * erfc;
-            if (factor_coul < 1.0) {
-              forcecoul -= (1.0 - factor_coul) * prefactor;
-              if (EFLAG) ecoul -= (1.0 - factor_coul) * prefactor;
-            }
-          } else {
-            union_int_float_t rsq_lookup;
-            rsq_lookup.f = rsq;
-            int itable = rsq_lookup.i & ncoulmask;
-            itable >>= ncoulshiftbits;
-            const double fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
-            const double table = ftable[itable] + fraction * dftable[itable];
-            forcecoul = qtmp * q[j] * table;
-            if (EFLAG) {
-              const double table2 = etable[itable] + fraction * detable[itable];
-              ecoul = qtmp * q[j] * table2;
-            }
-            if (factor_coul < 1.0) {
-              const double table2 = ctable[itable] + fraction * dctable[itable];
-              const double prefactor = qtmp * q[j] * table2;
-              forcecoul -= (1.0 - factor_coul) * prefactor;
-              if (EFLAG) ecoul -= (1.0 - factor_coul) * prefactor;
-            }
-          }
-        } else {
-          forcecoul = 0.0;
-          ecoul = 0.0;
-        }
-
-        if (rsq < cut_ljsq[itype][jtype]) {
-
-          if (ljt == LJ12_4) {
-            const double r4inv = r2inv * r2inv;
-            forcelj = r4inv * (lj1[itype][jtype] * r4inv * r4inv - lj2[itype][jtype]);
-
-            if (EFLAG)
-              evdwl = r4inv * (lj3[itype][jtype] * r4inv * r4inv - lj4[itype][jtype]) -
-                  offset[itype][jtype];
-
-          } else if (ljt == LJ9_6) {
-            const double r3inv = r2inv * sqrt(r2inv);
-            const double r6inv = r3inv * r3inv;
-            forcelj = r6inv * (lj1[itype][jtype] * r3inv - lj2[itype][jtype]);
-            if (EFLAG)
-              evdwl =
-                  r6inv * (lj3[itype][jtype] * r3inv - lj4[itype][jtype]) - offset[itype][jtype];
-
-          } else if (ljt == LJ12_6) {
-            const double r6inv = r2inv * r2inv * r2inv;
-            forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-            if (EFLAG)
-              evdwl =
-                  r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
-
-          } else if (ljt == LJ12_5) {
-            const double r5inv = r2inv * r2inv * sqrt(r2inv);
-            const double r7inv = r5inv * r2inv;
-            forcelj = r5inv * (lj1[itype][jtype] * r7inv - lj2[itype][jtype]);
-            if (EFLAG)
-              evdwl =
-                  r5inv * (lj3[itype][jtype] * r7inv - lj4[itype][jtype]) - offset[itype][jtype];
-          }
-
-          if (EFLAG) evdwl *= factor_lj;
-
-        } else {
-          forcelj = 0.0;
-          evdwl = 0.0;
-        }
-
-        fpair = (forcecoul + factor_lj * forcelj) * r2inv;
-
-        fxtmp += delx * fpair;
-        fytmp += dely * fpair;
-        fztmp += delz * fpair;
-
-        if (EVFLAG) ev_tally_full(i, evdwl, ecoul, fpair, delx, dely, delz);
-      }
-    }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
-  }
-}

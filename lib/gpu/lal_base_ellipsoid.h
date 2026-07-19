@@ -17,7 +17,6 @@
 #define LAL_BASE_ELLIPSOID_H
 
 #include "lal_device.h"
-#include "lal_balance.h"
 #include "mpi.h"
 
 #if defined(USE_OPENCL)
@@ -41,7 +40,6 @@ class BaseEllipsoid {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \param ellipsoid_sphere true if ellipsoid-sphere case handled separately
     * \param k_name name for the kernel for force calculation
     *
@@ -53,7 +51,7 @@ class BaseEllipsoid {
     * - -5 Double precision is not supported on card **/
   int init_base(const int nlocal, const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size,
-                const double gpu_split, FILE *screen, const int ntypes,
+                FILE *screen, const int ntypes,
                 int **h_form, const void *ellipsoid_program,
                 const void *lj_program, const char *k_name,
                 const bool ellipsoid_sphere=false);
@@ -169,8 +167,7 @@ class BaseEllipsoid {
   int* compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success,
+               const bool eatom, const bool vatom, bool &success,
                const int *ellipsoid, const EllipsoidBonus *bonus);
 
   /// Pair loop with device neighboring
@@ -178,8 +175,7 @@ class BaseEllipsoid {
                double **host_x, int *host_type, double *sublo,
                double *subhi, tagint *tag, int **nspecial,
                tagint **special, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               int **ilist, int **numj, const double cpu_time, bool &success,
+               const bool eatom, const bool vatom, int **ilist, int **numj, bool &success,
                const int *ellipsoid, const EllipsoidBonus *bonus);
 
   // -------------------------- DEVICE DATA -------------------------
@@ -195,7 +191,6 @@ class BaseEllipsoid {
   UCL_Timer time_nbor3, time_ellipsoid3;
 
   /// Host device load balancer
-  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -262,6 +257,7 @@ class BaseEllipsoid {
   int _block_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
+  int _timestep;
 
   // True if we want to use fast GB-sphere or sphere-sphere calculations
   bool _multiple_forms;

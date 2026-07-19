@@ -52,7 +52,7 @@ int DPDCoulSlaterLongT::init(const int ntypes,
                const int nlocal, const int nall,
                const int max_nbors, const int maxspecial,
                const double cell_size,
-               const double gpu_split, FILE *_screen, double *host_special_coul,
+                           FILE *_screen, double *host_special_coul,
                const double qqrd2e, const double g_ewald, double lamda) {
   const int max_shared_types=this->device->max_shared_types();
 
@@ -74,7 +74,7 @@ int DPDCoulSlaterLongT::init(const int ntypes,
   int success;
   bool need_charges = true;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd_coul_slater_long,"k_dpd_coul_slater_long",onetype, extra_fields, need_charges);
+                            _screen,dpd_coul_slater_long,"k_dpd_coul_slater_long",onetype, extra_fields, need_charges);
 
   if (success!=0)
     return success;

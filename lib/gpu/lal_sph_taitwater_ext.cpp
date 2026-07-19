@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_sph_taitwater.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static SPHTaitwater<PRECISION,ACC_PRECISION> SPHTaitwaterMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                            double **host_viscosity, double* host_mass,
                            double* host_rho0, double* host_soundspeed, double* host_B,
@@ -36,7 +39,6 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                            const double cell_size, int &gpu_mode, FILE *screen) {
   SPHTaitwaterMF.clear();
   gpu_mode=SPHTaitwaterMF.device->gpu_mode();
-  double gpu_split=SPHTaitwaterMF.device->particle_split();
   int first_gpu=SPHTaitwaterMF.device->first_device();
   int last_gpu=SPHTaitwaterMF.device->last_device();
   int world_me=SPHTaitwaterMF.device->world_me();
@@ -59,7 +61,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
     init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                                 host_rho0, host_soundspeed, host_B, dimension,
                                 special_lj, inum, nall, max_nbors,  maxspecial,
-                                cell_size, gpu_split, screen);
+                                cell_size, screen);
 
   SPHTaitwaterMF.device->world_barrier();
   if (message)
@@ -78,7 +80,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
       init_ok=SPHTaitwaterMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                                   host_rho0, host_soundspeed, host_B, dimension,
                                   special_lj, inum, nall, max_nbors, maxspecial,
-                                  cell_size, gpu_split, screen);
+                                  cell_size, screen);
 
     SPHTaitwaterMF.device->serialize_init();
     if (message)
@@ -100,23 +102,21 @@ int ** sph_taitwater_gpu_compute_n(const int ago, const int inum_full, const int
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *host_tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
+                         const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                          double **host_v) {
   return SPHTaitwaterMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                          subhi, host_tag, nspecial, special, eflag, vflag, eatom,
-                         vatom, host_start, ilist, jnum, cpu_time, success,
+                         vatom, ilist, jnum, success,
                          host_v);
 }
 
 void sph_taitwater_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *host_tag,
+                        const bool eatom, const bool vatom, bool &success, tagint *host_tag,
                         double **host_v) {
   SPHTaitwaterMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
-                  firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
+                  firstneigh, eflag, vflag, eatom, vatom, success,
                   host_tag, host_v);
 }
 
@@ -131,3 +131,5 @@ void sph_taitwater_gpu_update_drhoE(void **drhoE_ptr) {
 double sph_taitwater_gpu_bytes() {
   return SPHTaitwaterMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

@@ -27,28 +27,11 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int ljgrm_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
-                   double **host_lj3, double **host_lj4, double *special_lj, const int inum,
-                   const int nall, const int max_nbors, const int maxspecial,
-                   const double cell_size, int &gpu_mode, FILE *screen, double **host_ljsw1,
-                   double **host_ljsw2, double **host_ljsw3, double **host_ljsw4,
-                   double **host_ljsw5, double **cut_inner, double **cut_innersq);
-void ljgrm_gpu_clear();
-int **ljgrm_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
-                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                          const bool vatom, int &host_start, int **ilist, int **jnum,
-                          const double cpu_time, bool &success, double *prd, int *periodicity);
-void ljgrm_gpu_compute(const int ago, const int inum_full, const int nall, double **host_x,
-                       int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                       const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success);
-double ljgrm_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
@@ -56,7 +39,6 @@ PairLJGromacsGPU::PairLJGromacsGPU(LAMMPS *lmp) : PairLJGromacs(lmp), gpu_mode(G
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -77,7 +59,7 @@ void PairLJGromacsGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -97,24 +79,19 @@ void PairLJGromacsGPU::compute(int eflag, int vflag)
     firstneigh =
         ljgrm_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                             atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                            host_start, &ilist, &numneigh, cpu_time, success, domain->prd, domain->periodicity);
+                            &ilist, &numneigh, success, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     ljgrm_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                      eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
+                      eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -161,72 +138,3 @@ double PairLJGromacsGPU::memory_usage()
   return bytes + ljgrm_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairLJGromacsGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                                   int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, r2inv, r6inv, forcelj, factor_lj;
-  double r, t, fswitch, eswitch;
-  int *jlist;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  double *special_lj = force->special_lj;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0 / rsq;
-        r6inv = r2inv * r2inv * r2inv;
-        forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-        if (rsq > cut_inner_sq[itype][jtype]) {
-          r = sqrt(rsq);
-          t = r - cut_inner[itype][jtype];
-          fswitch = r * t * t * (ljsw1[itype][jtype] + ljsw2[itype][jtype] * t);
-          forcelj += fswitch;
-        }
-        fpair = factor_lj * forcelj * r2inv;
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (eflag) {
-          evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]);
-          evdwl += ljsw5[itype][jtype];
-          if (rsq > cut_inner_sq[itype][jtype]) {
-            eswitch = t * t * t * (ljsw3[itype][jtype] + ljsw4[itype][jtype] * t);
-            evdwl += eswitch;
-          }
-          evdwl *= factor_lj;
-        }
-
-        if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

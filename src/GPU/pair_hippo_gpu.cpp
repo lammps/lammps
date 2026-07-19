@@ -34,8 +34,10 @@
 
 #include <cmath>
 #include <cstring>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 using namespace MathConst;
 
 enum{INDUCE,RSD,SETUP_hippo,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
@@ -51,89 +53,6 @@ enum{MPOLE_GRID,POLAR_GRID,POLAR_GRIDC,DISP_GRID,INDUCE_GRID,INDUCE_GRIDC};
 
 static constexpr double DEBYE = 4.80321;    // conversion factor from q-Angs (real units) to Debye
 
-// External functions from cuda library for atom decomposition
-
-int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
-                    const double *host_pdamp, const double *host_thole,
-                    const double *host_dirdamp, const int* host_amtype2class,
-                    const double *host_special_repel, const double *host_special_disp,
-                    const double *host_special_mpole,
-                    const double *host_special_polar_wscale,
-                    const double *host_special_polar_piscale,
-                    const double *host_special_polar_pscale,
-                    const double *host_sizpr, const double *host_dmppr, const double *host_elepr,
-                    const double *host_csix, const double *host_adisp,
-                    const double *host_pcore, const double *host_palpha,
-                    const int nlocal, const int nall, const int max_nbors,
-                    const int maxspecial, const int maxspecial15,
-                    const double cell_size, int &gpu_mode, FILE *screen,
-                    const double polar_dscale, const double polar_uscale);
-void hippo_gpu_clear();
-
-int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
-                            double **host_x, int *host_type, int *host_amtype,
-                            int *host_amgroup, double **host_rpole,
-                            double **host_uind, double **host_uinp, double *host_pval,
-                            double *sublo, double *subhi, tagint *tag,
-                            int **nspecial, tagint **special,
-                            int *nspecial15, tagint **special15,
-                            const bool eflag_in, const bool vflag_in,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *host_q, double *boxlo, double *prd);
-
-void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           int *host_amtype, int *host_amgroup, double **host_rpole,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, int *nspecial15, tagint** special15,
-                           const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double off2,
-                           double *host_q, double *boxlo, double *prd,
-                           double cut2, double c0, double c1, double c2,
-                           double c3, double c4, double c5, void **tep_ptr);
-
-void hippo_gpu_compute_dispersion_real(int *host_amtype, int *host_amgroup, double **host_rpole,
-                                        const double aewald, const double off2);
-
-void hippo_gpu_compute_multipole_real(const int ago, const int inum, const int nall,
-              double **host_x, int *host_type, int *host_amtype, int *host_amgroup,
-              double **host_rpole, double *host_pval, double *sublo, double *subhi, tagint *tag,
-              int **nspecial, tagint **special, int* nspecial15, tagint** special15,
-              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              int &host_start, int **ilist, int **jnum, const double cpu_time,
-              bool &success, const double aewald, const double felec, const double off2,
-              double *host_q, double *boxlo, double *prd, void **tq_ptr);
-
-void hippo_gpu_compute_udirect2b(int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp,
-              double *host_pval, const double aewald, const double off2, void **fieldp_ptr);
-
-void hippo_gpu_compute_umutual2b(int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
-              const double aewald, const double off2, void **fieldp_ptr);
-
-void hippo_gpu_update_fieldp(void **fieldp_ptr);
-
-void hippo_gpu_precompute_kspace(const int inum_full, const int bsorder,
-              double ***host_thetai1, double ***host_thetai2,
-              double ***host_thetai3, int** igrid,
-              const int nzlo_out, const int nzhi_out,
-              const int nylo_out, const int nyhi_out,
-              const int nxlo_out, const int nxhi_out);
-
-void hippo_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
-                          void **host_fdip_phi2, void **host_fdip_sum_phi);
-
-void hippo_gpu_compute_polar_real(int *host_amtype, int *host_amgroup,
-              double **host_rpole, double **host_uind, double **host_uinp, double *host_pval,
-              const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-              const double aewald, const double felec, const double off2,
-              void **tq_ptr);
-
-double hippo_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
@@ -144,7 +63,6 @@ PairHippoGPU::PairHippoGPU(LAMMPS *lmp) : PairAmoeba(lmp), gpu_mode(GPU_FORCE)
 
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   fieldp_pinned = nullptr;
   tq_pinned = nullptr;
@@ -257,7 +175,7 @@ void PairHippoGPU::repulsion()
   int eflag=1, vflag=1;
   double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh;
@@ -282,8 +200,7 @@ void PairHippoGPU::repulsion()
                        atom->nspecial, atom->special,
                        atom->nspecial15, atom->special15,
                        eflag, vflag, eflag_atom, vflag_atom,
-                       host_start, &ilist, &numneigh, cpu_time,
-                       success, atom->q, domain->boxlo, domain->prd);
+                       &ilist, &numneigh, success, atom->q, domain->boxlo, domain->prd);
 
   // select the correct cutoff for the term
 
@@ -295,8 +212,7 @@ void PairHippoGPU::repulsion()
                               atom->nspecial, atom->special,
                               atom->nspecial15, atom->special15,
                               eflag, vflag, eflag_atom, vflag_atom,
-                              host_start, &ilist, &numneigh, cpu_time,
-                              success, aewald, off2, atom->q,
+                              &ilist, &numneigh, success, aewald, off2, atom->q,
                               domain->boxlo, domain->prd, cut2,
                               c0, c1, c2, c3, c4, c5, &tq_pinned);
 
@@ -362,7 +278,7 @@ void PairHippoGPU::multipole_real()
   int eflag=1, vflag=1;
   double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh;
@@ -396,8 +312,7 @@ void PairHippoGPU::multipole_real()
                                    atom->nspecial, atom->special,
                                    atom->nspecial15, atom->special15,
                                    eflag, vflag, eflag_atom, vflag_atom,
-                                   host_start, &ilist, &numneigh, cpu_time,
-                                   success, aewald, felec, off2, atom->q,
+                                   &ilist, &numneigh, success, aewald, felec, off2, atom->q,
                                    domain->boxlo, domain->prd, &tq_pinned);
 
   if (!success)

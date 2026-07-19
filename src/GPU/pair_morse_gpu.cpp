@@ -27,33 +27,17 @@
 #include "suffix.h"
 
 #include <cmath>
+#include "lammps_gpu.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int mor_gpu_init(const int ntypes, double **cutsq, double **host_morse1, double **host_r0,
-                 double **host_alpha, double **host_d0, double **offset, double *special_lj,
-                 const int nlocal, const int nall, const int max_nbors, const int maxspecial,
-                 const double cell_size, int &gpu_mode, FILE *screen);
-void mor_gpu_clear();
-int **mor_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, double *prd, int *periodicity);
-void mor_gpu_compute(const int ago, const int inum, const int nall, double **host_x, int *host_type,
-                     int *ilist, int *numj, int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start, const double cpu_time,
-                     bool &success);
-double mor_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
 PairMorseGPU::PairMorseGPU(LAMMPS *lmp) : PairMorse(lmp), gpu_mode(GPU_FORCE)
 {
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -74,7 +58,7 @@ void PairMorseGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -94,24 +78,19 @@ void PairMorseGPU::compute(int eflag, int vflag)
     firstneigh =
         mor_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                           atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                          host_start, &ilist, &numneigh, cpu_time, success, domain->prd, domain->periodicity);
+                          &ilist, &numneigh, success, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     mor_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                    eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success);
+                    eflag, vflag, eflag_atom, vflag_atom, success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -156,60 +135,3 @@ double PairMorseGPU::memory_usage()
   return bytes + mor_gpu_bytes();
 }
 
-/* ---------------------------------------------------------------------- */
-
-void PairMorseGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                               int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
-  double rsq, r, dr, dexp, factor_lj;
-  int *jlist;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
-  double *special_lj = force->special_lj;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r = sqrt(rsq);
-        dr = r - r0[itype][jtype];
-        dexp = exp(-alpha[itype][jtype] * dr);
-        fpair = factor_lj * morse1[itype][jtype] * (dexp * dexp - dexp) / r;
-
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
-
-        if (eflag) {
-          evdwl = d0[itype][jtype] * (dexp * dexp - 2.0 * dexp) - offset[itype][jtype];
-          evdwl *= factor_lj;
-        }
-
-        if (evflag) ev_tally_full(i, evdwl, 0.0, fpair, delx, dely, delz);
-      }
-    }
-  }
-}

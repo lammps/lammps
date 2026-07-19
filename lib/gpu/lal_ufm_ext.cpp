@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "lal_ufm.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -29,6 +30,8 @@ static UFM<PRECISION,ACC_PRECISION> UFMLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                  double **host_uf2, double **host_uf3, double **offset,
                  double *special_lj, const int inum, const int nall,
@@ -36,7 +39,6 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
                  int &gpu_mode, FILE *screen) {
   UFMLMF.clear();
   gpu_mode=UFMLMF.device->gpu_mode();
-  double gpu_split=UFMLMF.device->particle_split();
   int first_gpu=UFMLMF.device->first_device();
   int last_gpu=UFMLMF.device->last_device();
   int world_me=UFMLMF.device->world_me();
@@ -58,7 +60,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
   if (world_me==0)
     init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
                         offset, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen);
+                        maxspecial, cell_size, screen);
 
   UFMLMF.device->world_barrier();
   if (message)
@@ -76,7 +78,7 @@ int ufml_gpu_init(const int ntypes, double **cutsq, double **host_uf1,
     if (gpu_rank==i && world_me!=0)
       init_ok=UFMLMF.init(ntypes, cutsq, host_uf1, host_uf2, host_uf3,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
     UFMLMF.device->serialize_init();
     if (message)
@@ -118,25 +120,22 @@ int ** ufml_gpu_compute_n(const int ago, const int inum_full,
                         const int nall, double **host_x, int *host_type,
                         double *sublo, double *subhi, tagint *tag, int **nspecial,
                         tagint **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        int **ilist, int **jnum, const double cpu_time,
-                        bool &success, double *prd, int *periodicity) {
+                        const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success, double *prd, int *periodicity) {
   return UFMLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success, prd, periodicity);
+                       vatom, ilist, jnum, success, prd, periodicity);
 }
 
 void ufml_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success) {
+                     const bool eatom, const bool vatom, bool &success) {
   UFMLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
+                firstneigh,eflag,vflag,eatom,vatom,success);
 }
 
 double ufml_gpu_bytes() {
   return UFMLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

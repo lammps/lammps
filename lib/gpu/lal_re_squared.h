@@ -30,7 +30,6 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \return false if there is not sufficient memory or device init prob
     *
     * Returns:
@@ -45,7 +44,7 @@ class RESquared : public BaseEllipsoid<numtyp, acctyp> {
            double **host_lj3, double **host_lj4, double **host_offset,
            const double *host_special_lj, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen);
+           FILE *screen);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/

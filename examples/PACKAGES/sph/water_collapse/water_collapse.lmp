@@ -37,7 +37,7 @@ fix                integrate_water_fix water sph
 # time-integrate only internal energy and density of boundary particles
 fix                integrate_bc_fix bc sph/stationary
 # dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs c_rho_peratom c_e_peratom fx fy
-dump_modify        dump_id first yes
+#dump_modify        dump_id first yes
 thermo             100
 thermo_style       custom step ke c_esph v_etot f_gfix press time f_dtfix
 thermo_modify      norm no

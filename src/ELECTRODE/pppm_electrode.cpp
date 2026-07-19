@@ -72,6 +72,7 @@ PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
   if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
   group_group_enable = 0;
+ 
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
   compute_vector_called = false;
@@ -128,10 +129,10 @@ void PPPMElectrode::init()
     error->all(FLERR, "PPPM/electrode order cannot be < 2 or > {}", MAXORDER);
 
   // compute two charge force
-
-  two_charge();
-
-  // extract short-range Coulombic cutoff from pair style
+    two_charge();
+    // Detect whether the current pair style is TIP4P
+  tip4pflag = force->pair->tip4pflag;
+    // extract short-range Coulombic cutoff from pair style
 
   pair_check();
 

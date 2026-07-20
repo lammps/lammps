@@ -4,6 +4,7 @@ units           lj
 atom_style      tri
 atom_modify     map array
 boundary        m m m
+processors      * * 2
 dimension       3
 comm_modify     vel yes cutoff 14.0
 
@@ -18,7 +19,7 @@ pair_style      hybrid granular surf/granular
 pair_coeff      1 1 granular hooke 4000.0 100.0 &
                          tangential linear_history 1000.0 1.0 0.5 &
                          damping mass_velocity
-pair_coeff      1 2 surf/granular hooke 4000.0 100.0 &
+pair_coeff      1 2 surf/granular hooke 10000.0 100.0 &
                          tangential linear_history 1000.0 1.0 0.5 &
                          damping mass_velocity
 pair_coeff      2 2 none
@@ -32,7 +33,7 @@ neigh_modify    delay 0 every 1 check yes
 
 timestep        0.002
 fix             2 sphere nve/sphere
-fix             3 sphere gravity 10.0 vector 0 0 -1
+fix             3 sphere gravity 1.0 vector 0 0 -1
 
 variable comx equal xcm(tri,x)
 variable comy equal xcm(tri,y)
@@ -53,16 +54,16 @@ change_box all x final -250 250 y final -250 250 z final -250 250
 change_box all boundary f f f
 
 # insert polydisperse particles in batches inside the drum
-region slab block -55 55 -60 80 -40 50
-variable pour index 50000
-fix     ins sphere pour ${pour} 1 4767548 vol 0.4 10 &
-            diam range 1.0 5.0 region slab ignore id next
+region slab block -60 60 -105 75 -60 50
+variable pour index 75000
+fix     ins sphere pour ${pour} 1 4767548 vol 0.6 10 vel 0 0 0 0 -2.0 &
+            dens 2.5 2.5 diam range 0.2 5.0 region slab ignore id next
 
 compute         2 sphere temp/sphere
 compute_modify  2 dynamic/dof yes
 
 # use a dynamic group to cut away part of the drum so we can look inside
-variable dumpfreq index 200
+variable dumpfreq index 250
 variable select atom "(type==2 && x>-60) || (type==1)"
 group viz dynamic all var select every ${dumpfreq}
 
@@ -74,14 +75,14 @@ thermo_modify   lost warn temp 2
 
 # performance optimization: exclude non-interacting pairs and add load-balancing
 neigh_modify    exclude group tri tri
-fix             bal all  balance 1000 1.0 shift xyz 5 1.1 weight group 2 sphere 5.0 tri 1.0
+fix             bal all  balance 1000 1.0 shift xyz 5 1.1 weight group 2 sphere 5.0 tri 1.0 weight time 0.5
 
 # visualize granular particles and tris triangles as flat triangles.
 
 dump            viz viz image ${dumpfreq} mixer-drum-*.png id diameter &
                     tri type 1 0.2 size 800 600 zoom 2.5 shiny 0.3 &
                     fsaa yes view 70 -160 box no 0.025 ssao yes 2315423 0.1
-dump_modify     viz pad 6 backcolor black backcolor2 white boxcolor gray &
+dump_modify     viz pad 6 backcolor black backcolor2 white boxcolor steelblue &
                     acolor 1 slategray acolor 2 slategray atrans 2 1.0 &
                     lights 0.1 0.8 0.45 0.9
 
@@ -92,11 +93,11 @@ dump_modify     viz amap ${tris} $(v_tris+v_pour) &
                     green 0.5 cyan 0.625 blue 0.75 purple 0.875 red max magenta
 
 # fill the drum with 50000 granular particles which takes around 25000 steps
-run             25000
+run             50000
 unfix ins
 
 # trigger rotation central axis of drum.
 # since we centered the drum on the origin this is rather simple math
-fix             1 tri move rotate 0 0 0 0 -0.87 -0.5 400.0
-run             275000
+fix             1 tri move rotate 0 0 0 0 -0.87 -0.5 250.0
+run             450000
 

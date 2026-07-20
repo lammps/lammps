@@ -716,8 +716,6 @@
 /compute_body_local.h
 /compute_born_matrix.cpp
 /compute_born_matrix.h
-/compute_bpm_peri_damage_atom.cpp
-/compute_bpm_peri_damage_atom.h
 /compute_cnp_atom.cpp
 /compute_cnp_atom.h
 /compute_damage_atom.cpp

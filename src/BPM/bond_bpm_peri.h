@@ -59,6 +59,7 @@ class BondBPMPeri : public BondBPM {
   int index_vfrac, index_s0, index_smin, index_lambda;
   int index_vinter;       // reference interaction volume (for damage diagnostics)
   int index_dtheta;       // per-step dilatation theta exposed for visualization
+  int index_ddamage;      // per-step damage calculated for visualization
 
   // per-step scratch for the break bookkeeping (committed to smin/s0 each step)
   double *smin_new, *s0_new;
@@ -83,6 +84,7 @@ class BondBPMPeri : public BondBPM {
   void store_data() override;
   void compute_wvolume();
   void compute_dilatation();
+  void compute_damage();
   void compute_plastic_state();
 };
 

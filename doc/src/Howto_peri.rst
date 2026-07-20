@@ -129,7 +129,7 @@ Here is the minimal example above expressed in the BPM framework:
 
    bond_style      bpm/peri
    bond_coeff      1 pmb 1.6863e22 0.0015001 0.0005 0.25
-   compute         dmg all bpm/peri/damage/atom
+   fix             dmg all property/atom d_damage
    fix             1 all nve
    timestep        1.0e-7
 
@@ -184,7 +184,7 @@ translation:
    * - bonds implicit in the pair neighbor list
      - explicit ``create_bonds many all all <type> 0.0 <horizon>``
    * - ``compute damage/atom``
-     - ``compute bpm/peri/damage/atom``
+     - ``fix property/atom d_damage``
 
 The two implementations follow the same constitutive equations.  The
 analytic elastic response (dilatation, energy) agrees; for the *eps*

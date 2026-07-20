@@ -47,6 +47,7 @@ static constexpr double EPSILON = 1e-10;
 static constexpr double NEAR_ZERO = 2.2204e-16;
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 static const char cite_bpm_peri[] =
     "BPM peridynamics (bond_style bpm/peri), derived from the PERI package: "
@@ -92,7 +93,7 @@ BondBPMPeri::BondBPMPeri(LAMMPS *_lmp) :
     BondBPM(_lmp), model(nullptr), c(nullptr), kbulk(nullptr), gshear(nullptr), lambda(nullptr),
     tau(nullptr), yieldstress(nullptr), cut(nullptr), s00(nullptr), alpha(nullptr),
     id_fix_property_peri(nullptr), index_vfrac(-1), index_s0(-1), index_smin(-1), index_lambda(-1),
-    index_vinter(-1), index_dtheta(-1),
+    index_vinter(-1), index_dtheta(-1), index_ddamage(-1),
     smin_new(nullptr), s0_new(nullptr), nmax(0), state_based(0), wvolume_setup(0), kbulk_rep(0.0),
     wvolume(nullptr), theta(nullptr), winv(nullptr), commflag(COMM_SMIN), plastic(0), tdnorm(nullptr),
     pointwise_yield(0.0), gshear_rep(0.0)
@@ -486,6 +487,10 @@ void BondBPMPeri::compute(int eflag, int vflag)
     s0[i] = (s0_new[i] == -DBL_MAX) ? DBL_MAX : s0_new[i];
   }
 
+  // if optional damage variable exists, compute it
+  if (index_ddamage != -1)
+    compute_damage();
+
   // revert changes for hybrid bond style, handled by parent
   post_compute();
 }
@@ -582,6 +587,37 @@ void BondBPMPeri::compute_dilatation()
 
   commflag = COMM_THETA;
   comm->forward_comm(this);
+}
+
+/* ----------------------------------------------------------------------
+  compute optional per-atom damage
+------------------------------------------------------------------------- */
+
+void BondBPMPeri::compute_damage()
+{
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  int *num_bond = atom->num_bond;
+  double *vfrac = atom->dvector[index_vfrac];
+  double *vinter = atom->dvector[index_vinter];
+
+  double *damage = atom->dvector[index_ddamage];
+
+  // bond_style bpm/peri mandates newton bond off, so every bond touching atom i
+  // is stored at i; the surviving interaction volume is a purely local sum.
+  for (int i = 0; i < nlocal; i++) {
+    double surviving = 0.0;
+    for (int m = 0; m < num_bond[i]; m++) {
+      if (bond_type[i][m] <= 0) continue;    // broken/turned-off bond
+      int j = atom->map(bond_atom[i][m]);
+      if (j < 0) continue;
+      surviving += vfrac[j];
+    }
+
+    damage[i] = (vinter[i] > 0.0) ? 1.0 - surviving / vinter[i] : 0.0;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -891,6 +927,9 @@ void BondBPMPeri::init_style()
   // the state-based models publish the per-step dilatation into it (only then,
   // so a compute property/atom defined in the input can read it from the start)
   index_dtheta = (state_based) ? atom->find_custom("theta", flag, cols) : -1;
+
+  // ditto for optional damage
+  index_ddamage = atom->find_custom("damage", flag, cols);
 
   // initialize the no-breaking sentinels on the freshly created s0/smin (s0 =
   // +DBL_MAX and smin = -DBL_MAX, so the implied critical stretch is +infinity)

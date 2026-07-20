@@ -80,6 +80,8 @@ void getMixingWeights(
     assert(ispecies+nspecies < (int)dvector.extent(0));
     nTotalOld += dvector(ispecies+nspecies,id);
   }
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    Kokkos::abort("The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   assert(isite1 >= 0);
   assert(isite1 < nspecies);

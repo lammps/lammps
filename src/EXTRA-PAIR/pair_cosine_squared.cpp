@@ -33,7 +33,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCosineSquared::PairCosineSquared(LAMMPS *lmp) : Pair(lmp)
+PairCosineSquared::PairCosineSquared(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), w(nullptr), cut(nullptr), wcaflag(nullptr),
+    lj12_e(nullptr), lj6_e(nullptr), lj12_f(nullptr), lj6_f(nullptr)
 {
   writedata = 1;
 }

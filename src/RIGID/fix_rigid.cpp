@@ -162,6 +162,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) molecule[i] = (tagint) ((tagint) value[i] - minval + 1);
+          else molecule[i] = 0;
         delete[] value;
 
       } else
@@ -1575,9 +1576,9 @@ void FixRigid::set_v()
   if (extended) {
     double *shape,*quatatom,*inertiaatom;
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -2211,7 +2212,7 @@ void FixRigid::setup_bodies_dynamic()
   // extended particles add their rotation to angmom of body
 
   if (extended) {
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -2270,7 +2271,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
 {
   int nchunk,id,eofflag,xbox,ybox,zbox;
   int nlines;
-  FILE *fp;
+  SafeFilePtr fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE] = {'\0'};
 
@@ -2288,7 +2289,6 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
     if (which == 0)
       utils::logmesg(lmp, "Reading rigid body data for {} bodies from file {}\n", nlines, inpfile);
-    if (nlines == 0) fclose(fp);
   }
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
 
@@ -2375,7 +2375,6 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nread += nchunk;
   }
 
-  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 

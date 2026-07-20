@@ -54,7 +54,7 @@ static const char cite_rheo_oxide[] =
 /* ---------------------------------------------------------------------- */
 
 FixRHEOOxidation::FixRHEOOxidation(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), compute_surface(nullptr), fix_rheo(nullptr)
+    Fix(lmp, narg, arg), list(nullptr), compute_surface(nullptr), fix_rheo(nullptr)
 {
   if (narg != 6) error->all(FLERR, "Illegal fix rheo/oxidation command");
 

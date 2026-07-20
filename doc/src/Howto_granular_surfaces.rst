@@ -1,7 +1,7 @@
 Granular surfaces
 =================
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 As explained on the :doc:`Howto granular <Howto_granular>` doc page,
 granular systems are composed of finite-size spherical or aspherical
@@ -20,28 +20,25 @@ particularly useful for defining a complex wall or boundary geometry.
 As described below, particle/surface interactions can be specified
 with similar options as those for particle/particle interactions.
 
-In the examples directory, several examples of these boundaries are
-found in the gransurf folder. In particular, this includes a
-screw feeder geometry where a cylindrical container is being fed a
-stream of granular particles from above which are conveyed forward
-using a rotating screw. An illustration is rendered in the below
-figure using the :doc:`dump image <dump_image>` command.
+.. |granex1| image:: img/gransurf_screwfeeder.png
+   :width: 49%
 
-.. figure:: img/gransurf_screwfeeder.png
-            :figwidth: 50%
-            :align: right
-            :target: _images/gransurf_screwfeeder.png
+.. |granex2| image:: img/gransurf_asteroid.png
+   :width: 49%
+
+|granex1|  |granex2|
+
+In the examples directory, several examples of these boundaries are
+found in the gransurf folder. In particular, this includes a screw
+feeder geometry where a cylindrical container is being fed a stream of
+granular particles from above which are conveyed forward using a
+rotating screw. An illustration is rendered in the figure above on the
+left figure using the :doc:`dump image <dump_image>` command.
 
 Furthermore, as another illustration of possible applications, an image
 is included of a complex geometry based on the actual shape of the
 Itokawa asteroid. Here, a surface is used to create a container which is
 filled by a polydisperse granular packing.
-
-.. figure:: img/gransurf_asteroid.png
-            :figwidth: 50%
-            :align: right
-            :target: _images/gransurf_asteroid.png
-
 
 ----------
 
@@ -202,7 +199,7 @@ center.  The 4 mixer blades are in the shape of a large X and are made
 to rotate using the :doc:`fix_modify <fix_modify>` command (see below).
 
 .. figure:: img/gransurf_mixer.png
-            :figwidth: 75%
+            :figwidth: 50%
             :align: right
             :target: _images/gransurf_mixer.png
 
@@ -419,7 +416,7 @@ unchecked surface with the largest overlap and repeats the process.
 .. figure:: img/gransurf_consistent_side.png
             :figwidth: 33%
             :align: right
-            :target: _images/consistent_side.png
+            :target: _images/gransurf_consistent_side.png
 
 Next, LAMMPS clusters all contacted and connected lines/triangles into
 distinct composite sets each consisting of mutually flat line/triangle
@@ -502,7 +499,7 @@ corner such that :math:`\hat{n}_{f,i} = \hat{n}_{r,i}` (red, green) unless
 :math:`\hat{n}_{r,i}` has a component pointing into the adjacent line
 :math:`j`, in which case :math:`\hat{n}_{f,i} = \hat{n}_{s,j}` (blue,
 purple). These rules therefore simply enforce sensible continuity of
-forces as atoms move across line segements.
+forces as atoms move across line segments.
 
 .. figure:: img/gransurf_nonflat_turn.png
             :figwidth: 50%
@@ -523,7 +520,7 @@ the three dot products between :math:`\hat{n}_{s,i}`,
 :math:`\hat{n}_{s,j}`, and :math:`\hat{n}_{r,i}`.
 
 If a particle contacts a corner, then the corner first calculates what
-the directio of :math:`\hat{n}_{f,i}` would be had the particle contacted
+the direction of :math:`\hat{n}_{f,i}` would be had the particle contacted
 either of the two edges, labeled *a* and *b*, :math:`\hat{n}_{f,a}` and
 :math:`\hat{n}_{f,b}` (where the *i* is implied from context).  Let us
 dnote the normalized line vectors of these edges as :math:`\hat{l}_a` and

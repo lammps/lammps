@@ -61,36 +61,45 @@ int main(int argc, char **argv)
     if (MDI_MPI_get_world_comm(&lammps_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
 
+  // the outer try block catches exceptions thrown while reporting an error
+  // (e.g. when composing the error message text fails) so they cannot escape main()
+
   try {
-    auto *lammps = new LAMMPS(argc, argv, lammps_comm);
-    lammps->input->file();
-    delete lammps;
-  } catch (LAMMPSAbortException &ae) {
-    finalize();
-    MPI_Abort(ae.get_universe(), 1);
-  } catch (LAMMPSException &) {
-    finalize();
-    MPI_Barrier(lammps_comm);
-    MPI_Finalize();
-    exit(1);
-  } catch (fmt::format_error &fe) {
-    fprintf(stderr, "\nfmt::format_error: %s%s\n", fe.what(), utils::errorurl(12).c_str());
-    finalize();
-    MPI_Abort(MPI_COMM_WORLD, 1);
-    exit(1);
-  } catch (json::exception &je) {
-    fprintf(stderr, "\nJSON library error %d: %s\n", je.id, je.what());
-    finalize();
-    MPI_Abort(MPI_COMM_WORLD, 1);
-    exit(1);
-  } catch (std::bad_alloc &ae) {
-    fprintf(stderr, "C++ memory allocation failed: %s\n", ae.what());
-    finalize();
-    MPI_Abort(MPI_COMM_WORLD, 1);
-    exit(1);
+    try {
+      auto *lammps = new LAMMPS(argc, argv, lammps_comm);
+      lammps->input->file();
+      delete lammps;
+    } catch (LAMMPSAbortException &ae) {
+      finalize();
+      MPI_Abort(ae.get_universe(), 1);
+    } catch (LAMMPSException &) {
+      finalize();
+      MPI_Barrier(lammps_comm);
+      MPI_Finalize();
+      exit(1);
+    } catch (fmt::format_error &fe) {
+      fprintf(stderr, "\nfmt::format_error: %s%s\n", fe.what(), utils::errorurl(12).c_str());
+      finalize();
+      MPI_Abort(MPI_COMM_WORLD, 1);
+      exit(1);
+    } catch (json::exception &je) {
+      fprintf(stderr, "\nJSON library error %d: %s\n", je.id, je.what());
+      finalize();
+      MPI_Abort(MPI_COMM_WORLD, 1);
+      exit(1);
+    } catch (std::bad_alloc &ae) {
+      fprintf(stderr, "C++ memory allocation failed: %s\n", ae.what());
+      finalize();
+      MPI_Abort(MPI_COMM_WORLD, 1);
+      exit(1);
+    } catch (std::exception &e) {
+      fprintf(stderr, "Exception: %s\n", e.what());
+      finalize();
+      MPI_Abort(MPI_COMM_WORLD, 1);
+      exit(1);
+    }
   } catch (std::exception &e) {
-    fprintf(stderr, "Exception: %s\n", e.what());
-    finalize();
+    fprintf(stderr, "LAMMPS encountered another error while reporting an error: %s\n", e.what());
     MPI_Abort(MPI_COMM_WORLD, 1);
     exit(1);
   }

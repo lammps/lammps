@@ -1,6 +1,11 @@
 Adding tests for unit testing
 -----------------------------
 
+.. contents::
+   :local:
+
+------------
+
 This section discusses adding or expanding tests for the unit test
 infrastructure included into the LAMMPS source code distribution.
 Unlike example inputs, unit tests focus on testing the "local" behavior
@@ -396,6 +401,10 @@ follow some naming conventions so they get associated with the test
 programs and categorized and listed with canonical names in the list
 of tests as displayed by ``ctest -N``.  If you add a new YAML file,
 you need to re-run CMake to update the corresponding list of tests.
+The same folder also contains two more test programs built on the same
+YAML infrastructure: one for minimizer styles and one for the output
+data of computes and fixes; they are described in their own subsections
+at the end of this section.
 
 A minimal YAML file for a (molecular) pair style test will looks
 something like the following (see ``mol-pair-zero.yaml``):
@@ -422,52 +431,221 @@ something like the following (see ``mol-pair-zero.yaml``):
 
    [...]
 
-The following table describes the available keys and their purpose for
-testing pair styles:
+The following table describes the available keys and their purpose.  The
+``Tester`` column lists which test program(s) use each key.  ``all`` means
+every force-style tester (``test_pair_style``, ``test_bond_style``,
+``test_angle_style``, ``test_dihedral_style``, ``test_improper_style``,
+``test_fix_timestep``, and the ``test_min_style`` and ``test_output_style``
+programs described in the subsections below), and ``bonded interaction
+tests`` means the ``test_bond_style``, ``test_angle_style``,
+``test_dihedral_style``, and ``test_improper_style`` testers.  The
+``Required`` column indicates whether
+a valid YAML file (for the listed tester) must contain the key (``yes``) or
+whether it may be omitted (``no``).  The reference generator always writes
+the required keys; the optional keys are either metadata added by hand
+(``skip_tests``, ``tags``) or reference data that is only emitted when the
+tested style actually provides it (e.g. ``global_scalar`` only for a fix
+with scalar output):
 
 .. list-table::
    :header-rows: 1
 
    * - Key:
+     - Tester:
+     - Required:
      - Description:
    * - lammps_version
+     - all
+     - yes
      - LAMMPS version used to last update the reference data
    * - date_generated
+     - all
+     - yes
      - date when the file was last updated
    * - epsilon
+     - all
+     - yes
      - base value for the relative precision required for tests to pass
+   * - skip_tests
+     - all
+     - no
+     - request to skip the indicated test fixtures (see table below)
+   * - tags
+     - all
+     - no
+     - used to classify tests and to adjust behavior of test fixtures (see table below)
    * - prerequisites
+     - all
+     - yes
      - list of style kind / style name pairs required to run the test
    * - pre_commands
+     - all
+     - yes
      - LAMMPS commands to be executed before the input template file is read
    * - post_commands
+     - all
+     - yes
      - LAMMPS commands to be executed right before the actual tests
    * - input_file
-     - LAMMPS input file template based on pair style zero
+     - all
+     - yes
+     - LAMMPS input file template
+   * - input_coeffs
+     - test_fix_timestep, test_min_style, test_output_style
+     - yes
+     - file with the force-field and group setup commands applied after the input
+       template (optional for ``test_output_style`` when the input template is
+       self-contained, e.g. the metal system template)
+   * - natoms
+     - all
+     - yes
+     - number of atoms in the input file template
+   * - timestep
+     - test_fix_timestep, test_min_style, test_output_style
+     - no
+     - timestep size for the test run, overriding the tester's default
    * - pair_style
+     - test_pair_style
+     - yes
      - arguments to the pair_style command to be tested
    * - pair_coeff
+     - test_pair_style
+     - yes
      - list of pair_coeff arguments to set parameters for the input template
-   * - extract
-     - list of keywords supported by ``Pair::extract()`` and their dimension
-   * - natoms
-     - number of atoms in the input file template
    * - init_vdwl
+     - test_pair_style
+     - yes
      - non-Coulomb pair energy after "run 0"
    * - init_coul
+     - test_pair_style
+     - yes
      - Coulomb pair energy after "run 0"
-   * - init_stress
-     - stress tensor after "run 0"
-   * - init_forces
-     - forces on atoms after "run 0"
    * - run_vdwl
+     - test_pair_style
+     - yes
      - non-Coulomb pair energy after "run 4"
    * - run_coul
+     - test_pair_style
+     - yes
      - Coulomb pair energy after "run 4"
+   * - bond_style
+     - test_bond_style
+     - yes
+     - arguments to the bond_style command to be tested
+   * - bond_coeff
+     - test_bond_style
+     - yes
+     - list of bond_coeff arguments to set parameters
+   * - angle_style
+     - test_angle_style
+     - yes
+     - arguments to the angle_style command to be tested
+   * - angle_coeff
+     - test_angle_style
+     - yes
+     - list of angle_coeff arguments to set parameters
+   * - dihedral_style
+     - test_dihedral_style
+     - yes
+     - arguments to the dihedral_style command to be tested
+   * - dihedral_coeff
+     - test_dihedral_style
+     - yes
+     - list of dihedral_coeff arguments to set parameters
+   * - improper_style
+     - test_improper_style
+     - yes
+     - arguments to the improper_style command to be tested
+   * - improper_coeff
+     - test_improper_style
+     - yes
+     - list of improper_coeff arguments to set parameters
+   * - init_energy
+     - bonded interaction tests, test_min_style
+     - yes
+     - bonded interaction energy after "run 0"; for ``test_min_style`` the
+       potential energy before the minimization
+   * - run_energy
+     - bonded interaction tests, test_min_style
+     - yes
+     - bonded interaction energy after "run 4"; for ``test_min_style`` the
+       potential energy after the minimization
+   * - equilibrium
+     - test_bond_style
+     - yes
+     - equilibrium distance for each type
+   * - equilibrium
+     - test_angle_style
+     - yes
+     - equilibrium angle for each type
+   * - extract
+     - pair and bonded interaction tests
+     - yes
+     - list of keywords supported by the style's ``extract()`` method and their dimension
+   * - init_stress
+     - pair and bonded interaction tests
+     - yes
+     - stress tensor after "run 0"
+   * - init_forces
+     - pair and bonded interaction tests
+     - yes
+     - forces on atoms after "run 0"
    * - run_stress
-     - stress tensor after "run 4"
+     - pair and bonded interaction tests, test_fix_timestep
+     - no
+     - stress tensor after the run (omitted by ``test_fix_timestep`` when the fix has no virial contribution)
    * - run_forces
+     - pair and bonded interaction tests
+     - yes
      - forces on atoms after "run 4"
+   * - run_pos
+     - test_fix_timestep
+     - yes
+     - per-atom positions after the run
+   * - run_vel
+     - test_fix_timestep
+     - yes
+     - per-atom velocities after the run
+   * - run_torque
+     - test_fix_timestep
+     - no
+     - per-atom torques after the run (only when the atom style stores torque)
+   * - global_scalar
+     - test_fix_timestep, test_min_style, test_output_style
+     - no
+     - the global scalar output of the tested fix, if any; for
+       ``test_min_style`` the total force norm after the minimization
+   * - global_vector
+     - test_fix_timestep, test_min_style, test_output_style
+     - no
+     - the global vector output of the tested fix, if any; for
+       ``test_min_style`` the box dimensions and tilt factors after the
+       minimization
+   * - global_array
+     - test_output_style
+     - no
+     - the global array output of the tested compute or fix, if any
+   * - peratom_data
+     - test_output_style
+     - no
+     - the per-atom vector or array output of the tested compute or fix, if any
+   * - local_data
+     - test_output_style
+     - no
+     - the local vector or array output of the tested compute or fix, if any
+
+These reference files can be validated against the JSON schema file
+``tools/json/force-style-test-schema.json`` with the ``check-jsonschema``
+tool, which catches typos in keys, missing required keys, and values of the
+wrong type.  For example, to validate all of them at once:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile tools/json/force-style-test-schema.json \
+       unittest/force-styles/tests/*.yaml
+
+See the :ref:`JSON support files <json>` section of the :doc:`Tools`
+documentation for how to install ``check-jsonschema``.
 
 The test program will read all this data from the YAML file and then
 create a LAMMPS instance, apply the settings/commands from the YAML file
@@ -481,11 +659,157 @@ noise). Then it will restart from the previously generated restart and
 compare with the reference and also start from the data file.  A final
 check will use multi-cutoff r-RESPA (if supported by the pair style) at
 a 1:1 split and compare to the Verlet results.  These sets of tests are
-run with multiple test fixtures for accelerated styles (OPT, OPENMP,
-INTEL, KOKKOS (OpenMP only)) and for the latter three with 4 OpenMP
-threads enabled.  For these tests the relative error (epsilon) is lowered
-by a common factor due to the additional numerical noise, but the tests
-are still comparing to the same reference data.
+run with multiple test fixtures for accelerated styles: OPT, OPENMP and
+INTEL (the latter two with 4 OpenMP threads enabled), and three mutually
+exclusive KOKKOS fixtures selected by the active back end: the
+``kokkos_omp`` fixture requires the KOKKOS package compiled with the
+OpenMP back end and uses 4 OpenMP threads, while the ``kokkos_serial``
+fixture only runs when the Serial back end is the sole back end of the
+KOKKOS package (with any other back end enabled the host execution space
+would not be Serial, so this configuration must be tested with a separate
+build).  Both of these host fixtures skip when a GPU back end (CUDA, HIP,
+SYCL) is enabled, since the KOKKOS package then must run on the GPU.  The
+third fixture, ``kokkos_gpu``, is the complement: it runs only when a GPU
+back end is enabled (using ``-k on g 1``) and is skipped on host-only
+builds.  Because enabling the KOKKOS package with a GPU back end aborts
+when no usable device is present, this fixture first probes for a
+compatible GPU at runtime with ``Info::has_kokkos_gpu_device()`` (the
+KOKKOS package analog of ``Info::has_gpu_device()`` for the GPU package)
+and skips transparently when none is available, so the test suite can be
+run unchanged on machines without a GPU.  For these tests the relative error
+(epsilon) is lowered by a common factor due to the additional numerical
+noise, but the tests are still comparing to the same reference data.
+
+The KOKKOS fixtures also support the KOKKOS package compiled for reduced
+precision with ``-D KOKKOS_PREC=mixed`` (compute in single precision,
+accumulate in double precision) or ``-D KOKKOS_PREC=single``: the test
+tolerance is then relaxed by a large additional factor, similar to what
+is done for the mixed and single precision variants of the GPU package.
+Individual tests can be skipped for a given fixture by listing the
+fixture name in the ``skip_tests:`` field of the YAML file (e.g.
+``skip_tests: kokkos_omp kokkos_serial kokkos_gpu``).  A skip entry may
+also be qualified by the KOKKOS precision, e.g. ``kokkos_serial_single``
+or ``kokkos_omp_mixed``, which skips the test only for that combination
+of fixture and precision.  This is used for tests whose reference
+quantities cannot be meaningfully compared in reduced precision, for
+example global force totals that are the cancellation sum of large
+per-atom contributions in a charge-neutral system.
+
+The test fixture names accepted by ``skip_tests`` (each fixture runs the
+corresponding variant or check and self-skips when its package or back end
+is not available) are listed below.  Not every fixture exists for every
+style kind (e.g. ``gpu``, ``intel``, and ``opt`` are used by the pair-style
+tester, while ``numdiff`` is used by the bonded-style testers).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 78
+
+   * - Fixture
+     - Description
+   * - plain
+     - the unmodified (base class) style, without a suffix
+   * - omp
+     - the ``/omp`` variant from the OPENMP package (run with 4 threads)
+   * - intel
+     - the ``/intel`` variant from the INTEL package
+   * - opt
+     - the ``/opt`` variant from the OPT package
+   * - gpu
+     - the ``/gpu`` variant from the GPU package
+   * - kokkos_serial
+     - the ``/kk`` variant from the KOKKOS package with a Serial-only build
+   * - kokkos_omp
+     - the ``/kk`` variant from the KOKKOS package with the OpenMP back end
+       (run with 4 threads)
+   * - kokkos_gpu
+     - the ``/kk`` variant from the KOKKOS package with a GPU back end
+   * - single
+     - consistency check of the style's ``single()`` method against ``compute()``
+   * - extract
+     - check of the style's ``extract()`` keywords (base style)
+   * - extract_omp
+     - check of the style's ``extract()`` keywords (``/omp`` variant)
+   * - numdiff
+     - check of the forces against a numerical derivative of the energy
+
+The ``kokkos_omp``, ``kokkos_serial``, and ``kokkos_gpu`` entries may be
+qualified with ``_single`` or ``_mixed`` (e.g. ``kokkos_gpu_single``), as
+noted above.
+
+The ``tags:`` field of a YAML file lists keywords that classify a test or
+request special handling from the test fixtures.  The fixtures query them
+with ``TestConfig::has_tag()`` so that style-specific behavior is selected by
+a descriptive tag instead of by hard-coded style names.  The recognized tags
+are:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Tag
+     - Purpose
+   * - gpu_no_mixed
+     - The GPU package variant of the style does not support mixed
+       precision GPU mode; the ``gpu`` fixture skips the test when the
+       GPU package was compiled for mixed precision.
+   * - gpu_no_single
+     - The GPU package variant of the style does not support single
+       precision GPU mode (e.g. ``born/coul/long/cs/gpu``); the ``gpu``
+       fixture skips the test when the GPU package was compiled for
+       single precision.
+   * - single_thread
+     - The style cannot run correctly with more than one thread in the
+       test (e.g.  ``dpd`` uses multiple per-thread pRNGs; ``snap`` and
+       ``pace`` due to their implementation), so the threaded fixtures
+       (``omp``, ``intel``, ``kokkos_omp``) run it with a single thread.
+   * - no_respa
+     - The ``fix_timestep`` tester does not exercise this style under
+       :doc:`run_style respa <run_style>`: rigid fixes need additional
+       work to test correctly with r-RESPA, ``fix nve/limit`` and ``fix
+       recenter`` do not support it, stochastic integrators and barostats
+       (``brownian``, ``gjf``, ``press/langevin``) draw their random
+       numbers differently under r-RESPA, and velocity-dependent forcing
+       fixes (``viscous``, ``accelerate/cos``) and the isokinetic ``nvk``
+       integrator follow a different trajectory under r-RESPA - in all of
+       these cases the verlet and r-RESPA runs cannot match.
+   * - no_reset_dt
+     - The ``fix_timestep`` tester does not exercise a timestep change
+       for this style.  The fix rejects a timestep reset (its
+       ``Fix::reset_dt()`` raises an error, e.g. :doc:`fix move
+       <fix_move>`), which would otherwise abort the test.
+   * - no_restart
+     - The ``fix_timestep`` tester skips the restarted-run comparisons
+       for this style.  Part of the internal state of the fix (typically
+       the pRNG state of a stochastic fix like :doc:`fix langevin
+       <fix_langevin>`) is not stored in restart files, so a restarted
+       run cannot reproduce the reference trajectory.
+   * - no_t_target
+     - The ``fix_timestep`` tester does not compare the extracted
+       ``t_target`` property against the input variable for this style,
+       because the fix computes its target temperature internally (e.g.
+       the :doc:`fix nphug <fix_nphug>` hugoniostat).
+   * - ellipsoid
+     - The test includes ellipsoids and thus requires :doc:`fix
+       nve/asphere <fix_nve_asphere>`.
+   * - spica_pair
+     - The test setup uses ``pair_style lj/spica`` instead of the
+       default ``pair_style zero`` (required by the ``spica`` angle
+       style).
+   * - slow
+     - The test runs significantly longer than others and ``ctest -LE
+       slow`` would skip it.
+   * - noWindows
+     - Indicates that this test must be skipped on Windows; use
+       ``ctest -LE noWindows``
+   * - unstable
+     - The test exhibits numerically unstable behavior on some
+       platforms, e.g. ARM64; Until a proper correction is found, tests
+       can be skipped with ``ctest -LE unstable``.
+   * - generated
+     - Automatically added whenever reference data is generated or
+       regenerated; it marks data that has not been reviewed and
+       validated yet.  *Remove* after confirming the correctness of the
+       updated YAML file.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
@@ -511,8 +835,8 @@ The ``test_pair_style`` tester is used with 4 categories of test inputs:
   The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
   correspondingly labeled with "AtomicPairStyle:\*"
 - manybody pair styles.
-  The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
-  correspondingly labeled with "AtomicPairStyle:\*"
+  The YAML files match the pattern "manybody-pair-\*.yaml" and the tests are
+  correspondingly labeled with "ManybodyPairStyle:\*"
 - kspace styles.
   The YAML files match the pattern "kspace-\*.yaml" and the tests are
   correspondingly labeled with "KSpaceStyle:\*". In these cases a compatible
@@ -604,6 +928,514 @@ of the potentials and differences in compilers.
    numerical noise from reordering floating-point math operations or due to
    the compiler mis-compiling the code. That is not always obvious.
 
+Tests for minimizer styles
+""""""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+The ``test_min_style`` program tests the :doc:`min_style <min_style>`
+minimizers and :doc:`min_modify <min_modify>` settings.  The YAML files
+match the pattern "min-\*.yaml" and the tests are correspondingly labeled
+with "MinStyle:\*".  Each YAML file sets up the molecular test system in
+the same way as the fix tests (``input_file`` plus ``input_coeffs``) and
+selects the minimizer in the ``post_commands`` block (``min_style``,
+``min_modify``, and optional fixes like :doc:`fix box/relax
+<fix_box_relax>`).  The driver then runs a minimization with a fixed
+iteration budget (``minimize 0.0 0.0 100 10000``); using a fixed number
+of iterations instead of a convergence tolerance keeps the reference
+data deterministic.  The ``timestep`` key matters for the
+damped-dynamics minimizers (quickmin and fire).
+
+The line search and step acceptance logic of the minimizers branches on
+floating-point comparisons, so differences in the last bits of the
+computed forces -- for example from a different compiler or math library
+-- can send the descent along a different but equally valid path.  Only
+observables that are stable against such path changes are compared to
+the reference data: the potential energy before (``init_energy``) and
+after (``run_energy``) the minimization and the box dimensions and tilt
+factors (``global_vector``), all with the relative precision
+``epsilon``.  In addition, the minimization must have lowered the
+potential energy and must have reduced the total force norm to no more
+than 10 times the recorded reference value (``global_scalar``).  The
+exact force norm and the per-atom positions after a fixed number of
+iterations are *not* portable across platforms and are therefore not
+part of the reference data.  Only the plain minimizer styles are
+exercised; accelerated variants are not covered.  Reference files are
+created and updated with the same ``-g`` and ``-u`` command-line options
+as for the other testers.
+
+Tests for compute and fix output data
+"""""""""""""""""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+The ``test_output_style`` program tests the *output data* of computes
+and fixes: global scalars, global vectors, global arrays (including
+arrays with a variable number of rows, for example per-chunk data),
+per-atom vectors and arrays, and local vectors and arrays.  The YAML
+files match the patterns "compute-\*.yaml" and "fix-output-\*.yaml" and
+the tests are labeled with "OutputStyle:\*" using the full file base
+name (so ``compute-msd.yaml`` becomes ``OutputStyle:compute-msd``).
+
+The ``post_commands`` block must define the compute or fix to be tested
+with the ID ``test``, plus any helper commands it needs (groups, chunk
+computes, or feeder computes and fixes).  The driver adds a plain
+:doc:`fix nve <fix_nve>` time integrator -- unless the test itself
+defines a time-integrating fix, like :doc:`fix rigid/small <fix_rigid>`
+-- so that history-dependent quantities (mean-squared displacement,
+velocity auto-correlation, time averages) report real data, and runs 10
+MD steps with ``thermo 5``, which matches the sampling windows of the
+``ave/*`` reporting fixes.  It then queries the output flags of the
+tested style (``scalar_flag``, ``vector_flag``, ``array_flag``,
+``peratom_flag``, ``local_flag``) and compares every kind of output the
+style provides against the recorded reference blocks (``global_scalar``,
+``global_vector``, ``global_array``, ``peratom_data``, ``local_data``).
+Output data is a deterministic function of the (short) trajectory, so
+the reference data is typically compared with a tight ``epsilon`` (1e-8).
+
+Computes that require per-atom energy or virial data to be tallied
+during the force computation -- for example :doc:`compute pe/atom
+<compute_pe_atom>`, :doc:`compute stress/atom <compute_stress_atom>`,
+and :doc:`compute heat/flux <compute_heat_flux>` -- are not yet
+supported by this driver.  Reference files are created and updated with
+the same ``-g`` and ``-u`` command-line options as for the other
+testers.
+
+
+Tests for granular (DEM) models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: 4Jul2026
+
+The ``unittest/granular`` folder contains a YAML-driven test suite for
+discrete element method (DEM) / granular models, built in the same
+spirit as the force-style tests above but specialized for time-resolved
+trajectories of small granular systems.  These tests are only enabled if
+the :ref:`GRANULAR package<PKG-GRANULAR>` is enabled.
+
+Currently, there are 11 test programs. This set of unit tests is still a
+work-in-progress and the tests have not yet been thoroughly vetted. Tests
+may be added, updated, or removed. The first six test programs,
+``test_dem_01`` through ``test_dem_06``, reproduce the test surface of the
+MFiX-DEM verification studies of :ref:`Garg et al. <dem_Garg2012>` (the
+individual cases are also described in the `MFiX-DEM manual
+<https://mfix.netl.doe.gov/doc/vvuq-manual/main/html/dem/index.html>`_).
+``test_dem_07`` through ``test_dem_11`` add coverage of benchmark cases
+from the granular literature: rolling resistance, cohesion, and
+two-particle collisions follow the software-agnostic DEM benchmark of
+:ref:`Mohajeri et al. <dem_Mohajeri2024>`, and the bulk angle of repose
+and multi-sphere clump cases follow the round-robin study of
+:ref:`Saomoto et al. <dem_Saomoto2023>`.  The particle-impact-level cases
+-- oblique wall impact (``test_dem_05``), two-sphere and spinning-sphere
+collisions (``test_dem_09``) and the elastic Hertzian normal impact
+(``test_dem_11``) -- follow the benchmark of :ref:`Chung and Ooi
+<dem_Chung2011>`.  The test programs are:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Program
+     - Scenario
+   * - ``test_dem_01``
+     - a freely falling particle bouncing off a wall
+   * - ``test_dem_02``
+     - a particle bouncing repeatedly (convergence to the hard-sphere limit)
+   * - ``test_dem_03``
+     - two stacked particles in continuous compression between two walls
+   * - ``test_dem_04``
+     - a sphere sliding then rolling without slipping on a rough surface
+   * - ``test_dem_05``
+     - an oblique collision of a sphere (and a superellipsoid) with a wall
+   * - ``test_dem_06``
+     - a single particle settling to its terminal velocity under fluid drag
+   * - ``test_dem_07``
+     - a spinning sphere damped to rest by rolling resistance (``rolling sds``)
+   * - ``test_dem_08``
+     - cohesive/adhesive contact: the DMT and JKR pull-off force
+   * - ``test_dem_09``
+     - two-sphere head-on, oblique (shear), and spinning-sphere collisions
+   * - ``test_dem_10``
+     - bulk behavior: a settling pile, the angle of repose, and a rigid clump
+   * - ``test_dem_11``
+     - elastic Hertzian normal impact (peak contact mechanics)
+
+Every test program shares the same driver logic, implemented in
+``unittest/granular/test_dem_common.cpp`` and compiled into the
+``granular_tests`` support library; each ``test_dem_0N.cpp`` only contains
+the two GoogleTest fixtures (``newton_on`` and ``newton_off``).  As with the
+force-style tests, the reference systems are defined by YAML files in the
+``unittest/granular/tests`` folder and registered as CTest cases by their
+file name (``dem0N-*.yaml`` becomes test ``DEM0N:*``); adding or removing a
+YAML file requires re-running CMake.
+
+Unlike the force-style tests, the entire system is built *from the YAML
+file* rather than from a fixed input template.  A YAML file provides an
+optional ``variables`` block (emitted as :doc:`index variables <variable>`
+so they can be substituted as ``${name}`` anywhere in the command strings),
+``pre_commands`` that create the geometry, ``pair_style`` / ``pair_coeff``
+that select the contact model, and ``post_commands`` that add the
+integrator, gravity, walls and drag.  The trajectory is then advanced in a
+sequence of ``run_segments`` and, after each segment, the per-atom
+positions, velocities, torques, angular velocities (spheres) and angular
+momenta (ellipsoids/superellipsoids) are compared against the recorded
+reference.  A minimal example (``dem01-hooke-3d-si.yaml``) looks like:
+
+.. code-block:: yaml
+
+   ---
+   lammps_version: 30 Mar 2026
+   tags: granular
+   epsilon: 1e-10
+   prerequisites: ! |
+     atom sphere
+     pair gran/hooke
+   variables: ! |
+     knorm 1.0e4
+     gnorm 10.0
+     diam 0.2
+     dens 2600.0
+     grav 9.81
+     z0 0.5
+   pre_commands: ! |
+     units si
+     dimension 3
+     boundary f f f
+     atom_style sphere
+     region box block -0.5 0.5 -0.5 0.5 0.0 1.0 units box
+     create_box 1 box
+     create_atoms 1 single 0.0 0.0 ${z0} units box
+     set group all diameter ${diam} density ${dens}
+     comm_modify vel yes
+     timestep 0.001
+   pair_style: gran/hooke ${knorm} NULL ${gnorm} NULL 0.0 0
+   pair_coeff: ! |
+     * *
+   post_commands: ! |
+     fix grav all gravity ${grav} vector 0.0 0.0 -1.0
+     fix integr all nve/sphere
+     fix zwall all wall/gran hooke ${knorm} NULL ${gnorm} NULL 0.0 0 zplane 0.0 NULL
+   run_segments: ! |
+     250 150 300
+   analytic_enable: yes
+   analytic_model: freefall
+   analytic_tol: 1.0e-9
+   analytic_segment: 0
+   # run_pos / run_vel / run_torque / run_omega / run_angmom blocks follow
+
+The following table describes the available keys:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Key:
+     - Description:
+   * - epsilon
+     - relative precision required for the recorded (regression) reference data
+   * - prerequisites
+     - list of style kind / style name pairs required to run the test
+   * - variables
+     - name/value pairs exposed as ``${name}`` index variables for substitution
+   * - pre_commands
+     - commands that build the geometry (units, box, atoms, ``set``, timestep)
+   * - pair_style / pair_coeff
+     - the particle-particle contact model
+   * - post_commands
+     - fixes added after the geometry (integrator, gravity, walls, drag)
+   * - run_segments
+     - whitespace-separated list of run lengths; state is captured after each
+   * - run_pos, run_vel
+     - reference positions and velocities, as ``segment tag x y z`` rows
+   * - run_torque, run_omega, run_angmom
+     - reference torque / angular velocity / angular momentum (when applicable)
+   * - analytic_enable
+     - ``yes`` to also assert a closed-form (analytic) model
+   * - analytic_model
+     - which analytic model to evaluate (see below)
+   * - analytic_tol
+     - relative tolerance for the analytic assertion (looser than ``epsilon``)
+   * - analytic_segment
+     - run segment at which the analytic model is checked (``-1`` means the last)
+   * - analytic_only
+     - ``yes`` to record/check *only* the analytic model and skip the per-atom
+       regression (for chaotic bulk tests; see below)
+
+The per-atom reference blocks use a ``segment tag x y z`` row format, so a
+single block holds the data for all run segments and the row order does not
+matter.  Because granular/atomic systems do not build an atom map by
+default, the reference generator iterates over local atoms by tag rather
+than calling ``Atom::map()``.
+
+Each test runs as a pure regression check (the recorded data is reproduced
+to within ``epsilon``) under both the ``newton on`` and ``newton off``
+fixtures, which are expected to give identical results.  In addition, a
+test may opt in to an *analytic* check that compares a derived quantity
+against a closed-form solution implemented in
+``unittest/granular/test_analytic_models.cpp``.  The analytic tolerance is
+deliberately loose, because the soft-sphere DEM result only approaches the
+idealized (hard-sphere or instantaneous-contact) solution.  The models
+currently implemented are:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Model:
+     - Checks:
+   * - freefall
+     - ballistic motion before contact: :math:`z = z_0 - g t^2/2`, :math:`v_z = -g t`
+   * - bounce_height
+     - hard-sphere apex after the k-th bounce :math:`h_k = r + e^{2k}(h_0 - r)`
+   * - stack_energy
+     - conservation of total mechanical energy for an elastic two-particle stack
+   * - slip_cessation
+     - rolling-without-slipping limit :math:`u = 5 u_0/7`, :math:`\omega = u/r`
+   * - oblique_impact
+     - gross-sliding rebound :math:`v_x' = v_x - \mu(1+e)v_z`, :math:`\omega_y = \tfrac{5}{2}\mu(1+e)v_z/r`
+   * - terminal_velocity_linear
+     - Stokes drag terminal velocity :math:`v_{term} = m g/\gamma`
+   * - terminal_velocity_schiller_naumann
+     - Schiller-Naumann terminal velocity from :math:`m g = \tfrac{1}{2} C_d \rho_g \pi r^2 v^2`
+   * - rolling_decay
+     - linear spin-down under rolling resistance: :math:`\omega = \omega_0 - \tfrac{5 \mu_r g}{2 r} t`
+   * - pulloff_dmt
+     - DMT pull-off force at contact :math:`|F| = 4 \pi \gamma R_{\mathrm{eff}}`
+   * - collision_restitution
+     - two-sphere momentum conservation and restitution :math:`e = -(v_1'-v_2')/(v_1-v_2)`
+   * - angle\_of\_repose
+     - measured heap slope :math:`\arctan(z_{\max}/r_{\max})` lies within a ``[lo, hi]`` band
+   * - hertz\_normal\_impact
+     - Hertzian peak energy balance :math:`\tfrac{1}{2}\mu_{red} V_{rela}^2 = \tfrac{2}{5} P_{max}\alpha_{max}`
+   * - spin\_impact
+     - gross-sliding rebound of a spinning sphere: :math:`v_x' = \mu(1+e)v_n`, :math:`\omega_y' = \omega_0 - \tfrac{5}{2}\mu(1+e)v_n/r`
+   * - spin\_no\_friction
+     - counter-spinning spheres with zero contact slip keep their spin and gain no tangential velocity
+
+``test_dem_06`` exercises both :doc:`fix viscous <fix_viscous>` (linear
+Stokes drag) and the :doc:`fix viscous/nonlinear <fix_viscous_nonlinear>`
+style that was added together with these tests for the Schiller-Naumann
+drag correlation.
+
+Analytic-only (chaotic bulk)
+""""""""""""""""""""""""""""
+
+Most tests are bit-for-bit
+regressions that reproduce identically under ``newton on`` and ``newton
+off``.  A few bulk scenarios -- notably the angle-of-repose pile in
+``test_dem_10`` -- are *chaotic*: a long pour-and-settle trajectory amplifies
+the round-off differences between summation orders, so the per-atom state is
+not reproducible across ``newton`` settings or platforms even though the bulk
+observable (the heap angle) is robust.  Such a YAML sets ``analytic_only:
+yes``. The generator then records no per-atom reference blocks, and the
+driver checks only the analytic model.  ``test_dem_10`` pairs this with a
+short, deterministic ``dem10-settle-*`` regression (a small lattice block
+relaxing into contact) and a deterministic ``dem10-clump-*`` case (a
+:doc:`fix rigid/small <fix_rigid>` tetrahedral clump bouncing on a granular
+wall) so the bit-for-bit code path is still covered.
+
+Adding a new reference (YAML) file
+""""""""""""""""""""""""""""""""""
+
+Copy an existing ``dem0N-*.yaml``
+for a similar scenario, adjust the ``variables``, ``pre_commands``,
+``pair_style``/``pair_coeff`` and ``post_commands`` for the new model, and
+give it a new name matching the ``dem0N-*.yaml`` pattern of the test program
+it belongs to.  Leave out the reference data blocks initially, then
+(re)generate them in place with:
+
+.. code-block:: bash
+
+   TEST_ARGS=-u ctest -R DEM0N:myvariant
+
+or by running the driver directly (``test_dem_0N dem0N-myvariant.yaml -u``).
+Do **not** write the generated file to a sibling ``dem0N-*.yaml`` name (for
+example with the ``-g newfile.yaml`` option pointing into the ``tests``
+folder), because the ``CONFIGURE_DEPENDS`` glob would then register it as an
+extra, stale test.  After adding the file, re-run CMake so the new test is
+registered, then verify it with ``ctest -V -R DEM0N:myvariant`` (the ``-s``
+option of the driver reports per-quantity error statistics, which helps when
+choosing ``epsilon`` and the analytic tolerance).
+
+Adding a new test program
+"""""""""""""""""""""""""
+
+Create ``test_dem_0N.cpp`` as a thin copy of an existing one (only the
+GoogleTest suite name changes), add an
+``add_executable``/``register_dem_tests`` pair to
+``unittest/granular/CMakeLists.txt``, and add the corresponding
+``dem0N-*.yaml`` reference files.  If the new scenario needs a
+closed-form check, add a named model to ``test_analytic_models.cpp``
+that reads its parameters from the ``variables`` block (and reads
+masses, radii, etc. from the live LAMMPS instance to avoid depending on
+derived quantities) and assert it with ``EXPECT_LE`` on the relative
+error.
+
+References
+""""""""""
+
+.. _dem_Garg2012:
+
+**(Garg et al., 2012)** R. Garg, J. Galvin, T. Li, and S. Pannala,
+Open-source MFIX-DEM software for gas-solids flows: Part I -- Verification
+studies, Powder Technology, 220, 122-137 (2012),
+https://doi.org/10.1016/j.powtec.2011.09.019
+
+.. _dem_Mohajeri2024:
+
+**(Mohajeri et al., 2024)** M. J. Mohajeri, C. Coetzee, and D. L. Schott,
+A software-agnostic benchmark for DEM simulation of cohesive and
+non-cohesive materials, Powder Technology, 447, 120136 (2024),
+https://doi.org/10.1016/j.powtec.2024.120136
+
+.. _dem_Saomoto2023:
+
+**(Saomoto et al., 2023)** H. Saomoto, N. Kikkawa, S. Moriguchi, Y. Nakata,
+et al., Round robin test on angle of repose: DEM simulation results
+collected from 16 groups around the world, Soils and Foundations, 63,
+101272 (2023), https://doi.org/10.1016/j.sandf.2023.101272
+
+.. _dem_Chung2011:
+
+**(Chung and Ooi, 2011)** Y. C. Chung and J. Y. Ooi, Benchmark tests for
+verifying discrete element modelling codes at particle impact level,
+Granular Matter, 13, 643-656 (2011),
+https://doi.org/10.1007/s10035-011-0277-0
+
+
+Tests for dump image and GRAPHICS package rendering
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: TBD
+
+The ``unittest/graphics`` folder contains a YAML-driven test suite for
+the image rendering of the :doc:`dump image <dump_image>` command and
+its :doc:`dump_modify <dump_modify>` options: atom, bond, and body
+rendering, color maps, transparency, lighting, view and camera settings,
+and the drawing of simulation boxes, axes, and regions.  These tests are
+only enabled if the :ref:`GRAPHICS package <PKG-GRAPHICS>` is enabled.
+
+The ``test_dump_image`` driver renders a scene described by a YAML file
+from the ``unittest/graphics/tests`` folder and compares sampled pixel
+data of the rendered image against reference data stored directly in the
+same YAML file, so no library of reference images is needed.  The YAML
+files are registered as CTest cases by their file name (``name.yaml``
+becomes test ``GRAPHICS:name``); adding or removing a YAML file requires
+re-running CMake.  As in the granular tests, the entire scene is built
+from the YAML file: the ``setup_commands`` block contains the scene
+setup including the ``dump image`` and ``dump_modify`` commands under
+test, and the ``run_commands`` block triggers the render (usually just
+``run 0``; scenes with time-dependent features run multiple steps and
+the frame with the highest timestep number is compared).
+
+Two complementary sets of reference data are recorded for every test:
+
+- the mean red, green, and blue values of every pixel row and of every
+  pixel column of the image (``row_means`` and ``col_means``).  These
+  projections cover every pixel of the image, so any localized or
+  diffuse rendering change shows up in some row or column mean.  They
+  are compared with the absolute tolerance ``epsilon_projection``
+  (default 0.5 on the 0 to 255 color scale).
+- the mean red, green, and blue values of small pixel blocks (default
+  3x3 pixels) on a uniform grid (default stride 16 pixels), stored as
+  ``sample_blocks`` and compared with the tolerance ``epsilon_blocks``
+  (default 2.0).  Their main purpose is to localize a detected failure
+  to a position in the image.
+
+.. figure:: JPG/unittest-graphics-sampling.png
+   :align: center
+
+   The rendered image of the ``GRAPHICS:dump-image-acolor-type`` test
+   (enlarged 2x) with the sampled 3x3 pixel blocks outlined in gray.
+   The color strips on the right and below show the per-row and
+   per-column mean RGB reference data: where the peptide crosses a row
+   or column, its mean color shifts away from the background value.
+
+.. figure:: JPG/unittest-graphics-regression.png
+   :align: center
+
+   How a rendering change is detected: the reference scene (left) and
+   the same scene with one atom type recolored (right).  The sample
+   blocks whose mean color changed by more than ``epsilon_blocks`` are
+   outlined in red and localize the change; the row and column mean
+   projections (previous figure) detect it as well, in this example in
+   104 of the 200 rows and 69 of the 200 columns, including changed
+   atoms that fall between the sampled blocks.
+
+The rendering code produces bit-identical images in serial across the
+compilers and optimization levels that were tested; the tolerances above
+leave headroom for differences between math libraries.  The rendered
+image legitimately depends on the number of MPI ranks, however: pixels
+where multiple objects tie in depth composite differently, and the
+screen-space ambient occlusion (``ssao``) shading partitions its random
+number stream by rank.  Every test therefore carries an ``nprocs`` key
+with the rank count its reference data was created with: tests with
+``nprocs: 1`` run serially, tests with larger values are registered with
+the MPI launcher by CMake (and are skipped when LAMMPS was compiled
+without MPI) and exercise the parallel image compositing code.  A
+minimal test file looks like this:
+
+.. code-block:: yaml
+
+   ---
+   lammps_version: 4 Jul 2026
+   tags: graphics
+   date_generated: Thu Jul  9 14:30:45 2026
+   epsilon_projection: 0.5
+   epsilon_blocks: 2
+   nprocs: 1
+   prerequisites: |
+     atom full
+     pair lj/charmm/coul/charmm
+   setup_commands: |
+     units real
+     atom_style full
+     [...]
+     read_data ${input_dir}/data.peptide
+     group peptide type <= 12
+     dump viz peptide image 1 ${imagefile} type type size 200 200 &
+          zoom 2.15 view 80 30 center s 0.25 0.5 0.5 box no 0.0 &
+          shiny 0.2 bond atom 0.3
+     dump_modify viz backcolor gray
+   run_commands: |
+     run 0
+   image_size: 200 200
+   sampling: 3 16
+   row_means: ...      # reference data written by the generator
+   col_means: ...
+   sample_blocks: ...
+
+The image file name must be given as ``${imagefile}``: the driver
+defines this variable with a name containing the ``*`` placeholder
+required by ``dump image`` and, for the comparison, picks the written
+frame with the highest timestep number.  The variable ``${input_dir}``
+points to the ``tests`` folder, for scenes that read a data or molecule
+file.  When a comparison fails, the test keeps the rendered image next
+to the test executable as ``<name>.failed.ppm`` for visual inspection.
+
+To add a new test, copy an existing YAML file for a similar scene,
+adjust the commands, delete the reference data blocks (``row_means``,
+``col_means``, ``sample_blocks``), and (re)generate them with the same
+``-u`` (update in place) and ``-g`` (write new file) options as for the
+force-style testers, run from the build folder:
+
+.. code-block:: bash
+
+   test_dump_image path/to/new-test.yaml -u              # serial reference
+   mpirun -np 4 test_dump_image path/to/test.yaml -u     # 4-rank reference
+
+Keep the images small (about 200x200 pixels): each test then runs in
+well under a second and the reference data stays compact.  Most
+importantly, verify that the option under test actually changes the
+rendered image, because ``dump image`` options can be silently ignored
+in some combinations.  For example, ``dump_modify acolor`` has no effect
+when the dump colors atoms by element, ``dump_modify btrans`` has no
+effect when bonds are colored by atom (the two bond halves then follow
+the transparency of their atoms), and the ``autobond`` keyword draws
+nothing on a molecular system with default :doc:`special_bonds
+<special_bonds>` settings because bonded pairs are excluded from the
+neighbor list it searches.  Render the scene with and without the option
+under test and compare the two images before generating the reference
+data.  More authoring notes of this kind are collected in
+``unittest/graphics/README.md``.
+
 
 Tests for programs in the tools folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -624,8 +1456,9 @@ these added features.  If you are modifying some existing LAMMPS
 features, you may see failures for existing tests, if your modifications
 have some unexpected side effects or your changes render the existing
 test invalid.  If you are adding an accelerated version of an existing
-style, then only tests for INTEL, KOKKOS (with OpenMP only), OPENMP, and
-OPT will be run automatically.  Tests for the GPU package are time
+style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
+back ends, depending on how the KOKKOS package was configured), OPENMP,
+and OPT will be run automatically.  Tests for the GPU package are time
 consuming and thus are only run *after* a merge, or when a special
 label, ``gpu_unit_tests`` is added to the pull request.  After the test
 has started, it is often best to remove the label since every PR

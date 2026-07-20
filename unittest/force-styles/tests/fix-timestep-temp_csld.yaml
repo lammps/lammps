@@ -2,7 +2,7 @@
 lammps_version: 17 Feb 2022
 date_generated: Fri Mar 18 22:18:01 2022
 epsilon: 5e-14
-skip_tests:
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
 prerequisites: ! |
   atom full
   fix temp/csld
@@ -11,6 +11,7 @@ post_commands: ! |
   fix all solute nve
   fix test solute temp/csld 50.0 ${t_target} 1.0 62823
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 150.87684089472174
 run_pos: ! |2

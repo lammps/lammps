@@ -362,10 +362,12 @@ void PairRANN::read_file(char *filename)
   fp = utils::open_potential(filename,lmp,nullptr);
   if (fp == nullptr) {error->one(FLERR,"Cannot open RANN potential file");}
   ptr=fgets(linetemp,longline,fp);
+  if (ptr == nullptr) error->one(FLERR,"Unexpected end of RANN potential file");
   linenum++;
   strtemp=utils::trim_comment(linetemp);
   while (strtemp.empty()) {
           ptr=fgets(linetemp,longline,fp);
+          if (ptr == nullptr) error->one(FLERR,"Unexpected end of RANN potential file");
           strtemp=utils::trim_comment(linetemp);
           linenum++;
   }
@@ -385,6 +387,7 @@ void PairRANN::read_file(char *filename)
     strtemp=utils::trim_comment(linetemp);
     while (strtemp.empty()) {
         ptr=fgets(linetemp,longline,fp);
+        if (ptr == nullptr) error->one(FLERR,"Unexpected end of RANN potential file");
         strtemp=utils::trim_comment(linetemp);
         linenum++;
     }
@@ -411,6 +414,7 @@ void PairRANN::read_file(char *filename)
     strtemp=utils::trim_comment(linetemp);
     while (strtemp.empty()) {
         ptr=fgets(linetemp,longline,fp);
+        if (ptr == nullptr) break;
         strtemp=utils::trim_comment(linetemp);
         linenum++;
     }

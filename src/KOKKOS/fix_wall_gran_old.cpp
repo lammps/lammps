@@ -333,8 +333,16 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // wallstyle args
+  // wall positions set by equal-style variables are only supported
+  // by the non-accelerated version of fix wall/gran
 
   idregion = nullptr;
+
+  if (((strcmp(arg[iarg],"xplane") == 0) || (strcmp(arg[iarg],"yplane") == 0) ||
+       (strcmp(arg[iarg],"zplane") == 0)) && (narg > iarg+2)) {
+    if (utils::strmatch(arg[iarg+1],"^v_") || utils::strmatch(arg[iarg+2],"^v_"))
+      error->all(FLERR,"Fix {} does not support wall positions set by a variable", style);
+  }
 
   if (strcmp(arg[iarg],"xplane") == 0) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
@@ -1253,6 +1261,7 @@ void FixWallGranOld::granular(double rsq, double dx, double dy, double dz,
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else if (normal_model == DMT) {
+    coh = normal_coeffs[3];
     F_pulloff = 4*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }

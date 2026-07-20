@@ -73,7 +73,7 @@ void ReadMdfFile(void)
         at_end = 1;
       } else if (strncmp(line,"@column",7) == 0) {
 
-        temp_string = strtok(line,WHITESPACE);
+        strtok(line,WHITESPACE);
         col_no = strtok(NULL,WHITESPACE);
         col_name = strtok(NULL,WHITESPACE);
         if (strncmp(col_name,"charge",6) == 0) {
@@ -91,6 +91,10 @@ void ReadMdfFile(void)
           exit(42);
         }
         sptr = fgets(line,MAX_LINE_LENGTH,MdfF);
+        if (sptr == NULL) {
+          printf("Trouble reading molecule - exiting\n");
+          exit(43);
+        }
         status = get_molecule(line,connect_col_no,q_col_no,&atom_counter);
         if (status == 0) {
           printf("Trouble reading molecule - exiting\n");
@@ -135,7 +139,8 @@ void ReadMdfFile(void)
   for (n=0; n < no_molecules; n++) {
     j = 0;
     strncpy(molecule[n].residue[j].name,
-            atoms[molecule[n].start].residue_string,MAX_NAME);
+            atoms[molecule[n].start].residue_string,MAX_NAME-1);
+    molecule[n].residue[j].name[MAX_NAME-1] = '\0';
 
     molecule[n].residue[j].start = molecule[n].start;
     for (i=molecule[n].start+1; i < molecule[n].end; i++) {
@@ -144,7 +149,8 @@ void ReadMdfFile(void)
 
         molecule[n].residue[j].end = i;
         molecule[n].residue[++j].start = i;
-        memcpy(molecule[n].residue[j].name,atoms[i].residue_string,MAX_NAME);
+        memcpy(molecule[n].residue[j].name,atoms[i].residue_string,MAX_NAME-1);
+        molecule[n].residue[j].name[MAX_NAME-1] = '\0';
       }
     }
     molecule[n].residue[j].end = molecule[n].end;

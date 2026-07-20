@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2
 
@@ -67,4 +67,13 @@ jobs:
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest -V
+      run: ctest -V --output-junit junit-macos-x86_64.xml
+
+    # test results from pull request branches are only for the submitters,
+    # only post-merge results are published for downstream reporting
+    - name: Upload JUnit test results for post-merge runs
+      if: ${{ always() && (github.event_name == 'push') }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: junit-macos-x86_64
+        path: build/junit-macos-x86_64.xml

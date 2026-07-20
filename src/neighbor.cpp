@@ -107,8 +107,10 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
-pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
+Neighbor::Neighbor(LAMMPS *lmp) :
+    Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), bondlist(nullptr), anglelist(nullptr),
+    dihedrallist(nullptr), improperlist(nullptr), corners(nullptr), pairclass(nullptr),
+    pairnames(nullptr), pairmasks(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -784,6 +786,19 @@ void Neighbor::init_styles()
 }
 
 /* ----------------------------------------------------------------------
+   base class has no KOKKOS neighbor lists; reaching this means a KOKKOS
+   neighbor list was requested without the KOKKOS package, which cannot happen
+   (a KOKKOS request implies the neighbor object is a NeighborKokkos, whose
+   override assigns lists[i]).  Fail loudly rather than leave lists[i] unset.
+------------------------------------------------------------------------- */
+
+void Neighbor::create_kokkos_list(int /*i*/)
+{
+  error->all(FLERR, "Internal error: KOKKOS neighbor list requested without "
+             "the KOKKOS package");
+}
+
+/* ----------------------------------------------------------------------
    create and initialize NPair classes
 ------------------------------------------------------------------------- */
 
@@ -896,8 +911,8 @@ int Neighbor::init_pair()
   nlist = nrequest;
 
   lists = new NeighList*[nrequest];
-  neigh_bin = new NBin*[nrequest];
-  neigh_stencil = new NStencil*[nrequest];
+  neigh_bin = new NBin*[nrequest]();
+  neigh_stencil = new NStencil*[nrequest]();
   neigh_pair = new NPair*[nrequest];
 
   // allocate new lists
@@ -1240,7 +1255,7 @@ void Neighbor::morph_skip()
   NeighRequest *irq, *jrq, *nrq;
 
   // loop over irq from largest to smallest cutoff
-  //  to prevent adding unecessary neighbor lists
+  //  to prevent adding unnecessary neighbor lists
 
   for (i = nrequest - 1; i >= 0; i--) {
     irq = requests[j_sorted[i]];
@@ -1630,7 +1645,7 @@ void Neighbor::init_topology()
   // set flags that determine which topology neighbor classes to use
   // these settings could change from run to run, depending on fixes defined
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
-  // SHAKE sets bonds and angles negative
+  // SHAKE and ILVES set bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // partial_flag sets bonds to 0
   // delete_bonds sets all interactions negative
@@ -1641,7 +1656,8 @@ void Neighbor::init_topology()
   int improper_off = 0;
 
   for (const auto &ifix : modify->get_fix_list()) {
-    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle"))
+    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle") ||
+        utils::strmatch(ifix->style, "^ilves"))
       bond_off = angle_off = 1;
     if (utils::strmatch(ifix->style, "gcmc"))
       bond_off = angle_off = dihedral_off = improper_off = 1;

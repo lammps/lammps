@@ -40,7 +40,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Temper::Temper(LAMMPS *lmp) : Command(lmp) {}
+Temper::Temper(LAMMPS *lmp) :
+    Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_temp(nullptr),
+    temp2world(nullptr), world2temp(nullptr), world2root(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
@@ -291,6 +294,12 @@ void Temper::command(int narg, char **arg)
     // bcast swap result to other procs in my world
 
     MPI_Bcast(&swap,1,MPI_INT,0,world);
+
+    // a swap is only accepted for an in-range partner (boundary worlds never
+    // swap), so partner_set_temp is guaranteed valid whenever swap is set
+
+    if (swap && (partner_set_temp < 0 || partner_set_temp >= nworlds))
+      error->universe_one(FLERR,"Internal error: invalid tempering swap partner");
 
     // rescale kinetic energy via velocities if move is accepted
 

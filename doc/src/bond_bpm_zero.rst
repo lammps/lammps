@@ -43,7 +43,7 @@ Description
 
 .. versionadded:: TBD
 
-The *bpm/zero* bond style is the :doc:`BPM <Howto_bpm>` analogue of
+The *bpm/zero* bond style is the :doc:`BPM package <Howto_bpm>` analogue of
 :doc:`bond_style zero <bond_zero>`: it stores the initial reference state
 of each bond and can break bonds individually, but it computes **no bond
 force or energy**.  Like the other :doc:`BPM bond styles <bond_bpm_spring>`
@@ -57,16 +57,7 @@ value :math:`\epsilon_c` given by :doc:`bond_coeff <bond_coeff>` (unless
 the particles move only under the other forces in the system.
 
 This style is intended for testing, debugging, and as a starting template,
-not for production mechanics.  Useful cases include:
-
-- exercising the BPM bond infrastructure --- reference-state storage,
-  individual bond breaking, :doc:`per-bond history <restart>`,
-  broken-bond output via *store/local*, and (with *manybody yes*) the
-  per-atom forward/reverse communication used by multibody BPM styles ---
-  without a specific constitutive law;
-- holding a fixed bond topology (for example for connectivity or
-  :doc:`special_bonds <special_bonds>` bookkeeping) without bond forces;
-- serving as a minimal template when implementing a new BPM bond style.
+not for production mechanics.
 
 The following coefficient must be defined for each bond type via the
 :doc:`bond_coeff <bond_coeff>` command:

@@ -12,6 +12,11 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+  This is a placeholder bond style for the BPM framework. It does not compute
+  any forces or energies, but it demonstrates a framework for implementing new
+  bond styles. Key variables are commented and there is a simple example of an
+  unused manybody term that can be computed and stored per bond.
+
    Contributing author: Joel Clemmer (SNL)
 ------------------------------------------------------------------------- */
 

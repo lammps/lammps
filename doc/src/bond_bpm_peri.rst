@@ -46,14 +46,9 @@ models of the :doc:`PERI package <pair_peri>` --- bond-based prototype
 microelastic brittle (*pmb*), state-based linear peridynamic solid
 (*lps*), state-based viscoelastic solid (*ves*), and state-based
 elastic-plastic solid (*eps*) --- recast as a bond style within the
-:doc:`BPM framework <Howto_bpm>`.  A peridynamic "bond" is a BPM bond:
-it is created from the reference configuration, stores its reference
-length, and breaks individually on a stretch criterion.  The model is
-selected by the first :doc:`bond_coeff <bond_coeff>` argument.  This
-allows peridynamic materials to reuse BPM's tooling (per-bond history in
-:doc:`restart files <restart>`, broken-bond output via *store/local*,
-:doc:`hybrid <bond_hybrid>` composition) and the standard
-:doc:`atom_style bond <atom_style>` instead of a dedicated atom style.
+:doc:`BPM package <Howto_bpm>`.  Each bond stores its reference
+length and breaks individually on a stretch criterion.  The model is
+selected by the first :doc:`bond_coeff <bond_coeff>` argument.
 
 Like the other :doc:`BPM bond styles <Howto_bpm>`, the reference state is
 stored by each bond when it is first computed in the setup of a run, is

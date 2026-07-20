@@ -90,7 +90,7 @@ This pair style requires a per-atom *vfrac* property (a :doc:`fix
 property/atom <fix_property_atom>` *d_vfrac* with ghost communication)
 and a cubic lattice with equal spacing in *x*, *y*, and *z*.  It is
 intended to be used together with :doc:`bond_style bpm/peri
-<bond_bpm_peri>`; see the :doc:`peridynamics Howto <Howto_peri>`.
+<bond_bpm_peri>`. See the :doc:`peridynamics Howto <Howto_peri>`.
 
 Related commands
 """"""""""""""""

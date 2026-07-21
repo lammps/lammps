@@ -596,7 +596,6 @@ void BondBPMPeri::compute_dilatation()
 void BondBPMPeri::compute_damage()
 {
   int nlocal = atom->nlocal;
-  int *mask = atom->mask;
   tagint **bond_atom = atom->bond_atom;
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;

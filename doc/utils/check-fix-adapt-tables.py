@@ -44,6 +44,7 @@ SUFFIXES = ('/gpu', '/intel', '/kk', '/kk/device', '/kk/host', '/omp', '/opt')
 SKIP_STYLES = (
     'oxdna*',                             # CG-DNA package
     'oxrna*',                             # CG-DNA package
+    'buck6d*,                             # MOFFF package
 )
 NUMERIC_TYPES = ('double', 'float')
 OTHER_TYPES = ('int', 'bigint', 'tagint', 'imageint', 'bool', 'char')

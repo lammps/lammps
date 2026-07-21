@@ -370,33 +370,31 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 If :doc:`bond_style hybrid <bond_hybrid>` is used, *bstyle* should be a
 sub-style name. The bond styles that currently work with fix adapt are:
 
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`class2 <bond_class2>`                         | k2,k3,k4,r0              | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`fene <bond_fene>`                             | k,r0                     | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`fene/expand <bond_fene_expand>`               | k,r0,epsilon,sigma,shift | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`fene/nm <bond_fene>`                          | k,r0                     | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`gaussian <bond_gaussian>`                     | alpha,width,r0           | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`gromos <bond_gromos>`                         | k,r0                     | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`harmonic <bond_harmonic>`                     | k,r0                     | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`harmonic/restrain <bond_harmonic_restrain>`   | k                        | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`harmonic/shift <bond_harmonic_shift>`         | k,r0,r1                  | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` | k,r0,r1                  | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`mm3 <bond_mm3>`                               | k,r0                     | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`morse <bond_morse>`                           | d0,alpha,r0              | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
-| :doc:`nonlinear <bond_nonlinear>`                   | lamda,epsilon,r0         | type bonds |
-+-----------------------------------------------------+--------------------------+------------+
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`class2 <bond_class2>`                         | k2, k3, k4, r0               | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`fene <bond_fene>`                             | k, r0                        | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`fene/expand <bond_fene_expand>`               | k, r0, epsilon, sigma, shift | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`fene/nm <bond_fene>`                          | k, r0                        | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`gromos <bond_gromos>`                         | k, r0                        | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`harmonic <bond_harmonic>`                     | k, r0                        | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`harmonic/restrain <bond_harmonic_restrain>`   | k                            | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`harmonic/shift <bond_harmonic_shift>`         | k, r0, r1                    | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`harmonic/shift/cut <bond_harmonic_shift_cut>` | k, r0, r1                    | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`mm3 <bond_mm3>`                               | k2, r0                       | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`morse <bond_morse>`                           | d0, alpha, r0                | type bonds |
++-----------------------------------------------------+------------------------------+------------+
+| :doc:`nonlinear <bond_nonlinear>`                   | lamda, epsilon, r0           | type bonds |
++-----------------------------------------------------+------------------------------+------------+
 
 ----------
 
@@ -420,37 +418,35 @@ If :doc:`angle_style hybrid <angle_hybrid>` is used, *astyle* should be a
 sub-style name. The angle styles that currently work with fix adapt are:
 
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`harmonic <angle_harmonic>`                                   | k,theta0           | type angles |
+| :doc:`harmonic <angle_harmonic>`                                   | k, theta0          | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`charmm <angle_charmm>`                                       | k,theta0           | type angles |
+| :doc:`charmm <angle_charmm>`                                       | k, theta0          | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`class2 <angle_class2>`                                       | k2,k3,k4,theta0    | type angles |
+| :doc:`class2 <angle_class2>`                                       | k2, k3, k4, theta0 | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
 | :doc:`cosine <angle_cosine>`                                       | k                  | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
 | :doc:`cosine/delta <angle_cosine_delta>`                           | k                  | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`cosine/periodic <angle_cosine_periodic>`                     | k,b,n              | type angles |
+| :doc:`cosine/periodic <angle_cosine_periodic>`                     | k                  | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`cosine/squared <angle_cosine_squared>`                       | k,theta0           | type angles |
+| :doc:`cosine/squared <angle_cosine_squared>`                       | k, theta0          | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` | k,theta0           | type angles |
+| :doc:`cosine/squared/restricted <angle_cosine_squared_restricted>` | k, theta0          | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`dipole <angle_dipole>`                                       | k,gamma0           | type angles |
+| :doc:`dipole <angle_dipole>`                                       | k, gamma0          | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`fourier <angle_fourier>`                                     | k,c0,c1,c2         | type angles |
+| :doc:`fourier <angle_fourier>`                                     | k, C0, C1, C2      | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`fourier/simple <angle_fourier_simple>`                       | k,c,n              | type angles |
+| :doc:`fourier/simple <angle_fourier_simple>`                       | k, C, N            | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`gaussian <angle_gaussian>`                                   | alpha,width,theta0 | type angles |
+| :doc:`mm3 <angle_mm3>`                                             | k2, theta0         | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`mm3 <angle_mm3>`                                             | k,theta0           | type angles |
+| :doc:`mwlc <angle_mwlc>`                                           | k1, k2, mu, temp   | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`mwlc <angle_mwlc>`                                           | k1,k2,mu,T         | type angles |
+| :doc:`quartic <angle_quartic>`                                     | k2, k3, k4, theta0 | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`quartic <angle_quartic>`                                     | k2,k3,k4,theta0    | type angles |
-+--------------------------------------------------------------------+--------------------+-------------+
-| :doc:`spica <angle_spica>`                                         | k,theta0           | type angles |
+| :doc:`spica <angle_spica>`                                         | k, theta0          | type angles |
 +--------------------------------------------------------------------+--------------------+-------------+
 
 Note that internally, theta0 is stored in radians, so the variable
@@ -477,23 +473,23 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 If :doc:`dihedral_style hybrid <dihedral_hybrid>` is used, *dstyle* should be a
 sub-style name. The dihedral styles that currently work with fix adapt are:
 
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`charmm  <dihedral_charmm>`                                      | k,n,d                   | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`charmmfsw <dihedral_charmm>`                                    | k,n,d                   | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`class2 <dihedral_class2>`                                       | k1,k2,k3,phi1,phi2,phi3 | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`cosine/squared/restricted <dihedral_cosine_squared_restricted>` | k,phi0                  | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`helix <dihedral_helix>`                                         | a,b,c                   | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`multi/harmonic <dihedral_multi_harmonic>`                       | a1,a2,a3,a4,a5          | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`opls <dihedral_opls>`                                           | k1,k2,k3,k4             | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
-| :doc:`quadratic <dihedral_quadratic>`                                 | k,phi0                  | type dihedrals |
-+-----------------------------------------------------------------------+-------------------------+----------------+
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`charmm  <dihedral_charmm>`                                      | k                            | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`charmmfsw <dihedral_charmm>`                                    | k                            | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`class2 <dihedral_class2>`                                       | k1, k2, k3, phi1, phi2, phi3 | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`cosine/squared/restricted <dihedral_cosine_squared_restricted>` | k, phi0                      | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`helix <dihedral_helix>`                                         | a, b, c                      | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`multi/harmonic <dihedral_multi_harmonic>`                       | a1, a2, a3, a4, a5           | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`opls <dihedral_opls>`                                           | k1, k2, k3, k4               | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
+| :doc:`quadratic <dihedral_quadratic>`                                 | k, phi0                      | type dihedrals |
++-----------------------------------------------------------------------+------------------------------+----------------+
 
 Note that internally, phi0 is stored in radians, so the variable
 this fix use to reset phi0 needs to generate values in radians.
@@ -519,31 +515,31 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from
 If :doc:`improper_style hybrid <improper_hybrid>` is used, *istyle* should be a
 sub-style name. The improper styles that currently work with fix adapt are:
 
-+---------------------------------------------------------+------------+----------------+
-| :doc:`amoeba <improper_amoeba>`                         | k          | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`class2 <improper_class2>`                         | k,chi0     | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`cossq <improper_cossq>`                           | k,chi0     | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`cvff <improper_cvff>`                             | k,d,n      | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`distance <improper_distance>`                     | k2,k4      | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`distharm <improper_distharm>`                     | k,d0       | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`fourier <improper_fourier>`                       | k,C0,C1,C2 | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`harmonic <improper_harmonic>`                     | k,chi0     | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`inversion/harmonic <improper_inversion_harmonic>` | k,w0       | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`ring <improper_ring>`                             | k,theta0   | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`umbrella <improper_umbrella>`                     | k,w0       | type impropers |
-+---------------------------------------------------------+------------+----------------+
-| :doc:`sqdistharm <improper_sqdistharm>`                 | k          | type impropers |
-+---------------------------------------------------------+------------+----------------+
++---------------------------------------------------------+---------------+----------------+
+| :doc:`amoeba <improper_amoeba>`                         | k             | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`class2 <improper_class2>`                         | k, chi0       | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`cossq <improper_cossq>`                           | k, chi0       | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`cvff <improper_cvff>`                             | k,            | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`distance <improper_distance>`                     | k2, k4        | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`distharm <improper_distharm>`                     | k, d0         | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`fourier <improper_fourier>`                       | k, C0, C1, C2 | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`harmonic <improper_harmonic>`                     | k, chi0       | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`inversion/harmonic <improper_inversion_harmonic>` | k, w0         | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`ring <improper_ring>`                             | k, theta0     | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`umbrella <improper_umbrella>`                     | k, w0         | type impropers |
++---------------------------------------------------------+---------------+----------------+
+| :doc:`sqdistharm <improper_sqdistharm>`                 | k             | type impropers |
++---------------------------------------------------------+---------------+----------------+
 
 Note that internally, chi0 and theta0 are stored in radians, so the variable
 this fix use to reset chi0 or theta0 needs to generate values in radians.

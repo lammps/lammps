@@ -25,8 +25,12 @@ ML-RANN package
 .. index:: pair_style rann
 
 The ML-RANN package and its pair style *rann* have been removed because
-they were unmaintained in LAMMPS for a long time.  The ML-RANN
-developers are maintaining an independent fork of their code.
+they were unmaintained in LAMMPS for a long time and caused to much work
+to keep it aligned with the LAMMPS coding conventions.  The ML-RANN
+developers are maintaining an independent fork of their code.  They plan
+to submit a second generation of their package when it is ready.  Until
+then we recommend to use the LAMMPS 22Jul2025 stable version if you want
+to use this package.
 
 Pair style agni
 ---------------

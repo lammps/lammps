@@ -46,6 +46,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`born/coul/wolf (gko) <pair_born>`
    * :doc:`born/coul/wolf/cs (go) <pair_cs>`
    * :doc:`born/gauss (ko) <pair_born_gauss>`
+   * :doc:`bpm/peri <pair_bpm_peri>`
    * :doc:`bpm/spring <pair_bpm_spring>`
    * :doc:`brownian (ko) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`

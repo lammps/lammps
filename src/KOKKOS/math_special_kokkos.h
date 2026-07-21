@@ -234,6 +234,21 @@ namespace LAMMPS_NS::MathSpecialKokkos {
     return (n > 0) ? yy : static_cast<T>(1) / yy;
   }
 
+  template<typename T>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static T powauto(const T x, const T n)
+  {
+    if (x == static_cast<T>(0)) return static_cast<T>(0);
+    const T rounded = round(n);
+
+    if (n == rounded) {
+      return powint(x, static_cast<int>(rounded));
+    }
+
+    return pow(x, n);
+  }
+
   /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
    *
    * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.

@@ -1,0 +1,64 @@
+---
+lammps_version: REGENERATE
+tags: granular, generated
+date_generated: REGENERATE
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+# Source: in.cohesive_dmt (user script). Two identical spheres start just
+# barely touching and are pulled apart; the DMT pull-off force at contact
+# is F = 4*pi*gamma*R_eff with R_eff = R/2 for two equal spheres. Axis and
+# force-magnitude check are orientation-agnostic, so no remapping was
+# needed; values transcribed as-is.
+pre_commands: ! |
+  units si
+  dimension 3
+  boundary p p p
+  atom_style sphere
+  region box block -0.05 0.05 -0.05 0.05 -0.05 0.05 units box
+  create_box 1 box
+  create_atoms 1 single -${sep} 0.0 0.0 units box
+  create_atoms 1 single  ${sep} 0.0 0.0 units box
+  set group all diameter ${diam} density ${dens}
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep 1.0e-10
+post_commands: ! |
+  fix integr all nve/sphere
+input_file:
+natoms: 2
+variables: ! |
+  diam 0.02
+  dens 2800.0
+  emod 4.8e10
+  poisson 0.20
+  ndamp 0.0
+  coh 0.1
+  xmu 0.35
+  reff 0.005
+  radius 0.01
+  sep 0.00999999999999999
+pair_style: granular
+pair_coeff: ! |
+  * * dmt ${emod} ${ndamp} ${poisson} ${coh} tangential mindlin NULL 0.0 ${xmu}
+# NOTE: see dem11-wall-normal-cof-3d-si.yaml for the regeneration workflow.
+# "run 0" (segment length 0) is enough since the spheres start already at
+# (near) zero overlap, matching the pulloff_dmt check.
+run_segments: ! |-
+  0
+analytic_enable: yes
+analytic_model: pulloff_dmt
+analytic_tol: 0.001
+analytic_segment: 0
+run_pos: ! |2
+  # TODO: regenerate -- see NOTE above
+run_vel: ! |2
+  # TODO: regenerate -- see NOTE above
+run_torque: ! |2
+  # TODO: regenerate -- see NOTE above
+run_omega: ! |2
+  # TODO: regenerate -- see NOTE above
+...

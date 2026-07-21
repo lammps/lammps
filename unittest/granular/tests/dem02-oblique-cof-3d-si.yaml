@@ -1,0 +1,69 @@
+---
+lammps_version: REGENERATE
+tags: granular, generated
+date_generated: REGENERATE
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+# Source: oblique_impact.in (user script). Single sphere striking a rigid
+# wall at 25 degrees off the wall normal. Re-expressed with the wall normal
+# along +z and the in-plane (tangential) direction along x (the convention
+# assumed by test_analytic_models.cpp's oblique_impact model), instead of
+# the source script's xplane wall with velocity components in x/y. All
+# material and kinematic magnitudes are otherwise unchanged.
+pre_commands: ! |
+  units si
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -0.2 0.2 -0.05 0.05 -0.05 0.1 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${vx_in} 0.0 -${vz_in}
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: ! |
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hertz/material ${emod} ${en} ${poisson} tangential mindlin NULL 0.5 ${xmu} damping coeff_restitution zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: ! |
+  diam 0.005
+  dens 2700.0
+  emod 7.0e10
+  poisson 0.33
+  en 0.98
+  xmu 0.092
+  radius 0.0025
+  # theta = 25 deg measured from the wall normal, vin = 3.9 m/s:
+  # normal component vin*cos(theta) -> vz_in, tangential vin*sin(theta) -> vx_in
+  vx_in 1.6483
+  vz_in 3.5347
+  dt 1.0e-8
+  z0 0.002550
+pair_style: granular
+pair_coeff: ! |
+  * * hertz/material ${emod} ${en} ${poisson} tangential mindlin NULL 0.5 ${xmu} damping coeff_restitution
+# NOTE: see dem11-wall-normal-cof-3d-si.yaml for the regeneration workflow;
+# analytic_segment must land on a free-flight window after rebound (not
+# mid-contact) for oblique_impact's gross-sliding formula to apply.
+run_segments: ! |-
+  1300 900
+analytic_enable: yes
+analytic_model: oblique_impact
+analytic_tol: 0.01
+analytic_segment: 1
+run_pos: ! |2
+  # TODO: regenerate -- see NOTE above
+run_vel: ! |2
+  # TODO: regenerate -- see NOTE above
+run_torque: ! |2
+  # TODO: regenerate -- see NOTE above
+run_omega: ! |2
+  # TODO: regenerate -- see NOTE above
+...

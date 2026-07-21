@@ -1,0 +1,72 @@
+---
+lammps_version: REGENERATE
+tags: granular, generated
+date_generated: REGENERATE
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+# Source: sphere_sliding_rolling.in (user script). A sphere launched along
+# +x with no spin, on a rough z-plane wall, decelerates by friction and
+# spins up until it reaches rolling-without-slipping. Axes already match
+# the slip_cessation convention (velocity along x, spin about y, wall
+# normal z), so no remapping was needed.
+pre_commands: ! |
+  units si
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -0.05 0.5 -0.05 0.05 -0.01 0.05 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${u0} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: ! |
+  fix grav all gravity 1.0 vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hertz/material ${emod} ${en} ${poisson} tangential mindlin NULL 1.0 ${xmu} damping coeff_restitution zplane 0.0 1.0
+input_file:
+natoms: 1
+variables: ! |
+  diam 0.005
+  dens 2700.0
+  emod 1.0e4
+  poisson 0.33
+  en 1.0
+  xmu 0.4
+  grav 1.0
+  u0 1.0
+  radius 0.0025
+  dt 1.0e-6
+  z0 0.0025
+pair_style: granular
+pair_coeff: ! |
+  * * hertz/material ${emod} ${en} ${poisson} damping coeff_restitution tangential mindlin NULL 1.0 ${xmu}
+# NOTE: see dem11-wall-normal-cof-3d-si.yaml for the regeneration workflow.
+# As in the source script, gravity magnitude is 1.0 m/s^2 (not standard g);
+# the source script also let the sphere settle onto the wall for 10000
+# steps at timestep 0.001 before switching to the fine timestep and giving
+# it its sliding velocity -- that settling phase is folded into pre_commands
+# here via placing it directly at contact (z0 = radius) rather than
+# reproducing the settle run, so the reference trajectory will differ
+# slightly in its transient; re-verify analytic_segment placement with -s.
+run_segments: ! |-
+  2000 1000 1500
+analytic_enable: yes
+analytic_model: slip_cessation
+analytic_tol: 0.01
+analytic_segment: 2
+run_pos: ! |2
+  # TODO: regenerate -- see NOTE above
+run_vel: ! |2
+  # TODO: regenerate -- see NOTE above
+run_torque: ! |2
+  # TODO: regenerate -- see NOTE above
+run_omega: ! |2
+  # TODO: regenerate -- see NOTE above
+...

@@ -1,0 +1,70 @@
+---
+lammps_version: REGENERATE
+tags: granular, generated
+date_generated: REGENERATE
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+# Source: in.normal_simple (user script). Two identical spheres, head-on
+# elastic normal impact along x (native axis of the source script; no
+# remapping needed since hertz_normal_impact's two-sphere branch is
+# axis-agnostic). Friction is present in the original pair_coeff (mindlin,
+# mu = 0.35) but is irrelevant to a purely normal, non-rotating impact, so
+# it is kept for coverage.
+pre_commands: ! |
+  units si
+  dimension 3
+  boundary f f f
+  atom_style sphere
+  region box block -0.05 0.05 -0.03 0.03 -0.03 0.03 units box
+  create_box 1 box
+  create_atoms 1 single -${sep} 0.0 0.0 units box
+  create_atoms 1 single  ${sep} 0.0 0.0 units box
+  set group all diameter ${diam} density ${dens}
+  group left id 1
+  group right id 2
+  velocity left set ${vin} 0.0 0.0
+  velocity right set -${vin} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: ! |
+  fix integr all nve/sphere
+input_file:
+natoms: 2
+variables: ! |
+  diam 0.02
+  dens 2800.0
+  emod 4.8e10
+  poisson 0.20
+  xmu 0.35
+  vin 10.0
+  vrela 20.0
+  mred_factor 0.5
+  radius 0.01
+  dt 1.0e-10
+  sep 0.0101
+pair_style: granular
+pair_coeff: ! |
+  * * hertz/material ${emod} 0.0 ${poisson} tangential mindlin NULL 0.0 ${xmu}
+# NOTE: see dem11-wall-normal-cof-3d-si.yaml for the regeneration workflow;
+# run_segments/reference blocks below are placeholders pending an actual
+# LAMMPS run with -u / -g.
+run_segments: ! |-
+  600 400
+analytic_enable: yes
+analytic_model: hertz_normal_impact
+analytic_tol: 0.01
+analytic_segment: 0
+run_pos: ! |2
+  # TODO: regenerate -- see NOTE above
+run_vel: ! |2
+  # TODO: regenerate -- see NOTE above
+run_torque: ! |2
+  # TODO: regenerate -- see NOTE above
+run_omega: ! |2
+  # TODO: regenerate -- see NOTE above
+...

@@ -1,0 +1,75 @@
+---
+lammps_version: REGENERATE
+tags: granular, generated
+date_generated: REGENERATE
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  atom sphere
+  pair granular
+# Source: in.angular_bidisperse (user script). A small, light, spinning
+# sphere impacts a much larger and much denser (effectively rigid/immobile)
+# stationary sphere. Re-expressed with the approach direction along -z and
+# the spin about y (the convention assumed by test_analytic_models.cpp's
+# spin_impact model, which treats the heavy partner like a rigid wall),
+# instead of the source script's x-axis approach with spin about z.
+# Material values (moduli, densities, diameters, friction, restitution)
+# are transcribed unchanged from the source script.
+pre_commands: ! |
+  units si
+  dimension 3
+  boundary f f f
+  atom_style sphere
+  region box block -0.5 0.5 -0.5 0.5 -0.3 0.6 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  create_atoms 1 single 0.0 0.0 0.0 units box
+  set atom 1 diameter ${diam_small} density ${dens_small}
+  set atom 2 diameter ${diam_large} density ${dens_large}
+  group small id 1
+  velocity small set 0.0 0.0 -${vin}
+  set group small omega 0.0 ${omega0} 0.0
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: ! |
+  fix integr all nve/sphere
+input_file:
+natoms: 2
+variables: ! |
+  diam_small 0.2
+  dens_small 2700.0
+  diam_large 1.0
+  dens_large 2.7e6
+  emod 7.0e10
+  poisson 0.33
+  en 0.5
+  xmu 0.40
+  vin 0.2
+  omega0 22.860
+  radius 0.1
+  dt 1.0e-6
+  z0 0.60001
+pair_style: granular
+pair_coeff: ! |
+  * * hertz/material ${emod} ${en} ${poisson} damping coeff_restitution tangential mindlin NULL 0.5 ${xmu}
+# NOTE: see dem11-wall-normal-cof-3d-si.yaml for the regeneration workflow.
+# analytic_segment must fall in free flight after rebound, with omega0
+# large enough relative to vin that contact stays in gross sliding
+# (matches the source script's parameters, but re-verify with -s).
+run_segments: ! |-
+  300 300
+analytic_enable: yes
+analytic_model: spin_impact
+analytic_tol: 0.02
+analytic_segment: 1
+run_pos: ! |2
+  # TODO: regenerate -- see NOTE above
+run_vel: ! |2
+  # TODO: regenerate -- see NOTE above
+run_torque: ! |2
+  # TODO: regenerate -- see NOTE above
+run_omega: ! |2
+  # TODO: regenerate -- see NOTE above
+...

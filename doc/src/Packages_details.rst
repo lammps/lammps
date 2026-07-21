@@ -271,8 +271,8 @@ including ellipsoids, granular superellipsoids, 2d lines, and 3d triangles.
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * ``examples/ASPHERE``
 * ``examples/ellipse``
-* https://www.lammps.org/movies.html#line
-* https://www.lammps.org/movies.html#tri
+* https://www.lammps.org/examples/line/
+* https://www.lammps.org/examples/tri/
 
 ----------
 
@@ -391,7 +391,7 @@ models for mesoscale simulations of solids and fracture.  See the
 * :doc:`compute nbond/atom <compute_nbond_atom>`
 * :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
 * :doc:`pair_style bpm/spring <pair_bpm_spring>`
-* https://www.lammps.org/movies.html#bpmpackage
+* https://www.lammps.org/gallery/bpmpackage/
 * ``examples/bpm``
 
 ----------
@@ -477,7 +477,7 @@ simulation of biological or soft material systems.
 * :doc:`pair_style lj/spica/\* <pair_spica>`
 * :doc:`angle_style spica <angle_spica>`
 * ``examples/PACKAGES/cgspica``
-* https://www.lammps.org/pictures.html#cg
+* https://www.lammps.org/gallery/cg/
 * https://www.spica-ff.org/
 
 ----------
@@ -908,7 +908,7 @@ tools/eff; see its README file.
 * ``examples/PACKAGES/eff``
 * tools/eff/README
 * tools/eff
-* https://www.lammps.org/movies.html#eff
+* https://www.lammps.org/gallery/eff/
 
 -------------------
 
@@ -1111,7 +1111,6 @@ This package has :ref:`specific installation instructions <gpu>` on the
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1170,11 +1169,11 @@ potentials.
 * ``examples/granregion``
 * ``examples/pour``
 * bench/in.chute
-* https://www.lammps.org/pictures.html#jamming
-* https://www.lammps.org/movies.html#hopper
-* https://www.lammps.org/movies.html#dem
-* https://www.lammps.org/movies.html#brazil
-* https://www.lammps.org/movies.html#granregion
+* https://www.lammps.org/gallery/jamming/
+* https://www.lammps.org/gallery/hopper/
+* https://www.lammps.org/gallery/dem/
+* https://www.lammps.org/gallery/brazil/
+* https://www.lammps.org/gallery/granregion/
 
 ----------
 
@@ -1282,7 +1281,6 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * ``src/INTEL/TEST``
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1420,7 +1418,6 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1593,7 +1590,7 @@ Waltham, MA, USA)
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * ``examples/PACKAGES/manifold``
-* https://www.lammps.org/movies.html#manifold
+* https://www.lammps.org/gallery/manifold/
 
 ----------
 
@@ -1685,7 +1682,7 @@ or similar processes in conjunction with molecular dynamics (MD).
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
-* https://www.lammps.org/movies.html#gcmc
+* https://www.lammps.org/gallery/gcmc/
 
 ----------
 
@@ -2324,7 +2321,6 @@ the :doc:`Build extras <Build_extras>` page.
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -2358,7 +2354,6 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * :doc:`OPT package <Speed_opt>`
 * :doc:`Section 4.2 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 .. _PKG-ORIENT:
 
@@ -2407,7 +2402,7 @@ Foster (UTSA).
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * ``examples/peri``
-* https://www.lammps.org/movies.html#impact
+* https://www.lammps.org/gallery/impact/
 
 ----------
 
@@ -2780,7 +2775,7 @@ Thomas C. O'Connor (Carnegie Mellon University)
 * :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
 * :doc:`pair_style rheo <pair_rheo>`
 * :doc:`pair_style rheo/solid <pair_rheo_solid>`
-* https://www.lammps.org/movies.html#rheopackage
+* https://www.lammps.org/gallery/rheopackage/
 * ``examples/rheo``
 
 ----------
@@ -2807,8 +2802,8 @@ Also several computes which calculate properties of rigid bodies.
 * ``examples/ASPHERE``
 * ``examples/rigid``
 * bench/in.rhodo
-* https://www.lammps.org/movies.html#box
-* https://www.lammps.org/movies.html#star
+* https://www.lammps.org/examples/box/
+* https://www.lammps.org/examples/star/
 
 ----------
 
@@ -2928,7 +2923,7 @@ Dynamics, Ernst Mach Institute, Germany).
 * ``src/SPH/README``
 * `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * ``examples/PACKAGES/sph``
-* https://www.lammps.org/movies.html#sph
+* https://www.lammps.org/gallery/sph/
 
 .. note::
 
@@ -2993,9 +2988,9 @@ colloidal particles.
 * :doc:`fix wall/srd <fix_wall_srd>`
 * ``examples/srd``
 * ``examples/ASPHERE``
-* https://www.lammps.org/movies.html#tri
-* https://www.lammps.org/movies.html#line
-* https://www.lammps.org/movies.html#poly
+* https://www.lammps.org/examples/tri/
+* https://www.lammps.org/examples/line/
+* https://www.lammps.org/gallery/poly/
 
 ----------
 

@@ -226,7 +226,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`GPU <PKG-GPU>`
      - GPU-enabled styles
      - :doc:`Section gpu <Speed_gpu>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - int
    * - :ref:`GRANULAR <PKG-GRANULAR>`
      - granular systems
@@ -251,7 +251,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`INTEL <PKG-INTEL>`
      - optimized Intel CPU styles
      - :doc:`Speed intel <Speed_intel>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`INTERLAYER <PKG-INTERLAYER>`
      - Inter-layer pair potentials
@@ -266,7 +266,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`KOKKOS <PKG-KOKKOS>`
      - Kokkos-enabled styles
      - :doc:`Speed kokkos <Speed_kokkos>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`KSPACE <PKG-KSPACE>`
      - long-range Coulombic solvers
@@ -396,12 +396,12 @@ whether an extra library is needed to build and use the package:
    * - :ref:`OPENMP <PKG-OPENMP>`
      - OpenMP-enabled styles
      - :doc:`Speed omp <Speed_omp>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`OPT <PKG-OPT>`
      - optimized pair styles
      - :doc:`Speed opt <Speed_opt>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`ORIENT <PKG-ORIENT>`
      - fixes for orientation depended forces

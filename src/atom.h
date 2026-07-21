@@ -136,7 +136,6 @@ class Atom : protected Pointers {
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
   double *duChem;
   double *dpdTheta;
-  int nspecies_dpd;
 
   // MESO package
 

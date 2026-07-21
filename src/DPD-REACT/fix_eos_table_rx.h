@@ -65,6 +65,7 @@ class FixEOStableRX : public Fix {
   double splint(double *, double *, double *, int, double);
 
   int nspecies;
+  class FixRX * rx_fix;
 
   void read_file(char *);
 

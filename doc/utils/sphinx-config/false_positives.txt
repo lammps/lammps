@@ -900,6 +900,7 @@ dihydride
 Dij
 dilatational
 dimdim
+dimensionally
 dimensionality
 dimensioned
 dimgray
@@ -2474,6 +2475,7 @@ michele
 Mickel
 microcanonical
 microelastic
+micromodulus
 microporous
 Microscale
 midnightblue
@@ -2941,6 +2943,7 @@ num
 numa
 numactl
 numdiff
+Numer
 numericalfreedom
 numerics
 numpy

@@ -304,8 +304,7 @@ void FixAdaptFEP::init()
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
-      if (ad->pdim == 2 && (strcmp(force->pair_style,"hybrid") == 0 ||
-                            strcmp(force->pair_style,"hybrid/overlay") == 0)) {
+      if (ad->pdim == 2 && utils::strmatch(force->pair_style, "^hybrid")) {
         auto *pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = ad->ilo; i <= ad->ihi; i++)
           for (j = MAX(ad->jlo,i); j <= ad->jhi; j++)

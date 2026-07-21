@@ -4,7 +4,7 @@ units		lj
 atom_style      atomic
 boundary        p p f
 
-lattice		fcc 1.0
+lattice		fcc 1.0 origin 0.25 0.25 0.25
 region          box block 0 5 0 5 0 10
 create_box      2 box
 
@@ -40,12 +40,18 @@ thermo_modify	temp add
 
 #dump		1 all atom 50 dump.deposit.atom
 
-#dump		2 all image 50 image.*.jpg type type &
-#		axes yes 0.8 0.02 view 80 -30
-#dump_modify	2 pad 5
+#dump            viz all image 50 deposit_atom-*.ppm type type &
+#                size 600 800 zoom 1.6 view 80 -30  center s 0.5 0.4 0.48 &
+#                shiny 0.4 fsaa yes axes yes 0.5 0.1
+#dump_modify     viz pad 6 backcolor black backcolor2 white adiam * 1.5 &
+#                color myred 0.9 0.05 0.05 acolor 1 myred acolor 2 forestgreen boxcolor gold
+#
 
-#dump		3 all movie 50 movie.mpg type type &
-#		axes yes 0.8 0.02 view 80 -30
-#dump_modify	3 pad 5
+#dump            viz all movie 50 deposit_atom.mp4 type type &
+#                size 600 800 zoom 1.6 view 80 -30  center s 0.5 0.4 0.48 &
+#                shiny 0.4 fsaa yes axes yes 0.5 0.1
+#dump_modify     viz backcolor black backcolor2 white adiam * 1.5 &
+#                color myred 0.9 0.05 0.05 acolor 1 myred acolor 2 forestgreen boxcolor gold
+#
 
 run             10000

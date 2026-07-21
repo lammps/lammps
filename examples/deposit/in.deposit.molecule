@@ -44,12 +44,19 @@ thermo_modify	temp add lost/bond ignore lost warn
 
 #dump		1 all atom 50 dump.deposit.atom
 
-#dump		2 all image 50 image.*.jpg type type &
-#		axes yes 0.8 0.02 view 80 -30
-#dump_modify	2 pad 5
+#dump            viz all image 50 deposit_molecule-*.ppm type type bond atom type &
+#                size 600 800 zoom 1.6 view 80 -30  center s 0.5 0.4 0.48 &
+#                shiny 0.4 fsaa yes axes yes 0.5 0.1
+#dump_modify     viz pad 6 backcolor black backcolor2 white adiam * 0.75 adiam 1 1.5 &
+#                color myred 0.9 0.05 0.05 acolor 1 myred acolor 2 forestgreen boxcolor gold
+#
 
-#dump		3 all movie 50 movie.mpg type type &
-#		axes yes 0.8 0.02 view 80 -30
-#dump_modify	3 pad 5
+#dump            viz all movie 50 deposit_molecule.mp4 type type bond atom type &
+#                size 600 800 zoom 1.6 view 80 -30  center s 0.5 0.4 0.48 &
+#                shiny 0.4 fsaa yes axes yes 0.5 0.1
+#dump_modify     viz backcolor black backcolor2 white adiam * 0.75 adiam 1 1.5 &
+#                color myred 0.9 0.05 0.05 acolor 1 myred acolor 2 forestgreen boxcolor gold
+#
+
 
 run             10000

@@ -137,6 +137,7 @@ accelerated styles exist.
 * :doc:`born/coul/wolf <pair_born>` - Born with Wolf potential for Coulomb
 * :doc:`born/coul/wolf/cs <pair_cs>` - Born with Wolf potential for Coulomb and core/shell model
 * :doc:`born/gauss <pair_born_gauss>` - Born-Mayer / Gaussian potential
+* :doc:`bpm/peri <pair_bpm_peri>` - short-range contact force for the BPM peridynamics model
 * :doc:`bpm/spring <pair_bpm_spring>` - repulsive harmonic force with damping
 * :doc:`brownian <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics
 * :doc:`brownian/poly <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics with polydispersity

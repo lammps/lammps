@@ -7,7 +7,7 @@ steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
 * `Pre/Post processing <https://www.lammps.org/ecosystem/prepost/>`_
-* `External LAMMPS packages & tools <https://www.lammps.org/ecosystem/external/>`_
+* `External LAMMPS packages & tools <https://www.lammps.org/ecosystem/tools/>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at

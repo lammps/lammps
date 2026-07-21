@@ -33,7 +33,7 @@ group rdel region rdel
 delete_atoms random fraction 0.02 no rdel NULL 482793
 
 reset_atoms id sort yes
-velocity cnt_mid create 300 48455 mom yes rot yes
+velocity cnt_mid create 300 248451 mom yes rot yes
 
 fix mynve1 cnt_top nve
 fix mynve2 cnt_bot nve
@@ -77,6 +77,7 @@ fix arrows all graphics/objects 500 arrow 1 v_rbot 0.0 0.0 v_rtop 0.0 0.0 1.0 0.
 fix vel    all graphics/objects 500 arrow 1 v_lbot 0.0 0.0  v_ltop 0.0 0.0 1.0 0.3 
 
 # add text labels using different styles and references to variables and compute results
+# also add a color map for the number of bonds colors
 fix labels all graphics/labels  500 text "LAMMPS Tutorial 2 - Stretching a CNT using the AIREBO potential" 0.0 -7.7 5.3 size 28 &
                                     framecolor black backcolor darkgray &
                                     text "Simulation time: ${ps} ps" -4.0 7.5 5.0 size 28 &
@@ -84,22 +85,24 @@ fix labels all graphics/labels  500 text "LAMMPS Tutorial 2 - Stretching a CNT u
                                     text "Force: ${force} eV/Angstrom"  -34 8.5 5.0 size 20 &
                                     text "Velocity: ${vel} Angstrom/ps" -34 7.0 5.0 size 20 &
                                     text "Atoms with bonds  1: $(c_count[1])  2: $(c_count[2])  3: $(c_count[3])  4: $(c_count[4])" &
-                                    32.5 7.5 5.0 size 24 fontcolor white backcolor silver
+                                    32.5 7.5 5.0 size 24 fontcolor white backcolor silver &
+                                    colorscale viz "Bonds" 52.0 -1.5 7.0 vertical &
+                                    length 340 tics 4 size 20
 
 dump viz all image 500 breakable.*.ppm c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
-        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes yes 0.5 0.1 &
-        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0
+        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes no 0.5 0.2 &
+        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0 center s 0.523 0.5 0.5
 
 # comment out the dump image command above and uncomment the lines below to create a movie
 #
-#dump viz all movie 500 breakable.mp4 c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
-#        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes yes 0.5 0.1 &
-#        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0
+#dump viz all image 500 breakable.*.ppm c_nbond type size 1600 300 zoom 12.5 shiny 0.2 autobond 1.8 0.4 &
+#        adiam 0.8 box no 0.01 view 0 90 fsaa yes ssao yes 1325123 0.6 axes no 0.5 0.2 &
+#        fix arrows const 0 0  fix labels const 0 0 fix vel const 0 0 center s 0.523 0.5 0.5
 #dump_modify viz framerate 8
 
 dump_modify viz pad 5 backcolor darkgray backcolor2 gray &
         fcolor arrows firebrick fcolor vel midnightblue acolor 1 lightslategray &
-        amap 0 5 sa 1 5 midnightblue royalblue cadetblue lightslategray blue
+        amap 0 4 sa 1 5 black midnightblue steelblue lightslategray purple
 
 compute Tmid cnt_mid temp
 thermo 100

@@ -25,53 +25,6 @@ PairStyle(dispersion/d3,PairDispersionD3);
 #include <type_traits>
 
 namespace LAMMPS_NS {
-template <typename T> inline T pow2(T x)
-{ return x * x; }
-
-template <typename T> inline T pow4(T x)
-{
-  const T x2 = x * x;
-  return x2 * x2;
-}
-
-template <typename T> inline T pow6(T x)
-{ return pow2(x) * pow4(x); }
-
-template <typename T> inline T pow8(T x)
-{
-  const T x4 = pow4(x);
-  return x4 * x4;
-}
-
-template <typename T> inline T pow_int(T base, int exponent)
-{
-  if (exponent == 0) return static_cast<T>(1);
-
-  if (exponent < 0) return static_cast<T>(1) / pow_int(base, -exponent);
-
-  T result = static_cast<T>(1);
-  while (exponent > 0) {
-    if (exponent & 1) result *= base;
-    base *= base;
-    exponent >>= 1;
-  }
-  return result;
-}
-
-template <typename T> inline bool is_integer_value(T x)
-{
-  const T nearest_int = std::round(x);
-  return x == nearest_int;
-}
-
-template <typename T> inline T pow_general(T base, T exponent)
-{
-  if (is_integer_value(exponent)) return pow_int(base, static_cast<int>(std::round(exponent)));
-
-  using std::pow;
-  return pow(base, exponent);
-}
-
 class PairDispersionD3 : public Pair {
 
  public:

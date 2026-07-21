@@ -25,6 +25,7 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -283,7 +284,9 @@ void PairDispersionD3OMP::get_dC6(int iat, int jat, double cni, double cnj, doub
     for (int cj = 0; cj <= mxci[jat]; cj++) {
 
       c6_ref = c6ab[iat][jat][ci][cj][0];
-      c6_ref *= AUTOEV * pow6(AUTOANG);
+      double autoang6 = AUTOANG * AUTOANG * AUTOANG;
+      autoang6 = MathSpecial::square(autoang6);
+      c6_ref *= AUTOEV * autoang6;
 
       if (c6_ref > 0) {
         cni_ref = c6ab[iat][jat][ci][cj][1];
@@ -399,8 +402,8 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
               double half_alpha6 = 0.5 * alpha6;
               double half_alpha8 = 0.5 * alpha8;
 
-              t6 = pow_general(ip6, alpha6) * pow_general(rsq, -half_alpha6);
-              t8 = pow_general(ip8, alpha8) * pow_general(rsq, -half_alpha8);
+              t6 = MathSpecial::powauto(ip6, alpha6) * MathSpecial::powauto(rsq, -half_alpha6);
+              t8 = MathSpecial::powauto(ip8, alpha8) * MathSpecial::powauto(rsq, -half_alpha8);
 
               damp6 = 1.0 / (1.0 + 6.0 * t6);
               damp8 = 1.0 / (1.0 + 6.0 * t8);
@@ -423,9 +426,9 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
             double r = sqrt(rsq);
             double r0 = r0ab[type[i]][type[j]];
 
-            t6 = pow_general((r / (rs6 * r0)) + rs8 * r0, -alpha6);
+            t6 = MathSpecial::powauto((r / (rs6 * r0)) + rs8 * r0, -alpha6);
             damp6 = 1.0 / (1.0 + 6.0 * t6);
-            t8 = pow_general((r / r0) + rs8 * r0, -alpha8);
+            t8 = MathSpecial::powauto((r / r0) + rs8 * r0, -alpha8);
             damp8 = 1.0 / (1.0 + 6.0 * t8);
 
             e6 = C6 * damp6 * r6inv;
@@ -452,8 +455,12 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
             double r6 = rsq * rsq * rsq;
             double r8 = rsq * rsq * rsq * rsq;
 
-            t6 = r6 + pow6(a1 * r0 + a2);
-            t8 = r8 + pow8(a1 * r0 + a2);
+            double d = a1 * r0 + a2;
+            double d2 = d * d;
+            double d4 = d2 * d2;
+
+            t6 = r6 + MathSpecial::cube(d2);
+            t8 = r8 + MathSpecial::square(d4);
 
             e6 = C6 / t6;
             e8 = C8 / t8;
@@ -472,8 +479,12 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
             double r6 = rsq * rsq * rsq;
             double r8 = rsq * rsq * rsq * rsq;
 
-            t6 = r6 + pow6(a1 * r0 + a2);
-            t8 = r8 + pow8(a1 * r0 + a2);
+            double d = a1 * r0 + a2;
+            double d2 = d * d;
+            double d4 = d2 * d2;
+
+            t6 = r6 + MathSpecial::cube(d2);
+            t8 = r8 + MathSpecial::square(d4);
 
             e6 = C6 / t6;
             e8 = C8 / t8;

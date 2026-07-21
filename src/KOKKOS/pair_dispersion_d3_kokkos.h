@@ -24,6 +24,7 @@ PairStyle(dispersion/d3/kk/host,PairDispersionD3Kokkos<LMPHostType>);
 #define LMP_PAIR_DISPERSION_D3_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "math_special_kokkos.h"
 #include "pair_dispersion_d3.h"
 #include "pair_kokkos.h"
 
@@ -45,75 +46,6 @@ static constexpr double AUTOEV = 27.21140795;    // atomic units (Hartree) to eV
 
 
 namespace LAMMPS_NS {
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-T kk_pow2(T x)
-{
-  return x * x;
-}
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-T kk_pow4(T x)
-{
-  const T x2 = x * x;
-  return x2 * x2;
-}
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-T kk_pow6(T x)
-{
-  return kk_pow2(x) * kk_pow4(x);
-}
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-T kk_pow8(T x)
-{
-  const T x4 = kk_pow4(x);
-  return x4 * x4;
-}
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-T kk_pow_int(T base, int exponent)
-{
-  if (exponent == 0)
-    return static_cast<T>(1);
-
-  if (exponent < 0)
-    return static_cast<T>(1) / kk_pow_int(base, -exponent);
-
-  T result = static_cast<T>(1);
-  while (exponent > 0)
-  {
-    if (exponent & 1)
-      result *= base;
-    base *= base;
-    exponent >>= 1;
-  }
-  return result;
-}
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-bool kk_is_integer(T x)
-{
-  const T nearest_int = Kokkos::round(x);
-  return x == nearest_int;
-}
-
-template <typename T>
-KOKKOS_INLINE_FUNCTION
-T kk_pow_general(T base, T exponent)
-{
-  if (kk_is_integer(exponent))
-    return kk_pow_int(base, static_cast<int>(Kokkos::round(exponent)));
-
-  return Kokkos::pow(base, exponent);
-}
 
 /* ---------------------------------------------------------------------- */
 //    Functor to initialize cn and dc6 arrays
@@ -438,7 +370,8 @@ struct PairDispersionD3KernelA {
     d_den_i = 0.0;
     d_den_j = 0.0;
 
-    const KK_FLOAT autoang6 = kk_pow6(AUTOANG);
+    KK_FLOAT autoang6 = AUTOANG * AUTOANG * AUTOANG;
+    autoang6 = MathSpecialKokkos::square(autoang6);
 
     int maxci = d_mxci(iat);
     int maxcj = d_mxci(jat);
@@ -653,8 +586,8 @@ struct PairDispersionD3KernelA {
             const KK_FLOAT half_alpha6 = 0.5 * alpha6;
             const KK_FLOAT half_alpha8 = 0.5 * alpha8;
 
-            t6 = kk_pow_general(ip6, alpha6) * kk_pow_general(rsq, -half_alpha6);
-            t8 = kk_pow_general(ip8, alpha8) * kk_pow_general(rsq, -half_alpha8);
+            t6 = MathSpecialKokkos::powauto(ip6, alpha6) * MathSpecialKokkos::powauto(rsq, -half_alpha6);
+            t8 = MathSpecialKokkos::powauto(ip8, alpha8) * MathSpecialKokkos::powauto(rsq, -half_alpha8);
 
             damp6 = 1.0f / (1.0f + 6.0f * t6);
             damp8 = 1.0f / (1.0f + 6.0f * t8);
@@ -678,9 +611,9 @@ struct PairDispersionD3KernelA {
             const KK_FLOAT r0 = d_r0ab(itype, jtype);
             const KK_FLOAT r = Kokkos::sqrt(rsq);
 
-            t6 = kk_pow_general((r / (rs6 * r0)) + rs8 * r0, -alpha6);
+            t6 = MathSpecialKokkos::powauto((r / (rs6 * r0)) + rs8 * r0, -alpha6);
             damp6 = 1.0f / (1.0f + 6.0f * t6);
-            t8 = kk_pow_general((r / r0) + rs8 * r0, -alpha8);
+            t8 = MathSpecialKokkos::powauto((r / r0) + rs8 * r0, -alpha8);
             damp8 = 1.0f / (1.0f + 6.0f * t8);
 
             e6 = C6 * damp6 * r6inv;
@@ -708,8 +641,12 @@ struct PairDispersionD3KernelA {
             KK_FLOAT r6 = rsq * rsq * rsq;
             KK_FLOAT r8 = r6 * rsq;
 
-            t6 = r6 + kk_pow6(a1 * r0 + a2);
-            t8 = r8 + kk_pow8(a1 * r0 + a2);
+            const KK_FLOAT d = a1 * r0 + a2;
+            const KK_FLOAT d2 = d * d;
+            const KK_FLOAT d4 = d2 * d2;
+
+            t6 = r6 + MathSpecialKokkos::cube(d2);
+            t8 = r8 + MathSpecialKokkos::square(d4);
 
             e6 = C6 / t6;
             e8 = C8 / t8;
@@ -729,8 +666,12 @@ struct PairDispersionD3KernelA {
             KK_FLOAT r6 = rsq * rsq * rsq;
             KK_FLOAT r8 = r6 * rsq;
 
-            t6 = r6 + kk_pow6(a1 * r0 + a2);
-            t8 = r8 + kk_pow8(a1 * r0 + a2);
+            const KK_FLOAT d = a1 * r0 + a2;
+            const KK_FLOAT d2 = d * d;
+            const KK_FLOAT d4 = d2 * d2;
+
+            t6 = r6 + MathSpecialKokkos::cube(d2);
+            t8 = r8 + MathSpecialKokkos::square(d4);
 
             e6 = C6 / t6;
             e8 = C8 / t8;

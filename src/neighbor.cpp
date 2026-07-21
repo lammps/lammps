@@ -1255,7 +1255,7 @@ void Neighbor::morph_skip()
   NeighRequest *irq, *jrq, *nrq;
 
   // loop over irq from largest to smallest cutoff
-  //  to prevent adding unecessary neighbor lists
+  //  to prevent adding unnecessary neighbor lists
 
   for (i = nrequest - 1; i >= 0; i--) {
     irq = requests[j_sorted[i]];

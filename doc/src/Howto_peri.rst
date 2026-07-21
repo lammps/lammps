@@ -119,7 +119,7 @@ Here is the minimal example above expressed in the BPM framework:
 
    # nodal mass (per-type) and nodal volume (the lone user-declared input)
    mass            * 2.75e-7
-   fix             vol all property/atom d_vfrac ghost yes
+   fix             vol all property/atom d_vfrac d_damage ghost yes
    set             group all d_vfrac 1.25e-10
 
    pair_style      bpm/peri
@@ -129,7 +129,7 @@ Here is the minimal example above expressed in the BPM framework:
 
    bond_style      bpm/peri
    bond_coeff      1 pmb 1.6863e22 0.0015001 0.0005 0.25
-   fix             dmg all property/atom d_damage
+   compute         dmg all property/atom d_damage
    fix             1 all nve
    timestep        1.0e-7
 
@@ -184,7 +184,7 @@ translation:
    * - bonds implicit in the pair neighbor list
      - explicit ``create_bonds many all all <type> 0.0 <horizon>``
    * - ``compute damage/atom``
-     - ``fix property/atom d_damage``
+     - ``fix property/atom d_damage`` + ``compute property/atom d_damage``
 
 The two implementations follow the same constitutive equations.  The
 analytic elastic response (dilatation, energy) agrees; for the *eps*

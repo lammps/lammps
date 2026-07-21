@@ -28,7 +28,7 @@ create_atoms    1 region target
 # nodal mass (density 2200 * nodal volume 1.25e-10) and nodal volume (the lone
 # user-declared input)
 mass            * 2.75e-7
-fix             vol all property/atom d_vfrac ghost yes
+fix             vol all property/atom d_vfrac d_damage ghost yes
 set             group all d_vfrac 1.25e-10
 
 # short-range contact between non-bonded near nodes
@@ -52,8 +52,8 @@ variable        vy equal -100
 variable        y equal "v_y0 + step*dt*v_vy"
 fix             2 all indent 1e17 sphere 0.0000 v_y 0.0000 0.0015 units box
 
-compute         dmg all bpm/peri/damage/atom
-compute         davg all reduce ave c_dmg
+compute         dmg all property/atom d_damage
+compute         davg all reduce ave f_dmg
 timestep        1.0e-7
 thermo          200
 thermo_style    custom step atoms c_davg

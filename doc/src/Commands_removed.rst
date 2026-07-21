@@ -17,6 +17,33 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+ML-RANN package
+---------------
+
+.. deprecated:: TBD
+
+.. index:: pair_style rann
+
+The ML-RANN package and its pair style *rann* have been removed because
+they were unmaintained in LAMMPS for a long time and caused to much work
+to keep it aligned with the LAMMPS coding conventions.  The ML-RANN
+developers are maintaining an independent fork of their code.  They plan
+to submit a second generation of their package when it is ready.  Until
+then we recommend to use the LAMMPS 22Jul2025 stable version if you want
+to use this package.
+
+Pair style agni
+---------------
+
+.. deprecated:: TBD
+
+.. index:: pair_style agni
+.. index:: pair_style agni/omp
+
+The pair style *agni* has been removed since it was unmaintained
+for a long time and its developers have moved on to alternate
+machine learning potentials that are more efficient and accurate.
+
 amber2lmp tools
 ---------------
 
@@ -33,6 +60,10 @@ ATC, AWPMD, and POEMS packages
 ------------------------------
 
 .. deprecated:: 10Sep2025
+
+.. index:: fix poems
+.. index:: fix atc
+.. index:: pair_style awpmd/cut
 
 The ATC, AWPMD, and POEMS packages are removed because they were
 unmaintained for a long time and their legacy C++ programming style
@@ -126,6 +157,8 @@ MSCG package
 
 .. deprecated:: 21Nov2023
 
+.. index:: fix mscg
+
 The MSCG package has been removed from LAMMPS since it was unmaintained
 for many years and instead superseded by the `OpenMSCG software
 <https://software.rcc.uchicago.edu/mscg/>`_ of the Voth group at the
@@ -135,6 +168,8 @@ LATTE package
 -------------
 
 .. deprecated:: 15Jun2023
+
+.. index:: fix latte
 
 The LATTE package with the fix latte command was removed from LAMMPS.
 This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`

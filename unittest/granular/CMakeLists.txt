@@ -76,42 +76,42 @@ function(register_dem_tests driver prefix label)
   endforeach()
 endfunction()
 
-# DEM-01: sphere sliding then rolling without slipping on a rough surface
+# DEM-01: two identical spheres, head-on normal collision (coefficient of restitution)
 add_executable(test_dem_01 test_dem_01.cpp)
 target_link_libraries(test_dem_01 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_01 dem01 DEM01)
 
-# DEM-02: oblique collision of a sphere with a flat wall
+# DEM-02: elastic Hertzian normal impact of two spheres (peak contact force)
 add_executable(test_dem_02 test_dem_02.cpp)
 target_link_libraries(test_dem_02 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_02 dem02 DEM02)
 
-# DEM-03: spinning sphere damped by rolling resistance (rolling sds)
+# DEM-03: elastic Hertzian normal impact of a sphere on a wall (peak contact force)
 add_executable(test_dem_03 test_dem_03.cpp)
 target_link_libraries(test_dem_03 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_03 dem03 DEM03)
 
-# DEM-04: cohesive/adhesive contact (DMT pull-off force)
+# DEM-04: oblique impact of a sphere on a wall (gross-sliding friction)
 add_executable(test_dem_04 test_dem_04.cpp)
 target_link_libraries(test_dem_04 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_04 dem04 DEM04)
 
-# DEM-05: two identical spinning spheres, head-on collision
+# DEM-05: sphere sliding then rolling without slipping on a rough wall (slip cessation)
 add_executable(test_dem_05 test_dem_05.cpp)
 target_link_libraries(test_dem_05 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_05 dem05 DEM05)
 
-# DEM-06: unequal-size spinning sphere impacting a heavy/rigid partner
+# DEM-06: spinning sphere impacting a heavy partner / wall (rebound + friction)
 add_executable(test_dem_06 test_dem_06.cpp)
 target_link_libraries(test_dem_06 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_06 dem06 DEM06)
 
-# DEM-07: elastic Hertzian normal impact of a sphere on a wall
+# DEM-07: spinning sphere damped to rest by rolling resistance (rolling sds)
 add_executable(test_dem_07 test_dem_07.cpp)
 target_link_libraries(test_dem_07 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_07 dem07 DEM07)
 
-# DEM-08: elastic Hertzian normal impact of two spheres
+# DEM-08: cohesive/adhesive contact -- the DMT pull-off force
 add_executable(test_dem_08 test_dem_08.cpp)
 target_link_libraries(test_dem_08 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_08 dem08 DEM08)

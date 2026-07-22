@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 01: sphere sliding then rolling without slipping on a rough wall.
+// DEM verification test 01: two identical spheres, head-on normal collision (coefficient of restitution).
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem01-*.yaml.
 

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 02: oblique collision of a sphere with a flat wall.
+// DEM verification test 02: elastic Hertzian normal impact of two spheres (peak contact force).
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem02-*.yaml.
 

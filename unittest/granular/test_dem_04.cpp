@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 04: cohesive/adhesive contact -- the DMT pull-off force.
+// DEM verification test 04: oblique impact of a sphere on a wall (gross-sliding friction).
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem04-*.yaml.
 

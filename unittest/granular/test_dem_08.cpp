@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 08: elastic Hertzian normal impact of two spheres.
+// DEM verification test 08: cohesive/adhesive contact -- the DMT pull-off force.
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem08-*.yaml.
 

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 06: an unequal-size spinning sphere impacting a heavy/rigid partner.
+// DEM verification test 06: spinning sphere impacting a heavy partner / wall (rebound + friction).
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem06-*.yaml.
 

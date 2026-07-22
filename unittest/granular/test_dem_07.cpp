@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 07: elastic Hertzian normal impact of a sphere on a wall.
+// DEM verification test 07: spinning sphere damped to rest by rolling resistance (rolling sds).
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem07-*.yaml.
 

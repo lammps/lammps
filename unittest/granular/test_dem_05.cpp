@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 05: two identical spinning spheres, head-on collision.
+// DEM verification test 05: sphere sliding then rolling without slipping on a rough wall (slip cessation).
 // All test logic is shared via test_dem_common; the reference systems
 // live in tests/dem05-*.yaml.
 

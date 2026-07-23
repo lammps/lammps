@@ -492,8 +492,6 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    // since pair style granular does not support any form of acceleration
-    // we must not try using an accerated version of fix NEIGH_HISTORY.
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
   } else if (use_history) {

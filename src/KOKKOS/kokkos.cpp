@@ -333,6 +333,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   neigh_thread_set = 0;
   neigh_transpose = 0;
   neigh_cluster = 0;
+  neigh_prune = 0;
+  neigh_prune_every = 1;
+  neigh_prune_skin = 1.0;
   if (ngpus > 0) {
     neighflag = FULL;
     neighflag_qeq = FULL;
@@ -687,6 +690,20 @@ void KokkosLMP::accelerator(int narg, char **arg)
     } else if (strcmp(arg[iarg],"neigh/cluster") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       neigh_cluster = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/prune") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_prune = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/prune/every") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_prune_every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (neigh_prune_every < 1) error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/prune/skin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_prune_skin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (neigh_prune_skin < 0.0) error->all(FLERR,"Illegal package kokkos command");
       iarg += 2;
     } else if (strcmp(arg[iarg],"threads/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");

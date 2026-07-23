@@ -80,6 +80,14 @@ public:
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
 
+  // Dynamic pruning (enabled by 'package kokkos neigh/prune yes'): a tight
+  // inner list re-pruned from d_neighbors/d_numneigh (the master) between
+  // reneighbor steps. Same (nmax, maxneighs) shape; d_ilist is shared.
+  typename AT::t_neighbors_2d d_inner_neighbors;
+  typename AT::t_int_1d d_inner_numneigh;
+  bigint prune_last_step = -1;    // step the inner list was last pruned
+  bigint prune_master_step = -1;  // master lastcall the inner list mirrors
+
   // Cluster-pair neighbor list (enabled by 'package kokkos neigh/cluster yes')
   int max_jclusters;
   int cluster_hash_sh = 0;         // shared-mem hash slots for the cluster build (power of 2)

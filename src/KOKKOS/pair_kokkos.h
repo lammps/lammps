@@ -21,6 +21,7 @@
 
 #include "pair.h"               // IWYU pragma: export
 #include "atom_kokkos.h"
+#include "atom_masks.h"
 #include "domain.h"
 #include "neighbor_kokkos.h"
 #include "neigh_list_kokkos.h"
@@ -30,6 +31,15 @@
 #include "Kokkos_Macros.hpp"
 #include "Kokkos_ScatterView.hpp"
 #include "Kokkos_Sort.hpp"
+
+// Occupancy experiment knob for the cluster-pair force kernel (see
+// pair_compute_neighlist).  Minimum single-warp blocks per SM to compile for;
+// nvcc caps registers at 65536/(32*N) per thread to honor it.
+//   0  = no launch bounds (default, unchanged code generation)
+//   32 = hardware max blocks/SM on CC 6.0/8.0 -> <= 64 registers/thread
+#ifndef LMP_CLUSTER_MINBLOCKS
+#define LMP_CLUSTER_MINBLOCKS 0
+#endif
 
 namespace LAMMPS_NS {
 
@@ -2079,6 +2089,51 @@ void GetMaxTeamSize(FunctorStyle& functor, int inum,
   teamsize_max_reduce = Kokkos::TeamPolicy<DeviceType>(inum,Kokkos::AUTO).team_size_max(functor,Kokkos::ParallelReduceTag());
 }
 
+#if defined(LMP_KOKKOS_GPU)
+// Dynamic pruning: rebuild the list's inner arrays as the subset of the master
+// list within cutsq_inner. The master (d_neighbors/d_numneigh) is untouched;
+// entries are copied verbatim (special-bond bits preserved), only the distance
+// test uses cutsq_inner. Indexed by atom i like the master, so d_ilist is shared.
+template<class DeviceType, class XViewType>
+void prune_inner_list(NeighListKokkos<DeviceType>* list, XViewType x,
+                      const int inum_prune, const double cutsq_inner)
+{
+  using AT = ArrayTypes<DeviceType>;
+  const int nmax = list->d_neighbors.extent(0);
+  const int maxn = list->d_neighbors.extent(1);
+  if ((int)list->d_inner_neighbors.extent(0) != nmax ||
+      (int)list->d_inner_neighbors.extent(1) != maxn) {
+    list->d_inner_neighbors = typename AT::t_neighbors_2d(
+        Kokkos::view_alloc(Kokkos::WithoutInitializing,"neigh:inner_neighbors"), nmax, maxn);
+    list->d_inner_numneigh = typename AT::t_int_1d(
+        Kokkos::view_alloc(Kokkos::WithoutInitializing,"neigh:inner_numneigh"), nmax);
+  }
+  auto d_ilist       = list->d_ilist;
+  auto d_numneigh    = list->d_numneigh;      // master
+  auto d_neighbors   = list->d_neighbors;     // master
+  auto d_in_numneigh = list->d_inner_numneigh;
+  auto d_in_neighbors= list->d_inner_neighbors;
+  Kokkos::parallel_for("PairKokkos::prune_inner",
+      Kokkos::RangePolicy<typename DeviceType::execution_space>(0, inum_prune),
+      KOKKOS_LAMBDA(const int ii) {
+    const int i = d_ilist(ii);
+    const auto xt = x(i,0), yt = x(i,1), zt = x(i,2);
+    const int jnum = d_numneigh(i);
+    int n = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      const int jo = d_neighbors(i,jj);
+      const int j = jo & NEIGHMASK;
+      const auto dx = xt - x(j,0);
+      const auto dy = yt - x(j,1);
+      const auto dz = zt - x(j,2);
+      if ((double)(dx*dx + dy*dy + dz*dz) <= cutsq_inner)
+        d_in_neighbors(i,n++) = jo;
+    }
+    d_in_numneigh(i) = n;
+  });
+}
+#endif
+
 // Submit ParallelFor for NEIGHFLAG=HALF,HALFTHREAD,FULL
 template<class PairStyle, unsigned NEIGHFLAG, int ZEROFLAG = 0, class Specialisation = void>
 EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&PairStyle::EnabledNeighFlags) != 0, NeighListKokkos<typename PairStyle::device_type>*> list) {
@@ -2092,7 +2147,25 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
   // newton on or off, and any special_lj/coul.
   if (fpair->lmp->kokkos->neigh_cluster && fpair->lmp->kokkos->ngpus) {
     using DeviceType = typename PairStyle::device_type;
+    // LMP_CLUSTER_MINBLOCKS caps registers per thread so more of the
+    // single-warp blocks fit per SM.  One warp per block already pins the
+    // ceiling at 32 blocks/SM (= 32 of 64 warps) on CC 6.0 and 8.0, so this
+    // only recovers the gap between the register limit and that ceiling.
+    // 0 = no launch bounds (default, unchanged code generation).
+    //
+    // Only the non-EV parallel_for is bounded. Kokkos also budgets shared
+    // memory as (shared per SM)/minBlocksPerSM per block when launch bounds
+    // name a block count, and the eflag/vflag parallel_reduce needs the larger
+    // _ev team scratch plus its own reduction scratch -- that overruns the
+    // budget and Kokkos then reports a maximum team size of 0. The reduce path
+    // runs only on thermo steps, so leaving it unbounded costs nothing.
     using PolicyType = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>>;
+#if defined(LMP_CLUSTER_MINBLOCKS) && LMP_CLUSTER_MINBLOCKS > 0
+    using PolicyForType = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>,
+        Kokkos::LaunchBounds<32, LMP_CLUSTER_MINBLOCKS>>;
+#else
+    using PolicyForType = PolicyType;
+#endif
 
     const int nlocal = fpair->atom->nlocal;
     const int nall = nlocal + fpair->atom->nghost;
@@ -2174,21 +2247,66 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
     if (fpair->atom->ntypes > MAX_TYPES_STACKPARAMS) {
       PairComputeFunctor<PairStyle,NEIGHFLAG,false,ZEROFLAG,Specialisation> ff(fpair,list);
       ff.use_cluster = 1; ff.cluster_newton = cluster_newton; ff.nall = nall;
-      PolicyType policy(num_iclusters, cluster_ts, 1);
-      policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
-      else                              Kokkos::parallel_for(policy,ff);
+      if (fpair->eflag || fpair->vflag) {
+        PolicyType policy(num_iclusters, cluster_ts, 1);
+        policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+        Kokkos::parallel_reduce(policy,ff,ev);
+      } else {
+        PolicyForType policy(num_iclusters, cluster_ts, 1);
+        policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+        Kokkos::parallel_for(policy,ff);
+      }
       ff.contribute();
     } else {
       PairComputeFunctor<PairStyle,NEIGHFLAG,true,ZEROFLAG,Specialisation> ff(fpair,list);
       ff.use_cluster = 1; ff.cluster_newton = cluster_newton; ff.nall = nall;
-      PolicyType policy(num_iclusters, cluster_ts, 1);
-      policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
-      if (fpair->eflag || fpair->vflag) Kokkos::parallel_reduce(policy,ff,ev);
-      else                              Kokkos::parallel_for(policy,ff);
+      if (fpair->eflag || fpair->vflag) {
+        PolicyType policy(num_iclusters, cluster_ts, 1);
+        policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+        Kokkos::parallel_reduce(policy,ff,ev);
+      } else {
+        PolicyForType policy(num_iclusters, cluster_ts, 1);
+        policy = policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+        Kokkos::parallel_for(policy,ff);
+      }
       ff.contribute();
     }
     return ev;
+  }
+#endif
+
+#if defined(LMP_KOKKOS_GPU)
+  // Dynamic neighbor-list pruning (opt-in: package kokkos neigh/prune yes).
+  // The force kernels walk a tight inner list re-pruned from the master list
+  // every neigh_prune_every steps; the master is rebuilt on the normal
+  // reneighbor cadence. The prune is a filter over the existing list (no
+  // stencil search), so a large skin's cheap-rebuild benefit and a tight
+  // walked list are no longer in tension. Implemented by pointing the functor
+  // at the inner arrays for the dispatch, then restoring the master.
+  auto* kk = fpair->lmp->kokkos;
+  const bool do_prune = kk->neigh_prune && kk->ngpus && !kk->neigh_cluster;
+  decltype(list->d_neighbors) save_neighbors;
+  decltype(list->d_numneigh)  save_numneigh;
+  if (do_prune) {
+    using DeviceType = typename PairStyle::device_type;
+    const bigint lastcall = fpair->lmp->neighbor->lastcall;
+    const bigint step = fpair->lmp->update->ntimestep;
+    const bool master_rebuilt = (list->prune_master_step != lastcall);
+    const bool cadence = (step >= list->prune_last_step + kk->neigh_prune_every);
+    if (list->prune_last_step < 0 || master_rebuilt || cadence) {
+      fpair->lmp->atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space, X_MASK);
+      auto d_x = fpair->lmp->atomKK->k_x.template view<DeviceType>();
+      int inum_prune = list->inum;
+      if (list->ghost) inum_prune += list->gnum;
+      const double cutinner = fpair->cutforce + kk->neigh_prune_skin;
+      prune_inner_list<DeviceType>(list, d_x, inum_prune, cutinner*cutinner);
+      list->prune_last_step = step;
+      list->prune_master_step = lastcall;
+    }
+    save_neighbors = list->d_neighbors;
+    save_numneigh  = list->d_numneigh;
+    list->d_neighbors = list->d_inner_neighbors;
+    list->d_numneigh  = list->d_inner_numneigh;
   }
 #endif
 
@@ -2273,6 +2391,13 @@ EV_FLOAT pair_compute_neighlist (PairStyle* fpair, std::enable_if_t<(NEIGHFLAG&P
       ff.contribute();
     }
   }
+
+#if defined(LMP_KOKKOS_GPU)
+  if (do_prune) {  // restore the master list handles for the next reneighbor/prune
+    list->d_neighbors = save_neighbors;
+    list->d_numneigh  = save_numneigh;
+  }
+#endif
   return ev;
 }
 

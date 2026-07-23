@@ -642,7 +642,7 @@ large number of small dump files!
 
 .. versionremoved:: 21Nov2023
 
-The MPIIO package and the the corresponding "/mpiio" dump styles, except
+The MPIIO package and the corresponding "/mpiio" dump styles, except
 for the unrelated "netcdf/mpiio" style were removed from LAMMPS.
 
 ----------

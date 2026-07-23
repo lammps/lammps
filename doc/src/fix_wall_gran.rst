@@ -170,7 +170,7 @@ is desired.
 
 .. versionremoved:: 11Feb2026
 
-The *zcylinder* wallstyle has been removed.  Pleas use :doc:`fix
+The *zcylinder* wallstyle has been removed.  Please use :doc:`fix
 wall/gran/region <fix_wall_gran_region>` instead.
 
 .. versionadded:: TBD

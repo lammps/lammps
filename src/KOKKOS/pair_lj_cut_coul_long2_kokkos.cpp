@@ -56,6 +56,7 @@ struct LJCL2Force {
   typename AT::t_neighbors_2d d_neighbors;
 
   int nlocal, newton_pair, inum, atoms_per_team;
+  bool full;   // full list (newton off): sum i-force only, no atomic j-scatter
   KK_FLOAT g_ewald, qqrd2e;
   KK_FLOAT special_lj[4], special_coul[4];
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
@@ -63,10 +64,11 @@ struct LJCL2Force {
   KK_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  // Force contribution of one (i,jj) neighbor pair: folds the i-force into
-  // (fx,fy,fz) and atomic-scatters -f to j.  Pulled out of the neighbor loop so
-  // the 2-way unroll below can inline it twice; two independent inlined copies
-  // let the compiler keep both (irregular) x(j) gathers in flight at once.
+  // Force contribution of one (i,jj) neighbor pair: always folds the i-force into
+  // (fx,fy,fz).  On a HALF list (full==false) it also atomic-scatters -f to j.
+  // On a FULL list (full==true) j supplies its own force from its own row, so the
+  // scatter is skipped -- that removes every per-pair atomic, the throughput wall
+  // on A100, at the cost of computing each pair twice.
   KOKKOS_INLINE_FUNCTION
   void pair_contrib(const int i, const KK_FLOAT xtmp, const KK_FLOAT ytmp,
                     const KK_FLOAT ztmp, const KK_FLOAT qtmp, const int itype,
@@ -117,7 +119,7 @@ struct LJCL2Force {
       fy += static_cast<KK_ACC_FLOAT>(dely*fpair);
       fz += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
-      if (newton_pair || j < nlocal) {
+      if (!full && (newton_pair || j < nlocal)) {
         Kokkos::atomic_add(&f(j,0), -static_cast<KK_ACC_FLOAT>(delx*fpair));
         Kokkos::atomic_add(&f(j,1), -static_cast<KK_ACC_FLOAT>(dely*fpair));
         Kokkos::atomic_add(&f(j,2), -static_cast<KK_ACC_FLOAT>(delz*fpair));
@@ -149,11 +151,22 @@ struct LJCL2Force {
       pair_contrib(i, xtmp, ytmp, ztmp, qtmp, itype, jj, fx, fy, fz);
     }, fxtmp, fytmp, fztmp);
 
-    // one lane per atom folds the reduced i-force into the global array
+    // one lane per atom writes the reduced i-force to the global array.  On a full
+    // list this atom is the sole writer of f(i) AND the framework does not zero
+    // f(i) on this path (it relies on the pair kernel to own it, cf. the
+    // "NEIGHFLAG == FULL && ZEROFLAG" store in pair_kokkos.h), so assign rather
+    // than add -- pair runs first among force styles, so nothing is clobbered.
+    // On a half list other atoms' j-scatter also hit f(i), so it must be atomic.
     Kokkos::single(Kokkos::PerThread(team), [&] () {
-      Kokkos::atomic_add(&f(i,0), fxtmp);
-      Kokkos::atomic_add(&f(i,1), fytmp);
-      Kokkos::atomic_add(&f(i,2), fztmp);
+      if (full) {
+        f(i,0) = fxtmp;
+        f(i,1) = fytmp;
+        f(i,2) = fztmp;
+      } else {
+        Kokkos::atomic_add(&f(i,0), fxtmp);
+        Kokkos::atomic_add(&f(i,1), fytmp);
+        Kokkos::atomic_add(&f(i,2), fztmp);
+      }
     });
   }
 };
@@ -171,13 +184,15 @@ PairLJCutCoulLong2Kokkos<DeviceType>::PairLJCutCoulLong2Kokkos(LAMMPS *lmp) :
 template<class DeviceType>
 void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
-  // Optimized path handles only the force-only, HALFTHREAD + newton, stack-param
-  // case (the melt hot path).  Everything else -- energy/virial steps for thermo,
-  // full or plain-half lists, newton off, many atom types -- uses the proven
-  // base-class kernel unchanged.
+  // Optimized force-only paths (the melt hot path), selected by neighbor style:
+  //   HALFTHREAD + newton on  -> half list, warp-per-atom, atomic j-scatter
+  //   FULL                    -> full list, warp-per-atom, no atomics (2x pairs)
+  // Everything else -- energy/virial steps for thermo, plain-half lists, many atom
+  // types -- uses the proven base-class kernel unchanged.
+  const bool use_half = (this->neighflag == HALFTHREAD) && this->force->newton_pair;
+  const bool use_full = (this->neighflag == FULL);
   if (eflag_in || vflag_in ||
-      this->neighflag != HALFTHREAD ||
-      !this->force->newton_pair ||
+      (!use_half && !use_full) ||
       this->atom->ntypes > MAX_TYPES_STACKPARAMS) {
     PairLJCutCoulLongKokkos<DeviceType>::compute(eflag_in, vflag_in);
     return;
@@ -202,6 +217,7 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ff.d_neighbors= k_list->d_neighbors;
   ff.inum       = k_list->inum;
 
+  ff.full        = use_full;
   ff.nlocal      = this->atom->nlocal;
   ff.newton_pair = this->force->newton_pair;
   ff.g_ewald     = static_cast<KK_FLOAT>(this->g_ewald);
@@ -221,11 +237,11 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
 
   // warp-per-atom: a full warp's vector lanes split each atom's neighbor loop;
-  // atoms_per_team of them share one thread block (4 x 32 = 128-thread blocks).
-  // These two constants are the launch-shape tuning knobs -- adjust and rebuild
-  // to sweep on new hardware (the stock threads/per/atom and pair/team/size
-  // package options are gated behind neigh/thread on and so are unavailable to
-  // this half-list, newton-on path).
+  // atoms_per_team of them share one thread block.  These two constants are the
+  // launch-shape tuning knobs -- adjust and rebuild to sweep on new hardware (the
+  // stock threads/per/atom and pair/team/size package options are unavailable to
+  // this kernel).  The full-list path has ~2x the neighbors per atom, so its
+  // optimum may differ from the half-list path -- re-sweep vl/apt for each.
   const int vector_length = 32;
   const int atoms_per_team = 4;
   ff.atoms_per_team = atoms_per_team;

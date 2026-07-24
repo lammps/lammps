@@ -609,6 +609,7 @@ COH
 cohesionless
 Coker
 Colberg
+Colditz
 coleman
 Colliex
 collinear
@@ -859,6 +860,7 @@ Destree
 destructor
 destructors
 detils
+Deussen
 Devanathan
 devel
 Devemy
@@ -1494,6 +1496,7 @@ Goga
 Goldfarb
 Gompper
 Gonzalez-Melchor
+Gooch
 Goodsell
 googlemail
 googletest
@@ -1601,6 +1604,9 @@ hbond
 hcp
 hdnnp
 HDNNP
+Luft
+phong
+quantizing
 runner
 RUNNER
 Hearn

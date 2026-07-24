@@ -140,18 +140,13 @@ struct LJCL2Force {
 
     KK_ACC_FLOAT fxtmp = 0.0, fytmp = 0.0, fztmp = 0.0;
 
-    // Vector lanes split the neighbor loop, 2 neighbors per lane per step: the
-    // two x(j) gathers of a step are independent, so the compiler overlaps their
-    // memory latency (ILP) -- latency hiding that raising occupancy can't reach.
-    // Contributions are reduced across lanes into (fxtmp,fytmp,fztmp).
-    const int npair = (jnum + 1) >> 1;
-    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, npair),
-      [&] (const int k, KK_ACC_FLOAT& fx, KK_ACC_FLOAT& fy, KK_ACC_FLOAT& fz) {
-      const int jj0 = k << 1;
-      pair_contrib(i, xtmp, ytmp, ztmp, qtmp, itype, jj0, fx, fy, fz);
-      const int jj1 = jj0 + 1;
-      if (jj1 < jnum)
-        pair_contrib(i, xtmp, ytmp, ztmp, qtmp, itype, jj1, fx, fy, fz);
+    // vector lanes of this atom's warp split the neighbor loop; the i-force
+    // contributions are reduced across lanes into (fxtmp,fytmp,fztmp).  (A 2-way
+    // ILP unroll here regressed the A100 ~30%: it is throughput/atomic-bound, not
+    // latency-bound, so extra in-flight gathers only deepen the memory queues.)
+    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, jnum),
+      [&] (const int jj, KK_ACC_FLOAT& fx, KK_ACC_FLOAT& fy, KK_ACC_FLOAT& fz) {
+      pair_contrib(i, xtmp, ytmp, ztmp, qtmp, itype, jj, fx, fy, fz);
     }, fxtmp, fytmp, fztmp);
 
     // one lane per atom folds the reduced i-force into the global array

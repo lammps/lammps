@@ -504,10 +504,10 @@ void PairEAM::coeff_funcfl(int narg, char **arg)
     if (strcmp(arg[2],funcfl[ifuncfl].file) == 0) break;
 
   if (ifuncfl == nfuncfl) {
-    nfuncfl++;
     funcfl = (Funcfl *)
-      memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
+      memory->srealloc(funcfl,(nfuncfl+1)*sizeof(Funcfl),"pair:funcfl");
     read_file(arg[2]);
+    nfuncfl++;
     funcfl[ifuncfl].file = utils::strdup(arg[2]);
   }
 

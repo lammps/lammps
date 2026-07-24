@@ -37,7 +37,7 @@ class Group : protected Pointers {
   void assign(const std::string &);           // convenience function
   void create(const std::string &, int *);    // add flagged atoms to a group
   int find(const std::string &);              // lookup name in list of groups
-  int find_or_create(const char *);           // lookup name or create new group
+  int find_or_create(const std::string &);    // lookup name or create new group
   int get_bitmask_by_id(const std::string &, int, const std::string &, const std::string &);
   int get_inversemask_by_id(const std::string &, int, const std::string &, const std::string &);
   void write_restart(FILE *);

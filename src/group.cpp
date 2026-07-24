@@ -623,7 +623,7 @@ int Group::find(const std::string &name)
    return group index
 ------------------------------------------------------------------------- */
 
-int Group::find_or_create(const char *name)
+int Group::find_or_create(const std::string &name)
 {
   int igroup = find(name);
   if (igroup >= 0) return igroup;

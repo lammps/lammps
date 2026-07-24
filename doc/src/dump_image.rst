@@ -112,8 +112,8 @@ Syntax
        *fsaa* arg = yes/no
          yes/no = do or do not apply anti-aliasing
        *ssao* value = shading seed dfactor = SSAO depth shading
-         shading = *yes* or *no* = turn depth shading on/off
-         seed = random # seed (positive integer)
+         shading = *yes* or *no* or *fast* = depth shading off, on, or on with the fast algorithm
+         seed = random # seed (positive integer, unused by the fast algorithm)
          dfactor = strength of shading from 0.0 to 1.0
        *depthcue* values = cueing cfactor color start = depth cueing
          cueing = *yes* or *no* = turn depth cueing on/off
@@ -878,6 +878,18 @@ deterministic noise pattern derived from the pixel position and the
 ranks or OpenMP threads, and images of an unchanged scene are exactly
 reproducible, which avoids flickering shading in movies.  Different
 *seed* values shift the noise pattern.
+
+.. versionadded:: TBD
+
+Setting *fast* instead of *yes* selects an alternative depth shading
+algorithm that blurs the depth buffer and darkens pixels that lie
+behind the average depth of their surroundings :ref:`(Luft) <Luft>`.
+It produces a similar visual impression of depth in crevices and
+contact regions at a small fraction of the computational cost of the
+classic SSAO algorithm, and the resulting shading is smooth instead of
+slightly grainy.  The *seed* value is ignored in this case, but must
+still be provided.  The *dfactor* value scales the strength of the
+shading as before.
 
 .. versionadded:: TBD
 
@@ -1821,3 +1833,9 @@ the RGB (red/green/blue) values.
    * - |color_yellow| yellow: 1.000, 1.000, 0.000
      - |color_yellowgreen| yellowgreen: 0.604, 0.804, 0.196
      -
+
+----------
+
+.. _Luft:
+
+**(Luft)** Luft, Colditz, Deussen, ACM Trans. Graph. 25, 1206-1213 (2006).

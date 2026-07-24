@@ -612,7 +612,13 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"ssao") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image ssao", error);
-      image->ssao = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      if (strcmp(arg[iarg+1],"fast") == 0) {
+        image->ssao = 1;
+        image->fastssao = 1;
+      } else {
+        image->ssao = utils::logical(FLERR,arg[iarg+1],false,lmp);
+        image->fastssao = 0;
+      }
       int seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
       if (seed <= 0) error->all(FLERR, iarg + 2, "Invalid dump image ssao seed {}", seed);
       image->seed = seed;

@@ -37,6 +37,7 @@ class Image : protected Pointers {
   double gamma;               // gamma correction of rendered objects, 1.0 = off
   int fsaa;                   // antialiasing on or off
   int ssao;                   // SSAO on or off
+  int fastssao;               // 1 = fast depth-darkening algorithm, 0 = classic SSAO
   int seed;                   // RN seed for SSAO
   double ssaoint;             // strength of shading from 0 to 1
   int depthcue;               // depth cueing on or off
@@ -149,6 +150,7 @@ class Image : protected Pointers {
   void draw_pixel(int, int, double, const double *, const double *);
   void setup_lights();
   void compute_SSAO();
+  void compute_SSAO_fast();
   void compute_depthcue();
 
   // inline functions

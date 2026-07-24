@@ -722,6 +722,7 @@ Ctypes
 cuda
 Cuda
 CUDA
+cueing
 cuFFT
 CuH
 Cui
@@ -841,6 +842,7 @@ Denoual
 dephase
 dephasing
 deprotonated
+depthcue
 dequidt
 Dequidt
 der
@@ -1599,6 +1601,8 @@ hbond
 hcp
 hdnnp
 HDNNP
+lightdir
+repositions
 runner
 RUNNER
 Hearn

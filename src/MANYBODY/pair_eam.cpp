@@ -662,7 +662,7 @@ void PairEAM::read_file(char *filename)
 
 void PairEAM::read_funcfl(char *filename)
 {
-  Funcfl *file = &funcfl[nfuncfl-1];
+  Funcfl *file = &funcfl[nfuncfl];
 
   // read potential file
   if (comm->me == 0) {

@@ -1790,7 +1790,7 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
   c[1] = saturate(c[1]);
   c[2] = saturate(c[2]);
 
-  // apply gamma correction to the summed up linear light contributions
+  // apply gamma adjustment to the summed up light contributions
 
   if (gamma != 1.0) {
     c[0] = pow(c[0], 1.0 / gamma);

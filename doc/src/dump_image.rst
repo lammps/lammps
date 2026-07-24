@@ -194,7 +194,7 @@ Syntax
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
        *gamma* arg = gvalue
-         gvalue = gamma correction applied to rendered objects (from 0.1 to 10.0, 1.0 = no correction)
+         gvalue = gamma adjustment applied to rendered objects (from 0.1 to 10.0, 1.0 = no change)
        *gtrans* arg = transparency
          transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
        *lights* args = ambient key fill back
@@ -1327,15 +1327,19 @@ the scene from behind the camera to provide depth.
 
 .. versionadded:: TBD
 
-The *gamma* keyword applies a gamma correction to the rendered objects:
-the light contributions to each pixel are summed up linearly and then
-raised to the power of 1/*gvalue* before conversion to the 8-bit color
-values of the image file.  Values larger than 1.0 (the typical display
-gamma is 2.2) brighten the image, most strongly in the darker regions,
-and thus recover shading detail on the dimly lit side of objects;
-values below 1.0 darken the image and increase contrast.  The
-correction applies only to rendered objects; the background colors are
-used exactly as specified.
+The *gamma* keyword adjusts the gamma value of the rendered objects:
+the summed up light contributions of each pixel are raised to the power
+of 1/*gvalue* before they are converted to the 8-bit color values of
+the image file, similar to the gamma adjustment of image manipulation
+programs.  A value larger than 1.0 lightens the image, most strongly in
+the darker regions, and thus can bring out shading detail on the dimly
+lit side of objects; a value smaller than 1.0 darkens the image and
+increases the contrast.  The default rendering is already tuned to look
+right on typical displays, and no gamma information is stored in the
+image files, so this setting fine-tunes the tonal balance rather than
+applying a required display correction.  The adjustment applies only to
+rendered objects; the background colors are used exactly as
+specified.
 
 .. versionadded:: TBD
 

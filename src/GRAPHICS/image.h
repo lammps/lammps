@@ -42,6 +42,8 @@ class Image : protected Pointers {
   int depthcue;               // depth cueing on or off
   double depthcueint;         // strength of depth cueing from 0 to 1
   double *depthcuecolor;      // fog color; fade toward background color if null
+  int depthcuestartflag;      // 1 if fading starts at a box fraction, 0 at nearest object
+  double depthcuestart;       // start of fading as box fraction along the view direction
   double *boxcolor;           // color to draw box outline with
   int background[3];          // RGB values of background
   int background2[3];         // RGB values of second background color for gradient (off if < 0.0)
@@ -137,6 +139,7 @@ class Image : protected Pointers {
 
   double zdist;
   double tanPerPixel;
+  double boxbounds[6];        // box bounds from the last view_params() call
   double camDir[3], camUp[3], camRight[4], camPos[3];
   double keyLightDir[3], fillLightDir[3], backLightDir[3];
   double keyHalfDir[3];

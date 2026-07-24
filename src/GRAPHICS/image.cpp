@@ -366,6 +366,9 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   depthcue = NO;
   depthcueint = 0.0;
   depthcuecolor = nullptr;
+  depthcuestartflag = 0;
+  depthcuestart = 0.0;
+  for (auto &b : boxbounds) b = 0.0;
 
   up[0] = 0.0;
   up[1] = 0.0;
@@ -665,6 +668,15 @@ void Image::buffers()
 void Image::view_params(double boxxlo, double boxxhi, double boxylo,
                         double boxyhi, double boxzlo, double boxzhi)
 {
+  // keep box bounds for projecting the box onto the view direction
+
+  boxbounds[0] = boxxlo;
+  boxbounds[1] = boxxhi;
+  boxbounds[2] = boxylo;
+  boxbounds[3] = boxyhi;
+  boxbounds[4] = boxzlo;
+  boxbounds[5] = boxzhi;
+
   // camDir points at the camera, view direction = -camDir
 
   camDir[0] = sin(theta)*cos(phi);
@@ -1932,9 +1944,10 @@ void Image::compute_SSAO()
 
 /* ----------------------------------------------------------------------
    apply depth cueing to the composited image on the output rank:
-   fade drawn pixels toward the background color with increasing distance
-   from the viewer.  the fade range is taken from the nearest and most
-   distant drawn pixels, so the effect adapts to the visible scene.
+   fade drawn pixels toward the fog color with increasing distance from
+   the viewer.  the fade ends at the most distant drawn pixel and starts
+   at the nearest drawn pixel or at a chosen fraction of the simulation
+   box projected onto the view direction.
 ------------------------------------------------------------------------- */
 
 void Image::compute_depthcue()
@@ -1958,7 +1971,33 @@ void Image::compute_depthcue()
   // nothing to do without drawn pixels or without depth variation
 
   if (first || ((dmax - dmin) < EPSILON)) return;
-  const double dscale = depthcueint / (dmax - dmin);
+
+  // start of the fade: by default the nearest drawn pixel.  with a start
+  // fraction set, project the corners of the simulation box onto the view
+  // direction and place the start at that fraction between the near and
+  // far side of the box as seen from the camera
+
+  double dstart = dmin;
+  if (depthcuestartflag) {
+    const double dcam = MathExtra::dot3(camPos,camDir);
+    double dnear = 0.0, dfar = 0.0;
+    for (int ic = 0; ic < 8; ++ic) {
+      double corner[3];
+      corner[0] = ((ic & 1) ? boxbounds[1] : boxbounds[0]) - xctr;
+      corner[1] = ((ic & 2) ? boxbounds[3] : boxbounds[2]) - yctr;
+      corner[2] = ((ic & 4) ? boxbounds[5] : boxbounds[4]) - zctr;
+      const double d = dcam - MathExtra::dot3(corner,camDir);
+      if (ic == 0) {
+        dnear = dfar = d;
+      } else {
+        dnear = MIN(dnear,d);
+        dfar = MAX(dfar,d);
+      }
+    }
+    dstart = dnear + depthcuestart * (dfar - dnear);
+    if (dstart >= (dmax - EPSILON)) return;    // fading starts behind all drawn pixels
+  }
+  const double dscale = depthcueint / (dmax - dstart);
 
   // blend pixel colors toward the fog color.  by default this is the
   // background color, with a gradient enabled the same per-row color as
@@ -1986,8 +2025,8 @@ void Image::compute_depthcue()
     for (int ix = 0; ix < width; ++ix) {
       const int i = iy * width + ix;
       const double d = depthBuffer[i];
-      if (d < 0.0) continue;
-      const double f = (d - dmin) * dscale;
+      if (d < 0.0 || d <= dstart) continue;
+      const double f = (d - dstart) * dscale;
       writeBuffer[i*3+0] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+0] + f * red);
       writeBuffer[i*3+1] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+1] + f * green);
       writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+2] + f * blue);

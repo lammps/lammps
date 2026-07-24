@@ -22,7 +22,7 @@ setup_commands: |
   improper_style harmonic
   read_data ${input_dir}/data.peptide
   neighbor 2.0 bin
-  dump viz all image 1 ${imagefile} type type size 200 200 zoom 1.5 view 60 30 shiny 0.2 box yes 0.02 bond atom 0.3 depthcue yes 0.8 auto
+  dump viz all image 1 ${imagefile} type type size 200 200 zoom 1.5 view 60 30 shiny 0.2 box yes 0.02 bond atom 0.3 depthcue yes 0.8 auto auto
   dump_modify viz backcolor blue backcolor2 black
 run_commands: |
   run 0

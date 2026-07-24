@@ -115,10 +115,11 @@ Syntax
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
-       *depthcue* values = cueing cfactor color = depth cueing
+       *depthcue* values = cueing cfactor color start = depth cueing
          cueing = *yes* or *no* = turn depth cueing on/off
          cfactor = strength of fading from 0.0 to 1.0
          color = fog color name or *auto* = fade toward the background color
+         start = box fraction along the view direction where fading starts, or *auto* = nearest rendered object
 
 .. _dump_modify_image:
 
@@ -895,9 +896,18 @@ reduce the maximum amount of fading.  The *color* setting selects the
 fog color: with *auto* the objects fade toward the background color,
 following the background gradient when one is set with the *backcolor2*
 option; any color name known to LAMMPS selects that color instead,
-e.g. white or gray fog over a dark background.  The fade range adapts
-automatically to the nearest and most distant rendered objects in each
-image.  Unlike the *ssao* keyword, depth cueing adds no significant
+e.g. white or gray fog over a dark background.  The *start* setting
+determines where the fading begins.  With *auto* it begins at the
+nearest rendered object, so the front of the scene is always unfaded.
+A numeric value instead positions the start as a fraction of the
+simulation box projected onto the view direction, similar to the
+fractions of the *center* keyword but reduced to a single number: 0.0
+starts the fading at the side of the box nearest to the camera, 0.5 at
+its middle, and 1.0 at its far side; values outside this range are
+allowed.  Objects in front of the start position remain unfaded, which
+avoids darkening most of the scene when the rendered objects span a
+large depth range.  The fading always ends at the most distant rendered
+object.  Unlike the *ssao* keyword, depth cueing adds no significant
 computational cost, and both can be combined.
 
 ----------

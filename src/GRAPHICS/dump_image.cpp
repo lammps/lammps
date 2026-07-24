@@ -3050,6 +3050,15 @@ int DumpImage::modify_param(int narg, char **arg)
     return 4;
   }
 
+  if (strcmp(arg[0], "gamma") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gamma", error);
+    double gval = utils::numeric(FLERR, arg[1], false, lmp);
+    if ((gval < 0.1) || (gval > 10.0))
+      error->all(FLERR, argoff + 1, "Illegal gamma value {}", gval);
+    image->gamma = gval;
+    return 2;
+  }
+
   if (strcmp(arg[0], "specular") == 0) {
     if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
     double intensity = utils::numeric(FLERR, arg[1], false, lmp);

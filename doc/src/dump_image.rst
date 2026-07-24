@@ -132,7 +132,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gtrans* or *lights* or *lightdir* or *specular* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *lightdir* or *specular* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -191,6 +191,8 @@ Syntax
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
+       *gamma* arg = gvalue
+         gvalue = gamma correction applied to rendered objects (from 0.1 to 10.0, 1.0 = no correction)
        *gtrans* arg = transparency
          transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
        *lights* args = ambient key fill back
@@ -1306,6 +1308,18 @@ the scene from behind the camera to provide depth.
 
 .. versionadded:: TBD
 
+The *gamma* keyword applies a gamma correction to the rendered objects:
+the light contributions to each pixel are summed up linearly and then
+raised to the power of 1/*gvalue* before conversion to the 8-bit color
+values of the image file.  Values larger than 1.0 (the typical display
+gamma is 2.2) brighten the image, most strongly in the darker regions,
+and thus recover shading detail on the dimly lit side of objects;
+values below 1.0 darken the image and increase contrast.  The
+correction applies only to rendered objects; the background colors are
+used exactly as specified.
+
+.. versionadded:: TBD
+
 The *lightdir* keyword repositions one of the directional light
 sources: *key*, *fill*, or *back*.  The two angles are set in degrees
 relative to the viewing direction, so the lights stay fixed relative to
@@ -1475,6 +1489,7 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * boxtrans = 1.0
 * subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
+* gamma = 1.0
 * lights = 0.0 0.9 0.45 0.9
 * lightdir = key 30 -45, fill 0 30, back 15 180
 * specular = derived from the *shiny* keyword of the dump image command

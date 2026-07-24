@@ -34,6 +34,7 @@ class Image : protected Pointers {
   double up[3];               // up direction in image
   double zoom;                // zoom factor
   double shiny;               // shininess of objects
+  double gamma;               // gamma correction of rendered objects, 1.0 = off
   int fsaa;                   // antialiasing on or off
   int ssao;                   // SSAO on or off
   int seed;                   // RN seed for SSAO

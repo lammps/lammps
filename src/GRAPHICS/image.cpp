@@ -361,6 +361,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   phi = 30.0 * DEG2RAD;
   zoom = 1.0;
   shiny = 1.0;
+  gamma = 1.0;
   ssao = NO;
   fsaa = NO;
   depthcue = NO;
@@ -1781,6 +1782,14 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
   c[0] = saturate(c[0]);
   c[1] = saturate(c[1]);
   c[2] = saturate(c[2]);
+
+  // apply gamma correction to the summed up linear light contributions
+
+  if (gamma != 1.0) {
+    c[0] = pow(c[0], 1.0 / gamma);
+    c[1] = pow(c[1], 1.0 / gamma);
+    c[2] = pow(c[2], 1.0 / gamma);
+  }
 
   imageBuffer[0 + ix*3 + iy*width*3] = static_cast<int>(c[0] * 255.0);
   imageBuffer[1 + ix*3 + iy*width*3] = static_cast<int>(c[1] * 255.0);

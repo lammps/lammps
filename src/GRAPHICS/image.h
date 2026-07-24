@@ -45,6 +45,9 @@ class Image : protected Pointers {
   double *depthcuecolor;      // fog color; fade toward background color if null
   int depthcuestartflag;      // 1 if fading starts at a box fraction, 0 at nearest object
   double depthcuestart;       // start of fading as box fraction along the view direction
+  int outline;                // outline drawing on or off
+  int outlinewidth;           // width of outlines in pixels
+  double *outlinecolor;       // color of the outlines
   double *boxcolor;           // color to draw box outline with
   int background[3];          // RGB values of background
   int background2[3];         // RGB values of second background color for gradient (off if < 0.0)
@@ -151,6 +154,7 @@ class Image : protected Pointers {
   void setup_lights();
   void compute_SSAO();
   void compute_SSAO_fast();
+  void compute_outline();
   void compute_depthcue();
 
   // inline functions

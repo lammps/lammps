@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue* or *outline*
 
   .. parsed-literal::
 
@@ -120,6 +120,10 @@ Syntax
          cfactor = strength of fading from 0.0 to 1.0
          color = fog color name or *auto* = fade toward the background color
          start = box fraction along the view direction where fading starts, or *auto* = nearest rendered object
+       *outline* values = flag width color = outlines at depth jumps
+         flag = *yes* or *no* = turn outline drawing on/off
+         width = width of the outlines in pixels (from 1 to 16)
+         color = color name of the outlines
 
 .. _dump_modify_image:
 
@@ -917,6 +921,17 @@ large depth range.  The fading always ends at the most distant rendered
 object.  Unlike the *ssao* keyword, depth cueing adds no significant
 computational cost, and both can be combined.
 
+.. versionadded:: TBD
+
+The *outline* keyword turns on/off drawing outlines where the distance
+from the viewer jumps, i.e. along the visible edges of atoms and other
+objects in front of the background or in front of more distant objects.
+This produces a flat, illustration-like appearance similar to
+hand-drawn molecular graphics, especially when combined with reduced
+shininess or increased ambient lighting.  The *width* value sets the
+width of the outlines in pixels of the final image; the *color* value
+sets their color, e.g. black.
+
 ----------
 
 Dump_modify keywords for dump image and dump movie
@@ -1492,6 +1507,7 @@ The defaults for the dump image and dump movie keywords are as follows:
 * ssao = no
 * fsaa = no
 * depthcue = no
+* outline = no
 
 ----------
 

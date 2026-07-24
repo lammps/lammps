@@ -650,6 +650,18 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 5;
 
+    } else if (strcmp(arg[iarg],"outline") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image outline", error);
+      image->outline = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      int owidth = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if (owidth < 1 || owidth > 16)
+        error->all(FLERR, iarg+2, "Invalid dump image outline width {}", owidth);
+      image->outlinewidth = owidth;
+      image->outlinecolor = image->color2rgb(arg[iarg+3]);
+      if (image->outlinecolor == nullptr)
+        error->all(FLERR, iarg+3, "Invalid dump image outline color {}", arg[iarg+3]);
+      iarg += 4;
+
     } else error->all(FLERR, iarg, "Unknown dump image keyword {}", arg[iarg]);
   }
 

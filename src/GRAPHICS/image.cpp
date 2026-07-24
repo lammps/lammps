@@ -369,6 +369,9 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   depthcuecolor = nullptr;
   depthcuestartflag = 0;
   depthcuestart = 0.0;
+  outline = NO;
+  outlinewidth = 0;
+  outlinecolor = nullptr;
   for (auto &b : boxbounds) b = 0.0;
 
   up[0] = 0.0;
@@ -923,6 +926,10 @@ void Image::merge()
   // apply fast SSAO depth shading to the final composited image
 
   if (ssao && fastssao && (me == 0)) compute_SSAO_fast();
+
+  // draw outlines at depth discontinuities
+
+  if (outline && (me == 0)) compute_outline();
 
   // apply depth cueing to the final composited image
 
@@ -2054,6 +2061,106 @@ void Image::compute_SSAO_fast()
   delete[] kernel;
   delete[] rowblur;
   delete[] blur;
+}
+
+/* ----------------------------------------------------------------------
+   draw outlines on the composited image on the output rank: color
+   drawn pixels that have a significantly more distant pixel or the
+   background within the outline width.  the outline hugs the nearer
+   object at depth discontinuities, which gives the flat illustration
+   look known from hand-drawn molecular graphics.
+------------------------------------------------------------------------- */
+
+void Image::compute_outline()
+{
+  // only depth jumps between immediately adjacent pixels that are larger
+  // than a small fraction of the box size count as edges.  the smooth but
+  // steep depth changes where a curved surface turns away from the viewer
+  // must not be outlined, so the threshold is of the order of typical
+  // particle sizes and the comparison spans only one pixel
+
+  const double delx = 2.0 * (boxbounds[1] - boxbounds[0]);
+  const double dely = 2.0 * (boxbounds[3] - boxbounds[2]);
+  const double delz = 2.0 * (boxbounds[5] - boxbounds[4]);
+  double maxdel = MAX(delx,dely);
+  maxdel = MAX(maxdel,delz);
+  const double threshold = 0.02 * maxdel;
+
+  // the outline width follows the internal image size with FSAA
+
+  int w = outlinewidth;
+  if (fsaa) w *= 2;
+
+  const unsigned char red   = static_cast<unsigned char>(outlinecolor[0] * 255.0);
+  const unsigned char green = static_cast<unsigned char>(outlinecolor[1] * 255.0);
+  const unsigned char blue  = static_cast<unsigned char>(outlinecolor[2] * 255.0);
+
+  // mark drawn pixels that have a much more distant immediate neighbor
+  // or border on the background
+
+  auto *edges = new unsigned char[npixels];
+  memset(edges,0,npixels);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const double d = depthBuffer[iy*width + ix];
+      if (d < 0.0) continue;
+
+      constexpr int xoff[4] = {-1, 1, 0, 0};
+      constexpr int yoff[4] = {0, 0, -1, 1};
+      for (int k = 0; k < 4; ++k) {
+        const int jx = ix + xoff[k];
+        const int jy = iy + yoff[k];
+        if (jx < 0 || jx >= width || jy < 0 || jy >= height) continue;
+        const double dj = depthBuffer[jy*width + jx];
+        if (dj < 0.0 || (dj - d) > threshold) {
+          edges[iy*width + ix] = 1;
+          break;
+        }
+      }
+    }
+  }
+
+  // widen the outline: color drawn pixels near an edge pixel, but only
+  // on the near side of the depth jump so the outline hugs the nearer
+  // object and does not bleed onto more distant objects
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const double d = depthBuffer[iy*width + ix];
+      if (d < 0.0) continue;
+
+      bool paint = false;
+      for (int dy = -w+1; dy < w && !paint; ++dy) {
+        const int jy = iy + dy;
+        if (jy < 0 || jy >= height) continue;
+        for (int dx = -w+1; dx < w; ++dx) {
+          const int jx = ix + dx;
+          if (jx < 0 || jx >= width) continue;
+          if (!edges[jy*width + jx]) continue;
+          if ((d - depthBuffer[jy*width + jx]) < threshold) {
+            paint = true;
+            break;
+          }
+        }
+      }
+
+      if (paint) {
+        const int i = iy*width + ix;
+        writeBuffer[i*3+0] = red;
+        writeBuffer[i*3+1] = green;
+        writeBuffer[i*3+2] = blue;
+      }
+    }
+  }
+
+  delete[] edges;
 }
 
 /* ----------------------------------------------------------------------

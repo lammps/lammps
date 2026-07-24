@@ -3036,33 +3036,6 @@ int DumpImage::modify_param(int narg, char **arg)
     return 5;
   }
 
-  if (strcmp(arg[0], "lightdir") == 0) {
-    if (narg < 4) utils::missing_cmd_args(FLERR, "dump_modify lightdir", error);
-    double theta = utils::numeric(FLERR, arg[2], false, lmp);
-    if ((theta < -90.0) || (theta > 90.0))
-      error->all(FLERR, argoff + 2, "Illegal lightdir theta value {}", theta);
-    double phi = utils::numeric(FLERR, arg[3], false, lmp);
-    if ((phi < -180.0) || (phi > 180.0))
-      error->all(FLERR, argoff + 3, "Illegal lightdir phi value {}", phi);
-    if (strcmp(arg[1], "key") == 0) {
-      image->keyLightTheta = DEG2RAD * theta;
-      image->keyLightPhi = DEG2RAD * phi;
-    } else if (strcmp(arg[1], "fill") == 0) {
-      image->fillLightTheta = DEG2RAD * theta;
-      image->fillLightPhi = DEG2RAD * phi;
-    } else if (strcmp(arg[1], "back") == 0) {
-      image->backLightTheta = DEG2RAD * theta;
-      image->backLightPhi = DEG2RAD * phi;
-    } else {
-      error->all(FLERR, argoff + 1, "Unknown lightdir light name {}", arg[1]);
-    }
-
-    // recompute light directions since view parameters may not be recomputed again
-
-    image->setup_lights();
-    return 4;
-  }
-
   if (strcmp(arg[0], "gamma") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gamma", error);
     double gval = utils::numeric(FLERR, arg[1], false, lmp);
@@ -3073,17 +3046,13 @@ int DumpImage::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0], "specular") == 0) {
-    if (narg < 3) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
-    double intensity = utils::numeric(FLERR, arg[1], false, lmp);
-    if ((intensity < 0.0) || (intensity > 1.0))
-      error->all(FLERR, argoff + 1, "Illegal specular intensity value {}", intensity);
-    double hardness = utils::numeric(FLERR, arg[2], false, lmp);
-    if (hardness <= 0.0)
-      error->all(FLERR, argoff + 2, "Illegal specular exponent value {}", hardness);
-    image->specularIntensity = intensity;
-    image->specularHardness = hardness;
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
+    if (strcmp(arg[1], "wide") == 0) image->specularHardness = 10.0;
+    else if (strcmp(arg[1], "narrow") == 0) image->specularHardness = 50.0;
+    else if (strcmp(arg[1], "tight") == 0) image->specularHardness = 200.0;
+    else error->all(FLERR, argoff + 1, "Unknown specular setting {}", arg[1]);
     image->specularflag = 1;
-    return 3;
+    return 2;
   }
 
   if (strcmp(arg[0], "savecolors") == 0) {

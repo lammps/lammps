@@ -53,16 +53,8 @@ class Image : protected Pointers {
   double fillLightColor[3];
   double backLightColor[3];
 
-  double keyLightTheta;      // light directions relative to the viewer (adjustable by caller)
-  double keyLightPhi;
-  double fillLightTheta;
-  double fillLightPhi;
-  double backLightTheta;
-  double backLightPhi;
-
-  int specularflag;             // 1 if specular settings override those derived from shiny
+  int specularflag;             // 1 if the specular exponent is set explicitly
   double specularHardness;      // exponent of the specular highlight
-  double specularIntensity;     // strength of the specular highlight
 
   Image(class LAMMPS *, int);
   ~Image() override;
@@ -74,7 +66,6 @@ class Image : protected Pointers {
   void write_TGA(FILE *, bool compressed = true);
   void write_PPM(FILE *);
   void view_params(double, double, double, double, double, double);
-  void setup_lights();
 
   void draw_sphere(const double *, const double *, double, double opacity = 1.0);
   void draw_cube(const double *, const double *, double, double opacity = 1.0);
@@ -131,6 +122,15 @@ class Image : protected Pointers {
 
   double FOV;
 
+  double keyLightTheta;
+  double keyLightPhi;
+  double fillLightTheta;
+  double fillLightPhi;
+  double backLightTheta;
+  double backLightPhi;
+
+  double specularIntensity;    // strength of the specular highlight
+
   double SSAORadius;
   int SSAOSamples;
   double SSAOJitter;
@@ -147,6 +147,7 @@ class Image : protected Pointers {
   // internal methods
 
   void draw_pixel(int, int, double, const double *, const double *);
+  void setup_lights();
   void compute_SSAO();
   void compute_depthcue();
 

@@ -1601,8 +1601,6 @@ hbond
 hcp
 hdnnp
 HDNNP
-lightdir
-repositions
 runner
 RUNNER
 Hearn

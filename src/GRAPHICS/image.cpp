@@ -742,12 +742,11 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
 
   setup_lights();
 
-  // adjust shinyness of the reflection unless overridden with dump_modify specular
+  // the brightness of the specular highlights follows shiny; their width
+  // also follows shiny unless set with a dump_modify specular preset
 
-  if (!specularflag) {
-    specularHardness = 16.0 * shiny;
-    specularIntensity = shiny;
-  }
+  specularIntensity = shiny;
+  if (!specularflag) specularHardness = 16.0 * shiny;
 
   // adjust strength of the SSAO
 
@@ -769,7 +768,6 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
    compute light directions from their theta/phi angles
    the angles are relative to the viewer with z pointing at the camera:
    theta > 0 moves a light above the view direction, phi > 0 to the right
-   called from view_params() and after changing angles with dump_modify
 ------------------------------------------------------------------------- */
 
 void Image::setup_lights()

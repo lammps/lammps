@@ -65,7 +65,20 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   int compute_step;
   int last_source_grpbit;
   bool last_invert_source;
+  // TIP4P support
+  int typeO = 0;
+  int typeH = 0;
+
+  double qdist = 0.0;
+  double alpha = 0.0;
   void start_compute();
+  void particle_map() override;
+  void make_rho() override;
+  void fieldforce_ik() override;
+
+
+  // TIP4P helper
+  void find_M(int i, int &iH1, int &iH2, double *xM);
   void make_rho_in_brick(int, FFT_SCALAR ***, bool);
   void project_psi(double *, int);
   void one_step_multiplication(bigint *, double *, double **, double **, const int, bool);

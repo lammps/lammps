@@ -206,9 +206,7 @@ void KSpace::pair_check()
   if (dispersionflag && !force->pair->dispersionflag) compatible = false;
   if (dipoleflag && !force->pair->dipoleflag) compatible = false;
   if (spinflag && !force->pair->spinflag) compatible = false;
-  if (tip4pflag && !force->pair->tip4pflag) compatible = false;
   if (force->pair->dispersionflag && !dispersionflag) compatible = false;
-  if (force->pair->tip4pflag && !tip4pflag) compatible = false;
 
   if (!compatible)
     error->all(FLERR, Error::NOLASTLINE,

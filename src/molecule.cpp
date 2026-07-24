@@ -55,7 +55,7 @@ Molecule::Molecule(LAMMPS *lmp) :
     improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr),
     special(nullptr), shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr),
     avec_body(nullptr), ibodyparams(nullptr), dbodyparams(nullptr), fragmentmask(nullptr),
-    dx(nullptr), dxcom(nullptr), dxbody(nullptr), qu fp(nullptr),
+    dx(nullptr), dxcom(nullptr), dxbody(nullptr), fp(nullptr),
     count(nullptr)
 {
   // parse args until reach unknown arg (next file)

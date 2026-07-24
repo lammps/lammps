@@ -362,7 +362,6 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   shiny = 1.0;
   gamma = 1.0;
   ssao = NO;
-  fastssao = 0;
   fsaa = NO;
   depthcue = NO;
   depthcueint = 0.0;
@@ -844,12 +843,6 @@ void Image::merge()
 {
   MPI_Request requests[3];
 
-  // only the classic SSAO algorithm needs the surface buffer and the
-  // MPI-distributed shading pass; the fast algorithm and depth cueing
-  // are applied to the composited image on the output rank
-
-  const int classic = ssao && !fastssao;
-
   int nhalf = 1;
   while (nhalf < nprocs) nhalf *= 2;
   nhalf /= 2;
@@ -858,10 +851,10 @@ void Image::merge()
     if (me < nhalf && me+nhalf < nprocs) {
       MPI_Irecv(rgbcopy,npixels*3,MPI_BYTE,me+nhalf,0,world,&requests[0]);
       MPI_Irecv(depthcopy,npixels,MPI_DOUBLE,me+nhalf,0,world,&requests[1]);
-      if (classic)
+      if (ssao)
         MPI_Irecv(surfacecopy,npixels*2,MPI_DOUBLE,
                   me+nhalf,0,world,&requests[2]);
-      if (classic) MPI_Waitall(3,requests,MPI_STATUS_IGNORE);
+      if (ssao) MPI_Waitall(3,requests,MPI_STATUS_IGNORE);
       else MPI_Waitall(2,requests,MPI_STATUS_IGNORE);
 
       for (int i = 0; i < npixels; i++) {
@@ -870,7 +863,7 @@ void Image::merge()
           imageBuffer[i*3+0] = rgbcopy[i*3+0];
           imageBuffer[i*3+1] = rgbcopy[i*3+1];
           imageBuffer[i*3+2] = rgbcopy[i*3+2];
-          if (classic) {
+          if (ssao) {
             surfaceBuffer[i*2+0] = surfacecopy[i*2+0];
             surfaceBuffer[i*2+1] = surfacecopy[i*2+1];
           }
@@ -880,7 +873,7 @@ void Image::merge()
     } else if (me >= nhalf && me < 2*nhalf) {
       MPI_Send(imageBuffer,npixels*3,MPI_BYTE,me-nhalf,0,world);
       MPI_Send(depthBuffer,npixels,MPI_DOUBLE,me-nhalf,0,world);
-      if (classic) MPI_Send(surfaceBuffer,npixels*2,MPI_DOUBLE,me-nhalf,0,world);
+      if (ssao) MPI_Send(surfaceBuffer,npixels*2,MPI_DOUBLE,me-nhalf,0,world);
     }
 
     nhalf /= 2;
@@ -892,7 +885,7 @@ void Image::merge()
   // MPI_Gather() result back to proc 0
   // use Gatherv() if subset of pixels is not the same size on every proc
 
-  if (classic) {
+  if (ssao) {
     MPI_Bcast(imageBuffer,npixels*3,MPI_BYTE,0,world);
     MPI_Bcast(surfaceBuffer,npixels*2,MPI_DOUBLE,0,world);
     MPI_Bcast(depthBuffer,npixels,MPI_DOUBLE,0,world);
@@ -924,10 +917,6 @@ void Image::merge()
   } else {
     writeBuffer = imageBuffer;
   }
-
-  // apply fast SSAO depth shading to the final composited image
-
-  if (ssao && fastssao && (me == 0)) compute_SSAO_fast();
 
   // draw outlines at depth discontinuities
 
@@ -1965,111 +1954,6 @@ void Image::compute_SSAO()
     imageBuffer[index * 3 + 1] = (int) c[1];
     imageBuffer[index * 3 + 2] = (int) c[2];
   }
-}
-
-/* ----------------------------------------------------------------------
-   fast depth shading on the composited image on the output rank
-   following Luft, Colditz, Deussen, ACM Trans. Graph. 25, 1206 (2006):
-   blur the depth buffer with a separable gaussian kernel and darken
-   pixels that lie behind the local average depth in proportion to the
-   difference.  reads as ambient occlusion in crevices and contact
-   regions at a fraction of the cost of the classic SSAO algorithm
-   and with no image noise.
-------------------------------------------------------------------------- */
-
-void Image::compute_SSAO_fast()
-{
-  // pixel radius of the blur kernel, same size as the classic SSAO radius
-
-  const double pixelWidth = (tanPerPixel > 0) ? tanPerPixel : -tanPerPixel / zoom;
-  int pixelRadius = (int) trunc(SSAORadius / pixelWidth + 0.5);
-  if (pixelRadius < 1) pixelRadius = 1;
-
-  // depth of the most distant drawn pixel substitutes for the background
-  // in the blur, so silhouettes against the background darken gently
-
-  bool first = true;
-  double dmax = 0.0;
-  for (int i = 0; i < npixels; i++) {
-    const double d = depthBuffer[i];
-    if (d < 0.0) continue;
-    if (first) {
-      dmax = d;
-      first = false;
-    } else {
-      dmax = MAX(dmax,d);
-    }
-  }
-  if (first) return;    // no drawn pixels
-
-  // normalized gaussian blur kernel with sigma = half the radius
-
-  auto *kernel = new double[pixelRadius+1];
-  const double sigma = 0.5 * pixelRadius;
-  double knorm = 0.0;
-  for (int k = 0; k <= pixelRadius; ++k) {
-    kernel[k] = exp(-0.5 * (k/sigma) * (k/sigma));
-    knorm += (k > 0) ? 2.0*kernel[k] : kernel[k];
-  }
-  for (int k = 0; k <= pixelRadius; ++k) kernel[k] /= knorm;
-
-  auto *rowblur = new double[npixels];
-  auto *blur = new double[npixels];
-
-  // blur along rows, then along columns; clamp indices at the borders
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static)
-#endif
-  for (int iy = 0; iy < height; ++iy) {
-    for (int ix = 0; ix < width; ++ix) {
-      double sum = 0.0;
-      for (int k = -pixelRadius; k <= pixelRadius; ++k) {
-        int jx = ix + k;
-        if (jx < 0) jx = 0;
-        if (jx >= width) jx = width - 1;
-        const double d = depthBuffer[iy*width + jx];
-        sum += kernel[(k < 0) ? -k : k] * ((d < 0.0) ? dmax : d);
-      }
-      rowblur[iy*width + ix] = sum;
-    }
-  }
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static)
-#endif
-  for (int iy = 0; iy < height; ++iy) {
-    for (int ix = 0; ix < width; ++ix) {
-      double sum = 0.0;
-      for (int k = -pixelRadius; k <= pixelRadius; ++k) {
-        int jy = iy + k;
-        if (jy < 0) jy = 0;
-        if (jy >= height) jy = height - 1;
-        sum += kernel[(k < 0) ? -k : k] * rowblur[jy*width + ix];
-      }
-      blur[iy*width + ix] = sum;
-    }
-  }
-
-  // darken drawn pixels that lie behind the local average depth
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static)
-#endif
-  for (int i = 0; i < npixels; ++i) {
-    const double d = depthBuffer[i];
-    if (d < 0.0) continue;
-    const double delta = d - blur[i];
-    if (delta <= 0.0) continue;
-    const double ao = ssaoint * saturate(3.0 * delta / SSAORadius);
-    writeBuffer[i*3+0] = static_cast<unsigned char>((1.0 - ao) * writeBuffer[i*3+0]);
-    writeBuffer[i*3+1] = static_cast<unsigned char>((1.0 - ao) * writeBuffer[i*3+1]);
-    writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - ao) * writeBuffer[i*3+2]);
-  }
-
-  delete[] kernel;
-  delete[] rowblur;
-  delete[] blur;
 }
 
 /* ----------------------------------------------------------------------

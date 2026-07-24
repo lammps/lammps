@@ -609,7 +609,6 @@ COH
 cohesionless
 Coker
 Colberg
-Colditz
 coleman
 Colliex
 collinear
@@ -860,7 +859,6 @@ Destree
 destructor
 destructors
 detils
-Deussen
 Devanathan
 devel
 Devemy
@@ -1603,7 +1601,6 @@ hbond
 hcp
 hdnnp
 HDNNP
-Luft
 runner
 RUNNER
 Hearn

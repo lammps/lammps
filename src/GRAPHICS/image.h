@@ -140,10 +140,6 @@ class Image : protected Pointers {
   double keyLightDir[3], fillLightDir[3], backLightDir[3];
   double keyHalfDir[3];
 
-  // SSAO RNG
-
-  class RanMars *random;
-
   // internal methods
 
   void draw_pixel(int, int, double, const double *, const double *);

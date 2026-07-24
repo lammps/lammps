@@ -25,7 +25,6 @@
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "random_mars.h"
 #include "version.h"
 
 #include <array>
@@ -349,7 +348,7 @@ constexpr char letter_z[] = {
 Image::Image(LAMMPS *lmp, int nmap_caller) :
     Pointers(lmp), maps(nullptr), depthBuffer(nullptr), surfaceBuffer(nullptr), depthcopy(nullptr),
     surfacecopy(nullptr), imageBuffer(nullptr), rgbcopy(nullptr), writeBuffer(nullptr),
-    recvcounts(nullptr), displs(nullptr), random(nullptr)
+    recvcounts(nullptr), displs(nullptr)
 {
   MPI_Comm_rank(world, &me);
   MPI_Comm_size(world, &nprocs);
@@ -629,8 +628,6 @@ Image::~Image()
   memory->destroy(surfacecopy);
   memory->destroy(rgbcopy);
 
-  delete random;
-
   memory->destroy(recvcounts);
   memory->destroy(displs);
 }
@@ -742,7 +739,6 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   // adjust strength of the SSAO
 
   if (ssao) {
-    if (!random) random = new RanMars(lmp,seed+me);
     SSAORadius = maxdel * 0.05 * ssaoint;
     SSAOSamples = static_cast<int>(8.0 + 32.0*ssaoint);
     SSAOJitter = MY_PI / 12;
@@ -1818,9 +1814,9 @@ void Image::compute_SSAO()
   int pixelstart = static_cast<int>(1.0*me/nprocs * npixels);
   int pixelstop = static_cast<int>(1.0*(me+1)/nprocs * npixels);
 
-  // fill buffer with random numbers to avoid race conditions
-  auto *uniform = new double[pixelstop - pixelstart];
-  for (int i = 0; i < pixelstop - pixelstart; ++i) uniform[i] = random->uniform();
+  // shift of the jitter noise pattern derived from the seed value
+
+  const double seedshift = fmod(0.618033988749895 * (double) seed, 1.0);
 
 #if defined(_OPENMP)
 #pragma omp parallel for
@@ -1836,7 +1832,12 @@ void Image::compute_SSAO()
     double sy = surfaceBuffer[index * 2 + 1];
     double sin_t = -sqrt(sx*sx + sy*sy);
 
-    double mytheta = uniform[index - pixelstart] * SSAOJitter;
+    // deterministic per-pixel jitter from interleaved gradient noise, so
+    // shading is independent of the number of MPI ranks and OpenMP threads
+    // and images of unchanged scenes are reproducible
+
+    double ign = fmod(0.06711056 * x + 0.00583715 * y + seedshift, 1.0);
+    double mytheta = fmod(52.9829189 * ign, 1.0) * SSAOJitter;
     double ao = 0.0;
 
     for (int s = 0; s < SSAOSamples; ++s) {
@@ -1926,7 +1927,6 @@ void Image::compute_SSAO()
     imageBuffer[index * 3 + 1] = (int) c[1];
     imageBuffer[index * 3 + 2] = (int) c[2];
   }
-  delete[] uniform;
 }
 
 /* ----------------------------------------------------------------------

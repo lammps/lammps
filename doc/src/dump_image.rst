@@ -873,6 +873,15 @@ shading is particularly large.  In case LAMMPS has been :doc:`compiled
 with OpenMP support <Build_basics>`, the SSAO processing is distributed
 across multiple threads.
 
+.. versionchanged:: TBD
+
+The randomization of the SSAO shading is now computed from a
+deterministic noise pattern derived from the pixel position and the
+*seed* value.  Rendered images no longer depend on the number of MPI
+ranks or OpenMP threads, and images of an unchanged scene are exactly
+reproducible, which avoids flickering shading in movies.  Different
+*seed* values shift the noise pattern.
+
 .. versionadded:: TBD
 
 The *depthcue* keyword turns on/off depth cueing.  If *yes* is set,

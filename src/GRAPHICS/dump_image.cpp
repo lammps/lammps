@@ -623,13 +623,20 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"depthcue") == 0) {
-      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image depthcue", error);
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image depthcue", error);
       image->depthcue = utils::logical(FLERR,arg[iarg+1],false,lmp);
       double cfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       if (cfactor < 0.0 || cfactor > 1.0)
         error->all(FLERR, iarg+2, "Invalid dump image depthcue strength value {}", cfactor);
       image->depthcueint = cfactor;
-      iarg += 3;
+      if (strcmp(arg[iarg+3],"auto") == 0) {
+        image->depthcuecolor = nullptr;
+      } else {
+        image->depthcuecolor = image->color2rgb(arg[iarg+3]);
+        if (image->depthcuecolor == nullptr)
+          error->all(FLERR, iarg+3, "Invalid dump image depthcue color {}", arg[iarg+3]);
+      }
+      iarg += 4;
 
     } else error->all(FLERR, iarg, "Unknown dump image keyword {}", arg[iarg]);
   }

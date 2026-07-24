@@ -365,6 +365,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   fsaa = NO;
   depthcue = NO;
   depthcueint = 0.0;
+  depthcuecolor = nullptr;
 
   up[0] = 0.0;
   up[1] = 0.0;
@@ -1959,21 +1960,28 @@ void Image::compute_depthcue()
   if (first || ((dmax - dmin) < EPSILON)) return;
   const double dscale = depthcueint / (dmax - dmin);
 
-  // blend pixel colors toward the background color; with a background
-  // gradient enabled use the same per-row color as in clear()
+  // blend pixel colors toward the fog color.  by default this is the
+  // background color, with a gradient enabled the same per-row color as
+  // in clear(); a custom fog color is used for all rows unchanged
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static)
 #endif
   for (int iy = 0; iy < height; ++iy) {
-    int red   = background[0];
-    int green = background[1];
-    int blue  = background[2];
-    if (background2[0] >= 0) {
+    int red, green, blue;
+    if (depthcuecolor) {
+      red   = static_cast<int>(depthcuecolor[0] * 255.0);
+      green = static_cast<int>(depthcuecolor[1] * 255.0);
+      blue  = static_cast<int>(depthcuecolor[2] * 255.0);
+    } else if (background2[0] >= 0) {
       const double fraction = (double) iy / (double) height;
       red   = static_cast<int>(fraction * background2[0] + (1.0 - fraction) * background[0]);
       green = static_cast<int>(fraction * background2[1] + (1.0 - fraction) * background[1]);
       blue  = static_cast<int>(fraction * background2[2] + (1.0 - fraction) * background[2]);
+    } else {
+      red   = background[0];
+      green = background[1];
+      blue  = background[2];
     }
     for (int ix = 0; ix < width; ++ix) {
       const int i = iy * width + ix;

@@ -115,9 +115,10 @@ Syntax
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
-       *depthcue* values = cueing cfactor = depth cueing
+       *depthcue* values = cueing cfactor color = depth cueing
          cueing = *yes* or *no* = turn depth cueing on/off
          cfactor = strength of fading from 0.0 to 1.0
+         color = fog color name or *auto* = fade toward the background color
 
 .. _dump_modify_image:
 
@@ -885,12 +886,16 @@ reproducible, which avoids flickering shading in movies.  Different
 .. versionadded:: TBD
 
 The *depthcue* keyword turns on/off depth cueing.  If *yes* is set,
-rendered objects fade toward the background color the more distant from
-the viewer they are, similar to looking through fog.  This is perceived
-as depth and helps to visually untangle dense systems.  The *cfactor*
+rendered objects fade toward the fog color the more distant from the
+viewer they are, similar to looking through fog.  This is perceived as
+depth and helps to visually untangle dense systems.  The *cfactor*
 value scales the strength of the fading: with *cfactor* = 1.0 the most
-distant objects blend completely into the background, smaller values
-reduce the maximum amount of fading.  The fade range adapts
+distant objects blend completely into the fog color, smaller values
+reduce the maximum amount of fading.  The *color* setting selects the
+fog color: with *auto* the objects fade toward the background color,
+following the background gradient when one is set with the *backcolor2*
+option; any color name known to LAMMPS selects that color instead,
+e.g. white or gray fog over a dark background.  The fade range adapts
 automatically to the nearest and most distant rendered objects in each
 image.  Unlike the *ssao* keyword, depth cueing adds no significant
 computational cost, and both can be combined.

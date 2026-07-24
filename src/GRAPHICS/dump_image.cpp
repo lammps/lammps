@@ -585,6 +585,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR,"Invalid dump image subbox diameter {}", subboxdiam);
       iarg += 3;
 
+    } else if (strcmp(arg[iarg],"shading") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"dump image shading", error);
+      if (strcmp(arg[iarg+1],"phong") == 0) image->shading = Image::SHADE_PHONG;
+      else if (strcmp(arg[iarg+1],"diffuse") == 0) image->shading = Image::SHADE_DIFFUSE;
+      else if (strcmp(arg[iarg+1],"toon") == 0) image->shading = Image::SHADE_TOON;
+      else if (strcmp(arg[iarg+1],"gooch") == 0) image->shading = Image::SHADE_GOOCH;
+      else error->all(FLERR, iarg+1, "Unknown dump image shading style {}", arg[iarg+1]);
+      iarg += 2;
+
     } else if (strcmp(arg[iarg],"shiny") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"dump image shiny", error);
       double shiny = utils::numeric(FLERR,arg[iarg+1],false,lmp);

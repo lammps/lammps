@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue* or *outline*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shading* or *shiny* or *fsaa* or *ssao* or *depthcue* or *outline*
 
   .. parsed-literal::
 
@@ -107,6 +107,8 @@ Syntax
        *subbox* values = lines diam = draw outline of processor subdomains
          lines = *yes* or *no* = do or do not draw subdomain lines
          diam = diameter of subdomain lines as fraction of shortest box length
+       *shading* value = style = shading model for rendered objects
+         style = *phong* or *diffuse* or *toon* or *gooch*
        *shiny* value = sfactor = shinyness of spheres and cylinders
          sfactor = shinyness of spheres and cylinders from 0.0 to 1.0
        *fsaa* arg = yes/no
@@ -847,6 +849,23 @@ boxcolor" command.
 
 ----------
 
+.. versionadded:: TBD
+
+The *shading* keyword selects the shading model used for the rendered
+objects.  The default *phong* style illuminates the objects with an
+ambient light, three directional lights, and a specular highlight.
+The *diffuse* style is identical but omits the specular highlight,
+which gives a rough, matte surface appearance.  The *toon* style
+mimics comic drawings by quantizing the lighting into three discrete
+bands from the main light only.  The *gooch* style blends the object
+color between a cool blue tone facing away from the light and a warm
+yellow tone facing the light, a scheme common for technical
+illustrations :ref:`(Gooch) <Gooch>`.  The *toon* and *gooch* styles
+pair well with the *outline* keyword.  The relative light intensities
+set with the :ref:`dump_modify lights <dump_modify_image>` option
+apply to the *phong* and *diffuse* styles; the ambient light also
+affects the *toon* style.
+
 The *shiny* keyword determines how shiny the objects rendered in the
 image will appear.  The *sfactor* value must be a value 0.0 <=
 *sfactor* <= 1.0, where *sfactor* = 1 is a highly reflective surface
@@ -1503,6 +1522,7 @@ The defaults for the dump image and dump movie keywords are as follows:
 * box = yes 0.02
 * axes = no 0.0 0.0
 * subbox = no 0.0
+* shading = phong
 * shiny = 1.0
 * ssao = no
 * fsaa = no
@@ -1855,3 +1875,7 @@ the RGB (red/green/blue) values.
 .. _Luft:
 
 **(Luft)** Luft, Colditz, Deussen, ACM Trans. Graph. 25, 1206-1213 (2006).
+
+.. _Gooch:
+
+**(Gooch)** Gooch, Gooch, Shirley, Cohen, Proc. SIGGRAPH 1998, 447-452 (1998).

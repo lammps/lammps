@@ -156,7 +156,7 @@ void FixGraphicsReplica::end_of_step()
     std::vector<tagint> tagme;
     for (int i = 0; i < nlocal; ++i)
       if (mask[i] & groupbit) tagme.emplace_back(tag[i]);
-    const int ngroup = (int) tagme.size();
+    int ngroup = (int) tagme.size();
     std::vector<int> recvcounts(nprocs, 0);
     std::vector<int> displs(nprocs, 0);
     MPI_Allgather(&ngroup, 1, MPI_INT, recvcounts.data(), 1, MPI_INT, world);

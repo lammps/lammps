@@ -880,6 +880,7 @@ void CreateAtoms::add_random()
         } else {
           if (comm->me == 0) get_xmol(xone);
           MPI_Bcast(&xmol[0][0], onemol->natoms * 3, MPI_DOUBLE, 0, world);
+          MPI_Bcast(onemol->quat_external, 4, MPI_DOUBLE, 0, world);
 
           for (int i = 0; i < nlocal; i++) {
             for (int j = 0; j < onemol->natoms; j++) {

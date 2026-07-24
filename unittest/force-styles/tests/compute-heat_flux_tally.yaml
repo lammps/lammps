@@ -1,0 +1,19 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:29 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute heat/flux/tally
+pre_commands: ""
+post_commands: |
+  compute test all heat/flux/tally all
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  6  2.3501379849201842e+00 -3.1381154834268843e-01 -3.3696227671865593e+00 -2.0482406529068276e+00  2.8858236440963738e+00  1.5788569504715042e+00
+...

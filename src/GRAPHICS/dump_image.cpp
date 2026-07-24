@@ -115,13 +115,13 @@ savedLights reset_lighting(Image *image, double ambient, double key, double fill
 void restore_lighting(const savedLights &saved, Image *image)
 {
   image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] =
-      std::clamp(0.0, 1.0, saved.ambient);
+      std::clamp(saved.ambient, 0.0, 1.0);
   image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] =
-      std::clamp(0.0, 1.0, saved.key);
+      std::clamp(saved.key, 0.0, 1.0);
   image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] =
-      std::clamp(0.0, 1.0, saved.fill);
+      std::clamp(saved.fill, 0.0, 1.0);
   image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] =
-      std::clamp(0.0, 1.0, saved.back);
+      std::clamp(saved.back, 0.0, 1.0);
 }
 
 }    // namespace
@@ -211,6 +211,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   atomflag = YES;
   gridflag = NO;
+  grid_opacity = 1.0;
   lineflag = triflag = bodyflag = ellipsoidflag = NO;
 
   bcolor = ATOM;
@@ -1308,8 +1309,8 @@ void DumpImage::create_image()
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
           grid_cell_corners_2d(ix,iy);
           color = image->map_value2color(Image::GRID_MAP,gbuf[n++]);
-          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color);
-          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color);
+          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color,grid_opacity);
+          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color,grid_opacity);
         }
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
@@ -1318,23 +1319,23 @@ void DumpImage::create_image()
             grid_cell_corners_3d(ix,iy,iz);
             color = image->map_value2color(Image::GRID_MAP,gbuf[n++]);
             // lower x face
-            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color);
-            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color);
+            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color,grid_opacity);
             // upper x face
-            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color);
-            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color);
+            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color,grid_opacity);
             // lower y face
-            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color);
-            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color);
+            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color,grid_opacity);
             // upper y face
-            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color);
-            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color);
+            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color,grid_opacity);
             // lower z face
-            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color);
-            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color);
+            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color,grid_opacity);
             // upper z face
-            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color);
-            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color);
+            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color,grid_opacity);
           }
     }
 
@@ -1716,7 +1717,7 @@ void DumpImage::create_image()
           xmid[1] = x[atom2][1] - 0.5*dely;
           xmid[2] = x[atom2][2] - 0.5*delz;
           if (bcolor == ATOM)
-            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom1]]);
+            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom2]]);
           else image->draw_cylinder(xmid,x[atom2],color,diameter,3,bopacity[btype]);
 
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3,bopacity[btype]);
@@ -2980,6 +2981,16 @@ int DumpImage::modify_param(int narg, char **arg)
     }
     if (!match) error->all(FLERR, argoff + 1, "Fix ID {} is not included in dump {}", arg[1], id);
     return 3;
+  }
+
+  if (strcmp(arg[0],"gtrans") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gtrans", error);
+    // ignore if grids are not displayed
+    if (gridflag == NO) return 2;
+    grid_opacity = utils::numeric(FLERR,arg[1],false,lmp);
+    if ((grid_opacity < 0.0) || (grid_opacity > 1.0))
+      error->all(FLERR, argoff + 1, "Invalid gtrans opacity in dump_modify command");
+    return 2;
   }
 
   // clang-format on

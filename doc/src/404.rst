@@ -1,0 +1,16 @@
+:orphan:
+
+404 - LAMMPS Document Not Found
+===============================
+
+.. figure:: JPG/lammps-lost-logo-library.jpg
+   :figwidth: 50%
+   :alt: LAMMPS logo cubes scattered around a maze-like library with staircases going in all directions
+
+   *.*
+
+   **We are sorry.**
+
+   We have looked everywhere, but the page you asked for isn't
+   anywhere in this LAMMPS manual.  It may be in reference to a command that
+   has been renamed or removed, or the link was mistyped.  Please try again.

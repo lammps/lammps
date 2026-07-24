@@ -262,6 +262,7 @@ void Variable::set(int narg, char **arg)
 
   int ivar = find(arg[0]);
   std::string varstyle = arg[1];
+  std::string vartext;
 
   // DELETE
   // doesn't matter if variable no longer exists
@@ -272,6 +273,22 @@ void Variable::set(int narg, char **arg)
                  narg, utils::errorurl(3));
     if (ivar >= 0) remove(ivar);
     return;
+  }
+
+  // For variable style string we allow self-references, so we need to run substitute
+  // on the argument now before the original content is deleted
+
+  if (varstyle == "string") {
+
+    int maxcopy = strlen(arg[2]) + 1;
+    int maxwork = maxcopy;
+    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
+    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
+    strcpy(scopy, arg[2]);
+    input->substitute(scopy, work, maxcopy, maxwork, 1);
+    vartext = scopy;
+    memory->sfree(work);
+    memory->sfree(scopy);
   }
 
   // find unassigned variable struct in list or append one
@@ -478,26 +495,18 @@ void Variable::set(int narg, char **arg)
   // replace pre-existing var if also style STRING (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
+  // variable text has already been substituted on entry and stored in vartext
 
   if (varstyle == "string") {
     if (narg != 3)
       error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
                  utils::errorurl(3));
 
-    int maxcopy = strlen(arg[2]) + 1;
-    int maxwork = maxcopy;
-    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
-    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
-    strcpy(scopy, arg[2]);
-    input->substitute(scopy, work, maxcopy, maxwork, 1);
-    memory->sfree(work);
-
     newvar.num = 1;
     newvar.which = 0;
     newvar.pad = 0;
     newvar.data = new char *[newvar.num];
-    copy(1, &scopy, newvar.data);
-    memory->sfree(scopy);
+    newvar.data[0] = utils::strdup(vartext);
     newvar.style = STRING;
     return;
 
@@ -773,6 +782,14 @@ int Variable::next(int narg, char **arg)
     else if (variables[ivar].style != varzero.style)
       error->all(FLERR,"All variables in next command must have same style");
   }
+
+  // reject duplicate variable names: incrementing the first copy may
+  // exhaust and remove the variable, leaving a dangling reference
+
+  for (int iarg = 0; iarg < narg-1; iarg++)
+    for (int jarg = iarg+1; jarg < narg; jarg++)
+      if (strcmp(arg[iarg],arg[jarg]) == 0)
+        error->all(FLERR, jarg, "Duplicate variable '{}' in next command", arg[jarg]);
 
   // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
   //                 FORMAT, PYTHON, TIMER, INTERNAL
@@ -4258,7 +4275,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
     // pyvar = index of python-style variable which invokes Python function
 
     int pyvar = find(&word[3]);
-    if (variables[pyvar].style != PYTHON)
+    if ((pyvar < 0) || (variables[pyvar].style != PYTHON))
       print_var_error(FLERR,"Invalid python function variable name",ivar);
 
     // check that wrapper matches Python function
@@ -4776,10 +4793,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     std::vector<double> unsorted;
 
     if (compute) {
-      double *vec;
+      double *vec = nullptr;
       if (index) {
         if (compute->array) vec = &compute->array[0][index-1];
-        else vec = nullptr;
+        else print_var_error(FLERR,"Variable formula compute array has no values",ivar);
       } else vec = compute->vector;
 
       if ((method == SORT) || (method == RSORT)) unsorted.reserve(nvec);

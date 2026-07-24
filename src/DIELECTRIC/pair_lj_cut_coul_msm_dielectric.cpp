@@ -189,7 +189,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             }
           }
         } else
-          forcecoul = 0.0;
+          efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
@@ -231,7 +231,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * egamma;
             else {

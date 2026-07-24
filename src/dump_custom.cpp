@@ -62,7 +62,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
     fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
     custom(nullptr), custom_flag(nullptr), typenames(nullptr), header_choice(nullptr),
-    pack_choice(nullptr)
+    write_choice(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump {} arguments specified", style);
 
@@ -164,6 +164,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     cols += earg[iarg];
   }
   columns_default = utils::strdup(cols);
+
+  nchoose = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1238,6 +1240,9 @@ int DumpCustom::count()
         double **darray = atom->darray[iwhich];
         ptr = &darray[0][argindex[i]-1];
         nstride = atom->dcols[iwhich];
+
+      } else {
+        error->all(FLERR, "Unknown dump_modify threshold attribute");
       }
 
       // unselect atoms that don't meet threshold criterion

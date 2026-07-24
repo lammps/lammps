@@ -27,6 +27,7 @@
 #include "error.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
@@ -189,6 +190,9 @@ void PairColloid::compute(int eflag, int vflag)
         if (r <= K[1])
           error->one(FLERR,"Overlapping large/large in pair colloid");
         break;
+
+      default:
+        error->one(FLERR,"Unknown colloid interaction form");
       }
 
       if (eflag) evdwl *= factor_lj;
@@ -546,4 +550,17 @@ double PairColloid::single(int /*i*/, int /*j*/, int itype, int jtype, double rs
   }
 
   return factor_lj*phi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairColloid::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "a12") == 0) return (void *) a12;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  if (strcmp(str, "d1") == 0) return (void *) d1;
+  if (strcmp(str, "d2") == 0) return (void *) d2;
+  if (strcmp(str, "diameter") == 0) return (void *) diameter;
+  return nullptr;
 }

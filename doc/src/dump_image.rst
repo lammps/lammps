@@ -129,7 +129,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gtrans* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -188,6 +188,8 @@ Syntax
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
+       *gtrans* arg = transparency
+         transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
        *lights* args = ambient key fill back
          ambient key fill back = set light intensity value from 0.0 to 1.0
        *loadcolors* arg = filename
@@ -1188,15 +1190,17 @@ equivalent.
 
 .. versionadded:: 11Feb2026
 
+.. versionchanged:: TBD
+
 Various graphical objects in *dump image* output can be rendered in a
 transparent fashion using the so-called screen-door transparency method.
 This means that only a subset of pixels for a graphical object are
 written to the image.  This can be controlled with various
 *dump\_modify* settings: *atrans* for atoms, *btrans* for bonds,
-*axestrans* for axes lines, *boxtrans* for the simulation box, and
-*subboxtrans* for the subdomain box lines.  The transparency value
-must be between 0.0 (invisible) and 1.0 (fully opaque).  The default
-setting for all is 1.0.
+*gtrans* for grids, *axestrans* for axes lines, *boxtrans* for the
+simulation box, and *subboxtrans* for the subdomain box lines.  The
+transparency value must be between 0.0 (invisible) and 1.0 (fully
+opaque).  The default setting for all is 1.0.
 
 Recommended transparency values are 0.25, 0.5, or 0.75 when used in
 combination with *fsaa on*.

@@ -203,9 +203,11 @@ TEST_F(VariableTest, CreateDelete)
     command("variable seven delete");
     command("variable seven getenv TEST_VARIABLE");
     command("variable eight getenv OTHER_VARIABLE");
+    command("variable three string \"${three} four\"");
     END_HIDE_OUTPUT();
     ASSERT_THAT(variable->retrieve("seven"), StrEq("simpletest2"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("three"), StrEq("four four"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
@@ -240,12 +242,28 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten6   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08x\""););
+    TEST_FAILURE(".*ERROR.*Substitution for illegal variable xxx.*",
+                 command("variable three  string \"${xxx} five\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
                  variable->compute_equal("c_thermo_press"););
     TEST_FAILURE(".*ERROR: Invalid variable reference v_unknown in variable formula.*",
                  variable->compute_equal("v_unknown"););
+
+    // listing the same variable twice would increment a dangling reference
+    // when the first increment exhausts and removes it
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable  dup  loop 3");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Duplicate variable 'dup' in next command.*", command("next dup dup"););
+
+    // a py_ function reference without a matching python-style variable
+    // must give an error instead of an out-of-bounds read
+
+    TEST_FAILURE(".*ERROR: Invalid python function variable name.*",
+                 variable->compute_equal("py_nosuchvariable(1.0)"););
 }
 
 TEST_F(VariableTest, AtomicSystem)

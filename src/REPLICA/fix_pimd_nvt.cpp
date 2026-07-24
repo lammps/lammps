@@ -45,31 +45,15 @@ using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), comm_ptr(nullptr)
+FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), mass(nullptr), tag_send(nullptr), buf_send(nullptr), buf_recv(nullptr),
+    buf_beads(nullptr), plan_send(nullptr), plan_recv(nullptr), comm_ptr(nullptr), lam(nullptr),
+    M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr), M_fp2f(nullptr), mode_index(nullptr),
+    nhc_eta(nullptr), nhc_eta_dot(nullptr), nhc_eta_dotdot(nullptr), nhc_eta_mass(nullptr)
 {
   max_nsend = 0;
-  tag_send = nullptr;
-  buf_send = nullptr;
-
   max_nlocal = 0;
-  buf_recv = nullptr;
-  buf_beads = nullptr;
-
   size_plan = 0;
-  plan_send = plan_recv = nullptr;
-
-  M_x2xp = M_xp2x = M_f2fp = M_fp2f = nullptr;
-  lam = nullptr;
-  mode_index = nullptr;
-
-  mass = nullptr;
-
-  array_atom = nullptr;
-  nhc_eta = nullptr;
-  nhc_eta_dot = nullptr;
-  nhc_eta_dotdot = nullptr;
-  nhc_eta_mass = nullptr;
-
   spring_energy = t_sys = virial = 0.0;
 
   method = PIMD;

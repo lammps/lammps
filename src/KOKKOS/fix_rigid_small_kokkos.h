@@ -130,6 +130,10 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void setup_device_push();
   void apply_langevin_thermostat_kokkos();
 
+  // set while the base setup_bodies_static()/_dynamic() re-derive the bodies on
+  // the host; makes the pre_neighbor() they call internally take the host path
+  int host_body_setup = 0;
+
   using ImageIntView1D = typename AT::t_imageint_1d;
   using TagIntView1D = typename AT::t_tagint_1d;
   using IntView1D = typename AT::t_int_1d;

@@ -217,9 +217,60 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 {
-  atomKK->sync(Host, datamask_read);
+  // setup_bodies_static() rebuilds the bodies from the unwrapped atom
+  // positions, so it also reads atom->image and atom->mask (and rmass for
+  // finite-size particles), which are not in this fix's per-step datamask.
+  atomKK->sync(Host, datamask_read | IMAGE_MASK | MASK_MASK | RMASS_MASK);
 
+  // On a second (or later) run the base re-derives the bodies on the host
+  // (reinitflag defaults to 1), reading bodytag/bodyown/atom2body/xcmimage and
+  // rewriting body[].  After a preceding run that state is live on the device,
+  // so flush it down first or the host rebuilds from stale bookkeeping.
+  // Note the base sets setupflag = 1 before returning, so latch it here: on the
+  // first run the device views do not exist yet and must not be touched.
+  const int rebuild_on_host = setupflag;
+  if (rebuild_on_host) {
+    copy_body_host();
+    k_bodytag.sync_host();
+    k_bodyown.sync_host();
+    k_atom2body.sync_host();
+    k_xcmimage.sync_host();
+    k_displace.sync_host();
+    if (extended) {
+      k_eflags.sync_host();
+      if (orientflag) k_orient.sync_host();
+      if (dorientflag) k_dorient.sync_host();
+    }
+  }
+
+  // the base setup owns the data for the duration of this call: make the
+  // pre_neighbor() it invokes internally run on the host (see pre_neighbor)
+  host_body_setup = 1;
   FixRigidSmall::setup_pre_neighbor();
+  host_body_setup = 0;
+
+  // the host rebuild rewrote body[] and the per-atom body arrays; push them
+  // back to the device (setup() -> setup_device_push() does the rest)
+  if (rebuild_on_host) {
+    const int nbody_all = nlocal_body + nghost_body;
+    if (k_body.view_device().extent_int(0) < nbody_all) {
+      k_body.sync_host();
+      k_body.resize(nbody_all > nmax_body ? nbody_all : nmax_body);
+      k_body.modify_host();
+    }
+    copy_body_device();
+    k_bodytag.modify_host();
+    k_bodyown.modify_host();
+    k_atom2body.modify_host();
+    k_xcmimage.modify_host();
+    k_displace.modify_host();
+    k_bodytag.template sync<DeviceType>();
+    k_bodyown.template sync<DeviceType>();
+    k_atom2body.template sync<DeviceType>();
+    k_xcmimage.template sync<DeviceType>();
+    k_displace.template sync<DeviceType>();
+    refresh_atom_views();
+  }
 
   atomKK->modified(Host, datamask_modify);
   atomKK->sync(execution_space, datamask_read);
@@ -427,7 +478,16 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
-  if (!setupflag) {
+  // host_body_setup: setup_bodies_static() calls pre_neighbor() (virtually) in
+  // the middle of re-deriving the bodies on the host, to remap each xcm into
+  // the box and reset the atom xcmimage flags -- and then unwraps the atom
+  // coordinates with those host xcmimage values to build the inertia tensor.
+  // The device path below updates only d_xcmimage, so taking it here would
+  // leave the host flags stale and the unwrap would place the atoms of any
+  // body straddling a periodic boundary a full box length away, producing a
+  // garbage inertia tensor ("Bad principal moments") on the second and later
+  // runs.  Use the host path while the host setup owns the data.
+  if (!setupflag || host_body_setup) {
     FixRigidSmall::pre_neighbor();
     return;
   }

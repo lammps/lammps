@@ -622,6 +622,15 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       image->ssaoint = ssaoint;
       iarg += 4;
 
+    } else if (strcmp(arg[iarg],"depthcue") == 0) {
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"dump image depthcue", error);
+      image->depthcue = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      double cfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (cfactor < 0.0 || cfactor > 1.0)
+        error->all(FLERR, iarg+2, "Invalid dump image depthcue strength value {}", cfactor);
+      image->depthcueint = cfactor;
+      iarg += 3;
+
     } else error->all(FLERR, iarg, "Unknown dump image keyword {}", arg[iarg]);
   }
 

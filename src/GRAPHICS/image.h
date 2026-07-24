@@ -38,6 +38,8 @@ class Image : protected Pointers {
   int ssao;                   // SSAO on or off
   int seed;                   // RN seed for SSAO
   double ssaoint;             // strength of shading from 0 to 1
+  int depthcue;               // depth cueing on or off
+  double depthcueint;         // strength of depth cueing from 0 to 1
   double *boxcolor;           // color to draw box outline with
   int background[3];          // RGB values of background
   int background2[3];         // RGB values of second background color for gradient (off if < 0.0)
@@ -149,6 +151,7 @@ class Image : protected Pointers {
 
   void draw_pixel(int, int, double, const double *, const double *);
   void compute_SSAO();
+  void compute_depthcue();
 
   // inline functions
 

@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue*
 
   .. parsed-literal::
 
@@ -115,6 +115,9 @@ Syntax
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
+       *depthcue* values = cueing cfactor = depth cueing
+         cueing = *yes* or *no* = turn depth cueing on/off
+         cfactor = strength of fading from 0.0 to 1.0
 
 .. _dump_modify_image:
 
@@ -861,6 +864,19 @@ shading is particularly large.  In case LAMMPS has been :doc:`compiled
 with OpenMP support <Build_basics>`, the SSAO processing is distributed
 across multiple threads.
 
+.. versionadded:: TBD
+
+The *depthcue* keyword turns on/off depth cueing.  If *yes* is set,
+rendered objects fade toward the background color the more distant from
+the viewer they are, similar to looking through fog.  This is perceived
+as depth and helps to visually untangle dense systems.  The *cfactor*
+value scales the strength of the fading: with *cfactor* = 1.0 the most
+distant objects blend completely into the background, smaller values
+reduce the maximum amount of fading.  The fade range adapts
+automatically to the nearest and most distant rendered objects in each
+image.  Unlike the *ssao* keyword, depth cueing adds no significant
+computational cost, and both can be combined.
+
 ----------
 
 Dump_modify keywords for dump image and dump movie
@@ -1408,6 +1424,7 @@ The defaults for the dump image and dump movie keywords are as follows:
 * shiny = 1.0
 * ssao = no
 * fsaa = no
+* depthcue = no
 
 ----------
 

@@ -363,6 +363,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   shiny = 1.0;
   ssao = NO;
   fsaa = NO;
+  depthcue = NO;
+  depthcueint = 0.0;
 
   up[0] = 0.0;
   up[1] = 0.0;
@@ -884,6 +886,10 @@ void Image::merge()
   } else {
     writeBuffer = imageBuffer;
   }
+
+  // apply depth cueing to the final composited image
+
+  if (depthcue && (me == 0)) compute_depthcue();
 
   // scale down image for antialiasing. can be done in place with simple averaging
   if (fsaa) {
@@ -1894,6 +1900,64 @@ void Image::compute_SSAO()
     imageBuffer[index * 3 + 2] = (int) c[2];
   }
   delete[] uniform;
+}
+
+/* ----------------------------------------------------------------------
+   apply depth cueing to the composited image on the output rank:
+   fade drawn pixels toward the background color with increasing distance
+   from the viewer.  the fade range is taken from the nearest and most
+   distant drawn pixels, so the effect adapts to the visible scene.
+------------------------------------------------------------------------- */
+
+void Image::compute_depthcue()
+{
+  // determine depth range of drawn pixels; background pixels have depth < 0
+
+  bool first = true;
+  double dmin = 0.0, dmax = 0.0;
+  for (int i = 0; i < npixels; i++) {
+    const double d = depthBuffer[i];
+    if (d < 0.0) continue;
+    if (first) {
+      dmin = dmax = d;
+      first = false;
+    } else {
+      dmin = MIN(dmin,d);
+      dmax = MAX(dmax,d);
+    }
+  }
+
+  // nothing to do without drawn pixels or without depth variation
+
+  if (first || ((dmax - dmin) < EPSILON)) return;
+  const double dscale = depthcueint / (dmax - dmin);
+
+  // blend pixel colors toward the background color; with a background
+  // gradient enabled use the same per-row color as in clear()
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    int red   = background[0];
+    int green = background[1];
+    int blue  = background[2];
+    if (background2[0] >= 0) {
+      const double fraction = (double) iy / (double) height;
+      red   = static_cast<int>(fraction * background2[0] + (1.0 - fraction) * background[0]);
+      green = static_cast<int>(fraction * background2[1] + (1.0 - fraction) * background[1]);
+      blue  = static_cast<int>(fraction * background2[2] + (1.0 - fraction) * background[2]);
+    }
+    for (int ix = 0; ix < width; ++ix) {
+      const int i = iy * width + ix;
+      const double d = depthBuffer[i];
+      if (d < 0.0) continue;
+      const double f = (d - dmin) * dscale;
+      writeBuffer[i*3+0] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+0] + f * red);
+      writeBuffer[i*3+1] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+1] + f * green);
+      writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+2] + f * blue);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

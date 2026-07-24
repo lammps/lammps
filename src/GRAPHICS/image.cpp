@@ -361,7 +361,6 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   zoom = 1.0;
   shiny = 1.0;
   gamma = 1.0;
-  shading = SHADE_PHONG;
   ssao = NO;
   fastssao = 0;
   fsaa = NO;
@@ -410,6 +409,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   backLightColor[2] = 0.9;
 
   specularflag = 0;
+  nospecular = 0;
   specularHardness = 16.0;
   specularIntensity = 1.0;
 
@@ -748,9 +748,10 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   setup_lights();
 
   // the brightness of the specular highlights follows shiny; their width
-  // also follows shiny unless set with a dump_modify specular preset
+  // also follows shiny unless set with a dump_modify specular preset;
+  // dump_modify specular none disables the highlights entirely
 
-  specularIntensity = shiny;
+  specularIntensity = nospecular ? 0.0 : shiny;
   if (!specularflag) specularHardness = 16.0 * shiny;
 
   // adjust strength of the SSAO
@@ -1778,72 +1779,39 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
   surfaceBuffer[0 + ix * 2 + iy*width * 2] = surface[1];
   surfaceBuffer[1 + ix * 2 + iy*width * 2] = -surface[0];
 
+  diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
+  diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
+  diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
+
   double c[3];
+  c[0] = surfaceColor[0] * ambientColor[0];
+  c[1] = surfaceColor[1] * ambientColor[1];
+  c[2] = surfaceColor[2] * ambientColor[2];
 
-  if ((shading == SHADE_PHONG) || (shading == SHADE_DIFFUSE)) {
+  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
+  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
+  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
 
-    // three-light rig with lambertian diffuse shading and a specular
-    // highlight from the key light; the diffuse style skips the highlight
+  // specular highlights are disabled with dump_modify specular none.
+  // check the flag here since view_params() may not run again after
+  // dump_modify for static views
 
-    diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
-    diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
-    diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
-
-    c[0] = surfaceColor[0] * ambientColor[0];
-    c[1] = surfaceColor[1] * ambientColor[1];
-    c[2] = surfaceColor[2] * ambientColor[2];
-
-    c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
-    c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
-    c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
-
-    if (shading == SHADE_PHONG) {
-      specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
-                        specularHardness) * specularIntensity;
-
-      c[0] += keyLightColor[0] * specularKey;
-      c[1] += keyLightColor[1] * specularKey;
-      c[2] += keyLightColor[2] * specularKey;
-    }
-
-    c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
-    c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
-    c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
-
-    c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
-    c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
-    c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
-
-  } else if (shading == SHADE_TOON) {
-
-    // cartoon-style shading: quantize the diffuse term of the key light
-    // into three bands; no other lights except the ambient light
-
-    diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
-    const double band = (diffuseKey < 0.3) ? 0.4 : (diffuseKey < 0.7) ? 0.7 : 1.0;
-
-    c[0] = surfaceColor[0] * (ambientColor[0] + keyLightColor[0] * band);
-    c[1] = surfaceColor[1] * (ambientColor[1] + keyLightColor[1] * band);
-    c[2] = surfaceColor[2] * (ambientColor[2] + keyLightColor[2] * band);
-
-  } else {
-
-    // cool-to-warm shading for technical illustrations following
-    // Gooch, Gooch, Shirley, Cohen, SIGGRAPH 1998: blend from a cool
-    // (blue) tone away from the light to a warm (yellow) tone toward
-    // the light, plus the specular highlight from the key light
-
-    const double t = 0.5 * (1.0 + MathExtra::dot3(surface, keyLightDir));
+  if (!nospecular && (specularIntensity > 0.0)) {
     specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
                       specularHardness) * specularIntensity;
 
-    c[0] = (1.0 - t) * (0.25 * surfaceColor[0]) +
-        t * (0.3 + 0.5 * surfaceColor[0]) + keyLightColor[0] * specularKey;
-    c[1] = (1.0 - t) * (0.25 * surfaceColor[1]) +
-        t * (0.3 + 0.5 * surfaceColor[1]) + keyLightColor[1] * specularKey;
-    c[2] = (1.0 - t) * (0.55 + 0.25 * surfaceColor[2]) +
-        t * (0.5 * surfaceColor[2]) + keyLightColor[2] * specularKey;
+    c[0] += keyLightColor[0] * specularKey;
+    c[1] += keyLightColor[1] * specularKey;
+    c[2] += keyLightColor[2] * specularKey;
   }
+
+  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
+  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
+  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
+
+  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
+  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
+  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
 
   c[0] = saturate(c[0]);
   c[1] = saturate(c[1]);

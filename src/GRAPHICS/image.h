@@ -28,9 +28,6 @@ class Image : protected Pointers {
   // how DumpImage allocates and addresses them (amap/gmap/bmap).
   enum { ATOM_MAP = 0, GRID_MAP = 1, BOND_MAP = 2 };
 
-  // shading styles
-  enum { SHADE_PHONG = 0, SHADE_DIFFUSE = 1, SHADE_TOON = 2, SHADE_GOOCH = 3 };
-
   int width, height;          // size of image
   double theta, phi;          // view image from theta,phi
   double xctr, yctr, zctr;    // center of image in user coords
@@ -38,7 +35,6 @@ class Image : protected Pointers {
   double zoom;                // zoom factor
   double shiny;               // shininess of objects
   double gamma;               // gamma correction of rendered objects, 1.0 = off
-  int shading;                // shading style for rendered objects
   int fsaa;                   // antialiasing on or off
   int ssao;                   // SSAO on or off
   int fastssao;               // 1 = fast depth-darkening algorithm, 0 = classic SSAO
@@ -62,6 +58,7 @@ class Image : protected Pointers {
   double backLightColor[3];
 
   int specularflag;             // 1 if the specular exponent is set explicitly
+  int nospecular;               // 1 = disable the specular highlight entirely
   double specularHardness;      // exponent of the specular highlight
 
   Image(class LAMMPS *, int);

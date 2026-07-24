@@ -1496,7 +1496,6 @@ Goga
 Goldfarb
 Gompper
 Gonzalez-Melchor
-Gooch
 Goodsell
 googlemail
 googletest
@@ -1605,8 +1604,6 @@ hcp
 hdnnp
 HDNNP
 Luft
-phong
-quantizing
 runner
 RUNNER
 Hearn

@@ -400,6 +400,10 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
 
+  specularflag = 0;
+  specularHardness = 16.0;
+  specularIntensity = 1.0;
+
   // named colors
   rgbcolors = {{"aliceblue", {0.941, 0.973, 1.000}},
                {"antiquewhite", {0.980, 0.922, 0.843}},
@@ -725,27 +729,14 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
 
   // light directions in terms of -camDir = z
 
-  keyLightDir[0] = cos(keyLightTheta) * sin(keyLightPhi);
-  keyLightDir[1] = sin(keyLightTheta);
-  keyLightDir[2] = cos(keyLightTheta) * cos(keyLightPhi);
+  setup_lights();
 
-  fillLightDir[0] = cos(fillLightTheta) * sin(fillLightPhi);
-  fillLightDir[1] = sin(fillLightTheta);
-  fillLightDir[2] = cos(fillLightTheta) * cos(fillLightPhi);
+  // adjust shinyness of the reflection unless overridden with dump_modify specular
 
-  backLightDir[0] = cos(backLightTheta) * sin(backLightPhi);
-  backLightDir[1] = sin(backLightTheta);
-  backLightDir[2] = cos(backLightTheta) * cos(backLightPhi);
-
-  keyHalfDir[0] = 0 + keyLightDir[0];
-  keyHalfDir[1] = 0 + keyLightDir[1];
-  keyHalfDir[2] = 1 + keyLightDir[2];
-  MathExtra::norm3(keyHalfDir);
-
-  // adjust shinyness of the reflection
-
-  specularHardness = 16.0 * shiny;
-  specularIntensity = shiny;
+  if (!specularflag) {
+    specularHardness = 16.0 * shiny;
+    specularIntensity = shiny;
+  }
 
   // adjust strength of the SSAO
 
@@ -762,6 +753,33 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   // param for rasterizing spheres
 
   tanPerPixel = -(maxdel / (double) height);
+}
+
+/* ----------------------------------------------------------------------
+   compute light directions from their theta/phi angles
+   the angles are relative to the viewer with z pointing at the camera:
+   theta > 0 moves a light above the view direction, phi > 0 to the right
+   called from view_params() and after changing angles with dump_modify
+------------------------------------------------------------------------- */
+
+void Image::setup_lights()
+{
+  keyLightDir[0] = cos(keyLightTheta) * sin(keyLightPhi);
+  keyLightDir[1] = sin(keyLightTheta);
+  keyLightDir[2] = cos(keyLightTheta) * cos(keyLightPhi);
+
+  fillLightDir[0] = cos(fillLightTheta) * sin(fillLightPhi);
+  fillLightDir[1] = sin(fillLightTheta);
+  fillLightDir[2] = cos(fillLightTheta) * cos(fillLightPhi);
+
+  backLightDir[0] = cos(backLightTheta) * sin(backLightPhi);
+  backLightDir[1] = sin(backLightTheta);
+  backLightDir[2] = cos(backLightTheta) * cos(backLightPhi);
+
+  keyHalfDir[0] = 0 + keyLightDir[0];
+  keyHalfDir[1] = 0 + keyLightDir[1];
+  keyHalfDir[2] = 1 + keyLightDir[2];
+  MathExtra::norm3(keyHalfDir);
 }
 
 /* ----------------------------------------------------------------------

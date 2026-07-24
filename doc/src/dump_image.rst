@@ -132,7 +132,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gtrans* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gtrans* or *lights* or *lightdir* or *specular* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -195,6 +195,13 @@ Syntax
          transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
        *lights* args = ambient key fill back
          ambient key fill back = set light intensity value from 0.0 to 1.0
+       *lightdir* args = light theta phi
+         light = *key* or *fill* or *back* = which light source to reposition
+         theta = angle above (positive) or below (negative) the view direction in degrees (-90 to 90)
+         phi = angle to the right (positive) or left (negative) of the view direction in degrees (-180 to 180)
+       *specular* args = intensity exponent
+         intensity = strength of the specular highlights from 0.0 to 1.0
+         exponent = sharpness of the specular highlights (larger is sharper)
        *loadcolors* arg = filename
          filename = load color definitions, per-type colors, and lights from JSON format file
        *savecolors* arg = filename
@@ -1297,6 +1304,30 @@ the main highlights. The *fill* light is a secondary light source that
 softens shadows created by the key light. The *back* light illuminates
 the scene from behind the camera to provide depth.
 
+.. versionadded:: TBD
+
+The *lightdir* keyword repositions one of the directional light
+sources: *key*, *fill*, or *back*.  The two angles are set in degrees
+relative to the viewing direction, so the lights stay fixed relative to
+the camera when the view changes.  A *theta* of 90 places the light
+directly above the view direction, -90 directly below.  A *phi* of 0
+places the light behind the camera, 90 to the right of the viewer, -90
+to the left, and 180 behind the scene facing the camera.  The default
+positions are theta/phi = 30/-45 for the *key* light, 0/30 for the
+*fill* light, and 15/180 for the *back* light.
+
+.. versionadded:: TBD
+
+The *specular* keyword sets the strength and the sharpness of the
+specular highlights independently from the *shiny* keyword of the dump
+image command.  The *intensity* value must be between 0.0 and 1.0; the
+*exponent* value must be positive and determines the size of the
+highlights: the larger it is, the smaller and sharper they become.
+Values between 4 (dull) and a few hundred (polished) are typical.  An
+*sfactor* value of S set with the *shiny* keyword corresponds to
+*specular* with intensity S and exponent 16*S.  When the *specular*
+keyword is used, the *shiny* setting is ignored.
+
 ----------
 
 .. versionadded:: 4Jul2026
@@ -1445,6 +1476,8 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
 * lights = 0.0 0.9 0.45 0.9
+* lightdir = key 30 -45, fill 0 30, back 15 180
+* specular = derived from the *shiny* keyword of the dump image command
 * bitrate = 2000
 * framerate = 24
 * gmap = min max cf 0.0 2 min blue max red

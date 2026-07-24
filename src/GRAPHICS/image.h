@@ -49,6 +49,17 @@ class Image : protected Pointers {
   double fillLightColor[3];
   double backLightColor[3];
 
+  double keyLightTheta;      // light directions relative to the viewer (adjustable by caller)
+  double keyLightPhi;
+  double fillLightTheta;
+  double fillLightPhi;
+  double backLightTheta;
+  double backLightPhi;
+
+  int specularflag;             // 1 if specular settings override those derived from shiny
+  double specularHardness;      // exponent of the specular highlight
+  double specularIntensity;     // strength of the specular highlight
+
   Image(class LAMMPS *, int);
   ~Image() override;
   void buffers();
@@ -59,6 +70,7 @@ class Image : protected Pointers {
   void write_TGA(FILE *, bool compressed = true);
   void write_PPM(FILE *);
   void view_params(double, double, double, double, double, double);
+  void setup_lights();
 
   void draw_sphere(const double *, const double *, double, double opacity = 1.0);
   void draw_cube(const double *, const double *, double, double opacity = 1.0);
@@ -114,22 +126,6 @@ class Image : protected Pointers {
   // constant view params
 
   double FOV;
-  //double ambientColor[3];
-
-  double keyLightTheta;
-  double keyLightPhi;
-  //double keyLightColor[3];
-
-  double fillLightTheta;
-  double fillLightPhi;
-  //double fillLightColor[3];
-
-  double backLightTheta;
-  double backLightPhi;
-  //double backLightColor[3];
-
-  double specularHardness;
-  double specularIntensity;
 
   double SSAORadius;
   int SSAOSamples;

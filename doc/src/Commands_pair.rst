@@ -23,7 +23,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    *
    *
    * :doc:`adp (ko) <pair_adp>`
-   * :doc:`agni (o) <pair_agni>`
    * :doc:`aip/water/2dm (t) <pair_aip_water_2dm>`
    * :doc:`airebo (io) <pair_airebo>`
    * :doc:`airebo/bc (o) <pair_airebo>`
@@ -46,6 +45,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`born/coul/wolf (gko) <pair_born>`
    * :doc:`born/coul/wolf/cs (go) <pair_cs>`
    * :doc:`born/gauss (ko) <pair_born_gauss>`
+   * :doc:`bpm/peri <pair_bpm_peri>`
    * :doc:`bpm/spring <pair_bpm_spring>`
    * :doc:`brownian (ko) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
@@ -270,7 +270,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`polymorphic <pair_polymorphic>`
    * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
-   * :doc:`rann <pair_rann>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
    * :doc:`rebomos (o) <pair_rebomos>`

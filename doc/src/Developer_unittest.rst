@@ -777,6 +777,17 @@ are:
        for this style.  The fix rejects a timestep reset (its
        ``Fix::reset_dt()`` raises an error, e.g. :doc:`fix move
        <fix_move>`), which would otherwise abort the test.
+   * - no_restart
+     - The ``fix_timestep`` tester skips the restarted-run comparisons
+       for this style.  Part of the internal state of the fix (typically
+       the pRNG state of a stochastic fix like :doc:`fix langevin
+       <fix_langevin>`) is not stored in restart files, so a restarted
+       run cannot reproduce the reference trajectory.
+   * - no_t_target
+     - The ``fix_timestep`` tester does not compare the extracted
+       ``t_target`` property against the input variable for this style,
+       because the fix computes its target temperature internally (e.g.
+       the :doc:`fix nphug <fix_nphug>` hugoniostat).
    * - ellipsoid
      - The test includes ellipsoids and thus requires :doc:`fix
        nve/asphere <fix_nve_asphere>`.
@@ -795,8 +806,10 @@ are:
        platforms, e.g. ARM64; Until a proper correction is found, tests
        can be skipped with ``ctest -LE unstable``.
    * - generated
-     - Indicates that a test input was regenerated. *Remove* after
-       confirming the correctness of the updated YAML file.
+     - Automatically added whenever reference data is generated or
+       regenerated; it marks data that has not been reviewed and
+       validated yet.  *Remove* after confirming the correctness of the
+       updated YAML file.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests

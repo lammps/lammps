@@ -5,7 +5,7 @@ atom_style      tri
 atom_modify     map array
 boundary        f f f
 dimension       3
-comm_modify     vel yes
+comm_modify     vel yes cutoff 12.5
 
 region          box block -10 10 -10 10 -10 10 units box
 create_box      2 box
@@ -32,7 +32,7 @@ fix             3 sphere gravity 1.0 vector 0 0 -1
 
 region          slab block -2 2 -2 2 -2 2 units box
 fix             ins sphere pour 100 1 4767548 vol 0.4 10 &
-                diam one 1.0 region slab ignore
+                diam range 0.5 2.0 region slab ignore
 
 timestep        0.005
 
@@ -47,9 +47,12 @@ thermo_style    custom step atoms temp c_1 c_2 press
 thermo_modify   lost ignore
 compute_modify  thermo_temp dynamic/dof yes
 
-#dump           2 all image 100 tmp.image.*.ppm type type &
-#               zoom 1.4 adiam 1.0 tri type 2 0.2
-#dump_modify        2 pad 5
+#dump            viz all image 100 tribox.surf-*.ppm type diameter &
+#                    tri atom 1 0.2 size 800 800 zoom 1.6 shiny 0.3 &
+#                    fsaa yes view 80 10 box yes 0.025 region slab blue frame 0.15
+#dump_modify     viz pad 6 backcolor black backcolor2 white boxcolor gray &
+#                    acolor 1 slategray acolor 2 forestgreen atrans 2 0.25 &
+#                    lights 0.15 0.9 0.45 0.9
 
 run             5000
 

@@ -1,6 +1,6 @@
 ---
 lammps_version: 30 Mar 2026
-tags: generated
+tags:
 date_generated: Tue Jun 30 16:11:28 2026
 epsilon: 5e-12
 skip_tests: extract gpu single

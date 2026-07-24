@@ -108,6 +108,7 @@ class DumpImage : public DumpCustom {
   Compute *grid_compute;
   Fix *grid_fix;
   int grid_igrid, grid_idata, grid_index;
+  double grid_opacity;
   int nxgrid, nygrid, nzgrid;
   int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
   double *gbuf;

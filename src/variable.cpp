@@ -262,6 +262,7 @@ void Variable::set(int narg, char **arg)
 
   int ivar = find(arg[0]);
   std::string varstyle = arg[1];
+  std::string vartext;
 
   // DELETE
   // doesn't matter if variable no longer exists
@@ -272,6 +273,22 @@ void Variable::set(int narg, char **arg)
                  narg, utils::errorurl(3));
     if (ivar >= 0) remove(ivar);
     return;
+  }
+
+  // For variable style string we allow self-references, so we need to run substitute
+  // on the argument now before the original content is deleted
+
+  if (varstyle == "string") {
+
+    int maxcopy = strlen(arg[2]) + 1;
+    int maxwork = maxcopy;
+    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
+    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
+    strcpy(scopy, arg[2]);
+    input->substitute(scopy, work, maxcopy, maxwork, 1);
+    vartext = scopy;
+    memory->sfree(work);
+    memory->sfree(scopy);
   }
 
   // find unassigned variable struct in list or append one
@@ -478,26 +495,18 @@ void Variable::set(int narg, char **arg)
   // replace pre-existing var if also style STRING (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
+  // variable text has already been substituted on entry and stored in vartext
 
   if (varstyle == "string") {
     if (narg != 3)
       error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
                  utils::errorurl(3));
 
-    int maxcopy = strlen(arg[2]) + 1;
-    int maxwork = maxcopy;
-    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
-    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
-    strcpy(scopy, arg[2]);
-    input->substitute(scopy, work, maxcopy, maxwork, 1);
-    memory->sfree(work);
-
     newvar.num = 1;
     newvar.which = 0;
     newvar.pad = 0;
     newvar.data = new char *[newvar.num];
-    copy(1, &scopy, newvar.data);
-    memory->sfree(scopy);
+    newvar.data[0] = utils::strdup(vartext);
     newvar.style = STRING;
     return;
 

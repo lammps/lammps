@@ -80,7 +80,20 @@ static inline int FLIPSIDE(int nside) {
 /* ---------------------------------------------------------------------- */
 
 FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixSurface(lmp, narg, arg), tstr(nullptr), nb(nullptr), ns(nullptr)
+    FixSurface(lmp, narg, arg), tstr(nullptr), xsurf(nullptr), vsurf(nullptr), omegasurf(nullptr),
+    radsurf(nullptr), modeltypes(nullptr), models(nullptr), types2model(nullptr), nb(nullptr),
+    ns(nullptr), motions(nullptr), mol2motion(nullptr), points_original(nullptr),
+    xsurf_original(nullptr), points_lastneigh(nullptr), pointmove(nullptr), fix_history(nullptr),
+    zeroes(nullptr), fix_rigid(nullptr), mass_rigid(nullptr), points(nullptr), lines(nullptr),
+    tris(nullptr), idsurf(nullptr), neigh_p1(nullptr), pwhich_p1(nullptr), nside_p1(nullptr),
+    aflag_p1(nullptr), fflag_p1(nullptr), neigh_p2(nullptr), pwhich_p2(nullptr), nside_p2(nullptr),
+    aflag_p2(nullptr), fflag_p2(nullptr), neigh_e1(nullptr), ewhich_e1(nullptr), nside_e1(nullptr),
+    aflag_e1(nullptr), fflag_e1(nullptr), neigh_e2(nullptr), ewhich_e2(nullptr), nside_e2(nullptr),
+    aflag_e2(nullptr), fflag_e2(nullptr), neigh_e3(nullptr), ewhich_e3(nullptr), nside_e3(nullptr),
+    aflag_e3(nullptr), fflag_e3(nullptr), neigh_c1(nullptr), cwhich_c1(nullptr), nside_c1(nullptr),
+    fflag_c1(nullptr), neigh_c2(nullptr), cwhich_c2(nullptr), nside_c2(nullptr), fflag_c2(nullptr),
+    neigh_c3(nullptr), cwhich_c3(nullptr), nside_c3(nullptr), fflag_c3(nullptr), connect2d(nullptr),
+    connect3d(nullptr), imflag(nullptr), imdata(nullptr)
 {
   if (!atom->radius_flag || !atom->omega_flag)
     error->all(FLERR, 2, "Fix surface/global requires atom attributes radius and omega");
@@ -95,9 +108,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   npoints = maxpoints = 0;
   nlines = ntris = 0;
-  points = nullptr;
-  lines = nullptr;
-  tris = nullptr;
   last_setup_bins = -1;
 
   neigh_style = BIN;
@@ -132,7 +142,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   // disable bonded/history option for now
 
   class GranularModel* model;
-  models = nullptr;
   nmodel = maxmodel = 0;
   heat_flag = 0;
   use_history = 0;
@@ -328,57 +337,19 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   else nsurf = ntris;
 
   nmotion = maxmotion = 0;
-  motions = nullptr;
   anymove = anymove_variable = 0;
-
-  points_lastneigh = nullptr;
-  points_original = nullptr;
-  xsurf_original = nullptr;
-  pointmove = nullptr;
-
-  neigh_p1 = neigh_p2 = nullptr;
-  pwhich_p1 = pwhich_p2 = nullptr;
-  nside_p1 = nside_p2 = nullptr;
-  aflag_p1 = aflag_p2 = nullptr;
-  fflag_p1 = fflag_p2 = nullptr;
-
-  neigh_e1 = neigh_e2 = neigh_e3 = nullptr;
-  ewhich_e1 = ewhich_e2 = ewhich_e3 = nullptr;
-  nside_e1 = nside_e2 = nside_e3 =nullptr;
-  aflag_e1 = aflag_e2 = aflag_e3 = nullptr;
-  fflag_e1 = fflag_e2 = fflag_e3 = nullptr;
-  neigh_c1 = neigh_c2 = neigh_c3 = nullptr;
-  cwhich_c1 = cwhich_c2 = cwhich_c3 = nullptr;
-  fflag_c1 = fflag_c2 = fflag_c3 = nullptr;
-
-  connect2d = nullptr;
-  connect3d = nullptr;
-
-  xsurf = vsurf = omegasurf = nullptr;
-  radsurf = nullptr;
-  idsurf = nullptr;
 
   nsurf_ghost = -1;
 
   nmax = 0;
-  mass_rigid = nullptr;
-
-  fix_rigid = nullptr;
-  fix_history = nullptr;
-
   list = new NeighList(lmp);
   if (use_history) {
     listhistory = new NeighList(lmp);
     zeroes = new double[size_history];
     for (int i = 0; i < size_history; i++) zeroes[i] = 0.0;
-  } else {
-    listhistory = nullptr;
-    zeroes = nullptr;
   }
 
   imax = 0;
-  imflag = nullptr;
-  imdata = nullptr;
 
   mol2motion = new int[maxsurfmol+1];
   for (int i = 0; i <= maxsurfmol; i++)

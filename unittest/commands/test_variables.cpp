@@ -203,9 +203,11 @@ TEST_F(VariableTest, CreateDelete)
     command("variable seven delete");
     command("variable seven getenv TEST_VARIABLE");
     command("variable eight getenv OTHER_VARIABLE");
+    command("variable three string \"${three} four\"");
     END_HIDE_OUTPUT();
     ASSERT_THAT(variable->retrieve("seven"), StrEq("simpletest2"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("three"), StrEq("four four"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
@@ -240,6 +242,8 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten6   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08x\""););
+    TEST_FAILURE(".*ERROR.*Substitution for illegal variable xxx.*",
+                 command("variable three  string \"${xxx} five\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",

@@ -537,9 +537,11 @@ Generally speaking, the following rules of thumb apply:
   MPI ranks in order to avoid competing with the MPS daemon for
   CPU resources.
 
-See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS website for performance of the KOKKOS package on different
-hardware.
+..
+   FIXME:
+   See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
+   LAMMPS website for performance of the KOKKOS package on different
+   hardware.
 
 Advanced Kokkos options
 """""""""""""""""""""""

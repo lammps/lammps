@@ -240,7 +240,7 @@ converted into the ClassII-xe functional form.  The conversion from
 ClassII to ClassII-xe functional form requires reparameterizing the
 cross-terms, which can be accomplished via the LUNAR tool, for which a
 link is provided on the `Pre/Post processing
-<https://www.lammps.org/prepost.html>`_ page.  LUNAR can be used to
+<https://www.lammps.org/ecosystem/prepost/>`_ page.  LUNAR can be used to
 build a model from scratch in either COMPASS or PCFF (using its
 'atom_typing' and 'all2lmp' modules) and then convert that model to
 COMPASS-xe or PCFF-xe (using its 'auto_morse_bond_update' module).  To

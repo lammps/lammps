@@ -47,6 +47,7 @@ class FixWallReflect : public Fix {
   int *imgobjs;
   double **imgparms;
 
+  void allocate_image_objects();
   virtual void wall_particle(int m, int which, double coord);
 };
 

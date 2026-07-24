@@ -40,21 +40,34 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-static constexpr double EPSILON = 0.001;
-static constexpr int NBIN = 100;
-static constexpr double BIG = 1.0e20;
-static constexpr int MAXTRIPOINT = 24;
-static constexpr int DELTA_CONNECT = 1024;
-static constexpr int DELTA_RVOUS = 1024;    // must be >= 8
+namespace {
+
+constexpr double EPSILON = 0.001;
+constexpr int NBIN = 100;
+constexpr double BIG = 1.0e20;
+constexpr int MAXTRIPOINT = 48;
+constexpr int DELTA_CONNECT = 1024;
+constexpr int DELTA_RVOUS = 1024;    // must be >= 8
 
 enum { INTERNAL = 0, EXTERNAL, UNCONNECTED };
 
 // = 1.0-cos(MY_PI/180.0); = 1 degree
-static constexpr double FLATTHRESH = 0.00015230484360876085;
-static constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
+constexpr double FLATTHRESH = 0.00015230484360876085;
+constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 
 enum { MOLTEMPLATE, STLFILE };
 enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };    // several files
+
+void checkmaxpool(const std::string &file, int line, int n, Error *error)
+{
+  if (n > MAXTRIPOINT)
+    error->one(file, line,
+               "Memory pool chunk size too small: {} vs {}. "
+               "Increase MAXTRIPOINT and recompile\n",
+               MAXTRIPOINT, n);
+}
+
+}    // namespace
 
 // allocate space for static class variable
 
@@ -65,12 +78,12 @@ FixSurfaceLocal *FixSurfaceLocal::fptr;
 FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
     FixSurface(lmp, narg, arg), connect2d(nullptr), connect3d(nullptr), atom2connect(nullptr),
     tstr(nullptr), input_modes(nullptr), input_stypes(nullptr), input_smols(nullptr),
-    input_sources(nullptr), avec_line(nullptr), avec_tri(nullptr), ipc(nullptr), tpc(nullptr),
-    pool2d(nullptr), pool3d(nullptr), connect2atom(nullptr), neigh_p1(nullptr), neigh_p2(nullptr),
-    neigh_e1(nullptr), neigh_e2(nullptr), neigh_e3(nullptr), neigh_c1(nullptr), neigh_c2(nullptr),
-    neigh_c3(nullptr), points(nullptr), lines(nullptr), tris(nullptr), connect2dall(nullptr),
-    connect3dall(nullptr), plines(nullptr), etris(nullptr), ctris(nullptr), pts(nullptr),
-    bincount(nullptr), binfirst(nullptr)
+    input_sources(nullptr), avec_line(nullptr), avec_tri(nullptr), ipc(1, MAXTRIPOINT, 6),
+    tpc(1, MAXTRIPOINT, 6), pool2d(nullptr), pool3d(nullptr), connect2atom(nullptr),
+    neigh_p1(nullptr), neigh_p2(nullptr), neigh_e1(nullptr), neigh_e2(nullptr), neigh_e3(nullptr),
+    neigh_c1(nullptr), neigh_c2(nullptr), neigh_c3(nullptr), points(nullptr), lines(nullptr),
+    tris(nullptr), connect2dall(nullptr), connect3dall(nullptr), plines(nullptr), etris(nullptr),
+    ctris(nullptr), pts(nullptr), bincount(nullptr), binfirst(nullptr)
 {
   create_attribute = 1;
 
@@ -167,9 +180,6 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
   pool3d = nullptr;
   connect2atom = nullptr;
 
-  ipc = new MyPoolChunk<int>(1, MAXTRIPOINT, 6);
-  tpc = new MyPoolChunk<int>(1, MAXTRIPOINT, 6);
-
   flag_complete = 0;
   epssq = -1.0;
 }
@@ -191,18 +201,18 @@ FixSurfaceLocal::~FixSurfaceLocal()
     int nall = nlocal_connect + nghost_connect;
     for (int i = 0; i < nall; i++) {
       if (connect2d[i].neigh_p1) {
-        tpc->put(pool2d[i].neigh_p1);
-        ipc->put(pool2d[i].pwhich_p1);
-        ipc->put(pool2d[i].nside_p1);
-        ipc->put(pool2d[i].aflag_p1);
-        ipc->put(pool2d[i].fflag_p1);
+        tpc.put(pool2d[i].neigh_p1);
+        ipc.put(pool2d[i].pwhich_p1);
+        ipc.put(pool2d[i].nside_p1);
+        ipc.put(pool2d[i].aflag_p1);
+        ipc.put(pool2d[i].fflag_p1);
       }
       if (connect2d[i].neigh_p2) {
-        tpc->put(pool2d[i].neigh_p2);
-        ipc->put(pool2d[i].pwhich_p2);
-        ipc->put(pool2d[i].nside_p2);
-        ipc->put(pool2d[i].aflag_p2);
-        ipc->put(pool2d[i].fflag_p2);
+        tpc.put(pool2d[i].neigh_p2);
+        ipc.put(pool2d[i].pwhich_p2);
+        ipc.put(pool2d[i].nside_p2);
+        ipc.put(pool2d[i].aflag_p2);
+        ipc.put(pool2d[i].fflag_p2);
       }
     }
     memory->sfree(connect2d);
@@ -210,43 +220,43 @@ FixSurfaceLocal::~FixSurfaceLocal()
     int nall = nlocal_connect + nghost_connect;
     for (int i = 0; i < nall; i++) {
       if (connect3d[i].neigh_e1) {
-        tpc->put(pool3d[i].neigh_e1);
-        ipc->put(pool3d[i].ewhich_e1);
-        ipc->put(pool3d[i].nside_e1);
-        ipc->put(pool3d[i].aflag_e1);
-        ipc->put(pool3d[i].fflag_e1);
+        tpc.put(pool3d[i].neigh_e1);
+        ipc.put(pool3d[i].ewhich_e1);
+        ipc.put(pool3d[i].nside_e1);
+        ipc.put(pool3d[i].aflag_e1);
+        ipc.put(pool3d[i].fflag_e1);
       }
       if (connect3d[i].neigh_e2) {
-        tpc->put(pool3d[i].neigh_e2);
-        ipc->put(pool3d[i].ewhich_e2);
-        ipc->put(pool3d[i].nside_e2);
-        ipc->put(pool3d[i].aflag_e2);
-        ipc->put(pool3d[i].fflag_e2);
+        tpc.put(pool3d[i].neigh_e2);
+        ipc.put(pool3d[i].ewhich_e2);
+        ipc.put(pool3d[i].nside_e2);
+        ipc.put(pool3d[i].aflag_e2);
+        ipc.put(pool3d[i].fflag_e2);
       }
       if (connect3d[i].neigh_e3) {
-        tpc->put(pool3d[i].neigh_e3);
-        ipc->put(pool3d[i].ewhich_e3);
-        ipc->put(pool3d[i].nside_e3);
-        ipc->put(pool3d[i].aflag_e3);
-        ipc->put(pool3d[i].fflag_e3);
+        tpc.put(pool3d[i].neigh_e3);
+        ipc.put(pool3d[i].ewhich_e3);
+        ipc.put(pool3d[i].nside_e3);
+        ipc.put(pool3d[i].aflag_e3);
+        ipc.put(pool3d[i].fflag_e3);
       }
       if (connect3d[i].neigh_c1) {
-        tpc->put(pool3d[i].neigh_c1);
-        ipc->put(pool3d[i].cwhich_c1);
-        ipc->put(pool3d[i].nside_c1);
-        ipc->put(pool3d[i].fflag_c1);
+        tpc.put(pool3d[i].neigh_c1);
+        ipc.put(pool3d[i].cwhich_c1);
+        ipc.put(pool3d[i].nside_c1);
+        ipc.put(pool3d[i].fflag_c1);
       }
       if (connect3d[i].neigh_c2) {
-        tpc->put(pool3d[i].neigh_c2);
-        ipc->put(pool3d[i].cwhich_c2);
-        ipc->put(pool3d[i].nside_c2);
-        ipc->put(pool3d[i].fflag_c2);
+        tpc.put(pool3d[i].neigh_c2);
+        ipc.put(pool3d[i].cwhich_c2);
+        ipc.put(pool3d[i].nside_c2);
+        ipc.put(pool3d[i].fflag_c2);
       }
       if (connect3d[i].neigh_c3) {
-        tpc->put(pool3d[i].neigh_c3);
-        ipc->put(pool3d[i].cwhich_c3);
-        ipc->put(pool3d[i].nside_c3);
-        ipc->put(pool3d[i].fflag_c3);
+        tpc.put(pool3d[i].neigh_c3);
+        ipc.put(pool3d[i].cwhich_c3);
+        ipc.put(pool3d[i].nside_c3);
+        ipc.put(pool3d[i].fflag_c3);
       }
     }
     memory->sfree(connect3d);
@@ -254,9 +264,6 @@ FixSurfaceLocal::~FixSurfaceLocal()
 
   memory->sfree(pool2d);
   memory->sfree(pool3d);
-
-  delete ipc;
-  delete tpc;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -370,10 +377,13 @@ void FixSurfaceLocal::post_constructor()
     }
   }
 
-  // set max size for comm of connection info
-  // 2d = 2 end points, 4 vectors, each of length npmaxall
-  // 3d = 3 edges, 4 vectors, each of length nemaxall
-  //      plus 3 corner points, 2 vectors, each of length ncmaxall
+  // set max size for comm of connection info, matching pack_border():
+  // 2d = flag + 2 end point counts + 2 external_pt flags
+  //      plus 2 end points, 5 vectors, each of length npmaxall
+  // 3d = flag + 3 edge counts + 3 external_edge flags
+  //      plus 3 corner point counts + 3 external_cor flags
+  //      plus 3 edges, 5 vectors, each of length nemaxall
+  //      plus 3 corner points, 4 vectors, each of length ncmaxall
 
   if (dimension == 2) {
     int nlocal = atom->nlocal;
@@ -390,7 +400,8 @@ void FixSurfaceLocal::post_constructor()
 
     int npmaxall;
     MPI_Allreduce(&npmax, &npmaxall, 1, MPI_INT, MPI_MAX, world);
-    comm_border = comm_forward = 3 + 2 * 5 * npmaxall;
+    comm_border = comm_forward = 5 + 2 * 5 * npmaxall;
+    maxexchange = comm_border;
 
   } else if (dimension == 3) {
     int nlocal = atom->nlocal;
@@ -413,7 +424,8 @@ void FixSurfaceLocal::post_constructor()
     int nemaxall, ncmaxall;
     MPI_Allreduce(&nemax, &nemaxall, 1, MPI_INT, MPI_MAX, world);
     MPI_Allreduce(&ncmax, &ncmaxall, 1, MPI_INT, MPI_MAX, world);
-    comm_border = comm_forward = 7 + 3 * 5 * nemaxall + 3 * 4 * ncmaxall;
+    comm_border = comm_forward = 13 + 3 * 5 * nemaxall + 3 * 4 * ncmaxall;
+    maxexchange = comm_border;
   }
 
   // error checks on duplicate surfs or zero-size surfs
@@ -429,6 +441,12 @@ void FixSurfaceLocal::post_constructor()
     stats2d();
   else
     stats3d();
+
+  // sanity check that all connectivity storage requests succeeded
+
+  if (ipc.status() || tpc.status())
+    error->one(FLERR, Error::NOLASTLINE,
+               "Failed to allocate connection storage for fix surface/local");
 }
 
 /* ----------------------------------------------------------------------
@@ -691,8 +709,10 @@ void FixSurfaceLocal::setup_pre_neighbor()
 
   const double cutghost = MAX(neighbor->cutneighmax, comm->cutghostuser);
   if (cutghost < 2 * max_radius)
-    error->warning(FLERR, "Maximum triangle diameter {} may be less than ghost cutoff {}",
-                   2 * max_radius, cutghost);
+    error->warning(FLERR,
+                   "Ghost cutoff {} is smaller than the maximum surface element diameter {}: "
+                   "connected surfaces may be missed; increase it with comm_modify cutoff",
+                   cutghost, 2 * max_radius);
 
   // one-time calculation of remaining fields in Connect2d/3d
   // cannot do until now, b/c need ghost connection info via border comm
@@ -789,18 +809,18 @@ void FixSurfaceLocal::copy_arrays(int i, int j, int delflag)
     if (delflag && atom2connect[j] >= 0) {
       int k = atom2connect[j];
       if (connect2d[k].neigh_p1) {
-        tpc->put(pool2d[k].neigh_p1);
-        ipc->put(pool2d[k].pwhich_p1);
-        ipc->put(pool2d[k].nside_p1);
-        ipc->put(pool2d[k].aflag_p1);
-        ipc->put(pool2d[k].fflag_p1);
+        tpc.put(pool2d[k].neigh_p1);
+        ipc.put(pool2d[k].pwhich_p1);
+        ipc.put(pool2d[k].nside_p1);
+        ipc.put(pool2d[k].aflag_p1);
+        ipc.put(pool2d[k].fflag_p1);
       }
       if (connect2d[k].neigh_p2) {
-        tpc->put(pool2d[k].neigh_p2);
-        ipc->put(pool2d[k].pwhich_p2);
-        ipc->put(pool2d[k].nside_p2);
-        ipc->put(pool2d[k].aflag_p2);
-        ipc->put(pool2d[k].fflag_p2);
+        tpc.put(pool2d[k].neigh_p2);
+        ipc.put(pool2d[k].pwhich_p2);
+        ipc.put(pool2d[k].nside_p2);
+        ipc.put(pool2d[k].aflag_p2);
+        ipc.put(pool2d[k].fflag_p2);
       }
       memcpy(&connect2d[k], &connect2d[nlocal_connect - 1], sizeof(Connect2d));
       memcpy(&pool2d[k], &pool2d[nlocal_connect - 1], sizeof(Pool2d));
@@ -813,43 +833,43 @@ void FixSurfaceLocal::copy_arrays(int i, int j, int delflag)
     if (delflag && atom2connect[j] >= 0) {
       int k = atom2connect[j];
       if (connect3d[k].neigh_e1) {
-        tpc->put(pool3d[k].neigh_e1);
-        ipc->put(pool3d[k].ewhich_e1);
-        ipc->put(pool3d[k].nside_e1);
-        ipc->put(pool3d[k].aflag_e1);
-        ipc->put(pool3d[k].fflag_e1);
+        tpc.put(pool3d[k].neigh_e1);
+        ipc.put(pool3d[k].ewhich_e1);
+        ipc.put(pool3d[k].nside_e1);
+        ipc.put(pool3d[k].aflag_e1);
+        ipc.put(pool3d[k].fflag_e1);
       }
       if (connect3d[k].neigh_e2) {
-        tpc->put(pool3d[k].neigh_e2);
-        ipc->put(pool3d[k].ewhich_e2);
-        ipc->put(pool3d[k].nside_e2);
-        ipc->put(pool3d[k].aflag_e2);
-        ipc->put(pool3d[k].fflag_e2);
+        tpc.put(pool3d[k].neigh_e2);
+        ipc.put(pool3d[k].ewhich_e2);
+        ipc.put(pool3d[k].nside_e2);
+        ipc.put(pool3d[k].aflag_e2);
+        ipc.put(pool3d[k].fflag_e2);
       }
       if (connect3d[k].neigh_e3) {
-        tpc->put(pool3d[k].neigh_e3);
-        ipc->put(pool3d[k].ewhich_e3);
-        ipc->put(pool3d[k].nside_e3);
-        ipc->put(pool3d[k].aflag_e3);
-        ipc->put(pool3d[k].fflag_e3);
+        tpc.put(pool3d[k].neigh_e3);
+        ipc.put(pool3d[k].ewhich_e3);
+        ipc.put(pool3d[k].nside_e3);
+        ipc.put(pool3d[k].aflag_e3);
+        ipc.put(pool3d[k].fflag_e3);
       }
       if (connect3d[k].neigh_c1) {
-        tpc->put(pool3d[k].neigh_c1);
-        ipc->put(pool3d[k].cwhich_c1);
-        ipc->put(pool3d[k].nside_c1);
-        ipc->put(pool3d[k].fflag_c1);
+        tpc.put(pool3d[k].neigh_c1);
+        ipc.put(pool3d[k].cwhich_c1);
+        ipc.put(pool3d[k].nside_c1);
+        ipc.put(pool3d[k].fflag_c1);
       }
       if (connect3d[k].neigh_c2) {
-        tpc->put(pool3d[k].neigh_c2);
-        ipc->put(pool3d[k].cwhich_c2);
-        ipc->put(pool3d[k].nside_c2);
-        ipc->put(pool3d[k].fflag_c2);
+        tpc.put(pool3d[k].neigh_c2);
+        ipc.put(pool3d[k].cwhich_c2);
+        ipc.put(pool3d[k].nside_c2);
+        ipc.put(pool3d[k].fflag_c2);
       }
       if (connect3d[k].neigh_c3) {
-        tpc->put(pool3d[k].neigh_c3);
-        ipc->put(pool3d[k].cwhich_c3);
-        ipc->put(pool3d[k].nside_c3);
-        ipc->put(pool3d[k].fflag_c3);
+        tpc.put(pool3d[k].neigh_c3);
+        ipc.put(pool3d[k].cwhich_c3);
+        ipc.put(pool3d[k].nside_c3);
+        ipc.put(pool3d[k].fflag_c3);
       }
       memcpy(&connect3d[k], &connect3d[nlocal_connect - 1], sizeof(Connect3d));
       memcpy(&pool3d[k], &pool3d[nlocal_connect - 1], sizeof(Pool3d));
@@ -888,61 +908,61 @@ void FixSurfaceLocal::clear_bonus()
     int nall = nlocal_connect + nghost_connect;
     for (int i = nlocal_connect; i < nall; i++) {
       if (connect2d[i].neigh_p1) {
-        tpc->put(pool2d[i].neigh_p1);
-        ipc->put(pool2d[i].pwhich_p1);
-        ipc->put(pool2d[i].nside_p1);
-        ipc->put(pool2d[i].aflag_p1);
-        ipc->put(pool2d[i].fflag_p1);
+        tpc.put(pool2d[i].neigh_p1);
+        ipc.put(pool2d[i].pwhich_p1);
+        ipc.put(pool2d[i].nside_p1);
+        ipc.put(pool2d[i].aflag_p1);
+        ipc.put(pool2d[i].fflag_p1);
       }
       if (connect2d[i].neigh_p2) {
-        tpc->put(pool2d[i].neigh_p2);
-        ipc->put(pool2d[i].pwhich_p2);
-        ipc->put(pool2d[i].nside_p2);
-        ipc->put(pool2d[i].aflag_p2);
-        ipc->put(pool2d[i].fflag_p2);
+        tpc.put(pool2d[i].neigh_p2);
+        ipc.put(pool2d[i].pwhich_p2);
+        ipc.put(pool2d[i].nside_p2);
+        ipc.put(pool2d[i].aflag_p2);
+        ipc.put(pool2d[i].fflag_p2);
       }
     }
   } else if (dimension == 3) {
     int nall = nlocal_connect + nghost_connect;
     for (int i = nlocal_connect; i < nall; i++) {
       if (connect3d[i].neigh_e1) {
-        tpc->put(pool3d[i].neigh_e1);
-        ipc->put(pool3d[i].ewhich_e1);
-        ipc->put(pool3d[i].nside_e1);
-        ipc->put(pool3d[i].aflag_e1);
-        ipc->put(pool3d[i].fflag_e1);
+        tpc.put(pool3d[i].neigh_e1);
+        ipc.put(pool3d[i].ewhich_e1);
+        ipc.put(pool3d[i].nside_e1);
+        ipc.put(pool3d[i].aflag_e1);
+        ipc.put(pool3d[i].fflag_e1);
       }
       if (connect3d[i].neigh_e2) {
-        tpc->put(pool3d[i].neigh_e2);
-        ipc->put(pool3d[i].ewhich_e2);
-        ipc->put(pool3d[i].nside_e2);
-        ipc->put(pool3d[i].aflag_e2);
-        ipc->put(pool3d[i].fflag_e2);
+        tpc.put(pool3d[i].neigh_e2);
+        ipc.put(pool3d[i].ewhich_e2);
+        ipc.put(pool3d[i].nside_e2);
+        ipc.put(pool3d[i].aflag_e2);
+        ipc.put(pool3d[i].fflag_e2);
       }
       if (connect3d[i].neigh_e3) {
-        tpc->put(pool3d[i].neigh_e3);
-        ipc->put(pool3d[i].ewhich_e3);
-        ipc->put(pool3d[i].nside_e3);
-        ipc->put(pool3d[i].aflag_e3);
-        ipc->put(pool3d[i].fflag_e3);
+        tpc.put(pool3d[i].neigh_e3);
+        ipc.put(pool3d[i].ewhich_e3);
+        ipc.put(pool3d[i].nside_e3);
+        ipc.put(pool3d[i].aflag_e3);
+        ipc.put(pool3d[i].fflag_e3);
       }
       if (connect3d[i].neigh_c1) {
-        tpc->put(pool3d[i].neigh_c1);
-        ipc->put(pool3d[i].cwhich_c1);
-        ipc->put(pool3d[i].nside_c1);
-        ipc->put(pool3d[i].fflag_c1);
+        tpc.put(pool3d[i].neigh_c1);
+        ipc.put(pool3d[i].cwhich_c1);
+        ipc.put(pool3d[i].nside_c1);
+        ipc.put(pool3d[i].fflag_c1);
       }
       if (connect3d[i].neigh_c2) {
-        tpc->put(pool3d[i].neigh_c2);
-        ipc->put(pool3d[i].cwhich_c2);
-        ipc->put(pool3d[i].nside_c2);
-        ipc->put(pool3d[i].fflag_c2);
+        tpc.put(pool3d[i].neigh_c2);
+        ipc.put(pool3d[i].cwhich_c2);
+        ipc.put(pool3d[i].nside_c2);
+        ipc.put(pool3d[i].fflag_c2);
       }
       if (connect3d[i].neigh_c3) {
-        tpc->put(pool3d[i].neigh_c3);
-        ipc->put(pool3d[i].cwhich_c3);
-        ipc->put(pool3d[i].nside_c3);
-        ipc->put(pool3d[i].fflag_c3);
+        tpc.put(pool3d[i].neigh_c3);
+        ipc.put(pool3d[i].cwhich_c3);
+        ipc.put(pool3d[i].nside_c3);
+        ipc.put(pool3d[i].fflag_c3);
       }
     }
   }
@@ -1102,18 +1122,20 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
 
         np1 = (int) ubuf(buf[m++]).i;
         np2 = (int) ubuf(buf[m++]).i;
+        checkmaxpool(FLERR, np1, error);
+        checkmaxpool(FLERR, np2, error);
+
         connect2d[j].np1 = np1;
         connect2d[j].np2 = np2;
-
         connect2d[j].external_pt[0] = (int) ubuf(buf[m++]).i;
         connect2d[j].external_pt[1] = (int) ubuf(buf[m++]).i;
 
         if (np1) {
-          connect2d[j].neigh_p1 = tpc->get(np1, pool2d[j].neigh_p1);
-          connect2d[j].pwhich_p1 = ipc->get(np1, pool2d[j].pwhich_p1);
-          connect2d[j].nside_p1 = ipc->get(np1, pool2d[j].nside_p1);
-          connect2d[j].aflag_p1 = ipc->get(np1, pool2d[j].aflag_p1);
-          connect2d[j].fflag_p1 = ipc->get(np1, pool2d[j].fflag_p1);
+          connect2d[j].neigh_p1 = tpc.get(np1, pool2d[j].neigh_p1);
+          connect2d[j].pwhich_p1 = ipc.get(np1, pool2d[j].pwhich_p1);
+          connect2d[j].nside_p1 = ipc.get(np1, pool2d[j].nside_p1);
+          connect2d[j].aflag_p1 = ipc.get(np1, pool2d[j].aflag_p1);
+          connect2d[j].fflag_p1 = ipc.get(np1, pool2d[j].fflag_p1);
           for (int k = 0; k < np1; k++) {
             connect2d[j].neigh_p1[k] = (tagint) ubuf(buf[m++]).i;
             connect2d[j].pwhich_p1[k] = (int) ubuf(buf[m++]).i;
@@ -1130,12 +1152,12 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         }
 
         if (np2) {
-          connect2d[j].neigh_p2 = tpc->get(np1, pool2d[j].neigh_p2);
-          connect2d[j].pwhich_p2 = ipc->get(np1, pool2d[j].pwhich_p2);
-          connect2d[j].nside_p2 = ipc->get(np1, pool2d[j].nside_p2);
-          connect2d[j].aflag_p2 = ipc->get(np1, pool2d[j].aflag_p2);
-          connect2d[j].fflag_p2 = ipc->get(np1, pool2d[j].fflag_p2);
-          for (int k = 0; k < np1; k++) {
+          connect2d[j].neigh_p2 = tpc.get(np2, pool2d[j].neigh_p2);
+          connect2d[j].pwhich_p2 = ipc.get(np2, pool2d[j].pwhich_p2);
+          connect2d[j].nside_p2 = ipc.get(np2, pool2d[j].nside_p2);
+          connect2d[j].aflag_p2 = ipc.get(np2, pool2d[j].aflag_p2);
+          connect2d[j].fflag_p2 = ipc.get(np2, pool2d[j].fflag_p2);
+          for (int k = 0; k < np2; k++) {
             connect2d[j].neigh_p2[k] = (tagint) ubuf(buf[m++]).i;
             connect2d[j].pwhich_p2[k] = (int) ubuf(buf[m++]).i;
             connect2d[j].nside_p2[k] = (int) ubuf(buf[m++]).i;
@@ -1170,20 +1192,23 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         ne1 = (int) ubuf(buf[m++]).i;
         ne2 = (int) ubuf(buf[m++]).i;
         ne3 = (int) ubuf(buf[m++]).i;
+        checkmaxpool(FLERR, ne1, error);
+        checkmaxpool(FLERR, ne2, error);
+        checkmaxpool(FLERR, ne3, error);
+
         connect3d[j].ne1 = ne1;
         connect3d[j].ne2 = ne2;
         connect3d[j].ne3 = ne3;
-
         connect3d[j].external_edge[0] = (int) ubuf(buf[m++]).i;
         connect3d[j].external_edge[1] = (int) ubuf(buf[m++]).i;
         connect3d[j].external_edge[2] = (int) ubuf(buf[m++]).i;
 
         if (ne1) {
-          connect3d[j].neigh_e1 = tpc->get(ne1, pool3d[j].neigh_e1);
-          connect3d[j].ewhich_e1 = ipc->get(ne1, pool3d[j].ewhich_e1);
-          connect3d[j].nside_e1 = ipc->get(ne1, pool3d[j].nside_e1);
-          connect3d[j].aflag_e1 = ipc->get(ne1, pool3d[j].aflag_e1);
-          connect3d[j].fflag_e1 = ipc->get(ne1, pool3d[j].fflag_e1);
+          connect3d[j].neigh_e1 = tpc.get(ne1, pool3d[j].neigh_e1);
+          connect3d[j].ewhich_e1 = ipc.get(ne1, pool3d[j].ewhich_e1);
+          connect3d[j].nside_e1 = ipc.get(ne1, pool3d[j].nside_e1);
+          connect3d[j].aflag_e1 = ipc.get(ne1, pool3d[j].aflag_e1);
+          connect3d[j].fflag_e1 = ipc.get(ne1, pool3d[j].fflag_e1);
           for (int k = 0; k < ne1; k++) {
             connect3d[j].neigh_e1[k] = (tagint) ubuf(buf[m++]).i;
             connect3d[j].ewhich_e1[k] = (int) ubuf(buf[m++]).i;
@@ -1200,11 +1225,11 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         }
 
         if (ne2) {
-          connect3d[j].neigh_e2 = tpc->get(ne2, pool3d[j].neigh_e2);
-          connect3d[j].ewhich_e2 = ipc->get(ne2, pool3d[j].ewhich_e2);
-          connect3d[j].nside_e2 = ipc->get(ne2, pool3d[j].nside_e2);
-          connect3d[j].aflag_e2 = ipc->get(ne2, pool3d[j].aflag_e2);
-          connect3d[j].fflag_e2 = ipc->get(ne2, pool3d[j].fflag_e2);
+          connect3d[j].neigh_e2 = tpc.get(ne2, pool3d[j].neigh_e2);
+          connect3d[j].ewhich_e2 = ipc.get(ne2, pool3d[j].ewhich_e2);
+          connect3d[j].nside_e2 = ipc.get(ne2, pool3d[j].nside_e2);
+          connect3d[j].aflag_e2 = ipc.get(ne2, pool3d[j].aflag_e2);
+          connect3d[j].fflag_e2 = ipc.get(ne2, pool3d[j].fflag_e2);
           for (int k = 0; k < ne2; k++) {
             connect3d[j].neigh_e2[k] = (tagint) ubuf(buf[m++]).i;
             connect3d[j].ewhich_e2[k] = (int) ubuf(buf[m++]).i;
@@ -1221,11 +1246,11 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         }
 
         if (ne3) {
-          connect3d[j].neigh_e3 = tpc->get(ne3, pool3d[j].neigh_e3);
-          connect3d[j].ewhich_e3 = ipc->get(ne3, pool3d[j].ewhich_e3);
-          connect3d[j].nside_e3 = ipc->get(ne3, pool3d[j].nside_e3);
-          connect3d[j].aflag_e3 = ipc->get(ne3, pool3d[j].aflag_e3);
-          connect3d[j].fflag_e3 = ipc->get(ne3, pool3d[j].fflag_e3);
+          connect3d[j].neigh_e3 = tpc.get(ne3, pool3d[j].neigh_e3);
+          connect3d[j].ewhich_e3 = ipc.get(ne3, pool3d[j].ewhich_e3);
+          connect3d[j].nside_e3 = ipc.get(ne3, pool3d[j].nside_e3);
+          connect3d[j].aflag_e3 = ipc.get(ne3, pool3d[j].aflag_e3);
+          connect3d[j].fflag_e3 = ipc.get(ne3, pool3d[j].fflag_e3);
           for (int k = 0; k < ne3; k++) {
             connect3d[j].neigh_e3[k] = (tagint) ubuf(buf[m++]).i;
             connect3d[j].ewhich_e3[k] = (int) ubuf(buf[m++]).i;
@@ -1244,19 +1269,22 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         nc1 = (int) ubuf(buf[m++]).i;
         nc2 = (int) ubuf(buf[m++]).i;
         nc3 = (int) ubuf(buf[m++]).i;
+        checkmaxpool(FLERR, nc1, error);
+        checkmaxpool(FLERR, nc2, error);
+        checkmaxpool(FLERR, nc3, error);
+
         connect3d[j].nc1 = nc1;
         connect3d[j].nc2 = nc2;
         connect3d[j].nc3 = nc3;
-
         connect3d[j].external_cor[0] = (int) ubuf(buf[m++]).i;
         connect3d[j].external_cor[1] = (int) ubuf(buf[m++]).i;
         connect3d[j].external_cor[2] = (int) ubuf(buf[m++]).i;
 
         if (nc1) {
-          connect3d[j].neigh_c1 = tpc->get(nc1, pool3d[j].neigh_c1);
-          connect3d[j].cwhich_c1 = ipc->get(nc1, pool3d[j].cwhich_c1);
-          connect3d[j].nside_c1 = ipc->get(nc1, pool3d[j].nside_c1);
-          connect3d[j].fflag_c1 = ipc->get(nc1, pool3d[j].fflag_c1);
+          connect3d[j].neigh_c1 = tpc.get(nc1, pool3d[j].neigh_c1);
+          connect3d[j].cwhich_c1 = ipc.get(nc1, pool3d[j].cwhich_c1);
+          connect3d[j].nside_c1 = ipc.get(nc1, pool3d[j].nside_c1);
+          connect3d[j].fflag_c1 = ipc.get(nc1, pool3d[j].fflag_c1);
           for (int k = 0; k < nc1; k++) {
             connect3d[j].neigh_c1[k] = (tagint) ubuf(buf[m++]).i;
             connect3d[j].cwhich_c1[k] = (int) ubuf(buf[m++]).i;
@@ -1271,10 +1299,10 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         }
 
         if (nc2) {
-          connect3d[j].neigh_c2 = tpc->get(nc2, pool3d[j].neigh_c2);
-          connect3d[j].cwhich_c2 = ipc->get(nc2, pool3d[j].cwhich_c2);
-          connect3d[j].nside_c2 = ipc->get(nc2, pool3d[j].nside_c2);
-          connect3d[j].fflag_c2 = ipc->get(nc2, pool3d[j].fflag_c2);
+          connect3d[j].neigh_c2 = tpc.get(nc2, pool3d[j].neigh_c2);
+          connect3d[j].cwhich_c2 = ipc.get(nc2, pool3d[j].cwhich_c2);
+          connect3d[j].nside_c2 = ipc.get(nc2, pool3d[j].nside_c2);
+          connect3d[j].fflag_c2 = ipc.get(nc2, pool3d[j].fflag_c2);
           for (int k = 0; k < nc2; k++) {
             connect3d[j].neigh_c2[k] = (tagint) ubuf(buf[m++]).i;
             connect3d[j].cwhich_c2[k] = (int) ubuf(buf[m++]).i;
@@ -1289,10 +1317,10 @@ int FixSurfaceLocal::unpack_border(int n, int first, double *buf)
         }
 
         if (nc3) {
-          connect3d[j].neigh_c3 = tpc->get(nc3, pool3d[j].neigh_c3);
-          connect3d[j].cwhich_c3 = ipc->get(nc3, pool3d[j].cwhich_c3);
-          connect3d[j].nside_c3 = ipc->get(nc3, pool3d[j].nside_c3);
-          connect3d[j].fflag_c3 = ipc->get(nc3, pool3d[j].fflag_c3);
+          connect3d[j].neigh_c3 = tpc.get(nc3, pool3d[j].neigh_c3);
+          connect3d[j].cwhich_c3 = ipc.get(nc3, pool3d[j].cwhich_c3);
+          connect3d[j].nside_c3 = ipc.get(nc3, pool3d[j].nside_c3);
+          connect3d[j].fflag_c3 = ipc.get(nc3, pool3d[j].fflag_c3);
           for (int k = 0; k < nc3; k++) {
             connect3d[j].neigh_c3[k] = (tagint) ubuf(buf[m++]).i;
             connect3d[j].cwhich_c3[k] = (int) ubuf(buf[m++]).i;
@@ -1462,18 +1490,19 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
 
       np1 = (int) ubuf(buf[m++]).i;
       np2 = (int) ubuf(buf[m++]).i;
+      checkmaxpool(FLERR, np1, error);
+      checkmaxpool(FLERR, np2, error);
+
       connect2d[nlocal_connect].np1 = np1;
       connect2d[nlocal_connect].np2 = np2;
-
       connect2d[nlocal_connect].external_pt[0] = (int) ubuf(buf[m++]).i;
       connect2d[nlocal_connect].external_pt[1] = (int) ubuf(buf[m++]).i;
-
       if (np1) {
-        connect2d[nlocal_connect].neigh_p1 = tpc->get(np1, pool2d[nlocal_connect].neigh_p1);
-        connect2d[nlocal_connect].pwhich_p1 = ipc->get(np1, pool2d[nlocal_connect].pwhich_p1);
-        connect2d[nlocal_connect].nside_p1 = ipc->get(np1, pool2d[nlocal_connect].nside_p1);
-        connect2d[nlocal_connect].aflag_p1 = ipc->get(np1, pool2d[nlocal_connect].aflag_p1);
-        connect2d[nlocal_connect].fflag_p1 = ipc->get(np1, pool2d[nlocal_connect].fflag_p1);
+        connect2d[nlocal_connect].neigh_p1 = tpc.get(np1, pool2d[nlocal_connect].neigh_p1);
+        connect2d[nlocal_connect].pwhich_p1 = ipc.get(np1, pool2d[nlocal_connect].pwhich_p1);
+        connect2d[nlocal_connect].nside_p1 = ipc.get(np1, pool2d[nlocal_connect].nside_p1);
+        connect2d[nlocal_connect].aflag_p1 = ipc.get(np1, pool2d[nlocal_connect].aflag_p1);
+        connect2d[nlocal_connect].fflag_p1 = ipc.get(np1, pool2d[nlocal_connect].fflag_p1);
         for (int k = 0; k < np1; k++) {
           connect2d[nlocal_connect].neigh_p1[k] = (tagint) ubuf(buf[m++]).i;
           connect2d[nlocal_connect].pwhich_p1[k] = (int) ubuf(buf[m++]).i;
@@ -1490,11 +1519,11 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       }
 
       if (np2) {
-        connect2d[nlocal_connect].neigh_p2 = tpc->get(np2, pool2d[nlocal_connect].neigh_p2);
-        connect2d[nlocal_connect].pwhich_p2 = ipc->get(np2, pool2d[nlocal_connect].pwhich_p2);
-        connect2d[nlocal_connect].nside_p2 = ipc->get(np2, pool2d[nlocal_connect].nside_p2);
-        connect2d[nlocal_connect].aflag_p2 = ipc->get(np2, pool2d[nlocal_connect].aflag_p2);
-        connect2d[nlocal_connect].fflag_p2 = ipc->get(np2, pool2d[nlocal_connect].fflag_p2);
+        connect2d[nlocal_connect].neigh_p2 = tpc.get(np2, pool2d[nlocal_connect].neigh_p2);
+        connect2d[nlocal_connect].pwhich_p2 = ipc.get(np2, pool2d[nlocal_connect].pwhich_p2);
+        connect2d[nlocal_connect].nside_p2 = ipc.get(np2, pool2d[nlocal_connect].nside_p2);
+        connect2d[nlocal_connect].aflag_p2 = ipc.get(np2, pool2d[nlocal_connect].aflag_p2);
+        connect2d[nlocal_connect].fflag_p2 = ipc.get(np2, pool2d[nlocal_connect].fflag_p2);
         for (int k = 0; k < np2; k++) {
           connect2d[nlocal_connect].neigh_p2[k] = (tagint) ubuf(buf[m++]).i;
           connect2d[nlocal_connect].pwhich_p2[k] = (int) ubuf(buf[m++]).i;
@@ -1526,20 +1555,23 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       ne1 = (int) ubuf(buf[m++]).i;
       ne2 = (int) ubuf(buf[m++]).i;
       ne3 = (int) ubuf(buf[m++]).i;
+      checkmaxpool(FLERR, ne1, error);
+      checkmaxpool(FLERR, ne2, error);
+      checkmaxpool(FLERR, ne3, error);
+
       connect3d[nlocal_connect].ne1 = ne1;
       connect3d[nlocal_connect].ne2 = ne2;
       connect3d[nlocal_connect].ne3 = ne3;
-
       connect3d[nlocal_connect].external_edge[0] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_edge[1] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_edge[2] = (int) ubuf(buf[m++]).i;
 
       if (ne1) {
-        connect3d[nlocal_connect].neigh_e1 = tpc->get(ne1, pool3d[nlocal_connect].neigh_e1);
-        connect3d[nlocal_connect].ewhich_e1 = ipc->get(ne1, pool3d[nlocal_connect].ewhich_e1);
-        connect3d[nlocal_connect].nside_e1 = ipc->get(ne1, pool3d[nlocal_connect].nside_e1);
-        connect3d[nlocal_connect].aflag_e1 = ipc->get(ne1, pool3d[nlocal_connect].aflag_e1);
-        connect3d[nlocal_connect].fflag_e1 = ipc->get(ne1, pool3d[nlocal_connect].fflag_e1);
+        connect3d[nlocal_connect].neigh_e1 = tpc.get(ne1, pool3d[nlocal_connect].neigh_e1);
+        connect3d[nlocal_connect].ewhich_e1 = ipc.get(ne1, pool3d[nlocal_connect].ewhich_e1);
+        connect3d[nlocal_connect].nside_e1 = ipc.get(ne1, pool3d[nlocal_connect].nside_e1);
+        connect3d[nlocal_connect].aflag_e1 = ipc.get(ne1, pool3d[nlocal_connect].aflag_e1);
+        connect3d[nlocal_connect].fflag_e1 = ipc.get(ne1, pool3d[nlocal_connect].fflag_e1);
         for (int k = 0; k < ne1; k++) {
           connect3d[nlocal_connect].neigh_e1[k] = (tagint) ubuf(buf[m++]).i;
           connect3d[nlocal_connect].ewhich_e1[k] = (int) ubuf(buf[m++]).i;
@@ -1556,11 +1588,11 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       }
 
       if (ne2) {
-        connect3d[nlocal_connect].neigh_e2 = tpc->get(ne2, pool3d[nlocal_connect].neigh_e2);
-        connect3d[nlocal_connect].ewhich_e2 = ipc->get(ne2, pool3d[nlocal_connect].ewhich_e2);
-        connect3d[nlocal_connect].nside_e2 = ipc->get(ne2, pool3d[nlocal_connect].nside_e2);
-        connect3d[nlocal_connect].aflag_e2 = ipc->get(ne2, pool3d[nlocal_connect].aflag_e2);
-        connect3d[nlocal_connect].fflag_e2 = ipc->get(ne2, pool3d[nlocal_connect].fflag_e2);
+        connect3d[nlocal_connect].neigh_e2 = tpc.get(ne2, pool3d[nlocal_connect].neigh_e2);
+        connect3d[nlocal_connect].ewhich_e2 = ipc.get(ne2, pool3d[nlocal_connect].ewhich_e2);
+        connect3d[nlocal_connect].nside_e2 = ipc.get(ne2, pool3d[nlocal_connect].nside_e2);
+        connect3d[nlocal_connect].aflag_e2 = ipc.get(ne2, pool3d[nlocal_connect].aflag_e2);
+        connect3d[nlocal_connect].fflag_e2 = ipc.get(ne2, pool3d[nlocal_connect].fflag_e2);
         for (int k = 0; k < ne2; k++) {
           connect3d[nlocal_connect].neigh_e2[k] = (tagint) ubuf(buf[m++]).i;
           connect3d[nlocal_connect].ewhich_e2[k] = (int) ubuf(buf[m++]).i;
@@ -1577,11 +1609,11 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       }
 
       if (ne3) {
-        connect3d[nlocal_connect].neigh_e3 = tpc->get(ne3, pool3d[nlocal_connect].neigh_e3);
-        connect3d[nlocal_connect].ewhich_e3 = ipc->get(ne3, pool3d[nlocal_connect].ewhich_e3);
-        connect3d[nlocal_connect].nside_e3 = ipc->get(ne3, pool3d[nlocal_connect].nside_e3);
-        connect3d[nlocal_connect].aflag_e3 = ipc->get(ne3, pool3d[nlocal_connect].aflag_e3);
-        connect3d[nlocal_connect].fflag_e3 = ipc->get(ne3, pool3d[nlocal_connect].fflag_e3);
+        connect3d[nlocal_connect].neigh_e3 = tpc.get(ne3, pool3d[nlocal_connect].neigh_e3);
+        connect3d[nlocal_connect].ewhich_e3 = ipc.get(ne3, pool3d[nlocal_connect].ewhich_e3);
+        connect3d[nlocal_connect].nside_e3 = ipc.get(ne3, pool3d[nlocal_connect].nside_e3);
+        connect3d[nlocal_connect].aflag_e3 = ipc.get(ne3, pool3d[nlocal_connect].aflag_e3);
+        connect3d[nlocal_connect].fflag_e3 = ipc.get(ne3, pool3d[nlocal_connect].fflag_e3);
         for (int k = 0; k < ne3; k++) {
           connect3d[nlocal_connect].neigh_e3[k] = (tagint) ubuf(buf[m++]).i;
           connect3d[nlocal_connect].ewhich_e3[k] = (int) ubuf(buf[m++]).i;
@@ -1600,19 +1632,22 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       nc1 = (int) ubuf(buf[m++]).i;
       nc2 = (int) ubuf(buf[m++]).i;
       nc3 = (int) ubuf(buf[m++]).i;
+      checkmaxpool(FLERR, nc1, error);
+      checkmaxpool(FLERR, nc2, error);
+      checkmaxpool(FLERR, nc3, error);
+
       connect3d[nlocal_connect].nc1 = nc1;
       connect3d[nlocal_connect].nc2 = nc2;
       connect3d[nlocal_connect].nc3 = nc3;
-
       connect3d[nlocal_connect].external_cor[0] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_cor[1] = (int) ubuf(buf[m++]).i;
       connect3d[nlocal_connect].external_cor[2] = (int) ubuf(buf[m++]).i;
 
       if (nc1) {
-        connect3d[nlocal_connect].neigh_c1 = tpc->get(nc1, pool3d[nlocal_connect].neigh_c1);
-        connect3d[nlocal_connect].cwhich_c1 = ipc->get(nc1, pool3d[nlocal_connect].cwhich_c1);
-        connect3d[nlocal_connect].nside_c1 = ipc->get(nc1, pool3d[nlocal_connect].nside_c1);
-        connect3d[nlocal_connect].fflag_c1 = ipc->get(nc1, pool3d[nlocal_connect].fflag_c1);
+        connect3d[nlocal_connect].neigh_c1 = tpc.get(nc1, pool3d[nlocal_connect].neigh_c1);
+        connect3d[nlocal_connect].cwhich_c1 = ipc.get(nc1, pool3d[nlocal_connect].cwhich_c1);
+        connect3d[nlocal_connect].nside_c1 = ipc.get(nc1, pool3d[nlocal_connect].nside_c1);
+        connect3d[nlocal_connect].fflag_c1 = ipc.get(nc1, pool3d[nlocal_connect].fflag_c1);
         for (int k = 0; k < nc1; k++) {
           connect3d[nlocal_connect].neigh_c1[k] = (tagint) ubuf(buf[m++]).i;
           connect3d[nlocal_connect].cwhich_c1[k] = (int) ubuf(buf[m++]).i;
@@ -1627,10 +1662,10 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       }
 
       if (nc2) {
-        connect3d[nlocal_connect].neigh_c2 = tpc->get(nc2, pool3d[nlocal_connect].neigh_c2);
-        connect3d[nlocal_connect].cwhich_c2 = ipc->get(nc2, pool3d[nlocal_connect].cwhich_c2);
-        connect3d[nlocal_connect].nside_c2 = ipc->get(nc2, pool3d[nlocal_connect].nside_c2);
-        connect3d[nlocal_connect].fflag_c2 = ipc->get(nc2, pool3d[nlocal_connect].fflag_c2);
+        connect3d[nlocal_connect].neigh_c2 = tpc.get(nc2, pool3d[nlocal_connect].neigh_c2);
+        connect3d[nlocal_connect].cwhich_c2 = ipc.get(nc2, pool3d[nlocal_connect].cwhich_c2);
+        connect3d[nlocal_connect].nside_c2 = ipc.get(nc2, pool3d[nlocal_connect].nside_c2);
+        connect3d[nlocal_connect].fflag_c2 = ipc.get(nc2, pool3d[nlocal_connect].fflag_c2);
         for (int k = 0; k < nc2; k++) {
           connect3d[nlocal_connect].neigh_c2[k] = (tagint) ubuf(buf[m++]).i;
           connect3d[nlocal_connect].cwhich_c2[k] = (int) ubuf(buf[m++]).i;
@@ -1645,10 +1680,10 @@ int FixSurfaceLocal::unpack_exchange(int nlocal, double *buf)
       }
 
       if (nc3) {
-        connect3d[nlocal_connect].neigh_c3 = tpc->get(nc3, pool3d[nlocal_connect].neigh_c3);
-        connect3d[nlocal_connect].cwhich_c3 = ipc->get(nc3, pool3d[nlocal_connect].cwhich_c3);
-        connect3d[nlocal_connect].nside_c3 = ipc->get(nc3, pool3d[nlocal_connect].nside_c3);
-        connect3d[nlocal_connect].fflag_c3 = ipc->get(nc3, pool3d[nlocal_connect].fflag_c3);
+        connect3d[nlocal_connect].neigh_c3 = tpc.get(nc3, pool3d[nlocal_connect].neigh_c3);
+        connect3d[nlocal_connect].cwhich_c3 = ipc.get(nc3, pool3d[nlocal_connect].cwhich_c3);
+        connect3d[nlocal_connect].nside_c3 = ipc.get(nc3, pool3d[nlocal_connect].nside_c3);
+        connect3d[nlocal_connect].fflag_c3 = ipc.get(nc3, pool3d[nlocal_connect].fflag_c3);
         for (int k = 0; k < nc3; k++) {
           connect3d[nlocal_connect].neigh_c3[k] = (tagint) ubuf(buf[m++]).i;
           connect3d[nlocal_connect].cwhich_c3[k] = (int) ubuf(buf[m++]).i;
@@ -1953,11 +1988,11 @@ void FixSurfaceLocal::connectivity2d_local()
   for (int i = 0; i < nlocal_connect; i++) {
     connect2d[i].np1 = p1_counts[i];
     if (connect2d[i].np1) {
-      connect2d[i].neigh_p1 = tpc->get(connect2d[i].np1, pool2d[i].neigh_p1);
-      connect2d[i].pwhich_p1 = ipc->get(connect2d[i].np1, pool2d[i].pwhich_p1);
-      connect2d[i].nside_p1 = ipc->get(connect2d[i].np1, pool2d[i].nside_p1);
-      connect2d[i].aflag_p1 = ipc->get(connect2d[i].np1, pool2d[i].aflag_p1);
-      connect2d[i].fflag_p1 = ipc->get(connect2d[i].np1, pool2d[i].fflag_p1);
+      connect2d[i].neigh_p1 = tpc.get(connect2d[i].np1, pool2d[i].neigh_p1);
+      connect2d[i].pwhich_p1 = ipc.get(connect2d[i].np1, pool2d[i].pwhich_p1);
+      connect2d[i].nside_p1 = ipc.get(connect2d[i].np1, pool2d[i].nside_p1);
+      connect2d[i].aflag_p1 = ipc.get(connect2d[i].np1, pool2d[i].aflag_p1);
+      connect2d[i].fflag_p1 = ipc.get(connect2d[i].np1, pool2d[i].fflag_p1);
       for (int j = 0; j < connect2d[i].np1; j++) {
         connect2d[i].neigh_p1[j] = tneigh1[i][j];
         connect2d[i].pwhich_p1[j] = 0;
@@ -1975,11 +2010,11 @@ void FixSurfaceLocal::connectivity2d_local()
 
     connect2d[i].np2 = p2_counts[i];
     if (connect2d[i].np2) {
-      connect2d[i].neigh_p2 = tpc->get(connect2d[i].np2, pool2d[i].neigh_p2);
-      connect2d[i].pwhich_p2 = ipc->get(connect2d[i].np2, pool2d[i].pwhich_p2);
-      connect2d[i].nside_p2 = ipc->get(connect2d[i].np2, pool2d[i].nside_p2);
-      connect2d[i].aflag_p2 = ipc->get(connect2d[i].np2, pool2d[i].aflag_p2);
-      connect2d[i].fflag_p2 = ipc->get(connect2d[i].np2, pool2d[i].fflag_p2);
+      connect2d[i].neigh_p2 = tpc.get(connect2d[i].np2, pool2d[i].neigh_p2);
+      connect2d[i].pwhich_p2 = ipc.get(connect2d[i].np2, pool2d[i].pwhich_p2);
+      connect2d[i].nside_p2 = ipc.get(connect2d[i].np2, pool2d[i].nside_p2);
+      connect2d[i].aflag_p2 = ipc.get(connect2d[i].np2, pool2d[i].aflag_p2);
+      connect2d[i].fflag_p2 = ipc.get(connect2d[i].np2, pool2d[i].fflag_p2);
       for (int j = 0; j < connect2d[i].np2; j++) {
         connect2d[i].neigh_p2[j] = tneigh2[i][j];
         connect2d[i].pwhich_p2[j] = 0;
@@ -2238,7 +2273,7 @@ void FixSurfaceLocal::connectivity3d_local()
       atomID = outbuf[i].atomID;
       np = n2_counts[iconnect];
       neigh = tneigh2[iconnect];
-      for (int j = 0; j < np; j++)
+      for (j = 0; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -2248,7 +2283,7 @@ void FixSurfaceLocal::connectivity3d_local()
       atomID = outbuf[i].atomID;
       np = n3_counts[iconnect];
       neigh = tneigh3[iconnect];
-      for (int j = 0; j < np; j++)
+      for (j = 0; j < np; j++)
         if (neigh[j] == atomID) break;
       if (j == np) {
         neigh[np] = atomID;
@@ -2329,11 +2364,11 @@ void FixSurfaceLocal::connectivity3d_local()
 
   for (int i = 0; i < nlocal_connect; i++) {
     if (connect3d[i].ne1) {
-      connect3d[i].neigh_e1 = tpc->get(connect3d[i].ne1, pool3d[i].neigh_e1);
-      connect3d[i].ewhich_e1 = ipc->get(connect3d[i].ne1, pool3d[i].ewhich_e1);
-      connect3d[i].nside_e1 = ipc->get(connect3d[i].ne1, pool3d[i].nside_e1);
-      connect3d[i].aflag_e1 = ipc->get(connect3d[i].ne1, pool3d[i].aflag_e1);
-      connect3d[i].fflag_e1 = ipc->get(connect3d[i].ne1, pool3d[i].fflag_e1);
+      connect3d[i].neigh_e1 = tpc.get(connect3d[i].ne1, pool3d[i].neigh_e1);
+      connect3d[i].ewhich_e1 = ipc.get(connect3d[i].ne1, pool3d[i].ewhich_e1);
+      connect3d[i].nside_e1 = ipc.get(connect3d[i].ne1, pool3d[i].nside_e1);
+      connect3d[i].aflag_e1 = ipc.get(connect3d[i].ne1, pool3d[i].aflag_e1);
+      connect3d[i].fflag_e1 = ipc.get(connect3d[i].ne1, pool3d[i].fflag_e1);
       for (int j = 0; j < connect3d[i].ne1; j++) {
         connect3d[i].ewhich_e1[j] = 0;
         connect3d[i].nside_e1[j] = 0;
@@ -2348,11 +2383,11 @@ void FixSurfaceLocal::connectivity3d_local()
       connect3d[i].fflag_e1 = nullptr;
     }
     if (connect3d[i].ne2) {
-      connect3d[i].neigh_e2 = tpc->get(connect3d[i].ne2, pool3d[i].neigh_e2);
-      connect3d[i].ewhich_e2 = ipc->get(connect3d[i].ne2, pool3d[i].ewhich_e2);
-      connect3d[i].nside_e2 = ipc->get(connect3d[i].ne2, pool3d[i].nside_e2);
-      connect3d[i].aflag_e2 = ipc->get(connect3d[i].ne2, pool3d[i].aflag_e2);
-      connect3d[i].fflag_e2 = ipc->get(connect3d[i].ne2, pool3d[i].fflag_e2);
+      connect3d[i].neigh_e2 = tpc.get(connect3d[i].ne2, pool3d[i].neigh_e2);
+      connect3d[i].ewhich_e2 = ipc.get(connect3d[i].ne2, pool3d[i].ewhich_e2);
+      connect3d[i].nside_e2 = ipc.get(connect3d[i].ne2, pool3d[i].nside_e2);
+      connect3d[i].aflag_e2 = ipc.get(connect3d[i].ne2, pool3d[i].aflag_e2);
+      connect3d[i].fflag_e2 = ipc.get(connect3d[i].ne2, pool3d[i].fflag_e2);
       for (int j = 0; j < connect3d[i].ne2; j++) {
         connect3d[i].ewhich_e2[j] = 0;
         connect3d[i].nside_e2[j] = 0;
@@ -2367,11 +2402,11 @@ void FixSurfaceLocal::connectivity3d_local()
       connect3d[i].fflag_e2 = nullptr;
     }
     if (connect3d[i].ne3) {
-      connect3d[i].neigh_e3 = tpc->get(connect3d[i].ne3, pool3d[i].neigh_e3);
-      connect3d[i].ewhich_e3 = ipc->get(connect3d[i].ne3, pool3d[i].ewhich_e3);
-      connect3d[i].nside_e3 = ipc->get(connect3d[i].ne3, pool3d[i].nside_e3);
-      connect3d[i].aflag_e3 = ipc->get(connect3d[i].ne3, pool3d[i].aflag_e3);
-      connect3d[i].fflag_e3 = ipc->get(connect3d[i].ne3, pool3d[i].fflag_e3);
+      connect3d[i].neigh_e3 = tpc.get(connect3d[i].ne3, pool3d[i].neigh_e3);
+      connect3d[i].ewhich_e3 = ipc.get(connect3d[i].ne3, pool3d[i].ewhich_e3);
+      connect3d[i].nside_e3 = ipc.get(connect3d[i].ne3, pool3d[i].nside_e3);
+      connect3d[i].aflag_e3 = ipc.get(connect3d[i].ne3, pool3d[i].aflag_e3);
+      connect3d[i].fflag_e3 = ipc.get(connect3d[i].ne3, pool3d[i].fflag_e3);
       for (int j = 0; j < connect3d[i].ne3; j++) {
         connect3d[i].ewhich_e3[j] = 0;
         connect3d[i].nside_e3[j] = 0;
@@ -2387,10 +2422,10 @@ void FixSurfaceLocal::connectivity3d_local()
     }
 
     if (connect3d[i].nc1) {
-      connect3d[i].neigh_c1 = tpc->get(connect3d[i].nc1, pool3d[i].neigh_c1);
-      connect3d[i].cwhich_c1 = ipc->get(connect3d[i].nc1, pool3d[i].cwhich_c1);
-      connect3d[i].nside_c1 = ipc->get(connect3d[i].nc1, pool3d[i].nside_c1);
-      connect3d[i].fflag_c1 = ipc->get(connect3d[i].nc1, pool3d[i].fflag_c1);
+      connect3d[i].neigh_c1 = tpc.get(connect3d[i].nc1, pool3d[i].neigh_c1);
+      connect3d[i].cwhich_c1 = ipc.get(connect3d[i].nc1, pool3d[i].cwhich_c1);
+      connect3d[i].nside_c1 = ipc.get(connect3d[i].nc1, pool3d[i].nside_c1);
+      connect3d[i].fflag_c1 = ipc.get(connect3d[i].nc1, pool3d[i].fflag_c1);
       for (int j = 0; j < connect3d[i].nc1; j++) {
         connect3d[i].cwhich_c1[j] = 0;
         connect3d[i].nside_c1[j] = 0;
@@ -2403,10 +2438,10 @@ void FixSurfaceLocal::connectivity3d_local()
       connect3d[i].fflag_c1 = nullptr;
     }
     if (connect3d[i].nc2) {
-      connect3d[i].neigh_c2 = tpc->get(connect3d[i].nc2, pool3d[i].neigh_c2);
-      connect3d[i].cwhich_c2 = ipc->get(connect3d[i].nc2, pool3d[i].cwhich_c2);
-      connect3d[i].nside_c2 = ipc->get(connect3d[i].nc2, pool3d[i].nside_c2);
-      connect3d[i].fflag_c2 = ipc->get(connect3d[i].nc2, pool3d[i].fflag_c2);
+      connect3d[i].neigh_c2 = tpc.get(connect3d[i].nc2, pool3d[i].neigh_c2);
+      connect3d[i].cwhich_c2 = ipc.get(connect3d[i].nc2, pool3d[i].cwhich_c2);
+      connect3d[i].nside_c2 = ipc.get(connect3d[i].nc2, pool3d[i].nside_c2);
+      connect3d[i].fflag_c2 = ipc.get(connect3d[i].nc2, pool3d[i].fflag_c2);
       for (int j = 0; j < connect3d[i].nc2; j++) {
         connect3d[i].cwhich_c2[j] = 0;
         connect3d[i].nside_c2[j] = 0;
@@ -2419,10 +2454,10 @@ void FixSurfaceLocal::connectivity3d_local()
       connect3d[i].fflag_c2 = nullptr;
     }
     if (connect3d[i].nc3) {
-      connect3d[i].neigh_c3 = tpc->get(connect3d[i].nc3, pool3d[i].neigh_c3);
-      connect3d[i].cwhich_c3 = ipc->get(connect3d[i].nc3, pool3d[i].cwhich_c3);
-      connect3d[i].nside_c3 = ipc->get(connect3d[i].nc3, pool3d[i].nside_c3);
-      connect3d[i].fflag_c3 = ipc->get(connect3d[i].nc3, pool3d[i].fflag_c3);
+      connect3d[i].neigh_c3 = tpc.get(connect3d[i].nc3, pool3d[i].neigh_c3);
+      connect3d[i].cwhich_c3 = ipc.get(connect3d[i].nc3, pool3d[i].cwhich_c3);
+      connect3d[i].nside_c3 = ipc.get(connect3d[i].nc3, pool3d[i].nside_c3);
+      connect3d[i].fflag_c3 = ipc.get(connect3d[i].nc3, pool3d[i].fflag_c3);
       for (int j = 0; j < connect3d[i].nc3; j++) {
         connect3d[i].cwhich_c3[j] = 0;
         connect3d[i].nside_c3[j] = 0;
@@ -2979,13 +3014,12 @@ void FixSurfaceLocal::assign2d()
       memcpy(&connect2d[nlocal_connect], &connect2dall[i], sizeof(Connect2d));
 
       num = connect2d[nlocal_connect].np1;
-
       if (num) {
-        connect2d[nlocal_connect].neigh_p1 = tpc->get(num, pool2d[nlocal_connect].neigh_p1);
-        connect2d[nlocal_connect].pwhich_p1 = ipc->get(num, pool2d[nlocal_connect].pwhich_p1);
-        connect2d[nlocal_connect].nside_p1 = ipc->get(num, pool2d[nlocal_connect].nside_p1);
-        connect2d[nlocal_connect].aflag_p1 = ipc->get(num, pool2d[nlocal_connect].aflag_p1);
-        connect2d[nlocal_connect].fflag_p1 = ipc->get(num, pool2d[nlocal_connect].fflag_p1);
+        connect2d[nlocal_connect].neigh_p1 = tpc.get(num, pool2d[nlocal_connect].neigh_p1);
+        connect2d[nlocal_connect].pwhich_p1 = ipc.get(num, pool2d[nlocal_connect].pwhich_p1);
+        connect2d[nlocal_connect].nside_p1 = ipc.get(num, pool2d[nlocal_connect].nside_p1);
+        connect2d[nlocal_connect].aflag_p1 = ipc.get(num, pool2d[nlocal_connect].aflag_p1);
+        connect2d[nlocal_connect].fflag_p1 = ipc.get(num, pool2d[nlocal_connect].fflag_p1);
         global = connect2dall[i].neigh_p1;
         local = connect2d[nlocal_connect].neigh_p1;
         for (int j = 0; j < num; j++) {
@@ -3004,13 +3038,12 @@ void FixSurfaceLocal::assign2d()
       }
 
       num = connect2d[nlocal_connect].np2;
-
       if (num) {
-        connect2d[nlocal_connect].neigh_p2 = tpc->get(num, pool2d[nlocal_connect].neigh_p2);
-        connect2d[nlocal_connect].pwhich_p2 = ipc->get(num, pool2d[nlocal_connect].pwhich_p2);
-        connect2d[nlocal_connect].nside_p2 = ipc->get(num, pool2d[nlocal_connect].nside_p2);
-        connect2d[nlocal_connect].aflag_p2 = ipc->get(num, pool2d[nlocal_connect].aflag_p2);
-        connect2d[nlocal_connect].fflag_p2 = ipc->get(num, pool2d[nlocal_connect].fflag_p2);
+        connect2d[nlocal_connect].neigh_p2 = tpc.get(num, pool2d[nlocal_connect].neigh_p2);
+        connect2d[nlocal_connect].pwhich_p2 = ipc.get(num, pool2d[nlocal_connect].pwhich_p2);
+        connect2d[nlocal_connect].nside_p2 = ipc.get(num, pool2d[nlocal_connect].nside_p2);
+        connect2d[nlocal_connect].aflag_p2 = ipc.get(num, pool2d[nlocal_connect].aflag_p2);
+        connect2d[nlocal_connect].fflag_p2 = ipc.get(num, pool2d[nlocal_connect].fflag_p2);
         global = connect2dall[i].neigh_p2;
         local = connect2d[nlocal_connect].neigh_p2;
         for (int j = 0; j < num; j++) {
@@ -3217,11 +3250,11 @@ void FixSurfaceLocal::assign3d()
 
       num = connect3d[nlocal_connect].ne1;
       if (num) {
-        connect3d[nlocal_connect].neigh_e1 = tpc->get(num, pool3d[nlocal_connect].neigh_e1);
-        connect3d[nlocal_connect].ewhich_e1 = ipc->get(num, pool3d[nlocal_connect].ewhich_e1);
-        connect3d[nlocal_connect].nside_e1 = ipc->get(num, pool3d[nlocal_connect].nside_e1);
-        connect3d[nlocal_connect].aflag_e1 = ipc->get(num, pool3d[nlocal_connect].aflag_e1);
-        connect3d[nlocal_connect].fflag_e1 = ipc->get(num, pool3d[nlocal_connect].fflag_e1);
+        connect3d[nlocal_connect].neigh_e1 = tpc.get(num, pool3d[nlocal_connect].neigh_e1);
+        connect3d[nlocal_connect].ewhich_e1 = ipc.get(num, pool3d[nlocal_connect].ewhich_e1);
+        connect3d[nlocal_connect].nside_e1 = ipc.get(num, pool3d[nlocal_connect].nside_e1);
+        connect3d[nlocal_connect].aflag_e1 = ipc.get(num, pool3d[nlocal_connect].aflag_e1);
+        connect3d[nlocal_connect].fflag_e1 = ipc.get(num, pool3d[nlocal_connect].fflag_e1);
         global = connect3dall[i].neigh_e1;
         local = connect3d[nlocal_connect].neigh_e1;
         for (int j = 0; j < num; j++) {
@@ -3241,17 +3274,16 @@ void FixSurfaceLocal::assign3d()
 
       num = connect3d[nlocal_connect].ne2;
       if (num) {
-        connect3d[nlocal_connect].neigh_e2 = tpc->get(num, pool3d[nlocal_connect].neigh_e2);
-        connect3d[nlocal_connect].ewhich_e2 = ipc->get(num, pool3d[nlocal_connect].ewhich_e2);
-        connect3d[nlocal_connect].nside_e2 = ipc->get(num, pool3d[nlocal_connect].nside_e2);
-        connect3d[nlocal_connect].aflag_e2 = ipc->get(num, pool3d[nlocal_connect].aflag_e2);
-        connect3d[nlocal_connect].fflag_e2 = ipc->get(num, pool3d[nlocal_connect].fflag_e2);
+        connect3d[nlocal_connect].neigh_e2 = tpc.get(num, pool3d[nlocal_connect].neigh_e2);
+        connect3d[nlocal_connect].ewhich_e2 = ipc.get(num, pool3d[nlocal_connect].ewhich_e2);
+        connect3d[nlocal_connect].nside_e2 = ipc.get(num, pool3d[nlocal_connect].nside_e2);
+        connect3d[nlocal_connect].aflag_e2 = ipc.get(num, pool3d[nlocal_connect].aflag_e2);
+        connect3d[nlocal_connect].fflag_e2 = ipc.get(num, pool3d[nlocal_connect].fflag_e2);
         global = connect3dall[i].neigh_e2;
         local = connect3d[nlocal_connect].neigh_e2;
         for (int j = 0; j < num; j++) {
           local[j] = global[j] + idmaxall + 1;
           connect3d[nlocal_connect].ewhich_e2[j] = 0;
-          connect3d[nlocal_connect].nside_e2[j] = 0;
           connect3d[nlocal_connect].nside_e2[j] = 0;
           connect3d[nlocal_connect].aflag_e2[j] = 0;
           connect3d[nlocal_connect].fflag_e2[j] = 0;
@@ -3266,11 +3298,11 @@ void FixSurfaceLocal::assign3d()
 
       num = connect3d[nlocal_connect].ne3;
       if (num) {
-        connect3d[nlocal_connect].neigh_e3 = tpc->get(num, pool3d[nlocal_connect].neigh_e3);
-        connect3d[nlocal_connect].ewhich_e3 = ipc->get(num, pool3d[nlocal_connect].ewhich_e3);
-        connect3d[nlocal_connect].nside_e3 = ipc->get(num, pool3d[nlocal_connect].nside_e3);
-        connect3d[nlocal_connect].aflag_e3 = ipc->get(num, pool3d[nlocal_connect].aflag_e3);
-        connect3d[nlocal_connect].fflag_e3 = ipc->get(num, pool3d[nlocal_connect].fflag_e3);
+        connect3d[nlocal_connect].neigh_e3 = tpc.get(num, pool3d[nlocal_connect].neigh_e3);
+        connect3d[nlocal_connect].ewhich_e3 = ipc.get(num, pool3d[nlocal_connect].ewhich_e3);
+        connect3d[nlocal_connect].nside_e3 = ipc.get(num, pool3d[nlocal_connect].nside_e3);
+        connect3d[nlocal_connect].aflag_e3 = ipc.get(num, pool3d[nlocal_connect].aflag_e3);
+        connect3d[nlocal_connect].fflag_e3 = ipc.get(num, pool3d[nlocal_connect].fflag_e3);
         global = connect3dall[i].neigh_e3;
         local = connect3d[nlocal_connect].neigh_e3;
         for (int j = 0; j < num; j++) {
@@ -3290,10 +3322,10 @@ void FixSurfaceLocal::assign3d()
 
       num = connect3d[nlocal_connect].nc1;
       if (num) {
-        connect3d[nlocal_connect].neigh_c1 = tpc->get(num, pool3d[nlocal_connect].neigh_c1);
-        connect3d[nlocal_connect].cwhich_c1 = ipc->get(num, pool3d[nlocal_connect].cwhich_c1);
-        connect3d[nlocal_connect].nside_c1 = ipc->get(num, pool3d[nlocal_connect].nside_c1);
-        connect3d[nlocal_connect].fflag_c1 = ipc->get(num, pool3d[nlocal_connect].fflag_c1);
+        connect3d[nlocal_connect].neigh_c1 = tpc.get(num, pool3d[nlocal_connect].neigh_c1);
+        connect3d[nlocal_connect].cwhich_c1 = ipc.get(num, pool3d[nlocal_connect].cwhich_c1);
+        connect3d[nlocal_connect].nside_c1 = ipc.get(num, pool3d[nlocal_connect].nside_c1);
+        connect3d[nlocal_connect].fflag_c1 = ipc.get(num, pool3d[nlocal_connect].fflag_c1);
         global = connect3dall[i].neigh_c1;
         local = connect3d[nlocal_connect].neigh_c1;
         for (int j = 0; j < num; j++) {
@@ -3311,10 +3343,10 @@ void FixSurfaceLocal::assign3d()
 
       num = connect3d[nlocal_connect].nc2;
       if (num) {
-        connect3d[nlocal_connect].neigh_c2 = tpc->get(num, pool3d[nlocal_connect].neigh_c2);
-        connect3d[nlocal_connect].cwhich_c2 = ipc->get(num, pool3d[nlocal_connect].cwhich_c2);
-        connect3d[nlocal_connect].nside_c2 = ipc->get(num, pool3d[nlocal_connect].nside_c2);
-        connect3d[nlocal_connect].fflag_c2 = ipc->get(num, pool3d[nlocal_connect].fflag_c2);
+        connect3d[nlocal_connect].neigh_c2 = tpc.get(num, pool3d[nlocal_connect].neigh_c2);
+        connect3d[nlocal_connect].cwhich_c2 = ipc.get(num, pool3d[nlocal_connect].cwhich_c2);
+        connect3d[nlocal_connect].nside_c2 = ipc.get(num, pool3d[nlocal_connect].nside_c2);
+        connect3d[nlocal_connect].fflag_c2 = ipc.get(num, pool3d[nlocal_connect].fflag_c2);
         global = connect3dall[i].neigh_c2;
         local = connect3d[nlocal_connect].neigh_c2;
         for (int j = 0; j < num; j++) {
@@ -3332,10 +3364,10 @@ void FixSurfaceLocal::assign3d()
 
       num = connect3d[nlocal_connect].nc3;
       if (num) {
-        connect3d[nlocal_connect].neigh_c3 = tpc->get(num, pool3d[nlocal_connect].neigh_c3);
-        connect3d[nlocal_connect].cwhich_c3 = ipc->get(num, pool3d[nlocal_connect].cwhich_c3);
-        connect3d[nlocal_connect].nside_c3 = ipc->get(num, pool3d[nlocal_connect].nside_c3);
-        connect3d[nlocal_connect].fflag_c3 = ipc->get(num, pool3d[nlocal_connect].fflag_c3);
+        connect3d[nlocal_connect].neigh_c3 = tpc.get(num, pool3d[nlocal_connect].neigh_c3);
+        connect3d[nlocal_connect].cwhich_c3 = ipc.get(num, pool3d[nlocal_connect].cwhich_c3);
+        connect3d[nlocal_connect].nside_c3 = ipc.get(num, pool3d[nlocal_connect].nside_c3);
+        connect3d[nlocal_connect].fflag_c3 = ipc.get(num, pool3d[nlocal_connect].fflag_c3);
         global = connect3dall[i].neigh_c3;
         local = connect3d[nlocal_connect].neigh_c3;
         for (int j = 0; j < num; j++) {

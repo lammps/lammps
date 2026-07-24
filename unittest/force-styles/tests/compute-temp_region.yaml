@@ -1,0 +1,21 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:09 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute temp/region
+pre_commands: ""
+post_commands: |
+  region half block -20 20 -20 20 0 20 units box
+  compute test all temp/region half
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 1607.5613325477486
+global_vector: |-
+  6  9.2039580050030807e+00  6.2724694705623945e+00  6.1192932141230045e+01 -3.3268628753724876e+00 -1.8292162248101548e+01  1.6552294669256266e+01
+...

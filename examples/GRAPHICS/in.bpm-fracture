@@ -1,0 +1,93 @@
+# Visualizing per-bond properties with "dump image ... bond c_ID"
+#
+# A brittle disk (bonded particle model, BPM) is struck by a fast projectile
+# and fractures.  The individual bonds are colored by the *force* carried by
+# each bond, computed on the fly with "compute bond/local force", so the
+# propagating stress wave and the cracks become directly visible.
+
+units           lj
+dimension       3
+boundary        f f f
+atom_style      bond
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+
+lattice         fcc 1.0
+region          box block -25 15 -22 22 -22 22
+create_box      1 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+
+# a thin disk (the target) ...
+region          disk cylinder x 0.0 0.0 20.0 -0.5 0.5
+create_atoms    1 region disk
+group           plate region disk
+
+# ... and a compact projectile aimed at its center
+region          ball sphere 8.0 0.0 0.0 6.0
+create_atoms    1 region ball
+group           projectile region ball
+
+displace_atoms  all random 0.1 0.1 0.1 134598738
+mass            1 1.0
+
+neighbor        1.0 bin
+pair_style      bpm/spring
+pair_coeff      1 1 1.0 1.0 1.0
+fix             1 all nve
+
+create_bonds    many plate plate 1 0.0 1.5
+create_bonds    many projectile projectile 2 0.0 1.5
+
+neighbor        0.3 bin
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/spring
+bond_coeff      1 1.0 0.04 1.0
+bond_coeff      2 1.0 0.20 1.0
+
+velocity        projectile set -0.05 0.0 0.0
+
+# define a variable for dump output frequency, so that graphics fix and dump
+# are run one the same steps and making this an index style variable lets you
+# override it from the command line with -var dumpfreq 100
+
+variable        dumpfreq index 200
+
+# to add a color scale we have to reference a dump that has not been created.
+# the fix has to come *before* the dump image command so it can be enabled by it,
+# but it needs the dump-ID so it can query it for the color map information.
+
+fix             scale all graphics/labels ${dumpfreq} &
+                colorscale viz "Bond Force" 400 50 0 size 28 &
+                length 1100 horizontal tics 10 map bond &
+                colorscale viz "Atom Kinetic Energy" 400 130 0 size 28 &
+                length 900 horizontal tics 10 map atom
+
+# compute per-bond force and per atom kinetic energy
+# the dump image command below maps them to a color
+
+compute         bforce all bond/local force
+compute         ke     all ke/atom
+
+dump            viz all image ${dumpfreq} fracture.*.ppm c_ke type adiam 0.6 bond c_bforce 0.3 &
+                size 800 1000 zoom 1.7 view 80 40 box no 0.0 center s 0.45 0.5 0.4 &
+                shiny 0.2 fsaa yes ssao yes 15267243 0.6 fix scale type 1 0
+
+# color atoms by their kinetic energy and bonds by their force
+
+dump_modify     viz color map1 0x0d0887 color map2 0x7e03a8 color map3 0xcc4778 &
+                    color map4 0xf89540 color map5 0xf0f921 acolor 1 map1 &
+                    bmap 0.0 0.05 ca 0.0 5 min map1 0.01 map2 0.02 map3 &
+                    0.03 map4 max map5 backcolor2 white backcolor black &
+                    adiam 1 0.6 color map1 0.050 0.030 0.528 color map2 0.611 0.090 0.620 &
+                    color map3 0.928 0.473 0.326 color map4  0.940 0.975 0.131 &
+                    amap 1.0e-5 0.003 cf 0.0 4 min map1 0.333 map2 0.667 map3 max map4
+
+# broken bonds are removed from the topology, so atoms become "lost"; allow it
+
+thermo          200
+thermo_style    custom step ke pe
+thermo_modify   lost ignore lost/bond ignore
+
+timestep        0.1
+run             15000

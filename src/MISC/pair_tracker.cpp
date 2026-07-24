@@ -36,9 +36,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTracker::PairTracker(LAMMPS *lmp) :
-    Pair(lmp), onerad_dynamic(nullptr), onerad_frozen(nullptr), maxrad_dynamic(nullptr),
-    maxrad_frozen(nullptr), id_fix_store_local(nullptr), fix_dummy(nullptr), fix_history(nullptr),
-    fix_store_local(nullptr), type_filter(nullptr), output_data(nullptr), pack_choice(nullptr)
+    Pair(lmp), cut(nullptr), onerad_dynamic(nullptr), onerad_frozen(nullptr),
+    maxrad_dynamic(nullptr), maxrad_frozen(nullptr), id_fix_store_local(nullptr),
+    fix_dummy(nullptr), fix_history(nullptr), fix_store_local(nullptr), type_filter(nullptr),
+    output_data(nullptr), pack_choice(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -48,6 +49,9 @@ PairTracker::PairTracker(LAMMPS *lmp) :
   size_history = 3;
   nondefault_history_transfer = 1;
 
+  nvalues = 0;
+  nvalues_restart = -1;
+  store_local_freq_restart = -1;
   finitecutflag = 0;
   tmin = -1;
 
@@ -220,11 +224,20 @@ void PairTracker::settings(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR, "Illegal pair_style command");
 
-  id_fix_store_local = utils::strdup(arg[0]);
+  // check if name changed from restart file
+  if (id_fix_store_local) {
+    if (strcmp(id_fix_store_local, arg[0]) != 0)
+      error->all(FLERR, "Name of local fix cannot change from {} to {}", id_fix_store_local, arg[0]);
+  } else {
+    id_fix_store_local = utils::strdup(arg[0]);
+  }
   store_local_freq = utils::inumeric(FLERR, arg[1], false, lmp);
 
   // If optional arguments included, this will be oversized
+  delete[] pack_choice;
   pack_choice = new FnPtrPack[narg - 1];
+
+  saved_choices.clear();
 
   nvalues = 0;
   int iarg = 2;
@@ -233,24 +246,34 @@ void PairTracker::settings(int narg, char **arg)
       finitecutflag = 1;
     } else if (strcmp(arg[iarg], "id1") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_id1;
+      saved_choices.push_back(0);
     } else if (strcmp(arg[iarg], "id2") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_id2;
+      saved_choices.push_back(1);
     } else if (strcmp(arg[iarg], "time/created") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_time_created;
+      saved_choices.push_back(2);
     } else if (strcmp(arg[iarg], "time/broken") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_time_broken;
+      saved_choices.push_back(3);
     } else if (strcmp(arg[iarg], "time/total") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_time_total;
+      saved_choices.push_back(4);
     } else if (strcmp(arg[iarg], "x") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_x;
+      saved_choices.push_back(5);
     } else if (strcmp(arg[iarg], "y") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_y;
+      saved_choices.push_back(6);
     } else if (strcmp(arg[iarg], "z") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_z;
+      saved_choices.push_back(7);
     } else if (strcmp(arg[iarg], "r/min") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_rmin;
+      saved_choices.push_back(8);
     } else if (strcmp(arg[iarg], "r/ave") == 0) {
       pack_choice[nvalues++] = &PairTracker::pack_rave;
+      saved_choices.push_back(9);
     } else if (strcmp(arg[iarg], "time/min") == 0) {
       if (iarg + 1 >= narg) error->all(FLERR, "Invalid keyword in pair tracker command");
       tmin = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
@@ -296,6 +319,20 @@ void PairTracker::settings(int narg, char **arg)
 
   if (nvalues == 0) error->all(FLERR, "Must request at least one value to output");
   memory->create(output_data, nvalues, "pair/tracker:output_data");
+
+  if (nvalues_restart != -1 && nvalues != nvalues_restart) {
+    error->warning(FLERR, "Output values differs from restart file, {} vs {}, reinitializing internal fix",
+                nvalues_restart, nvalues);
+    modify->delete_fix(id_fix_store_local);
+    fix_store_local = nullptr;
+  }
+
+  if (store_local_freq_restart != -1 && store_local_freq != store_local_freq_restart) {
+    error->warning(FLERR, "Output frequency differs from restart file, {} vs {}, reinitializing internal fix",
+                store_local_freq_restart, store_local_freq);
+    modify->delete_fix(id_fix_store_local);
+    fix_store_local = nullptr;
+  }
 
   fix_store_local = dynamic_cast<FixStoreLocal *>(modify->get_fix_by_id(id_fix_store_local));
   if (!fix_store_local)
@@ -489,6 +526,30 @@ void PairTracker::read_restart(FILE *fp)
 void PairTracker::write_restart_settings(FILE *fp)
 {
   fwrite(&mix_flag, sizeof(int), 1, fp);
+  fwrite(&tmin, sizeof(double), 1, fp);
+  fwrite(&finitecutflag, sizeof(int), 1, fp);
+  fwrite(&store_local_freq, sizeof(int), 1, fp);
+
+  if (type_filter) {
+    int flag = 1;
+    fwrite(&flag, sizeof(int), 1, fp);
+    int ntypes = atom->ntypes;
+    for (int itype = 1; itype <= ntypes; itype++)
+      for (int jtype = itype + 1; jtype <= ntypes; jtype++)
+        fwrite(&type_filter[itype][jtype], sizeof(int), 1, fp);
+  } else {
+    int flag = 0;
+    fwrite(&flag, sizeof(int), 1, fp);
+  }
+
+  int n = strlen(id_fix_store_local) + 1;
+  fwrite(&n, sizeof(int), 1, fp);
+  fwrite(id_fix_store_local, sizeof(char), n, fp);
+
+  int nsaved = saved_choices.size();
+  fwrite(&nsaved, sizeof(int), 1, fp);
+  for (int i : saved_choices)
+    fwrite(&i, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -497,8 +558,90 @@ void PairTracker::write_restart_settings(FILE *fp)
 
 void PairTracker::read_restart_settings(FILE *fp)
 {
-  if (comm->me == 0) { utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error); }
+  int type_filter_flag;
+  if (comm->me == 0) {
+    utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &tmin, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &finitecutflag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &store_local_freq_restart, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &type_filter_flag, sizeof(int), 1, fp, nullptr, error);
+  }
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&tmin, 1, MPI_INT, 0, world);
+  MPI_Bcast(&finitecutflag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&store_local_freq_restart, 1, MPI_INT, 0, world);
+  MPI_Bcast(&type_filter_flag, 1, MPI_INT, 0, world);
+
+  if (type_filter_flag) {
+    int flag;
+    int ntypes = atom->ntypes;
+
+    if (!type_filter)
+      memory->create(type_filter, ntypes + 1, ntypes + 1, "pair/tracker:type_filter");
+
+    for (int itype = 1; itype <= ntypes; itype++) {
+      for (int jtype = itype + 1; jtype <= ntypes; jtype++) {
+        if (comm->me == 0)
+          utils::sfread(FLERR, &flag, sizeof(int), 1, fp, nullptr, error);
+        MPI_Bcast(&flag, 1, MPI_INT, 0, world);
+        type_filter[itype][jtype] = flag;
+        type_filter[jtype][itype] = flag;
+      }
+    }
+  }
+
+  int n;
+  if (comm->me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&n, 1, MPI_INT, 0, world);
+  if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix ID length in restart file");
+
+  id_fix_store_local = new char[n];
+  if (comm->me == 0) utils::sfread(FLERR, id_fix_store_local, sizeof(char), n, fp, nullptr, error);
+  MPI_Bcast(id_fix_store_local, n, MPI_CHAR, 0, world);
+
+  if (comm->me == 0)
+    utils::sfread(FLERR, &nvalues_restart, sizeof(int), 1, fp, nullptr, error);
+  MPI_Bcast(&nvalues_restart, 1, MPI_INT, 0, world);
+  if ((nvalues_restart < 0) || (nvalues_restart > 4096))
+    error->all(FLERR, "Invalid number of values in restart file");
+
+  saved_choices.clear();
+  delete[] pack_choice;
+  pack_choice = new FnPtrPack[nvalues_restart];
+
+  // Create instance here so it can be found by any subsequent references in input script
+  fix_store_local = dynamic_cast<FixStoreLocal *>(modify->add_fix(
+        fmt::format("{} all STORE/LOCAL {} {}", id_fix_store_local, store_local_freq, nvalues_restart)));
+
+  int choice;
+  for (int i = 0; i < nvalues_restart; i++) {
+    if (comm->me == 0)
+      utils::sfread(FLERR, &choice, sizeof(int), 1, fp, nullptr, error);
+    MPI_Bcast(&choice, 1, MPI_INT, 0, world);
+    saved_choices.push_back(choice);
+
+    if (choice == 0) {
+      pack_choice[i] = &PairTracker::pack_id1;
+    } else if (choice == 1) {
+      pack_choice[i] = &PairTracker::pack_id2;
+    } else if (choice == 2) {
+      pack_choice[i] = &PairTracker::pack_time_created;
+    } else if (choice == 3) {
+      pack_choice[i] = &PairTracker::pack_time_broken;
+    } else if (choice == 4) {
+      pack_choice[i] = &PairTracker::pack_time_total;
+    } else if (choice == 5) {
+      pack_choice[i] = &PairTracker::pack_x;
+    } else if (choice == 6) {
+      pack_choice[i] = &PairTracker::pack_y;
+    } else if (choice == 7) {
+      pack_choice[i] = &PairTracker::pack_z;
+    } else if (choice == 8) {
+      pack_choice[i] = &PairTracker::pack_rmin;
+    } else if (choice == 9) {
+      pack_choice[i] = &PairTracker::pack_rave;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

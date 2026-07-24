@@ -80,8 +80,8 @@ class FixSurfaceLocal : public FixSurface {
 
   // memory allocation for tagint and int vectors in Connect 2d/3d
 
-  MyPoolChunk<int> *ipc;    // allocator for most 2d/3d connectivity vecs
-  MyPoolChunk<int> *tpc;    // allocator for tagint 2d/3d connectivity vecs
+  MyPoolChunk<int> ipc;    // allocator for most 2d/3d connectivity vecs
+  MyPoolChunk<int> tpc;    // allocator for tagint 2d/3d connectivity vecs
 
   struct Pool2d {
     int neigh_p1, neigh_p2;      // pool indices of neigh_p12 chunks

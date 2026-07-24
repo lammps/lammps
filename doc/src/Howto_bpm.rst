@@ -22,7 +22,7 @@ for simulations of the fragmentation of an impacted plate and the
 pouring of extended, elastic bodies. See :ref:`(Clemmer) <howto-Clemmer>`
 for more general information on the approach and the LAMMPS implementation.
 Example movies illustrating some of these capabilities are found at
-https://www.lammps.org/movies.html#bpmpackage.
+https://www.lammps.org/gallery/bpmpackage/.
 
 ----------
 
@@ -80,8 +80,17 @@ BPM bond styles. Finally, this data can be output using a :doc:`dump local <dump
 command. As one may output many columns from the same compute, the
 :doc:`dump modify <dump_modify>` *colname* option may be used to provide
 more helpful column names. An example of this procedure is found in
-/examples/bpm/pour/. External software, such as OVITO, can read these dump
+``/examples/bpm/pour/``. External software, such as OVITO, can read these dump
 files to render bond data.
+
+.. versionadded:: 4Jul2026
+
+The :doc:`compute bond/local <compute_bond_local>` property can also be
+visualized using :doc:`dump image <dump_image>` to color bonds by
+property using a color map.  The ``/examples/GRAPHICS/in.bpm.fracture``
+example file shows how such a visualization can be constructed.
+
+ .. image:: img/bpm-fracture.png
 
 ----------
 

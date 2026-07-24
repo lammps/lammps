@@ -183,7 +183,7 @@ void FixWallPiston::initial_integrate(int /*vflag*/)
 
 void FixWallPiston::post_integrate()
 {
-  double zlo;
+  double zlo = z0;
 
   double **x = atom->x;
   double **v = atom->v;

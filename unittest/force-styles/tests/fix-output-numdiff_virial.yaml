@@ -1,0 +1,19 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:43 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  fix numdiff/virial
+pre_commands: ""
+post_commands: |
+  fix test all numdiff/virial 10 0.0001
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  6  1.3662979516313275e+04  1.2275256609643900e+04  8.2546279684771016e+03  3.2964605798169083e+02  1.6952869181937315e+03 -5.4949996076126163e+03
+...

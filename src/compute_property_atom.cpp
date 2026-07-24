@@ -39,8 +39,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  index(nullptr), colindex(nullptr), pack_choice(nullptr)
+    Compute(lmp, narg, arg), index(nullptr), colindex(nullptr), buf(nullptr),
+    count_history_ptr(nullptr), most_recent_index_ptr(nullptr), history(nullptr),
+    pack_choice(nullptr)
 {
   if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
@@ -410,7 +411,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     // index[i] = I index of history[I][J] for history frame (1 to Nrepeat)
     // colindex[i] = J index of history[I][J] for fix SS value (1 to Nattribute)
 
-    } else if (utils::strmatch(arg[iarg],"^history\\[\\d+\\]\\[\\d+\\]$")) {
+    } else if (utils::strmatch(arg[iarg], R"(^history\[\d+\]\[\d+\]$)")) {
       historyflag = 1;
       pack_choice[i] = &ComputePropertyAtom::pack_history;
       // parse the two bracketed indices of history[I][J];

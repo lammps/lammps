@@ -67,14 +67,14 @@ non-granular particles and simpler wall geometries, respectively.
 
 Here are snapshots of example models using this command.  Corresponding
 input scripts can be found in examples/granregion.  Movies of these
-simulations are `here on the Movies page <https://www.lammps.org/movies.html#granregion>`_
-of the LAMMPS website.
+simulations are `here on the Movies page
+<https://www.lammps.org/examples/granregion/>`_ of the LAMMPS website.
 
-.. |wallgran1| image:: img/gran_funnel.png
-   :width: 48%
+.. |wallgran1| image:: img/gran_funnel.jpg
+   :width: 33%
 
-.. |wallgran2| image:: img/gran_mixer.png
-   :width: 48%
+.. |wallgran2| image:: img/gran_mixer.jpg
+   :width: 33%
 
 |wallgran1|  |wallgran2|
 

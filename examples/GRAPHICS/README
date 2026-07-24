@@ -16,6 +16,10 @@ Here is a list of the inputs and which graphics features they demonstrate
 - in.breakable:             using autobond, color-by-property, adding objects and text
                             https://www.youtube.com/watch?v=f4hfPs7aCmI
 
+- in.bpm-fracture:          brittle disk (bonded particle model) shattered by a
+                            projectile, coloring each bond by the per-bond force
+                            with "dump image ... bond c_ID" and a "bmap" color map
+
 - in.water-arrows:          box of water molecules, uses many kinds of arrows
                             https://www.youtube.com/shorts/4Cm5p0SfgNU
 
@@ -33,3 +37,8 @@ Here is a list of the inputs and which graphics features they demonstrate
 
 - in.obstacle-lines         trajectory lines with obstacle flow example
                             https://youtu.be/9HEsGaOsdik
+
+- in.mixer-drum             visualization of "tris" style particles to represent
+                            an STL object for a DEM simulation.  Uses a dynamic
+                            group based on an atom style variable to "cut open"
+                            the mixer drum for a look inside

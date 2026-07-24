@@ -146,7 +146,7 @@ class KSpace : protected Pointers {
 
   ExecutionSpace execution_space;
   uint64_t datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   int compute_flag;        // 0 if skip compute()
   int fftbench;            // 0 if skip FFT timing

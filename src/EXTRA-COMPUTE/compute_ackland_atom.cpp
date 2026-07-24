@@ -42,7 +42,7 @@ enum{UNKNOWN,BCC,FCC,HCP,ICO};
 /* ---------------------------------------------------------------------- */
 
 ComputeAcklandAtom::ComputeAcklandAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg), list(nullptr)
 {
   if ((narg < 3) || (narg > 5))
     error->all(FLERR,"Illegal compute ackland/atom command");
@@ -180,16 +180,18 @@ void ComputeAcklandAtom::compute_peratom()
         }
       }
 
-      // Select 6 nearest neighbors
+      // Select up to 6 nearest neighbors
+      // undercoordinated atoms (n < 6) use all their neighbors
 
-      select2(6,n,distsq,nearest);
+      const int nsel = MIN(6,n);
+      select2(nsel,n,distsq,nearest);
 
       // Mean squared separation
 
       double r0_sq = 0.;
-      for (j = 0; j < 6; j++)
+      for (j = 0; j < nsel; j++)
         r0_sq += distsq[j];
-      r0_sq /= 6.;
+      if (nsel > 0) r0_sq /= nsel;
 
       // n0 near neighbors with: distsq<1.45*r0_sq
       // n1 near neighbors with: distsq<1.55*r0_sq

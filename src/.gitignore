@@ -467,18 +467,24 @@
 /atom_vec_bpm_sphere.h
 /bond_bpm.cpp
 /bond_bpm.h
+/bond_bpm_peri.cpp
+/bond_bpm_peri.h
 /bond_bpm_rotational.cpp
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp
 /bond_bpm_spring.h
 /bond_bpm_spring_plastic.cpp
 /bond_bpm_spring_plastic.h
+/bond_bpm_zero.cpp
+/bond_bpm_zero.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
 /fix_nve_bpm_sphere.h
 /fix_update_special_bonds.cpp
 /fix_update_special_bonds.h
+/pair_bpm_peri.cpp
+/pair_bpm_peri.h
 /pair_bpm_spring.cpp
 /pair_bpm_spring.h
 
@@ -1199,6 +1205,8 @@
 /fix_ti_spring.h
 /fix_tune_kspace.cpp
 /fix_tune_kspace.h
+/fix_viscous_nonlinear.cpp
+/fix_viscous_nonlinear.h
 /fix_viscous_sphere.cpp
 /fix_viscous_sphere.h
 /fix_wall_body_polygon.cpp
@@ -1971,6 +1979,8 @@
 /pair_vashishta*.h
 /pair_lj_pirani.cpp
 /pair_lj_pirani.h
+/pair_airebo_bc.cpp
+/pair_airebo_bc.h
 /pair_bondval.cpp
 /pair_bondval.h
 /pair_bondval_vec.cpp

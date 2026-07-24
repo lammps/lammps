@@ -114,6 +114,7 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
       dump_history_flag = true;
     } else if (strcmp(arg[iarg], "group_fast") == 0) {
       // read name of group
+      delete[] group_name_simple;
       group_name_simple = utils::strdup(arg[iarg + 1]);
       int tmp = group->find(group_name_simple);
       if (tmp == -1) error->all(FLERR, "fix lambda: group {} does not exist", group_name_simple);
@@ -121,6 +122,7 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if (strcmp(arg[iarg], "group_precise") == 0) {
       // read name of group
+      delete[] group_name_complex;
       group_name_complex = utils::strdup(arg[iarg + 1]);
       int tmp = group->find(group_name_complex);
       if (tmp == -1) error->all(FLERR, "fix lambda: group {} does not exist", group_name_complex);
@@ -128,6 +130,7 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
       iarg++;
     } else if (strcmp(arg[iarg], "group_ignore_lambda_input") == 0) {
       // read name of group
+      delete[] group_name_ignore_lambda_input;
       group_name_ignore_lambda_input = utils::strdup(arg[iarg + 1]);
       int tmp = group->find(group_name_ignore_lambda_input);
       if (tmp == -1)

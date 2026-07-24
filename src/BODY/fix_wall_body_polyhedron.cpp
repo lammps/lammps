@@ -50,7 +50,7 @@ static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), imgobjs(nullptr), imgparms(nullptr)
+    Fix(lmp, narg, arg), avec(nullptr), bptr(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 9) utils::missing_cmd_args(FLERR,"fix wall/body/polyhedron", error);
 
@@ -357,6 +357,8 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
           dy = -del2;
           wall_pos = whi;
         }
+      } else {
+        error->one(FLERR, "Unknown wall style in fix wall/body/polyhedron");
       }
 
       rsq = dx*dx + dy*dy + dz*dz;

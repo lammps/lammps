@@ -55,6 +55,16 @@ at the mesoscopic and macroscopic scales.  See `this document
 <PDF/PDLammps_overview.pdf>`_ for an overview of LAMMPS commands for
 Peridynamics modeling.
 
+.. note::
+
+   The :doc:`BPM package <Howto_bpm>` provides an alternative implementation of
+   these peridynamics models as :doc:`bond_style bpm/peri <bond_bpm_peri>`, with
+   the companion contact :doc:`pair_style bpm/peri <pair_bpm_peri>`.  It covers
+   the same PMB, LPS, VES, and EPS material models recast in the package's bond-based
+   framework. It is significantly faster than the *peri* pair styles documented here.
+   See the :doc:`Peridynamics Howto <Howto_peri>` for a side-by-side comparison,
+   per-model timings, and guidance on choosing between the two implementations.
+
 Style *peri/pmb* implements the Peridynamic bond-based prototype
 microelastic brittle (PMB) model.
 
@@ -149,6 +159,19 @@ cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
 criteria.  m_yield_stress is the yield stress of the material. For
 details please see the description in "(Mitchell2011a)".
 
+.. versionchanged:: 4Jul2026
+
+.. note::
+
+   Prior versions of LAMMPS, had an incorrect the plasticity model in style
+   *peri/eps* relative to the source report :ref:`(Mitchell2011a) <Mitchell2011a>`.
+   These affected the evolution of the plastic deviatoric extension and caused
+   significant overshooting of the yield surface. These have since been corrected,
+   however, there is still no radial return rule to ensure the plastic deviatoric
+   extension does not leave the yield surface. This may cause some drift off the
+   surface during long simulations. This possibility for future improvement is
+   tracked as `issue #5064 <https://github.com/lammps/lammps/issues/5064>`_.
+
 ----------
 
 Bond breaking criterion
@@ -169,7 +192,7 @@ a crack preferentially initiates there.  The critical stretch is evaluated
 *per bond* using that bond's own s00 and :math:`\alpha` together with the
 geometric :math:`s_{min}` of each endpoint.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 In previous versions the critical stretch was stored as a single
 per-particle value computed as the maximum of :math:`s_{00} - \alpha s`

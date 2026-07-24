@@ -187,8 +187,12 @@ counter += check_tests('improper',improper,'improper-*.yaml',
                        '.*improper_style:\\s*((\\S+).*)?')
 counter += check_tests('kspace',kspace,'kspace-*.yaml',
                        '.*kspace_style\\s*((\\S+).*)?')
+# the fix style under test is the one created with the fix ID "test"
+# ("  fix test <group> <style> ..."); match that line and capture the style.
+# (the plain "  fix\\s+..." copied from the pair_style pattern instead captured
+# the fix ID and only found styles by chance via the prerequisites block)
 counter += check_tests('fix',fix,'fix-*.yaml',
-                       '  fix\\s+((\\S+)\\s*)?')
+                       '  fix test \\S+ ((\\S+).*)?')
 
 total = len(pair)+len(bond)+len(angle)+len(dihedral)+len(improper)+len(kspace)+len(fix)
 print(f"\nTotal tests missing: {counter} of {total}")

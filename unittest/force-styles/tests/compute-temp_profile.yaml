@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:21:41 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute temp/profile
+pre_commands: ""
+post_commands: |
+  compute test all temp/profile 1 1 1 z 5
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 3774.5900251326675
+global_vector: |-
+  6  1.1325058494536147e+02  1.3800734546601936e+02  2.8880619190278890e+02 -9.4018181161264863e+01 -8.8551624823128549e+01  1.1331680327889627e+02
+...

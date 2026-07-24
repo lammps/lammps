@@ -67,7 +67,9 @@ static const char cite_fix_qeq_reaxff[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr)
+    Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
+    numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
+    pertype_option(nullptr)
 {
   scalar_flag = 1;
   extscalar = 0;
@@ -88,6 +90,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // check for compatibility is in Fix::post_constructor()
 
   dual_enabled = 0;
+  matvecs_s = matvecs_t = 0;
 
   // matrix-free support only available for Kokkos backend
   matrix_free = 0; // default to false
@@ -146,8 +149,15 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxflag = 0;
+  nlevels_respa = 1;
 
   s_hist = t_hist = nullptr;
+  ilist = jlist = numneigh = nullptr;
+  firstneigh = nullptr;
+  H.n = H.m = 0;
+  H.firstnbr = H.numnbrs = H.jlist = nullptr;
+  H.val = nullptr;
   atom->add_callback(Atom::GROW);
 }
 

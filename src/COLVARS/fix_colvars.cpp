@@ -378,6 +378,9 @@ int FixColvars::modify_param(int narg, char **arg)
   int return_code = parse_fix_arguments(narg, arg, false);
 
   if (return_code >= 0) {
+    // update size_vector in case fix_modify changed number of colvars
+    if (comm->me == 0) size_vector = proxy->colvars->num_variables();
+    MPI_Bcast(&size_vector, 1, MPI_INT, 0, world);
     // A fix colvars argument was detected, return directly
     return return_code;
   }

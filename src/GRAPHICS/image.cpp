@@ -1851,6 +1851,15 @@ void Image::compute_SSAO()
 
   const double seedshift = fmod(0.618033988749895 * (double) seed, 1.0);
 
+  // table of evenly spaced horizon directions, computed once; each pixel
+  // rotates the whole table by its per-pixel jitter angle
+
+  auto *dirTable = new double[2*nsamples];
+  for (int s = 0; s < nsamples; ++s) {
+    dirTable[2*s]   = cos(s * delTheta);
+    dirTable[2*s+1] = sin(s * delTheta);
+  }
+
 #if defined(_OPENMP)
 #pragma omp parallel for
 #endif
@@ -1870,13 +1879,14 @@ void Image::compute_SSAO()
     // and images of unchanged scenes are reproducible
 
     double ign = fmod(0.06711056 * x + 0.00583715 * y + seedshift, 1.0);
-    double mytheta = fmod(52.9829189 * ign, 1.0) * SSAOJitter;
+    const double mytheta = fmod(52.9829189 * ign, 1.0) * SSAOJitter;
+    const double cosj = cos(mytheta);
+    const double sinj = sin(mytheta);
     double ao = 0.0;
 
     for (int s = 0; s < nsamples; ++s) {
-      double hx = cos(mytheta);
-      double hy = sin(mytheta);
-      mytheta += delTheta;
+      double hx = cosj * dirTable[2*s] - sinj * dirTable[2*s+1];
+      double hy = sinj * dirTable[2*s] + cosj * dirTable[2*s+1];
 
       // multiply by z cross surface tangent
       // so that dot (aka cos) works here
@@ -1960,6 +1970,8 @@ void Image::compute_SSAO()
     imageBuffer[index * 3 + 1] = (int) c[1];
     imageBuffer[index * 3 + 2] = (int) c[2];
   }
+
+  delete[] dirTable;
 }
 
 /* ----------------------------------------------------------------------

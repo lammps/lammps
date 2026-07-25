@@ -2002,9 +2002,9 @@ void Image::compute_outline()
   int w = outlinewidth;
   if (fsaa) w *= 2;
 
-  const unsigned char red   = static_cast<unsigned char>(outlinecolor[0] * 255.0);
-  const unsigned char green = static_cast<unsigned char>(outlinecolor[1] * 255.0);
-  const unsigned char blue  = static_cast<unsigned char>(outlinecolor[2] * 255.0);
+  const auto red   = static_cast<unsigned char>(outlinecolor[0] * 255.0);
+  const auto green = static_cast<unsigned char>(outlinecolor[1] * 255.0);
+  const auto blue  = static_cast<unsigned char>(outlinecolor[2] * 255.0);
 
   // mark drawn pixels that have a much more distant immediate neighbor
   // or border on the background

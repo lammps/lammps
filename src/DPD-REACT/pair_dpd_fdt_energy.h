@@ -45,6 +45,7 @@ class PairDPDfdtEnergy : public Pair {
   double **a0;
   double **sigma, **kappa, **alpha;
   double *duCond, *duMech;
+  int nmax_dpd;
 
   int seed;
   class RanMars *random;

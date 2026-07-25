@@ -100,17 +100,27 @@ By default the header contains the following information (with example data):
 
 .. parsed-literal::
 
-   # vtk DataFile Version 3.0 c_SAED
-   Image data set
+   # vtk DataFile Version 5.1
+   Image data set c_SAED
    ASCII
    DATASET STRUCTURED_POINTS
    DIMENSIONS 337 219 209
-   ASPECT_RATIO 0.00507953 0.00785161 0.00821458
+   SPACING 0.00507953 0.00785161 0.00821458
    ORIGIN -0.853361 -0.855826 -0.854316
    POINT_DATA 15424827
-   SCALARS intensity float
+   SCALARS intensity double
    LOOKUP_TABLE default
    ...data
+
+.. versionchanged:: TBD
+
+The files are now written through the built-in VTK file writer that is
+shared with the :doc:`dump vtk and dump grid/vtk <dump>` styles.  The
+header uses the current version of the legacy VTK file format, which
+spells the grid spacing keyword *SPACING* instead of the obsolete
+*ASPECT_RATIO*, and the intensities are written with full precision
+instead of being truncated to about 6 digits.  Visualization software
+that reads the previous output reads the new output as well.
 
 In this example, kspace is sampled across a 337 x 219 x 209 point mesh
 where the mesh spacing is approximately 0.005, 0.007, and 0.008

@@ -39,7 +39,6 @@ class FixSAEDVTK : public Fix {
   int nrepeat, nfreq, irepeat;
   bigint nvalid;
   char *ids;
-  FILE *fp;
   int nrows;
 
   int ave, nwindow, nsum, startstep;

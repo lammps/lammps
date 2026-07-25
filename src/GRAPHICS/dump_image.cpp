@@ -3070,14 +3070,20 @@ int DumpImage::modify_param(int narg, char **arg)
     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
     if (strcmp(arg[1], "none") == 0) {
       image->nospecular = 1;
+      image->specularIntensity = 0.0;
       return 2;
     }
-    if (strcmp(arg[1], "wide") == 0) image->specularHardness = 10.0;
-    else if (strcmp(arg[1], "narrow") == 0) image->specularHardness = 50.0;
-    else if (strcmp(arg[1], "tight") == 0) image->specularHardness = 200.0;
-    else error->all(FLERR, argoff + 1, "Unknown specular setting {}", arg[1]);
+    if (strcmp(arg[1], "wide") == 0)
+      image->specularHardness = 10.0;
+    else if (strcmp(arg[1], "narrow") == 0)
+      image->specularHardness = 50.0;
+    else if (strcmp(arg[1], "tight") == 0)
+      image->specularHardness = 250.0;
+    else
+      error->all(FLERR, argoff + 1, "Unknown specular setting {}", arg[1]);
     image->specularflag = 1;
     image->nospecular = 0;
+    image->specularIntensity = image->shiny;
     return 2;
   }
 

@@ -57,9 +57,10 @@ class Image : protected Pointers {
   double fillLightColor[3];
   double backLightColor[3];
 
-  int specularflag;             // 1 if the specular exponent is set explicitly
-  int nospecular;               // 1 = disable the specular highlight entirely
-  double specularHardness;      // exponent of the specular highlight
+  int specularflag;            // 1 if the specular exponent is set explicitly
+  int nospecular;              // 1 = disable the specular highlight entirely
+  double specularHardness;     // exponent of the specular highlight
+  double specularIntensity;    // strength of the specular highlight
 
   Image(class LAMMPS *, int);
   ~Image() override;
@@ -134,8 +135,6 @@ class Image : protected Pointers {
   double backLightTheta;
   double backLightPhi;
 
-  double specularIntensity;    // strength of the specular highlight
-
   double SSAORadius;
   int SSAOSamples;
   double SSAOJitter;
@@ -144,7 +143,7 @@ class Image : protected Pointers {
 
   double zdist;
   double tanPerPixel;
-  double boxbounds[6];        // box bounds from the last view_params() call
+  double boxbounds[6];    // box bounds from the last view_params() call
   double camDir[3], camUp[3], camRight[4], camPos[3];
   double keyLightDir[3], fillLightDir[3], backLightDir[3];
   double keyHalfDir[3];

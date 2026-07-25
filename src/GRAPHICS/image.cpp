@@ -2158,7 +2158,7 @@ void Image::compute_depthcue()
       const int i = iy * width + ix;
       const double d = depthBuffer[i];
       if (d < 0.0 || d <= dstart) continue;
-      const double f = (d - dstart) * dscale;
+      const double f = std::min(1.0, (d - dstart) * dscale);
       writeBuffer[i*3+0] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+0] + f * red);
       writeBuffer[i*3+1] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+1] + f * green);
       writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+2] + f * blue);

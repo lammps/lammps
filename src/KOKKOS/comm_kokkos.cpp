@@ -378,6 +378,7 @@ void CommKokkos::reverse_comm_device()
         auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
         n = atomKK->avecKK->pack_reverse_self(sendnum[iswap],k_sendlist_iswap,
                                  firstrecv[iswap]);
+        DeviceType().fence();
       }
     }
   }

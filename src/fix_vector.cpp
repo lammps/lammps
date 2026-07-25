@@ -80,7 +80,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces either a global vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  int value, finalvalue;
+  int value = 0, finalvalue;
   bool first = true;
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {

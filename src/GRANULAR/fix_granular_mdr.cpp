@@ -182,7 +182,9 @@ void FixGranularMDR::setup_pre_force(int /*vflag*/)
                  norm_model->get_damp(), norm_model2->get_damp());
   }
 
-  fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
+  // take the neighbor history fix directly from the pair style; it registers
+  // the fix under an id with an instance number appended
+  fix_history = pair->get_fix_history();
   if (!fix_history)
     error->all(FLERR, Error::NOLASTLINE, "Cannot find fix storing granular history");
   pre_force(0);

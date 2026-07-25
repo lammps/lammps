@@ -193,13 +193,13 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
       int numpacked = 0;
       for (isend = 0; isend < plan->commringlen; isend++) {
-        if (plan->sendcnts[isend]) {
+        if (isend == plan->selfcommringloc && plan->self) {
+          numpacked++;
+        }
+        else if (plan->sendcnts[isend]) {
           plan->pack(d_in,plan->send_offset[numpacked],
                       plan->d_sendbuf,plan->sdispls[isend],
                       &plan->packplan[numpacked]);
-          numpacked++;
-        }
-        else if (plan->commringlist[isend] == me && plan->self) {
           numpacked++;
         }
       }
@@ -229,13 +229,13 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
       numpacked = 0;
       for (irecv = 0; irecv < plan->commringlen; irecv++) {
-        if (plan->rcvcnts[irecv]) {
+        if (irecv == plan->selfcommringloc && plan->self) {
+          numpacked++;
+        }
+        else if (plan->rcvcnts[irecv]) {
           plan->unpack(d_scratch,plan->rdispls[irecv],
                        d_out,plan->recv_offset[numpacked],
                        &plan->unpackplan[numpacked]);
-          numpacked++;
-        }
-        else if (plan->commringlist[irecv] == me && plan->self) {
           numpacked++;
         }
       }

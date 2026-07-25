@@ -362,6 +362,7 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   shiny = 1.0;
   gamma = 1.0;
   ssao = NO;
+  ssaosamples = 0;
   fsaa = NO;
   depthcue = NO;
   depthcueint = 0.0;
@@ -1823,9 +1824,14 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
 
 void Image::compute_SSAO()
 {
+  // number of horizon directions per pixel.  a chosen value must override
+  // the automatic one here, since view_params() may have run before it was set
+
+  const int nsamples = (ssaosamples > 0) ? ssaosamples : SSAOSamples;
+
   // used for rasterizing the spheres
 
-  double delTheta = 2.0*MY_PI / SSAOSamples;
+  double delTheta = 2.0*MY_PI / nsamples;
 
   // typical neighborhood value for shading
 
@@ -1867,7 +1873,7 @@ void Image::compute_SSAO()
     double mytheta = fmod(52.9829189 * ign, 1.0) * SSAOJitter;
     double ao = 0.0;
 
-    for (int s = 0; s < SSAOSamples; ++s) {
+    for (int s = 0; s < nsamples; ++s) {
       double hx = cos(mytheta);
       double hy = sin(mytheta);
       mytheta += delTheta;
@@ -1941,7 +1947,7 @@ void Image::compute_SSAO()
         ao += saturate(-scaled_sin_t);
       }
     }
-    ao /= (double)SSAOSamples;
+    ao /= (double)nsamples;
 
     double c[3];
     c[0] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 0]);

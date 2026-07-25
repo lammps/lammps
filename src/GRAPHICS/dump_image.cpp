@@ -3057,6 +3057,15 @@ int DumpImage::modify_param(int narg, char **arg)
     return 2;
   }
 
+  if (strcmp(arg[0], "ssaosamples") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify ssaosamples", error);
+    int nsamples = utils::inumeric(FLERR, arg[1], false, lmp);
+    if ((nsamples < 4) || (nsamples > 64))
+      error->all(FLERR, argoff + 1, "Illegal ssaosamples value {}", nsamples);
+    image->ssaosamples = nsamples;
+    return 2;
+  }
+
   if (strcmp(arg[0], "specular") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
     if (strcmp(arg[1], "none") == 0) {

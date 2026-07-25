@@ -39,6 +39,7 @@ class Image : protected Pointers {
   int ssao;                   // SSAO on or off
   int seed;                   // RN seed for SSAO
   double ssaoint;             // strength of shading from 0 to 1
+  int ssaosamples;            // SSAO samples per pixel; 0 = derived from ssaoint
   int depthcue;               // depth cueing on or off
   double depthcueint;         // strength of depth cueing from 0 to 1
   double *depthcuecolor;      // fog color; fade toward background color if null

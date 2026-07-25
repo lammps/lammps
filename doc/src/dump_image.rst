@@ -138,7 +138,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *specular* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *specular* or *ssaosamples* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -205,6 +205,8 @@ Syntax
          ambient key fill back = set light intensity value from 0.0 to 1.0
        *specular* arg = style
          style = *none* or *wide* or *narrow* or *tight* = specular highlights off or their width
+       *ssaosamples* arg = nsamples
+         nsamples = number of SSAO sampling directions per pixel (from 4 to 64)
        *loadcolors* arg = filename
          filename = load color definitions, per-type colors, and lights from JSON format file
        *savecolors* arg = filename
@@ -1369,6 +1371,19 @@ plastic-like appearance.  The *sfactor* value of the *shiny* keyword
 scales the brightness of the highlights; without the *specular*
 keyword it also sets their width.
 
+.. versionadded:: TBD
+
+The *ssaosamples* keyword sets the number of directions that the SSAO
+depth shading enabled by the *ssao* keyword examines around each
+pixel.  More directions produce smoother shading; fewer directions
+render proportionally faster but make the shading grainier.  Without
+this setting the number of directions is derived from the *dfactor*
+value of the *ssao* keyword and ranges from 8 to 40.  Reducing the
+number of directions is a simple way to trade some image quality for
+faster image output, for example for preview renderings.  The
+graininess is less visible when the *fsaa* keyword of the dump image
+command is also enabled.
+
 ----------
 
 .. versionadded:: 4Jul2026
@@ -1520,6 +1535,7 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * gamma = 1.0
 * lights = 0.0 0.9 0.45 0.9
 * specular = width derived from the *shiny* keyword of the dump image command
+* ssaosamples = number derived from the *dfactor* value of the *ssao* keyword
 * bitrate = 2000
 * framerate = 24
 * gmap = min max cf 0.0 2 min blue max red

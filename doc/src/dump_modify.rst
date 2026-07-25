@@ -946,9 +946,9 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 ----------
 
-The :ref:`VTK package <PKG-VTK>` offers writing dump files in `VTK file
-formats <https://vtk.org/>`_ that can be read by a variety of
-visualization tools based on the VTK library.  These VTK files follow
+The :ref:`EXTRA-DUMP package <PKG-EXTRA-DUMP>` offers writing dump files
+in `VTK file formats <https://vtk.org/>`_ that can be read by a variety
+of visualization tools based on the VTK library.  These VTK files follow
 naming conventions that collide with the LAMMPS convention to append
 ".bin" to a file name in order to switch to a binary output.  Thus for
 :doc:`vtk style dumps <dump_vtk>` the dump_modify command supports the

@@ -1677,13 +1677,11 @@ void FixRigid::setup_bodies_static()
       eflags[i] = 0;
       if (body[i] < 0) continue;
 
-      // set to POINT or SPHERE or ELLIPSOID or LINE
+      // set to POINT or SPHERE or ELLIPSOID or LINE or TRIANGLE
+      // check for bonus data before radius: line and tri particles
+      // also store a bounding-sphere radius for neighboring purposes
 
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         eflags[i] |= ELLIPSOID;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
@@ -1694,6 +1692,10 @@ void FixRigid::setup_bodies_static()
       } else if (tri && tri[i] >= 0) {
         eflags[i] |= TRIANGLE;
         eflags[i] |= ANGMOM;
+        eflags[i] |= TORQUE;
+      } else if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
         eflags[i] |= TORQUE;
       } else eflags[i] |= POINT;
 

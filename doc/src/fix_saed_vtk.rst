@@ -19,7 +19,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *file* or *ave* or *start* or *file* or *overwrite*\ :l
+     keyword = *file* or *ave* or *start* or *format* or *binary*\ :l
        *ave* args = *one* or *running* or *window M*
          one = output a new average value every Nfreq steps
          running = output cumulative average of all previous Nfreq steps
@@ -28,6 +28,12 @@ Syntax
          Nstart = start averaging on this timestep
        *file* arg = filename
          filename = name of file to output time averages to
+       *format* arg = *legacy* or *xml*
+         legacy = write the simple legacy VTK format (file extension .vtk)
+         xml = write the XML VTK image data format (file extension .vti)
+       *binary* arg = *yes* or *no*
+         yes = write the intensity values in binary
+         no = write the intensity values as text
 
 Examples
 """"""""
@@ -39,6 +45,7 @@ Examples
 
    fix 1 all saed/vtk 1 1 1 c_1 file Al2O3_001.saed
    fix 2 all saed/vtk 1 1 1 c_2 file Ni_000.saed
+   fix 3 all saed/vtk 1 1 1 c_2 file Ni_000.saed format xml binary yes
 
 Description
 """""""""""
@@ -91,10 +98,26 @@ averaging is done; values are simply generated on timesteps
 
 ----------
 
-The output for fix ave/time/saed is a file written with the third generation
-vtk image data formatting.  The filename assigned by the *file* keyword is
-appended with _N.vtk where N is an index (0,1,2...) to account for multiple
-diffraction intensity outputs.
+The output for fix ave/time/saed is a file holding the intensities on a
+uniform grid of reciprocal space points.  The filename assigned by the
+*file* keyword is appended with .N.vtk where N is an index (0,1,2...) to
+account for multiple diffraction intensity outputs.
+
+.. versionadded:: TBD
+
+The *format* and *binary* keywords select how that data is stored.  With
+*format* set to *legacy*, the default, the simple legacy VTK format is
+written and the file name ends in .vtk.  With *format* set to *xml* the
+XML image data format is written instead and the file name ends in .vti.
+Both describe the same uniform grid and are read by the same
+visualization programs.
+
+Setting *binary* to *yes* stores the intensities as binary numbers
+rather than as text.  This is worth doing for finely sampled reciprocal
+space maps, which can otherwise reach hundreds of megabytes: the values
+keep their full precision, and in the XML format they are compressed as
+well if LAMMPS was built with the zlib library, which typically reduces
+the file to a small fraction of the size of the text version.
 
 By default the header contains the following information (with example data):
 

@@ -41,6 +41,7 @@ using namespace FixConst;
 
 enum{ONE,RUNNING,WINDOW};
 enum{FIRST,MULTI};
+enum{VTKLEGACY,VTKXML};
 
 
 /* ---------------------------------------------------------------------- */
@@ -425,10 +426,10 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
     }
 
     const double origin[3] = {Knmin[0] * dK[0], Knmin[1] * dK[1], Knmin[2] * dK[2]};
-    std::string nName = fmt::format("{}.{}.vtk",filename,nOutput);
+    std::string nName = filecurrent();
 
     try {
-      VTKWriter writer(VTKWriter::LEGACY, false);
+      VTKWriter writer((vtkformat == VTKXML) ? VTKWriter::XML : VTKWriter::LEGACY, binaryflag);
       writer.set_title(fmt::format("Image data set c_{}", ids));
       writer.set_image_data(Dim, origin, dK);
       writer.add_point_array("intensity", 1, intensity);
@@ -463,6 +464,8 @@ void FixSAEDVTK::options(int narg, char **arg)
 
   ave = ONE;
   startstep = 0;
+  vtkformat = VTKLEGACY;
+  binaryflag = 0;
 
   // optional args
   int iarg = 7;
@@ -470,21 +473,20 @@ void FixSAEDVTK::options(int narg, char **arg)
     if (strcmp(arg[iarg],"file") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
       if (comm->me == 0) {
-
         nOutput = 0;
         delete[] filename;
         filename = utils::strdup(arg[iarg+1]);
-
-        // check right away that the requested location is writable, rather
-        // than failing on the first output step of a possibly long run
-
-        std::string nName = fmt::format("{}.{}.vtk",filename,nOutput);
-        SafeFilePtr fp(fopen(nName.c_str(),"w"));
-
-        if (!fp)
-          error->one(FLERR,"Cannot open fix saed/vtk file {}: {}",
-                                       nName,utils::getsyserror());
       }
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk format",error);
+      if (strcmp(arg[iarg+1],"legacy") == 0) vtkformat = VTKLEGACY;
+      else if (strcmp(arg[iarg+1],"xml") == 0) vtkformat = VTKXML;
+      else error->all(FLERR,iarg+1,"Unknown fix saed/vtk format {}",arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"binary") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk binary",error);
+      binaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
@@ -505,6 +507,28 @@ void FixSAEDVTK::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal fix saed/vtk command");
   }
+
+  // check right away that the requested location is writable, rather than
+  // failing on the first output step of a possibly long run.  this has to
+  // wait until all keywords are known, since the format determines the
+  // file name extension.
+
+  if (filename && comm->me == 0) {
+    std::string nName = filecurrent();
+    SafeFilePtr fp(fopen(nName.c_str(),"w"));
+    if (!fp)
+      error->one(FLERR,"Cannot open fix saed/vtk file {}: {}",nName,utils::getsyserror());
+  }
+}
+
+/* ----------------------------------------------------------------------
+   name of the file for the current output, the index is appended to the
+   base name given by the file keyword
+------------------------------------------------------------------------- */
+
+std::string FixSAEDVTK::filecurrent() const
+{
+  return fmt::format("{}.{}.{}",filename,nOutput,(vtkformat == VTKXML) ? "vti" : "vtk");
 }
 
 /* ----------------------------------------------------------------------

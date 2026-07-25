@@ -450,7 +450,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     clearerr(fp);
     fwrite(&dynmat[0], sizeof(double), dynlen, fp);
   }
-  if (ferror(fp)) error->one(FLERR,"Error writing to file");
+  if (fp && ferror(fp)) error->one(FLERR,"Error writing to file");
 
 }
 
@@ -776,6 +776,7 @@ void ThirdOrder::getNeighbortags() {
   }
 
   free (neighbortags);
+  memory->sfree(datarecv);
   nbytes = ((bigint) sizeof(bigint)) * sum;
   datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
   nbytes = ((bigint) sizeof(bigint *)) * natoms;
@@ -810,6 +811,7 @@ void ThirdOrder::getNeighbortags() {
     }
   }
 
+  memory->sfree(data);
   free (firsttags);
   free (ijnumproc);
   free (temptags);

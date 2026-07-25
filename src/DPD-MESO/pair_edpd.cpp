@@ -189,7 +189,7 @@ void PairEDPD::compute(int eflag, int vflag)
         f[i][2] += delz*fpair;
 
         // heat transfer
-        double dQc,dQd,dQr;
+        double dQc = 0.0, dQd = 0.0, dQr = 0.0;
         if (r < cutT[itype][jtype]) {
           double wrT = 1.0 - r/cutT[itype][jtype];
           wrT = MAX(0.0,MIN(1.0,wrT));

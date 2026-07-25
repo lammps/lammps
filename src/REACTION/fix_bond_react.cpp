@@ -4104,6 +4104,8 @@ void FixBondReact::read_map_file(int myrxn)
     } else if (strstr(line,"createIDs")) {
       rv = sscanf(line,"%d",&ncreate);
       if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      if ((ncreate < 0) || (ncreate > twomol->natoms))
+        error->one(FLERR,"Fix bond/react: Invalid number of createIDs in map file");
     } else if (strstr(line,"chiralIDs")) {
       rv = sscanf(line,"%d",&nchiral);
       if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");

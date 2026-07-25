@@ -41,6 +41,7 @@ BondHarmonicShift::BondHarmonicShift(LAMMPS *lmp) : Bond(lmp)
 
 BondHarmonicShift::~BondHarmonicShift()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

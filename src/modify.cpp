@@ -1560,6 +1560,7 @@ int Modify::read_restart(FILE *fp)
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 0) || (n > (1 << 30))) error->all(FLERR, "Invalid fix data size in restart file");
     state_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, state_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(state_restart_global[i], n, MPI_CHAR, 0, world);

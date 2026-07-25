@@ -288,7 +288,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc_dipole->reverse_comm(Grid3d::KSPACE,this,REVERSE_MU,3,sizeof(FFT_SCALAR),
+  gc_dipole->reverse_comm(Grid3d::KSPACE,this,REVERSE_MU,4,sizeof(FFT_SCALAR),
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
@@ -302,14 +302,14 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU,9,sizeof(FFT_SCALAR),
+  gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU,12,sizeof(FFT_SCALAR),
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_MU_PERATOM,18,sizeof(FFT_SCALAR),
-                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU_PERATOM,25,sizeof(FFT_SCALAR),
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 
@@ -395,6 +395,8 @@ void PPPMDipoleSpin::make_rho_spin()
   memset(&(densityy_brick_dipole[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
   memset(&(densityz_brick_dipole[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
@@ -685,6 +687,11 @@ void PPPMDipoleSpin::spsum_spsq()
   const int nlocal = atom->nlocal;
 
   musum = musqsum = mu2 = 0.0;
+
+  // spin-only systems have no charge channel and qsum_qsq() is never
+  // called, but the inherited error estimates access these members
+
+  qsum = qsqsum = q2 = 0.0;
   if (atom->sp_flag) {
     double **sp = atom->sp;
     double spx, spy, spz;
@@ -711,6 +718,6 @@ void PPPMDipoleSpin::spsum_spsq()
     mu2 = musqsum * mub2mu0;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver PPPMDipoleSpin on system with no spins");
 }

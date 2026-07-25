@@ -820,6 +820,11 @@ void EwaldDipoleSpin::spsum_musq()
   const int nlocal = atom->nlocal;
 
   musum = musqsum = mu2 = 0.0;
+
+  // spin-only systems have no charge channel and qsum_qsq() is never
+  // called, but the inherited error estimates access these members
+
+  qsum = qsqsum = q2 = 0.0;
   if (atom->sp_flag) {
     double** sp = atom->sp;
     double spx,spy,spz;
@@ -842,6 +847,6 @@ void EwaldDipoleSpin::spsum_musq()
     mu2 = musqsum * mub2mu0;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver EwaldDipoleSpin on system with no spins");
 }

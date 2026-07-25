@@ -35,8 +35,18 @@ as `ParaView <https://www.paraview.org>`_.  The time steps on which dump
 output is written can also be controlled by a variable; see the
 :doc:`dump_modify every <dump_modify>` command for details.
 
-This dump style is similar to :doc:`dump_style custom <dump>` but uses
-the VTK library to write data to VTK simple legacy or XML format,
+.. versionchanged:: TBD
+
+This dump style no longer uses the VTK library.  The files are written
+by a built-in VTK file writer that is shared with the :doc:`dump
+grid/vtk <dump>` and :doc:`fix saed/vtk <fix_saed_vtk>` styles, so the
+style is now part of the EXTRA-DUMP package and available in every
+LAMMPS build that includes it.  Atom coordinates are written in double
+precision now, where the VTK library truncated them to single
+precision.
+
+This dump style is similar to :doc:`dump_style custom <dump>` but writes
+data in the VTK simple legacy or XML format,
 depending on the filename extension specified for the dump file.  This
 can be either *\*.vtk* for the legacy format or *\*.vtp* and *\*.vtu*,
 respectively, for XML format; see the `VTK homepage
@@ -156,7 +166,12 @@ large number of small dump files!
 If *dump_modify binary* is used, the dump file (or files, if "\*" or
 "%" is also used) is written in binary format.  A binary dump file
 will be about the same size as a text version, but will typically
-write out much faster.
+write out much faster.  For the XML formats the binary data is
+compressed with the zlib library when LAMMPS was built with support for
+it, which is the default when the library is found; see the
+:doc:`Build settings <Howto_cmake>` page for the ``WITH_ZLIB`` setting.
+Without it the data is written uncompressed, which visualization
+software reads just the same.
 
 ----------
 
@@ -165,12 +180,8 @@ Restrictions
 
 The *vtk* style does not support writing of gzipped dump files.
 
-The *vtk* dump style is part of the VTK package. It is only
+The *vtk* dump style is part of the EXTRA-DUMP package. It is only
 enabled if LAMMPS was built with that package. See the :doc:`Build package <Build_package>` page for more info.
-
-To use this dump style, you also must link to the VTK library.  See
-the info in lib/vtk/README and ensure the Makefile.lammps file in that
-directory is appropriate for your machine.
 
 The *vtk* dump style supports neither buffering or custom format
 strings.

@@ -25,16 +25,12 @@ DumpStyle(vtk,DumpVTK);
 #define LMP_DUMP_VTK_H
 
 #include "dump_custom.h"
+#include "vtk_writer.h"
+
 #include <map>
 #include <set>
-
-#include <vtkCellArray.h>
-#include <vtkPoints.h>
-#include <vtkSmartPointer.h>
-
-class vtkAbstractArray;
-class vtkRectilinearGrid;
-class vtkUnstructuredGrid;
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -42,10 +38,10 @@ namespace LAMMPS_NS {
  * @brief DumpVTK class
  *        write atom data to vtk files.
  *
- * Similar to the DumpCustom class but uses the vtk library to write data to vtk simple
- * legacy or xml format depending on the filename extension specified. (Since this
- * conflicts with the way binary output is specified, dump_modify allows to set the
- * binary flag for this dump command explicitly).
+ * Similar to the DumpCustom class but uses the built-in VTKWriter class to write data
+ * to vtk simple legacy or xml format depending on the filename extension specified.
+ * (Since this conflicts with the way binary output is specified, dump_modify allows to
+ * set the binary flag for this dump command explicitly).
  * In contrast to DumpCustom class the attributes to be packed are stored in a std::map
  * to avoid duplicate entries and enforce correct ordering of vector components (except
  * for computes and fixes - these have to be given in the right order in the input script).
@@ -99,12 +95,8 @@ class DumpVTK : public DumpCustom {
   void write_pvtk(int);                  // write parallel .pvtp/.pvtu summary file
   std::string pvtk_piece_filename(int);  // per-proc piece file name as referenced in summary
 
-  void prepare_domain_data(vtkRectilinearGrid *);
-  void prepare_domain_data_triclinic(vtkUnstructuredGrid *);
-  void write_domain_vtk();
-  void write_domain_vtk_triclinic();
-  void write_domain_vtr();
-  void write_domain_vtu_triclinic();
+  void write_points(VTKWriter::Flavor, bool unstructured);    // write the atom data file
+  void write_domain(VTKWriter::Flavor);                       // write the box data file
 
   typedef void (DumpVTK::*FnPtrPack)(int);
   std::map<int, FnPtrPack> pack_choice;    // ptrs to pack functions
@@ -113,10 +105,19 @@ class DumpVTK : public DumpCustom {
   std::set<int> vector_set;                // set of vector attributes
   int current_pack_choice_key;
 
-  // vtk data containers
-  vtkSmartPointer<vtkPoints> points;
-  vtkSmartPointer<vtkCellArray> pointsCells;
-  std::map<int, vtkSmartPointer<vtkAbstractArray>> myarrays;
+  // data collected for the current snapshot.  one entry per attribute that
+  // is not a point coordinate, in the order the values appear in buf.
+
+  struct VTKArray {
+    std::string name;
+    int type;      // Dump::INT, Dump::DOUBLE or Dump::STRING
+    int ncomp;     // 1 or 3
+    std::vector<double> values;         // for INT and DOUBLE
+    std::vector<std::string> strings;   // for STRING
+  };
+
+  std::vector<double> points;      // coordinates of the dumped atoms
+  std::vector<VTKArray> myarrays;
 
   int n_calls_;
   double (*boxcorners)[3];    // corners of triclinic domain box

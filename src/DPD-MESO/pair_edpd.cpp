@@ -195,7 +195,7 @@ void PairEDPD::compute(int eflag, int vflag)
           wrT = MAX(0.0,MIN(1.0,wrT));
           wrT = pow(wrT, 0.5*powerT[itype][jtype]);
           double randnumT = randomT->gaussian();
-          randnumT = MAX(-5.0,MIN(randnum,5.0));
+          randnumT = MAX(-5.0,MIN(randnumT,5.0));
 
           double kappaT = kappa[itype][jtype];
           if (kappa_flag) {

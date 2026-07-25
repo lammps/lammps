@@ -20,6 +20,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
@@ -143,34 +144,37 @@ std::string decode_binary_payload(const std::string &raw_payload, std::uint32_t 
 #endif
 }
 
-double be_double(const char *p)
+bool little_endian()
 {
-    char buf[8];
-    for (int i = 0; i < 8; ++i)
-        buf[i] = p[7 - i];
-    double v;
-    memcpy(&v, buf, 8);
+    const int one = 1;
+    return *((const char *)&one) == 1;
+}
+
+// legacy binary payloads are big endian, so the bytes only have to be
+// reversed when the host stores them the other way around
+
+template <typename T> T read_be(const char *p)
+{
+    char buf[sizeof(T)];
+    if (little_endian()) {
+        for (std::size_t i = 0; i < sizeof(T); ++i)
+            buf[i] = p[sizeof(T) - 1 - i];
+    } else {
+        memcpy(buf, p, sizeof(T));
+    }
+    T v;
+    memcpy(&v, buf, sizeof(T));
     return v;
 }
 
 float be_float(const char *p)
 {
-    char buf[4];
-    for (int i = 0; i < 4; ++i)
-        buf[i] = p[3 - i];
-    float v;
-    memcpy(&v, buf, 4);
-    return v;
+    return read_be<float>(p);
 }
 
 std::int32_t be_int32(const char *p)
 {
-    char buf[4];
-    for (int i = 0; i < 4; ++i)
-        buf[i] = p[3 - i];
-    std::int32_t v;
-    memcpy(&v, buf, 4);
-    return v;
+    return read_be<std::int32_t>(p);
 }
 
 // a small reusable data set: 4 points with a scalar, a vector and names

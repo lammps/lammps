@@ -500,9 +500,9 @@ set up an atom type number to atom name mapping.
 
 The *grid/vtk* style writes VTK files for grid data on a regular
 rectilinear grid.  Its content is conceptually similar to that of the
-text file produced by the *grid* style, except that it is in a format
-which visualization programs which support the VTK format can
-read, e.g. the `ParaView tool <https://www.paraview.org>`_.  For this
+text file produced by the *grid* style, except that it is in one of the
+VTK formats and can thus be read directly by visualization programs like
+the `ParaView tool <https://www.paraview.org>`_.  For this
 style, there can only be 1 or 3 per grid cell attributes specified.
 If it is a single value, it is a scalar quantity.  If 3 values are
 specified it is encoded in the VTK file as a vector quantity (for each

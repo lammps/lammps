@@ -15,10 +15,12 @@
 
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "memory.h"
 #include "vtk_writer.h"
 
 #include <cstring>
+#include <limits>
 #include <string>
 
 using namespace LAMMPS_NS;
@@ -47,6 +49,7 @@ DumpGridVTK::DumpGridVTK(LAMMPS *lmp, int narg, char **arg) :
 
   vtkflavor = VTKXML;
   dataset = RECTILINEAR;
+  precision_warned = 0;
 
   std::string fname(filename);
   auto dot = fname.find_last_of('.');
@@ -144,6 +147,20 @@ void DumpGridVTK::write_footer()
 
     writer.add_cell_array((mode == SCALAR) ? "Scalar" : "Vector", nfield, values);
     writer.write(fp);
+
+    // grid coordinates are stored in single precision, warn once if that no
+    // longer resolves them well enough
+
+    const double maxcoord = writer.max_single_precision_value();
+    if (!precision_warned && (maxcoord > VTKWriter::SINGLE_PRECISION_LIMIT * force->angstrom)) {
+      precision_warned = 1;
+      error->warning(FLERR,
+                     "Dump grid/vtk writes grid coordinates in single precision, which "
+                     "resolves the largest coordinate of this grid, {:.4g}, to only about {:.2g} "
+                     "length units. If your analysis needs more resolution than that, please "
+                     "contact the LAMMPS developers.",
+                     maxcoord, maxcoord * std::numeric_limits<float>::epsilon());
+    }
   } catch (VTKWriterException &e) {
     error->one(FLERR, "Cannot write dump grid/vtk file {}: {}", filename, e.what());
   }

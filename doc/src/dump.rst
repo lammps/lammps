@@ -536,6 +536,12 @@ binary data explicitly.  Binary data keeps the full precision of the
 values, and in the two XML formats it is compressed as well if LAMMPS
 was built with the zlib library.
 
+The grid cell coordinates are stored in single precision, which resolves
+them to less than 0.001 length units as long as they stay below about
+10000 length units.  LAMMPS prints a warning for grids that extend
+beyond that; please contact the LAMMPS developers if you need more
+resolution.  The grid data itself is written in double precision.
+
 .. versionadded:: 4May2022
 
 Dump style *yaml* has the same command syntax as style *custom* and

@@ -25,6 +25,7 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -152,6 +153,16 @@ double be_double(const char *p)
     return v;
 }
 
+float be_float(const char *p)
+{
+    char buf[4];
+    for (int i = 0; i < 4; ++i)
+        buf[i] = p[3 - i];
+    float v;
+    memcpy(&v, buf, 4);
+    return v;
+}
+
 std::int32_t be_int32(const char *p)
 {
     char buf[4];
@@ -200,7 +211,7 @@ TEST_F(VTKWriterTest, LegacyAsciiPolyData)
 
     const auto text = slurp(file);
     EXPECT_THAT(text, HasSubstr("# vtk DataFile Version 5.1\ntest title\nASCII\n"));
-    EXPECT_THAT(text, HasSubstr("DATASET POLYDATA\nPOINTS 4 double\n"));
+    EXPECT_THAT(text, HasSubstr("DATASET POLYDATA\nPOINTS 4 float\n"));
 
     // one vertex cell per point, offsets start at zero and have one extra entry
     EXPECT_THAT(text, HasSubstr("VERTICES 5 4\nOFFSETS vtktypeint64\n0 1 2 3 4 \n"));
@@ -212,7 +223,7 @@ TEST_F(VTKWriterTest, LegacyAsciiPolyData)
     EXPECT_THAT(text, HasSubstr("v 3 4 double\n"));
     EXPECT_THAT(text, Not(HasSubstr("SCALARS")));
 
-    EXPECT_EQ(parse_numbers(text.substr(text.find("POINTS 4 double\n") + 16)).size() >= 12, true);
+    EXPECT_EQ(parse_numbers(text.substr(text.find("POINTS 4 float\n") + 15)).size() >= 12, true);
 }
 
 TEST_F(VTKWriterTest, LegacyActiveScalars)
@@ -244,11 +255,11 @@ TEST_F(VTKWriterTest, LegacyBinaryIsBigEndian)
     const auto data = slurp(file);
     EXPECT_THAT(data, HasSubstr("BINARY\n"));
 
-    auto pos = data.find("POINTS 4 double\n");
+    auto pos = data.find("POINTS 4 float\n");
     ASSERT_NE(pos, std::string::npos);
-    pos += strlen("POINTS 4 double\n");
+    pos += strlen("POINTS 4 float\n");
     for (std::size_t i = 0; i < COORDS.size(); ++i)
-        EXPECT_DOUBLE_EQ(be_double(data.data() + pos + 8 * i), COORDS[i]);
+        EXPECT_FLOAT_EQ(be_float(data.data() + pos + 4 * i), static_cast<float>(COORDS[i]));
 
     pos = data.find("id 1 4 int\n");
     ASSERT_NE(pos, std::string::npos);
@@ -309,7 +320,7 @@ TEST_F(VTKWriterTest, XmlAsciiPolyData)
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int32" Name="id" format="ascii">)"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float64" Name="v" NumberOfComponents="3")"));
     EXPECT_THAT(text,
-                HasSubstr(R"(<DataArray type="Float64" Name="Points" NumberOfComponents="3")"));
+                HasSubstr(R"(<DataArray type="Float32" Name="Points" NumberOfComponents="3")"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int64" Name="connectivity")"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int64" Name="offsets")"));
 
@@ -396,13 +407,14 @@ TEST_F(VTKWriterTest, XmlBinaryPayloads)
         EXPECT_EQ(v, IDS[i]);
     }
 
+    // coordinates are stored in single precision
     const auto pts = decode_binary_payload(payload_after(text, R"(Name="Points")"),
-                                           COORDS.size() * sizeof(double));
-    ASSERT_EQ(pts.size(), COORDS.size() * sizeof(double));
+                                           COORDS.size() * sizeof(float));
+    ASSERT_EQ(pts.size(), COORDS.size() * sizeof(float));
     for (std::size_t i = 0; i < COORDS.size(); ++i) {
-        double v;
-        memcpy(&v, pts.data() + 8 * i, 8);
-        EXPECT_DOUBLE_EQ(v, COORDS[i]);
+        float v;
+        memcpy(&v, pts.data() + 4 * i, 4);
+        EXPECT_FLOAT_EQ(v, static_cast<float>(COORDS[i]));
     }
 }
 
@@ -433,7 +445,7 @@ TEST_F(VTKWriterTest, RectilinearGrid)
 
     const auto ltext = slurp(legacy);
     EXPECT_THAT(ltext, HasSubstr("DATASET RECTILINEAR_GRID\nDIMENSIONS 3 2 2\n"));
-    EXPECT_THAT(ltext, HasSubstr("X_COORDINATES 3 double\n0 1 3 \n"));
+    EXPECT_THAT(ltext, HasSubstr("X_COORDINATES 3 float\n0 1 3 \n"));
     EXPECT_THAT(ltext, HasSubstr("CELL_DATA 2\n"));
 }
 
@@ -471,6 +483,46 @@ TEST_F(VTKWriterTest, ImageData)
     EXPECT_THAT(ltext, HasSubstr("DATASET STRUCTURED_POINTS\nDIMENSIONS 3 2 2\n"));
     EXPECT_THAT(ltext, HasSubstr("SPACING 0.25 0.5 1\nORIGIN -1 -2 -3\n"));
     EXPECT_THAT(ltext, HasSubstr("POINT_DATA 12\nSCALARS intensity double\n"));
+}
+
+TEST_F(VTKWriterTest, TracksSinglePrecisionMagnitude)
+{
+    // coordinates are stored in single precision, so the writer reports the
+    // largest magnitude that went through it.  callers use this to warn when
+    // that no longer resolves the data well enough.
+
+    VTKWriter writer(VTKWriter::XML, false);
+    writer.set_polydata({0.0, -5.0, 0.0, 1.5, 0.0, 2.0e5});
+    EXPECT_DOUBLE_EQ(writer.max_single_precision_value(), 2.0e5);
+
+    // data arrays are not affected, they stay in double precision
+    writer.add_point_array("big", 1, std::vector<double>({1.0e30, -1.0e30}));
+    EXPECT_DOUBLE_EQ(writer.max_single_precision_value(), 2.0e5);
+
+    // grid coordinates are tracked the same way
+    VTKWriter grid(VTKWriter::XML, false);
+    grid.set_rectilinear_grid({0.0, 3.0e4}, {0.0, 1.0}, {-7.0e4, 0.0});
+    EXPECT_DOUBLE_EQ(grid.max_single_precision_value(), 7.0e4);
+
+    // nothing is tracked when the caller asks for double precision
+    VTKWriter exact(VTKWriter::XML, false, VTKWriter::DOUBLE);
+    exact.set_polydata({0.0, 0.0, 0.0, 9.0e9, 0.0, 0.0});
+    EXPECT_DOUBLE_EQ(exact.max_single_precision_value(), 0.0);
+
+    // and then the coordinates really are written as Float64
+    const auto file = tempfile("vtkwriter_double.vtp");
+    exact.write(file);
+    EXPECT_THAT(slurp(file), HasSubstr(R"(type="Float64" Name="Points")"));
+}
+
+TEST_F(VTKWriterTest, SinglePrecisionResolutionLimit)
+{
+    // the documented limit has to be the magnitude at which single precision
+    // stops resolving 3 digits after the decimal point
+    const double resolution = VTKWriter::SINGLE_PRECISION_LIMIT *
+                              static_cast<double>(std::numeric_limits<float>::epsilon());
+    EXPECT_LT(resolution, 0.01);
+    EXPECT_GT(resolution, 0.0001);
 }
 
 TEST_F(VTKWriterTest, ErrorsOnInconsistentInput)

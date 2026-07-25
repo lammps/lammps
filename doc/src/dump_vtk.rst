@@ -41,9 +41,17 @@ This dump style no longer uses the VTK library.  The files are written
 by a built-in VTK file writer that is shared with the :doc:`dump
 grid/vtk <dump>` and :doc:`fix saed/vtk <fix_saed_vtk>` styles, so the
 style is now part of the EXTRA-DUMP package and available in every
-LAMMPS build that includes it.  Atom coordinates are written in double
-precision now, where the VTK library truncated them to single
-precision.
+LAMMPS build that includes it.
+
+Atom coordinates are stored in single precision, as before, since that
+is what visualization programs work with and positions are rarely known
+to better than that.  Single precision keeps about 7 significant digits,
+so coordinates beyond about 10000 length units are resolved to less than
+0.001 length units.  LAMMPS prints a warning when a snapshot contains
+such large coordinates.  If your system is large enough for this to
+matter, please contact the LAMMPS developers, so that an option for
+writing coordinates in double precision can be added.  All other
+quantities are written in double precision.
 
 This dump style is similar to :doc:`dump_style custom <dump>` but writes
 data in the VTK simple legacy or XML format,

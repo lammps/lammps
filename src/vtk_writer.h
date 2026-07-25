@@ -63,8 +63,21 @@ catch it and turn it into a LAMMPS error.
 class VTKWriter {
  public:
   enum Flavor { LEGACY, XML };
+  enum Precision { SINGLE, DOUBLE };
 
-  VTKWriter(Flavor flavor, bool binary);
+  /** Coordinates larger than this many length units keep fewer than 3 digits
+      after the decimal point when stored in single precision, which has a
+      relative resolution of about 1.2e-7.  Callers scale this with
+      force->angstrom so that the same physical resolution applies in every
+      unit system, and compare it against max_single_precision_value(). */
+
+  static constexpr double SINGLE_PRECISION_LIMIT = 1.0e4;
+
+  /** point coordinates are stored in single precision by default, which is
+      what visualization programs expect and what the VTK library wrote.  see
+      max_single_precision_value() for how to tell when that is not enough. */
+
+  VTKWriter(Flavor flavor, bool binary, Precision coordinate_precision = SINGLE);
 
   /** set the title written into the header of legacy files (ignored for XML) */
 
@@ -111,6 +124,13 @@ class VTKWriter {
 
   void set_active_scalars(const std::string &name);
 
+  /** largest absolute value among the numbers that are written in single
+      precision, or 0.0 if there are none.  callers use this to warn when the
+      resolution of single precision is no longer sufficient for the data at
+      hand, which happens for very large coordinates. */
+
+  double max_single_precision_value() const { return maxsingle; }
+
   /** number of points implied by the selected dataset */
 
   int number_of_points() const { return npoints; }
@@ -124,7 +144,7 @@ class VTKWriter {
 
  private:
   enum Dataset { NONE, POLYDATA, UNSTRUCTURED, RECTILINEAR, IMAGE };
-  enum DataType { INT, DOUBLE, STRING };
+  enum DataType { TYPE_INT, TYPE_DOUBLE, TYPE_STRING };
 
   struct DataArray {
     std::string name;
@@ -137,6 +157,8 @@ class VTKWriter {
 
   Flavor flavor;
   bool binary;
+  Precision coordprec;
+  double maxsingle;
   Dataset dataset;
   std::string title;
   std::string scalars;
@@ -152,6 +174,14 @@ class VTKWriter {
 
   void set_vertex_cells(const std::vector<double> &xyz, Dataset type);
   void add_array(std::vector<DataArray> &arrays, int nitems, const char *kind, DataArray &&array);
+
+  // coordinates honor the selected precision, all other data does not
+
+  void track_single(const std::vector<double> &values);
+  void write_legacy_coords(FILE *fp, const std::vector<double> &values);
+  std::string xml_coords(const std::vector<double> &values, int indent) const;
+  const char *legacy_coord_type() const;
+  const char *xml_coord_type() const;
 
   // legacy format
 

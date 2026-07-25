@@ -42,6 +42,7 @@
 #include "variable.h"
 
 #include <cmath>
+#include <limits>
 #include <cstdio>
 #include <cstring>
 #include <sstream>
@@ -133,6 +134,7 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
     nclusterprocs = nprocs;
   }
 
+  precision_warned = 0;
   filecurrent = nullptr;
   domainfilecurrent = nullptr;
   parallelfilecurrent = nullptr;
@@ -1137,9 +1139,28 @@ void DumpVTK::write_points(VTKWriter::Flavor flavor, bool unstructured)
       }
     }
     writer.write(filecurrent);
+    check_coordinate_precision(writer.max_single_precision_value());
   } catch (VTKWriterException &e) {
     error->one(FLERR,"Cannot write dump vtk file {}: {}", filecurrent, e.what());
   }
+}
+
+/* ----------------------------------------------------------------------
+   atom coordinates are stored in single precision, which is what
+   visualization programs expect.  warn once when the system has grown so
+   large that this no longer resolves the coordinates well enough.
+------------------------------------------------------------------------- */
+
+void DumpVTK::check_coordinate_precision(double maxcoord)
+{
+  if (precision_warned || (me != 0)) return;
+  if (maxcoord <= VTKWriter::SINGLE_PRECISION_LIMIT * force->angstrom) return;
+
+  precision_warned = 1;
+  error->warning(FLERR,"Dump vtk writes atom coordinates in single precision, which resolves "
+                 "the largest coordinate of this system, {:.4g}, to only about {:.2g} length "
+                 "units. If your analysis needs more resolution than that, please contact the "
+                 "LAMMPS developers.", maxcoord, maxcoord * std::numeric_limits<float>::epsilon());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1288,10 +1309,10 @@ void DumpVTK::write_pvtk(int fileformat)
   }
   utils::print(fp, R"(    </PPointData>)" "\n");
 
-  // the built-in writer always stores point coordinates in double precision
+  // point coordinates are stored in single precision, see write_points()
 
   utils::print(fp, R"(    <PPoints>)" "\n");
-  utils::print(fp, R"(      <PDataArray type="Float64" Name="Points" NumberOfComponents="3"/>)" "\n");
+  utils::print(fp, R"(      <PDataArray type="Float32" Name="Points" NumberOfComponents="3"/>)" "\n");
   utils::print(fp, R"(    </PPoints>)" "\n");
 
   // one <Piece> entry per per-processor piece file

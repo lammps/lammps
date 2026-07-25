@@ -33,8 +33,9 @@ class DumpGridVTK : public DumpGrid {
 
  protected:
   int mode;
-  int vtkflavor;    // VTKLEGACY or VTKXML
-  int dataset;      // RECTILINEAR or IMAGE
+  int vtkflavor;           // VTKLEGACY or VTKXML
+  int dataset;             // RECTILINEAR or IMAGE
+  int precision_warned;    // 1 after the single precision warning was printed
   double *xcoord, *ycoord, *zcoord;
   std::vector<double> values;    // grid cell data collected for one snapshot
 

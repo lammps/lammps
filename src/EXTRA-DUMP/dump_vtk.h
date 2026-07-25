@@ -96,6 +96,7 @@ class DumpVTK : public DumpCustom {
   std::string pvtk_piece_filename(int);  // per-proc piece file name as referenced in summary
 
   void write_points(VTKWriter::Flavor, bool unstructured);    // write the atom data file
+  void check_coordinate_precision(double);                    // warn if single precision is too coarse
   void write_domain(VTKWriter::Flavor);                       // write the box data file
 
   typedef void (DumpVTK::*FnPtrPack)(int);
@@ -120,6 +121,7 @@ class DumpVTK : public DumpCustom {
   std::vector<VTKArray> myarrays;
 
   int n_calls_;
+  int precision_warned;    // 1 after the single precision warning was printed
   double (*boxcorners)[3];    // corners of triclinic domain box
   char *filecurrent;
   char *domainfilecurrent;

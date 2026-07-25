@@ -1253,6 +1253,7 @@ void FixWallGranOld::granular(double rsq, double dx, double dy, double dz,
     Fncrit = fabs(Fne + 2*F_pulloff);
   }
   else if (normal_model == DMT) {
+    coh = normal_coeffs[3];
     F_pulloff = 4*MY_PI*coh*Reff;
     Fncrit = fabs(Fne + 2*F_pulloff);
   }

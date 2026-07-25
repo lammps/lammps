@@ -97,7 +97,8 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
 
   class DomainKokkos *domainKK;
 
-  Few<double, 6> h_rate, h_ratelo;
+  Few<double, 6> h_rate;
+  Few<double, 3> h_ratelo;
 
   };
 

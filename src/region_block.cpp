@@ -426,7 +426,7 @@ int RegBlock::surface_exterior(double *x, double cutoff)
       }
     }
 
-    // no contact possible if all faces are open
+    // with all six faces open there is no surface left to contact
 
     if (mindist == BIG) return 0;
   }

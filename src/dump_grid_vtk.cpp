@@ -18,16 +18,21 @@
 #include "memory.h"
 #include "vtk_writer.h"
 
+#include <cstring>
+#include <string>
+
 using namespace LAMMPS_NS;
 
 enum { SCALAR, VECTOR };
+enum { VTKLEGACY, VTKXML };
+enum { RECTILINEAR, IMAGE };
 
 /* ---------------------------------------------------------------------- */
 
 DumpGridVTK::DumpGridVTK(LAMMPS *lmp, int narg, char **arg) :
     DumpGrid(lmp, narg, arg), xcoord(nullptr), ycoord(nullptr), zcoord(nullptr)
 {
-  if (binary || multiproc) error->all(FLERR, "Invalid dump grid/vtk filename: {}", filename);
+  if (multiproc) error->all(FLERR, "Invalid dump grid/vtk filename: {}", filename);
   if (nfield != 1 && nfield != 3) error->all(FLERR, "Dump grid/vtk requires one or three fields\n");
 
   buffer_allow = 0;
@@ -36,6 +41,25 @@ DumpGridVTK::DumpGridVTK(LAMMPS *lmp, int narg, char **arg) :
   sortcol = 0;
 
   mode = (nfield == 1) ? SCALAR : VECTOR;
+
+  // the file name extension selects which of the file formats to write.
+  // an unrecognized extension keeps the XML rectilinear grid default.
+
+  vtkflavor = VTKXML;
+  dataset = RECTILINEAR;
+
+  std::string fname(filename);
+  auto dot = fname.find_last_of('.');
+  if (dot != std::string::npos) {
+    const std::string ext = fname.substr(dot);
+    if (ext == ".vtk") {
+      vtkflavor = VTKLEGACY;
+      dataset = RECTILINEAR;
+    } else if (ext == ".vti") {
+      vtkflavor = VTKXML;
+      dataset = IMAGE;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,7 +82,6 @@ void DumpGridVTK::init_style()
   if (domain->triclinic)
     error->all(FLERR,
                "Dump grid/vtk does not support triclinic simulation boxes, use dump grid instead");
-  if (binary) error->all(FLERR, "Dump grid/vtk cannot write binary files\n");
 
   if (!xcoord) {
     memory->create(xcoord, nxgrid + 1, "dumpgridVTK:xcoord");
@@ -96,21 +119,49 @@ void DumpGridVTK::write_footer()
 {
   if (me) return;
 
-  // grid cell coordinates bound the cells, so there is one more of them
-  // than there are cells in each dimension
-
-  const std::vector<double> xc(xcoord, xcoord + nxgrid + 1);
-  const std::vector<double> yc(ycoord, ycoord + nygrid + 1);
-  const std::vector<double> zc(zcoord, zcoord + nzgrid + 1);
-
   try {
-    VTKWriter writer(VTKWriter::XML, false);
-    writer.set_rectilinear_grid(xc, yc, zc);
+    VTKWriter writer((vtkflavor == VTKXML) ? VTKWriter::XML : VTKWriter::LEGACY, binary != 0);
+
+    if (dataset == IMAGE) {
+
+      // the grid cells all have the same size, so the grid can be described
+      // by its origin and spacing alone
+
+      const int dims[3] = {nxgrid + 1, nygrid + 1, nzgrid + 1};
+      const double origin[3] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2]};
+      const double spacing[3] = {domain->prd[0] / nxgrid, domain->prd[1] / nygrid,
+                                 domain->prd[2] / nzgrid};
+      writer.set_image_data(dims, origin, spacing);
+
+    } else {
+
+      // grid cell coordinates bound the cells, so there is one more of them
+      // than there are cells in each dimension
+
+      writer.set_rectilinear_grid({xcoord, xcoord + nxgrid + 1}, {ycoord, ycoord + nygrid + 1},
+                                  {zcoord, zcoord + nzgrid + 1});
+    }
+
     writer.add_cell_array((mode == SCALAR) ? "Scalar" : "Vector", nfield, values);
     writer.write(fp);
   } catch (VTKWriterException &e) {
     error->one(FLERR, "Cannot write dump grid/vtk file {}: {}", filename, e.what());
   }
+}
+
+/* ----------------------------------------------------------------------
+   the VTK file name extensions collide with the LAMMPS convention of
+   appending ".bin" to select binary output, so offer a keyword instead
+------------------------------------------------------------------------- */
+
+int DumpGridVTK::modify_param(int narg, char **arg)
+{
+  if (strcmp(arg[0], "binary") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify binary", error);
+    binary = utils::logical(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+  return 0;
 }
 
 /* ---------------------------------------------------------------------- */

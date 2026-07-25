@@ -500,8 +500,8 @@ set up an atom type number to atom name mapping.
 
 The *grid/vtk* style writes VTK files for grid data on a regular
 rectilinear grid.  Its content is conceptually similar to that of the
-text file produced by the *grid* style, except that it in an XML-based
-format which visualization programs which support the VTK format can
+text file produced by the *grid* style, except that it is in a format
+which visualization programs which support the VTK format can
 read, e.g. the `ParaView tool <https://www.paraview.org>`_.  For this
 style, there can only be 1 or 3 per grid cell attributes specified.
 If it is a single value, it is a scalar quantity.  If 3 values are
@@ -518,6 +518,23 @@ byte order as the format requires, no longer sets grid origin and
 spacing properties that have no meaning for a rectilinear grid, and the
 grid data is written with full precision instead of being truncated to
 about 6 digits.
+
+.. versionadded:: TBD
+
+The extension of the dump file name selects which of the VTK file
+formats is written.  A name ending in *.vtr* selects the XML rectilinear
+grid format, which is the default and what this style has always
+written.  A name ending in *.vti* selects the XML image data format,
+which describes the grid by its origin and spacing rather than by
+listing all cell boundaries, and is therefore more compact.  A name
+ending in *.vtk* selects the simple legacy VTK format.
+
+Since these naming conventions collide with the LAMMPS convention of
+appending ".bin" to a file name to select binary output, this style
+supports the :doc:`dump_modify binary <dump_modify>` keyword to request
+binary data explicitly.  Binary data keeps the full precision of the
+values, and in the two XML formats it is compressed as well if LAMMPS
+was built with the zlib library.
 
 .. versionadded:: 4May2022
 

@@ -116,7 +116,7 @@ Syntax
 
        *checksum* args = *yes* or *no* (add checksum at end of zst file)
 
-* these keywords apply only to the vtk* dump style
+* these keywords apply only to the *vtk* and *grid/vtk* dump styles
 * keyword = *binary*
 
   .. parsed-literal::
@@ -951,9 +951,13 @@ in `VTK file formats <https://vtk.org/>`_ that can be read by a variety
 of visualization tools based on the VTK library.  These VTK files follow
 naming conventions that collide with the LAMMPS convention to append
 ".bin" to a file name in order to switch to a binary output.  Thus for
-:doc:`vtk style dumps <dump_vtk>` the dump_modify command supports the
-keyword *binary* which selects between generating text mode and binary
-style VTK files.
+:doc:`vtk style dumps <dump_vtk>` and :doc:`grid/vtk style dumps <dump>`
+the dump_modify command supports the keyword *binary* which selects
+between generating text mode and binary style VTK files.
+
+.. versionchanged:: TBD
+
+The *binary* keyword now also applies to the *grid/vtk* dump style.
 
 ----------
 

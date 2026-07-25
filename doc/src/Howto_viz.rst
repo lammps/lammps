@@ -228,18 +228,18 @@ The rasterizer in LAMMPS implements a `Phong shading model
 <https://en.wikipedia.org/wiki/Phong_shading>`_ that adds a specular
 highlight to objects which determines how the material of the objects is
 perceived.  The intensity of this effect is controlled by the *shiny*
-keyword of :doc:`dump image <dump_image>` and the material perception
-by the *specular* :doc:`dump_modify <dump_image>` setting.  Using
-specular setting of `none` turns the shading off and thus results in a
-matted material.  Using the settings `wide`, `narrow`, and `tight`
-reduces the highlight and makes the material appear more polished.
-In addition, there is also an *outline* image post-processing step that
-can add a colored outline to the graphics object and can make images
-more "schematic".  It works best when features to enhance image quality
-- except FSAA - are turned off.  The images below show from left to
-right the different specular settings (*none*, *wide*, *narrow*,
-*tight*) and the *outline* drawing style with a pixel width of 2 pixels
-(in gray).
+keyword of :doc:`dump image <dump_image>` and the material perception by
+the *specular* :doc:`dump_modify <dump_image>` setting.  Using a
+specular setting of `none` turns the specular highlight off and thus
+results in a matted material.  Using the settings `wide`, `narrow`, and
+`tight` reduces the diameter of the highlight and makes the material
+appear more polished.  In addition, there is also an *outline* image
+post-processing step that can add a colored outline to the graphics
+object and can make images more "schematic".  It works best when
+features to enhance image quality with the exception of FSAA are turned
+off.  The images below show from left to right the different specular
+settings (*none*, *wide*, *narrow*, *tight*) and the *outline* drawing
+style with a pixel width of 2 pixels (in gray).
 
 .. |shading1| image:: JPG/shade.none.png
    :width: 19%

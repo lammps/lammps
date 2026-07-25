@@ -780,6 +780,7 @@ void Group::read_restart(FILE *fp)
     }
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 0) || (n > 65536)) error->all(FLERR, "Invalid group name length in restart file");
     if (n) {
       names[i] = new char[n];
       if (me == 0) utils::sfread(FLERR, names[i], sizeof(char), n, fp, nullptr, error);

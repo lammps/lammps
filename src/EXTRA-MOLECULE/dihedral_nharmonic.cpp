@@ -309,6 +309,10 @@ void DihedralNHarmonic::read_restart(FILE *fp)
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    if ((nterms[i] < 0) || (nterms[i] > 4096))
+      error->all(FLERR,"Invalid number of terms in restart file");
+
   // allocate
   for (int i = 1; i <= atom->ndihedraltypes; i++)
     a[i] = new double [nterms[i]];

@@ -222,7 +222,9 @@ void BondClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_k4 = k_k4.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();
 
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k2.h_view[i] = k2[i];
     k_k3.h_view[i] = k3[i];
     k_k4.h_view[i] = k4[i];

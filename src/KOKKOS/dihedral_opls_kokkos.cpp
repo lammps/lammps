@@ -365,8 +365,9 @@ void DihedralOPLSKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   DihedralOPLS::coeff(narg, arg);
 
-  int n = atom->ndihedraltypes;
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->ndihedraltypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k1.h_view[i] = k1[i];
     k_k2.h_view[i] = k2[i];
     k_k3.h_view[i] = k3[i];

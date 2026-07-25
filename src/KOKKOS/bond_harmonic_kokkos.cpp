@@ -208,7 +208,9 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();
 
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k.h_view[i] = k[i];
     k_r0.h_view[i] = r0[i];
   }

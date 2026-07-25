@@ -278,7 +278,9 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
   d_k_ub = k_k_ub.template view<DeviceType>();
   d_r_ub = k_r_ub.template view<DeviceType>();
 
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
     k_k_ub.h_view[i] = k_ub[i];

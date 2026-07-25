@@ -1969,6 +1969,18 @@ void FixRigid::setup_bodies_static()
     if (MathExtra::dot3(cross,ez_space[ibody]) < 0.0)
       MathExtra::negate3(ez_space[ibody]);
 
+    // for 2d, ensure ez points in the +z direction
+    // negate both ey and ez to keep the eigenbasis right-handed
+    // the theta-based orientation bookkeeping for line particles requires
+    //   the body frame to be a pure rotation around the +z axis
+
+    if (domain->dimension == 2) {
+      if (ez_space[ibody][2] < 0.0) {
+        MathExtra::negate3(ey_space[ibody]);
+        MathExtra::negate3(ez_space[ibody]);
+      }
+    }
+
     // create initial quaternion
 
     MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],

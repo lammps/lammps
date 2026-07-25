@@ -483,7 +483,9 @@ double PairLocalDensity::single(int /* i */, int /* j */, int itype, int jtype,
     }
 
     for (k = 0; k < nLD; k++) {
-        if (a[k][itype]) index = 1;
+        // this LD potential contributes nothing for this pair of atom types
+        if (!a[k][itype] && !a[k][jtype]) continue;
+        index = 1;
         if (a[k][jtype]) index = 2;
 
         if (LD[k][index] <= rho_min[k]) {

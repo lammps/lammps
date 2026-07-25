@@ -583,6 +583,9 @@ void PairEAM::read_file(char *filename)
           file->zr[j] *= sqrt_conv;
       }
     } catch (TokenizerException &e) {
+      memory->destroy(file->frho);
+      memory->destroy(file->rhor);
+      memory->destroy(file->zr);
       error->one(FLERR, e.what());
     }
   }

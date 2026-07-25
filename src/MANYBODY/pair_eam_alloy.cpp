@@ -171,6 +171,10 @@ void PairEAMAlloy::read_file(char *filename)
         }
       }
     } catch (TokenizerException &e) {
+      memory->destroy(file->mass);
+      memory->destroy(file->frho);
+      memory->destroy(file->rhor);
+      memory->destroy(file->z2r);
       error->one(FLERR, e.what());
     }
   }

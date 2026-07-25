@@ -16,6 +16,7 @@
 #include "domain.h"
 #include "error.h"
 #include "memory.h"
+#include "vtk_writer.h"
 
 using namespace LAMMPS_NS;
 
@@ -72,40 +73,21 @@ void DumpGridVTK::write_header(bigint /*ndump*/)
 {
   if (me) return;
 
+  // the grid data of one snapshot is collected by write_data() and only
+  // written out by write_footer(), so all this has to do is prepare for it
+
   xyz_grid();
 
-  fprintf(fp, "<?xml version=\"1.0\"\?>\n");
-  fprintf(fp, "<VTKFile type=\"RectilinearGrid\">\n");
-  fprintf(fp,
-          "<RectilinearGrid WholeExtent=\"0 %d 0 %d 0 %d\" "
-          "Origin=\"0 0 0\" Spacing=\"1 1 1\">\n",
-          nxgrid, nygrid, nzgrid);
-  fprintf(fp, "<Piece Extent=\"0 %d 0 %d 0 %d\">\n", nxgrid, nygrid, nzgrid);
-  fprintf(fp, "<PointData>\n");
-  fprintf(fp, "</PointData>\n");
-  fprintf(fp, "<Coordinates>\n");
+  values.clear();
+  values.reserve((std::size_t) nxgrid * nygrid * nzgrid * nfield);
+}
 
-  // coords of center point of grid cells in each of xyz dimensions
+/* ---------------------------------------------------------------------- */
 
-  fprintf(fp, "<DataArray type=\"Float32\" format=\"ascii\">\n");
-  for (int i = 0; i <= nxgrid; i++) fprintf(fp, "%g ", xcoord[i]);
-  fprintf(fp, "\n</DataArray>\n");
-  fprintf(fp, "<DataArray type=\"Float32\" format=\"ascii\">\n");
-  for (int i = 0; i <= nygrid; i++) fprintf(fp, "%g ", ycoord[i]);
-  fprintf(fp, "\n</DataArray>\n");
-  fprintf(fp, "<DataArray type=\"Float32\" format=\"ascii\">\n");
-  for (int i = 0; i <= nzgrid; i++) fprintf(fp, "%g ", zcoord[i]);
-  fprintf(fp, "\n</DataArray>\n");
-
-  fprintf(fp, "</Coordinates>\n");
-
-  fprintf(fp, "<CellData>\n");
-  if (mode == SCALAR)
-    fprintf(fp, "<DataArray type=\"Float32\" Name=\"Scalar\" format=\"ascii\">\n");
-  else if (mode == VECTOR)
-    fprintf(fp,
-            "<DataArray type=\"Float32\" Name=\"Vector\" "
-            "NumberOfComponents=\"3\" format=\"ascii\">\n");
+void DumpGridVTK::write_data(int n, double *mybuf)
+{
+  const std::size_t nvalues = (std::size_t) n * nfield;
+  for (std::size_t m = 0; m < nvalues; m++) values.push_back(mybuf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,29 +96,20 @@ void DumpGridVTK::write_footer()
 {
   if (me) return;
 
-  fprintf(fp, "</DataArray>\n");
-  fprintf(fp, "</CellData>\n");
-  fprintf(fp, "</Piece>\n");
-  fprintf(fp, "</RectilinearGrid>\n");
-  fprintf(fp, "</VTKFile>\n");
-}
+  // grid cell coordinates bound the cells, so there is one more of them
+  // than there are cells in each dimension
 
-/* ---------------------------------------------------------------------- */
+  const std::vector<double> xc(xcoord, xcoord + nxgrid + 1);
+  const std::vector<double> yc(ycoord, ycoord + nygrid + 1);
+  const std::vector<double> zc(zcoord, zcoord + nzgrid + 1);
 
-void DumpGridVTK::write_data(int n, double *mybuf)
-{
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < nfield; j++) {
-      if (vtype[j] == Dump::INT)
-        fprintf(fp, vformat[j], static_cast<int>(mybuf[m]));
-      else if (vtype[j] == Dump::DOUBLE)
-        fprintf(fp, vformat[j], mybuf[m]);
-      else if (vtype[j] == Dump::BIGINT)
-        fprintf(fp, vformat[j], static_cast<bigint>(mybuf[m]));
-      m++;
-    }
-    fprintf(fp, "\n");
+  try {
+    VTKWriter writer(VTKWriter::XML, false);
+    writer.set_rectilinear_grid(xc, yc, zc);
+    writer.add_cell_array((mode == SCALAR) ? "Scalar" : "Vector", nfield, values);
+    writer.write(fp);
+  } catch (VTKWriterException &e) {
+    error->one(FLERR, "Cannot write dump grid/vtk file {}: {}", filename, e.what());
   }
 }
 

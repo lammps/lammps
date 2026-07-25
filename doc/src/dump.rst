@@ -509,6 +509,16 @@ specified it is encoded in the VTK file as a vector quantity (for each
 grid cell).  The filename for this style must include a "\*" wildcard
 character to produce one file per snapshot; see details below.
 
+.. versionchanged:: TBD
+
+The files are now written through the built-in VTK file writer that is
+shared with the :doc:`dump vtk <dump_vtk>` and :doc:`fix saed/vtk
+<fix_saed_vtk>` styles.  The header now declares the file version and
+byte order as the format requires, no longer sets grid origin and
+spacing properties that have no meaning for a rectilinear grid, and the
+grid data is written with full precision instead of being truncated to
+about 6 digits.
+
 .. versionadded:: 4May2022
 
 Dump style *yaml* has the same command syntax as style *custom* and

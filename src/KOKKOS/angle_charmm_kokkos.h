@@ -76,6 +76,11 @@ class AngleCharmmKokkos : public AngleCharmm {
   int nlocal,newton_bond;
   int eflag,vflag;
 
+  typename AT::tdual_ffloat_1d k_k;
+  typename AT::tdual_ffloat_1d k_theta0;
+  typename AT::tdual_ffloat_1d k_k_ub;
+  typename AT::tdual_ffloat_1d k_r_ub;
+
   typename AT::t_ffloat_1d d_k;
   typename AT::t_ffloat_1d d_theta0;
   typename AT::t_ffloat_1d d_k_ub;

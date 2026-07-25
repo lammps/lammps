@@ -323,17 +323,6 @@ void AngleClass2Kokkos<DeviceType>::allocate()
 {
   AngleClass2::allocate();
 
-}
-
-/* ----------------------------------------------------------------------
-   set coeffs for one or more types
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
-{
-  AngleClass2::coeff(narg, arg);
-
   int n = atom->nangletypes;
   k_k2 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k2",n+1);
   k_k3 = typename ArrayTypes<DeviceType>::tdual_ffloat_1d("AngleClass2::k3",n+1);
@@ -367,6 +356,16 @@ void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   d_setflag_bb = k_setflag_bb.template view<DeviceType>();
   d_setflag_ba = k_setflag_ba.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more types
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void AngleClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  AngleClass2::coeff(narg, arg);
 
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);

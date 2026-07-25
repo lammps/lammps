@@ -2102,10 +2102,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
       d_C4dbopi2(i,j_index) = 0.0;
     } else {
       if (ovc >= 0.001) {
-        exp_p1i = exp(-p_boc1 * d_Deltap[i]);
-        exp_p2i = exp(-p_boc2 * d_Deltap[i]);
-        exp_p1j = exp(-p_boc1 * d_Deltap[j]);
-        exp_p2j = exp(-p_boc2 * d_Deltap[j]);
+        exp_p1i = exp((double)(-p_boc1 * d_Deltap[i]));
+        exp_p2i = exp((double)(-p_boc2 * d_Deltap[i]));
+        exp_p1j = exp((double)(-p_boc1 * d_Deltap[j]));
+        exp_p2j = exp((double)(-p_boc2 * d_Deltap[j]));
 
         f2 = exp_p1i + exp_p1j;
         f3 = -1.0/p_boc2*log(0.5*(exp_p2i+exp_p2j));

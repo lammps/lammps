@@ -33,6 +33,15 @@ if(PKG_MANYBODY)
     set_tests_properties(EIMPotentialFileReader PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endif()
 
+add_executable(test_vtk_writer test_vtk_writer.cpp)
+target_link_libraries(test_vtk_writer PRIVATE lammps GTest::GMock)
+if(WITH_ZLIB)
+    # so that the test can inflate the compressed payloads it checks
+    target_compile_definitions(test_vtk_writer PRIVATE -DLAMMPS_ZLIB)
+    target_link_libraries(test_vtk_writer PRIVATE ZLIB::ZLIB)
+endif()
+add_test(NAME VTKWriter COMMAND test_vtk_writer)
+
 add_executable(test_text_file_reader test_text_file_reader.cpp)
 target_link_libraries(test_text_file_reader PRIVATE lammps GTest::GMock)
 add_test(NAME TextFileReader COMMAND test_text_file_reader)

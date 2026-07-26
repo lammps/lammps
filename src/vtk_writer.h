@@ -22,7 +22,7 @@
 
 namespace LAMMPS_NS {
 
-// exception thrown for inconsistent data or unwritable files
+// exception thrown for inconsistent data or files that cannot be written
 
 class VTKWriterException : public std::exception {
   std::string message;
@@ -43,8 +43,8 @@ files is not supported.
 
 Usage is always the same: create a writer for the desired format, select
 exactly one dataset type, attach any number of data arrays, and write.  All
-inconsistencies (mismatched array lengths, missing dataset, unwritable file)
-are reported by throwing a ``VTKWriterException``, so callers are expected to
+inconsistencies (mismatched array lengths, missing dataset, a file that
+cannot be opened) are reported by throwing a ``VTKWriterException``, so callers are expected to
 catch it and turn it into a LAMMPS error.
 
 .. code-block:: c++
@@ -73,39 +73,60 @@ class VTKWriter {
 
   static constexpr double SINGLE_PRECISION_LIMIT = 1.0e4;
 
-  /** point coordinates are stored in single precision by default, which is
-      what visualization programs expect and what the VTK library wrote.  see
-      max_single_precision_value() for how to tell when that is not enough. */
+  /** Create a writer for one file.
+   *
+   * Point coordinates are stored in single precision by default, which is what
+   * visualization programs expect and what the VTK library wrote.  See
+   * max_single_precision_value() for how to tell when that is not enough.
+   *
+   * \param  flavor                LEGACY for the simple legacy format, XML for the XML format
+   * \param  binary                true to store the data as binary numbers instead of as text
+   * \param  coordinate_precision  precision used for point coordinates */
 
   VTKWriter(Flavor flavor, bool binary, Precision coordinate_precision = SINGLE);
 
-  /** set the title written into the header of legacy files (ignored for XML) */
+  /** Set the title written into the header of legacy files, ignored for XML.
+   *
+   * \param  title  descriptive text, truncated to the 256 characters the format allows */
 
   void set_title(const std::string &title);
 
   // dataset selection.  exactly one of these must be called before write().
   // coordinates are passed as 3 doubles per point.
 
-  /** points with one vertex cell each, written as POLYDATA / PolyData */
+  /** Select points with one vertex cell each, written as POLYDATA / PolyData.
+   *
+   * \param  xyz  coordinates, 3 values per point */
 
   void set_polydata(const std::vector<double> &xyz);
 
-  /** points with one vertex cell each, written as UNSTRUCTURED_GRID */
+  /** Select points with one vertex cell each, written as UNSTRUCTURED_GRID.
+   *
+   * \param  xyz  coordinates, 3 values per point */
 
   void set_unstructured_grid(const std::vector<double> &xyz);
 
-  /** a single hexahedron cell from 8 corners, written as UNSTRUCTURED_GRID.
-      corners follow the VTK ordering, i.e. the bottom face counterclockwise
-      followed by the top face counterclockwise */
+  /** Select a single hexahedron cell, written as UNSTRUCTURED_GRID.
+   *
+   * \param  corners  the 8 corners in VTK ordering, that is the bottom face
+   *                  counterclockwise followed by the top face counterclockwise */
 
   void set_hexahedron(const double corners[8][3]);
 
-  /** grid with non-uniform spacing given by the coordinates along each axis */
+  /** Select a grid with non-uniform spacing.
+   *
+   * \param  xc  coordinates of the cell boundaries along x
+   * \param  yc  coordinates of the cell boundaries along y
+   * \param  zc  coordinates of the cell boundaries along z */
 
   void set_rectilinear_grid(const std::vector<double> &xc, const std::vector<double> &yc,
                             const std::vector<double> &zc);
 
-  /** grid with uniform spacing, written as STRUCTURED_POINTS / ImageData */
+  /** Select a grid with uniform spacing, written as STRUCTURED_POINTS / ImageData.
+   *
+   * \param  dim      number of grid points in each dimension
+   * \param  origin   coordinates of the first grid point
+   * \param  spacing  distance between grid points in each dimension */
 
   void set_image_data(const int dim[3], const double origin[3], const double spacing[3]);
 
@@ -118,24 +139,33 @@ class VTKWriter {
   void add_cell_array(const std::string &name, int ncomp, const std::vector<double> &data);
   void add_cell_array(const std::string &name, const std::vector<std::string> &data);
 
-  /** mark a previously added array as the default one for coloring.  it is
-      written as SCALARS in legacy files and referenced by the Scalars
-      attribute in XML files */
+  /** Mark a previously added array as the default one for coloring.
+   *
+   * The array is written as SCALARS in legacy files and referenced by the
+   * Scalars attribute in XML files.
+   *
+   * \param  name  name of an array that was added before */
 
   void set_active_scalars(const std::string &name);
 
   /** largest absolute value among the numbers that are written in single
       precision, or 0.0 if there are none.  callers use this to warn when the
       resolution of single precision is no longer sufficient for the data at
-      hand, which happens for very large coordinates. */
+      hand, which happens for very large coordinates.
+   *
+   * \return largest magnitude written in single precision, 0.0 if there is none */
 
   double max_single_precision_value() const { return maxsingle; }
 
-  /** number of points implied by the selected dataset */
+  /** Number of points implied by the selected dataset.
+   *
+   * \return number of points */
 
   int number_of_points() const { return npoints; }
 
-  /** number of cells implied by the selected dataset */
+  /** Number of cells implied by the selected dataset.
+   *
+   * \return number of cells */
 
   int number_of_cells() const { return ncells; }
 

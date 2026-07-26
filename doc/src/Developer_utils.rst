@@ -592,6 +592,86 @@ A file that would be parsed by the reader code fragment looks like this:
 
 ----------
 
+.. _file-writer-classes:
+
+File writer classes
+-------------------
+
+The file writer classes are the counterpart to the file reader classes:
+they collect the recurring work of producing a file in some established
+format in one place, so that the styles using it only have to supply the
+data.
+
+The :cpp:class:`VTKWriter <LAMMPS_NS::VTKWriter>` class writes the subset
+of the file formats of the `VTK visualization toolkit <https://vtk.org>`_
+that LAMMPS needs.  It is used by the :doc:`dump vtk <dump_vtk>`,
+:doc:`dump grid/vtk <dump>`, and :doc:`fix saed/vtk <fix_saed_vtk>`
+styles.  Writing these files directly means that none of them requires
+the VTK library to be installed.
+
+Both the "legacy" and the XML flavor of the format are supported, each
+with text or binary encoding, and binary data in the XML flavor is
+compressed when LAMMPS is built with the zlib library.  The available
+datasets are a list of points, either as polydata or as an unstructured
+grid, a single hexahedron, a rectilinear grid, and a uniform grid.
+Reading VTK files is not supported and not needed.
+
+Using the class always follows the same four steps: create a writer for
+the desired format, select exactly one dataset, attach any number of data
+arrays, and write.  Anything inconsistent, such as an array whose length
+does not match the number of points, or a file that cannot be opened, is
+reported by throwing a :cpp:class:`VTKWriterException
+<LAMMPS_NS::VTKWriterException>`, so callers are expected to catch it and
+turn it into a LAMMPS error.
+
+.. code-block:: c++
+   :caption: Use of the VTKWriter class for writing atom positions
+
+    std::vector<double> coords;      // 3 values per atom
+    std::vector<int> ids;            // 1 value per atom
+
+    for (int i = 0; i < atom->nlocal; ++i) {
+      coords.push_back(atom->x[i][0]);
+      coords.push_back(atom->x[i][1]);
+      coords.push_back(atom->x[i][2]);
+      ids.push_back(atom->tag[i]);
+    }
+
+    try {
+      VTKWriter writer(VTKWriter::XML, false);
+      writer.set_polydata(coords);
+      writer.add_point_array("id", 1, ids);
+      writer.write("positions.vtp");
+    } catch (VTKWriterException &e) {
+      error->one(FLERR, e.what());
+    }
+
+Point coordinates are stored in single precision, since that is what
+visualization programs work with, while all other data is stored in
+double precision.  Because single precision only keeps about 7
+significant digits, this becomes noticeable for very large coordinates.
+The class therefore records the largest magnitude that it wrote in single
+precision in :cpp:func:`max_single_precision_value
+<LAMMPS_NS::VTKWriter::max_single_precision_value>`, which callers compare
+against :cpp:var:`SINGLE_PRECISION_LIMIT
+<LAMMPS_NS::VTKWriter::SINGLE_PRECISION_LIMIT>`, scaled by
+``force->angstrom`` so that the same physical resolution applies in every
+unit system, to print a warning.  Should this become a limitation in
+practice, the constructor already accepts a precision argument and only
+needs to be made accessible from the corresponding commands.
+
+----------
+
+.. doxygenclass:: LAMMPS_NS::VTKWriter
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::VTKWriterException
+   :project: progguide
+   :members:
+
+----------
+
 Type label support
 ------------------
 

@@ -419,7 +419,7 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 .. _Aktulga:
 
-(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+**(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
 
 .. _Liu_2011:

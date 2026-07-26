@@ -324,7 +324,7 @@ Cambridge University Press, (2017) https://doi.org/10.1017/9781139017848.
 
 .. _Tuckerman:
 
-**(Tuckerman et al.)** Tuckerman, Mundy, Balasubramanian, and Klein, J Chem Phys 106, 5615 (1997).
+**(Tuckerman2)** Tuckerman, Mundy, Balasubramanian, and Klein, J Chem Phys 106, 5615 (1997).
 
 .. _Edwards:
 

@@ -86,7 +86,7 @@ TEST_F(DumpVTKParallelTest, polydata_pieces)
     const auto piece_file = fmt::format("dump_vtk_par__{}.vtp", me());
     ASSERT_FILE_EXISTS(piece_file);
 
-    const int mypoints = xml_attribute(slurp(piece_file), "NumberOfPoints");
+    int mypoints = xml_attribute(slurp(piece_file), "NumberOfPoints");
     ASSERT_GE(mypoints, 0);
     int npoints = 0;
     MPI_Allreduce(&mypoints, &npoints, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);

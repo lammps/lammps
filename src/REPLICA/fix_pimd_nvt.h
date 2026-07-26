@@ -15,7 +15,6 @@
 // clang-format off
 FixStyle(pimd,FixPIMDNVT);
 FixStyle(pimd/nvt,FixPIMDNVT);
-FixStyle(pimd/nvt/validated,FixPIMDNVT);
 // clang-format on
 #else
 
@@ -33,6 +32,8 @@ class FixPIMDNVT : public FixPIMDNVE {
 
   void initial_integrate(int) override;
   void final_integrate() override;
+  double compute_scalar() override;
+  std::string get_thermo_colname(int) override;
 
  protected:
   FixPIMDNVT(class LAMMPS *, int, char **, bool);
@@ -41,9 +42,6 @@ class FixPIMDNVT : public FixPIMDNVE {
   bool parse_nvt_keyword(int, char **, int &);
   void finish_nuclear_constructor_setup();
 
-  int method;
-  int thermostat;
-  int ensemble;
   double fixedpoint[3];
 
   double *eta;
@@ -58,10 +56,12 @@ class FixPIMDNVT : public FixPIMDNVE {
   double t_freq;
   double t_period;
   double tdof;
+  int tdof_override_flag;
+  double tdof_override;
   double ke_target;
+  double ecouple_work;
 
   double dthalf, dt4, dt8;
-  double tau;
   double *tau_k;
   double pilescale;
   int tstat_flag;
@@ -79,13 +79,14 @@ class FixPIMDNVT : public FixPIMDNVE {
   void advance_chain_positions(double);
   void complete_chain0_halfstep(double, double);
   void update_outer_chain_accelerations(double);
+  void complete_chain_tail_halfstep(double, double);
 
   virtual void thermostat_step();
   virtual void force_half_step();
   virtual void centroid_position_half_step();
   virtual void nh_v_temp();
-  bool nuclear_thermostat_off() const;
-  double chain0_target_energy() const;
+  double thermostat_work_delta(double) const;
+  virtual double chain0_target_energy() const;
 
   void setup_subclass_state() override;
   int base_restart_size() const override;

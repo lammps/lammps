@@ -29,16 +29,14 @@
 
 using namespace LAMMPS_NS;
 
-enum { TPRPMD = 1 };
-enum { UVT = 1 };
-
 /* ---------------------------------------------------------------------- */
 
 FixPIMDUVT::FixPIMDUVT(LAMMPS *lmp, int narg, char **arg) :
-    FixPIMDNVT(lmp, narg, arg, true), ustat_flag(1), mu(-3.5), Ne(nullptr),
+    FixPIMDNVT(lmp, narg, arg, true), ustat_flag(1), mu_flag(0), mu(-3.5), Ne(nullptr),
     Ne_dot(nullptr), Ne_mass(nullptr), u_start(0.0), u_stop(0.0), u_current(0.0),
-    u_target(0.0), u_freq(0.0), u_period(0.0), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
-    dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0)
+    u_target(0.0), u_freq(0.0), u_period(0.0), ne_ecouple_work(0.0), dedn_name(nullptr),
+    dedn_which(ArgInfo::NONE), dedn_index(0), dedn_var(-1), dedn_compute(nullptr),
+    dedn_fix(nullptr), dedn_current(0.0)
 {
   parse_nvt_arguments(narg, arg, [this](int parse_narg, char **parse_arg, int &i) {
     return parse_uvt_keyword(parse_narg, parse_arg, i);
@@ -61,14 +59,28 @@ FixPIMDUVT::~FixPIMDUVT()
 
 bool FixPIMDUVT::parse_uvt_keyword(int narg, char **arg, int &i)
 {
+  if (strcmp(arg[i], "ensemble") == 0) {
+    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
+    if (strcmp(arg[i + 1], "uvt") == 0)
+      error->all(FLERR, "Fix {} is already UVT; remove the ensemble keyword", style);
+    if (strcmp(arg[i + 1], "nvt") == 0)
+      error->all(FLERR, "Fix {} does not support ensemble nvt; use fix pimd/nvt instead", style);
+    error->all(FLERR, "Fix {} only supports the UVT ensemble", style);
+  }
   if (strcmp(arg[i], "mu") == 0) {
-    if (i + 4 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} mu", style), error);
+    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} mu", style), error);
     u_start = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    u_stop = utils::numeric(FLERR, arg[i + 2], false, lmp);
+    u_stop = u_start;
     u_target = u_start;
     mu = u_target;
-    u_period = utils::numeric(FLERR, arg[i + 3], false, lmp);
-    i += 4;
+    mu_flag = 1;
+    i += 2;
+    return true;
+  }
+  if (strcmp(arg[i], "Udamp") == 0) {
+    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} Udamp", style), error);
+    u_period = utils::numeric(FLERR, arg[i + 1], false, lmp);
+    i += 2;
     return true;
   }
   if (strcmp(arg[i], "ne") == 0) {
@@ -99,7 +111,7 @@ bool FixPIMDUVT::parse_uvt_keyword(int narg, char **arg, int &i)
 
 void FixPIMDUVT::finish_uvt_constructor_setup()
 {
-  if (ensemble != UVT) error->all(FLERR, "Fix {} only supports ensemble uvt", style);
+  if (!mu_flag) error->all(FLERR, "Missing mu keyword for fix {}", style);
   if (!Ne) error->all(FLERR, "Missing ne keyword for fix {}", style);
   if (!dedn_name) error->all(FLERR, "Missing dedn keyword for fix {}", style);
   if (u_period <= 0.0)
@@ -115,7 +127,7 @@ void FixPIMDUVT::finish_uvt_constructor_setup()
   }
 
   const int old_size = size_vector;
-  size_vector += 6;
+  size_vector += 9;
   delete[] extlist;
   extlist = new int[size_vector];
   for (int i = 0; i < old_size; i++) extlist[i] = 1;
@@ -182,31 +194,64 @@ void FixPIMDUVT::centroid_position_half_step()
 
 bool FixPIMDUVT::thermostat_chain_active() const
 {
-  return !nuclear_thermostat_off() || ne_thermostat_participates();
+  return true;
 }
 
 /* ---------------------------------------------------------------------- */
 
 bool FixPIMDUVT::ne_thermostat_participates() const
 {
-  if (!ustat_flag) return false;
-  if (method != TPRPMD) return true;
-  return (np == 1) ? true : (universe->iworld != 0);
+  return ustat_flag;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDUVT::ne_thermostat_chain_count() const
+{
+  if (!ustat_flag) return 0.0;
+  return static_cast<double>(np);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDUVT::ne_target_current_share() const
+{
+  const double chain_count = ne_thermostat_chain_count();
+  if (chain_count <= 0.0 || !ne_thermostat_participates()) return 0.0;
+  return static_cast<double>(np) * force->boltz * temp / chain_count;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double FixPIMDUVT::ne_kinetic_current_share() const
 {
-  if (!ne_thermostat_participates()) return 0.0;
-  return 0.5 * inverse_np * (*Ne_mass) * (*Ne_dot) * (*Ne_dot);
+  const double chain_count = ne_thermostat_chain_count();
+  if (chain_count <= 0.0 || !ne_thermostat_participates()) return 0.0;
+  return static_cast<double>(np) * (*Ne_mass) * (*Ne_dot) * (*Ne_dot) / chain_count;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDUVT::scale_ne_velocity(double scale_factor)
+{
+  const double kinetic_before = 0.5 * (*Ne_mass) * (*Ne_dot) * (*Ne_dot);
+  *Ne_dot *= scale_factor;
+  const double kinetic_after = 0.5 * (*Ne_mass) * (*Ne_dot) * (*Ne_dot);
+  ne_ecouple_work += static_cast<double>(np) * (kinetic_before - kinetic_after);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDUVT::chain0_target_energy() const
+{
+  return FixPIMDNVT::chain0_target_energy() + ne_target_current_share();
 }
 
 /* ---------------------------------------------------------------------- */
 
 int FixPIMDUVT::subclass_restart_size() const
 {
-  return 1 + (ustat_flag ? 2 : 0);
+  return 1 + (ustat_flag ? 3 : 0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,6 +262,7 @@ int FixPIMDUVT::pack_subclass_restart(double *list, int n) const
   if (ustat_flag) {
     list[n++] = *Ne;
     list[n++] = *Ne_dot;
+    list[n++] = ne_ecouple_work;
   }
   return n;
 }
@@ -229,6 +275,7 @@ int FixPIMDUVT::unpack_subclass_restart(const double *list, int n)
   if (flag && ustat_flag) {
     *Ne = list[n++];
     *Ne_dot = list[n++];
+    ne_ecouple_work = list[n++];
   }
   return n;
 }
@@ -237,21 +284,42 @@ int FixPIMDUVT::unpack_subclass_restart(const double *list, int n)
 
 int FixPIMDUVT::subclass_vector_size() const
 {
-  return 6;
+  return 9;
 }
 
 /* ---------------------------------------------------------------------- */
 
 double FixPIMDUVT::compute_subclass_vector(int n) const
 {
-  const double kt_local = force->boltz * temp;
   if (n == 0) return *Ne;
   if (n == 1) return *Ne_dot;
   if (n == 2) return dedn_current;
   if (n == 3) return u_target;
   if (n == 4) return 0.5 * (*Ne_mass) * (*Ne_dot) * (*Ne_dot);
-  if (n == 5) return kt_local * eta[0] - u_target * (*Ne);
+  if (n == 5) return -u_target * (*Ne);
+  if (n == 6) return ecouple_work;
+  if (n == 7) return ne_ecouple_work;
+  if (n == 8) return ecouple_work + ne_ecouple_work;
   return 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDUVT::compute_scalar()
+{
+  return ecouple_work + ne_ecouple_work;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *FixPIMDUVT::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "ne") == 0) return Ne;
+  if (strcmp(str, "ne_dot") == 0) return Ne_dot;
+  if (strcmp(str, "ne_mass") == 0) return Ne_mass;
+  if (strcmp(str, "dedn") == 0) return &dedn_current;
+  return FixPIMDNVT::extract(str, dim);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -287,12 +355,9 @@ void FixPIMDUVT::nhc_mu_integrate()
     double eta_dot_k = eta_dot[0];
     double eta_dot_ave = 0.0;
     MPI_Allreduce(&eta_dot_k, &eta_dot_ave, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-    if (method == TPRPMD && np != 1)
-      eta_dot_ave /= (static_cast<double>(np) - 1);
-    else
-      eta_dot_ave *= inverse_np;
+    eta_dot_ave *= inverse_np;
 
-    *Ne_dot *= exp(-ncfac * dthalf * eta_dot_ave);
+    scale_ne_velocity(exp(-ncfac * dthalf * eta_dot_ave));
 
     if (active) {
       update_scaled_nuclear_kinetic(t_current, kecurrent);
@@ -304,7 +369,7 @@ void FixPIMDUVT::nhc_mu_integrate()
 
       advance_chain_positions(ncfac);
       complete_chain0_halfstep(ncfac, expfac);
-      update_outer_chain_accelerations(chain_target);
+      complete_chain_tail_halfstep(ncfac, chain_target);
     }
   }
 }

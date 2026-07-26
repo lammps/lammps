@@ -1,6 +1,5 @@
 .. index:: fix pimd/langevin
 .. index:: fix pimd/nvt
-.. index:: fix pimd/nvt/validated
 .. index:: fix pimd/langevin/bosonic
 .. index:: fix pimd/nvt/bosonic
 
@@ -9,9 +8,6 @@ fix pimd/langevin command
 
 fix pimd/nvt command
 ====================
-
-fix pimd/nvt/validated command
-==============================
 
 fix pimd/langevin/bosonic command
 =================================
@@ -27,7 +23,7 @@ Syntax
    fix ID group-ID style keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *pimd/langevin* or *pimd/nvt* or *pimd/nvt/validated* or *pimd/langevin/bosonic* or *pimd/nvt/bosonic* = style name of this fix command
+* style = *pimd/langevin* or *pimd/nvt* or *pimd/langevin/bosonic* or *pimd/nvt/bosonic* = style name of this fix command
 * zero or more keyword/value pairs may be appended
 * keywords for style *pimd/nvt*
 
@@ -83,14 +79,6 @@ Description
 .. versionchanged:: 28Mar2023
 
 Fix pimd was renamed to fix *pimd/nvt* and fix *pimd/langevin* was added.
-
-.. versionadded:: TBD
-
-   The ``pimd/nvt/validated`` fix style is a backward-compatibility alias
-   for :doc:`fix pimd/nvt <fix_pimd>`.  Both style names share the same
-   implementation.  The ``fix pimd/nvt`` style is preferred for new input
-   scripts, but ``fix pimd/nvt/validated`` continues to work in existing
-   scripts.
 
 These fix commands perform quantum molecular dynamics simulations based
 on the Feynman path-integral to include effects of tunneling and

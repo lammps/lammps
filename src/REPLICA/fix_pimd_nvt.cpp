@@ -30,20 +30,14 @@
 using namespace LAMMPS_NS;
 using MathConst::THIRD;
 
-enum { TPPIMD, TPRPMD };
+enum { PHYSICAL, NORMAL };
 enum { BAOAB, OBABO };
-enum { NHC };
-enum { NVT, UVT };
 enum { SINGLE_PROC, MULTI_PROC };
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDNVT::init_nvt_defaults()
 {
-  method = TPRPMD;
-  ensemble = NVT;
-  thermostat = NHC;
-  tau = 1.0;
   pilescale = 1.0;
   tstat_flag = 1;
 
@@ -56,10 +50,18 @@ void FixPIMDNVT::init_nvt_defaults()
   tdrag_factor = 1.0;
   t_freq = 0.0;
   tdof = 0.0;
+  tdof_override_flag = 0;
+  tdof_override = 0.0;
   ke_target = 0.0;
+  ecouple_work = 0.0;
   dthalf = dt4 = dt8 = 0.0;
 
   fixedpoint[0] = fixedpoint[1] = fixedpoint[2] = 0.0;
+
+  scalar_flag = 1;
+  extscalar = 1;
+  ecouple_flag = 1;
+  thermo_modify_colname = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -82,25 +84,17 @@ bool FixPIMDNVT::parse_nvt_keyword(int narg, char **arg, int &i)
 {
   if (strcmp(arg[i], "method") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} method", style), error);
-    if (strcmp(arg[i + 1], "tp-pimd") == 0)
-      method = TPPIMD;
-    else if ((strcmp(arg[i + 1], "tp-rpmd") == 0) || (strcmp(arg[i + 1], "tprpmd") == 0))
-      method = TPRPMD;
-    else
-      error->all(FLERR, "Fix {} only supports method tp-pimd or tp-rpmd", style);
+    if (strcmp(arg[i + 1], "nmpimd") != 0) error->all(FLERR, "Fix {} only supports method nmpimd", style);
     i += 2;
     return true;
   }
   if (strcmp(arg[i], "ensemble") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
     if (strcmp(arg[i + 1], "nvt") == 0)
-      ensemble = NVT;
-    else if (strcmp(arg[i + 1], "uvt") == 0)
-      ensemble = UVT;
-    else
-      error->all(FLERR, "Fix {} only supports ensemble nvt or uvt", style);
-    i += 2;
-    return true;
+      error->all(FLERR, "Fix {} is already NVT; remove the ensemble keyword", style);
+    if (strcmp(arg[i + 1], "uvt") == 0)
+      error->all(FLERR, "Fix {} does not support ensemble uvt; use fix pimd/uvt instead", style);
+    error->all(FLERR, "Fix {} only supports the NVT ensemble", style);
   }
   if (strcmp(arg[i], "thermostat") == 0) {
     if (i + 2 > narg)
@@ -134,9 +128,11 @@ bool FixPIMDNVT::parse_nvt_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  if (strcmp(arg[i], "tau") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tau", style), error);
-    tau = utils::numeric(FLERR, arg[i + 1], false, lmp);
+  if (strcmp(arg[i], "tdof") == 0) {
+    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tdof", style), error);
+    tdof_override = utils::numeric(FLERR, arg[i + 1], false, lmp);
+    if (tdof_override <= 0.0) error->all(FLERR, "Temperature DOF override for fix {} must be > 0.0", style);
+    tdof_override_flag = 1;
     i += 2;
     return true;
   }
@@ -168,7 +164,6 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
     FixPIMDNVT(lmp, narg, arg, true)
 {
   parse_nvt_arguments(narg, arg, {});
-  if (ensemble != NVT) error->all(FLERR, "Fix {} only supports ensemble nvt", style);
   finish_nuclear_constructor_setup();
 }
 
@@ -206,16 +201,9 @@ FixPIMDNVT::~FixPIMDNVT()
 
 /* ---------------------------------------------------------------------- */
 
-bool FixPIMDNVT::nuclear_thermostat_off() const
-{
-  return method == TPRPMD && np != 1 && universe->iworld == 0;
-}
-
-/* ---------------------------------------------------------------------- */
-
 double FixPIMDNVT::chain0_target_energy() const
 {
-  return nuclear_thermostat_off() ? 0.0 : static_cast<double>(np) * ke_target;
+  return static_cast<double>(np) * ke_target;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -308,6 +296,21 @@ void FixPIMDNVT::nhc_init()
 
   const double beta_local = 1.0 / kt;
   const double omega_np_local = np / beta_local / hbar;
+  const double omega_np_dt_half = omega_np_local * update->dt * 0.5;
+
+  if (fmmode == PHYSICAL) {
+    for (int i = 0; i < np; i++) {
+      _omega_k[i] = omega_np_local * sqrt(lam[i]) / sqrt(fmass);
+      Lan_c[i] = cos(sqrt(lam[i]) * omega_np_dt_half);
+      Lan_s[i] = sin(sqrt(lam[i]) * omega_np_dt_half);
+    }
+  } else {
+    for (int i = 0; i < np; i++) {
+      _omega_k[i] = omega_np_local / sqrt(fmass);
+      Lan_c[i] = cos(omega_np_dt_half);
+      Lan_s[i] = sin(omega_np_dt_half);
+    }
+  }
 
   if (tstat_flag) {
     t_freq = 1.0 / t_period;
@@ -317,19 +320,51 @@ void FixPIMDNVT::nhc_init()
   int fix_dof = 0;
   for (auto &ifix : modify->get_fix_list())
     if (ifix->dof_flag) fix_dof += ifix->dof(igroup);
-  int extra_dof = domain->dimension;
+  int extra_dof = (removecomflag && universe->iworld == 0) ? domain->dimension : 0;
   tdof = domain->dimension * group->count(igroup);
   tdof -= extra_dof + fix_dof;
+  if (tdof_override_flag) tdof = tdof_override;
+  if (tdof <= 0.0) error->all(FLERR, "Temperature DOF for fix {} must be > 0.0", style);
 
   ke_target = tdof * force->boltz * temp;
 
+  delete[] tau_k;
+  tau_k = new double[np];
+  tau_k[0] = t_period;
+  for (int i = 1; i < np; i++) tau_k[i] = 0.5 / pilescale / _omega_k[i];
+
+  if (tstat_flag && nc_tchain == 1 && np > 1) {
+    double tau_min = tau_k[1];
+    for (int i = 2; i < np; i++) tau_min = MIN(tau_min, tau_k[i]);
+    if (tau_min > 0.0) {
+      const int required_tloop = MAX(1, static_cast<int>(ceil(update->dt / tau_min)));
+      if (required_tloop > nc_tchain) {
+        nc_tchain = required_tloop;
+        if (universe->me == 0) {
+          utils::logmesg(
+              lmp,
+              fmt::format("  Auto-increased NHC tloop to {:d} so dt/tau_min = {:.6f} does not "
+                          "under-resolve the fastest internal thermostat mode.\n",
+                          nc_tchain, update->dt / tau_min));
+        }
+      }
+    }
+  }
+
   if (tstat_flag) {
+    const double omega_np_local_unscaled = np / beta_local / hbar;
     const double chain0_target = chain0_target_energy();
     const double chain_target = chain_target_energy();
+
+    // Preserve the old NHC parameterization from the monolithic pimd/langevin
+    // implementation: the first chain mass is controlled by Tdamp, while
+    // higher chain masses use Tdamp for classical MD and omega_np for NMPIMD.
     eta_mass[0] = chain0_target / (t_freq * t_freq);
     for (int ich = 1; ich < mtchain; ich++) {
-      eta_mass[ich] = (np == 1) ? chain_target / (t_freq * t_freq)
-                                : chain_target / (omega_np_local * omega_np_local);
+      if (np == 1)
+        eta_mass[ich] = chain_target / (t_freq * t_freq);
+      else
+        eta_mass[ich] = chain_target / (omega_np_local_unscaled * omega_np_local_unscaled);
       if (eta_mass[ich] > 0.0)
         eta_dotdot[ich] =
             (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
@@ -342,13 +377,8 @@ void FixPIMDNVT::nhc_init()
     }
   }
 
-  delete[] tau_k;
-  tau_k = new double[np];
-  tau_k[0] = tau;
-  for (int i = 1; i < np; i++) tau_k[i] = 0.5 / pilescale / _omega_k[i];
-
-  std::string out = "Initializing TP path-integral Nose-Hoover thermostat chain...\n";
-  out += "  Bead ID    |    omega    |    tau\n";
+  std::string out = "Initializing path-integral Nose-Hoover thermostat chain...\n";
+  out += "  Bead ID    |    omega    |    timescale\n";
   for (int i = 0; i < np; i++) {
     out += fmt::format("      {:d}     {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i]);
   }
@@ -367,13 +397,15 @@ void FixPIMDNVT::o_step()
 
 double FixPIMDNVT::compute_nuclear_kinetic_energy() const
 {
+  int *mask = atom->mask;
   int *type = atom->type;
   double **v = atom->v;
   int nlocal = atom->nlocal;
   double kecurrent = 0.0;
 
   for (int i = 0; i < nlocal; i++) {
-    kecurrent += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * mass[type[i]];
+    if (mask[i] & groupbit)
+      kecurrent += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * mass[type[i]];
   }
   return kecurrent * force->mvv2e;
 }
@@ -382,7 +414,7 @@ double FixPIMDNVT::compute_nuclear_kinetic_energy() const
 
 bool FixPIMDNVT::thermostat_chain_active() const
 {
-  return !nuclear_thermostat_off();
+  return true;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -473,6 +505,24 @@ void FixPIMDNVT::update_outer_chain_accelerations(double chain_target)
 
 /* ---------------------------------------------------------------------- */
 
+void FixPIMDNVT::complete_chain_tail_halfstep(double ncfac, double chain_target)
+{
+  for (int ich = 1; ich < mtchain; ich++) {
+    double expfac = exp(-ncfac * dt8 * eta_dot[ich + 1]);
+    eta_dot[ich] *= expfac;
+    if (eta_mass[ich] > 0.0)
+      eta_dotdot[ich] =
+          (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
+          eta_mass[ich];
+    else
+      eta_dotdot[ich] = 0.0;
+    eta_dot[ich] += eta_dotdot[ich] * ncfac * dt4;
+    eta_dot[ich] *= expfac;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPIMDNVT::nhc_temp_integrate()
 {
   double kecurrent = compute_nuclear_kinetic_energy();
@@ -495,7 +545,7 @@ void FixPIMDNVT::nhc_temp_integrate()
 
     advance_chain_positions(ncfac);
     complete_chain0_halfstep(ncfac, expfac);
-    update_outer_chain_accelerations(chain_target);
+    complete_chain_tail_halfstep(ncfac, chain_target);
   }
 }
 
@@ -527,6 +577,8 @@ void FixPIMDNVT::centroid_position_half_step()
 
 void FixPIMDNVT::nh_v_temp()
 {
+  const double work_delta = thermostat_work_delta(factor_eta);
+
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
@@ -538,13 +590,44 @@ void FixPIMDNVT::nh_v_temp()
       v[i][2] *= factor_eta;
     }
   }
+
+  ecouple_work += work_delta;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDNVT::thermostat_work_delta(double scale_factor) const
+{
+  const double kinetic_before_local = local_kinetic_energy_sum(true);
+  const double kinetic_after_local = kinetic_before_local * scale_factor * scale_factor;
+  double work_delta_local = kinetic_before_local - kinetic_after_local;
+  double work_delta = 0.0;
+
+  MPI_Allreduce(&work_delta_local, &work_delta, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  work_delta /= universe->procs_per_world[universe->iworld];
+  return work_delta;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDNVT::compute_scalar()
+{
+  return tstat_flag ? ecouple_work : 0.0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+std::string FixPIMDNVT::get_thermo_colname(int n)
+{
+  if (n == -1) return fmt::format("f_{}:ecouple", id);
+  return Fix::get_thermo_colname(n);
 }
 
 /* ---------------------------------------------------------------------- */
 
 int FixPIMDNVT::base_restart_size() const
 {
-  int nsize = 1;
+  int nsize = 2;
   if (tstat_flag) nsize += 1 + 2 * mtchain;
   return nsize;
 }
@@ -555,6 +638,7 @@ int FixPIMDNVT::pack_base_restart(double *list) const
 {
   int n = 0;
   list[n++] = tstat_flag;
+  list[n++] = ecouple_work;
   if (tstat_flag) {
     list[n++] = mtchain;
     for (int ich = 0; ich < mtchain; ich++) list[n++] = eta[ich];
@@ -569,16 +653,12 @@ int FixPIMDNVT::unpack_base_restart(const double *list)
 {
   int n = 0;
   int flag = static_cast<int>(list[n++]);
+  ecouple_work = list[n++];
   if (flag) {
     int m = static_cast<int>(list[n++]);
     if (tstat_flag && m == mtchain) {
-      if (nuclear_thermostat_off()) {
-        for (int ich = 0; ich < mtchain; ich++) eta[ich] = eta_dot[ich] = 0.0;
-        n += 2 * m;
-      } else {
-        for (int ich = 0; ich < mtchain; ich++) eta[ich] = list[n++];
-        for (int ich = 0; ich < mtchain; ich++) eta_dot[ich] = list[n++];
-      }
+      for (int ich = 0; ich < mtchain; ich++) eta[ich] = list[n++];
+      for (int ich = 0; ich < mtchain; ich++) eta_dot[ich] = list[n++];
     } else {
       n += 2 * m;
     }
@@ -613,12 +693,13 @@ double FixPIMDNVT::compute_nuclear_vector(int n) const
     n -= ilen;
   }
 
-  const double kt_local = force->boltz * temp;
+  const double chain0_target = chain0_target_energy();
+  const double chain_target = chain_target_energy();
   if (tstat_flag) {
     ilen = mtchain;
     if (n < ilen) {
-      if (n == 0) return kt_local * eta[0] * tdof;
-      return kt_local * eta[n] * np;
+      if (n == 0) return chain0_target * eta[0];
+      return chain_target * eta[n];
     }
     n -= ilen;
     ilen = mtchain;

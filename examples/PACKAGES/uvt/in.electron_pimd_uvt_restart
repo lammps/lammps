@@ -1,13 +1,13 @@
-# Restart regression for the TP-RPMD quadratic constant-potential toy model.
+# Restart regression for the PIMD quadratic constant-potential toy model.
 #
-# Run with the same partition layout used for in.electron_tprpmd, e.g.
+# Run with the same partition layout used for in.electron_pimd_uvt, e.g.
 #
-#   mpirun -np 2 lmp -partition 2x1 -in in.electron_tprpmd_restart
+#   mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt_restart
 
-# Per-partition world id must match in.electron_tprpmd:
-# partition 0 reads tprpmd.restart.0, partition 1 reads tprpmd.restart.1
+# Per-partition world id must match in.electron_pimd_uvt:
+# partition 0 reads pimd_uvt.restart.0, partition 1 reads pimd_uvt.restart.1
 variable        worldid   universe 0 1
-read_restart    tprpmd.restart.${worldid}
+read_restart    pimd_uvt.restart.${worldid}
 
 variable        mu_target equal 1.5
 variable        k_quad    equal 3.0
@@ -16,9 +16,9 @@ variable        Ne_init   equal 1.8
 # The electronic outputs f_cp[23:26] are global values and are not normalized by natoms.
 variable        dEdN      equal v_k_quad*(f_cp[23]-v_N0_quad)
 
-fix             cp all tprpmd method tp-rpmd ensemble uvt thermostat NHC &
+fix             cp all pimd/uvt method nmpimd thermostat NHC &
                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1 &
-                mu ${mu_target} ${mu_target} 0.2 ne ${Ne_init} &
+                mu ${mu_target} Udamp 0.2 ne ${Ne_init} &
                 ne_velocity 0.0 &
                 dedn v_dEdN
 

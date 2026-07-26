@@ -17,7 +17,7 @@ These are the relevant commands:
 * :doc:`temper/npt <temper_npt>` for parallel tempering extended for NPT
 * :doc:`temper/grem <temper_grem>` for parallel tempering with generalized replica exchange (gREM)
 * :doc:`fix pimd <fix_pimd>` for path-integral molecular dynamics (PIMD)
-* :doc:`fix tprpmd <fix_tprpmd>` (alias for :doc:`fix pimd/uvt <fix_pimd_uvt>`) for constant-potential thermostatted ring-polymer molecular dynamics
+* :doc:`fix pimd/uvt <fix_pimd_uvt>` for constant-potential path-integral molecular dynamics
 
 NEB is a method for finding transition states and barrier potential energies.
 HD, PRD, and TAD are methods for performing accelerated dynamics to find and
@@ -28,10 +28,9 @@ replicas are coupled together by springs to model a system of ring-polymers whic
 can represent the quantum nature of atom cores.
 
 The command-style replica methods above require LAMMPS to be built with
-the REPLICA package.  The :doc:`fix tprpmd <fix_tprpmd>` and
-:doc:`fix pimd/uvt <fix_pimd_uvt>` styles also live in the REPLICA
-package and use the same multi-partition launch model.  See the
-:doc:`Build package <Build_package>` page for more info.
+the REPLICA package.  The :doc:`fix pimd/uvt <fix_pimd_uvt>` style also
+lives in the REPLICA package and uses the same multi-partition launch
+model.  See the :doc:`Build package <Build_package>` page for more info.
 
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at

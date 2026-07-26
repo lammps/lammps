@@ -43,6 +43,10 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+add_executable(test_fix_uvt test_fix_uvt.cpp)
+target_link_libraries(test_fix_uvt PRIVATE lammps GTest::GMock)
+add_test(NAME FixUVT COMMAND test_fix_uvt)
+
 if(PKG_REPLICA)
   add_executable(test_fix_pimd_nve test_fix_pimd_nve.cpp)
   target_link_libraries(test_fix_pimd_nve PRIVATE lammps GTest::GMock)
@@ -60,14 +64,10 @@ if(PKG_REPLICA)
 
   add_executable(test_fix_pimd_uvt test_fix_pimd_uvt.cpp)
   target_link_libraries(test_fix_pimd_uvt PRIVATE lammps GTest::GMock)
-  add_test(NAME FixPIMDUVT COMMAND test_fix_pimd_uvt --gtest_filter=FixPIMDUVTSerialTest.*)
-  add_mpi_test(NAME FixPIMDUVTPartition NUM_PROCS 2
+  add_test(NAME FixPIMDUVTSerial COMMAND test_fix_pimd_uvt --gtest_filter=FixPIMDUVTSerialTest.*)
+  add_mpi_test(NAME FixPIMDUVTMPI NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_uvt> --gtest_filter=FixPIMDUVTMPI.*)
 
-  add_executable(test_fix_tprpmd test_fix_tprpmd.cpp)
-  target_link_libraries(test_fix_tprpmd PRIVATE lammps GTest::GMock)
-  add_test(NAME FixTPRPMDCompatibility
-           COMMAND test_fix_tprpmd --gtest_filter=FixTPRPMDCompatibilityTest.*)
 endif()
 
 add_executable(test_regions test_regions.cpp)

@@ -892,6 +892,25 @@ void FixPIMDLangevin::langevin_init()
 {
   double beta = 1.0 / kt;
   const double _omega_np = np / beta / hbar;
+  const double _omega_np_dt_half = _omega_np * update->dt * 0.5;
+
+  if (method == NMPIMD) {
+    if (fmmode == PHYSICAL) {
+      for (int i = 0; i < np; i++) {
+        _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
+        Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
+        Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
+      }
+    } else if (fmmode == NORMAL) {
+      for (int i = 0; i < np; i++) {
+        _omega_k[i] = _omega_np / sqrt(fmass);
+        Lan_c[i] = cos(_omega_np_dt_half);
+        Lan_s[i] = sin(_omega_np_dt_half);
+      }
+    } else {
+      error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
+    }
+  }
 
   if (tau > 0)
     gamma = 1.0 / tau;

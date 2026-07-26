@@ -14,7 +14,6 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(pimd/uvt,FixPIMDUVT);
-FixStyle(tprpmd,FixPIMDUVT);
 // clang-format on
 #else
 
@@ -32,6 +31,8 @@ class FixPIMDUVT : public FixPIMDNVT {
  public:
   FixPIMDUVT(class LAMMPS *, int, char **);
   ~FixPIMDUVT() override;
+  double compute_scalar() override;
+  void *extract(const char *, int &) override;
 
  protected:
   bool parse_uvt_keyword(int, char **, int &);
@@ -44,7 +45,11 @@ class FixPIMDUVT : public FixPIMDNVT {
 
   bool thermostat_chain_active() const override;
   bool ne_thermostat_participates() const;
+  double ne_thermostat_chain_count() const;
+  double ne_target_current_share() const;
   double ne_kinetic_current_share() const;
+  void scale_ne_velocity(double);
+  double chain0_target_energy() const override;
 
   int subclass_restart_size() const override;
   int pack_subclass_restart(double *, int) const override;
@@ -60,6 +65,7 @@ class FixPIMDUVT : public FixPIMDNVT {
   void resolve_dedn_source();
 
   int ustat_flag;
+  int mu_flag;
   double mu;
   double *Ne;
   double *Ne_dot;
@@ -68,6 +74,7 @@ class FixPIMDUVT : public FixPIMDNVT {
   double u_current, u_target;
   double u_freq;
   double u_period;
+  double ne_ecouple_work;
   char *dedn_name;
   int dedn_which;
   int dedn_index;

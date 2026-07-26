@@ -532,7 +532,8 @@ run on MPI rank 0 only, will use the
 <LAMMPS_NS::utils::get_potential_file_path>` function to look up and
 open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
 case of failures to read or to convert numbers, so that LAMMPS will be
-aborted.
+aborted.  A third class, :cpp:class:`STLReader <LAMMPS_NS::STLReader>`,
+is specialized on reading triangle mesh data from files in STL format.
 
 .. code-block:: c++
    :caption: Use of PotentialFileReader class in pair style coul/streitz
@@ -587,6 +588,27 @@ A file that would be parsed by the reader code fragment looks like this:
    :members:
 
 .. doxygenclass:: LAMMPS_NS::PotentialFileReader
+   :project: progguide
+   :members:
+
+----------
+
+The :cpp:class:`STLReader <LAMMPS_NS::STLReader>` class reads triangle
+meshes from files in STL format, as used, for example, by the
+:doc:`create_atoms mesh <create_atoms>` command or the :doc:`fix
+surface/global <fix_surface_global>` command.  Files in the plain text
+variant of the format are parsed with the help of the
+:cpp:class:`TextFileReader <LAMMPS_NS::TextFileReader>` and
+:cpp:class:`ValueTokenizer <LAMMPS_NS::ValueTokenizer>` classes, while
+files in the binary variant are read directly.  Unlike the other file
+reader classes, the mesh data is not returned line by line, but the
+entire file is read and its triangles are returned in one call.
+
+.. doxygenclass:: LAMMPS_NS::STLReader
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::STLReaderException
    :project: progguide
    :members:
 

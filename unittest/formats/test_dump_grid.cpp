@@ -45,7 +45,9 @@ static std::string slurp(const std::string &filename)
     std::ifstream in(filename, std::ios::binary);
     std::ostringstream buf;
     buf << in.rdbuf();
-    return buf.str();
+    auto rv = buf.str();
+    rv.erase(std::remove(rv.begin(), rv.end(), '\r'), rv.end());
+    return rv;
 }
 
 class DumpGridTest : public MeltTest {

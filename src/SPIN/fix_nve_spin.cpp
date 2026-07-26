@@ -297,6 +297,7 @@ void FixNVESpin::init()
   // setting the sector variables/lists
 
   nsectors = 0;
+  memory->destroy(rsec);
   memory->create(rsec,3,"nve/spin:rsec");
 
   // perform the sectoring operation

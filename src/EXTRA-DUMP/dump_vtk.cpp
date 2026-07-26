@@ -53,7 +53,7 @@ using namespace LAMMPS_NS;
 // customize by
 // * adding an enum constant (add vector components in consecutive order)
 // * adding a pack_*(int) function for the value
-// * adjusting parse_fields function to add the pack_* function to pack_choice
+// * adjusting parse_vtk_fields function to add the pack_* function to pack_choice
 //   (in case of vectors, adjust identify_vectors as well)
 // * adjusting thresh part in modify_param and count functions
 
@@ -70,9 +70,6 @@ enum{X,Y,Z, // required for vtk, must come first
      ATTRIBUTES}; // must come last
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
-
-static constexpr int ONEFIELD = 32;
-static constexpr int DELTA = 1048576;
 
 /* ---------------------------------------------------------------------- */
 
@@ -92,7 +89,7 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   // ioptional = start of additional optional args
   // only dump image and dump movie styles process optional args
 
-  ioptional = parse_fields(nargnew,earg);
+  ioptional = parse_vtk_fields(nargnew,earg);
 
   if (ioptional < nargnew)
     error->all(FLERR,"Invalid attribute {} in dump vtk command", earg[ioptional]);
@@ -305,7 +302,7 @@ int DumpVTK::count()
   // un-choose if not in region
 
   if (idregion) {
-    auto region = domain->get_region_by_id(idregion);
+    auto *region = domain->get_region_by_id(idregion);
     if (region) {
       region->prematch();
       double **x = atom->x;
@@ -918,7 +915,8 @@ void DumpVTK::write()
   //   ping each proc in my cluster, receive its data, write data to file
   // else wait for ping from fileproc, send my data to fileproc
 
-  int tmp,nlines;
+  int tmp = 0;
+  int nlines;
   MPI_Status status;
   MPI_Request request;
 
@@ -948,7 +946,7 @@ void DumpVTK::pack(tagint *ids)
 {
   int n = 0;
   for (auto &choice : pack_choice) {
-      current_pack_choice_key = choice.first; // work-around for pack_compute, pack_fix, pack_variable
+      current_pack_choice_key = choice.first; // work-around for pack_vtk_compute, pack_vtk_fix, pack_vtk_variable
       (this->*(choice.second))(n);
       ++n;
   }
@@ -1338,9 +1336,9 @@ void DumpVTK::reset_vtk_data_containers()
   // points of the dataset, and three consecutive fields of a vector
   // attribute become a single array with three components.
 
-  std::map<int,int>::iterator it=vtype.begin();
+  auto it=vtype.begin();
   ++it; ++it; ++it;
-  for (; it!=vtype.end(); ++it) {
+  for (; it != vtype.end(); ++it) {
     VTKArray array;
     array.name = name[it->first];
     array.type = it->second;
@@ -1356,7 +1354,7 @@ void DumpVTK::reset_vtk_data_containers()
 
 /* ---------------------------------------------------------------------- */
 
-int DumpVTK::parse_fields(int narg, char **arg)
+int DumpVTK::parse_vtk_fields(int narg, char **arg)
 {
 
   pack_choice[X] = &DumpVTK::pack_x;
@@ -1595,7 +1593,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[ATTRIBUTES+iarg] = argi.get_index1();
-      auto aname = argi.get_name();
+      auto *aname = argi.get_name();
 
       switch (argi.get_type()) {
 
@@ -1608,10 +1606,10 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
       case ArgInfo::COMPUTE:
       {
-        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_compute;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_vtk_compute;
         vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
-        auto icompute = modify->get_compute_by_id(aname);
+        auto *icompute = modify->get_compute_by_id(aname);
         if (!icompute) {
           error->all(FLERR,"Could not find dump vtk compute ID: {}",aname);
         } else {
@@ -1624,7 +1622,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
           if (argi.get_dim() > 0 && argi.get_index1() > icompute->size_peratom_cols)
             error->all(FLERR,"Dump vtk compute {} vector is accessed out-of-range{}",
                        aname, utils::errorurl(20));
-          field2index[ATTRIBUTES+iarg] = add_compute(aname);
+          field2index[ATTRIBUTES+iarg] = add_vtk_compute(aname);
           name[ATTRIBUTES+iarg] = arg[iarg];
         }
         break;
@@ -1635,10 +1633,10 @@ int DumpVTK::parse_fields(int narg, char **arg)
 
       case ArgInfo::FIX:
       {
-        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_fix;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_vtk_fix;
         vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
-        auto ifix = modify->get_fix_by_id(aname);
+        auto *ifix = modify->get_fix_by_id(aname);
         if (!ifix) {
           error->all(FLERR,"Could not find dump vtk fix ID: {}",aname);
         } else {
@@ -1652,7 +1650,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
             error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range{}",
                        aname, utils::errorurl(20));
 
-          field2index[ATTRIBUTES+iarg] = add_fix(aname);
+          field2index[ATTRIBUTES+iarg] = add_vtk_fix(aname);
           name[ATTRIBUTES+iarg] = arg[iarg];
         }
         break;
@@ -1661,7 +1659,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
       // variable value = v_name
 
       case ArgInfo::VARIABLE:
-        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_variable;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_vtk_variable;
         vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
         n = input->variable->find(aname);
@@ -1669,14 +1667,14 @@ int DumpVTK::parse_fields(int narg, char **arg)
         if (input->variable->atomstyle(n) == 0)
           error->all(FLERR,"Dump vtk variable {} is not atom-style variable",aname);
 
-        field2index[ATTRIBUTES+iarg] = add_variable(aname);
+        field2index[ATTRIBUTES+iarg] = add_vtk_variable(aname);
         name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
       // custom per-atom floating point vector or array = d_ID d2_ID
 
       case ArgInfo::DNAME:
-        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_custom;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_vtk_custom;
         vtype[ATTRIBUTES+iarg] = Dump::DOUBLE;
 
         n = atom->find_custom(aname,flag,cols);
@@ -1693,14 +1691,14 @@ int DumpVTK::parse_fields(int narg, char **arg)
             error->all(FLERR,"Dump vtk property array {} is accessed out-of-range{}",aname,
                        utils::errorurl(20));
         }
-        field2index[ATTRIBUTES+iarg] = add_custom(aname,1);
+        field2index[ATTRIBUTES+iarg] = add_vtk_custom(aname,1);
         name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
       // custom per-atom integer vector or array = i_ID or i2_ID
 
       case ArgInfo::INAME:
-        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_custom;
+        pack_choice[ATTRIBUTES+iarg] = &DumpVTK::pack_vtk_custom;
         vtype[ATTRIBUTES+iarg] = Dump::INT;
 
         n = atom->find_custom(aname,flag,cols);
@@ -1717,7 +1715,7 @@ int DumpVTK::parse_fields(int narg, char **arg)
             error->all(FLERR,"Dump vtk property array {} is accessed out-of-range{}",aname,
                        utils::errorurl(20));
         }
-        field2index[ATTRIBUTES+iarg] = add_custom(aname,0);
+        field2index[ATTRIBUTES+iarg] = add_vtk_custom(aname,0);
         name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
@@ -1763,7 +1761,7 @@ void DumpVTK::identify_vectors()
   }
 
   // compute and fix vectors
-  for (std::map<int,std::string>::iterator it=name.begin(); it!=name.end(); ++it) {
+  for (auto it=name.begin(); it != name.end(); ++it) {
     if (it->first < ATTRIBUTES) // neither fix nor compute
       continue;
 
@@ -1792,7 +1790,7 @@ void DumpVTK::identify_vectors()
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_compute(const char *id)
+int DumpVTK::add_vtk_compute(const char *id)
 {
   int icompute;
   for (icompute = 0; icompute < ncompute; icompute++)
@@ -1815,7 +1813,7 @@ int DumpVTK::add_compute(const char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_fix(const char *id)
+int DumpVTK::add_vtk_fix(const char *id)
 {
   int ifix;
   for (ifix = 0; ifix < nfix; ifix++)
@@ -1838,7 +1836,7 @@ int DumpVTK::add_fix(const char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_variable(const char *id)
+int DumpVTK::add_vtk_variable(const char *id)
 {
   int ivariable;
   for (ivariable = 0; ivariable < nvariable; ivariable++)
@@ -1865,7 +1863,7 @@ int DumpVTK::add_variable(const char *id)
    if already in list, do not add, just return index, else add to list
 ------------------------------------------------------------------------- */
 
-int DumpVTK::add_custom(const char *id, int flag)
+int DumpVTK::add_vtk_custom(const char *id, int flag)
 {
   int icustom;
   for (icustom = 0; icustom < ncustom; icustom++)
@@ -2059,7 +2057,7 @@ int DumpVTK::modify_param(int narg, char **arg)
       ArgInfo argi(arg[1],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[ATTRIBUTES+nfield+nthresh] = argi.get_index1();
-      auto aname = argi.get_name();
+      auto *aname = argi.get_name();
 
       switch (argi.get_type()) {
 
@@ -2073,11 +2071,11 @@ int DumpVTK::modify_param(int narg, char **arg)
       case ArgInfo::COMPUTE:
       {
         thresh_array[nthresh] = COMPUTE;
-        auto icompute = modify->get_compute_by_id(aname);
+        auto *icompute = modify->get_compute_by_id(aname);
         if (!icompute) {
           error->all(FLERR,"Could not find dump modify compute ID: {}",aname);
         } else {
-          if (modify->compute[n]->peratom_flag == 0)
+          if (icompute->peratom_flag == 0)
             error->all(FLERR,"Dump modify compute ID {} does not compute per-atom info",aname);
           if (argi.get_dim() == 0 && icompute->size_peratom_cols > 0)
             error->all(FLERR,"Dump modify compute ID {} does not compute per-atom vector",aname);
@@ -2087,7 +2085,7 @@ int DumpVTK::modify_param(int narg, char **arg)
               argi.get_index1() > icompute->size_peratom_cols)
             error->all(FLERR,"Dump modify compute ID {} vector is not large enough",aname);
 
-          field2index[ATTRIBUTES+nfield+nthresh] = add_compute(aname);
+          field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_compute(aname);
         }
         break;
       }
@@ -2098,7 +2096,7 @@ int DumpVTK::modify_param(int narg, char **arg)
       case ArgInfo::FIX:
       {
         thresh_array[nthresh] = FIX;
-        auto ifix = modify->get_fix_by_id(aname);
+        auto *ifix = modify->get_fix_by_id(aname);
         if (!ifix) {
           error->all(FLERR,"Could not find dump modify fix ID: {}",aname);
         } else {
@@ -2111,7 +2109,7 @@ int DumpVTK::modify_param(int narg, char **arg)
           if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_peratom_cols)
             error->all(FLERR,"Dump modify fix ID {} vector is not large enough",aname);
 
-          field2index[ATTRIBUTES+nfield+nthresh] = add_fix(aname);
+          field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_fix(aname);
         }
         break;
       }
@@ -2125,7 +2123,7 @@ int DumpVTK::modify_param(int narg, char **arg)
         if (input->variable->atomstyle(n) == 0)
           error->all(FLERR,"Dump modify variable {} is not atom-style variable",aname);
 
-        field2index[ATTRIBUTES+nfield+nthresh] = add_variable(aname);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_variable(aname);
         break;
 
       // custom per atom floating point vector or array
@@ -2147,7 +2145,7 @@ int DumpVTK::modify_param(int narg, char **arg)
           thresh_array[nthresh] = DARRAY;
         }
 
-        field2index[ATTRIBUTES+nfield+nthresh] = add_custom(aname,thresh_array[nthresh]);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_custom(aname,thresh_array[nthresh]);
         break;
 
       // custom per atom integer vector or array
@@ -2169,7 +2167,7 @@ int DumpVTK::modify_param(int narg, char **arg)
           thresh_array[nthresh] = IARRAY;
         }
 
-        field2index[ATTRIBUTES+nfield+nthresh] = add_custom(aname,thresh_array[nthresh]);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_custom(aname,thresh_array[nthresh]);
         break;
 
       // no match
@@ -2240,7 +2238,7 @@ double DumpVTK::memory_usage()
    extraction of Compute, Fix, Variable results
 ------------------------------------------------------------------------- */
 
-void DumpVTK::pack_compute(int n)
+void DumpVTK::pack_vtk_compute(int n)
 {
   double *vector = compute[field2index[current_pack_choice_key]]->vector_atom;
   double **array = compute[field2index[current_pack_choice_key]]->array_atom;
@@ -2262,7 +2260,7 @@ void DumpVTK::pack_compute(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpVTK::pack_fix(int n)
+void DumpVTK::pack_vtk_fix(int n)
 {
   double *vector = fix[field2index[current_pack_choice_key]]->vector_atom;
   double **array = fix[field2index[current_pack_choice_key]]->array_atom;
@@ -2284,7 +2282,7 @@ void DumpVTK::pack_fix(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpVTK::pack_variable(int n)
+void DumpVTK::pack_vtk_variable(int n)
 {
   double *vector = vbuf[field2index[current_pack_choice_key]];
 
@@ -2296,7 +2294,7 @@ void DumpVTK::pack_variable(int n)
 
 /* ---------------------------------------------------------------------- */
 
-void DumpVTK::pack_custom(int n)
+void DumpVTK::pack_vtk_custom(int n)
 {
   int flag = custom_flag[field2index[current_pack_choice_key]];
   int iwhich = custom[field2index[current_pack_choice_key]];

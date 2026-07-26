@@ -155,19 +155,19 @@ class VTKWriter {
    *
    * \return largest magnitude written in single precision, 0.0 if there is none */
 
-  double max_single_precision_value() const { return maxsingle; }
+  [[nodiscard]] double max_single_precision_value() const { return maxsingle; }
 
   /** Number of points implied by the selected dataset.
    *
    * \return number of points */
 
-  int number_of_points() const { return npoints; }
+  [[nodiscard]] int number_of_points() const { return npoints; }
 
   /** Number of cells implied by the selected dataset.
    *
    * \return number of cells */
 
-  int number_of_cells() const { return ncells; }
+  [[nodiscard]] int number_of_cells() const { return ncells; }
 
   void write(const std::string &filename);
   void write(FILE *fp);
@@ -209,9 +209,9 @@ class VTKWriter {
 
   void track_single(const std::vector<double> &values);
   void write_legacy_coords(FILE *fp, const std::vector<double> &values);
-  std::string xml_coords(const std::vector<double> &values, int indent) const;
-  const char *legacy_coord_type() const;
-  const char *xml_coord_type() const;
+  [[nodiscard]] std::string xml_coords(const std::vector<double> &values, int indent) const;
+  [[nodiscard]] const char *legacy_coord_type() const;
+  [[nodiscard]] const char *xml_coord_type() const;
 
   // legacy format
 

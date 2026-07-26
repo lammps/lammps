@@ -56,6 +56,7 @@ class DumpVTK : public DumpCustom {
   ~DumpVTK() override;
 
   void write() override;
+  double memory_usage() override;
 
  protected:
   char *label;    // string for dump file header
@@ -73,21 +74,20 @@ class DumpVTK : public DumpCustom {
   int count() override;
   void pack(tagint *) override;
   void write_data(int, double *) override;
-  double memory_usage() override;
 
-  int parse_fields(int, char **);
+  int parse_vtk_fields(int, char **);
   void identify_vectors();
-  int add_compute(const char *);
-  int add_fix(const char *);
-  int add_variable(const char *);
-  int add_custom(const char *, int);
+  int add_vtk_compute(const char *);
+  int add_vtk_fix(const char *);
+  int add_vtk_variable(const char *);
+  int add_vtk_custom(const char *, int);
   int modify_param(int, char **) override;
 
-  typedef void (DumpVTK::*FnPtrHeader)(bigint);
+  using FnPtrHeader = void (DumpVTK::*)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_vtk(bigint);
 
-  typedef void (DumpVTK::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpVTK::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_vtk(int, double *);
   void write_vtp(int, double *);
@@ -99,7 +99,7 @@ class DumpVTK : public DumpCustom {
   void check_coordinate_precision(double);                    // warn if single precision is too coarse
   void write_domain(VTKWriter::Flavor);                       // write the box data file
 
-  typedef void (DumpVTK::*FnPtrPack)(int);
+  using FnPtrPack = void (DumpVTK::*)(int);
   std::map<int, FnPtrPack> pack_choice;    // ptrs to pack functions
   std::map<int, int> vtype;                // data type
   std::map<int, std::string> name;         // attribute labels
@@ -133,10 +133,10 @@ class DumpVTK : public DumpCustom {
   void reset_vtk_data_containers();
 
   // customize by adding a method prototype
-  void pack_compute(int);
-  void pack_fix(int);
-  void pack_variable(int);
-  void pack_custom(int);
+  void pack_vtk_compute(int);
+  void pack_vtk_fix(int);
+  void pack_vtk_variable(int);
+  void pack_vtk_custom(int);
 };
 
 }    // namespace LAMMPS_NS

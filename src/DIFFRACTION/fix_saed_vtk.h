@@ -53,7 +53,7 @@ class FixSAEDVTK : public Fix {
   void invoke_scalar(bigint);
   void invoke_vector(bigint);
   void options(int, char **);
-  std::string filecurrent() const;
+  [[nodiscard]] std::string filecurrent() const;
 
   bigint nextvalid();
 

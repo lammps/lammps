@@ -51,7 +51,7 @@
 #include <cstdint>
 #include <cstring>
 
-#ifdef LAMMPS_ZLIB
+#if defined(LAMMPS_ZLIB)
 #include <zlib.h>
 #endif
 
@@ -109,12 +109,12 @@ std::string base64(const void *data, std::size_t len)
 
 std::string encode_bytes(const std::string &raw)
 {
-#ifdef LAMMPS_ZLIB
+#if defined(LAMMPS_ZLIB)
   uLongf bound = compressBound(static_cast<uLong>(raw.size()));
   std::vector<unsigned char> buf(bound ? bound : 1);
   if (compress(buf.data(), &bound, reinterpret_cast<const Bytef *>(raw.data()),
                static_cast<uLong>(raw.size())) == Z_OK) {
-    const std::uint32_t header[4] = {1u, static_cast<std::uint32_t>(raw.size()), 0u,
+    const std::uint32_t header[4] = {1U, static_cast<std::uint32_t>(raw.size()), 0U,
                                      static_cast<std::uint32_t>(bound)};
     return base64(header, sizeof(header)) + base64(buf.data(), bound);
   }
@@ -749,7 +749,7 @@ void VTKWriter::write_xml(FILE *fp)
   utils::print(fp, "<?xml version=\"1.0\"?>\n");
   utils::print(fp, R"(<VTKFile type="{}" version="0.1" byte_order="{}" header_type="UInt32")",
                gridtype, byte_order);
-#ifdef LAMMPS_ZLIB
+#if defined(LAMMPS_ZLIB)
   if (binary) utils::print(fp, R"( compressor="vtkZLibDataCompressor")");
 #endif
   utils::print(fp, ">\n");

@@ -127,6 +127,20 @@ target_link_libraries(test_dump_local PRIVATE lammps GTest::GMock)
 add_test(NAME DumpLocal COMMAND test_dump_local)
 set_tests_properties(DumpLocal PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
+add_executable(test_dump_grid test_dump_grid.cpp)
+target_link_libraries(test_dump_grid PRIVATE lammps GTest::GMock)
+add_test(NAME DumpGrid COMMAND test_dump_grid)
+
+if(PKG_EXTRA-DUMP)
+  add_executable(test_dump_vtk test_dump_vtk.cpp)
+  target_link_libraries(test_dump_vtk PRIVATE lammps GTest::GMock)
+  add_test(NAME DumpVTK COMMAND test_dump_vtk)
+
+  add_executable(test_dump_vtk_mpi test_dump_vtk_mpi.cpp)
+  target_link_libraries(test_dump_vtk_mpi PRIVATE lammps GTest::GMock)
+  add_mpi_test(NAME DumpVTKMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_dump_vtk_mpi>)
+endif()
+
 if(PKG_NETCDF)
   find_program(NCDUMP NAMES ncdump ncdump.exe)
   add_executable(test_dump_netcdf test_dump_netcdf.cpp)

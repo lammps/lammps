@@ -164,8 +164,7 @@ processor, but P can be set to a smaller value via the *nfile* or
 These options can be the most efficient way of writing out dump files
 when running on large numbers of processors.
 
-For the legacy VTK format "%" is ignored and P = 1, i.e., only
-processor 0 does write files.
+For the legacy VTK format, only processor 0 writes files.
 
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!

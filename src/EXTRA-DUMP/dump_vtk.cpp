@@ -125,6 +125,27 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (vtk_file_format == VTK) { // no multiproc support for legacy vtk format
+
+    // the legacy format collects the entire snapshot in a single file.  the
+    // '%' character is replaced by 0, as for any other single file writer in
+    // LAMMPS, and only proc 0 writes that file
+
+    if (multiproc) {
+      MPI_Comm_free(&clustercomm);
+      delete[] multiname_ex;
+      multiname_ex = nullptr;
+
+      char *ptr = strchr(filename,'%');
+      *ptr = '\0';
+      char *singlename = utils::strdup(fmt::format("{}0{}", filename, ptr+1));
+      delete[] filename;
+      filename = singlename;
+
+      if (me == 0)
+        error->warning(FLERR,"Cannot write one file per processor with the legacy VTK file "
+                       "format: writing all data to file {} instead", filename);
+    }
+
     if (me != 0) filewriter = 0;
     fileproc = 0;
     multiproc = 0;

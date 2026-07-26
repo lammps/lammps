@@ -202,6 +202,19 @@ void PPPMDipoleSpin::init()
 
   double estimated_accuracy = final_accuracy_dipole();
 
+  // allocate K-space dependent memory
+  // don't invoke allocate peratom(), will be allocated when needed
+  // must happen before printing the stats below, since allocate()
+  // is what sets ngrid and nfft_both
+
+  allocate();
+
+  // pre-compute Green's function denominator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  compute_gf_denom();
+  compute_rho_coeff();
+
   // print stats
 
   int ngrid_max,nfft_both_max;
@@ -221,17 +234,6 @@ void PPPMDipoleSpin::init()
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
-
-  // allocate K-space dependent memory
-  // don't invoke allocate peratom(), will be allocated when needed
-
-  allocate();
-
-  // pre-compute Green's function denominator expansion
-  // pre-compute 1d charge distribution coefficients
-
-  compute_gf_denom();
-  compute_rho_coeff();
 }
 
 /* ----------------------------------------------------------------------

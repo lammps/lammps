@@ -135,7 +135,11 @@ template <typename T> void append_raw(std::string &out, T value)
   out.append(reinterpret_cast<const char *>(&value), sizeof(T));
 }
 
-// write raw values in big endian byte order, as legacy binary files require
+// write raw values in big endian byte order, as legacy binary files require.
+// the bytes are reordered through char pointers on purpose and are never
+// loaded back into a variable of the original type: reversing floating point
+// numbers by way of a floating point register can alter them on some
+// platforms.  keep this loop byte-wise if it is ever optimized.
 
 template <typename T> void fwrite_be(FILE *fp, const std::vector<T> &values)
 {

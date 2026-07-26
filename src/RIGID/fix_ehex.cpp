@@ -48,7 +48,7 @@ enum { CONSTANT, EQUAL, ATOM };
 
 FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), x(nullptr), f(nullptr), v(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), scalingmask(nullptr)
+    mass(nullptr), rmass(nullptr), type(nullptr), fshake(nullptr), scalingmask(nullptr)
 {
   MPI_Comm_rank(world, &me);
 

@@ -664,9 +664,11 @@ void FixStoreState::end_of_step()
         }
 
       // evaluate atom-style variable
+      // avalues is null when there are no atoms on this proc
 
       } else if (val.which == ArgInfo::VARIABLE) {
-        input->variable->compute_atom(val.val.v, igroup, &avalues[0][m], values.size(),0);
+        if (avalues) input->variable->compute_atom(val.val.v, igroup, &avalues[0][m], values.size(),0);
+        else input->variable->compute_atom(val.val.v, igroup, nullptr, values.size(),0);
 
       // access custom atom vector/array fields
 
@@ -705,7 +707,7 @@ void FixStoreState::end_of_step()
   if (cfv_any && nevery) {
     bigint nextstep;
     if (historyflag && nfreq_history > nevery*nrepeat_history && update->ntimestep % nfreq_history)
-      nextstep = update->ntimestep + nfreq_history - nevery*(nrepeat_history-1);
+      nextstep = update->ntimestep + nfreq_history - (bigint)nevery*(nrepeat_history-1);
     else
       nextstep = (update->ntimestep/nevery)*nevery + nevery;
     modify->addstep_compute(nextstep);

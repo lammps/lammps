@@ -72,9 +72,10 @@ enum { NONE, MOVEATOM, MOVEMOL };    // movemode
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false),
     groupstrings(nullptr), grouptypestrings(nullptr), grouptypebits(nullptr), grouptypes(nullptr),
-    local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
-    random_equal(nullptr), random_unequal(nullptr), fixrigid(nullptr), fixshake(nullptr),
-    idrigid(nullptr), idshake(nullptr)
+    sublo(nullptr), subhi(nullptr), local_gas_list(nullptr), cutsq(nullptr), molcoords(nullptr),
+    molq(nullptr), molimage(nullptr), pair(nullptr), random_equal(nullptr),
+    random_unequal(nullptr), model_atom(nullptr), onemols(nullptr), fixrigid(nullptr),
+    fixshake(nullptr), idrigid(nullptr), idshake(nullptr), c_pe(nullptr)
 {
   if (narg < 11) utils::missing_cmd_args(FLERR, "fix gcmc", error);
 

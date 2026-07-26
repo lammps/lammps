@@ -40,6 +40,33 @@ class PairEAMGPU : public PairEAM {
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  protected:
+  // function-pointer types matching the per-style device instance
+  // functions in the gpu library (lal_eam*_ext.cpp)
+
+  typedef int (*EAMGPUInitFn)(const int, double, int **, int **, int *, double ***, double ***,
+                              double ***, double **, double, double, double, int, int, int, int,
+                              int, const int, const int, const int, const int, const double, int &,
+                              FILE *, int &);
+  typedef void (*EAMGPUClearFn)();
+  typedef int **(*EAMGPUComputeNFn)(const int, const int, const int, double **, int *, double *,
+                                    double *, tagint *, int **, tagint **, const bool, const bool,
+                                    const bool, const bool, int &, int **, int **, const double,
+                                    bool &, int &, void **, double *, int *);
+  typedef void (*EAMGPUComputeFn)(const int, const int, const int, const int, double **, int *,
+                                  int *, int *, int **, const bool, const bool, const bool,
+                                  const bool, int &, const double, bool &, void **);
+  typedef void (*EAMGPUComputeForceFn)(int *, const bool, const bool, const bool, const bool);
+  typedef double (*EAMGPUBytesFn)();
+
+  // bindings to the device instance of this style, set by the constructor
+
+  EAMGPUInitFn gpu_init_fn;
+  EAMGPUClearFn gpu_clear_fn;
+  EAMGPUComputeNFn gpu_compute_n_fn;
+  EAMGPUComputeFn gpu_compute_fn;
+  EAMGPUComputeForceFn gpu_compute_force_fn;
+  EAMGPUBytesFn gpu_bytes_fn;
+
   int gpu_mode;
   double cpu_time;
   void *fp_pinned;

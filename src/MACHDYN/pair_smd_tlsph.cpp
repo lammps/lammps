@@ -58,8 +58,8 @@ static constexpr double DETF_MAX = 2.0; // maximum tension deformation allowed
 
 /* ---------------------------------------------------------------------- */
 
-PairTlsph::PairTlsph(LAMMPS *lmp) :
-  Pair(lmp) {
+PairTlsph::PairTlsph(LAMMPS *lmp) : Pair(lmp), suffix(nullptr)
+{
 
   onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
 

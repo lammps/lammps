@@ -278,7 +278,7 @@ may be added:
   colors are drawn.  This can simplify determining which value a
   specific color corresponds to.
 
-  .. versionadded:: TBD
+  .. versionadded:: 4Jul2026
 
   The *map* value selects which of the colormaps of the :doc:`dump image
   <dump_image>` instance the legend represents.  A dump image has separate
@@ -375,7 +375,7 @@ package and also compile and install the :doc:`LAMMPS Python module
 
 The first :doc:`python <python>` command loads the `matplotlib <https://matplotlib.org>`_
 and LAMMPS Python modules and configures *matplotlib* to use the `non-interactive 'agg'
-backend <https://matplotlib.org/stable/users/explain/figure/backends.html#backends>`_
+back end <https://matplotlib.org/stable/users/explain/figure/backends.html#backends>`_
 for creating image files.
 
 The second :doc:`python <python>` command defines the ``myplot()``

@@ -43,8 +43,9 @@ static const double sqrt_2_inv = std::sqrt(0.5);
 
 /* ---------------------------------------------------------------------- */
 
-PairSDPDTaitwaterIsothermal::PairSDPDTaitwaterIsothermal (LAMMPS *lmp)
-: Pair (lmp), random(nullptr) {
+PairSDPDTaitwaterIsothermal::PairSDPDTaitwaterIsothermal (LAMMPS *lmp) :
+    Pair (lmp), rho0(nullptr), soundspeed(nullptr), B(nullptr), cut(nullptr), random(nullptr)
+{
   restartinfo = 0;
   single_enable =0;
 }

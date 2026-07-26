@@ -24,7 +24,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphereNoforce::FixNVEAsphereNoforce(LAMMPS *lmp, int narg, char **arg) :
-  FixNVENoforce(lmp, narg, arg)
+    FixNVENoforce(lmp, narg, arg), avec(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix nve/asphere/noforce command");
 

@@ -36,9 +36,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairTracker::PairTracker(LAMMPS *lmp) :
-    Pair(lmp), onerad_dynamic(nullptr), onerad_frozen(nullptr), maxrad_dynamic(nullptr),
-    maxrad_frozen(nullptr), id_fix_store_local(nullptr), fix_dummy(nullptr), fix_history(nullptr),
-    fix_store_local(nullptr), type_filter(nullptr), output_data(nullptr), pack_choice(nullptr)
+    Pair(lmp), cut(nullptr), onerad_dynamic(nullptr), onerad_frozen(nullptr),
+    maxrad_dynamic(nullptr), maxrad_frozen(nullptr), id_fix_store_local(nullptr),
+    fix_dummy(nullptr), fix_history(nullptr), fix_store_local(nullptr), type_filter(nullptr),
+    output_data(nullptr), pack_choice(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -592,6 +593,7 @@ void PairTracker::read_restart_settings(FILE *fp)
   int n;
   if (comm->me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&n, 1, MPI_INT, 0, world);
+  if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix ID length in restart file");
 
   id_fix_store_local = new char[n];
   if (comm->me == 0) utils::sfread(FLERR, id_fix_store_local, sizeof(char), n, fp, nullptr, error);
@@ -600,6 +602,8 @@ void PairTracker::read_restart_settings(FILE *fp)
   if (comm->me == 0)
     utils::sfread(FLERR, &nvalues_restart, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&nvalues_restart, 1, MPI_INT, 0, world);
+  if ((nvalues_restart < 0) || (nvalues_restart > 4096))
+    error->all(FLERR, "Invalid number of values in restart file");
 
   saved_choices.clear();
   delete[] pack_choice;

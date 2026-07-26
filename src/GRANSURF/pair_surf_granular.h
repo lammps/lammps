@@ -41,6 +41,7 @@ class PairSurfGranular : public PairGranular {
 
  protected:
   int surfmoveflag;
+  int missing_surf_warn;    // 1 until warned about a connected surf missing on this proc
 
   int style;
   int emax;           // allocated size of endpt list
@@ -80,10 +81,10 @@ class PairSurfGranular : public PairGranular {
 
   void prewalk_connections2d();
   void prewalk_connections3d();
-  void walk_connections2d(std::vector<int> *, std::unordered_set<int> *);
-  void walk_connections3d(std::vector<int> *, std::unordered_set<int> *);
-  double calculate_2d_forces(std::vector<int> *);
-  double calculate_3d_forces(std::vector<int> *);
+  void walk_connections2d(std::vector<int> &, std::unordered_set<int> &);
+  void walk_connections3d(std::vector<int> &, std::unordered_set<int> &);
+  double calculate_2d_forces(std::vector<int> &);
+  double calculate_3d_forces(std::vector<int> &);
   void calculate_3d_edge_force(int, double *, double *, double *, double *);
   double dist_away_from_edge(double *, double *, double *, double *, double *);
   double dist_away_from_2_tris(double *, double *, double *);

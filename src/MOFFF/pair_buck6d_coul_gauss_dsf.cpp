@@ -41,7 +41,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuck6dCoulGaussDSF::PairBuck6dCoulGaussDSF(LAMMPS *lmp) : Pair(lmp)
+PairBuck6dCoulGaussDSF::PairBuck6dCoulGaussDSF(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), alpha_ij(nullptr), buck6d1(nullptr),
+    buck6d2(nullptr), buck6d3(nullptr), buck6d4(nullptr), offset(nullptr), f_shift_ij(nullptr),
+    e_shift_ij(nullptr), c0(nullptr), c1(nullptr), c2(nullptr), c3(nullptr), c4(nullptr),
+    c5(nullptr), rsmooth_sq(nullptr)
 {
   single_enable = 1;
   writedata = 1;

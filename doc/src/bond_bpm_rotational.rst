@@ -149,7 +149,7 @@ non-bpm bond styles.  Similar behavior to *break no* can also be
 attained by setting arbitrarily high values for all four failure
 coefficients.  One cannot use *break no* with *smooth yes*.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 For *damping* style *derivative* (the default), additional
 forces/torques are applied on shear, twisting, and bending modes.  These
@@ -198,7 +198,7 @@ necessary if bonds can break and requires specific :doc:`special_bonds
 <special_bonds>` settings described in the restrictions.  Further
 details can be found in the :doc:`how to <Howto_bpm>` page on BPMs.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *frame* setting determines the reference used to calculate the
 relative displacement and rotation.  The *particle* option uses the

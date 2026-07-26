@@ -193,7 +193,7 @@ matching keyword to the name of the KSpace style, as in this table:
 The *ewald* style performs a standard Ewald summation as described in
 any solid-state physics text.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *ewald/gpu* style is a GPU-accelerated version of the *ewald* style.
 Unlike *pppm/gpu*, it requires no FFTs and therefore avoids the
@@ -324,7 +324,7 @@ parameters and how to choose them is described in
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *pppm/rk* kspace style is a variant of *pppm* designed for a
 heterogeneous multicore pppm computation of long-range forces.  The
@@ -575,7 +575,7 @@ support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Triclinic (non-orthogonal) box support was added to the *pppm/disp*
 style and its *pppm/disp/tip4p*, *pppm/disp/omp*, and

@@ -129,7 +129,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gtrans* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -188,6 +188,8 @@ Syntax
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
+       *gtrans* arg = transparency
+         transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
        *lights* args = ambient key fill back
          ambient key fill back = set light intensity value from 0.0 to 1.0
        *loadcolors* arg = filename
@@ -354,7 +356,7 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    Extended list of colors from 6 to 16
 
@@ -460,7 +462,7 @@ If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    Extended list of default colors from 6 to 16
 
@@ -472,7 +474,7 @@ and darkgray for the first 16 bond types and repeats itself after that.
 This mapping can be changed by the "dump_modify bcolor" command, as
 described below.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 If a compute reference *c_ID* or *c_ID[I]* is specified for the *color*
 value, then each bond is colored by a per-bond value taken from that
@@ -694,7 +696,7 @@ and fix commands are in the :doc:`Howto_viz` howto.
 
    draw style *transparent* was added
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    draw triangulated hull from random points for region style *intersect* or *union*
 
@@ -1188,15 +1190,17 @@ equivalent.
 
 .. versionadded:: 11Feb2026
 
+.. versionchanged:: TBD
+
 Various graphical objects in *dump image* output can be rendered in a
 transparent fashion using the so-called screen-door transparency method.
 This means that only a subset of pixels for a graphical object are
 written to the image.  This can be controlled with various
 *dump\_modify* settings: *atrans* for atoms, *btrans* for bonds,
-*axestrans* for axes lines, *boxtrans* for the simulation box, and
-*subboxtrans* for the subdomain box lines.  The transparency value
-must be between 0.0 (invisible) and 1.0 (fully opaque).  The default
-setting for all is 1.0.
+*gtrans* for grids, *axestrans* for axes lines, *boxtrans* for the
+simulation box, and *subboxtrans* for the subdomain box lines.  The
+transparency value must be between 0.0 (invisible) and 1.0 (fully
+opaque).  The default setting for all is 1.0.
 
 Recommended transparency values are 0.25, 0.5, or 0.75 when used in
 combination with *fsaa on*.
@@ -1247,7 +1251,7 @@ The arguments for the *gmap* keyword are identical to those for the
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *bmap* keyword can be used with the dump image command, with its
 *bond* keyword, when the bond *color* value is a compute reference
@@ -1261,7 +1265,7 @@ The arguments for the *bmap* keyword are identical to those for the
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *lights* keyword can be used to set the relative intensities of the
 four light sources used to illuminate the scene: *ambient*, *key*,
@@ -1279,7 +1283,7 @@ the scene from behind the camera to provide depth.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *loadcolors* and *savecolors* keywords can be used to read or write
 the current per-atom-type color assignments and their definitions from

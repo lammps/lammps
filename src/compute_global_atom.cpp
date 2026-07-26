@@ -337,8 +337,8 @@ void ComputeGlobalAtom::compute_peratom()
     // output = vector
 
     if (val.argindex == 0) {
-      int vmax;
-      double *source;
+      int vmax = 0;
+      double *source = nullptr;
 
       if (val.which == ArgInfo::COMPUTE) {
 
@@ -392,8 +392,8 @@ void ComputeGlobalAtom::compute_peratom()
     // output = array
 
     } else {
-      int vmax;
-      double *source;
+      int vmax = 0;
+      double *source = nullptr;
       int col = val.argindex - 1;
 
       if (val.which == ArgInfo::COMPUTE) {

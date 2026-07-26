@@ -20,12 +20,11 @@ PairStyle(eam/fs/opt,PairEAMFSOpt);
 #ifndef LMP_PAIR_EAM_FS_OPT_H
 #define LMP_PAIR_EAM_FS_OPT_H
 
-#include "pair_eam_fs.h"
 #include "pair_eam_opt.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMFSOpt : public PairEAMFS, public PairEAMOpt {
+class PairEAMFSOpt : public PairEAMOpt {
  public:
   PairEAMFSOpt(class LAMMPS *);
 };

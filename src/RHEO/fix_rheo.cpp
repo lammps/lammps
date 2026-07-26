@@ -168,7 +168,10 @@ FixRHEO::FixRHEO(LAMMPS *lmp, int narg, char **arg) :
       }
     } else if (strcmp(arg[iarg], "density") == 0) {
       if (iarg + n >= narg) utils::missing_cmd_args(FLERR, "fix rheo density", error);
-      for (i = 1; i <= n; i++) rho0[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
+      for (i = 1; i <= n; i++) {
+        rho0[i] = utils::numeric(FLERR, arg[iarg + i], false, lmp);
+        if (rho0[i] <= 0.0) error->all(FLERR, "The equilibrium density must be greater than zero");
+      }
       iarg += n;
     } else if (strcmp(arg[iarg], "speed/sound") == 0) {
       if (iarg + n >= narg) utils::missing_cmd_args(FLERR, "fix rheo speed/sound", error);

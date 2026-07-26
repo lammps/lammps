@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:38 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom ellipsoid
+  compute temp/asphere
+pre_commands: ""
+post_commands: |
+  compute test all temp/asphere
+input_file: in.ellipsoid
+input_coeffs: coeffs.ellipsoid
+natoms: 48
+global_scalar: 0.2068405328465177
+global_vector: |-
+  6  3.3445201137732418e+01  1.7264494456531448e+01  8.2398562669936730e+00  7.3509790047936496e+00  2.6058025328372820e+00  1.6918321798332958e-01
+...

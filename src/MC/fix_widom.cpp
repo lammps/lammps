@@ -57,8 +57,9 @@ enum { EXCHATOM, EXCHMOL };    // exchmode
 /* ---------------------------------------------------------------------- */
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false), molcoords(nullptr),
-    molq(nullptr), molimage(nullptr), random_equal(nullptr), c_pe(nullptr)
+    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false), sublo(nullptr),
+    subhi(nullptr), cutsq(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+    pair(nullptr), random_equal(nullptr), model_atom(nullptr), onemol(nullptr), c_pe(nullptr)
 {
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix widom", error);
 

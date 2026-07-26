@@ -139,7 +139,7 @@ before proceeding to more complex simulations.
    compilers, LAMMPS should be built with the compiler flags "-O3 -msse3
    -funroll-loops" when including this pair style.
 
-   .. deprecated:: TBD
+   .. deprecated:: 4Jul2026
 
       Support for (obsolete) IBM BlueGene machines has been removed.
 

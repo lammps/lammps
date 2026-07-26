@@ -38,7 +38,7 @@ enum { TYPE, RADIUS };
 /* ---------------------------------------------------------------------- */
 
 ComputeRattlersAtom::ComputeRattlersAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), ncontacts(nullptr), rattler(nullptr)
+    Compute(lmp, narg, arg), ncontacts(nullptr), rattler(nullptr), list(nullptr)
 {
   if (narg != 6) error->all(FLERR, "Illegal compute rattlers/atom command");
 

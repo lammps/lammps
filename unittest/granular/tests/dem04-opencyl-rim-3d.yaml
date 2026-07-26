@@ -1,0 +1,63 @@
+---
+lammps_version: 30 Mar 2026
+tags: granular
+date_generated: Fri Jul  3 13:07:49 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units lj
+  dimension 3
+  boundary f f f
+  atom_style sphere
+  region box block -3.0 3.0 -3.0 3.0 -3.0 3.0 units box
+  create_box 1 box
+  create_atoms 1 single 1.45 0.0 0.25 units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${vx0} 0.0 ${vz0}
+  comm_modify vel yes
+  neighbor 0.3 bin
+  timestep 2.0e-4
+post_commands: |
+  region cyl cylinder z 0.0 0.0 ${rad} ${zlo} ${zhi} units box open 3
+  fix wreg all wall/gran/region granular hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} damping coeff_restitution region cyl
+  fix integr all nve/sphere
+input_file:
+natoms: 1
+variables: |
+  diam 1.0
+  dens 1.0
+  knorm 1.0e4
+  en 0.9
+  kt 2857.0
+  gt 50.0
+  xmu 0.5
+  rad 1.0
+  zlo 0.0
+  zhi 2.0
+  vx0 -0.43
+  vz0 -0.26
+pair_style: granular
+pair_coeff: |
+  * * hooke ${knorm} ${en} tangential linear_history ${kt} ${gt} ${xmu} damping coeff_restitution
+run_segments: |-
+  600 600 800
+run_pos: |2
+    0   1  1.4649172516992330e+00  0.0000000000000000e+00  2.5590025675929823e-01
+    1   1  1.5133734660423841e+00  0.0000000000000000e+00  2.8047164415352149e-01
+    2   1  1.5779817518332522e+00  0.0000000000000000e+00  3.1323349401248585e-01
+run_vel: |2
+    0   1  4.0380178619273527e-01  0.0000000000000000e+00  2.0476156161839568e-01
+    1   1  4.0380178619273527e-01  0.0000000000000000e+00  2.0476156161839568e-01
+    2   1  4.0380178619273527e-01  0.0000000000000000e+00  2.0476156161839568e-01
+run_torque: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_omega: |2
+    0   1  0.0000000000000000e+00  1.3665989122173849e-02  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  1.3665989122173849e-02  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  1.3665989122173849e-02  0.0000000000000000e+00
+...

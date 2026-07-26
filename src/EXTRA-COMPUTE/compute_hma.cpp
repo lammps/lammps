@@ -73,7 +73,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), id_temp(nullptr), deltaR(nullptr)
+    Compute(lmp, narg, arg), id_temp(nullptr), list(nullptr), deltaR(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute hma", error);
   if (igroup) error->all(FLERR, 1, "Compute hma must use group all");

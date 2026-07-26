@@ -377,7 +377,7 @@ INTEL package settings
 The *intel* style invokes settings associated with the use of the INTEL
 package.
 
-.. deprecated:: TBD
+.. deprecated:: 4Jul2026
 
 Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
 removed.  The leading numeric argument (formerly the number of
@@ -625,7 +625,7 @@ The *bond/chunk/size* keyword sets the number of iterations that a work item
 is scheduled for the bond force kernel on the GPU.  The default value
 of this parameter is determined based on the GPU architecture at runtime.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *auto/tuning* keyword enables the auto-tuning feature of
 the KOKKOS package when using GPUs.  The following KOKKOS styles

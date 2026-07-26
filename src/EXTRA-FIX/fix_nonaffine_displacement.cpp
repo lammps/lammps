@@ -67,8 +67,8 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
-  F(nullptr), norm(nullptr), singular(nullptr)
+    Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
+    F(nullptr), norm(nullptr), singular(nullptr), list(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 

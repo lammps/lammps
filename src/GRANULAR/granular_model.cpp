@@ -49,7 +49,9 @@ template <typename T> static GranSubMod *gran_sub_mod_creator(GranularModel *gm,
 
 /* ---------------------------------------------------------------------- */
 
-GranularModel::GranularModel(LAMMPS *lmp) : Pointers(lmp)
+GranularModel::GranularModel(LAMMPS *lmp) :
+    Pointers(lmp), sub_models{}, history(nullptr), xi(nullptr), xj(nullptr), vi(nullptr),
+    vj(nullptr), omegai(nullptr), omegaj(nullptr)
 {
   limit_damping = 0;
   synchronized_verlet = 0;
@@ -368,6 +370,8 @@ void GranularModel::read_restart(FILE *fp)
     if (comm->me == 0)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
+    if ((num_char < 0) || (num_char > 65536))
+      error->all(FLERR, "Invalid granular model name in restart file");
 
     std::string model_name(num_char, ' ');
     if (comm->me == 0)

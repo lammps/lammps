@@ -36,7 +36,8 @@ enum { TYPE, RADIUS };
 /* ---------------------------------------------------------------------- */
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr)
+    Compute(lmp, narg, arg), pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr),
+    list(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute pair/local", error);
 

@@ -72,7 +72,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Enable granular surfaces to be used as boundary conditions on
 particles in a granular simulation.  Granular surfaces are defined as
@@ -124,6 +124,14 @@ argument is the name of the STL file.  It can be in text or binary
 format; this command auto-detects the format.  One global triangle is
 created for each triangle in the STL file(s).  Note that STL files
 cannot be used for 2d simulations since they only define triangles.
+
+.. versionchanged:: TBD
+
+STL files exported by engineering design software may contain
+degenerate triangles, i.e. triangles with duplicate or collinear
+corner points and thus zero area.  Such triangles cannot be used as
+surface triangles and are now skipped when reading the file; a
+warning with the number of skipped triangles is printed.
 
 This `Wikipedia page
 <https://en.wikipedia.org/wiki/STL_(file_format)>`_ describes the
@@ -265,7 +273,7 @@ surface in degrees Kelvin.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 This wall fix supports the *fix* keyword of :doc:`dump image
 <dump_image>`.  The fix will pass geometry information about the surface

@@ -90,7 +90,8 @@ class FixPrecessionSpin : public Fix {
 
   // zeeman field intensity and direction
 
-  double H_field;
+  double H_field;    // field intensity in T (as entered by the user)
+  double hfield;     // field intensity in rad.THz
   double nhx, nhy, nhz;
   double hx, hy, hz;    // temp. force variables
 

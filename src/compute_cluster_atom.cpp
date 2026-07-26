@@ -32,7 +32,7 @@ static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), clusterID(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), clusterID(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute cluster/atom command");
 

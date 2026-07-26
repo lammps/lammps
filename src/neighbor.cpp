@@ -107,8 +107,10 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
-pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
+Neighbor::Neighbor(LAMMPS *lmp) :
+    Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), bondlist(nullptr), anglelist(nullptr),
+    dihedrallist(nullptr), improperlist(nullptr), corners(nullptr), pairclass(nullptr),
+    pairnames(nullptr), pairmasks(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -909,8 +911,8 @@ int Neighbor::init_pair()
   nlist = nrequest;
 
   lists = new NeighList*[nrequest];
-  neigh_bin = new NBin*[nrequest];
-  neigh_stencil = new NStencil*[nrequest];
+  neigh_bin = new NBin*[nrequest]();
+  neigh_stencil = new NStencil*[nrequest]();
   neigh_pair = new NPair*[nrequest];
 
   // allocate new lists
@@ -1253,7 +1255,7 @@ void Neighbor::morph_skip()
   NeighRequest *irq, *jrq, *nrq;
 
   // loop over irq from largest to smallest cutoff
-  //  to prevent adding unecessary neighbor lists
+  //  to prevent adding unnecessary neighbor lists
 
   for (i = nrequest - 1; i >= 0; i--) {
     irq = requests[j_sorted[i]];

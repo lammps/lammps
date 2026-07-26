@@ -30,7 +30,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 This fix allows to add spheres to images rendered with :doc:`dump image
 <dump_image>` using the *fix* keyword to represent atoms from all
@@ -61,7 +61,7 @@ an atom to the average position across all replica.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Fix graphics/replica is designed to be used with the *fix* keyword of
 :doc:`dump image <dump_image>`.  The fix will add spheres based on the

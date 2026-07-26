@@ -33,8 +33,7 @@ Syntax
                              corner1x, corner1y, corner1z,
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
-                             i_name, d_name, i2_name[I], d2_name[I],
-              history[I][J],
+                             i_name, d_name, i2_name[I], d2_name[I], history[I][J],
                              vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
                              apip_lambda, apip_lambda_input, apip_e_fast,
@@ -238,7 +237,7 @@ switching parameter can be calculated from *apip_lambda_input* and
 mixes the energies of a fast (*apip_e_fast*) and a precise
 (*apip_e_precise*) potential into an adaptive-precision energy.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Alternatively, the switching parameter can be calculated from a
 locally averaged descriptor (*apip_la_avg*) to obtain a conservative

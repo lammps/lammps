@@ -206,11 +206,19 @@ void DynamicalMatrixKokkos::update_force()
     }
   }
 
+  // when a non-KOKKOS style runs inside a KOKKOS run, enable auto_sync for
+  // the duration of its compute so that any sync()/modified() it triggers
+  // (e.g. via the DomainKokkos x2lamda/lamda2x overrides) writes changes
+  // through to the legacy host arrays the style reads and writes
+
   if (pair_compute_flag) {
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!force->pair->kokkosable) lmp->kokkos->auto_sync = 1;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     Kokkos::Timer ktimer;
     force->pair->compute(eflag,vflag);
+    lmp->kokkos->auto_sync = prev_auto_sync;
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
     atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     timer->stamp(Timer::PAIR);
@@ -227,31 +235,46 @@ void DynamicalMatrixKokkos::update_force()
 
   if (atomKK->molecular) {
     if (force->bond) {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->bond->kokkosable) lmp->kokkos->auto_sync = 1;
       atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->bond->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     }
     if (force->angle) {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->angle->kokkosable) lmp->kokkos->auto_sync = 1;
       atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->angle->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     }
     if (force->dihedral) {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->dihedral->kokkosable) lmp->kokkos->auto_sync = 1;
       atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->dihedral->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     }
     if (force->improper) {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->improper->kokkosable) lmp->kokkos->auto_sync = 1;
       atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
       force->improper->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     }
     timer->stamp(Timer::BOND);
   }
 
   if (kspace_compute_flag) {
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
     atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     force->kspace->compute(eflag,vflag);
+    lmp->kokkos->auto_sync = prev_auto_sync;
     atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     timer->stamp(Timer::KSPACE);
   }

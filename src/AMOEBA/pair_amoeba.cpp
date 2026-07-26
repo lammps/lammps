@@ -53,7 +53,20 @@ static constexpr int DELTASTACK = 16;
 
 /* ---------------------------------------------------------------------- */
 
-PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
+PairAmoeba::PairAmoeba(LAMMPS *lmp) :
+    Pair(lmp), amtype_defined(nullptr), amclass_defined(nullptr), amtype2class(nullptr),
+    amtype(nullptr), amgroup(nullptr), fixpole(nullptr), fixudalt(nullptr), fixupalt(nullptr),
+    atomic_num(nullptr), valence(nullptr), am_mass(nullptr), am_q(nullptr), am_mu(nullptr),
+    polarity(nullptr), pdamp(nullptr), thole(nullptr), dirdamp(nullptr), npolgroup(nullptr),
+    polgroup(nullptr), sizpr(nullptr), dmppr(nullptr), elepr(nullptr), nmultiframe(nullptr),
+    mpaxis(nullptr), xpole(nullptr), ypole(nullptr), zpole(nullptr), fpole(nullptr),
+    vdwl_eps(nullptr), vdwl_sigma(nullptr), kred(nullptr), csix(nullptr), adisp(nullptr),
+    chgct(nullptr), dmpct(nullptr), pcore(nullptr), palpha(nullptr), vdwl_class_pair(nullptr),
+    vdwl_eps_pair(nullptr), vdwl_sigma_pair(nullptr), copt(nullptr), copm(nullptr), gear(nullptr),
+    aspc(nullptr), a_ualt(nullptr), ap_ualt(nullptr), b_ualt(nullptr), bp_ualt(nullptr),
+    c_ualt(nullptr), cp_ualt(nullptr), bpred(nullptr), bpredp(nullptr), bpreds(nullptr),
+    bpredps(nullptr), radmin(nullptr), epsilon(nullptr), radmin4(nullptr), epsilon4(nullptr),
+    uad(nullptr), uap(nullptr), ubd(nullptr), ubp(nullptr), fp_uind(nullptr)
 {
   amoeba = true;
   mystyle = "amoeba";

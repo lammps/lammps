@@ -31,12 +31,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBondVal::PairBondVal(LAMMPS *lmp) : Pair(lmp)
+PairBondVal::PairBondVal(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), r0(nullptr), alpha(nullptr), sparam(nullptr), v0(nullptr), s0(nullptr),
+    fp(nullptr), energy0(nullptr), offset(nullptr), cut_respa(nullptr)
 {
   restartinfo = 0;
   nmax = 0;
-  s0 = nullptr;
-  fp = nullptr;
   comm_forward = 1;
   comm_reverse = 1;
   single_enable = 0;

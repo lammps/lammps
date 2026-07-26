@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), coeffflag(1) {}
+BondZero::BondZero(LAMMPS *lmp) : Bond(lmp), r0(nullptr), coeffflag(1)
+{}
 
 /* ---------------------------------------------------------------------- */
 

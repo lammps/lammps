@@ -43,7 +43,8 @@ static constexpr double TOL = 1e-4;   // tolerance for conjugate gradient
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricateU::PairLubricateU(LAMMPS *lmp) : Pair(lmp)
+PairLubricateU::PairLubricateU(LAMMPS *lmp) :
+    Pair(lmp), wallfix(nullptr), cut_inner(nullptr), cut(nullptr)
 {
   single_enable = 0;
 

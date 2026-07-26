@@ -44,7 +44,7 @@ static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
-PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp)
+PairLebedevaZ::PairLebedevaZ(LAMMPS *lmp) : Pair(lmp), offset(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;

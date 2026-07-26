@@ -25,7 +25,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *quartic/exp* bond style uses the potential
 

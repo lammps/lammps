@@ -717,10 +717,14 @@ void PairHybridScaled::read_restart(FILE *fp)
   char *tmp;
   if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&n, 1, MPI_INT, 0, world);
+  if ((n < 0) || (n > 4096))
+    error->all(FLERR, "Invalid number of scale variables in restart file");
   scalevars.resize(n);
   for (auto &scale : scalevars) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536))
+      error->all(FLERR, "Invalid variable name length in restart file");
     tmp = new char[n];
     if (me == 0) utils::sfread(FLERR, tmp, sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(tmp, n, MPI_CHAR, 0, world);

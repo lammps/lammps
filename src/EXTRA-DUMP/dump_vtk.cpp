@@ -74,9 +74,10 @@ enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 /* ---------------------------------------------------------------------- */
 
 DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg)
+    DumpCustom(lmp, narg, arg), label(nullptr), boxcorners(nullptr), filecurrent(nullptr),
+    domainfilecurrent(nullptr), parallelfilecurrent(nullptr), multiname_ex(nullptr)
 {
-  if (narg < 6) utils::missing_cmd_args(FLERR,"dump vtk", error);
+  if (narg < 6) utils::missing_cmd_args(FLERR, "dump vtk", error);
 
   pack_choice.clear();
   vtype.clear();
@@ -97,9 +98,6 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   current_pack_choice_key = -1;
 
   if (filewriter) reset_vtk_data_containers();
-
-
-  label = nullptr;
 
   {
     // parallel vtp/vtu requires proc number to be preceded by underscore '_'
@@ -165,11 +163,11 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
 
 DumpVTK::~DumpVTK()
 {
-  delete [] filecurrent;
-  delete [] domainfilecurrent;
-  delete [] parallelfilecurrent;
-  delete [] multiname_ex;
-  delete [] label;
+  delete[] filecurrent;
+  delete[] domainfilecurrent;
+  delete[] parallelfilecurrent;
+  delete[] multiname_ex;
+  delete[] label;
 }
 
 /* ---------------------------------------------------------------------- */

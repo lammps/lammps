@@ -1612,7 +1612,7 @@ int DumpVTK::parse_vtk_fields(int narg, char **arg)
       ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[ATTRIBUTES+iarg] = argi.get_index1();
-      auto *aname = argi.get_name();
+      const auto *aname = argi.get_name();
 
       switch (argi.get_type()) {
 
@@ -2076,7 +2076,7 @@ int DumpVTK::modify_param(int narg, char **arg)
       ArgInfo argi(arg[1],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
                    |ArgInfo::DNAME|ArgInfo::INAME);
       argindex[ATTRIBUTES+nfield+nthresh] = argi.get_index1();
-      auto *aname = argi.get_name();
+      const auto *aname = argi.get_name();
 
       switch (argi.get_type()) {
 

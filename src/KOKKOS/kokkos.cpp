@@ -15,6 +15,7 @@
 #include "kokkos.h"
 
 #include "citeme.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
@@ -875,10 +876,16 @@ void KokkosLMP::newton_check()
     error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh/thread on'");
 
   if (!neigh_thread) {
-    if (threads_per_atom_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'threads/per/atom'");
-    if (pair_team_size_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'pair/team/size'");
+    // Without neigh/thread on, the stock full-list pair path ignores these two
+    // options -- but half-list warp-per-atom styles (e.g. lj/cut/coul/long2/kk)
+    // DO consume them as their launch shape (threads/per/atom = vector lanes per
+    // atom, pair/team/size = team threads).  So warn rather than abort: the
+    // options are honored by styles that support them and ignored by those that
+    // do not.
+    if ((threads_per_atom_set || pair_team_size_set) && comm->me == 0)
+      error->warning(FLERR,"KOKKOS 'threads/per/atom' / 'pair/team/size' without "
+                     "'neigh/thread on' are used only by half-list warp-per-atom "
+                     "pair styles (e.g. lj/cut/coul/long2/kk); ignored by others");
   }
 }
 

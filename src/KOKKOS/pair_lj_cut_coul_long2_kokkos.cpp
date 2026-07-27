@@ -53,10 +53,15 @@ struct LJCL2Force {
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d d_ilist;
   typename AT::t_int_1d d_numneigh;
-  typename AT::t_neighbors_2d d_neighbors;
+  typename AT::t_neighbors_2d d_neighbors;        // LayoutLeft  (atom-fast)
+  typename AT::t_neighbors_2d_lr d_neighbors_t;   // LayoutRight (jj-fast), transpose
 
   int nlocal, newton_pair, inum, atoms_per_team;
   bool full;   // full list (newton off): sum i-force only, no atomic j-scatter
+  bool use_transpose;  // read neighbor indices from the LayoutRight transpose list.
+                       // In warp-per-atom, the vector lanes read d_neighbors(i,jj)
+                       // for consecutive jj; LayoutLeft strides those by nmax
+                       // (fully uncoalesced), LayoutRight makes them contiguous.
   KK_FLOAT g_ewald, qqrd2e;
   KK_FLOAT special_lj[4], special_coul[4];
   params_lj_coul m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
@@ -72,9 +77,8 @@ struct LJCL2Force {
   KOKKOS_INLINE_FUNCTION
   void pair_contrib(const int i, const KK_FLOAT xtmp, const KK_FLOAT ytmp,
                     const KK_FLOAT ztmp, const KK_FLOAT qtmp, const int itype,
-                    const int jj, KK_ACC_FLOAT& fx, KK_ACC_FLOAT& fy,
+                    const int jraw, KK_ACC_FLOAT& fx, KK_ACC_FLOAT& fy,
                     KK_ACC_FLOAT& fz) const {
-    const int jraw = d_neighbors(i,jj);
     const int sb = (jraw >> SBBITS) & 3;
     const KK_FLOAT factor_lj = special_lj[sb];
     const KK_FLOAT factor_coul = special_coul[sb];
@@ -148,7 +152,10 @@ struct LJCL2Force {
     // latency-bound, so extra in-flight gathers only deepen the memory queues.)
     Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, jnum),
       [&] (const int jj, KK_ACC_FLOAT& fx, KK_ACC_FLOAT& fy, KK_ACC_FLOAT& fz) {
-      pair_contrib(i, xtmp, ytmp, ztmp, qtmp, itype, jj, fx, fy, fz);
+      // LayoutRight transpose makes these consecutive-jj reads coalesce across the
+      // warp's vector lanes; LayoutLeft strides them by nmax (uncoalesced).
+      const int jraw = use_transpose ? d_neighbors_t(i,jj) : d_neighbors(i,jj);
+      pair_contrib(i, xtmp, ytmp, ztmp, qtmp, itype, jraw, fx, fy, fz);
     }, fxtmp, fytmp, fztmp);
 
     // one lane per atom writes the reduced i-force to the global array.  On a full
@@ -215,6 +222,8 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ff.d_ilist    = k_list->d_ilist;
   ff.d_numneigh = k_list->d_numneigh;
   ff.d_neighbors= k_list->d_neighbors;
+  ff.d_neighbors_t = k_list->d_neighbors_transpose;  // empty view unless neigh/transpose on
+  ff.use_transpose = this->lmp->kokkos->neigh_transpose;
   ff.inum       = k_list->inum;
 
   ff.full        = use_full;
@@ -236,14 +245,28 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       ff.m_cut_coulsq[i][j]  = this->m_cut_coulsq[i][j];
     }
 
-  // warp-per-atom: a full warp's vector lanes split each atom's neighbor loop;
-  // atoms_per_team of them share one thread block.  These two constants are the
-  // launch-shape tuning knobs -- adjust and rebuild to sweep on new hardware (the
-  // stock threads/per/atom and pair/team/size package options are unavailable to
-  // this kernel).  The full-list path has ~2x the neighbors per atom, so its
-  // optimum may differ from the half-list path -- re-sweep vl/apt for each.
-  const int vector_length = 32;
-  const int atoms_per_team = 4;
+  // warp-per-atom launch shape, from the standard KOKKOS package options -- the
+  // same machinery as the stock neigh/thread path:
+  //   threads/per/atom  -> vector_length (vector lanes splitting each atom's
+  //                        neighbor loop; power of 2, <= 32)
+  //   pair/team/size    -> team threads; atoms_per_team = team / vector_length
+  // Tune at runtime with no rebuild, e.g.:
+  //   -pk kokkos neigh half newton on binsize 8.0 neigh/transpose on \
+  //      threads/per/atom 8 pair/team/size 64
+  //
+  // MEASURED OPTIMUM on A100 (melt, 505 neighs/atom half list, single precision):
+  // threads/per/atom 8, pair/team/size 64 (= vector_length 8, atoms_per_team 8),
+  // used as the DEFAULT when the user does not set these options -- the stock
+  // package defaults (tpa 1, team 128) would pick vector_length 1, the worst shape
+  // here (one-thread-per-atom, ~13.8 vs 26 ns/day).  Cost is monotonic in
+  // vector_length (vl 8 -> 26, 16 -> 23.7, 32 -> 20.8): the kernel is limited by
+  // the cross-lane reduction + atomic overhead, not gather latency or occupancy,
+  // so fewer lanes per atom wins.  See kokkos_neigh.md sections 16.7, 16.11.  The
+  // full-list path has ~2x the neighbors per atom, so its optimum may differ.
+  auto *kk = this->lmp->kokkos;
+  const int vector_length = kk->threads_per_atom_set ? kk->threads_per_atom : 8;
+  const int team_size     = kk->pair_team_size_set   ? kk->pair_team_size   : 64;
+  const int atoms_per_team = (team_size >= vector_length) ? team_size / vector_length : 1;
   ff.atoms_per_team = atoms_per_team;
   const int nteams = (k_list->inum + atoms_per_team - 1) / atoms_per_team;
 

@@ -8,9 +8,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   read_restart file
+   read_restart file keyword value ...
 
 * file = name of binary restart file to read in
+* zero or more keyword/value pairs may be appended
+* keyword = *try_jump*
+
+  .. parsed-literal::
+
+      *try_jump* value = jump_location
+        jump_location = arg(s) passed to jump command if restart is successful
 
 Examples
 """"""""
@@ -19,6 +26,8 @@ Examples
 
    read_restart save.10000
    read_restart restart.*
+   read_restart restart.* try_jump newfile
+   read_restart restart.* try_jump "SELF runloop"
 
 Description
 """""""""""
@@ -35,6 +44,13 @@ processors in the current simulation and the settings of the
 :doc:`processors <processors>` command.  The partitioning can later be
 changed by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands.
+
+Normally, it is an error if no restart file is found. Specifying the *try_jump*
+option allows attempting to restart when the presence of a file is unknown. If
+a restart file is found, this command will restart from it and jump to
+*jump_location*. If no restart file is found, this command returns as a no-op.
+Note that this command will still generate an error if restart files are
+corrupt, a subset of restart files are missing, or any other errors occur.
 
 .. deprecated:: 23Jun2022
 

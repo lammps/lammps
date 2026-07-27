@@ -34,6 +34,7 @@
 #include "pair.h"
 #include "special.h"
 #include "update.h"
+#include "input.h"
 
 #include <cstring>
 #include <filesystem>
@@ -50,8 +51,8 @@ ReadRestart::ReadRestart(LAMMPS *lmp) : Command(lmp) {}
 
 void ReadRestart::command(int narg, char **arg)
 {
-  if (narg != 1 && narg != 2)
-    error->all(FLERR, Error::COMMAND, "Read_restart must have one or two arguments");
+  if (narg < 1)
+    error->all(FLERR, Error::COMMAND, "Read_restart must have at least one argument");
 
   if (domain->box_exist)
     error->all(FLERR, Error::COMMAND, "Cannot use read_restart after simulation box is defined"
@@ -63,13 +64,19 @@ void ReadRestart::command(int narg, char **arg)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  // check for remap option
-
+  // check options
+  try_jump = false;
   int remapflag = 1;
-  if (narg == 2) {
-    if (strcmp(arg[1],"noremap") == 0) remapflag = 0;
-    else if (strcmp(arg[1],"remap") == 0) remapflag = 1; // for backward compatibility
-    else error->all(FLERR, 1, "Unknown read_restart keyword {}", arg[1]);
+  for (int i = 1; i < narg; i++) {
+    if (strcmp(arg[i],"noremap") == 0) remapflag = 0;
+    else if (strcmp(arg[i],"remap") == 0) remapflag = 1; // for backward compatibility
+    else if (strcmp(arg[i],"try_jump") == 0) {
+      if (i+1 >= narg) {
+        utils::missing_cmd_args(FLERR, "read_restart try_jump", error);
+      }
+      try_jump = true;
+      jump_location = arg[++i];
+    } else error->all(FLERR, 1, "Unknown read_restart keyword {}", arg[1]);
   }
 
   // if filename contains "*", search dir for latest restart file
@@ -78,11 +85,15 @@ void ReadRestart::command(int narg, char **arg)
   if (strchr(arg[0],'*')) {
     int n=0;
     if (me == 0) {
-      auto fn = file_search(arg[0]);
-      n = fn.size()+1;
-      file = utils::strdup(fn);
+      auto fn_opt = file_search(arg[0]);
+      if (fn_opt) {
+        auto& fn = fn_opt.value();
+        n = fn.size()+1;
+        file = utils::strdup(fn);
+      }
     }
     MPI_Bcast(&n,1,MPI_INT,0,world);
+    if (n == 0) return;
     if (me != 0) file = new char[n];
     MPI_Bcast(file,n,MPI_CHAR,0,world);
   } else file = utils::strdup(arg[0]);
@@ -94,18 +105,29 @@ void ReadRestart::command(int narg, char **arg)
   if (utils::strmatch(arg[0],R"(\.mpiio)"))
     error->all(FLERR, Error::ARGZERO, "MPI-IO restart files are no longer supported by LAMMPS");
 
+  std::string hfile = file;
+  if (multiproc) {
+    hfile.replace(hfile.find('%'),1,"base");
+  }
+
   // open single restart file or base file for multiproc case
 
-  if (me == 0) {
+  if (me == 0 && (!try_jump || std::filesystem::exists(hfile))) {
     utils::logmesg(lmp,"Reading restart file ...\n");
-    std::string hfile = file;
-    if (multiproc) {
-      hfile.replace(hfile.find('%'),1,"base");
-    }
     fp = fopen(hfile.c_str(),"rb");
-    if (fp == nullptr)
+    if (fp == nullptr) {
       error->one(FLERR, Error::ARGZERO, "Cannot open restart file {}: {}", hfile,
                  utils::getsyserror());
+    }
+  }
+
+  // Check if file was found and opened
+
+  int file_opened = fp != nullptr;
+  MPI_Bcast(&file_opened,1,MPI_INT,0,world);
+  if (!file_opened) {
+    delete[] file;
+    return;
   }
 
   // read magic string, endian flag, format revision
@@ -493,6 +515,10 @@ void ReadRestart::command(int narg, char **arg)
 
   if (comm->me == 0)
     utils::logmesg(lmp,"  read_restart CPU = {:.3f} seconds\n",platform::walltime()-time1);
+
+  if (try_jump) {
+    input->one("jump " + jump_location);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -504,7 +530,7 @@ void ReadRestart::command(int narg, char **arg)
    only called by proc 0
 ------------------------------------------------------------------------- */
 
-std::string ReadRestart::file_search(const std::string &inpfile)
+std::optional<std::string> ReadRestart::file_search(const std::string &inpfile)
 {
   // separate inpfile into dir + filename
 
@@ -540,7 +566,13 @@ std::string ReadRestart::file_search(const std::string &inpfile)
         if (num > maxnum) maxnum = num;
       }
     }
-    if (maxnum < 0) error->one(FLERR, 1, "Found no restart file matching pattern");
+    if (maxnum < 0) {
+      if (!try_jump) {
+        error->one(FLERR, 1, "Found no restart file matching pattern");
+      } else {
+        return {};
+      }
+    }
     filename.replace(filename.find('*'),1,std::to_string(maxnum));
   }
   return platform::path_join(dirname,filename);

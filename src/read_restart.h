@@ -23,6 +23,8 @@ CommandStyle(read_restart,ReadRestart);
 #include "command.h"
 #include "safe_pointers.h"
 
+#include <optional>
+
 namespace LAMMPS_NS {
 
 class ReadRestart : public Command {
@@ -40,7 +42,10 @@ class ReadRestart : public Command {
   int nprocs_file;       // total # of procs that wrote restart file
   int revision;          // revision number of the restart file format
 
-  std::string file_search(const std::string &);
+  bool try_jump;
+  std::string jump_location;
+
+  std::optional<std::string> file_search(const std::string &);
   void header();
   void type_arrays();
   void force_fields();

@@ -53,7 +53,10 @@ clear
 
 # rerun simulation from restart
 
-read_restart    ${restartfile}
+read_restart    ${restartfile} try_jump "SELF lj_restarted"
+print "LJ: unable to read restart file "
+quit 1
+label lj_restarted
 
 # gcmc
 
@@ -177,7 +180,11 @@ clear
 
 # rerun simulation from restart
 
-read_restart    ${restartfile}
+read_restart    ${restartfile} try_jump "SELF h20_restarted"
+print "H2O: unable to read restart file "
+quit 1
+label h20_restarted
+
 molecule        h2omol H2O.txt
 kspace_style    ewald 0.0001
 fix             mynvt h2o nvt temp ${temp} ${temp} 100

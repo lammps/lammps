@@ -321,6 +321,54 @@ TEST(FixPIMDUVTMPI, BeadAveragedQuadraticDerivativeAtFixedPoint)
   lammps_close(lmp);
 }
 
+TEST(FixPIMDUVTMPI, MultiRankPerBeadAveragesDerivativeOncePerBead)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 4) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
+
+  const auto uvt = pimd_test::uvt_vector_indices();
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x2", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
+
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("lattice sc 0.7");
+  command("region box block 0 2 0 2 0 2");
+  command("create_box 1 box");
+  command("create_atoms 1 box");
+  command("mass 1 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("timestep 0.002");
+  command("variable beadshift universe 0.0 0.15");
+  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
+  command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
+  command("variable dEdN equal 1.5");
+  command("fix cp all pimd/uvt method nmpimd thermostat NHC temp 0.8 Tdamp 0.2 "
+          "tchain 3 tloop 1 mu 1.5 Udamp 0.2 ne 1.7 ne_velocity 0.0 dedn v_dEdN");
+  command("run 0 post no");
+
+  EXPECT_NEAR(fix_value("cp", uvt.dedn), 1.5, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", uvt.mu), 1.5, 1.0e-12);
+
+  lammps_close(lmp);
+}
+
 TEST(FixPIMDUVTMPI, P4LongTimeConvergence)
 {
   int nprocs = 0;

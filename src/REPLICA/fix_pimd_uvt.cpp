@@ -14,6 +14,7 @@
 #include "fix_pimd_uvt.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "compute.h"
 #include "error.h"
 #include "fix.h"
@@ -352,7 +353,7 @@ void FixPIMDUVT::nhc_mu_integrate()
       expfac = propagate_chain0_halfstep(ncfac, true);
     }
 
-    double eta_dot_k = eta_dot[0];
+    double eta_dot_k = (comm->me == 0) ? eta_dot[0] : 0.0;
     double eta_dot_ave = 0.0;
     MPI_Allreduce(&eta_dot_k, &eta_dot_ave, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
     eta_dot_ave *= inverse_np;
@@ -409,7 +410,7 @@ double FixPIMDUVT::evaluate_dedn()
 
 void FixPIMDUVT::refresh_dedn_cache()
 {
-  double dedn_local = evaluate_dedn();
+  double dedn_local = (comm->me == 0) ? evaluate_dedn() : 0.0;
   double dedn_avg = 0.0;
   MPI_Allreduce(&dedn_local, &dedn_avg, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   dedn_current = dedn_avg * inverse_np;

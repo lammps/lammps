@@ -85,6 +85,9 @@ if(PKG_REPLICA)
   add_test(NAME FixPIMDUVTSerial COMMAND test_fix_pimd_uvt --gtest_filter=FixPIMDUVTSerialTest.*)
   add_mpi_test(NAME FixPIMDUVTMPI NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_uvt> --gtest_filter=FixPIMDUVTMPI.*)
+  add_mpi_test(NAME FixPIMDUVTMultiRankPerBead NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_uvt>
+                       --gtest_filter=FixPIMDUVTMPI.MultiRankPerBeadAveragesDerivativeOncePerBead)
 
 endif()
 

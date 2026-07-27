@@ -68,6 +68,9 @@ if(PKG_REPLICA)
   add_test(NAME FixPIMDNVE COMMAND test_fix_pimd_nve --gtest_filter=FixPIMDNVESerialTest.*)
   add_mpi_test(NAME FixPIMDNVEPartition NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_nve> --gtest_filter=FixPIMDNVEMPI.*)
+  add_mpi_test(NAME FixPIMDNVEMultiRankPerBead NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_nve>
+                       --gtest_filter=FixPIMDNVEMPI.MultiRankPerBeadRunProducesFiniteVector)
 
   add_executable(test_fix_pimd_nvt test_fix_pimd_nvt.cpp)
   target_link_libraries(test_fix_pimd_nvt PRIVATE lammps GTest::GMock)

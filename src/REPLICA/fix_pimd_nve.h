@@ -118,7 +118,7 @@ class FixPIMDNVE : public Fix {
 
   void collect_xc();
   void b_step();
-  void apply_force_velocity_kick(bool);
+  void apply_force_velocity_kick();
   virtual void qc_step();
   virtual void a_step();
   void remove_com_motion();
@@ -127,7 +127,6 @@ class FixPIMDNVE : public Fix {
   virtual double **normal_mode_transform_buffer();
   void forward_normal_mode_transform(double **);
   void backward_normal_mode_transform(double **);
-  void prepare_setup_normal_mode_coordinates();
   void finalize_setup_normal_mode_coordinates();
   void begin_normal_mode_coordinate_propagation();
   void propagate_normal_mode_coordinate_halfstep();

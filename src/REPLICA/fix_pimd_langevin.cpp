@@ -480,7 +480,7 @@ void FixPIMDLangevin::init()
 void FixPIMDLangevin::setup(int vflag)
 {
   if (method == NMPIMD) {
-    prepare_setup_normal_mode_coordinates();
+    begin_normal_mode_coordinate_propagation();
   } else if (method == PIMD) {
     unmap_coordinates(atom->x, atom->image);
     prepare_coordinates();
@@ -661,7 +661,7 @@ void FixPIMDLangevin::b_step()
   // used for both NMPIMD and PIMD
   // For NMPIMD, force only includes the contribution of external potential.
   // For PIMD, force includes the contributions of external potential and spring force.
-  apply_force_velocity_kick(true);
+  apply_force_velocity_kick();
 }
 
 /* ---------------------------------------------------------------------- */

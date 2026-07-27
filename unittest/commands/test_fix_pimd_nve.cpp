@@ -9,6 +9,7 @@
 
 #define LAMMPS_LIB_MPI 1
 
+#include "atom.h"
 #include "lammps.h"
 #include "platform.h"
 
@@ -18,6 +19,7 @@
 
 #include <cmath>
 #include <mpi.h>
+#include <string>
 #include <vector>
 
 bool verbose = false;
@@ -55,6 +57,55 @@ class FixPIMDNVESerialTest : public LAMMPSTest {
     return pimd_test::fix_value(lmp, id, index);
   }
 };
+
+TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
+{
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("region box block 0 4 0 4 0 4");
+  command("create_box 2 box");
+  command("create_atoms 1 single 1.0 1.0 1.0");
+  command("create_atoms 2 single 2.5 2.5 2.5");
+  command("mass * 1.0");
+  command("group mobile type 1");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("velocity all set 0.2 0.1 -0.05");
+  command("timestep 0.002");
+
+  auto *atom = lmp->atom;
+  double initial[3] = {0.0, 0.0, 0.0};
+  bool found = false;
+  for (int i = 0; i < atom->nlocal; ++i) {
+    if (atom->type[i] == 2) {
+      initial[0] = atom->x[i][0];
+      initial[1] = atom->x[i][1];
+      initial[2] = atom->x[i][2];
+      found = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(found);
+
+  command("fix cp mobile pimd/nve temp 1.0");
+  command("run 10 post no");
+
+  found = false;
+  for (int i = 0; i < atom->nlocal; ++i) {
+    if (atom->type[i] == 2) {
+      EXPECT_NEAR(atom->x[i][0], initial[0], 1.0e-12);
+      EXPECT_NEAR(atom->x[i][1], initial[1], 1.0e-12);
+      EXPECT_NEAR(atom->x[i][2], initial[2], 1.0e-12);
+      found = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(found);
+}
 
 TEST_F(FixPIMDNVESerialTest, P1StandaloneRunProducesFiniteVector)
 {
@@ -177,6 +228,51 @@ TEST(FixPIMDNVEMPI, ConservesTotalEnergyOverShortRun)
   double energy_after = fix_value("cp", 3);
 
   EXPECT_NEAR(energy_after, energy_before, 1.0e-8);
+
+  lammps_close(lmp);
+}
+
+TEST(FixPIMDNVEMPI, MultiRankPerBeadRunProducesFiniteVector)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 4) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x2", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
+
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("lattice sc 0.7");
+  command("region box block 0 2 0 2 0 2");
+  command("create_box 1 box");
+  command("create_atoms 1 box");
+  command("mass 1 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("timestep 0.002");
+  command("variable beadshift universe 0.0 0.15");
+  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
+  command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
+  command("fix cp all pimd/nve temp 0.8");
+  command("run 10 post no");
+
+  for (int i = 0; i < 10; ++i) {
+    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
+  }
 
   lammps_close(lmp);
 }

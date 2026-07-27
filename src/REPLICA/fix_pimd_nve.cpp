@@ -146,18 +146,6 @@ bool FixPIMDNVE::parse_common_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  if ((strcmp(arg[i], "method") == 0) || (strcmp(arg[i], "ensemble") == 0) ||
-      (strcmp(arg[i], "thermostat") == 0) || (strcmp(arg[i], "Tdamp") == 0) ||
-      (strcmp(arg[i], "tchain") == 0) || (strcmp(arg[i], "tloop") == 0) ||
-      (strcmp(arg[i], "drag") == 0) || (strcmp(arg[i], "mu") == 0) ||
-      (strcmp(arg[i], "ne") == 0) || (strcmp(arg[i], "ne_velocity") == 0) ||
-      (strcmp(arg[i], "dedn") == 0) || (strcmp(arg[i], "tau") == 0) ||
-      (strcmp(arg[i], "seed") == 0) || (strcmp(arg[i], "PILE_L_temp") == 0) ||
-      (strcmp(arg[i], "barostat") == 0) || (strcmp(arg[i], "iso") == 0) ||
-      (strcmp(arg[i], "aniso") == 0) || (strcmp(arg[i], "taup") == 0) ||
-      (strcmp(arg[i], "fixedpoint") == 0)) {
-    error->all(FLERR, "Keyword {} is not supported by fix {}", arg[i], style);
-  }
   return false;
 }
 
@@ -267,9 +255,6 @@ void FixPIMDNVE::init()
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR, "Fix {} requires an atom map, see atom_modify", style);
 
-  if (comm->nprocs != 1)
-    error->all(FLERR, "Fix {} currently requires one MPI rank per bead", style);
-
   if (universe->me == 0 && universe->uscreen)
     fprintf(universe->uscreen, "Fix %s: initializing Path-Integral ...\n", style);
 
@@ -347,7 +332,7 @@ void FixPIMDNVE::init()
 
 void FixPIMDNVE::setup(int vflag)
 {
-  prepare_setup_normal_mode_coordinates();
+  begin_normal_mode_coordinate_propagation();
   after_force_transform_hook();
   collect_xc();
   compute_spring_energy();
@@ -433,12 +418,6 @@ void FixPIMDNVE::backward_normal_mode_transform(double **ptr)
 {
   inter_replica_comm(ptr);
   nmpimd_transform(normal_mode_transform_buffer(), ptr, M_xp2x[universe->iworld]);
-}
-
-void FixPIMDNVE::prepare_setup_normal_mode_coordinates()
-{
-  unmap_coordinates(atom->x, atom->image);
-  forward_normal_mode_transform(atom->x);
 }
 
 void FixPIMDNVE::finalize_setup_normal_mode_coordinates()
@@ -560,10 +539,10 @@ void FixPIMDNVE::collect_xc()
 
 void FixPIMDNVE::b_step()
 {
-  apply_force_velocity_kick(false);
+  apply_force_velocity_kick();
 }
 
-void FixPIMDNVE::apply_force_velocity_kick(bool restrict_group)
+void FixPIMDNVE::apply_force_velocity_kick()
 {
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
@@ -572,7 +551,7 @@ void FixPIMDNVE::apply_force_velocity_kick(bool restrict_group)
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) {
-    if (restrict_group && !(mask[i] & groupbit)) continue;
+    if (!(mask[i] & groupbit)) continue;
 
     double dtfm = dtf / mass[type[i]];
     v[i][0] += dtfm * f[i][0];
@@ -584,10 +563,12 @@ void FixPIMDNVE::apply_force_velocity_kick(bool restrict_group)
 void FixPIMDNVE::qc_step()
 {
   int nlocal = atom->nlocal;
+  int *mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
   if (universe->iworld == 0) {
     for (int i = 0; i < nlocal; i++) {
+      if (!(mask[i] & groupbit)) continue;
       x[i][0] += dtv * v[i][0];
       x[i][1] += dtv * v[i][1];
       x[i][2] += dtv * v[i][2];
@@ -598,11 +579,13 @@ void FixPIMDNVE::qc_step()
 void FixPIMDNVE::a_step()
 {
   int n = atom->nlocal;
+  int *mask = atom->mask;
   double **x = atom->x;
   double **v = atom->v;
 
   if (universe->iworld != 0) {
     for (int i = 0; i < n; i++) {
+      if (!(mask[i] & groupbit)) continue;
       double x0 = x[i][0];
       double x1 = x[i][1];
       double x2 = x[i][2];

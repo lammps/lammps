@@ -92,12 +92,12 @@ class DumpVTK : public DumpCustom {
   void write_vtk(int, double *);
   void write_vtp(int, double *);
   void write_vtu(int, double *);
-  void write_pvtk(int);                  // write parallel .pvtp/.pvtu summary file
-  std::string pvtk_piece_filename(int);  // per-proc piece file name as referenced in summary
+  void write_pvtk(int);                    // write parallel .pvtp/.pvtu summary file
+  std::string pvtk_piece_filename(int);    // per-proc piece file name as referenced in summary
 
   void write_points(VTKWriter::Flavor, bool unstructured);    // write the atom data file
-  void check_coordinate_precision(double);                    // warn if single precision is too coarse
-  void write_domain(VTKWriter::Flavor);                       // write the box data file
+  void check_coordinate_precision(double);    // warn if single precision is too coarse
+  void write_domain(VTKWriter::Flavor);       // write the box data file
 
   using FnPtrPack = void (DumpVTK::*)(int);
   std::map<int, FnPtrPack> pack_choice;    // ptrs to pack functions
@@ -111,17 +111,17 @@ class DumpVTK : public DumpCustom {
 
   struct VTKArray {
     std::string name;
-    int type;      // Dump::INT, Dump::DOUBLE or Dump::STRING
-    int ncomp;     // 1 or 3
-    std::vector<double> values;         // for INT and DOUBLE
-    std::vector<std::string> strings;   // for STRING
+    int type;                            // Dump::INT, Dump::DOUBLE or Dump::STRING
+    int ncomp;                           // 1 or 3
+    std::vector<double> values;          // for INT and DOUBLE
+    std::vector<std::string> strings;    // for STRING
   };
 
-  std::vector<double> points;      // coordinates of the dumped atoms
+  std::vector<double> points;    // coordinates of the dumped atoms
   std::vector<VTKArray> myarrays;
 
   int n_calls_;
-  int precision_warned;    // 1 after the single precision warning was printed
+  int precision_warned;       // 1 after the single precision warning was printed
   double (*boxcorners)[3];    // corners of triclinic domain box
   char *filecurrent;
   char *domainfilecurrent;

@@ -126,6 +126,8 @@ if __name__ == "__main__":
     parser.add_argument("--json", dest="json_file", default="", help="JSON output file with results and metadata")
     parser.add_argument("--summary", dest="summary", default="", help="Markdown summary output file ('-' for stdout)")
     parser.add_argument("--compare", dest="compare", default="", help="JSON file from a previous run to compare against")
+    parser.add_argument("--commit", dest="commit", default="", help="Commit hash for git revision that was tested")
+    parser.add_argument("--branch", dest="branch", default="", help="Git branch of revision that was tested")
     args = parser.parse_args()
 
     # merge the shards
@@ -159,12 +161,16 @@ if __name__ == "__main__":
         data = {
             'metadata': {
                 'title': args.title,
-                'generated': datetime.datetime.now().isoformat(timespec='seconds'),
+                'generated': datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
                 'properties': properties,
                 'counts': counts,
             },
             'tests': tests,
         }
+        if args.commit:
+            data['metadata']['commit'] = commit
+        if args.branch:
+            data['metadata']['branch'] = branch
         with open(args.json_file, 'w') as f:
             json.dump(data, f, indent=2)
             f.write('\n')

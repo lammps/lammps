@@ -215,6 +215,9 @@ void FixUVT::init()
   dedn_compute = nullptr;
   dedn_fix = nullptr;
 
+  if (dedn_index < 0)
+    error->all(FLERR, "Illegal dedn index {} for fix {}", dedn_index, style);
+
   if (dedn_which == ArgInfo::VARIABLE) {
     dedn_var = input->variable->find(dedn_name);
     if (dedn_var < 0)
@@ -237,7 +240,7 @@ void FixUVT::init()
       if (!dedn_compute->vector_flag)
         error->all(FLERR, "Compute {} for fix {} does not calculate a global vector", dedn_name,
                    style);
-      if (dedn_index > dedn_compute->size_vector)
+      if (dedn_compute->size_vector > 0 && dedn_index > dedn_compute->size_vector)
         error->all(FLERR, "Compute {} for fix {} vector is accessed out-of-range{}", dedn_name,
                    style, utils::errorurl(20));
     }
@@ -251,7 +254,7 @@ void FixUVT::init()
       if (!dedn_fix->vector_flag)
         error->all(FLERR, "Fix {} for fix {} does not calculate a global vector", dedn_name,
                    style);
-      if (dedn_index > dedn_fix->size_vector)
+      if (dedn_fix->size_vector > 0 && dedn_index > dedn_fix->size_vector)
         error->all(FLERR, "Fix {} for fix {} vector is accessed out-of-range{}", dedn_name, style,
                    utils::errorurl(20));
     }

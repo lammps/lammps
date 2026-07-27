@@ -407,7 +407,10 @@ double FixPIMDNVT::compute_nuclear_kinetic_energy() const
     if (mask[i] & groupbit)
       kecurrent += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * mass[type[i]];
   }
-  return kecurrent * force->mvv2e;
+  double ketotal = 0.0;
+  kecurrent *= force->mvv2e;
+  MPI_Allreduce(&kecurrent, &ketotal, 1, MPI_DOUBLE, MPI_SUM, world);
+  return ketotal;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -604,7 +607,6 @@ double FixPIMDNVT::thermostat_work_delta(double scale_factor) const
   double work_delta = 0.0;
 
   MPI_Allreduce(&work_delta_local, &work_delta, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  work_delta /= universe->procs_per_world[universe->iworld];
   return work_delta;
 }
 

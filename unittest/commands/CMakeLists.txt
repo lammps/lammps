@@ -79,6 +79,9 @@ if(PKG_REPLICA)
   add_mpi_test(NAME FixPIMDNVTMPI NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
                        --gtest_filter=FixPIMDNVTMPI.*)
+  add_mpi_test(NAME FixPIMDNVTMultiRankPerBead NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
+                       --gtest_filter=FixPIMDNVTMPI.MultiRankPerBeadRunProducesFiniteThermostatState)
 
   add_executable(test_fix_pimd_uvt test_fix_pimd_uvt.cpp)
   target_link_libraries(test_fix_pimd_uvt PRIVATE lammps GTest::GMock)

@@ -353,7 +353,10 @@ void FixPIMDUVT::nhc_mu_integrate()
       expfac = propagate_chain0_halfstep(ncfac, true);
     }
 
-    double eta_dot_k = (comm->me == 0) ? eta_dot[0] : 0.0;
+    double eta_dot_k = eta_dot[0];
+    double eta_dot_world = 0.0;
+    MPI_Allreduce(&eta_dot_k, &eta_dot_world, 1, MPI_DOUBLE, MPI_SUM, world);
+    eta_dot_k = (comm->me == 0) ? eta_dot_world / comm->nprocs : 0.0;
     double eta_dot_ave = 0.0;
     MPI_Allreduce(&eta_dot_k, &eta_dot_ave, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
     eta_dot_ave *= inverse_np;
@@ -410,7 +413,10 @@ double FixPIMDUVT::evaluate_dedn()
 
 void FixPIMDUVT::refresh_dedn_cache()
 {
-  double dedn_local = (comm->me == 0) ? evaluate_dedn() : 0.0;
+  double dedn_local = evaluate_dedn();
+  double dedn_world = 0.0;
+  MPI_Allreduce(&dedn_local, &dedn_world, 1, MPI_DOUBLE, MPI_SUM, world);
+  dedn_local = (comm->me == 0) ? dedn_world / comm->nprocs : 0.0;
   double dedn_avg = 0.0;
   MPI_Allreduce(&dedn_local, &dedn_avg, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   dedn_current = dedn_avg * inverse_np;

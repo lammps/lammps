@@ -329,11 +329,15 @@ following format.  A line with the timestep and number of chunks is
 written.  Then one line per chunk is written, containing the chunk ID
 :math:`(1-N_\text{chunk}),` an optional original ID value, optional
 coordinate values for chunks that represent spatial bins, the number of
-atoms in the chunk, and one or more calculated values.  More explanation
-of the optional values is given below.  The number of values in each
-line corresponds to the number of values specified in the fix ave/chunk
+atoms in range of the kernel, and one or more calculated values. More
+explanation of the optional values is given below.  The number of values in
+each line corresponds to the number of values specified in the fix ave/chunk
 command.  The number of atoms and the value(s) are summed or average
 quantities, as explained above.
+
+Note that the count column may include atoms in other chunks if the
+kernel cutoff is larger than the size of a chunk. This value differs
+from what is calculated by :doc:`fix ave/chunk <fix_ave_chunk>`.
 
 The *overwrite* keyword will continuously overwrite the output file
 with the latest output, so that it only contains one timestep worth of
@@ -426,7 +430,7 @@ LAMMPS was built with that package.  See the :doc:`Build package <Build_package>
 Related commands
 """"""""""""""""
 
-:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`,
+:doc:`compute <compute>`, :doc:`fix ave/atom <fix_ave_atom>`, :doc:`fix ave/chunk <fix_ave_chunk>`,
 :doc:`fix ave/histo <fix_ave_histo>`, :doc:`fix ave/time <fix_ave_time>`,
 :doc:`variable <variable>`, :doc:`fix ave/correlate <fix_ave_correlate>`,
 :doc:`fix ave/grid <fix_ave_grid>`

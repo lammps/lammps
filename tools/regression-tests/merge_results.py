@@ -168,9 +168,9 @@ if __name__ == "__main__":
             'tests': tests,
         }
         if args.commit:
-            data['metadata']['commit'] = commit
+            data['metadata']['commit'] = args.commit
         if args.branch:
-            data['metadata']['branch'] = branch
+            data['metadata']['branch'] = args.branch
         with open(args.json_file, 'w') as f:
             json.dump(data, f, indent=2)
             f.write('\n')

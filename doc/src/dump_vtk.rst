@@ -57,7 +57,7 @@ data in the VTK simple legacy or XML format,
 depending on the filename extension specified for the dump file.  This
 can be either *\*.vtk* for the legacy format or *\*.vtp* and *\*.vtu*,
 respectively, for XML format; see the `VTK homepage
-<https://vtk.org/VTK/img/file-formats.pdf>`_ for a detailed
+<https://docs.vtk.org/en/latest/vtk_file_formats/index.html>`_ for a detailed
 description of these formats.  Since this naming convention conflicts
 with the way binary output is usually specified (see below), the
 :doc:`dump_modify binary <dump_modify>` command allows setting of a

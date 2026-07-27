@@ -112,6 +112,7 @@ bool FixPIMDUVT::parse_uvt_keyword(int narg, char **arg, int &i)
 
 void FixPIMDUVT::finish_uvt_constructor_setup()
 {
+  if (method != NMPIMD) error->all(FLERR, "Fix {} only supports method nmpimd", style);
   if (!mu_flag) error->all(FLERR, "Missing mu keyword for fix {}", style);
   if (!Ne) error->all(FLERR, "Missing ne keyword for fix {}", style);
   if (!dedn_name) error->all(FLERR, "Missing dedn keyword for fix {}", style);

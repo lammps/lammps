@@ -29,7 +29,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
   FixPIMDLangevin(class LAMMPS *, int, char **);
   ~FixPIMDLangevin() override;
 
-  enum { PIMD, NMPIMD };
   enum { PHYSICAL, NORMAL };
   enum { BAOAB, OBABO };
   enum { ISO, ANISO, TRICLINIC };
@@ -50,7 +49,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
 
  protected:
   // System setting variables
-  int method;                              // PIMD or NMPIMD or CMD
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
   double other_mvv2e;
@@ -80,7 +78,7 @@ class FixPIMDLangevin : public FixPIMDNVE {
                                             double **ptr,
                                             std::vector<tagint> &rep_tag,
                                             std::vector<double> &rep_val);
-  void virtual spring_force();
+  void spring_force() override;
 
   /* normal-mode operations */
 

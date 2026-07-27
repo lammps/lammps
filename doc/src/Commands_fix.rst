@@ -181,6 +181,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
    * :doc:`pimd/langevin <fix_pimd>`
+   * :doc:`pimd/nve <fix_pimd>`
    * :doc:`pimd/nvt <fix_pimd>`
    * :doc:`pimd/uvt <fix_pimd_uvt>`
    * :doc:`pimd/langevin/bosonic <fix_pimd>`

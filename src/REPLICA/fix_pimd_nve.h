@@ -30,6 +30,8 @@ class Compute;
 
 class FixPIMDNVE : public Fix {
  public:
+  enum { PIMD, NMPIMD, CMD };
+
   FixPIMDNVE(class LAMMPS *, int, char **);
   ~FixPIMDNVE() override;
 
@@ -55,6 +57,7 @@ class FixPIMDNVE : public Fix {
   void parse_arguments(int, char **, const KeywordParser &);
   bool parse_common_keyword(int, char **, int &);
 
+  int method;
   int integrator;
   int fmmode;
   int np;
@@ -119,8 +122,10 @@ class FixPIMDNVE : public Fix {
   void collect_xc();
   void b_step();
   void apply_force_velocity_kick();
+  void q_step();
   virtual void qc_step();
   virtual void a_step();
+  virtual void spring_force();
   void remove_com_motion();
   void unmap_coordinates(double **, imageint *);
   void remap_coordinates(double **, imageint *);

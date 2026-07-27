@@ -20,14 +20,25 @@ FixStyle(pimd/nvt/bosonic,FixPIMDBNVT);
 #ifndef LMP_FIX_PIMD_NVT_BOSONIC_H
 #define LMP_FIX_PIMD_NVT_BOSONIC_H
 
-#include "fix.h"
+#include "fix_pimd_nvt.h"
 
 namespace LAMMPS_NS {
 
-class FixPIMDBNVT : public Fix {
+class FixPIMDBNVT : public FixPIMDNVT {
  public:
   FixPIMDBNVT(class LAMMPS *, int, char **);
-  int setmask() override;
+  ~FixPIMDBNVT() override;
+
+ protected:
+  bool parse_bosonic_keyword(int, char **, int &);
+  void spring_force() override;
+  void compute_spring_energy() override;
+  void compute_t_prim() override;
+
+ private:
+  class BosonicExchange *bosonic_exchange;
+  double **f_tag_order;
+  int nbosons;
 };
 
 }    // namespace LAMMPS_NS

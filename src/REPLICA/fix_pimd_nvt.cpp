@@ -82,12 +82,6 @@ void FixPIMDNVT::parse_nvt_arguments(int narg, char **arg, const KeywordParser &
 
 bool FixPIMDNVT::parse_nvt_keyword(int narg, char **arg, int &i)
 {
-  if (strcmp(arg[i], "method") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} method", style), error);
-    if (strcmp(arg[i + 1], "nmpimd") != 0) error->all(FLERR, "Fix {} only supports method nmpimd", style);
-    i += 2;
-    return true;
-  }
   if (strcmp(arg[i], "ensemble") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
     if (strcmp(arg[i + 1], "nvt") == 0)
@@ -203,6 +197,7 @@ FixPIMDNVT::~FixPIMDNVT()
 
 double FixPIMDNVT::chain0_target_energy() const
 {
+  if (!thermostat_chain_active()) return 0.0;
   return static_cast<double>(np) * ke_target;
 }
 
@@ -220,54 +215,53 @@ void FixPIMDNVT::setup_subclass_state()
 
 void FixPIMDNVT::initial_integrate(int /*vflag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
   if (integrator == OBABO) {
     thermostat_step();
     force_half_step();
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-    centroid_position_half_step();
-    a_step();
-    centroid_position_half_step();
-    a_step();
+    if (method == NMPIMD || method == CMD) {
+      begin_normal_mode_coordinate_propagation();
+      centroid_position_half_step();
+      a_step();
+      centroid_position_half_step();
+      a_step();
+    } else if (method == PIMD) {
+      unmap_coordinates(atom->x, atom->image);
+      q_step();
+      q_step();
+    } else {
+      error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
+    }
   } else if (integrator == BAOAB) {
     force_half_step();
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-    centroid_position_half_step();
-    a_step();
+    if (method == NMPIMD || method == CMD) {
+      begin_normal_mode_coordinate_propagation();
+      centroid_position_half_step();
+      a_step();
+    } else if (method == PIMD) {
+      unmap_coordinates(atom->x, atom->image);
+      q_step();
+    } else {
+      error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
+    }
     thermostat_step();
-    centroid_position_half_step();
-    a_step();
+    if (method == NMPIMD || method == CMD) {
+      centroid_position_half_step();
+      a_step();
+    } else if (method == PIMD) {
+      q_step();
+    } else {
+      error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
+    }
   } else {
     error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}. Only obabo "
                                            "and baoab integrators are supported!",
                                            style));
   }
-  collect_xc();
-
-  compute_spring_energy();
-  compute_t_prim();
-  compute_p_prim();
-  inter_replica_comm(x);
-  if (cmode == SINGLE_PROC)
-    nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-  else if (cmode == MULTI_PROC)
-    nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
+  if (method == NMPIMD || method == CMD) {
+    finalize_normal_mode_coordinate_propagation();
+  } else {
+    collect_xc();
+    remap_coordinates(atom->x, atom->image);
   }
 }
 
@@ -417,6 +411,7 @@ double FixPIMDNVT::compute_nuclear_kinetic_energy() const
 
 bool FixPIMDNVT::thermostat_chain_active() const
 {
+  if (method == CMD && universe->iworld == 0) return false;
   return true;
 }
 

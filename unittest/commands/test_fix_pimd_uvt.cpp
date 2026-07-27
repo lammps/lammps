@@ -125,7 +125,7 @@ TEST_F(FixPIMDUVTSerialTest, RejectsLegacyMuStartStopDampSyntax)
 
 TEST_F(FixPIMDUVTSerialTest, RejectsNonNMPIMDMethods)
 {
-  const char *unsupported_methods[] = {"nmrpmd", "tprpmd", "tp-rpmd"};
+  const char *unsupported_methods[] = {"pimd", "cmd", "nmrpmd", "tprpmd", "tp-rpmd"};
   for (const char *method : unsupported_methods) {
     setup_quadratic_system();
     command("variable k_quad equal 5.0");

@@ -57,6 +57,7 @@ void FixPIMDNVE::init_defaults()
   x_last = x_next = 0;
   cmode = -1;
 
+  method = NMPIMD;
   integrator = OBABO;
   lj_epsilon = 1.0;
   lj_sigma = 1.0;
@@ -85,6 +86,19 @@ void FixPIMDNVE::init_defaults()
 
 bool FixPIMDNVE::parse_common_keyword(int narg, char **arg, int &i)
 {
+  if (strcmp(arg[i], "method") == 0) {
+    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} method", style), error);
+    if (strcmp(arg[i + 1], "nmpimd") == 0)
+      method = NMPIMD;
+    else if (strcmp(arg[i + 1], "pimd") == 0)
+      method = PIMD;
+    else if (strcmp(arg[i + 1], "cmd") == 0)
+      method = CMD;
+    else
+      error->all(FLERR, "Unknown method parameter for fix {}", style);
+    i += 2;
+    return true;
+  }
   if (strcmp(arg[i], "integrator") == 0) {
     if (i + 2 > narg)
       utils::missing_cmd_args(FLERR, fmt::format("fix {} integrator", style), error);
@@ -177,6 +191,7 @@ FixPIMDNVE::FixPIMDNVE(LAMMPS *lmp, int narg, char **arg, bool) :
 FixPIMDNVE::FixPIMDNVE(LAMMPS *lmp, int narg, char **arg) : FixPIMDNVE(lmp, narg, arg, true)
 {
   parse_arguments(narg, arg, {});
+  if (method == CMD) error->all(FLERR, "Fix pimd/nve does not support method cmd");
   finish_constructor_setup();
 }
 
@@ -284,7 +299,10 @@ void FixPIMDNVE::init()
   me = comm->me;
   nprocs = comm->nprocs;
   cmode = (nprocs == 1) ? SINGLE_PROC : MULTI_PROC;
-
+  if (method == PIMD && cmode == MULTI_PROC)
+    error->universe_all(FLERR, "Method pimd only supports a single processor per bead");
+  if (method == PIMD && fmmode == NORMAL)
+    error->universe_all(FLERR, "Normal mode mass is not supported for method pimd");
   nprocs_universe = universe->nprocs;
   nreplica = universe->nworlds;
   ireplica = universe->iworld;
@@ -332,13 +350,24 @@ void FixPIMDNVE::init()
 
 void FixPIMDNVE::setup(int vflag)
 {
-  begin_normal_mode_coordinate_propagation();
+  if (method == NMPIMD || method == CMD) {
+    begin_normal_mode_coordinate_propagation();
+  } else if (method == PIMD) {
+    unmap_coordinates(atom->x, atom->image);
+    inter_replica_comm(atom->x);
+    spring_force();
+  } else {
+    error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
+  }
   after_force_transform_hook();
   collect_xc();
   compute_spring_energy();
   compute_t_prim();
   compute_p_prim();
-  finalize_setup_normal_mode_coordinates();
+  if (method == NMPIMD || method == CMD)
+    finalize_setup_normal_mode_coordinates();
+  else
+    remap_coordinates(atom->x, atom->image);
 
   post_force(vflag);
   compute_totke();
@@ -349,10 +378,20 @@ void FixPIMDNVE::setup(int vflag)
 void FixPIMDNVE::initial_integrate(int /*vflag*/)
 {
   b_step();
-  begin_normal_mode_coordinate_propagation();
-  propagate_normal_mode_coordinate_halfstep();
-  propagate_normal_mode_coordinate_halfstep();
-  finalize_normal_mode_coordinate_propagation();
+  if (method == NMPIMD || method == CMD) {
+    begin_normal_mode_coordinate_propagation();
+    propagate_normal_mode_coordinate_halfstep();
+    propagate_normal_mode_coordinate_halfstep();
+    finalize_normal_mode_coordinate_propagation();
+  } else if (method == PIMD) {
+    unmap_coordinates(atom->x, atom->image);
+    q_step();
+    q_step();
+    collect_xc();
+    remap_coordinates(atom->x, atom->image);
+  } else {
+    error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
+  }
 }
 
 void FixPIMDNVE::final_integrate()
@@ -368,8 +407,17 @@ void FixPIMDNVE::post_force(int /*flag*/)
   compute_cvir();
   compute_t_vir();
 
+  if (method == PIMD) {
+    unmap_coordinates(atom->x, atom->image);
+    inter_replica_comm(atom->x);
+    spring_force();
+    compute_spring_energy();
+    compute_t_prim();
+    remap_coordinates(atom->x, atom->image);
+  }
+
   compute_pote();
-  prepare_normal_mode_forces();
+  if (method == NMPIMD || method == CMD) prepare_normal_mode_forces();
   after_force_transform_hook();
 
   schedule_common_computes();
@@ -560,6 +608,21 @@ void FixPIMDNVE::apply_force_velocity_kick()
   }
 }
 
+void FixPIMDNVE::q_step()
+{
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  double **x = atom->x;
+  double **v = atom->v;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    x[i][0] += dtv * v[i][0];
+    x[i][1] += dtv * v[i][1];
+    x[i][2] += dtv * v[i][2];
+  }
+}
+
 void FixPIMDNVE::qc_step()
 {
   int nlocal = atom->nlocal;
@@ -605,6 +668,38 @@ void FixPIMDNVE::a_step()
       v[i][2] = -_omega_k[universe->iworld] * Lan_s[universe->iworld] * x2 +
           Lan_c[universe->iworld] * v2;
     }
+  }
+}
+
+void FixPIMDNVE::spring_force()
+{
+  spring_energy = 0.0;
+
+  double **x = atom->x;
+  double **f = atom->f;
+  double *_mass = atom->mass;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  tagint *tag = atom->tag;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+
+    double delx1 = bufsortedall[x_last * nlocal + tag[i] - 1][0] - x[i][0];
+    double dely1 = bufsortedall[x_last * nlocal + tag[i] - 1][1] - x[i][1];
+    double delz1 = bufsortedall[x_last * nlocal + tag[i] - 1][2] - x[i][2];
+
+    double delx2 = bufsortedall[x_next * nlocal + tag[i] - 1][0] - x[i][0];
+    double dely2 = bufsortedall[x_next * nlocal + tag[i] - 1][1] - x[i][1];
+    double delz2 = bufsortedall[x_next * nlocal + tag[i] - 1][2] - x[i][2];
+
+    double ff = fbond * _mass[type[i]];
+    f[i][0] += (delx1 + delx2) * ff;
+    f[i][1] += (dely1 + dely2) * ff;
+    f[i][2] += (delz1 + delz2) * ff;
+
+    spring_energy += 0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
   }
 }
 
@@ -985,9 +1080,12 @@ void FixPIMDNVE::compute_totke()
 
 void FixPIMDNVE::compute_spring_energy()
 {
-  spring_energy = 0.0;
   total_spring_energy = se_bead = 0.0;
-  spring_energy = local_normal_mode_spring_energy_sum(false);
+  if (method == NMPIMD || method == CMD) {
+    spring_energy = local_normal_mode_spring_energy_sum(false);
+  } else if (method != PIMD) {
+    error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
+  }
   reduce_bead_and_total(spring_energy, se_bead, total_spring_energy);
 }
 
@@ -1030,8 +1128,10 @@ void FixPIMDNVE::compute_p_cv()
 {
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
   p_md = (1.0 / 3.0) * inv_volume * (totke + vir);
-  if (universe->iworld == 0) {
+  if ((method == NMPIMD || method == CMD) && universe->iworld == 0) {
     p_cv = (1.0 / 3.0) * inv_volume * ((2.0 * ke_bead - centroid_vir) * force->nktv2p + vir) / np;
+  } else if (method == PIMD) {
+    p_cv = (1.0 / 3.0) * inv_volume * ((2.0 * totke / np - centroid_vir) * force->nktv2p + vir) / np;
   }
   MPI_Bcast(&p_cv, 1, MPI_DOUBLE, 0, universe->uworld);
 }

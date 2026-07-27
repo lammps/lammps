@@ -1367,7 +1367,7 @@ void DumpVTK::reset_vtk_data_containers()
       array.ncomp = 3;
       ++it; ++it;
     }
-    myarrays.push_back(array);
+    myarrays.push_back(std::move(array));
   }
 }
 
@@ -1774,7 +1774,7 @@ void DumpVTK::identify_vectors()
       } else {
         vectorName.erase(erase_start);
       }
-      name[vector3_starts[v3s]] = vectorName;
+      name[vector3_starts[v3s]] = std::move(vectorName);
       vector_set.insert(vector3_starts[v3s]);
     }
   }

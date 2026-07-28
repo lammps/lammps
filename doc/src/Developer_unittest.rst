@@ -1014,14 +1014,16 @@ time-resolved trajectories of small, analytically tractable granular
 systems.  These tests are only enabled if the :ref:`GRANULAR
 package<PKG-GRANULAR>` is enabled.
 
-There are 8 test programs, ``test_dem_01`` through ``test_dem_08``,
+There are 9 test programs, ``test_dem_01`` through ``test_dem_09``,
 covering particle-impact-level benchmarks: two-sphere and sphere-wall
 collisions, oblique and spinning-sphere impacts, rolling and slipping
-contact, and cohesive pull-off.  These follow the software-agnostic DEM
-benchmark of :ref:`Mohajeri et al. <dem_Mohajeri2024>` (rolling
-resistance and cohesion) and the particle-impact benchmark of
-:ref:`Chung and Ooi <dem_Chung2011>` (normal, oblique, and
-spinning-sphere collisions).  The test programs are:
+contact, cohesive pull-off, and settling under fluid drag.  These follow
+the software-agnostic DEM benchmark of :ref:`Mohajeri et al.
+<dem_Mohajeri2024>` (rolling resistance and cohesion), the
+particle-impact benchmark of :ref:`Chung and Ooi <dem_Chung2011>`
+(normal, oblique, and spinning-sphere collisions), and the MFiX-DEM
+verification cases of :ref:`Garg et al. <dem_Garg2012>` (terminal
+velocity under drag).  The test programs are:
 
 .. list-table::
    :header-rows: 1
@@ -1053,6 +1055,9 @@ spinning-sphere collisions).  The test programs are:
    * - ``test_dem_08``
      - cohesive DMT pull-off force
      - ``pulloff_dmt``
+   * - ``test_dem_09``
+     - terminal velocity under fluid drag
+     - ``terminal_velocity_linear``, ``terminal_velocity_schiller_naumann``
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the
@@ -1066,7 +1071,12 @@ driver may cover several variants of one scenario -- across contact
 models (``hooke``, ``hooke/history``, ``hertz``, ``hertz/material``,
 ``mindlin``, ``mindlin/rescale``), dimensionality, or unit systems --
 since it simply runs every ``dem0N-*.yaml`` file that matches its
-number.
+number.  Variants that exercise the classic granular styles
+(``gran/hooke``, ``gran/hooke/history``, ``gran/hertz/history`` and the
+matching classic :doc:`fix wall/gran <fix_wall_gran>` models) carry a
+``legacy-`` token in the file name and a ``legacy`` entry in the
+``tags`` line, which also becomes a CTest label (so ``ctest -L legacy``
+runs exactly those tests).
 
 Unlike the force-style tests, the entire system is built *from the YAML
 file* rather than from a fixed input template.  A YAML file provides an
@@ -1199,6 +1209,14 @@ currently implemented are:
      - linear spin-down under rolling resistance: :math:`\omega = \omega_0 - \tfrac{5 \mu_r g}{2 r} t`
    * - pulloff_dmt
      - DMT pull-off force at contact :math:`|F| = 4 \pi \gamma R_{\mathrm{eff}}`
+   * - energy_dissipation
+     - total kinetic energy of a frictional impact must not increase (guards against the historic grazing-impact energy-injection bug of the classic tangential model)
+   * - spin\_no\_friction
+     - counter-spinning spheres with zero contact slip keep their spin and gain no tangential velocity
+   * - terminal\_velocity\_linear
+     - Stokes drag terminal velocity :math:`v_{term} = m g/\gamma`
+   * - terminal\_velocity\_schiller\_naumann
+     - Schiller-Naumann terminal velocity from :math:`m g = \tfrac{1}{2} C_d \rho_g \pi r^2 v^2`
 
 Adding a new reference (YAML) file
 """"""""""""""""""""""""""""""""""
@@ -1240,6 +1258,13 @@ error.
 
 References
 """"""""""
+
+.. _dem_Garg2012:
+
+**(Garg et al., 2012)** R. Garg, J. Galvin, T. Li, and S. Pannala,
+Open-source MFIX-DEM software for gas-solids flows: Part I -- Verification
+studies, Powder Technology, 220, 122-137 (2012),
+https://doi.org/10.1016/j.powtec.2011.09.019
 
 .. _dem_Mohajeri2024:
 

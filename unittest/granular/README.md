@@ -7,7 +7,7 @@ stored per-atom reference trajectory.
 
 ## Layout
 
-- `test_dem_01..08.cpp` — the eight test drivers. Each is a thin GoogleTest
+- `test_dem_01..09.cpp` — the nine test drivers. Each is a thin GoogleTest
   fixture (`newton_on` / `newton_off`) that hands off to the shared trajectory
   runner; all scenario-specific behavior lives in the YAML files.
 - `test_dem_common.{cpp,h}` — builds the system from a YAML config, runs it in
@@ -18,7 +18,7 @@ stored per-atom reference trajectory.
 - `test_config_reader.{cpp,h}`, `test_main.{cpp,h}`, `test_config.h` — YAML
   parsing and the test-runner entry point.
 - `tests/` — the YAML test definitions, `demNN-<variant>-<dim>-<units>.yaml`.
-- `dem_audit.py` — separate diagonistic script that compares results from all
+- `dem_audit.py` — separate diagnostic script that compares results from all
   test drivers to analytic expectations. Intended for authoring/debugging
   new/existing tests. Not connected to CMake or CTest.
 
@@ -38,10 +38,13 @@ scenario across different contact models, dimensions, and parameters.
 | 06 | spinning sphere impact (rebound with friction) | `spin_impact` |
 | 07 | rolling-resistance decay | `rolling_decay` |
 | 08 | cohesive DMT pull-off force | `pulloff_dmt` |
+| 09 | terminal velocity under fluid drag | `terminal_velocity_linear`, `terminal_velocity_schiller_naumann` |
 
 Variants exercise the `hooke`, `hooke/history`, `hertz`, `hertz/material`,
 `mindlin`, and `mindlin/rescale` models, a 2D/LJ-units case, and friction/angle
-sweeps.
+sweeps.  Variants named `demNN-legacy-*` (YAML tag `legacy`, also a CTest
+label) exercise the classic `gran/hooke`, `gran/hooke/history`, and
+`gran/hertz/history` pair styles and the classic `fix wall/gran` models.
 
 ## Building
 
@@ -50,7 +53,8 @@ drivers:
 
     cmake -C ../cmake/presets/most.cmake -D ENABLE_TESTING=on -D PKG_GRANULAR=on ../cmake
     cmake --build . --target test_dem_01 test_dem_02 test_dem_03 test_dem_04 \
-                            test_dem_05 test_dem_06 test_dem_07 test_dem_08 -j
+                            test_dem_05 test_dem_06 test_dem_07 test_dem_08 \
+                            test_dem_09 -j
 
 ## Running
 

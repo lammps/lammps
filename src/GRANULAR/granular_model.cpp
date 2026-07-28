@@ -225,12 +225,15 @@ int GranularModel::define_classic_model(char **arg, int iarg, int narg)
   normal_model->coeffs[0] = kn;
   normal_model->coeffs[1] = gamman;
 
+  // avoid division by zero for undamped (elastic) classic models
+  const double gamma_ratio = (gamman != 0.0) ? gammat / gamman : 0.0;
+
   if (tangential_model->num_coeffs == 2) {
-    tangential_model->coeffs[0] = gammat / gamman;
+    tangential_model->coeffs[0] = gamma_ratio;
     tangential_model->coeffs[1] = xmu;
   } else {
     tangential_model->coeffs[0] = kt;
-    tangential_model->coeffs[1] = gammat / gamman;
+    tangential_model->coeffs[1] = gamma_ratio;
     tangential_model->coeffs[2] = xmu;
   }
 

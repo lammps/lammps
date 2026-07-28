@@ -4,6 +4,7 @@
 # the harness), the harness's own expected, the simulated value, and relative errors.
 # Forces the harness to print by running a temp copy with a tiny tolerance. Leaves
 # nothing behind. Run from the build dir:  python3 dem_audit.py [tests_dir]
+
 import sys, os, re, math, glob, subprocess, tempfile
 PI = math.pi
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -55,8 +56,10 @@ def dim_of(txt):
     return int(m.group(1)) if m else 3
 def massof(v, txt):
     d, dm = v.get('dens', 0.0), v.get('diam', 0.0)
-    return dens_disc(d, dm) if dim_of(txt) == 2 else d * (PI / 6.0) * dm ** 3
-def dens_disc(d, dm): return d * (PI / 4.0) * dm ** 2
+    if (dim_of(txt) == 2):
+        return d * (PI / 4.0) * dm ** 2
+    else:
+        return d * (PI / 6.0) * dm ** 3
 
 def seg_time(txt):
     try:
@@ -124,7 +127,9 @@ def formulas(model, v, txt):
 def harness_numbers(yaml_path, driver):
     txt = open(yaml_path).read()
     t = tempfile.NamedTemporaryFile('w', suffix='.yaml', dir='/tmp', delete=False)
-    t.write(re.sub(r'analytic_tol:\s*\S+', 'analytic_tol: 1e-14', txt)); t.close()
+
+    # use negative tolerance such that it is never satisfied to force comparison output
+    t.write(re.sub(r'analytic_tol:\s*\S+', 'analytic_tol: -1', txt)); t.close()
     try:
         r = subprocess.run([driver, t.name, '-v'], capture_output=True, text=True, cwd=BUILD, timeout=300)
         out = r.stdout + r.stderr
@@ -145,6 +150,8 @@ def main():
     print(f"tests: {TESTS}\nbuild: {BUILD}")
     files = sorted(glob.glob(os.path.join(TESTS, "dem*.yaml")))
     skipped = []
+    ntest = 0
+    nfail = 0
     for y in files:
         txt = open(y).read()
         mm = re.search(r'^analytic_model:\s*(\S+)', txt, re.M)
@@ -170,15 +177,21 @@ def main():
             label = k.split(None, 1)[-1] if ' ' in k else k
             print(f"  {label:<26} {eq}")
             if E is not None:
-                line = f"       harness expected = {E:.6g}   simulated got = {G:.6g}   relerr = {rel(G, E):.2e}"
+                line = f"       harness expected = {E:.6g}   simulation = {G:.6g}   relerr = {rel(G, E):.2e}"
                 if mine is not None:
-                    line += ("   (formula = harness expected OK)" if rel(mine, E) <= 1e-4
-                             else f"   [!! formula here = {mine:.6g} DISAGREES with harness]")
+                    ntest += 1
+                    if rel(mine, E) <= 1e-4:
+                        line += "   (formula = harness, OK)"
+                    else:
+                        line += f"   (formula = {mine:.6g} != harness), fail!!"
+                        nfail += 1
                 print(line)
             elif mine is not None:
                 print(f"       formula value = {mine:.6g}   (harness value needs the driver)")
     if skipped:
         print("\nskipped (no analytic_model / not a demNN file):", ", ".join(skipped))
+
+    print(f"Failed {nfail} out of {ntest} tests\n")
     print()
 
 if __name__ == "__main__":

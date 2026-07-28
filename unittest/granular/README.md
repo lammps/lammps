@@ -18,6 +18,9 @@ stored per-atom reference trajectory.
 - `test_config_reader.{cpp,h}`, `test_main.{cpp,h}`, `test_config.h` — YAML
   parsing and the test-runner entry point.
 - `tests/` — the YAML test definitions, `demNN-<variant>-<dim>-<units>.yaml`.
+- `dem_audit.py` — separate diagonistic script that compares results from all
+  test drivers to analytic expectations. Intended for authoring/debugging
+  new/existing tests. Not connected to CMake or CTest.
 
 ## Tests
 
@@ -57,7 +60,7 @@ Run a single test file:
 
 Or run the whole suite through ctest from the build directory:
 
-    ctest -R Dem --output-on-failure
+    ctest -R DEM --output-on-failure
 
 Options:
 

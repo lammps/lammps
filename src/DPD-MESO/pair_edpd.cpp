@@ -283,6 +283,7 @@ void PairEDPD::settings(int narg, char **arg)
 
   delete random;
   random = new RanMars(lmp,(seed + comm->me) % 900000000);
+  delete randomT;
   randomT = new RanMars(lmp,(2*seed + comm->me) % 900000000);
 
   // reset cutoffs that have been explicitly set

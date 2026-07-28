@@ -135,3 +135,13 @@ register_dem_tests(test_dem_11 dem11 DEM11)
 add_executable(test_dem_12 test_dem_12.cpp)
 target_link_libraries(test_dem_12 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_12 dem12 DEM12)
+
+# DEM-13: spinning sphere damped by twisting friction (sds and marshall)
+add_executable(test_dem_13 test_dem_13.cpp)
+target_link_libraries(test_dem_13 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_13 dem13 DEM13)
+
+# DEM-14: granular heat conduction between two spheres in static contact
+add_executable(test_dem_14 test_dem_14.cpp)
+target_link_libraries(test_dem_14 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_14 dem14 DEM14)

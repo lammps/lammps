@@ -725,7 +725,7 @@ void PairRuNNer::compute(int eflag, int vflag)
   }
 
   // Write committee energies into pair compute vector
-  memset(pvector, 0, num_committee_members * (sizeof *pvector));
+  memset(pvector, 0, nextra * (sizeof *pvector));
   for (i = 0; i < num_committee_members; i++) pvector[i] = committee_energy[i] / cfenergy;
 
   // Charges if charge atom style is used
@@ -815,7 +815,7 @@ void PairRuNNer::compute(int eflag, int vflag)
     // Total number of extrapolation accumulated on this process during the simulation
     bigint local_extrap_count_total = 0;
     // Number of extrapolation accumulated on this process during this this timestep
-    bigint extrap_count_timestep = 0;
+    bigint local_extrap_count_timestep = 0;
     // Sets the flag `lreset` to reset the total extrapolation count if the timestep
     // is a multiple of reset_ew_freq and larger than zero
     bool lreset = false;
@@ -823,11 +823,17 @@ void PairRuNNer::compute(int eflag, int vflag)
 
     // Retrieve the number of extrapolations during this timestep and during the whole simulation
     // on each process and reset the latter if `lreset` is true.
-    runner_interface_extrapolation_count(&extrap_count_timestep, &local_extrap_count_total,
+    runner_interface_extrapolation_count(&local_extrap_count_timestep, &local_extrap_count_total,
                                          &lreset);
 
     // Number of extrapolations recorded on this process (reset at every summary)
-    local_extrap_sum += extrap_count_timestep;
+    local_extrap_sum += local_extrap_count_timestep;
+
+    // Number of extrapolations recorded during this timestep across all processes
+    bigint global_extrap_count_timestep = 0;
+    MPI_Reduce(&local_extrap_count_timestep, &global_extrap_count_timestep, 1, MPI_LMP_BIGINT, 
+               MPI_SUM, 0, world);
+    pvector[nextra - 1] = global_extrap_count_timestep;
 
     // Total number of extrapolation accumulated across all processes
     bigint global_extrap_count_total = 0;
@@ -926,6 +932,7 @@ void PairRuNNer::settings(int narg, char **arg)
     } else if (strcmp(arg[iarg], "check_extrap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
       lcheck_extrap = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      nextra += 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "max_extrap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
@@ -1025,7 +1032,10 @@ void PairRuNNer::init_style()
   if (nnp_generation == 2) no_virial_fdotr_compute = 0;    // Overwrite default flag
 
   // Error checking for output by compute pair command
-  if (nextra == num_committee_members) {
+  if (
+    (!lcheck_extrap && nextra == num_committee_members) || 
+    (lcheck_extrap && nextra == num_committee_members + 1)
+  ) {
     // array for storing committee energies for output by compute pair command
     if (pvector) delete[] pvector;
     pvector = new double[nextra];

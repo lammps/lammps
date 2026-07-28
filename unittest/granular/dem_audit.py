@@ -126,7 +126,7 @@ def formulas(model, v, txt):
 
 def harness_numbers(yaml_path, driver):
     txt = open(yaml_path).read()
-    t = tempfile.NamedTemporaryFile('w', suffix='.yaml', dir='/tmp', delete=False)
+    t = tempfile.NamedTemporaryFile('w', suffix='.yaml', delete=False)
 
     # use negative tolerance such that it is never satisfied to force comparison output
     t.write(re.sub(r'analytic_tol:\s*\S+', 'analytic_tol: -1', txt)); t.close()

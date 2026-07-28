@@ -1,6 +1,5 @@
 # 3d Lennard-Jones melt
-
-variable    nspare      index 1
+# This file assumes it is being run with three partitions
 
 variable    x           index 1
 variable    y           index 1
@@ -13,17 +12,14 @@ variable    zz          equal 20*$z
 units       lj
 atom_style  atomic
 
-# Upon reaching this command, ${nspare} ranks are trapped by fenix. The LAMMPS
-# comm is rebuilt without them, and instead they are used to rebuild the LAMMPS
-# comm when other ranks fail.
-# When a failure occurs, execution starts over entirely (as if the lammps
-# command were called anew) at the start of this file, but with the
-# fenix_restarted variable defined as 1. Failed ranks are replaced with spares,
-# so long as spares remain available.
-fenix spares ${nspare}
+fenix universal
+
+# In universal mode, the third partition doesn't make it past fenix's init,
+# so the chkpt_file variable must have just two strings
+variable    chkpt_file  world "lj.chkpt.partition_0.*" "lj.chkpt.partition_1.*"
 
 if $(is_defined(variable,fenix_restarted)) then &
-  "read_restart lj.chkpt.*" &
+  "read_restart ${chkpt_file}" &
   "jump SELF skip_setup"
 
 lattice         fcc 0.8442
@@ -31,16 +27,15 @@ region          box block 0 ${xx} 0 ${yy} 0 ${zz}
 create_box      1 box
 create_atoms    1 box
 mass            1 1.0
-
 velocity        all create 1.44 87287 loop geom
-
 pair_style      lj/cut 2.5
 pair_coeff      1 1 1.0 1.0 2.5
 
 label skip_setup
 
-# We will checkpoint to file on iterations 50,100,...
-restart 50 lj.chkpt.*
+# We will checkpoint to file on iterations 25,50,75
+restart 25 ${chkpt_file}
+thermo 25
 
 neighbor        0.3 bin
 neigh_modify    delay 0 every 20 check no

@@ -52,7 +52,8 @@ rebuild the LAMMPS world to the same number of ranks as before (when possible),
 using the spare ranks held at initialization. These spares take the place of
 the failed ranks, leaving surviving processes with the same rank number. Fenix
 then tears down LAMMPS and restarts according to whatever restart_file and
-restart_label are configured. The default restart file is "SELF".
+restart_label are configured. The default restart file is "SELF". Upon restart,
+the fenix_restarted internal variable is defined and set to 1.
 
 If this command is called more than once, subsequent invocations will update
 arguments. Fenix is not reinitialized, so changes to the spares argument are

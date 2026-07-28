@@ -27,6 +27,26 @@ per restart on large scale runs). By default, Fenix performs a "shrinking" repai
 - meaning the repaired communicator simply excludes the lost process(es) and is
 therefore smaller than the pre-failure communicator.
 
+.. code-block:: LAMMPS
+
+   # Example of using shrinking repair with Fenix
+   # Print some status information at the start of the file
+
+   if $(is_defined(variable,fenix_restarted)) then &
+     "print 'Restarting with $(extract_setting(world_size)) ranks'" &
+   else &
+     "print 'Starting with $(extract_setting(world_size)) ranks'"
+
+   fenix
+
+   <... simulation setup and running commands ...>
+
+   # Sample output, assuming one rank fails:
+   #   Starting with 100 ranks
+   #   <... simulation output ...>
+   #   Restarting with 99 ranks
+   #   <... simulation output ...>
+
 Fenix can avoid this shrinking if the user offers some number of "spare" ranks.
 Spare ranks are MPI processes in the Fenix input communicator that are held
 aside by Fenix to replace lost processes and avoid shrinking the communicator
@@ -36,7 +56,27 @@ configured to sleep for short periods between checks to see if they are needed
 for repair, so they will not utilize resources heavily even if you allocate
 multiple spare processes per node.
 
-When running LAMMPS with only a single partition, Fenix will leverage highest N
+.. code-block:: LAMMPS
+
+   # Example using spare ranks
+   print 'Starting with $(extract_setting(world_size)) ranks'
+
+   fenix spares 10
+   print 'Running with $(extract_setting(world_size)) ranks'
+
+   <... simulation setup and running commands ...>
+
+   # Sample output, assuming 1 rank fails and then 10 ranks fail
+   #   Starting with 110 ranks
+   #   Running with 100 ranks
+   #   <... simulation output ...>
+   #   Starting with 100 ranks
+   #   Running with 100 ranks
+   #   <... simulation output ...>
+   #   Starting with 99 ranks
+   #   Running with 99 ranks
+
+When running LAMMPS with only a single partition, Fenix will leverage the highest N
 ranks as spares when N spares are requested. When running with multiple
 partitions, Fenix will default to operating on the world comm for each partition
 as if it were the only communicator. This will cause problems if your different
@@ -44,6 +84,32 @@ partitions communicate with eachother over the universe communicator. In that
 case, you should use the :code:`universal` argument to initialize Fenix in
 universal mode. In universal mode, shrinking recovery is not supported and Fenix
 will claim the final partition as spares.
+
+.. code-block:: LAMMPS
+
+   # Example using universal mode
+   print 'Partition $(part) starting with $(extract_setting(world_size)) ranks'
+
+   fenix universal
+   print 'Partition $(part) running with $(extract_setting(world_size)) ranks'
+
+   <... simulation setup and running commands ...>
+
+   # Sample output assuming 1 rank fails, then another
+   #   Partition 0 starting with 10 ranks
+   #   Partition 1 starting with 10 ranks
+   #   Partition 2 starting with 1 ranks
+   #   Partition 0 running with 10 ranks
+   #   Partition 1 running with 10 ranks
+   #   <... simulation output ...>
+   #   Partition 0 starting with 10 ranks
+   #   Partition 1 starting with 10 ranks
+   #   Partition 0 running with 10 ranks
+   #   Partition 1 running with 10 ranks
+   #   <... simulation output ...>
+   #   Starting with 99 ranks
+   #   Running with 99 ranks
+
 
 Once a failure has been recovered from, the LAMMPS state is entirely wiped.
 With the exception of any established Fenix configuration remaining, the

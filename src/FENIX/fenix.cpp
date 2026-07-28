@@ -23,6 +23,7 @@
 #include "input.h"
 #include "output.h"
 #include "domain.h"
+#include "variable.h"
 
 #include <fenix.hpp>
 
@@ -77,14 +78,27 @@ void Fenix::init() {
   // Request that spare ranks spend most of their time sleeping, to avoid
   // resource consumption
   fenix::set_option(fenix::SPARE_WAIT_MODE, fenix::SLEEP);
+  // Request that spare ranks are released from fenix::init after finalizing
+  fenix::set_option(fenix::SPARE_FINALIZE_MODE, fenix::RELEASE);
 
   fenix::args::FenixInitArgs fenix_args;
   fenix_args.in_comm = input_world;
   fenix_args.out_comm = &resilient_world;
   fenix_args.spares = spare_ranks;
 
-  // Only non-spare ranks leave init
   fenix::init(fenix_args);
+
+  if (fenix::role() == fenix::SPARE_RANK) {
+    // Spare ranks are released only after Fenix is finalized, so we know this
+    // simulation is done.
+    assert(active_controller == this);
+    active_controller = nullptr;
+    delete this;
+
+    // Throw a Lammps exception to make sure we don't try to communicate over
+    // our world (which may lead to hanging or unnecessary errors).
+    throw LAMMPSException("Spare rank successfully completing execution.");
+  }
 
   if (!universal) {
     world = resilient_world;
@@ -109,11 +123,18 @@ void Fenix::init() {
     }, fenix::PRE_RECOVERY);
   }
 
-  // Recovered ranks (spares that just replaced a failed rank) manually
-  // invoke the handler and enter recovery
   if(fenix::role() == fenix::RECOVERED_RANK){
+    // Recovered ranks (spares that just replaced a failed rank) manually
+    // invoke the handler and enter recovery
     fenix::callback_invoke_all(fenix::POST_RECOVERY);
     recover();
+  } else if (universal) {
+    // Initial ranks getting started need to update the error handler of the
+    // world comms. Only needed once, since future world comms will inherit the
+    // right error handler from the new universe comm.
+    MPI_Errhandler fenix_errhandler;
+    MPI_Comm_get_errhandler(universe->uworld, &fenix_errhandler);
+    MPI_Comm_set_errhandler(world, fenix_errhandler);
   }
 
   // Hijack the input processing to wrap it in an exception handler
@@ -269,6 +290,11 @@ void Fenix::try_recover(){
   input = new Input(lmp, lmp->num_in_arg, lmp->in_args);
   lmp->create();
   lmp->post_create();
+
+  // Set restart_var to tell user we've restarted
+  char* var_name = utils::strdup("fenix_restarted");
+  input->variable->internal_create(var_name, 1);
+  delete[] var_name;
 }
 
 void Fenix::try_setup_universe(){

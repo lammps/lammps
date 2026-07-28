@@ -44,14 +44,12 @@ Syntax
                 rng_v = integer used to initialize random number generator
 
 * zero or more keyword/value pairs may be appended
-* keyword = *algo* or *symm* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta* or *hardness* or *electronegativity* or *pair*
+* keyword = *algo* or *couple* or *etypes* or *ffield* or *write_mat* or *write_inv* or *read_mat* or *read_inv* or *qtotal* or *eta* or *hardness* or *electronegativity* or *pair*
 
 .. parsed-literal::
 
     *algo* values = *mat_inv* or *mat_cg* tol or *cg* tol
         specify the algorithm used to compute the electrode charges
-    *symm* value = *on* or *off*
-        turn on/off charge neutrality constraint for the electrodes
     *couple* values = group-ID val
         group-ID = group of atoms treated as additional electrode
         val = electric potential or charge on this electrode
@@ -83,9 +81,9 @@ Examples
 
 .. code-block:: LAMMPS
 
-   fix fxconp bot electrode/conp -1.0 couple top 1.0 couple ref 0.0 write_inv inv.csv symm on pair lj/cut/coul/long/gauss
+   fix fxconp bot electrode/conp -1.0 couple top 1.0 couple ref 0.0 write_inv inv.csv qtotal 0 pair lj/cut/coul/long/gauss
    fix fxconp electrodes electrode/conq 0.0 eta 1.805 algo cg 1e-5
-   fix fxconp bot electrode/thermo -1.0 eta  1.805 temp 298 100 couple top 1.0
+   fix fxconp bot electrode/thermo -1.0 eta 1.805 temp 298 100 couple top 1.0
    fix fxconq elec electrode/conq -1.0 eta d_etavector
    fix fxqeq all electrode/conp 0.0 algo cg 1e-5 pair lj/cut/coul/wolf/gauss hardness d_hardness electronegativity d_chi qtotal 0
 
@@ -119,13 +117,14 @@ electrostatic configurations:
   * (resulting in changing charges and potentials with appropriate
     average potential difference and thermal variance)
 
-The first group-ID provided to each fix specifies the first electrode
-group, and more group(s) are added using the *couple* keyword for each
-additional group.  While *electrode/thermo* only accepts two groups,
-*electrode/conp* and *electrode/conq* accept any number of groups, up to
-LAMMPS's internal restrictions (see Restrictions below). Electrode
-groups must not overlap, i.e.  the fix will issue an error if any
-particle is detected to belong to at least two electrode groups.
+The first group-ID provided to each fix specifies the first electrode group, and
+more group(s) are added using the *couple* keyword for each additional group.
+While *electrode/thermo* only accepts two groups, *electrode/conp* and
+*electrode/conq* accept any number of groups, up to LAMMPS's internal
+restrictions (see Restrictions below). Electrode groups must not overlap, i.e.
+the fix will issue an error if any particle is detected to belong to at least
+two electrode groups.  The potential is in units of electric field*distance,
+i.e. Volts  in *real*, *metal* and *si* units. Charges are in charge units.
 
 CPM involves updating charges on groups of electrode particles, per time
 step, so that the system's total energy is minimized with respect to
@@ -157,26 +156,6 @@ For both *cg* methods, the command must specify the conjugate gradient
 tolerance. *fix electrode/thermo* currently only supports the *mat_inv*
 algorithm.
 
-The keyword *symm* can be set *on* (or *off*) to turn on (or turn off)
-the capacitance matrix constraint that sets total electrode charge to be
-zero.  This has slightly different effects for each *fix electrode*
-variant.  For *fix electrode/conp*, with *symm off*, the potentials
-specified are absolute potentials, but the charge configurations
-satisfying them may add up to an overall non-zero, varying charge for
-the electrodes (and thus the simulation box). With *symm on*, the total
-charge over all electrode groups is constrained to zero, and potential
-differences rather than absolute potentials are the physically relevant
-quantities.
-
-For *fix electrode/conq*, with *symm off*, overall neutrality is
-explicitly obeyed or violated by the user input (which is not
-checked!). With *symm on*, overall neutrality is ensured by ignoring the
-user-input charge for the last listed electrode (instead, its charge
-will always be minus the total sum of all other electrode charges). For
-*fix electrode/thermo*, overall neutrality is always automatically
-imposed for any setting of *symm*, but *symm on* allows finite-field
-mode (*ffield on*, described below) for faster simulations.
-
 For all three fixes, any potential (or charge for *conq*) can be
 specified as an equal-style variable prefixed with "v\_". For example,
 the following code will ramp the potential difference between electrodes
@@ -184,7 +163,7 @@ from 0.0V to 2.0V over the course of the simulation:
 
 .. code-block:: LAMMPS
 
-   fix fxconp bot electrode/conp 0.0 1.805 couple top v_v symm on
+   fix fxconp bot electrode/conp 0.0 1.805 couple top v_v qtotal 0
    variable v equal ramp(0.0, 2.0)
 
 Note that these fixes only parse their supplied variable name when
@@ -241,8 +220,8 @@ electric field will correctly vary with changing potentials in the
 correct way (for example with equal-style potential difference or with
 *fix electrode/conq*).  This keyword requires two electrodes and will
 issue an error with any other number of electrodes. This keyword
-requires electroneutrality to be imposed (*symm on*) and will issue an
-error otherwise.
+automatically imposes electroneutrality and will issue an error
+otherwise.
 
 .. versionchanged:: 22Dec2022
 
@@ -264,40 +243,58 @@ and the fix will issue an error in that case.
 The keyword *qtotal* causes *fix electrode/conp* and *fix
 electrode/thermo* to add an overall potential to all electrodes so that
 the total charge on the electrodes is a specified amount (which may be
-an equal-style variable).  For example, if a user wanted to simulate a
+an equal-style variable). For example, if a user wanted to simulate a
 solution of excess cations such that the total electrolyte charge is +2,
 setting *qtotal -2* would cause the total electrode charge to be -2, so
 that the simulation box remains overall electroneutral. Since *fix
 electrode/conq* constrains the total charges of individual electrodes,
-and since *symm on* constrains the total charge of all electrodes to be
-zero, either option is incompatible with the *qtotal* keyword (even if
-*qtotal* is set to zero).
+it is incompatible with the *qtotal* keyword (even if *qtotal* is set to
+zero). When the total charge over all electrode groups is constrained,
+and potential differences rather than absolute potentials are the
+physically relevant quantities. For *fix electrode/thermo*, charge
+neutrality of the electrodes is imposed by default but *qtotal* can be
+used to set another value for the total charge.
+
 
 .. versionchanged:: TBD
 
-The keyword *eta* specifies the reciprocal width of electrode charge smearing in
-units of inverse length. The argument takes a single value or the name of a
-custom double vector defined via fix property/atom. The property/atom fix must
-be for vector of double values and use the *ghost on* option.
+The keyword *eta* specifies the reciprocal width of electrode charge
+smearing in units of inverse length. The argument takes a single value
+or the name of a custom double vector defined via fix property/atom. The
+property/atom fix must be for vector of double values and use the *ghost
+on* option. The keyword is not compatible with the *pair* keyword.
 
 .. versionadded:: TBD
 
 The keyword *pair* must be followed by the name of a pair style which
-implements ELECTRODE pair methods (see :doc:`pair_electrode <pair_electrode>`).
-Energy corrections, force corrections, and pair interaction quantities used
-in CPM will then be calculated by the supplied pair style; *fix electrode*
-will then purely update charges and not apply Gaussian-based energy or
-force corrections, and the eta parameter specified in the input of this
-fix will be ignored.
+implements ELECTRODE pair methods (see :doc:`pair_electrode
+<pair_electrode>`).  Energy corrections, force corrections, and pair
+interaction quantities used in CPM will then be calculated by the
+supplied pair style; *fix electrode* will then purely update charges and
+not apply Gaussian-based energy or force corrections.  The keyword is
+not compatible with the *eta* keyword.
 
 .. versionadded:: TBD
 
-The keywords *hardness* and *electronegativity* must be followed by the name of
-a custom double vector defined via fix property/atom. The units of hardness are
-energy units per charge^2 and the units of electronegativity are energy units
-per charge. The terms add quadratic and linear terms to the energy,
-respectively. The two keywords enable simulations with charge equilibration
-(:ref:`Rappe <Rappe>`).
+The keywords *hardness* and *electronegativity* enable the charge
+equilibration (QEq) (:ref:`Rappe <Rappe>`) with the following terms
+added to the total Coulomb energy:
+
+.. math::
+
+   \sum_i \chi_i^0 q_i  + \frac{1}{2} J_i^0 q_i^2
+
+where :math:`\chi_i^0` is the electronegativity and :math:`J^0_i` is
+defined as chemical hardness without the self-interaction term due to
+the reciprocal width (:ref:`Savvidi <Savvidi>`).
+
+Each of the keywords must be followed by the name of a custom double
+vector defined via fix property/atom. The units of hardness are energy
+units per charge^2 and the units of electronegativity are energy per
+charge.  If QEq parameters are used from literature, the
+self-interaction has to be subtracted from the chemical hardness, a
+detailed example on  quartz silica can be found in the directory
+``examples/PACKAGES/electrode/quartz``.
 
 .. versionadded:: TBD
 
@@ -309,6 +306,11 @@ starting point for the conjugate gradient algorithm, to reduce the number of
 minimization steps. If the predictor value is set to zero, no atom/property
 array will be created. This keyword is not compatible with the matrix inversion
 algorithm.
+
+.. deprecated:: TBD
+
+The *symm* keyword will be removed in a future version of LAMMPS.  The
+same functionality and more can be achieved with *qtotal*.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -444,8 +446,8 @@ it expects to use more than 0.5 GiB of memory.
 Default
 """""""
 
-The default keyword-option settings are *algo mat_inv*, *symm off*,
-*etypes off*, *ffield off* and *predictor 1*.
+The default keyword-option settings are *algo mat_inv*, *etypes off*,
+*ffield off* and *predictor 1*.
 
 ----------
 
@@ -488,6 +490,10 @@ The default keyword-option settings are *algo mat_inv*, *symm off*,
 .. _Rappe:
 
 **(Rappe)** Rappe and Goddard, J. Phys. Chem., 95, 3358 (1991).
+
+.. _Savvidi:
+
+**(Savvidi)** Savvidi *et al.*, J. Chem. Phys., 162, 174108 (2025).
 
 .. _Scalfi:
 

@@ -78,7 +78,7 @@ short-range term has to be used in combination with a :doc:`kspace_style
 <kspace_style>`.
 
 The pair style *lj/cut/coul/wolf/gauss* computes the Coulomb energy via the
-:ref:`Wolf <Wolf5>` summation method with a correction for Gaussian charges.
+:ref:`Wolf <Wolf6>` summation method with a correction for Gaussian charges.
 
 .. note::
 
@@ -146,7 +146,7 @@ none
 **(Gingrich and Wilson)** Gingrich and Wilson, Chem. Phys. Lett., 500, 178-183
 (2010).
 
-.. _Wolf5:
+.. _Wolf6:
 
 **(Wolf)** D. Wolf, P. Keblinski, S. R. Phillpot, J. Eggebrecht, J Chem
 Phys, 110, 8254 (1999).

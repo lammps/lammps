@@ -57,7 +57,7 @@ using namespace MathConst;
 static const char cite_fix_electrode[] =
     "fix electrode command: https://doi.org/10.1063/5.0099239\n\n"
     "@article{Ahrens2022\n"
-    "author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\\ss}ner, "
+    "author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mathijs and Tee, Shern R. and Mei{\\ss}ner, "
     "Robert H.},\n"
     "doi = {10.1063/5.0099239},\n"
     "title = {{ELECTRODE: An electrochemistry package for LAMMPS}},\n"

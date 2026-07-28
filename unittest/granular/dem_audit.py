@@ -174,6 +174,36 @@ def formulas(model, v, txt):
         elif model == 'pulloff_jkr':
             f['pulloff_jkr force'] = ("|F(delta=0)| = (8/3)*pi*coh*reff = (8/9)*F_pulloff",
                                       (8.0 / 3.0) * PI * v['coh'] * v['reff'])
+        elif model == 'twist_decay':
+            tt = seg_time(txt)
+            if tt is not None:
+                r = radius(v)
+                f['twist_decay omega_z'] = (
+                    f"omega_z(t) = omega0 - (5*mut*g)/(2*r^2)*t  [t={tt:.4g}s]",
+                    v['omega0'] - 5.0 * v['mut'] * v['grav'] / (2.0 * r * r) * tt)
+        elif model == 'twist_decay_marshall':
+            tt = seg_time(txt)
+            if tt is not None:
+                r = radius(v)
+                a = math.sqrt((r - v['z0']) * r)
+                f['twist_decay_marshall omega_z'] = (
+                    f"omega_z(t) = omega0 - (5*xmu*a*g)/(3*r^2)*t  [a={a:.4g}, t={tt:.4g}s]",
+                    v['omega0'] - 5.0 * v['xmu'] * a * v['grav'] / (3.0 * r * r) * tt)
+        elif model == 'heat_equilibration':
+            tt = seg_time(txt)
+            if tt is not None:
+                r = radius(v)
+                delta = v['diam'] - 2.0 * v['sep']
+                a = math.sqrt(delta * 0.5 * r)    # R_eff = r/2 for an equal pair
+                hcond = v.get('htc_area', 0.0) * PI * a * a if 'htc_area' in v \
+                    else 2.0 * v['htc_radius'] * a
+                m = massof(v, txt)
+                rate = 2.0 * hcond / (v['cp'] * m)
+                f['heat_equilibration temperature difference'] = (
+                    f"T1-T2 = dT0*exp(-t*H*2/(cp*m))  [H={hcond:.4g}, t={tt:.4g}s]",
+                    (v['t1_0'] - v['t2_0']) * math.exp(-rate * tt))
+                f['heat_equilibration mean temperature'] = (
+                    "mean T constant (equal masses)", 0.5 * (v['t1_0'] + v['t2_0']))
         elif model == 'freefall':
             tt = seg_time(txt)
             if tt is not None:

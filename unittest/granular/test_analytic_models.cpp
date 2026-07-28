@@ -477,6 +477,75 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
             EXPECT_LE(std::fabs(ltot[k] - l0[k]), cfg.analytic_tol * lscale)
                 << "momentum_conservation: angular momentum component " << k;
         }
+    } else if (cfg.analytic_model == "twist_decay") {
+        // sphere (tag 1) resting on a floor (normal +z, N = m g) spinning about
+        // the contact normal with omega0, damped only by the Coulomb-capped
+        // twisting torque of the sds model, M = mu_t N (mu_t carries length
+        // units).  While the cap is active the spin decays linearly:
+        //   omega_z(t) = omega0 - (5 mu_t g)/(2 r^2) t.
+        const double g      = var_or(vars, "grav", 0.0);
+        const double mut    = var_or(vars, "mut", 0.0);
+        const double omega0 = var_or(vars, "omega0", 0.0);
+        const int i         = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "twist_decay: atom with tag 1 not found";
+        const double r = lmp->atom->radius[i];
+        expect_rel(omega0 - (5.0 * mut * g) / (2.0 * r * r) * t, lmp->atom->omega[i][2],
+                   cfg.analytic_tol, "twist_decay omega_z");
+    } else if (cfg.analytic_model == "twist_decay_marshall") {
+        // like twist_decay, but for the marshall twisting model whose Coulomb
+        // cap is derived from the tangential friction and the contact radius
+        // a = sqrt(delta R_eff) (Marshall 2009, eq 44): M = (2/3) mu_t a N.
+        // The contact radius is measured from the live overlap (R_eff = r for
+        // a wall):  omega_z(t) = omega0 - (5 mu_t a g)/(3 r^2) t.
+        const double g      = var_or(vars, "grav", 0.0);
+        const double mu     = var_or(vars, "xmu", 0.0);
+        const double omega0 = var_or(vars, "omega0", 0.0);
+        const int i         = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "twist_decay_marshall: atom with tag 1 not found";
+        const double r     = lmp->atom->radius[i];
+        const double delta = r - lmp->atom->x[i][2];
+        ASSERT_GT(delta, 0.0) << "twist_decay_marshall: sphere not in contact with the floor";
+        const double a = std::sqrt(delta * r);
+        expect_rel(omega0 - (5.0 * mu * a * g) / (3.0 * r * r) * t, lmp->atom->omega[i][2],
+                   cfg.analytic_tol, "twist_decay_marshall omega_z");
+    } else if (cfg.analytic_model == "heat_equilibration") {
+        // two spheres (tags 1,2) held in static contact (no integrator) with
+        // initial temperatures t1_0 and t2_0, coupled by granular heat
+        // conduction and integrated by fix heat/flow (constant specific heat
+        // cp).  The conductance H is h pi a^2 (area model, variable htc_area)
+        // or 2 k a (radius model, variable htc_radius) with the contact radius
+        // a = sqrt(delta R_eff) measured from the live overlap.  Then
+        //   T1 - T2 = (t1_0 - t2_0) exp(-t H (1/(cp m1) + 1/(cp m2)))
+        // and the mass-weighted mean temperature stays constant.
+        const double t1_0 = var_or(vars, "t1_0", 0.0);
+        const double t2_0 = var_or(vars, "t2_0", 0.0);
+        const double cp   = var_or(vars, "cp", 0.0);
+        const double ha   = var_or(vars, "htc_area", 0.0);
+        const double hr   = var_or(vars, "htc_radius", 0.0);
+        const int i1      = find_local(lmp, 1);
+        const int i2      = find_local(lmp, 2);
+        ASSERT_GE(i1, 0) << "heat_equilibration: atom with tag 1 not found";
+        ASSERT_GE(i2, 0) << "heat_equilibration: atom with tag 2 not found";
+        ASSERT_TRUE(lmp->atom->temperature_flag) << "heat_equilibration: no temperature property";
+        const double m1 = lmp->atom->rmass[i1];
+        const double m2 = lmp->atom->rmass[i2];
+        const double r1 = lmp->atom->radius[i1];
+        const double r2 = lmp->atom->radius[i2];
+        const double dx = lmp->atom->x[i1][0] - lmp->atom->x[i2][0];
+        const double dy = lmp->atom->x[i1][1] - lmp->atom->x[i2][1];
+        const double dz = lmp->atom->x[i1][2] - lmp->atom->x[i2][2];
+        const double delta = r1 + r2 - std::sqrt(dx * dx + dy * dy + dz * dz);
+        ASSERT_GT(delta, 0.0) << "heat_equilibration: spheres not in contact";
+        const double reff = r1 * r2 / (r1 + r2);
+        const double a    = std::sqrt(delta * reff);
+        const double hcond = (ha > 0.0) ? ha * MathConst::MY_PI * a * a : 2.0 * hr * a;
+        const double rate  = hcond * (1.0 / (cp * m1) + 1.0 / (cp * m2));
+        const double T1    = lmp->atom->temperature[i1];
+        const double T2    = lmp->atom->temperature[i2];
+        expect_rel((t1_0 - t2_0) * std::exp(-rate * t), T1 - T2, cfg.analytic_tol,
+                   "heat_equilibration temperature difference");
+        expect_rel((m1 * t1_0 + m2 * t2_0) / (m1 + m2), (m1 * T1 + m2 * T2) / (m1 + m2),
+                   cfg.analytic_tol, "heat_equilibration mean temperature");
     } else if (cfg.analytic_model == "pulloff_jkr") {
         // JKR cohesion: at zero overlap the (tensile) contact force is
         // (8/9) of the pull-off force F_po = 3 pi gamma R_eff (the LAMMPS

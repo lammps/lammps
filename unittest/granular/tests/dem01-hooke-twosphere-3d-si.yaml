@@ -8,11 +8,11 @@ prerequisites: |
   atom sphere
   pair granular
 pre_commands: |
-  units lj
-  dimension 2
-  boundary f f p
+  units si
+  dimension 3
+  boundary f f f
   atom_style sphere
-  region box block -8.0 8.0 -2.0 2.0 -0.1 0.1 units box
+  region box block -0.05 0.05 -0.03 0.03 -0.03 0.03 units box
   create_box 1 box
   create_atoms 1 single -${sep} 0.0 0.0 units box
   create_atoms 1 single  ${sep} 0.0 0.0 units box
@@ -22,43 +22,42 @@ pre_commands: |
   velocity left set ${vin} 0.0 0.0
   velocity right set -${vin} 0.0 0.0
   comm_modify vel yes
-  neighbor 0.05 bin
+  neighbor 0.001 bin
   neigh_modify delay 0
   timestep ${dt}
 post_commands: |
-  fix integr all nve/sphere disc
-  fix twod all enforce2d
+  fix integr all nve/sphere
 input_file:
 natoms: 2
 variables: |
-  diam 1
-  dens 1
-  knorm 10000
+  diam 0.005
+  dens 2700
+  knorm 1e+06
   en 0.5
   xmu 0.0
-  vin 1
-  radius 0.5
-  dt 0.0001
-  sep 0.55
+  vin 2
+  radius 0.0025
+  dt 3e-08
+  sep 0.00255
 pair_style: granular
 pair_coeff: |
   * * hooke ${knorm} ${en} tangential linear_nohistory 0.0 0.0 damping coeff_restitution
 run_segments: |-
-  947 500
+  2068 727
 analytic_enable: yes
 analytic_model: collision_restitution
 analytic_tol: 0.02
 analytic_segment: 1
 run_pos: |2
-    0   1 -5.1414816868621493e-01  0.0000000000000000e+00  0.0000000000000000e+00
-    0   2  5.1414816868621493e-01  0.0000000000000000e+00  0.0000000000000000e+00
-    1   1 -5.3916945975278863e-01  0.0000000000000000e+00  0.0000000000000000e+00
-    1   2  5.3916945975278863e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    0   1 -2.5068045944333988e-03  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  2.5068045944333988e-03  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1 -2.5285999681953571e-03  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  2.5285999681953571e-03  0.0000000000000000e+00  0.0000000000000000e+00
 run_vel: |2
-    0   1 -5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
-    0   2  5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
-    1   1 -5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
-    1   2  5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    0   1 -9.9932937926762544e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  9.9932937926762544e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1 -9.9932937926762544e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  9.9932937926762544e-01  0.0000000000000000e+00  0.0000000000000000e+00
 run_torque: |2
     0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
     0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

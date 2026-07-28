@@ -824,28 +824,31 @@ base class, as well as for computing individual pairs through the
 
 The ``test_pair_style`` tester is used with 4 categories of test inputs:
 
-- pair styles compatible with molecular systems using bonded
-  interactions and exclusions.  For pair styles requiring a KSpace style
-  the KSpace computations are disabled.  The YAML files match the
-  pattern "mol-pair-\*.yaml" and the tests are correspondingly labeled
-  with "MolPairStyle:\*"
-- pair styles not compatible with the previous input template.
-  The YAML files match the pattern "atomic-pair-\*.yaml" and the tests are
-  correspondingly labeled with "AtomicPairStyle:\*"
-- manybody pair styles.
-  The YAML files match the pattern "manybody-pair-\*.yaml" and the tests are
-  correspondingly labeled with "ManybodyPairStyle:\*"
-- kspace styles.
-  The YAML files match the pattern "kspace-\*.yaml" and the tests are
-  correspondingly labeled with "KSpaceStyle:\*".  In these cases a compatible
-  pair style is defined, but the computation of the pair style contributions
-  is disabled.
+pair styles compatible with molecular systems using bonded interactions and exclusions.
+  For pair styles requiring a KSpace style the KSpace computations are
+  disabled.  The YAML files match the pattern ``mol-pair-*.yaml`` and
+  the tests are correspondingly labeled with ``MolPairStyle:*``
 
-The ``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``, and
-``test_improper_style`` tester programs are set up in a similar fashion and
-share support functions with the pair style tester.  The final group of
-tests in this section is for fix styles that add/manipulate forces and
-velocities, e.g. for time integration, thermostats and more.
+pair styles not compatible with the previous input template
+  The YAML files match the pattern ``atomic-pair-*.yaml`` and the tests are
+  correspondingly labeled with ``AtomicPairStyle:*``
+
+manybody pair styles
+  The YAML files match the pattern ``manybody-pair-*.yaml`` and the tests are
+  correspondingly labeled with ``ManybodyPairStyle:*``
+
+kspace styles
+  The YAML files match the pattern ``kspace-*.yaml`` and the tests are
+  correspondingly labeled with ``KSpaceStyle:*``.  In these cases a
+  compatible pair style is defined, but the computation of the pair
+  style contributions is disabled.
+
+The ``test_bond_style``, ``test_angle_style``, ``test_dihedral_style``,
+and ``test_improper_style`` tester programs are set up in a similar
+fashion and share support functions with the pair style tester.  The
+final group of tests in this section is for fix styles that
+add/manipulate forces and velocities, e.g. for time integration,
+thermostats and more.
 
 Adding a new test is easiest done by copying and modifying an existing YAML
 file for a style that is similar to one to be tested.  The file name should
@@ -933,15 +936,15 @@ Tests for minimizer styles
 
 The ``test_min_style`` program tests the :doc:`min_style <min_style>`
 minimizers and :doc:`min_modify <min_modify>` settings.  The YAML files
-match the pattern "min-\*.yaml" and the tests are correspondingly labeled
-with "MinStyle:\*".  Each YAML file sets up the molecular test system in
-the same way as the fix tests (``input_file`` plus ``input_coeffs``) and
-selects the minimizer in the ``post_commands`` block (``min_style``,
-``min_modify``, and optional fixes like :doc:`fix box/relax
-<fix_box_relax>`).  The driver then runs a minimization with a fixed
-iteration budget (``minimize 0.0 0.0 100 10000``); using a fixed number
-of iterations instead of a convergence tolerance keeps the reference
-data deterministic.  The ``timestep`` key matters for the
+match the pattern ``min-*.yaml`` and the tests are correspondingly
+labeled with ``MinStyle:*``.  Each YAML file sets up the molecular test
+system in the same way as the fix tests (``input_file`` plus
+``input_coeffs``) and selects the minimizer in the ``post_commands``
+block (``min_style``, ``min_modify``, and optional fixes like :doc:`fix
+box/relax <fix_box_relax>`).  The driver then runs a minimization with a
+fixed iteration budget (``minimize 0.0 0.0 100 10000``); using a fixed
+number of iterations instead of a convergence tolerance keeps the
+reference data deterministic.  The ``timestep`` key matters for the
 damped-dynamics minimizers (quickmin and fire).
 
 The line search and step acceptance logic of the minimizers branches on
@@ -971,9 +974,9 @@ The ``test_output_style`` program tests the *output data* of computes
 and fixes: global scalars, global vectors, global arrays (including
 arrays with a variable number of rows, for example per-chunk data),
 per-atom vectors and arrays, and local vectors and arrays.  The YAML
-files match the patterns "compute-\*.yaml" and "fix-output-\*.yaml" and
-the tests are labeled with "OutputStyle:\*" using the full file base
-name (so ``compute-msd.yaml`` becomes ``OutputStyle:compute-msd``).
+files match the patterns ``compute-*.yaml`` and ``fix-output-*.yaml``
+and the tests are labeled with ``OutputStyle:*`` using the full file
+base name (so ``compute-msd.yaml`` becomes ``OutputStyle:compute-msd``).
 
 The ``post_commands`` block must define the compute or fix to be tested
 with the ID ``test``, plus any helper commands it needs (groups, chunk
@@ -1057,12 +1060,12 @@ Every test program shares the same driver logic, implemented in
 contains the two GoogleTest fixtures (``newton_on`` and ``newton_off``).
 As with the force-style tests, the reference systems are defined by YAML
 files in the ``unittest/granular/tests`` folder and registered as CTest
-cases by their file name (``dem0N-\*.yaml`` becomes test ``DEM0N:\*``);
+cases by their file name (``dem0N-*.yaml`` becomes test ``DEM0N:*``);
 adding or removing a YAML file requires re-running CMake.  A given
 driver may cover several variants of one scenario -- across contact
 models (``hooke``, ``hooke/history``, ``hertz``, ``hertz/material``,
 ``mindlin``, ``mindlin/rescale``), dimensionality, or unit systems --
-since it simply runs every ``dem0N-\*.yaml`` file that matches its
+since it simply runs every ``dem0N-*.yaml`` file that matches its
 number.
 
 Unlike the force-style tests, the entire system is built *from the YAML
@@ -1200,10 +1203,10 @@ currently implemented are:
 Adding a new reference (YAML) file
 """"""""""""""""""""""""""""""""""
 
-Copy an existing ``dem0N-\*.yaml`` for a similar scenario, adjust the
+Copy an existing ``dem0N-*.yaml`` for a similar scenario, adjust the
 ``variables``, ``pre_commands``, ``pair_style``/``pair_coeff`` and
 ``post_commands`` for the new model, and give it a new name matching the
-``dem0N-\*.yaml`` pattern of the test program it belongs to.  Leave out
+``dem0N-*.yaml`` pattern of the test program it belongs to.  Leave out
 the reference data blocks initially, then (re)generate them in place
 with:
 
@@ -1213,7 +1216,7 @@ with:
 
 or by running the driver directly (``test_dem_0N dem0N-myvariant.yaml
 -u``).  Do **not** write the generated file to a sibling
-``dem0N-\*.yaml`` name (for example with the ``-g newfile.yaml`` option
+``dem0N-*.yaml`` name (for example with the ``-g newfile.yaml`` option
 pointing into the ``tests`` folder), because the ``CONFIGURE_DEPENDS``
 glob would then register it as an extra, stale test.  After adding the
 file, re-run CMake so the new test is registered, then verify it with
@@ -1228,7 +1231,7 @@ Create ``test_dem_0N.cpp`` as a thin copy of an existing one (only the
 GoogleTest suite name changes), add an
 ``add_executable``/``register_dem_tests`` pair to
 ``unittest/granular/CMakeLists.txt``, and add the corresponding
-``dem0N-\*.yaml`` reference files.  If the new scenario needs a
+``dem0N-*`.yaml`` reference files.  If the new scenario needs a
 closed-form check, add a named model to ``test_analytic_models.cpp``
 that reads its parameters from the ``variables`` block (and reads
 masses, radii, etc. from the live LAMMPS instance to avoid depending on

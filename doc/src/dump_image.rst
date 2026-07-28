@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue* or *outline*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue* or *defocus* or *outline*
 
   .. parsed-literal::
 
@@ -120,6 +120,10 @@ Syntax
          cfactor = strength of fading from 0.0 to 1.0
          color = fog color name or *auto* = fade toward the background color
          start = box fraction along the view direction where fading starts, or *auto* = nearest rendered object
+       *defocus* values = blurring bfactor start = defocus of distant objects
+         blurring = *yes* or *no* = turn defocusing on/off
+         bfactor = strength of the blur from 0.0 to 1.0
+         start = box fraction along the view direction where blurring starts, or *auto* = nearest rendered object
        *outline* values = flag width color = outlines at depth jumps
          flag = *yes* or *no* = turn outline drawing on/off
          width = width of the outlines in pixels (from 1 to 16)
@@ -913,6 +917,39 @@ computational cost, and both can be combined.
 
 .. versionadded:: TBD
 
+The *defocus* keyword turns on/off defocusing of distant objects.  If
+*yes* is set, objects are blurred the more distant from the viewer they
+are, as if the camera were focused on the front of the scene.  This
+draws the attention to the objects in front and is often more effective
+for that purpose than the *depthcue* keyword, since it leaves the colors
+of the distant objects untouched.  Both can also be combined.
+
+The *bfactor* value scales the strength of the blur: with *bfactor* =
+1.0 the most distant objects are blurred over a radius of 1 percent of
+the image height, smaller values reduce the blur accordingly.  Blurring
+over much more than the size of the rendered particles turns them into a
+uniform haze, which looks like fog rather than like a photograph taken
+with a shallow depth of field, so moderate values usually give the best
+result.  The *start* setting determines where the blurring begins and
+uses the same convention as the *start* setting of the *depthcue*
+keyword: with *auto* it begins at the nearest rendered object, so the
+front of the scene stays sharp, while a numeric value positions the
+start as a fraction of the simulation box projected onto the view
+direction, with 0.0 at the side of the box nearest to the camera, 0.5 at
+its middle, and 1.0 at its far side.  Objects in front of the start
+position are not blurred, and the blur always reaches its maximum at the
+most distant rendered object.
+
+Only objects behind the start position are blurred; unlike a camera lens
+this does not blur objects in front of the plane of focus.  The cost of
+the blurring is much smaller than that of the *ssao* keyword and grows
+with the *bfactor* value, since wider blurs need more samples per pixel.
+As with the *ssao* keyword, the result does not depend on the number of
+MPI ranks or OpenMP threads, so images of an unchanged scene are exactly
+reproducible.
+
+.. versionadded:: TBD
+
 The *outline* keyword turns on/off drawing outlines where the distance
 from the viewer jumps, i.e. along the visible edges of atoms and other
 objects in front of the background or in front of more distant objects.
@@ -1512,6 +1549,7 @@ The defaults for the dump image and dump movie keywords are as follows:
 * ssao = no
 * fsaa = no
 * depthcue = no
+* defocus = no
 * outline = no
 
 ----------

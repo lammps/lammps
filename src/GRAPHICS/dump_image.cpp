@@ -644,6 +644,21 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       }
       iarg += 5;
 
+    } else if (strcmp(arg[iarg],"defocus") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image defocus", error);
+      image->defocus = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      double bfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (bfactor < 0.0 || bfactor > 1.0)
+        error->all(FLERR, iarg+2, "Invalid dump image defocus strength value {}", bfactor);
+      image->defocusint = bfactor;
+      if (strcmp(arg[iarg+3],"auto") == 0) {
+        image->defocusstartflag = 0;
+      } else {
+        image->defocusstart = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        image->defocusstartflag = 1;
+      }
+      iarg += 4;
+
     } else if (strcmp(arg[iarg],"outline") == 0) {
       if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image outline", error);
       image->outline = utils::logical(FLERR,arg[iarg+1],false,lmp);

@@ -45,6 +45,10 @@ class Image : protected Pointers {
   double *depthcuecolor;      // fog color; fade toward background color if null
   int depthcuestartflag;      // 1 if fading starts at a box fraction, 0 at nearest object
   double depthcuestart;       // start of fading as box fraction along the view direction
+  int defocus;                // background defocus on or off
+  double defocusint;          // strength of the defocus blur from 0 to 1
+  int defocusstartflag;       // 1 if blurring starts at a box fraction, 0 at nearest object
+  double defocusstart;        // start of blurring as box fraction along the view direction
   int outline;                // outline drawing on or off
   int outlinewidth;           // width of outlines in pixels
   double *outlinecolor;       // color of the outlines
@@ -155,6 +159,9 @@ class Image : protected Pointers {
   void compute_SSAO();
   void compute_outline();
   void compute_depthcue();
+  void compute_defocus();
+  bool depth_minmax(double &, double &) const;
+  void box_depth_minmax(double &, double &) const;
 
   // inline functions
 

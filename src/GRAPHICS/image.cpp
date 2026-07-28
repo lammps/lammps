@@ -45,6 +45,7 @@
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
+using MathConst::MY_2PI;
 using MathConst::MY_PI;
 using MathConst::MY_PI4;
 
@@ -369,6 +370,10 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   depthcuecolor = nullptr;
   depthcuestartflag = 0;
   depthcuestart = 0.0;
+  defocus = NO;
+  defocusint = 0.0;
+  defocusstartflag = 0;
+  defocusstart = 0.0;
   outline = NO;
   outlinewidth = 0;
   outlinecolor = nullptr;
@@ -926,6 +931,10 @@ void Image::merge()
   // apply depth cueing to the final composited image
 
   if (depthcue && (me == 0)) compute_depthcue();
+
+  // blur the more distant objects in the final composited image
+
+  if (defocus && (me == 0)) compute_defocus();
 
   // scale down image for antialiasing. can be done in place with simple averaging
   if (fsaa) {
@@ -2075,19 +2084,14 @@ void Image::compute_outline()
 }
 
 /* ----------------------------------------------------------------------
-   apply depth cueing to the composited image on the output rank:
-   fade drawn pixels toward the fog color with increasing distance from
-   the viewer.  the fade ends at the most distant drawn pixel and starts
-   at the nearest drawn pixel or at a chosen fraction of the simulation
-   box projected onto the view direction.
+   depth range of the drawn pixels of the composited image.  returns
+   false if nothing was drawn; background pixels have a depth < 0
 ------------------------------------------------------------------------- */
 
-void Image::compute_depthcue()
+bool Image::depth_minmax(double &dmin, double &dmax) const
 {
-  // determine depth range of drawn pixels; background pixels have depth < 0
-
   bool first = true;
-  double dmin = 0.0, dmax = 0.0;
+  dmin = dmax = 0.0;
   for (int i = 0; i < npixels; i++) {
     const double d = depthBuffer[i];
     if (d < 0.0) continue;
@@ -2099,33 +2103,58 @@ void Image::compute_depthcue()
       dmax = MAX(dmax,d);
     }
   }
+  return !first;
+}
 
-  // nothing to do without drawn pixels or without depth variation
+/* ----------------------------------------------------------------------
+   distance of the near and far side of the simulation box from the
+   camera, by projecting the eight box corners onto the view direction
+------------------------------------------------------------------------- */
 
-  if (first || ((dmax - dmin) < EPSILON)) return;
+void Image::box_depth_minmax(double &dnear, double &dfar) const
+{
+  const double dcam = MathExtra::dot3(camPos,camDir);
+  dnear = dfar = 0.0;
+  for (int ic = 0; ic < 8; ++ic) {
+    double corner[3];
+    corner[0] = ((ic & 1) ? boxbounds[1] : boxbounds[0]) - xctr;
+    corner[1] = ((ic & 2) ? boxbounds[3] : boxbounds[2]) - yctr;
+    corner[2] = ((ic & 4) ? boxbounds[5] : boxbounds[4]) - zctr;
+    const double d = dcam - MathExtra::dot3(corner,camDir);
+    if (ic == 0) {
+      dnear = dfar = d;
+    } else {
+      dnear = MIN(dnear,d);
+      dfar = MAX(dfar,d);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   apply depth cueing to the composited image on the output rank:
+   fade drawn pixels toward the fog color with increasing distance from
+   the viewer.  the fade ends at the most distant drawn pixel and starts
+   at the nearest drawn pixel or at a chosen fraction of the simulation
+   box projected onto the view direction.
+------------------------------------------------------------------------- */
+
+void Image::compute_depthcue()
+{
+  // determine depth range of drawn pixels; nothing to do without drawn
+  // pixels or without depth variation
+
+  double dmin, dmax;
+  if (!depth_minmax(dmin,dmax)) return;
+  if ((dmax - dmin) < EPSILON) return;
 
   // start of the fade: by default the nearest drawn pixel.  with a start
-  // fraction set, project the corners of the simulation box onto the view
-  // direction and place the start at that fraction between the near and
-  // far side of the box as seen from the camera
+  // fraction set, place it at that fraction between the near and far side
+  // of the simulation box as seen from the camera
 
   double dstart = dmin;
   if (depthcuestartflag) {
-    const double dcam = MathExtra::dot3(camPos,camDir);
-    double dnear = 0.0, dfar = 0.0;
-    for (int ic = 0; ic < 8; ++ic) {
-      double corner[3];
-      corner[0] = ((ic & 1) ? boxbounds[1] : boxbounds[0]) - xctr;
-      corner[1] = ((ic & 2) ? boxbounds[3] : boxbounds[2]) - yctr;
-      corner[2] = ((ic & 4) ? boxbounds[5] : boxbounds[4]) - zctr;
-      const double d = dcam - MathExtra::dot3(corner,camDir);
-      if (ic == 0) {
-        dnear = dfar = d;
-      } else {
-        dnear = MIN(dnear,d);
-        dfar = MAX(dfar,d);
-      }
-    }
+    double dnear, dfar;
+    box_depth_minmax(dnear,dfar);
     dstart = dnear + depthcuestart * (dfar - dnear);
     if (dstart >= (dmax - EPSILON)) return;    // fading starts behind all drawn pixels
   }
@@ -2164,6 +2193,148 @@ void Image::compute_depthcue()
       writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+2] + f * blue);
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   defocus the background of the composited image on the output rank:
+   objects are blurred more the further they are behind the start of the
+   blur, which puts the visual emphasis on the objects in front of it.
+   everything closer than the start stays sharp, so this is not the full
+   depth of field of a camera lens, which would blur the foreground too.
+------------------------------------------------------------------------- */
+
+void Image::compute_defocus()
+{
+  // largest blur radius in pixels, expressed as a fraction of the image
+  // height so that the effect does not depend on the image size.  the
+  // internal image is twice as large with FSAA, which scales the radius
+  // along with it
+
+  const double maxradius = defocusint * 0.01 * height;
+  if (maxradius < 1.0) return;    // blur is smaller than a pixel
+
+  // determine depth range of drawn pixels; nothing to do without drawn
+  // pixels or without depth variation
+
+  double dmin, dmax;
+  if (!depth_minmax(dmin,dmax)) return;
+  if ((dmax - dmin) < EPSILON) return;
+
+  // start of the blur: by default the nearest drawn pixel, so that the
+  // front of the scene stays sharp.  with a start fraction set, place it
+  // at that fraction between the near and far side of the simulation box
+  // as seen from the camera
+
+  double dstart = dmin;
+  if (defocusstartflag) {
+    double dnear, dfar;
+    box_depth_minmax(dnear,dfar);
+    dstart = dnear + defocusstart * (dfar - dnear);
+    if (dstart >= (dmax - EPSILON)) return;    // blurring starts behind all drawn pixels
+  }
+  const double dscale = maxradius / (dmax - dstart);
+
+  // blur radius of each pixel.  pixels in front of the start of the blur
+  // stay sharp, behind it the radius grows with the distance from the
+  // viewer.  the background has no depth and is treated as maximally
+  // blurred, so that blurred objects in the back dissolve into it
+  // instead of keeping a sharp silhouette
+
+  auto *radiusBuffer = new double[npixels];
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int i = 0; i < npixels; ++i) {
+    const double d = depthBuffer[i];
+    if (d < 0.0) radiusBuffer[i] = maxradius;
+    else if (d <= dstart) radiusBuffer[i] = 0.0;
+    else radiusBuffer[i] = (d - dstart) * dscale;
+  }
+
+  // sample positions on a unit disk, placed on a spiral with the golden
+  // angle between them, which spreads them evenly.  using the disk shape
+  // of a camera aperture rather than a bell shaped blur keeps the blurred
+  // objects looking out of focus instead of looking like fog.  the number
+  // of samples follows the largest blur radius, so that wide blurs do not
+  // show the individual samples
+
+  int nsamples = static_cast<int>(4.0 * maxradius);
+  nsamples = MAX(nsamples,16);
+  nsamples = MIN(nsamples,64);
+
+  constexpr double GOLDEN_ANGLE = 2.39996322972865332;
+  auto *sample = new double[3*nsamples];
+  for (int s = 0; s < nsamples; ++s) {
+    const double r = sqrt((s + 0.5) / nsamples);
+    const double angle = s * GOLDEN_ANGLE;
+    sample[3*s+0] = r * cos(angle);
+    sample[3*s+1] = r * sin(angle);
+    sample[3*s+2] = r;
+  }
+
+  // collect the blur from an unmodified copy of the composited image
+
+  auto *source = new unsigned char[3*npixels];
+  memcpy(source,writeBuffer,3*npixels);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const int i = iy*width + ix;
+      const double radius = radiusBuffer[i];
+      if (radius < 0.5) continue;    // in focus, the pixel is left alone
+
+      // turn the whole sample pattern by a per-pixel angle taken from
+      // interleaved gradient noise.  this replaces the rings that the
+      // repeated sample pattern would leave in wide blurs by a fine
+      // grain, and does not depend on the number of ranks or threads
+
+      const double noise = fmod(0.06711056*ix + 0.00583715*iy, 1.0);
+      const double angle = fmod(52.9829189*noise, 1.0) * MY_2PI;
+      const double cosa = cos(angle);
+      const double sina = sin(angle);
+
+      // a sample only contributes if its own blur circle reaches this
+      // pixel.  that keeps sharp objects in front from bleeding into the
+      // blurred background, which would show up as a halo around them.
+      // the contribution fades out over the last pixel of that reach, so
+      // that the blur does not gain visible steps
+
+      double c[3];
+      c[0] = source[3*i+0];
+      c[1] = source[3*i+1];
+      c[2] = source[3*i+2];
+      double wsum = 1.0;
+
+      for (int s = 0; s < nsamples; ++s) {
+        const double dx = radius * (cosa*sample[3*s+0] - sina*sample[3*s+1]);
+        const double dy = radius * (sina*sample[3*s+0] + cosa*sample[3*s+1]);
+        const int jx = ix + static_cast<int>(lround(dx));
+        const int jy = iy + static_cast<int>(lround(dy));
+        if ((jx < 0) || (jx >= width) || (jy < 0) || (jy >= height)) continue;
+
+        const int j = jy*width + jx;
+        const double weight = saturate(radiusBuffer[j] - radius * sample[3*s+2]);
+        if (weight <= 0.0) continue;
+
+        c[0] += weight * source[3*j+0];
+        c[1] += weight * source[3*j+1];
+        c[2] += weight * source[3*j+2];
+        wsum += weight;
+      }
+
+      writeBuffer[3*i+0] = static_cast<unsigned char>(c[0]/wsum + 0.5);
+      writeBuffer[3*i+1] = static_cast<unsigned char>(c[1]/wsum + 0.5);
+      writeBuffer[3*i+2] = static_cast<unsigned char>(c[2]/wsum + 0.5);
+    }
+  }
+
+  delete[] source;
+  delete[] sample;
+  delete[] radiusBuffer;
 }
 
 /* ---------------------------------------------------------------------- */

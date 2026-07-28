@@ -819,6 +819,8 @@ deeppink
 deepskyblue
 defgrad
 defn
+defocus
+defocusing
 deformable
 Deissenbeck
 del

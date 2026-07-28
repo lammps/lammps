@@ -2326,9 +2326,9 @@ void Image::compute_defocus()
         wsum += weight;
       }
 
-      writeBuffer[3*i+0] = static_cast<unsigned char>(c[0]/wsum + 0.5);
-      writeBuffer[3*i+1] = static_cast<unsigned char>(c[1]/wsum + 0.5);
-      writeBuffer[3*i+2] = static_cast<unsigned char>(c[2]/wsum + 0.5);
+      writeBuffer[3*i+0] = static_cast<unsigned char>(lround(c[0]/wsum));
+      writeBuffer[3*i+1] = static_cast<unsigned char>(lround(c[1]/wsum));
+      writeBuffer[3*i+2] = static_cast<unsigned char>(lround(c[2]/wsum));
     }
   }
 

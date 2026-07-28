@@ -19,7 +19,7 @@ Syntax
 * cutoff = cutoff for Gaussian kernel
 * width = standard deviation of Gaussian kernel
 * one or more input values can be listed
-* value = *density*, *volume/fraction*, *v/a*, *boundary/force/a*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *fabric/ab*
+* value = *density*, *volume/fraction*, *velocity/a*, *boundary/force/a*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *fabric/ab*
 
   .. parsed-literal::
 
@@ -69,7 +69,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all continuum/chunk 10000 1 10000 binchunk c_myCentro 2.0 1.0 density stress/* title1 "My output values"
-   fix 1 flow continuum/chunk 100 10 1000 molchunk 3.0 2.0 v/x v/y file vel.profile
+   fix 1 flow continuum/chunk 100 10 1000 molchunk 3.0 2.0 velocity/x velocity/y file vel.profile
 
 
 Description
@@ -86,12 +86,12 @@ other :doc:`output commands <Howto_output>` such as :doc:`thermo_style custom
 
 The available fields include scalar, vector, and tensor values described below.
 An individual component of a vector field such as the velocity can be requested
-as *v/x*, *v/y*, or *v/z* or one can request all three components (two in 2D)
-using a wildcard: *v/\**. Tensor fields, such as the stress, and require two
-components to be specified. E.g., *stress/xx*, *stress/xy*, *stress/yx*, and
-*stress/yy* in 2D. Note that the fix does not assume tensors are symmetric
-and independently calculates each diagonal component. A wildcard can be used
-to access all nine components (four in 2D) such as *stress/\**.
+as *velocity/x*, *velocity/y*, or *velocity/z* or one can request all three
+components (two in 2D) using a wildcard: *velocity/\**. Tensor fields, such as
+the stress, and require two components to be specified. E.g., *stress/xx*,
+*stress/xy*, *stress/yx*, and *stress/yy* in 2D. Note that the fix does not
+assume tensors are symmetric and independently calculates each diagonal component.
+A wildcard can be used to access all nine components (four in 2D) such as *stress/\**.
 
 In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
 chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
@@ -359,12 +359,13 @@ By default, these header lines are as follows:
 
    # Chunk-averaged data for fix ID and group name
    # Timestep Number-of-chunks
-   # Chunk (OrigID) (Coord1) (Coord2) (Coord3) Ncount value1 value2 ...
+   # Chunk (OrigID) (Coord1) (Coord2) (Coord3) Ncount Ncountkernel value1 value2 ...
 
 In the first line, ID and name are replaced with the fix-ID and group
 name.  The second line describes the two values that are printed at
 the first of each section of output.  In the third line the values are
-replaced with the appropriate value names (e.g., *v/x* or *stress/xy*).
+replaced with the appropriate value names (e.g., *velocity/x* or
+*stress/xy*).
 
 The words in parenthesis only appear with corresponding columns if the
 chunk style specified for the :doc:`compute chunk/atom
@@ -380,6 +381,11 @@ The CoordN columns depends on the *binning* style.  For *bin/1d*,
 *bin/2d*, and *bin/3d* styles the column values are the center point
 of the bin in the corresponding dimension.  Just Coord1 is used for
 *bin/1d*, Coord2 is added for *bin/2d*, Coord3 is added for *bin/3d*\ .
+
+Ncount is the number of atoms within the chunk. Ncountkernel is the
+number of atoms within the kernel centered on the chunk position.
+Ncountkernel could be either smaller or larger than Ncount depending on
+the size of the kernel relative to the chunk.
 
 Note that if the value of the *units* keyword used in the
 :doc:`compute chunk/atom command <compute_chunk_atom>` is *box* or

@@ -78,8 +78,10 @@ class FixContinuumChunk : public Fix {
   // total,list vecs/arrays are used across epochs
 
   double *count_one, *count_many, *count_sum;
+  double *countk_one, *countk_many, *countk_sum;
   double **values_one, **values_many, **values_sum;
   double *count_total, **count_list;
+  double *countk_total, **countk_list;
   double **values_total, ***values_list;
 
   double *density_one, *density_sum;

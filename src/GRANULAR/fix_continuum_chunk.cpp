@@ -120,7 +120,8 @@ inline double FixContinuumChunk::calc_w_int(double *dr, double *rij) const
 FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), nvalues(0), nrepeat(0), fp(nullptr), idchunk(nullptr), varatom(nullptr),
     count_one(nullptr), count_many(nullptr), count_sum(nullptr), values_one(nullptr),
-    values_many(nullptr), values_sum(nullptr), count_total(nullptr), count_list(nullptr),
+    countk_one(nullptr), countk_many(nullptr), countk_sum(nullptr), values_many(nullptr), values_sum(nullptr),
+    count_total(nullptr), count_list(nullptr), countk_total(nullptr), countk_list(nullptr),
     values_total(nullptr), values_list(nullptr), density_one(nullptr), density_sum(nullptr),
     momentum_one(nullptr), momentum_sum(nullptr)
 {
@@ -421,17 +422,17 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       int compress = cchunk->compress;
       int ncoord = cchunk->ncoord;
       if (!compress) {
-        if (ncoord == 0) fprintf(fp, "# Chunk Ncount");
-        else if (ncoord == 1) fprintf(fp, "# Chunk Coord1 Ncount");
-        else if (ncoord == 2) fprintf(fp, "# Chunk Coord1 Coord2 Ncount");
+        if (ncoord == 0) fprintf(fp, "# Chunk Ncount Ncountkernel");
+        else if (ncoord == 1) fprintf(fp, "# Chunk Coord1 Ncount Ncountkernel");
+        else if (ncoord == 2) fprintf(fp, "# Chunk Coord1 Coord2 Ncount Ncountkernel");
         else if (ncoord == 3)
-          fprintf(fp, "# Chunk Coord1 Coord2 Coord3 Ncount");
+          fprintf(fp, "# Chunk Coord1 Coord2 Coord3 Ncount Ncountkernel");
       } else {
-        if (ncoord == 0) fprintf(fp, "# Chunk OrigID Ncount");
-        else if (ncoord == 1) fprintf(fp, "# Chunk OrigID Coord1 Ncount");
-        else if (ncoord == 2) fprintf(fp, "# Chunk OrigID Coord1 Coord2 Ncount");
+        if (ncoord == 0) fprintf(fp, "# Chunk OrigID Ncount Ncountkernel");
+        else if (ncoord == 1) fprintf(fp, "# Chunk OrigID Coord1 Ncount Ncountkernel");
+        else if (ncoord == 2) fprintf(fp, "# Chunk OrigID Coord1 Coord2 Ncount Ncountkernel");
         else if (ncoord == 3)
-          fprintf(fp, "# Chunk OrigID Coord1 Coord2 Coord3 Ncount");
+          fprintf(fp, "# Chunk OrigID Coord1 Coord2 Coord3 Ncount Ncountkernel");
       }
       for (int i = 0; i < (nvalues - nskip); i++)
         fprintf(fp, " %s", labels[i].c_str());
@@ -470,6 +471,8 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
 
   count_one = count_many = count_sum = count_total = nullptr;
   count_list = nullptr;
+  countk_one = countk_many = countk_sum = countk_total = nullptr;
+  countk_list = nullptr;
   values_one = values_many = values_sum = values_total = nullptr;
   values_list = nullptr;
 
@@ -505,6 +508,11 @@ FixContinuumChunk::~FixContinuumChunk()
   memory->destroy(count_sum);
   memory->destroy(count_total);
   memory->destroy(count_list);
+  memory->destroy(countk_one);
+  memory->destroy(countk_many);
+  memory->destroy(countk_sum);
+  memory->destroy(countk_total);
+  memory->destroy(countk_list);
   memory->destroy(values_one);
   memory->destroy(values_many);
   memory->destroy(values_sum);
@@ -534,6 +542,11 @@ FixContinuumChunk::~FixContinuumChunk()
   count_sum = nullptr;
   count_total = nullptr;
   count_list = nullptr;
+  countk_one = nullptr;
+  countk_many = nullptr;
+  countk_sum = nullptr;
+  countk_total = nullptr;
+  countk_list = nullptr;
   values_one = nullptr;
   values_many = nullptr;
   values_sum = nullptr;
@@ -668,6 +681,7 @@ void FixContinuumChunk::end_of_step()
     }
     for (m = 0; m < nchunk; m++) {
       count_many[m] = count_sum[m] = 0.0;
+      countk_many[m] = countk_sum[m] = 0.0;
       for (i = 0; i < nvalues; i++) values_many[m][i] = 0.0;
     }
   }
@@ -687,6 +701,7 @@ void FixContinuumChunk::end_of_step()
 
   for (m = 0; m < nchunk; m++) {
     count_one[m] = 0.0;
+    countk_one[m] = 0.0;
     for (i = 0; i < nvalues; i++) values_one[m][i] = 0.0;
   }
 
@@ -704,6 +719,7 @@ void FixContinuumChunk::end_of_step()
 
   // perform the computation for one sample
   // count # of atoms in each bin
+  // countk # of atoms in each kernel
   // accumulate results of attributes to local copy
   // sum within each chunk, only include atoms in fix group
   // compute/fix/variable may invoke computes so wrap with clear/add
@@ -753,6 +769,8 @@ void FixContinuumChunk::end_of_step()
         }
       }
 
+      count_one[m]++;
+
       for (auto &stencil_offset : stencil) {
         xbin[0] = xbin0[0] + stencil_offset.dx[0];
         xbin[1] = xbin0[1] + stencil_offset.dx[1];
@@ -765,7 +783,7 @@ void FixContinuumChunk::end_of_step()
         rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
         if (rsq_atom_bin > w_cut_sq) continue;
 
-        count_one[mtmp]++;
+        countk_one[mtmp]++;
       }
     }
   }
@@ -1024,11 +1042,13 @@ void FixContinuumChunk::end_of_step()
   // process the current sample, one = value/count, accumulate one to many
 
   MPI_Allreduce(count_one, count_many, nchunk, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(countk_one, countk_many, nchunk, MPI_DOUBLE, MPI_SUM, world);
 
   for (m = 0; m < nchunk; m++) {
     for (j = 0; j < nvalues; j++)
       values_many[m][j] += values_one[m][j];
     count_sum[m] += count_many[m];
+    countk_sum[m] += countk_many[m];
   }
 
   // done if irepeat < nrepeat
@@ -1059,6 +1079,7 @@ void FixContinuumChunk::end_of_step()
   for (m = 0; m < nchunk; m++) {
     for (j = 0; j < nvalues; j++) values_sum[m][j] /= repeat;
     count_sum[m] /= repeat;
+    countk_sum[m] /= repeat;
   }
 
   // Calculate trivially derived values, in the order used
@@ -1155,6 +1176,7 @@ void FixContinuumChunk::end_of_step()
       for (i = 0; i < nvalues; i++)
         values_total[m][i] = values_sum[m][i];
       count_total[m] = count_sum[m];
+      countk_total[m] = countk_sum[m];
     }
     normcount = 1;
 
@@ -1163,6 +1185,7 @@ void FixContinuumChunk::end_of_step()
       for (i = 0; i < nvalues; i++)
         values_total[m][i] += values_sum[m][i];
       count_total[m] += count_sum[m];
+      countk_total[m] += countk_sum[m];
     }
     normcount++;
 
@@ -1174,8 +1197,11 @@ void FixContinuumChunk::end_of_step()
         values_list[iwindow][m][i] = values_sum[m][i];
       }
       count_total[m] += count_sum[m];
+      countk_total[m] += countk_sum[m];
       if (window_limit) count_total[m] -= count_list[iwindow][m];
+      if (window_limit) countk_total[m] -= countk_list[iwindow][m];
       count_list[iwindow][m] = count_sum[m];
+      countk_list[iwindow][m] = countk_sum[m];
     }
 
     iwindow++;
@@ -1194,8 +1220,12 @@ void FixContinuumChunk::end_of_step()
 
     if (overwrite) (void) platform::fseek(fp,filepos);
     double count = 0.0;
-    for (m = 0; m < nchunk; m++) count += count_total[m];
-    fprintf(fp, "%d %d %d\n", ntimestep, nchunk, count);
+    double countk = 0.0;
+    for (m = 0; m < nchunk; m++) {
+      count += count_total[m];
+      countk += countk_total[m];
+    }
+    fprintf(fp, "%d %d %d %d\n", ntimestep, nchunk, count, countk);
 
     int compress = cchunk->compress;
     int *chunkID = cchunk->chunkID;
@@ -1205,69 +1235,69 @@ void FixContinuumChunk::end_of_step()
     if (!compress) {
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp, "  %d %g", m + 1, count_total[m] / normcount);
+          fprintf(fp, "  %d %g %g", m + 1, count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       } else if (ncoord == 1) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp, "  %d %g %g", m + 1, coord[m][0],
-                  count_total[m] / normcount);
+          fprintf(fp, "  %d %g %g %g", m + 1, coord[m][0],
+                  count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       } else if (ncoord == 2) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp, "  %d %g %g %g", m + 1, coord[m][0], coord[m][1],
-                  count_total[m] / normcount);
+          fprintf(fp, "  %d %g %g %g %g", m + 1, coord[m][0], coord[m][1],
+                  count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       } else if (ncoord == 3) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp, "  %d %g %g %g %g", m + 1,
-                  coord[m][0], coord[m][1], coord[m][2], count_total[m] / normcount);
+          fprintf(fp, "  %d %g %g %g %g %g", m + 1,
+                  coord[m][0], coord[m][1], coord[m][2], count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       }
     } else {
       if (ncoord == 0) {
         for (m = 0; m < nchunk; m++) {
-          fprintf(fp, "  %d %d %g", m + 1, chunkID[m], count_total[m] / normcount);
+          fprintf(fp, "  %d %d %g %g", m + 1, chunkID[m], count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       } else if (ncoord == 1) {
         for (m = 0; m < nchunk; m++) {
           j = chunkID[m];
-          fprintf(fp, "  %d %d %g %g", m + 1, j, coord[j - 1][0],
-                  count_total[m] / normcount);
+          fprintf(fp, "  %d %d %g %g %g", m + 1, j, coord[j - 1][0],
+                  count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       } else if (ncoord == 2) {
         for (m = 0; m < nchunk; m++) {
           j = chunkID[m];
-          fprintf(fp, "  %d %d %g %g %g", m + 1, j, coord[j - 1][0], coord[j - 1][1],
-                  count_total[m] / normcount);
+          fprintf(fp, "  %d %d %g %g %g %g", m + 1, j, coord[j - 1][0], coord[j - 1][1],
+                  count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       } else if (ncoord == 3) {
         for (m = 0; m < nchunk; m++) {
           j = chunkID[m];
-          fprintf(fp, "  %d %d %g %g %g %g", m + 1, j, coord[j - 1][0],
-                  coord[j - 1][1], coord[j - 1][2], count_total[m] / normcount);
+          fprintf(fp, "  %d %d %g %g %g %g %g", m + 1, j, coord[j - 1][0],
+                  coord[j - 1][1], coord[j - 1][2], count_total[m] / normcount, countk_total[m] / normcount);
           for (i = 0; i < (nvalues - nskip); i++)
-            fprintf(fp,format,values_total[m][i] / normcount);
+            fprintf(fp,format, values_total[m][i] / normcount);
           fprintf(fp, "\n");
         }
       }
@@ -1302,6 +1332,11 @@ void FixContinuumChunk::allocate()
     memory->grow(count_sum, nchunk, "continuum/chunk:count_sum");
     memory->grow(count_total, nchunk, "continuum/chunk:count_total");
 
+    memory->grow(countk_one, nchunk, "continuum/chunk:countk_one");
+    memory->grow(countk_many, nchunk, "continuum/chunk:countk_many");
+    memory->grow(countk_sum, nchunk, "continuum/chunk:countk_sum");
+    memory->grow(countk_total, nchunk, "continuum/chunk:countk_total");
+
     memory->grow(values_one, nchunk, nvalues, "continuum/chunk:values_one");
     memory->grow(values_many, nchunk, nvalues, "continuum/chunk:values_many");
     memory->grow(values_sum, nchunk, nvalues, "continuum/chunk:values_sum");
@@ -1318,6 +1353,7 @@ void FixContinuumChunk::allocate()
 
     if (ave == WINDOW) {
       memory->create(count_list, nwindow, nchunk, "continuum/chunk:count_list");
+      memory->create(countk_list, nwindow, nchunk, "continuum/chunk:countk_list");
       memory->create(values_list, nwindow, nchunk, nvalues, "continuum/chunk:values_list");
     }
 
@@ -1327,6 +1363,7 @@ void FixContinuumChunk::allocate()
     for (m = 0; m < nchunk; m++) {
       for (i = 0; i < nvalues; i++) values_total[m][i] = 0.0;
       count_total[m] = 0.0;
+      countk_total[m] = 0.0;
     }
   }
 }
@@ -1379,8 +1416,10 @@ double FixContinuumChunk::memory_usage()
 {
   double bytes = (double)maxvar * sizeof(double);         // varatom
   bytes += (double)4 * maxchunk * sizeof(double);           // count one,many,sum,total
+  bytes += (double)4 * maxchunk * sizeof(double);           // countk one,many,sum,total
   bytes += (double)nvalues * maxchunk * sizeof(double);     // values one,many,sum,total
   bytes += (double)nwindow * maxchunk * sizeof(double);          // count_list
+  bytes += (double)nwindow * maxchunk * sizeof(double);          // countk_list
   bytes += (double)nwindow * maxchunk*nvalues * sizeof(double);  // values_list
   return bytes;
 }

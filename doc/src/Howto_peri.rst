@@ -207,7 +207,7 @@ Performance expectations
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 The BPM implementation is found to be consistently faster than the
-legacy PERI pair styles by a significant marging.  On a periodic
+legacy PERI pair styles by a significant margin.  On a periodic
 16x16x16 simple-cubic block (4096 nodes, 122 bonds per node) the
 per-step force cost is roughly 3.6x (pmb), 5.4x (lps), 4.4x (ves) and
 5.9x (eps) lower than the corresponding ``peri/*`` pair style on a

@@ -1014,12 +1014,12 @@ time-resolved trajectories of small, analytically tractable granular
 systems.  These tests are only enabled if the :ref:`GRANULAR
 package<PKG-GRANULAR>` is enabled.
 
-There are 12 test programs, ``test_dem_01`` through ``test_dem_12``,
+There are 14 test programs, ``test_dem_01`` through ``test_dem_14``,
 covering particle-impact-level benchmarks: two-sphere and sphere-wall
 collisions, oblique and spinning-sphere impacts, rolling and slipping
 contact, cohesive pull-off, settling under fluid drag, exact ballistic
-integration and static multi-contact compression, region walls, and
-superellipsoid contact.  These follow
+integration and static multi-contact compression, region walls,
+superellipsoid contact, twisting friction, and granular heat conduction.  These follow
 the software-agnostic DEM benchmark of :ref:`Mohajeri et al.
 <dem_Mohajeri2024>` (rolling resistance and cohesion), the
 particle-impact benchmark of :ref:`Chung and Ooi <dem_Chung2011>`
@@ -1069,6 +1069,12 @@ velocity under drag).  The test programs are:
    * - ``test_dem_12``
      - superellipsoid collision
      - ``momentum_conservation``
+   * - ``test_dem_13``
+     - spinning sphere damped by twisting friction
+     - ``twist_decay``, ``twist_decay_marshall``
+   * - ``test_dem_14``
+     - granular heat conduction in static contact
+     - ``heat_equilibration``
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the
@@ -1244,6 +1250,12 @@ currently implemented are:
      - total linear and angular momentum conservation for particle types carrying angular momentum (superellipsoids)
    * - pulloff_jkr
      - JKR tensile force at zero overlap :math:`|F| = \tfrac{8}{3} \pi \gamma R_{\mathrm{eff}} = \tfrac{8}{9} F_{pulloff}`
+   * - twist_decay
+     - linear spin-down under Coulomb-capped sds twisting friction: :math:`\omega_z = \omega_0 - \tfrac{5 \mu_t g}{2 r^2} t`
+   * - twist\_decay\_marshall
+     - like twist_decay for the marshall model cap :math:`\tfrac{2}{3}\mu_t a N` with measured contact radius :math:`a`
+   * - heat_equilibration
+     - exponential temperature equilibration of two spheres in static contact; conductance :math:`h \pi a^2` (area) or :math:`2 k a` (radius)
 
 Adding a new reference (YAML) file
 """"""""""""""""""""""""""""""""""

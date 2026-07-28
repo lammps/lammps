@@ -149,6 +149,48 @@ def formulas(model, v, txt):
             f['hertz_normal_impact peak energy balance'] = (
                 "(1/2)*m_red*vrela^2 = (2/5)*Pmax*alpha  [LHS here; RHS from sim force]",
                 0.5 * v['mred_factor'] * massof(v, txt) * v['vrela'] ** 2)
+        elif model == 'hertz_peak':
+            mred = v['mred_factor'] * massof(v, txt)
+            alpha = (5.0 * mred * v['vrela'] ** 2 / (4.0 * v['kfac'])) ** 0.4
+            f['hertz_peak alpha_max'] = ("alpha_max = (5*m_red*vrela^2/(4*kfac))^(2/5)", alpha)
+            f['hertz_peak P_max'] = ("P_max = kfac*alpha_max^(3/2)", v['kfac'] * alpha ** 1.5)
+        elif model == 'slip_transient':
+            tt = seg_time(txt)
+            if tt is not None:
+                f['slip_transient u'] = (f"u(t) = u0 - mu*g*t  [t={tt:.4g}s]",
+                                         v['u0'] - v['xmu'] * v['grav'] * tt)
+                f['slip_transient omega_y'] = ("omega_y(t) = (5/2)*mu*g*t/r",
+                                               2.5 * v['xmu'] * v['grav'] * tt / radius(v))
+        elif model == 'incline_rolling':
+            tt = seg_time(txt)
+            a = (5.0 / 7.0) * v['grav'] * (v['sin_t'] - v['mur'] * v['cos_t'])
+            if a > 0 and tt is not None:
+                f['incline_rolling v'] = (f"v(t) = (5/7)*g*(sin-mur*cos)*t  [t={tt:.4g}s]", a * tt)
+                f['incline_rolling omega_y'] = ("omega_y = v/r", a * tt / radius(v))
+            elif a <= 0:
+                f['incline_rolling v'] = ("mur >= tan(theta): stays at rest, v = 0", None)
+        elif model == 'wall_restitution':
+            f['wall_restitution vx_out'] = ("vx_out = -e*vx_in", -v['en'] * v['vx_in'])
+        elif model == 'pulloff_jkr':
+            f['pulloff_jkr force'] = ("|F(delta=0)| = (8/3)*pi*coh*reff = (8/9)*F_pulloff",
+                                      (8.0 / 3.0) * PI * v['coh'] * v['reff'])
+        elif model == 'freefall':
+            tt = seg_time(txt)
+            if tt is not None:
+                f['freefall z'] = (f"z(t) = z0 - g*t^2/2  [t={tt:.4g}s]",
+                                   v['z0'] - 0.5 * v['grav'] * tt * tt)
+                f['freefall vz'] = ("vz(t) = -g*t", -v['grav'] * tt)
+        elif model == 'stack_energy':
+            r = v['diam'] / 2.0
+            m1 = v['dens1'] * (PI / 6.0) * v['diam'] ** 3
+            m2 = v['dens2'] * (PI / 6.0) * v['diam'] ** 3
+            df = max(0.0, r - (v['y1'] - v['ylo']))
+            dc = max(0.0, (v['y2'] + r) - v['yhi'])
+            dpp = max(0.0, 2.0 * r - (v['y2'] - v['y1']))
+            pe0 = 0.5 * v['knorm'] * (df * df + dc * dc + dpp * dpp)
+            f['stack_energy total energy'] = (
+                "E0 = m1*g*y1 + m2*g*y2 + (1/2)*kn*(d_floor^2+d_pair^2+d_ceil^2)",
+                m1 * v['grav'] * v['y1'] + m2 * v['grav'] * v['y2'] + pe0)
     except KeyError:
         pass
     return f

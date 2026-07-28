@@ -79,7 +79,55 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
     const auto vars = as_doubles(cfg);
     const double t  = (double) lmp->update->ntimestep * lmp->update->dt;
 
-    if (cfg.analytic_model == "slip_cessation") {
+    if (cfg.analytic_model == "freefall") {
+        // ballistic motion of atom 1 before any contact: z = z0 - g t^2/2, vz = -g t.
+        // velocity-Verlet integrates constant acceleration exactly, so this is tight.
+        const double g  = var_or(vars, "grav", 0.0);
+        const double z0 = var_or(vars, "z0", 0.0);
+        const int i     = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "freefall: atom with tag 1 not found";
+        expect_rel(z0 - 0.5 * g * t * t, lmp->atom->x[i][2], cfg.analytic_tol, "freefall z");
+        expect_rel(-g * t, lmp->atom->v[i][2], cfg.analytic_tol, "freefall vz");
+    } else if (cfg.analytic_model == "stack_energy") {
+        // Two particles (tags 1 lower, 2 upper) stacked between a floor (ylo)
+        // and ceiling (yhi).  For the elastic (e=1) linear-spring case the total
+        // mechanical energy KE + gravitational PE + contact spring PE is
+        // conserved; compare it to the initial value (particles start at rest).
+        // Masses and radii are read from the live simulation so the comparison
+        // does not depend on reproducing LAMMPS' mass formula.
+        const double g    = var_or(vars, "grav", 0.0);
+        const double kn   = var_or(vars, "knorm", 0.0);
+        const double ylo  = var_or(vars, "ylo", 0.0);
+        const double yhi  = var_or(vars, "yhi", 0.0);
+        const double y1_0 = var_or(vars, "y1", 0.0);
+        const double y2_0 = var_or(vars, "y2", 0.0);
+        const int i1      = find_local(lmp, 1);
+        const int i2      = find_local(lmp, 2);
+        ASSERT_GE(i1, 0) << "stack_energy: atom with tag 1 not found";
+        ASSERT_GE(i2, 0) << "stack_energy: atom with tag 2 not found";
+        const double m1 = lmp->atom->rmass[i1];
+        const double m2 = lmp->atom->rmass[i2];
+        const double r1 = lmp->atom->radius[i1];
+        const double r2 = lmp->atom->radius[i2];
+
+        // linear-spring contact PE from the three possible overlaps:
+        // lower particle vs floor, the pair, upper particle vs ceiling
+        auto spring_pe = [&](double ya, double yb) {
+            const double df  = std::max(0.0, r1 - (ya - ylo));
+            const double dc  = std::max(0.0, (yb + r2) - yhi);
+            const double dpp = std::max(0.0, (r1 + r2) - (yb - ya));
+            return 0.5 * kn * (df * df + dc * dc + dpp * dpp);
+        };
+
+        const double e0 = (m1 * g * y1_0 + m2 * g * y2_0) + spring_pe(y1_0, y2_0);
+        const double ya = lmp->atom->x[i1][1];
+        const double yb = lmp->atom->x[i2][1];
+        const double va = lmp->atom->v[i1][1];
+        const double vb = lmp->atom->v[i2][1];
+        const double ec = 0.5 * m1 * va * va + 0.5 * m2 * vb * vb + (m1 * g * ya + m2 * g * yb) +
+                          spring_pe(ya, yb);
+        expect_rel(e0, ec, cfg.analytic_tol, "stack_energy total energy");
+    } else if (cfg.analytic_model == "slip_cessation") {
         // sphere (tag 1) launched along +x with no spin on a rough floor (normal +z):
         // kinetic friction decelerates u and spins it up about +y until the no-slip
         // condition u = omega_y r is reached.  Thereafter u = 5 u0/7 and omega_y = u/r.
@@ -295,6 +343,157 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         expect_rel(w0, lmp->atom->omega[i][1], tol, "spin_no_friction omega_y preserved");
         EXPECT_LE(std::fabs(lmp->atom->v[i][0]), tol) << "spin_no_friction: spurious vx";
         EXPECT_LE(std::fabs(lmp->atom->v[i][1]), tol) << "spin_no_friction: spurious vy";
+    } else if (cfg.analytic_model == "hertz_peak") {
+        // Per-quantity check of an elastic Hertzian impact at peak compression
+        // (Chung & Ooi 2011, Tests 1 and 2, Eqs. 2 and 3).  With the contact
+        // force written explicitly as F = kfac delta^{3/2} (kfac supplied via
+        // the variables block, spelling out the stiffness convention of the
+        // model under test), energy conservation gives the peak overlap and
+        // peak force separately:
+        //   alpha_max = (5 mu_red V_rela^2 / (4 kfac))^{2/5}
+        //   P_max     = kfac alpha_max^{3/2}
+        // The segment must be timed to land at peak compression, like
+        // hertz_normal_impact (which checks only the combined energy balance).
+        const double vrela = var_or(vars, "vrela", 0.0);
+        const double mredf = var_or(vars, "mred_factor", 1.0);
+        const double kfac  = var_or(vars, "kfac", 0.0);
+        const double floor = var_or(vars, "floor", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "hertz_peak: atom with tag 1 not found";
+        const double mred = mredf * lmp->atom->rmass[i];
+        // measured peak overlap: two-sphere (tags 1,2) or sphere-on-wall
+        double alpha;
+        if (lmp->atom->nlocal >= 2) {
+            const int j = find_local(lmp, 2);
+            ASSERT_GE(j, 0) << "hertz_peak: atom with tag 2 not found";
+            const double dx = lmp->atom->x[i][0] - lmp->atom->x[j][0];
+            const double dy = lmp->atom->x[i][1] - lmp->atom->x[j][1];
+            const double dz = lmp->atom->x[i][2] - lmp->atom->x[j][2];
+            alpha = lmp->atom->radius[i] + lmp->atom->radius[j] -
+                std::sqrt(dx * dx + dy * dy + dz * dz);
+        } else {
+            alpha = lmp->atom->radius[i] - (lmp->atom->x[i][2] - floor);
+        }
+        ASSERT_GT(alpha, 0.0) << "hertz_peak: atoms not in contact (segment "
+                                 "not timed at peak compression?)";
+        const double fx    = lmp->atom->f[i][0];
+        const double fy    = lmp->atom->f[i][1];
+        const double fz    = lmp->atom->f[i][2];
+        const double pmax  = std::sqrt(fx * fx + fy * fy + fz * fz);
+        const double apred = std::pow(5.0 * mred * vrela * vrela / (4.0 * kfac), 0.4);
+        expect_rel(apred, alpha, cfg.analytic_tol, "hertz_peak alpha_max");
+        expect_rel(kfac * std::pow(apred, 1.5), pmax, cfg.analytic_tol, "hertz_peak P_max");
+    } else if (cfg.analytic_model == "slip_transient") {
+        // sphere (tag 1) launched along +x on a rough floor: DURING the sliding
+        // phase (t < t_s = 2 u0 / (7 mu g)) kinetic friction gives the exact
+        // linear laws  u(t) = u0 - mu g t  and  omega_y(t) = (5/2) (mu g / r) t.
+        // Together they also pin down the slip-cessation time t_s where the two
+        // lines meet.  The segment boundary must lie strictly inside the
+        // sliding phase.
+        const double u0 = var_or(vars, "u0", 0.0);
+        const double mu = var_or(vars, "xmu", 0.0);
+        const double g  = var_or(vars, "grav", 0.0);
+        const int i     = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "slip_transient: atom with tag 1 not found";
+        const double r  = lmp->atom->radius[i];
+        const double ts = 2.0 * u0 / (7.0 * mu * g);
+        ASSERT_LT(t, ts) << "slip_transient: segment boundary is not inside the sliding phase";
+        expect_rel(u0 - mu * g * t, lmp->atom->v[i][0], cfg.analytic_tol, "slip_transient u");
+        expect_rel(2.5 * mu * g * t / r, lmp->atom->omega[i][1], cfg.analytic_tol,
+                   "slip_transient omega_y");
+    } else if (cfg.analytic_model == "incline_rolling") {
+        // sphere (tag 1) released at rest on an inclined floor (gravity vector
+        // (sin_t, 0, -cos_t) * g, wall normal +z) with rolling resistance mu_r
+        // (rolling sds, Coulomb-capped).  Rolling without slipping down the
+        // incline:  a = (5/7) g (sin(theta) - mu_r cos(theta)), v = a t,
+        // omega_y = v / r.  For mu_r >= tan(theta) the sphere stays at rest
+        // (the model then bounds |v| and |omega| by analytic_tol, absolute).
+        const double g    = var_or(vars, "grav", 0.0);
+        const double mur  = var_or(vars, "mur", 0.0);
+        const double sint = var_or(vars, "sin_t", 0.0);
+        const double cost = var_or(vars, "cos_t", 1.0);
+        const int i       = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "incline_rolling: atom with tag 1 not found";
+        const double r     = lmp->atom->radius[i];
+        const double accel = (5.0 / 7.0) * g * (sint - mur * cost);
+        if (accel > 0.0) {
+            expect_rel(accel * t, lmp->atom->v[i][0], cfg.analytic_tol, "incline_rolling v");
+            expect_rel(accel * t / r, lmp->atom->omega[i][1], cfg.analytic_tol,
+                       "incline_rolling omega_y");
+        } else {
+            EXPECT_LE(std::fabs(lmp->atom->v[i][0]), cfg.analytic_tol)
+                << "incline_rolling: sphere should stay at rest (v)";
+            EXPECT_LE(std::fabs(lmp->atom->omega[i][1] * r), cfg.analytic_tol)
+                << "incline_rolling: sphere should stay at rest (omega)";
+        }
+    } else if (cfg.analytic_model == "wall_restitution") {
+        // sphere (tag 1) launched along +x bounces off a wall (plane or region)
+        // and returns with vx_out = -e vx_in.  Verifies the restitution of
+        // wall styles for which no other closed form applies (e.g. region
+        // walls); evaluate at a free-flight segment after the rebound.
+        const double en    = var_or(vars, "en", 1.0);
+        const double vx_in = var_or(vars, "vx_in", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "wall_restitution: atom with tag 1 not found";
+        expect_rel(-en * vx_in, lmp->atom->v[i][0], cfg.analytic_tol, "wall_restitution vx_out");
+    } else if (cfg.analytic_model == "momentum_conservation") {
+        // two particles (tags 1,2), no external forces: total linear momentum
+        // and total angular momentum about the origin (orbital m r x v plus
+        // per-particle angular momentum for ellipsoid-type particles) are
+        // conserved.  The initial state is particle 1 at (x1,y1,z1) moving
+        // with (vx,0,0) and particle 2 at rest without spin, so
+        //   P0 = m1 (vx,0,0),   L0 = m1 (x1,y1,z1) x (vx,0,0).
+        // Requires a non-periodic box (no minimum-image jumps in r x v).
+        const double vx = var_or(vars, "vx", 0.0);
+        const double x1 = var_or(vars, "x1", 0.0);
+        const double y1 = var_or(vars, "y1", 0.0);
+        const double z1 = var_or(vars, "z1", 0.0);
+        const int i1    = find_local(lmp, 1);
+        const int i2    = find_local(lmp, 2);
+        ASSERT_GE(i1, 0) << "momentum_conservation: atom with tag 1 not found";
+        ASSERT_GE(i2, 0) << "momentum_conservation: atom with tag 2 not found";
+        const double m1 = lmp->atom->rmass[i1];
+        const double m2 = lmp->atom->rmass[i2];
+        double ptot[3], ltot[3];
+        for (int k = 0; k < 3; ++k)
+            ptot[k] = m1 * lmp->atom->v[i1][k] + m2 * lmp->atom->v[i2][k];
+        for (int k = 0; k < 3; ++k) {
+            const int ka = (k + 1) % 3, kb = (k + 2) % 3;
+            ltot[k] = m1 * (lmp->atom->x[i1][ka] * lmp->atom->v[i1][kb] -
+                            lmp->atom->x[i1][kb] * lmp->atom->v[i1][ka]) +
+                      m2 * (lmp->atom->x[i2][ka] * lmp->atom->v[i2][kb] -
+                            lmp->atom->x[i2][kb] * lmp->atom->v[i2][ka]);
+            if (lmp->atom->angmom_flag)
+                ltot[k] += lmp->atom->angmom[i1][k] + lmp->atom->angmom[i2][k];
+        }
+        const double p0[3] = {m1 * vx, 0.0, 0.0};
+        const double l0[3] = {0.0, m1 * z1 * vx, -m1 * y1 * vx};
+        (void) x1;    // enters L0 only via components that vanish for v = (vx,0,0)
+        const double pscale = std::fabs(m1 * vx);
+        const double lscale = std::fabs(m1 * vx) * std::sqrt(y1 * y1 + z1 * z1);
+        for (int k = 0; k < 3; ++k) {
+            EXPECT_LE(std::fabs(ptot[k] - p0[k]), cfg.analytic_tol * pscale)
+                << "momentum_conservation: linear momentum component " << k;
+            EXPECT_LE(std::fabs(ltot[k] - l0[k]), cfg.analytic_tol * lscale)
+                << "momentum_conservation: angular momentum component " << k;
+        }
+    } else if (cfg.analytic_model == "pulloff_jkr") {
+        // JKR cohesion: at zero overlap the (tensile) contact force is
+        // (8/9) of the pull-off force F_po = 3 pi gamma R_eff (the LAMMPS
+        // cohesion convention, see the pair granular documentation), i.e.
+        // |F(delta=0)| = (8/3) pi gamma R_eff.  The reference places the pair
+        // at a vanishing overlap so this validates the pull-off force through
+        // the exact 8/9 relation without having to time a detachment event.
+        const double coh  = var_or(vars, "coh", 0.0);
+        const double reff = var_or(vars, "reff", 0.0);
+        const int i       = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "pulloff_jkr: atom with tag 1 not found";
+        const double fx = lmp->atom->f[i][0];
+        const double fy = lmp->atom->f[i][1];
+        const double fz = lmp->atom->f[i][2];
+        const double fmag = std::sqrt(fx * fx + fy * fy + fz * fz);
+        expect_rel((8.0 / 3.0) * MathConst::MY_PI * coh * reff, fmag, cfg.analytic_tol,
+                   "pulloff_jkr force");
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

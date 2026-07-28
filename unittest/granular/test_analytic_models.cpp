@@ -109,6 +109,69 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         expect_rel(en * vz_in, lmp->atom->v[i][2], cfg.analytic_tol, "oblique_impact vz_out");
         expect_rel(vx_in - dvt, lmp->atom->v[i][0], cfg.analytic_tol, "oblique_impact vx_out");
         expect_rel(2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol, "oblique_impact omega_y");
+    } else if (cfg.analytic_model == "energy_dissipation") {
+        // For a frictional collision with no external forces (no gravity) the
+        // total mechanical (translational + rotational) kinetic energy of the
+        // sphere (tag 1) must not increase.  This guards against the
+        // grazing-impact energy-injection bug of the classic tangential model.
+        // Initial state: velocity (vx_in, 0, -vz_in) with no spin; sphere moment
+        // of inertia I = (2/5) m r^2.  analytic_tol is the (small) fractional
+        // excess over the initial energy that is tolerated.
+        const double vx_in = var_or(vars, "vx_in", 0.0);
+        const double vz_in = var_or(vars, "vz_in", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "energy_dissipation: atom with tag 1 not found";
+        const double m  = lmp->atom->rmass[i];
+        const double r  = lmp->atom->radius[i];
+        const double *v = lmp->atom->v[i];
+        const double *w = lmp->atom->omega[i];
+        const double e_init  = 0.5 * m * (vx_in * vx_in + vz_in * vz_in);
+        const double ke_tr   = 0.5 * m * (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
+        const double ke_rot  = 0.5 * (0.4 * m * r * r) * (w[0] * w[0] + w[1] * w[1] + w[2] * w[2]);
+        const double e_final = ke_tr + ke_rot;
+        EXPECT_LE(e_final, e_init * (1.0 + cfg.analytic_tol))
+            << "energy_dissipation: final energy " << e_final << " exceeds initial " << e_init;
+    } else if (cfg.analytic_model == "terminal_velocity_linear") {
+        // particle (tag 1) falling under gravity g with linear (Stokes) drag
+        // F = -gamma v reaches terminal speed v_term = m g / gamma.
+        const double g     = var_or(vars, "grav", 0.0);
+        const double gamma = var_or(vars, "gamma", 0.0);
+        const int i        = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "terminal_velocity_linear: atom with tag 1 not found";
+        const double m = lmp->atom->rmass[i];
+        expect_rel(m * g / gamma, -lmp->atom->v[i][2], cfg.analytic_tol,
+                   "terminal_velocity_linear");
+    } else if (cfg.analytic_model == "terminal_velocity_schiller_naumann") {
+        // particle (tag 1) falling under gravity g with Schiller-Naumann drag
+        // (quiescent gas): terminal speed solves m g = 1/2 Cd rho_g pi r^2 v^2.
+        const double g   = var_or(vars, "grav", 0.0);
+        const double rho = var_or(vars, "rho_gas", 0.0);
+        const double mu  = var_or(vars, "mu_gas", 0.0);
+        const int i      = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "terminal_velocity_schiller_naumann: atom with tag 1 not found";
+        const double m    = lmp->atom->rmass[i];
+        const double r    = lmp->atom->radius[i];
+        const double area = MathConst::MY_PI * r * r;
+        const double mg   = m * g;
+        auto drag         = [&](double v) {
+            if (v <= 0.0) return 0.0;
+            const double re = rho * v * (2.0 * r) / mu;
+            const double cd = (24.0 / re) * (1.0 + 0.15 * std::pow(re, 0.687));
+            return 0.5 * cd * rho * area * v * v;
+        };
+        // bracket then bisect for the terminal speed (drag is monotone in v)
+        double vlo = 0.0, vhi = 1.0;
+        int guard = 0;
+        while ((drag(vhi) < mg) && (guard++ < 200)) vhi *= 2.0;
+        for (int it = 0; it < 100; ++it) {
+            const double vm = 0.5 * (vlo + vhi);
+            if (drag(vm) < mg)
+                vlo = vm;
+            else
+                vhi = vm;
+        }
+        expect_rel(0.5 * (vlo + vhi), -lmp->atom->v[i][2], cfg.analytic_tol,
+                   "terminal_velocity_schiller_naumann");
     } else if (cfg.analytic_model == "rolling_decay") {
         // sphere (tag 1) spinning about +y on a flat wall, damped only by the
         // rolling-resistance torque M = mu_r R N (N = m g).  In the gross-rolling
@@ -218,6 +281,20 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         expect_rel(dvt, lmp->atom->v[i][0], cfg.analytic_tol, "spin_impact vx_out");
         expect_rel(w0 - 2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol,
                    "spin_impact omega_y");
+    } else if (cfg.analytic_model == "spin_no_friction") {
+        // Two identical spheres (tags 1,2) collide head-on along z while spinning
+        // about y with equal and opposite omega0, arranged so the relative
+        // tangential velocity at the contact point is zero (Chung & Ooi 2011,
+        // Test 7).  No tangential force should be generated: each sphere's spin
+        // is preserved and it gains no tangential (x,y) velocity.  This guards
+        // against a model spuriously creating friction from spin alone.
+        const double w0  = var_or(vars, "omega0", 0.0);
+        const double tol = cfg.analytic_tol;
+        const int i      = find_local(lmp, 1);
+        ASSERT_GE(i, 0) << "spin_no_friction: atom with tag 1 not found";
+        expect_rel(w0, lmp->atom->omega[i][1], tol, "spin_no_friction omega_y preserved");
+        EXPECT_LE(std::fabs(lmp->atom->v[i][0]), tol) << "spin_no_friction: spurious vx";
+        EXPECT_LE(std::fabs(lmp->atom->v[i][1]), tol) << "spin_no_friction: spurious vy";
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

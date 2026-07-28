@@ -116,6 +116,35 @@ def formulas(model, v, txt):
                 f['rolling_decay omega_y'] = ("omega_y(t) = omega0 - (5*mur*g)/(2r)*t", None)
         elif model == 'pulloff_dmt':
             f['pulloff_dmt force'] = ("F = 4*pi*coh*reff", 4 * PI * v['coh'] * v['reff'])
+        elif model == 'spin_no_friction':
+            f['spin_no_friction omega_y preserved'] = ("omega_y = omega0 (no tangential force)", v['omega0'])
+        elif model == 'energy_dissipation':
+            m = massof(v, txt)
+            f['energy_dissipation initial energy'] = (
+                "E_init = (1/2)*m*(vx_in^2+vz_in^2)  [final E must not exceed this]",
+                0.5 * m * (v['vx_in'] ** 2 + v['vz_in'] ** 2))
+        elif model == 'terminal_velocity_linear':
+            m = massof(v, txt)
+            f['terminal_velocity_linear'] = ("v_term = m*g/gamma", m * v['grav'] / v['gamma'])
+        elif model == 'terminal_velocity_schiller_naumann':
+            m, r = massof(v, txt), radius(v)
+            rho, mu, g = v['rho_gas'], v['mu_gas'], v['grav']
+            def drag(u):
+                re = rho * u * (2.0 * r) / mu
+                cd = (24.0 / re) * (1.0 + 0.15 * re ** 0.687)
+                return 0.5 * cd * rho * PI * r * r * u * u
+            lo, hi = 1e-12, 1.0
+            while drag(hi) < m * g:
+                hi *= 2.0
+            for _ in range(200):
+                mid = 0.5 * (lo + hi)
+                if drag(mid) < m * g:
+                    lo = mid
+                else:
+                    hi = mid
+            f['terminal_velocity_schiller_naumann'] = (
+                "v_term solves m*g = (1/2)*Cd(Re)*rho_g*pi*r^2*v^2 (Schiller-Naumann)",
+                0.5 * (lo + hi))
         elif model == 'hertz_normal_impact':
             f['hertz_normal_impact peak energy balance'] = (
                 "(1/2)*m_red*vrela^2 = (2/5)*Pmax*alpha  [LHS here; RHS from sim force]",

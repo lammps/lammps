@@ -115,3 +115,8 @@ register_dem_tests(test_dem_07 dem07 DEM07)
 add_executable(test_dem_08 test_dem_08.cpp)
 target_link_libraries(test_dem_08 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_08 dem08 DEM08)
+
+# DEM-09: single particle settling to terminal velocity under fluid drag
+add_executable(test_dem_09 test_dem_09.cpp)
+target_link_libraries(test_dem_09 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_09 dem09 DEM09)

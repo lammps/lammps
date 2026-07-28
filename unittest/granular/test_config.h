@@ -121,11 +121,12 @@ public:
 
     [[nodiscard]] std::string tags_line() const
     {
+        // emit space-separated so the line re-reads to the same tag list
         if (tags.size() > 0) {
             std::stringstream line;
             line << tags[0];
             for (size_t i = 1; i < tags.size(); i++) {
-                line << ", " << tags[i];
+                line << " " << tags[i];
             }
             return line.str();
         }

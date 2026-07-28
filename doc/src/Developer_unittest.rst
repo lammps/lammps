@@ -1014,10 +1014,12 @@ time-resolved trajectories of small, analytically tractable granular
 systems.  These tests are only enabled if the :ref:`GRANULAR
 package<PKG-GRANULAR>` is enabled.
 
-There are 9 test programs, ``test_dem_01`` through ``test_dem_09``,
+There are 12 test programs, ``test_dem_01`` through ``test_dem_12``,
 covering particle-impact-level benchmarks: two-sphere and sphere-wall
 collisions, oblique and spinning-sphere impacts, rolling and slipping
-contact, cohesive pull-off, and settling under fluid drag.  These follow
+contact, cohesive pull-off, settling under fluid drag, exact ballistic
+integration and static multi-contact compression, region walls, and
+superellipsoid contact.  These follow
 the software-agnostic DEM benchmark of :ref:`Mohajeri et al.
 <dem_Mohajeri2024>` (rolling resistance and cohesion), the
 particle-impact benchmark of :ref:`Chung and Ooi <dem_Chung2011>`
@@ -1058,6 +1060,15 @@ velocity under drag).  The test programs are:
    * - ``test_dem_09``
      - terminal velocity under fluid drag
      - ``terminal_velocity_linear``, ``terminal_velocity_schiller_naumann``
+   * - ``test_dem_10``
+     - exact integration and static contact (free fall, stacked compression)
+     - ``freefall``, ``stack_energy``
+   * - ``test_dem_11``
+     - contact with region walls (restitution)
+     - ``wall_restitution``
+   * - ``test_dem_12``
+     - superellipsoid collision
+     - ``momentum_conservation``
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the
@@ -1217,6 +1228,22 @@ currently implemented are:
      - Stokes drag terminal velocity :math:`v_{term} = m g/\gamma`
    * - terminal\_velocity\_schiller\_naumann
      - Schiller-Naumann terminal velocity from :math:`m g = \tfrac{1}{2} C_d \rho_g \pi r^2 v^2`
+   * - freefall
+     - ballistic motion before contact: :math:`z = z_0 - g t^2/2`, :math:`v_z = -g t`
+   * - stack_energy
+     - conservation of total mechanical energy for an elastic two-particle stack
+   * - hertz_peak
+     - per-quantity Hertzian peak values :math:`\alpha_{max} = (5 \mu_{red} V_{rela}^2/(4 k))^{2/5}` and :math:`P_{max} = k \alpha_{max}^{3/2}`
+   * - slip_transient
+     - sliding-phase laws :math:`u = u_0 - \mu g t`, :math:`\omega_y = \tfrac{5}{2} \mu g t/r` (pins down the slip-cessation time)
+   * - incline_rolling
+     - rolling without slipping down an incline: :math:`v = \tfrac{5}{7} g (\sin\theta - \mu_r \cos\theta) t`; at rest for :math:`\mu_r \ge \tan\theta`
+   * - wall_restitution
+     - rebound :math:`v' = -e\,v` off walls without another closed form (e.g. region walls)
+   * - momentum_conservation
+     - total linear and angular momentum conservation for particle types carrying angular momentum (superellipsoids)
+   * - pulloff_jkr
+     - JKR tensile force at zero overlap :math:`|F| = \tfrac{8}{3} \pi \gamma R_{\mathrm{eff}} = \tfrac{8}{9} F_{pulloff}`
 
 Adding a new reference (YAML) file
 """"""""""""""""""""""""""""""""""

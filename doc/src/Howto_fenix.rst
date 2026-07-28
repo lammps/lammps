@@ -73,8 +73,7 @@ multiple spare processes per node.
    #   Starting with 100 ranks
    #   Running with 100 ranks
    #   <... simulation output ...>
-   #   Starting with 99 ranks
-   #   Running with 99 ranks
+   #   ERROR: not enough spare ranks to maintain initial communicator size (src/FENIX/fenix.cpp:217)
 
 When running LAMMPS with only a single partition, Fenix will leverage the highest N
 ranks as spares when N spares are requested. When running with multiple

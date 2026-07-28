@@ -120,3 +120,18 @@ register_dem_tests(test_dem_08 dem08 DEM08)
 add_executable(test_dem_09 test_dem_09.cpp)
 target_link_libraries(test_dem_09 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_09 dem09 DEM09)
+
+# DEM-10: exact integration and static contact (free fall, stacked compression)
+add_executable(test_dem_10 test_dem_10.cpp)
+target_link_libraries(test_dem_10 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_10 dem10 DEM10)
+
+# DEM-11: contact with region walls (restitution)
+add_executable(test_dem_11 test_dem_11.cpp)
+target_link_libraries(test_dem_11 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_11 dem11 DEM11)
+
+# DEM-12: superellipsoid collision (momentum and angular momentum conservation)
+add_executable(test_dem_12 test_dem_12.cpp)
+target_link_libraries(test_dem_12 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_12 dem12 DEM12)

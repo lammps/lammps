@@ -815,18 +815,18 @@ void PairRuNNer::compute(int eflag, int vflag)
     // Number of extrapolation accumulated on this process during this this timestep
     bigint local_extrap_count_timestep = 0;
     // Total number of extrapolation accumulated on this process during the simulation
-    bigint* local_extrap_count_total = nullptr; // Not needed anymore
+    bigint local_extrap_count_total = 0; // Not needed anymore
     bool lreset = false; // Not needed anymore
     // Retrieve the number of extrapolations during this timestep and during the whole simulation
     // on each process and reset the latter if `lreset` is true.
-    runner_interface_extrapolation_count(&local_extrap_count_timestep, local_extrap_count_total,
+    runner_interface_extrapolation_count(&local_extrap_count_timestep, &local_extrap_count_total,
                                          &lreset);
 
     // Number of extrapolations recorded globally during this timestep
     bigint global_extrap_count_timestep = 0;
-    MPI_Reduce(&local_extrap_count_timestep, &global_extrap_count_timestep, 1, MPI_LMP_BIGINT,
-               MPI_SUM, 0, world);
-    pvector[nextra - 1] = global_extrap_count_timestep;
+    MPI_Allreduce(&local_extrap_count_timestep, &global_extrap_count_timestep, 1, MPI_LMP_BIGINT,
+               MPI_SUM, world);
+    pvector[nextra - 1] = static_cast<double>(global_extrap_count_timestep);
 
     // Number of extrapolations recorded globally (printed in each extrapolation summary)
     extrap_count_summary += global_extrap_count_timestep; // Not affected by (`reset_ew_freq`)
@@ -930,7 +930,6 @@ void PairRuNNer::settings(int narg, char **arg)
     } else if (strcmp(arg[iarg], "check_extrap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
       lcheck_extrap = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      nextra += 1;
       iarg += 2;
     } else if (strcmp(arg[iarg], "max_extrap") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal pair_style command");
@@ -1030,12 +1029,10 @@ void PairRuNNer::init_style()
   if (nnp_generation == 2) no_virial_fdotr_compute = 0;    // Overwrite default flag
 
   // Error checking for output by compute pair command
-  if (
-    (!lcheck_extrap && nextra == num_committee_members) ||
-    (lcheck_extrap && nextra == num_committee_members + 1)
-  ) {
+  if (nextra == num_committee_members) {
     // array for storing committee energies for output by compute pair command
     if (pvector) delete[] pvector;
+    if (lcheck_extrap) nextra += 1;
     pvector = new double[nextra];
   } else {
     error->all(FLERR,

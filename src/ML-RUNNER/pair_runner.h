@@ -55,25 +55,30 @@ class PairRuNNer : public Pair {
   double memory_usage() override;
 
  private:
-  double cflength;    // Length conversion factor.
-  double cfenergy;    // Energy conversion factor.
-  bool
-      luse_prev_q;    // Use charges from previous timestep as initial guess for iterative qeq solvers.
-  bool lwrite_f_comm;      // Write committee forces into f_comm array
-  bool lwrite_q_comm;      // Write committee charges into q_comm array
-  bool lcheck_extrap;      // Flag enabling checks for feature extrapolation
-  bigint max_extrap;       // Maximal number of allowed timesteps with feature extrapolations
-  bool lshow_ew;           // Flag enabling output of extrapolation warnings to log file
-  bigint sum_ew_freq;      // Frequency where extrapolation warning summary is printed to log file
-  bigint reset_ew_freq;    // Frequency where extrapolation count is reseted to 0
-  bigint local_extrap_sum;    // Sum of recorded extrapolations per process over multiple time steps
-  double cutoff;              // Max feature map cutoff.
-  double total_charge;        // The total charge of the structure. Must be 0 for periodic systems.
-  char *directory;            // directory containing RuNNer potential files
-  int *map;                   // Mapping from atom types to elements
-  int nmax;                   // Allocated size of per-atom arrays.
-  static int instances;       // count pair style instances, since we currently
-                              // only support one instance at a time
+  double cflength;          // Length conversion factor.
+  double cfenergy;          // Energy conversion factor.
+  bool luse_prev_q;         
+  // Use charges from previous timestep as initial guess for iterative qeq solvers.
+  bool lwrite_f_comm;       // Write committee forces into f_comm array
+  bool lwrite_q_comm;       // Write committee charges into q_comm array
+  bool lcheck_extrap;       // Flag enabling checks for feature extrapolation
+  bigint max_extrap;        // Maximal number of allowed timesteps with feature extrapolations
+  bool lshow_ew;            // Flag enabling output of extrapolation warnings to log file
+  bigint sum_ew_freq;       // Frequency where extrapolation warning summary is printed to log file
+  bigint reset_ew_freq;     // Frequency where extrapolation count is reseted to 0
+  bigint extrap_count_summary; 
+  // Sum of extrapolations recorded globally over multiple time steps
+  // which is used for printing the extrapolation summary (only on root)
+  bigint extrap_count_abort; 
+  // Sum of extrapolations recorded globally over multiple time steps
+  // which is used for aborting the simulation (only on root)
+  double cutoff;             // Max feature map cutoff.
+  double total_charge;       // The total charge of the structure. Must be 0 for periodic systems.
+  char *directory;           // directory containing RuNNer potential files
+  int *map;                  // Mapping from atom types to elements
+  int nmax;                  // Allocated size of per-atom arrays.
+  static int instances;      // count pair style instances, since we currently
+                             // only support one instance at a time
 
   // Additional per-atom arrays
   double *atomic_charge, *hirshfeld_volume, *electronegativity, *lagrange_charges, *de_dq,

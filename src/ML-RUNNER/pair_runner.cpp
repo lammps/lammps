@@ -160,9 +160,9 @@ PairRuNNer::PairRuNNer(LAMMPS *lmp) :
   comm_reverse = 1;    // Reverse communication (1 double per atom)
   commstyle = COMM_NONE;
 
-  // Sum of extrapolation is zero upon initialization of this pair style
   // Tracks number of extrapolations over multiple timesteps
-  local_extrap_sum = 0;
+  extrap_count_summary = 0; // Not affected by `reset_ew_freq`
+  extrap_count_abort = 0;
 
   // variable for output using pair compute
   nextra = 0;
@@ -762,7 +762,7 @@ void PairRuNNer::compute(int eflag, int vflag)
   // - Resets the number of total number of recorded extrapolations during a simulation if
   // the timestep is a multiple of `reset_ew_freq` and larger than 0.
   // - Prints a summary of the recorded extrapolations at every interval until the timestep is
-  // a multiple of `sum_ew_freq` and larger than 0.
+  // a multiple of `sum_ew_freq` and larger than 0. (Not affected by `reset_ew_freq`)
   if (lcheck_extrap) {
 
     bigint timestep = update->ntimestep;
@@ -812,60 +812,58 @@ void PairRuNNer::compute(int eflag, int vflag)
       c_ptr_extrap_msg = nullptr;
     }
 
-    // Total number of extrapolation accumulated on this process during the simulation
-    bigint local_extrap_count_total = 0;
     // Number of extrapolation accumulated on this process during this this timestep
     bigint local_extrap_count_timestep = 0;
-    // Sets the flag `lreset` to reset the total extrapolation count if the timestep
-    // is a multiple of reset_ew_freq and larger than zero
-    bool lreset = false;
-    if (reset_ew_freq > 0 && timestep % reset_ew_freq == 0 && timestep > 0) { lreset = true; }
-
+    // Total number of extrapolation accumulated on this process during the simulation
+    bigint* local_extrap_count_total = nullptr; // Not needed anymore
+    bool lreset = false; // Not needed anymore
     // Retrieve the number of extrapolations during this timestep and during the whole simulation
     // on each process and reset the latter if `lreset` is true.
-    runner_interface_extrapolation_count(&local_extrap_count_timestep, &local_extrap_count_total,
+    runner_interface_extrapolation_count(&local_extrap_count_timestep, local_extrap_count_total,
                                          &lreset);
 
-    // Number of extrapolations recorded on this process (reset at every summary)
-    local_extrap_sum += local_extrap_count_timestep;
-
-    // Number of extrapolations recorded during this timestep across all processes
+    // Number of extrapolations recorded globally during this timestep
     bigint global_extrap_count_timestep = 0;
-    MPI_Reduce(&local_extrap_count_timestep, &global_extrap_count_timestep, 1, MPI_LMP_BIGINT, 
+    MPI_Reduce(&local_extrap_count_timestep, &global_extrap_count_timestep, 1, MPI_LMP_BIGINT,
                MPI_SUM, 0, world);
     pvector[nextra - 1] = global_extrap_count_timestep;
 
-    // Total number of extrapolation accumulated across all processes
-    bigint global_extrap_count_total = 0;
-    MPI_Reduce(&local_extrap_count_total, &global_extrap_count_total, 1, MPI_LMP_BIGINT, MPI_SUM, 0,
-               world);
+    // Number of extrapolations recorded globally (printed in each extrapolation summary)
+    extrap_count_summary += global_extrap_count_timestep; // Not affected by (`reset_ew_freq`)
+    // Number of extrapolations recorded globally (aborts simulation if larger
+    // than `max_extrap`)
+    extrap_count_abort += global_extrap_count_timestep;
 
-    // Abort simulation if the total number of extrapolations across all processes exceeds `max_extrap`
-    if (max_extrap > -1 && global_extrap_count_total > max_extrap && rank == 0) {
+    // Abort simulation if the number of extrapolations across all processes exceeds `max_extrap`
+    if (max_extrap > -1 && extrap_count_abort > max_extrap && rank == 0) {
       error->one(
           FLERR,
           "Maximal number of allowed extrapolations have been exceeded during the simulation!\n"
           "Current extrapolation count: {:10.3e}",
-          static_cast<double>(global_extrap_count_total));
+          static_cast<double>(extrap_count_abort));
+    }
+
+    // Reset the global extrapolation count if the timestep is
+    // a multiple of reset_ew_freq and larger than zero
+    if (reset_ew_freq > 0 && timestep % reset_ew_freq == 0 && timestep > 0) {
+      extrap_count_abort = 0;
     }
 
     // Prints a summary of the recorded extrapolations at every interval until the timestep is
     // a multiple of `sum_ew_freq` and larger than 0.
     if (sum_ew_freq > 0 && timestep % sum_ew_freq == 0 && timestep > 0) {
-      bigint global_extrap_sum = 0;
-      MPI_Reduce(&local_extrap_sum, &global_extrap_sum, 1, MPI_LMP_BIGINT, MPI_SUM, 0, world);
-
       if (rank == 0) {
         utils::logmesg(lmp,
                        "RuNNer2: HDNNP Extrapolation Summary\n"
                        "Timestep: {:10d} Sum: {:10.3e} Frequency: {:10.3e} per timestep\n",
-                       timestep, static_cast<double>(global_extrap_sum),
-                       static_cast<double>(global_extrap_sum) / static_cast<double>(sum_ew_freq));
+                       timestep, static_cast<double>(extrap_count_summary),
+                       static_cast<double>(extrap_count_summary) / static_cast<double>(sum_ew_freq));
       }
-      local_extrap_sum = 0;
+      extrap_count_summary = 0;
     }
     // Deallocates the character array containing the extrapolation message on the Fortran side
-    // and frees up the internal memory of the `ExtrapolationHandler` (see RuNNer 2 documentation)
+    // (if `lshow_ew`) and frees up the internal memory of the `ExtrapolationHandler`
+    // (see RuNNer 2 documentation)
     runner_interface_dealloc_extrapolation_warnings();
   }
 
@@ -1033,7 +1031,7 @@ void PairRuNNer::init_style()
 
   // Error checking for output by compute pair command
   if (
-    (!lcheck_extrap && nextra == num_committee_members) || 
+    (!lcheck_extrap && nextra == num_committee_members) ||
     (lcheck_extrap && nextra == num_committee_members + 1)
   ) {
     // array for storing committee energies for output by compute pair command

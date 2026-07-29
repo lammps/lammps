@@ -143,7 +143,7 @@ void GranSubModDampingTsuji::init()
   damp += -18.022 * powint(cor, 5) + 4.8218 * powint(cor, 6);
 
   // multiply sqrt(2) for effective mass convention (as in Tsuji 1992)
-  damp *= M_SQRT2;
+  damp *= MY_SQRT2;
 }
 
 /* ---------------------------------------------------------------------- */

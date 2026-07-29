@@ -951,6 +951,8 @@ void PairRuNNer::settings(int narg, char **arg)
       error->all(FLERR, "Illegal pair_style command");
   }
 
+  if (lcheck_extrap) nextra += 1;
+
   // check if linked to the correct RuNNer library API version
   if (runner_lammps_api_version() != 2)
     error->all(FLERR,
@@ -1029,10 +1031,12 @@ void PairRuNNer::init_style()
   if (nnp_generation == 2) no_virial_fdotr_compute = 0;    // Overwrite default flag
 
   // Error checking for output by compute pair command
-  if (nextra == num_committee_members) {
+  if (
+    (!lcheck_extrap && nextra == num_committee_members)
+    || (lcheck_extrap && nextra == num_committee_members + 1)
+    ){
     // array for storing committee energies for output by compute pair command
     if (pvector) delete[] pvector;
-    if (lcheck_extrap) nextra += 1;
     pvector = new double[nextra];
   } else {
     error->all(FLERR,

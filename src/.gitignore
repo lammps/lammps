@@ -975,6 +975,8 @@
 /fix_filter_corotate.h
 /fix_granular_mdr.cpp
 /fix_granular_mdr.h
+/fix_uvt.cpp
+/fix_uvt.h
 /fix_viscosity.cpp
 /fix_viscosity.h
 /fix_ehex.cpp
@@ -1841,10 +1843,16 @@
 /fix_pimd_langevin.h
 /fix_pimd_langevin_bosonic.cpp
 /fix_pimd_langevin_bosonic.h
+/fix_pimd_nve.cpp
+/fix_pimd_nve.h
 /fix_alchemy.cpp
 /fix_alchemy.h
+/fix_pimd_nvt_bosonic.cpp
+/fix_pimd_nvt_bosonic.h
 /fix_pimd_nvt.cpp
 /fix_pimd_nvt.h
+/fix_pimd_uvt.cpp
+/fix_pimd_uvt.h
 /fix_qbmsst.cpp
 /fix_qbmsst.h
 /fix_qtb.cpp
@@ -1983,4 +1991,3 @@
 /pair_bondval.h
 /pair_bondval_vec.cpp
 /pair_bondval_vec.h
-

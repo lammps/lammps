@@ -10,8 +10,12 @@ fix pimd/langevin command
 fix pimd/nve command
 ====================
 
+.. versionadded:: TBD
+
 fix pimd/nvt command
 ====================
+
+.. versionchanged:: TBD
 
 fix pimd/langevin/bosonic command
 =================================

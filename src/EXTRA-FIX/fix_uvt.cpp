@@ -661,7 +661,6 @@ void FixUVT::compute_mu_target()
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
 
   u_target = u_start + delta * (u_stop-u_start);
-  u_current = u_target;
 }
 
 /* ---------------------------------------------------------------------- */

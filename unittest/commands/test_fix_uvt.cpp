@@ -108,6 +108,26 @@ TEST_F(FixUVTTest, RestartRestoresElectronState)
     EXPECT_NEAR(fix_value("cp", 15), energy_before, 1.0e-10);
 }
 
+TEST_F(FixUVTTest, ExtractCurrentMuReportsCurrentDEDN)
+{
+    setup_quadratic_system();
+    command("variable k_quad equal 5.0");
+    command("variable N0_quad equal 1.0");
+    command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
+    command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 3.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
+    command("run 0 post no");
+
+    auto *fix = lmp->modify->get_fix_by_id("cp");
+    ASSERT_NE(fix, nullptr);
+
+    int dim = 0;
+    auto *u_current = static_cast<double *>(fix->extract("u_current", dim));
+    ASSERT_NE(u_current, nullptr);
+
+    EXPECT_NEAR(*u_current, fix_value("cp", 14), 1.0e-12);
+    EXPECT_NE(*u_current, fix_value("cp", 15));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

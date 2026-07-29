@@ -3,6 +3,8 @@
 fix pimd/uvt command
 ====================
 
+.. versionadded:: TBD
+
 Syntax
 """"""
 

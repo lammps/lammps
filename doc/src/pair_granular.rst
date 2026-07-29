@@ -419,7 +419,7 @@ error check is performed on this.
 .. versionchanged:: TBD
 
 This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
-where the factor of :math:`sqrt{2}` arises from a difference in convention
+where the factor of :math:`\sqrt{2}` arises from a difference in convention
 from Tsuji when defining :math:`\alpha` using either the mass vs. effective
 mass. This factor was missing in earlier versions of LAMMPS.
 

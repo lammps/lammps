@@ -98,6 +98,15 @@ def formulas(model, v, txt):
             f['oblique_impact vz_out']  = ("vz_out = e*vz_in", e * vz)
             f['oblique_impact vx_out']  = ("vx_out = vx_in - mu*(1+e)*vz_in", vx - mu * (1 + e) * vz)
             f['oblique_impact omega_y'] = ("omega_y = (5/2)*mu*(1+e)*vz_in/r", 2.5 * mu * (1 + e) * vz / r)
+        elif model == 'oblique_impact_pair':
+            e, mu, vn, vt = v['en'], v['xmu'], v['vn_in'], v['vt_in']
+            dvt = mu * (1 + e) * vn
+            f['oblique_impact_pair v1x'] = ("v1x = -e*vn_in", -e * vn)
+            f['oblique_impact_pair v1y'] = ("v1y = vt_in - mu*(1+e)*vn_in", vt - dvt)
+            f['oblique_impact_pair v2x'] = ("v2x = +e*vn_in", e * vn)
+            f['oblique_impact_pair v2y'] = ("v2y = -(vt_in - mu*(1+e)*vn_in)", -(vt - dvt))
+            f['oblique_impact_pair omega1z'] = ("omega1z = -(5/2)*mu*(1+e)*vn_in/r", -2.5 * dvt / r)
+            f['oblique_impact_pair omega2z'] = ("omega2z = -(5/2)*mu*(1+e)*vn_in/r", -2.5 * dvt / r)
         elif model == 'slip_cessation':
             u0 = v['u0']
             f['slip_cessation vx']      = ("vx = 5*u0/7", 5 * u0 / 7)

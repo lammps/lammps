@@ -209,6 +209,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`qeq/shielded (o) <fix_qeq>`
    * :doc:`qeq/slater (o) <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
+   * :doc:`qmmm/xtb <fix_qmmm_xtb>`
    * :doc:`qtb <fix_qtb>`
    * :doc:`qtpie/reaxff <fix_qtpie_reaxff>`
    * :doc:`rattle <fix_shake>`

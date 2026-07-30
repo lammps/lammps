@@ -28,6 +28,7 @@ class PPPMTIP4P : public PPPM {
  public:
   PPPMTIP4P(class LAMMPS *);
   void init() override;
+  int get_charge_site(int, double *, int *, double *) override;
 
  protected:
   void particle_map() override;

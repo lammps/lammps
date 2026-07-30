@@ -1,0 +1,35 @@
+GFN-xTB QM/MM with PPPM
+=======================
+
+`in.qmmm-xtb` is a four-atom non-covalent smoke test for `fix qmmm/xtb`.
+Two hydrogen atoms form the QM region; Na and Cl are MM point charges.  The
+example is deliberately minimal and omits an MM short-range potential.
+The input selects GFN2-xTB explicitly; change `method gfn2` to `method gfn1`
+to run the same system with GFN1-xTB.
+
+Build LAMMPS with the QMMM-XTB and KSPACE packages as described in
+`src/QMMM-XTB/README`.  A typical run is:
+
+```
+export LD_LIBRARY_PATH=/path/to/xtb/lib:/path/to/mctc-and-blas/lib:$LD_LIBRARY_PATH
+export XTBPATH=/path/to/xtb/share/xtb
+export OPENBLAS_NUM_THREADS=1
+/path/to/lmp -in in.qmmm-xtb
+```
+
+With libxtb 6.7.0 and the default direct-Ewald parameters, the reference
+single-rank result is approximately:
+
+```
+PotEng  = -662.57123 kcal/mol
+f_qmmm  = -614.24518 kcal/mol
+q1      = -0.061584036
+q2      =  0.061584036
+Fx1     = 11.365132 kcal/mol/Angstrom
+Fx2     = -11.365132 kcal/mol/Angstrom
+```
+
+The same values should be obtained with multiple MPI ranks.  Quantitative
+force finite differences should use a tighter PPPM accuracy such as 1.0e-7;
+the requested PPPM force accuracy also controls the mesh potential supplied
+to the SCC Hamiltonian.

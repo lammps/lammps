@@ -40,6 +40,25 @@ PPPMTIP4P::PPPMTIP4P(LAMMPS *lmp) : PPPM(lmp)
   tip4pflag = 1;
 }
 
+/* ----------------------------------------------------------------------
+   return the TIP4P M site and its linear force redistribution to O/H/H
+------------------------------------------------------------------------- */
+
+int PPPMTIP4P::get_charge_site(int i, double *site, int *indices, double *weights)
+{
+  if (atom->type[i] != typeO) return PPPM::get_charge_site(i,site,indices,weights);
+
+  int iH1, iH2;
+  find_M(i,iH1,iH2,site);
+  indices[0] = i;
+  indices[1] = iH1;
+  indices[2] = iH2;
+  weights[0] = 1.0-alpha;
+  weights[1] = 0.5*alpha;
+  weights[2] = 0.5*alpha;
+  return 3;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PPPMTIP4P::init()

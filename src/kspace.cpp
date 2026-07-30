@@ -150,6 +150,18 @@ KSpace::KSpace(LAMMPS *lmp) :
   dgcons[6][5] = 693.0 / 256.0;
 }
 
+/* ----------------------------------------------------------------------
+   map an atom-centered charge to its site and force recipients
+------------------------------------------------------------------------- */
+
+int KSpace::get_charge_site(int i, double *site, int *indices, double *weights)
+{
+  for (int dim = 0; dim < 3; ++dim) site[dim] = atom->x[i][dim];
+  indices[0] = i;
+  weights[0] = 1.0;
+  return 1;
+}
+
 /* ---------------------------------------------------------------------- */
 
 KSpace::~KSpace()

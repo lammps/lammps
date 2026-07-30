@@ -549,6 +549,7 @@ void FixWallGranOld::init()
       normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
           27.467*pow(cor,4)-18.022*pow(cor,5)+
           4.8218*pow(cor,6);
+      normal_coeffs[1] *= MY_SQRT2;
     }
   }
 }

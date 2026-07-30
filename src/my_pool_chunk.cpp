@@ -215,7 +215,7 @@ template <class T> double MyPoolChunk<T>::size() const
   double bytes = (double) npage * chunkperpage * sizeof(int);
   bytes += (double) npage * sizeof(T *);
   bytes += (double) npage * sizeof(int);
-  for (int i = 0; i < npage; ++i) bytes += (double) chunkperpage * chunksize[i] * sizeof(T);
+  for (int i = 0; i < npage; ++i) bytes += (double) chunkperpage * chunksize[whichbin[i]] * sizeof(T);
 
   return bytes;
 }

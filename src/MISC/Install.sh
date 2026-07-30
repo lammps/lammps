@@ -39,8 +39,6 @@ action fix_ipi.cpp
 action fix_ipi.h
 action fix_srp.cpp
 action fix_srp.h
-action pair_agni.cpp
-action pair_agni.h
 action pair_list.cpp
 action pair_list.h
 action pair_srp.cpp

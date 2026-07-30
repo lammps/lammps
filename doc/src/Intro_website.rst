@@ -17,7 +17,7 @@ available online are listed below.
 * `LAMMPS highlights with images <https://www.lammps.org/gallery/pictures/>`_
 * `LAMMPS highlights with movies <https://www.lammps.org/gallery/movies/>`_
 * `Workshops <https://www.lammps.org/workshops/>`_
-* `Tutorials <https://www.lammps.org/tutorials/>`_
+* `Tutorials <https://www.lammps.org/documentation/tutorials/>`_
 
 * `Pre- and post-processing tools for LAMMPS <https://www.lammps.org/ecosystem/prepost/>`_
 * `Other software usable with LAMMPS <https://www.lammps.org/ecosystem/tools/>`_

@@ -136,10 +136,14 @@ void GranSubModDampingTsuji::init()
   if (gm->normal_model->name == "mdr")
     error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
 
-  double tmp = gm->normal_model->get_damp();
-  damp = 1.2728 - 4.2783 * tmp + 11.087 * square(tmp);
-  damp += -22.348 * cube(tmp) + 27.467 * powint(tmp, 4);
-  damp += -18.022 * powint(tmp, 5) + 4.8218 * powint(tmp, 6);
+  // Eq. 53 from Marshall 2009
+  double cor = gm->normal_model->get_damp();
+  damp = 1.2728 - 4.2783 * cor + 11.087 * square(cor);
+  damp += -22.348 * cube(cor) + 27.467 * powint(cor, 4);
+  damp += -18.022 * powint(cor, 5) + 4.8218 * powint(cor, 6);
+
+  // multiply sqrt(2) for effective mass convention (as in Tsuji 1992)
+  damp *= MY_SQRT2;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1552,13 +1552,16 @@ int FixContinuumChunk::shifted_bin(int origin_bin, int *dn) const
 {
   int x[3] = {0, 0, 0};
 
-  x[0] = origin_bin % nlayers[0] + dn[0];
-
-  if (ncoord > 1)
-    x[1] = (origin_bin % (nlayers[0] * nlayers[1])) / nlayers[0] + dn[1];
-
-  if (ncoord == 3)
-    x[2] = origin_bin / (nlayers[0] * nlayers[1]) + dn[2];
+  if (ncoord == 1) {
+    x[0] = origin_bin + dn[0];
+  } else if (ncoord == 2) {
+    x[0] = origin_bin / nlayers[1] + dn[0];
+    x[1] = origin_bin % nlayers[1] + dn[1];
+  } else if (ncoord == 3) {
+    x[0] = origin_bin / (nlayers[1] * nlayers[2]) + dn[0];
+    x[1] = (origin_bin / nlayers[2]) % nlayers[1] + dn[1];
+    x[2] = origin_bin % nlayers[2] + dn[2];
+  }
 
   for (int a = 0; a < ncoord; a++) {
     if (!domain->periodicity[chunk_dim[a]]) {
@@ -1570,12 +1573,14 @@ int FixContinuumChunk::shifted_bin(int origin_bin, int *dn) const
     while (x[a] >= nlayers[a]) x[a] -= nlayers[a];
   }
 
-  int new_bin = x[0];
-  if (ncoord > 1)
-    new_bin += x[1] * nlayers[0];
-
-  if (ncoord > 2)
-    new_bin += x[2] * nlayers[0] * nlayers[1];
+  int new_bin;
+  if (ncoord ==1) {
+    new_bin = x[0];
+  } else if (ncoord == 2) {
+    new_bin = x[0] * nlayers[1] + x[1];
+  } else if (ncoord == 3) {
+    new_bin = x[0] * nlayers[1] * nlayers[2] + x[1] * nlayers[2] + x[2];
+  }
 
   if (new_bin < 0 || new_bin >= nchunk)
     error->one(FLERR, "Bad chunk index %d shifted by %d %d %d\n", origin_bin, dn[0], dn[1], dn[2]);

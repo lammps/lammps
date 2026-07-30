@@ -145,3 +145,8 @@ register_dem_tests(test_dem_13 dem13 DEM13)
 add_executable(test_dem_14 test_dem_14.cpp)
 target_link_libraries(test_dem_14 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_14 dem14 DEM14)
+
+# DEM-15: oblique impact of two spheres (gross-sliding friction between particles)
+add_executable(test_dem_15 test_dem_15.cpp)
+target_link_libraries(test_dem_15 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_15 dem15 DEM15)

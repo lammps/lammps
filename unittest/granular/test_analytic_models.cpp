@@ -264,6 +264,36 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         EXPECT_LE(std::fabs(m1 * v1 + m2 * v2), cfg.analytic_tol * (m1 + m2) * vin)
             << "collision_restitution: total x-momentum not conserved";
         expect_rel(en, -(v1 - v2) / (2.0 * vin), cfg.analytic_tol, "collision_restitution e");
+    } else if (cfg.analytic_model == "oblique_impact_pair") {
+        // symmetric oblique impact of two equal spheres (tags 1,2) in the
+        // gross-sliding regime (Chung & Ooi 2011, Test 5).  Sphere 1 starts at
+        // (-sep,-y0,0) with velocity (+vn_in,+vt_in,0), sphere 2 mirrored, with
+        // y0 = vt_in*(sep-radius)/vn_in so the line of centers is along x at
+        // first touch.  The per-sphere impulse solution mirrors the wall case
+        // (the reduced mass m/2 cancels between normal and tangential impulse):
+        //   v1x' = -en vn_in,  v1y' = vt_in - mu(1+en) vn_in,
+        //   omega1z' = omega2z' = -(5/2) mu(1+en) vn_in / r,
+        // and sphere 2 keeps v2 = -v1 by symmetry.  Gross sliding throughout
+        // requires vt_in > (7/2) mu (1+en) vn_in.  Evaluate at a free-flight
+        // segment after the rebound.
+        const double vn = var_or(vars, "vn_in", 0.0);
+        const double vt = var_or(vars, "vt_in", 0.0);
+        const double en = var_or(vars, "en", 1.0);
+        const double mu = var_or(vars, "xmu", 0.0);
+        const double r  = var_or(vars, "radius", 0.0);
+        const int i1    = find_local(lmp, 1);
+        const int i2    = find_local(lmp, 2);
+        ASSERT_GE(i1, 0) << "oblique_impact_pair: atom with tag 1 not found";
+        ASSERT_GE(i2, 0) << "oblique_impact_pair: atom with tag 2 not found";
+        const double dvt = mu * (1.0 + en) * vn;    // tangential velocity decrement
+        expect_rel(-en * vn, lmp->atom->v[i1][0], cfg.analytic_tol, "oblique_impact_pair v1x");
+        expect_rel(vt - dvt, lmp->atom->v[i1][1], cfg.analytic_tol, "oblique_impact_pair v1y");
+        expect_rel(en * vn, lmp->atom->v[i2][0], cfg.analytic_tol, "oblique_impact_pair v2x");
+        expect_rel(-(vt - dvt), lmp->atom->v[i2][1], cfg.analytic_tol, "oblique_impact_pair v2y");
+        expect_rel(-2.5 * dvt / r, lmp->atom->omega[i1][2], cfg.analytic_tol,
+                   "oblique_impact_pair omega1z");
+        expect_rel(-2.5 * dvt / r, lmp->atom->omega[i2][2], cfg.analytic_tol,
+                   "oblique_impact_pair omega2z");
     } else if (cfg.analytic_model == "hertz_normal_impact") {
         // Elastic Hertzian normal impact at peak compression (Chung & Ooi 2011,
         // Tests 1 & 2).  This segment must be timed to land at peak compression,

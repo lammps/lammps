@@ -231,6 +231,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
   if (need_density && index_density == -1) {
     values.push_back(std::make_pair(DENSITY, -1));
     index_density = values.size() - 1;
+    labels.push_back("density/internal");
     nskip += 1;
   }
 
@@ -239,6 +240,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       if (index_momentum[a] == -1) {
         values.push_back(std::make_pair(MOMENTUM, a));
         index_momentum[a] = values.size() - 1;
+        labels.push_back("momentum/internal");
         nskip += 1;
       }
     }
@@ -249,6 +251,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
       if (index_velocity[a] == -1) {
         values.push_back(std::make_pair(VELOCITY, a));
         index_velocity[a] = values.size() - 1;
+        labels.push_back("velocity/internal");
         nskip += 1;
       }
     }
@@ -261,6 +264,7 @@ FixContinuumChunk::FixContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
         if (index_vgrad[a][b] == -1) {
           values.push_back(std::make_pair(VGRAD, a * 3 + b));
           index_vgrad[a][b] = values.size() - 1;
+          labels.push_back("vgrad/internal");
           nskip += 1;
         }
       }
@@ -1104,7 +1108,7 @@ void FixContinuumChunk::end_of_step()
   }
 
   // gradients
-  int shift[3], mp, mm;
+  int shift[3], mp, mm, chunk_axis;
   for (m = 0; m < nchunk; m++) {
     field_index = 0;
     for (auto &val : values) {
@@ -1119,17 +1123,16 @@ void FixContinuumChunk::end_of_step()
       shift[a] = -1;
       mm = shifted_bin(m, shift);
 
-      // Zero evaluation on boundaries
-      if (mp == -1 || mm == -1) {
-        values_sum[m][field_index] = 0.0;
-        field_index++;
-        continue;
-      }
-
       if (style == MGRAD) {
-        values_sum[m][field_index] = (values_sum[mp][index_momentum[b]] - values_sum[mm][index_momentum[b]]) / (2.0 * delta[a]);
+        if (mp == -1 || mm == -1)
+          values_sum[m][field_index] = 0.0;
+        else
+          values_sum[m][field_index] = (values_sum[mp][index_momentum[b]] - values_sum[mm][index_momentum[b]]) / (2.0 * delta[a]);
       } else if (style == VGRAD) {
-        values_sum[m][field_index] = (values_sum[mp][index_velocity[b]] - values_sum[mm][index_velocity[b]]) / (2.0 * delta[a]);
+        if (mp == -1 || mm == -1)
+          values_sum[m][field_index] = 0.0;
+        else
+          values_sum[m][field_index] = (values_sum[mp][index_velocity[b]] - values_sum[mm][index_velocity[b]]) / (2.0 * delta[a]);
       }
 
       field_index++;
@@ -1151,7 +1154,6 @@ void FixContinuumChunk::end_of_step()
       field_index++;
     }
   }
-
 
   // Normalize by any unused dimensions
 
@@ -1524,11 +1526,19 @@ void FixContinuumChunk::add_vector_component(char *option, int variable)
   }
 }
 
-/* ----------------------------------------------------------------------*/
+/* ----------------------------------------------------------------------
+   accepts origin bin and the x/y/z shifts in bins in the box coordinates
+     the x/y/z order of box coordinates are then remapped to the order
+     of chunk coordinates and used to find the chunk ID of the shifted bin
+------------------------------------------------------------------------- */
 
-int FixContinuumChunk::shifted_bin(int origin_bin, int *dn) const
+int FixContinuumChunk::shifted_bin(int origin_bin, int *dn_box_axis) const
 {
   int x[3] = {0, 0, 0};
+
+  int dn[3];
+  for (int a = 0; a < ncoord; a++)
+    dn[a] = dn_box_axis[chunk_dim[a]];
 
   x[0] = origin_bin % nlayers[0] + dn[0];
 

@@ -21,99 +21,79 @@ FixStyle(pimd/nvt,FixPIMDNVT);
 #ifndef FIX_PIMD_NVT_H
 #define FIX_PIMD_NVT_H
 
-#include "fix.h"
+#include "fix_pimd_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixPIMDNVT : public Fix {
+class FixPIMDNVT : public FixPIMDNVE {
  public:
   FixPIMDNVT(class LAMMPS *, int, char **);
   ~FixPIMDNVT() override;
 
-  enum { PIMD, NMPIMD, CMD };
-
-  int setmask() override;
-
-  void init() override;
-  void setup(int) override;
-  void post_force(int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
-
-  double memory_usage() override;
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
-  int pack_restart(int, double *) override;
-  void unpack_restart(int, int) override;
-  int maxsize_restart() override;
-  int size_restart(int) override;
-  double compute_vector(int) override;
-
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
+  double compute_scalar() override;
+  std::string get_thermo_colname(int) override;
 
  protected:
-  int method;
-  int np;
-  double inverse_np;
+  FixPIMDNVT(class LAMMPS *, int, char **, bool);
+  void init_nvt_defaults();
+  void parse_nvt_arguments(int, char **, const KeywordParser &);
+  bool parse_nvt_keyword(int, char **, int &);
+  void finish_nuclear_constructor_setup();
 
-  /* ring-polymer model */
+  double fixedpoint[3];
 
-  double omega_np, fbond, spring_energy, sp, virial;
-  int x_last, x_next;
-  virtual void prepare_coordinates();
-  virtual void pre_spring_force_estimators();
-  virtual void spring_force();
-  void vir_estimator();
+  double *eta;
+  double *eta_dot;
+  double *eta_dotdot;
+  double *eta_mass;
 
-  /* fictitious mass */
+  int mtchain;
+  int nc_tchain;
+  double factor_eta;
+  double drag, tdrag_factor;
+  double t_freq;
+  double t_period;
+  double tdof;
+  int tdof_override_flag;
+  double tdof_override;
+  double ke_target;
+  double ecouple_work;
 
-  double fmass, *mass;
-
-  /* inter-partition communication */
-
-  int max_nsend;
-  tagint *tag_send;
-  double *buf_send;
-
-  int max_nlocal;
-  double *buf_recv, **buf_beads;
-
-  int size_plan;
-  int *plan_send, *plan_recv;
-  double **comm_ptr;
-
-  void comm_init();
-  void comm_exec(double **);
-
-  /* normal-mode operations */
-
-  double *lam, **M_x2xp, **M_xp2x, **M_f2fp, **M_fp2f;
-  int *mode_index;
-
-  void nmpimd_init();
-  void nmpimd_fill(double **);
-  void nmpimd_transform(double **, double **, double *);
-
-  /* Nose-hoover chain integration */
-
-  int nhc_offset_one_1, nhc_offset_one_2;
-  int nhc_size_one_1, nhc_size_one_2;
-  int nhc_nchain;
-  bool nhc_ready;
-  double nhc_temp, dtv, dtf, t_sys;
-  double beta;
-
-  double **nhc_eta;        /* coordinates of NH chains for ring-polymer beads */
-  double **nhc_eta_dot;    /* velocities of NH chains                         */
-  double **nhc_eta_dotdot; /* acceleration of NH chains                       */
-  double **nhc_eta_mass;   /* mass of NH chains                               */
+  double dthalf, dt4, dt8;
+  double *tau_k;
+  double pilescale;
+  int tstat_flag;
 
   void nhc_init();
-  void nhc_update_v();
-  void nhc_update_x();
+  void o_step();
+  void nhc_temp_integrate();
+  double compute_nuclear_kinetic_energy() const;
+  double chain_target_energy() const;
+  virtual bool thermostat_chain_active() const;
+  void update_chain0_acceleration(double);
+  void propagate_chain_tail_halfstep(double);
+  double propagate_chain0_halfstep(double, bool);
+  void update_scaled_nuclear_kinetic(double &, double &) const;
+  void advance_chain_positions(double);
+  void complete_chain0_halfstep(double, double);
+  void update_outer_chain_accelerations(double);
+  void complete_chain_tail_halfstep(double, double);
+
+  virtual void thermostat_step();
+  virtual void force_half_step();
+  virtual void centroid_position_half_step();
+  virtual void nh_v_temp();
+  double thermostat_work_delta(double) const;
+  virtual double chain0_target_energy() const;
+
+  void setup_subclass_state() override;
+  int base_restart_size() const override;
+  int pack_base_restart(double *) const override;
+  int unpack_base_restart(const double *) override;
+  int nuclear_vector_size() const override;
+  double compute_nuclear_vector(int) const override;
 };
 
 }    // namespace LAMMPS_NS

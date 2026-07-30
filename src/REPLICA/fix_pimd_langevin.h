@@ -20,16 +20,15 @@ FixStyle(pimd/langevin,FixPIMDLangevin);
 #ifndef FIX_PIMD_LANGEVIN_H
 #define FIX_PIMD_LANGEVIN_H
 
-#include "fix.h"
+#include "fix_pimd_nve.h"
 
 namespace LAMMPS_NS {
 
-class FixPIMDLangevin : public Fix {
+class FixPIMDLangevin : public FixPIMDNVE {
  public:
   FixPIMDLangevin(class LAMMPS *, int, char **);
   ~FixPIMDLangevin() override;
 
-  enum { PIMD, NMPIMD };
   enum { PHYSICAL, NORMAL };
   enum { BAOAB, OBABO };
   enum { ISO, ANISO, TRICLINIC };
@@ -46,87 +45,62 @@ class FixPIMDLangevin : public Fix {
   void initial_integrate(int) override;
   void final_integrate() override;
   void end_of_step() override;
-  void write_restart(FILE *fp) override;
-  void restart(char *buf) override;
-
   double compute_vector(int) override;
 
  protected:
   // System setting variables
-  int method;                              // PIMD or NMPIMD or CMD
-  int fmmode;                              // physical or normal
-  int np;                                  // number of beads
-  double inverse_np;                       // 1.0/np
-  double temp;                             // temperature
-  double hbar;                             // Planck's constant
   double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
   double other_planck;
   double other_mvv2e;
-  double kt;               // k_B * temp
-  double beta, beta_np;    // beta = 1./kBT beta_np = 1./kBT/np
   int thermostat;          // NHC or PILE_L
   int barostat;            // BZP
   int integrator;          // obabo or baoab
   int ensemble;            // nve or nvt or nph or npt
-  int mapflag;             // should be 1 if number of beads > 1
   int removecomflag;
-  double masstotal;
 
   double fixedpoint[3];    // location of dilation fixed-point
 
   // ring-polymer model
 
-  double omega_np, fbond, spring_energy, sp;
+  double spring_energy;
 
   // fictitious mass
 
-  double fmass, *mass;
-
-  // inter-partition communication
-
-  MPI_Comm rootworld;
-  int me, nprocs, ireplica, nreplica, nprocs_universe;
-  int ntotal, maxlocal;
-
-  int x_last, x_next;
-
-  int cmode;
-  int sizeplan;
-  int maxsend;
-  int *plansend, *planrecv;
-
-  tagint *tagsend, *tagrecv;
-  double *bufsend, *bufrecv, **bufbeads;
-  double **bufsorted, **bufsortedall;
-
-  int *counts, *displacements;
-
   void comm_init();
+  void comm_init_multirank();
+  bool use_base_single_rank_comm() const;
+  bool use_langevin_multirank_comm() const;
   virtual void prepare_coordinates();
-  void inter_replica_comm(double **ptr);
+  double **normal_mode_transform_buffer() override;
+  void inter_replica_comm(double **ptr) override;
+  void inter_replica_comm_multirank(double **ptr);
   void ring_collect(const std::vector<tagint> &miss_tag,
                                             double **ptr,
                                             std::vector<tagint> &rep_tag,
                                             std::vector<double> &rep_val);
-  void virtual spring_force();
+  void spring_force() override;
 
   /* normal-mode operations */
 
-  double *lam, **M_x2xp, **M_xp2x, **M_f2fp, **M_fp2f;
-  int *modeindex;
+  double **M_f2fp, **M_fp2f;
 
   void reallocate();
-  void nmpimd_init();
-  void nmpimd_transform(double **, double **, double *);
+  void reallocate_multirank();
+
+  int maxsend;
+  int multirank_sizeplan;
+  int *multirank_plansend, *multirank_planrecv;
+  int *multirank_modeindex;
+  tagint *multirank_tagsend;
+  double *multirank_bufsend, *multirank_bufrecv;
+  double **multirank_bufbeads;
 
   /* Langevin integration */
 
-  double dtv, dtf, dtv2, dtv3;
   double gamma, c1, c2, tau;
   double *tau_k, *c1_k, *c2_k;
   double pilescale;
   double Lan_temp;
-  double *_omega_k, *Lan_s, *Lan_c;    // sin(omega_k*dt*0.5), cos(omega_k*dt*0.5)
 
   class RanMars *random;
 
@@ -158,21 +132,11 @@ class FixPIMDLangevin : public Fix {
 
   /* centroid-virial estimator computation */
   double vol0 = 0.0;
-  double **xc, *xcall;
-  int maxxc;
-  int maxunwrap;
-  double **x_unwrap;
-  void reallocate_x_unwrap();
-  void reallocate_xc();
-  void collect_xc();
   void remove_com_motion();
   double vir, vir_, centroid_vir;
-  double t_prim, t_vir, t_cv, p_prim, p_vir, p_cv, p_md;
+  double p_vir;
 
   /* Computes */
-  double pote, tote, totke;
-  double ke_bead, se_bead, pe_bead;
-  double total_spring_energy;
   char *id_pe;
   char *id_press;
   class Compute *c_pe;
@@ -192,9 +156,12 @@ class FixPIMDLangevin : public Fix {
   void compute_xf_vir();
   void compute_cvir();
   void compute_totenthalpy();
-
-  int size_restart_global();
-  int pack_restart_data(double *list);
+  void schedule_common_computes();
+  int subclass_vector_size() const override;
+  double compute_subclass_vector(int) const override;
+  int base_restart_size() const override;
+  int pack_base_restart(double *) const override;
+  int unpack_base_restart(const double *) override;
 };
 }    // namespace LAMMPS_NS
 #endif

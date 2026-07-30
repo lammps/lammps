@@ -1,0 +1,16 @@
+This directory contains minimal regression examples for the
+``fix pimd/uvt`` style in the REPLICA package.
+
+Files:
+
+- ``in.electron_pimd_uvt`` runs a quadratic toy model with an analytic
+  constant-potential equilibrium using a two-bead PIMD integrator.
+- ``in.electron_pimd_uvt_restart`` continues from the restart written by
+  ``in.electron_pimd_uvt`` and can be used to check restart continuity.
+
+Build LAMMPS with the REPLICA package enabled before running these
+examples.
+
+Run ``in.electron_pimd_uvt`` with a partitioned launch, for example
+``mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt``, before
+running ``in.electron_pimd_uvt_restart`` with the same partition layout.

@@ -58,6 +58,42 @@ add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
 
+add_executable(test_fix_uvt test_fix_uvt.cpp)
+target_link_libraries(test_fix_uvt PRIVATE lammps GTest::GMock)
+add_test(NAME FixUVT COMMAND test_fix_uvt)
+
+if(PKG_REPLICA)
+  add_executable(test_fix_pimd_nve test_fix_pimd_nve.cpp)
+  target_link_libraries(test_fix_pimd_nve PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDNVE COMMAND test_fix_pimd_nve --gtest_filter=FixPIMDNVESerialTest.*)
+  add_mpi_test(NAME FixPIMDNVEPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_nve> --gtest_filter=FixPIMDNVEMPI.*)
+  add_mpi_test(NAME FixPIMDNVEMultiRankPerBead NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_nve>
+                       --gtest_filter=FixPIMDNVEMPI.MultiRankPerBeadRunProducesFiniteVector)
+
+  add_executable(test_fix_pimd_nvt test_fix_pimd_nvt.cpp)
+  target_link_libraries(test_fix_pimd_nvt PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDNVTSerial
+           COMMAND test_fix_pimd_nvt --gtest_filter=FixPIMDNVTSerialTest.*)
+  add_mpi_test(NAME FixPIMDNVTMPI NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
+                       --gtest_filter=FixPIMDNVTMPI.*)
+  add_mpi_test(NAME FixPIMDNVTMultiRankPerBead NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
+                       --gtest_filter=FixPIMDNVTMPI.MultiRankPerBeadRunProducesFiniteThermostatState)
+
+  add_executable(test_fix_pimd_uvt test_fix_pimd_uvt.cpp)
+  target_link_libraries(test_fix_pimd_uvt PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDUVTSerial COMMAND test_fix_pimd_uvt --gtest_filter=FixPIMDUVTSerialTest.*)
+  add_mpi_test(NAME FixPIMDUVTMPI NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_uvt> --gtest_filter=FixPIMDUVTMPI.*)
+  add_mpi_test(NAME FixPIMDUVTMultiRankPerBead NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_uvt>
+                       --gtest_filter=FixPIMDUVTMPI.MultiRankPerBeadAveragesDerivativeOncePerBead)
+
+endif()
+
 add_executable(test_regions test_regions.cpp)
 target_link_libraries(test_regions PRIVATE lammps GTest::GMock)
 add_test(NAME Regions COMMAND test_regions)
@@ -115,6 +151,34 @@ add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
+
+if(PKG_REPLICA)
+  add_executable(test_fix_pimd_langevin test_fix_pimd_langevin.cpp)
+  target_link_libraries(test_fix_pimd_langevin PRIVATE lammps GTest::GMock)
+  add_test(NAME FixPIMDLangevin
+           COMMAND test_fix_pimd_langevin
+                   --gtest_filter=FixPIMDLangevinSerialTest.*)
+  add_mpi_test(NAME FixPIMDLangevinPartition NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
+                       --gtest_filter=FixPIMDLangevinMPI.NMPIMDNVEOBABOP2:
+                                      FixPIMDLangevinMPI.NMPIMDNVTBAOABP2:
+                                      FixPIMDLangevinMPI.PIMDNVEOBABOP2:
+                                      FixPIMDLangevinMPI.PIMDNVTBAOABP2:
+                                      FixPIMDLangevinRestartTest.NMPIMDNVTRestartContinuation:
+                                      FixPIMDLangevinRestartTest.PIMDNVTRestartContinuation)
+  add_mpi_test(NAME FixPIMDLangevinMultiRank NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
+                       --gtest_filter=FixPIMDLangevinMPI.NMPIMDNVTOBABOMultiRankPerBead:
+                                      FixPIMDLangevinMPI.NMPIMDNPTBZP:
+                                      FixPIMDLangevinMPI.NMPIMDNPTMTTK:
+                                      FixPIMDLangevinRestartTest.NMPIMDNPTBZPRestartContinuation:
+                                      FixPIMDLangevinExpectedErrorTest.PIMDRejectsMultipleRanksPerBead)
+
+  add_executable(test_fix_pimd_langevin_bosonic test_fix_pimd_langevin_bosonic.cpp)
+  target_link_libraries(test_fix_pimd_langevin_bosonic PRIVATE lammps GTest::GMock)
+  add_mpi_test(NAME FixPIMDLangevinBosonic NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin_bosonic>)
+endif()
 
 add_executable(test_restart_settings test_restart_settings.cpp)
 target_link_libraries(test_restart_settings PRIVATE lammps GTest::GMock)

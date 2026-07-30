@@ -79,21 +79,23 @@ constexpr int TAG_RING_REP_VALS   = 404;
 /* ---------------------------------------------------------------------- */
 
 FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), mass(nullptr), plansend(nullptr), planrecv(nullptr), tagsend(nullptr),
-    tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr), bufbeads(nullptr), bufsorted(nullptr),
-    bufsortedall(nullptr), counts(nullptr),
-    displacements(nullptr), lam(nullptr), M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr),
-    M_fp2f(nullptr), modeindex(nullptr), tau_k(nullptr), c1_k(nullptr), c2_k(nullptr),
-    _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), random(nullptr), xc(nullptr), xcall(nullptr),
-    x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr)
+    FixPIMDNVE(lmp, narg, arg, true), M_f2fp(nullptr), M_fp2f(nullptr), tau_k(nullptr),
+    c1_k(nullptr), c2_k(nullptr), random(nullptr), id_pe(nullptr), id_press(nullptr),
+    c_pe(nullptr), c_press(nullptr)
 {
   restart_global = 1;
   time_integrate = 1;
 
   ntotal = 0;
-  maxlocal = maxsend = maxunwrap = maxxc = 0;
-
-  sizeplan = 0;
+  maxlocal = maxsend = 0;
+  multirank_sizeplan = 0;
+  multirank_plansend = nullptr;
+  multirank_planrecv = nullptr;
+  multirank_modeindex = nullptr;
+  multirank_tagsend = nullptr;
+  multirank_bufsend = nullptr;
+  multirank_bufrecv = nullptr;
+  multirank_bufbeads = nullptr;
 
   method = NMPIMD;
   ensemble = NVT;
@@ -345,7 +347,7 @@ FixPIMDLangevin::FixPIMDLangevin(LAMMPS *lmp, int narg, char **arg) :
   if (atom->nmax > maxlocal) reallocate();
   if (atom->nmax > maxunwrap) reallocate_x_unwrap();
   if (atom->nmax > maxxc) reallocate_xc();
-  memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
+  if (xcall == nullptr) memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
 
 }
 
@@ -358,37 +360,31 @@ FixPIMDLangevin::~FixPIMDLangevin()
   delete[] id_pe;
   delete[] id_press;
   delete random;
-  delete[] mass;
-  delete[] _omega_k;
-  delete[] Lan_c;
-  delete[] Lan_s;
   delete[] tau_k;
   delete[] c1_k;
   delete[] c2_k;
-  delete[] plansend;
-  delete[] planrecv;
-  delete[] modeindex;
-  memory->destroy(xcall);
-  if (cmode == SINGLE_PROC) {
-    memory->destroy(bufsorted);
-    memory->destroy(bufsortedall);
-    memory->destroy(counts);
-    memory->destroy(displacements);
-  }
-
-  memory->destroy(M_x2xp);
-  memory->destroy(M_xp2x);
-  memory->destroy(xc);
-  memory->destroy(x_unwrap);
-  memory->destroy(bufsend);
-  memory->destroy(bufrecv);
-  memory->destroy(tagsend);
-  memory->destroy(tagrecv);
-  memory->destroy(bufbeads);
-  if (rootworld != MPI_COMM_NULL) MPI_Comm_free(&rootworld);
+  delete[] multirank_plansend;
+  delete[] multirank_planrecv;
+  delete[] multirank_modeindex;
+  memory->destroy(multirank_bufsend);
+  memory->destroy(multirank_bufrecv);
+  memory->destroy(multirank_tagsend);
+  memory->destroy(multirank_bufbeads);
 }
 
 /* ---------------------------------------------------------------------- */
+
+bool FixPIMDLangevin::use_base_single_rank_comm() const
+{
+  return comm->nprocs == 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+bool FixPIMDLangevin::use_langevin_multirank_comm() const
+{
+  return comm->nprocs > 1;
+}
 
 int FixPIMDLangevin::setmask()
 {
@@ -445,9 +441,11 @@ void FixPIMDLangevin::init()
 
   comm_init();
 
-  mass = new double[atom->ntypes + 1];
+  if (mass == nullptr) mass = new double[atom->ntypes + 1];
 
   nmpimd_init();
+
+  if (xcall == nullptr) memory->create(xcall, ntotal * 3, "FixPIMDLangevin:xcall");
 
   langevin_init();
 
@@ -481,20 +479,10 @@ void FixPIMDLangevin::init()
 
 void FixPIMDLangevin::setup(int vflag)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
-
   if (method == NMPIMD) {
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
+    begin_normal_mode_coordinate_propagation();
   } else if (method == PIMD) {
+    unmap_coordinates(atom->x, atom->image);
     prepare_coordinates();
     if (cmode == SINGLE_PROC)
       spring_force();
@@ -511,33 +499,21 @@ void FixPIMDLangevin::setup(int vflag)
   compute_t_prim();
   compute_p_prim();
   if (method == NMPIMD) {
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap_inv(x[i], image[i]);
+    finalize_setup_normal_mode_coordinates();
+  } else {
+    remap_coordinates(atom->x, atom->image);
   }
 
   post_force(vflag);
   compute_totke();
   end_of_step();
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  schedule_common_computes();
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::initial_integrate(int /*vflag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) domain->unmap(x[i], image[i]);
-  }
   if (integrator == OBABO) {
     if (tstat_flag) {
       o_step();
@@ -551,16 +527,11 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     }
     b_step();
     if (method == NMPIMD) {
-      inter_replica_comm(x);
-      if (cmode == SINGLE_PROC)
-        nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-      else if (cmode == MULTI_PROC)
-        nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
-      qc_step();
-      a_step();
+      begin_normal_mode_coordinate_propagation();
+      propagate_normal_mode_coordinate_halfstep();
+      propagate_normal_mode_coordinate_halfstep();
     } else if (method == PIMD) {
+      unmap_coordinates(atom->x, atom->image);
       q_step();
       q_step();
     } else {
@@ -577,14 +548,10 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
     }
     b_step();
     if (method == NMPIMD) {
-      inter_replica_comm(x);
-      if (cmode == SINGLE_PROC)
-        nmpimd_transform(bufsortedall, x, M_x2xp[universe->iworld]);
-      else if (cmode == MULTI_PROC)
-        nmpimd_transform(bufbeads, x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
+      begin_normal_mode_coordinate_propagation();
+      propagate_normal_mode_coordinate_halfstep();
     } else if (method == PIMD) {
+      unmap_coordinates(atom->x, atom->image);
       q_step();
     } else {
       error->universe_all(
@@ -598,8 +565,7 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
       if (pstat_flag) press_o_step();
     }
     if (method == NMPIMD) {
-      qc_step();
-      a_step();
+      propagate_normal_mode_coordinate_halfstep();
     } else if (method == PIMD) {
       q_step();
     } else {
@@ -614,24 +580,11 @@ void FixPIMDLangevin::initial_integrate(int /*vflag*/)
                                     "integrators are supported!",
                                     style));
   }
-  collect_xc();
-
   if (method == NMPIMD) {
-    compute_spring_energy();
-    compute_t_prim();
-    compute_p_prim();
-  }
-
-  if (method == NMPIMD) {
-    inter_replica_comm(x);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, x, M_xp2x[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, x, M_xp2x[universe->iworld]);
-  }
-
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap_inv(x[i], image[i]); }
+    finalize_normal_mode_coordinate_propagation();
+  } else {
+    collect_xc();
+    remap_coordinates(atom->x, atom->image);
   }
 }
 
@@ -669,56 +622,26 @@ void FixPIMDLangevin::prepare_coordinates()
 
 void FixPIMDLangevin::post_force(int /*flag*/)
 {
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  double **f = atom->f;
-  imageint *image = atom->image;
-  tagint *tag = atom->tag;
-
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-  for (int i = 0; i < nlocal; i++) {
-    x_unwrap[i][0] = x[i][0];
-    x_unwrap[i][1] = x[i][1];
-    x_unwrap[i][2] = x[i][2];
-  }
-  if (mapflag) {
-    for (int i = 0; i < nlocal; i++) { domain->unmap(x_unwrap[i], image[i]); }
-  }
-  for (int i = 0; i < nlocal; i++) {
-    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-  }
-
+  prepare_common_virial_state();
   compute_vir();
   compute_xf_vir();
   compute_cvir();
   compute_t_vir();
 
   if (method == PIMD) {
-    if (mapflag) {
-      for (int i = 0; i < nlocal; i++) { domain->unmap(x[i], image[i]); }
-    }
+    unmap_coordinates(atom->x, atom->image);
     prepare_coordinates();
     spring_force();
     compute_spring_energy();
     compute_t_prim();
-    if (mapflag) {
-      for (int i = 0; i < nlocal; i++) { domain->unmap_inv(x[i], image[i]); }
-    }
+    remap_coordinates(atom->x, atom->image);
   }
   compute_pote();
   if (method == NMPIMD) {
-    inter_replica_comm(f);
-    if (cmode == SINGLE_PROC)
-      nmpimd_transform(bufsortedall, f, M_x2xp[universe->iworld]);
-    else if (cmode == MULTI_PROC)
-      nmpimd_transform(bufbeads, f, M_x2xp[universe->iworld]);
+    prepare_normal_mode_forces();
   }
 
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  schedule_common_computes();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -733,57 +656,12 @@ void FixPIMDLangevin::end_of_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::collect_xc()
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  tagint *tag = atom->tag;
-  if (ireplica == 0) {
-    if (cmode == SINGLE_PROC) {
-      for (int i = 0; i < nlocal; i++) {
-        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
-      }
-    } else if (cmode == MULTI_PROC) {
-      for (int i = 0; i < ntotal; i++) {
-        xcall[3 * i + 0] = xcall[3 * i + 1] = xcall[3 * i + 2] = 0.0;
-      }
-    }
-
-    const double sqrtnp = sqrt((double) np);
-    for (int i = 0; i < nlocal; i++) {
-      xcall[3 * (tag[i] - 1) + 0] = x[i][0] / sqrtnp;
-      xcall[3 * (tag[i] - 1) + 1] = x[i][1] / sqrtnp;
-      xcall[3 * (tag[i] - 1) + 2] = x[i][2] / sqrtnp;
-    }
-
-    if (cmode == MULTI_PROC) {
-      MPI_Allreduce(MPI_IN_PLACE, xcall, ntotal * 3, MPI_DOUBLE, MPI_SUM, world);
-    }
-  }
-  MPI_Bcast(xcall, ntotal * 3, MPI_DOUBLE, 0, universe->uworld);
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDLangevin::b_step()
 {
   // used for both NMPIMD and PIMD
   // For NMPIMD, force only includes the contribution of external potential.
   // For PIMD, force includes the contributions of external potential and spring force.
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  double **v = atom->v;
-  double **f = atom->f;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      double dtfm = dtf / mass[type[i]];
-      v[i][0] += dtfm * f[i][0];
-      v[i][1] += dtfm * f[i][1];
-      v[i][2] += dtfm * f[i][2];
-    }
-  }
+  apply_force_velocity_kick();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1014,11 +892,8 @@ void FixPIMDLangevin::langevin_init()
 {
   double beta = 1.0 / kt;
   const double _omega_np = np / beta / hbar;
-  double _omega_np_dt_half = _omega_np * update->dt * 0.5;
+  const double _omega_np_dt_half = _omega_np * update->dt * 0.5;
 
-  _omega_k = new double[np];
-  Lan_c = new double[np];
-  Lan_s = new double[np];
   if (method == NMPIMD) {
     if (fmmode == PHYSICAL) {
       for (int i = 0; i < np; i++) {
@@ -1132,88 +1007,6 @@ void FixPIMDLangevin::o_step()
    Normal Mode PIMD
    ------------------------------------------------------------------------- */
 
-void FixPIMDLangevin::nmpimd_init()
-{
-  memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
-  memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
-
-  lam = (double *) memory->smalloc(sizeof(double) * np, "FixPIMDLangevin::lam");
-
-  // Set up  eigenvalues
-  for (int i = 0; i < np; i++) {
-    double sin_tmp = sin(i * MY_PI / np);
-    lam[i] = 4 * sin_tmp * sin_tmp;
-  }
-
-  // Set up eigenvectors for degenerated modes
-  const double sqrtnp = sqrt((double) np);
-  for (int j = 0; j < np; j++) {
-    for (int i = 1; i < int(np / 2) + 1; i++) {
-      M_x2xp[i][j] = MY_SQRT2 * cos(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
-    }
-    for (int i = int(np / 2) + 1; i < np; i++) {
-      M_x2xp[i][j] = MY_SQRT2 * sin(MY_2PI * double(i) * double(j) / double(np)) / sqrtnp;
-    }
-  }
-
-  // Set up eigenvectors for non-degenerated modes
-  for (int i = 0; i < np; i++) {
-    M_x2xp[0][i] = 1.0 / sqrtnp;
-    if (np % 2 == 0) M_x2xp[np / 2][i] = 1.0 / sqrtnp * powint(-1.0, i);
-  }
-
-  // Set up Ut
-  for (int i = 0; i < np; i++)
-    for (int j = 0; j < np; j++) { M_xp2x[i][j] = M_x2xp[j][i]; }
-
-  // Set up fictitious masses
-  int iworld = universe->iworld;
-  for (int i = 1; i <= atom->ntypes; i++) {
-    mass[i] = atom->mass[i];
-    mass[i] *= fmass;
-    if (iworld) {
-      if (fmmode == PHYSICAL) {
-        mass[i] *= 1.0;
-      } else if (fmmode == NORMAL) {
-        mass[i] *= lam[iworld];
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::nmpimd_transform(double **src, double **des, double *vector)
-{
-  if (cmode == SINGLE_PROC) {
-    for (int i = 0; i < ntotal; i++) {
-      for (int d = 0; d < 3; d++) {
-        bufsorted[i][d] = 0.0;
-        for (int j = 0; j < nreplica; j++) {
-          bufsorted[i][d] += src[j * ntotal + i][d] * vector[j];
-        }
-      }
-    }
-    for (int i = 0; i < ntotal; i++) {
-      tagint tagtmp = atom->tag[i];
-      for (int d = 0; d < 3; d++) { des[i][d] = bufsorted[tagtmp - 1][d]; }
-    }
-  } else if (cmode == MULTI_PROC) {
-    int n = atom->nlocal;
-    int m = 0;
-
-    for (int i = 0; i < n; i++) {
-      for (int d = 0; d < 3; d++) {
-        des[i][d] = 0.0;
-        for (int j = 0; j < np; j++) { des[i][d] += (src[j][m] * vector[j]); }
-        m++;
-      }
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDLangevin::spring_force()
 {
   spring_energy = 0.0;
@@ -1259,207 +1052,173 @@ void FixPIMDLangevin::spring_force()
 
 void FixPIMDLangevin::comm_init()
 {
+  if (use_base_single_rank_comm()) {
+    FixPIMDNVE::comm_init();
+  } else {
+    comm_init_multirank();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::comm_init_multirank()
+{
   if (np != universe->nworlds)
-  error->all(FLERR, "Fix pimd/langevin: np must equal universe->nworlds");
+    error->all(FLERR, "Fix pimd/langevin: np must equal universe->nworlds");
 
-  int nlocal = atom->nlocal;
-  if (cmode == SINGLE_PROC) {
-    memory->create(counts, nreplica, "FixPIMDLangevin:counts");
-    memory->create(displacements, nreplica, "FixPIMDLangevin:displacements");
-    for (int i = 0; i < nreplica; i++) counts[i] = 3*nlocal;
-    displacements[0] = 0;
-    for (int i = 0; i < nreplica - 1; i++) displacements[i + 1] = displacements[i] + counts[i];
-  }
-  if (sizeplan) {
-    delete[] plansend;
-    delete[] planrecv;
+  if (multirank_sizeplan) {
+    delete[] multirank_plansend;
+    delete[] multirank_planrecv;
+    delete[] multirank_modeindex;
   }
 
-  sizeplan = np - 1;
-  plansend = new int[sizeplan];
-  planrecv = new int[sizeplan];
-  modeindex = new int[sizeplan];
-  for (int i = 0; i < sizeplan; i++) {
+  multirank_sizeplan = np - 1;
+  multirank_plansend = new int[multirank_sizeplan];
+  multirank_planrecv = new int[multirank_sizeplan];
+  multirank_modeindex = new int[multirank_sizeplan];
+  for (int i = 0; i < multirank_sizeplan; i++) {
+    multirank_plansend[i] = universe->me + comm->nprocs * (i + 1);
+    if (multirank_plansend[i] >= universe->nprocs) multirank_plansend[i] -= universe->nprocs;
 
-    // send to the (i+1)-th "next" replica, same local rank within that replica
-    plansend[i] = universe->me + comm->nprocs * (i + 1);
-    if (plansend[i] >= universe->nprocs) plansend[i] -= universe->nprocs;
+    multirank_planrecv[i] = universe->me - comm->nprocs * (i + 1);
+    if (multirank_planrecv[i] < 0) multirank_planrecv[i] += universe->nprocs;
 
-    // receive from the (i+1)-th "previous" replica, same local rank within that replica
-    planrecv[i] = universe->me - comm->nprocs * (i + 1);
-    if (planrecv[i] < 0) planrecv[i] += universe->nprocs;
-
-    // where to store what we receive this round:
-    // this is the replica index you are pulling from in this step
-    modeindex[i] = (universe->iworld + i + 1) % universe->nworlds;
+    multirank_modeindex[i] = (universe->iworld + i + 1) % universe->nworlds;
   }
 
-  x_next = (universe->iworld + 1 + universe->nworlds) % (universe->nworlds);
-  x_last = (universe->iworld - 1 + universe->nworlds) % (universe->nworlds);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::reallocate_xc()
-{
-  maxxc = atom->nmax;
-  memory->destroy(xc);
-  memory->create(xc, maxxc, 3, "FixPIMDLangevin:xc");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::reallocate_x_unwrap()
-{
-  maxunwrap = atom->nmax;
-  memory->destroy(x_unwrap);
-  memory->create(x_unwrap, maxunwrap, 3, "FixPIMDLangevin:x_unwrap");
+  x_next = (universe->iworld + 1 + universe->nworlds) % universe->nworlds;
+  x_last = (universe->iworld - 1 + universe->nworlds) % universe->nworlds;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::reallocate()
 {
+  if (use_base_single_rank_comm()) {
+    FixPIMDNVE::reallocate();
+  } else {
+    reallocate_multirank();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::reallocate_multirank()
+{
   maxlocal = atom->nmax;
   ntotal = atom->natoms;
-  if (cmode == SINGLE_PROC) {
-    memory->destroy(bufsorted);
-    memory->destroy(bufsortedall);
-    memory->create(bufsorted, ntotal, 3, "FixPIMDLangevin:bufsorted");
-    memory->create(bufsortedall, nreplica * ntotal, 3, "FixPIMDLangevin:bufsortedall");
-  } else if (cmode == MULTI_PROC) {
-    memory->destroy(bufsend);
-    memory->destroy(bufrecv);
-    memory->destroy(tagsend);
-    memory->destroy(tagrecv);
-    memory->destroy(bufbeads);
-    memory->create(bufsend, maxlocal*3, "FixPIMDLangevin:bufsend");
-    memory->create(bufrecv, maxlocal*3, "FixPIMDLangevin:bufrecv");
-    memory->create(tagsend, maxlocal, "FixPIMDLangevin:tagsend");
-    memory->create(tagrecv, maxlocal, "FixPIMDLangevin:tagrecv");
-    memory->create(bufbeads, nreplica, maxlocal * 3, "FixPIMDLangevin:bufrecv");
-  }
+  memory->destroy(multirank_bufsend);
+  memory->destroy(multirank_bufrecv);
+  memory->destroy(multirank_tagsend);
+  memory->destroy(multirank_bufbeads);
+  memory->create(multirank_bufsend, maxlocal * 3, "FixPIMDLangevin:multirank_bufsend");
+  memory->create(multirank_bufrecv, maxlocal * 3, "FixPIMDLangevin:multirank_bufrecv");
+  memory->create(multirank_tagsend, maxlocal, "FixPIMDLangevin:multirank_tagsend");
+  memory->create(multirank_bufbeads, nreplica, maxlocal * 3, "FixPIMDLangevin:multirank_bufbeads");
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::inter_replica_comm(double **ptr)
 {
-  if (atom->nmax > maxlocal) reallocate();
+  if (use_base_single_rank_comm()) {
+    FixPIMDNVE::inter_replica_comm(ptr);
+  } else {
+    inter_replica_comm_multirank(ptr);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double **FixPIMDLangevin::normal_mode_transform_buffer()
+{
+  if (use_base_single_rank_comm()) return bufsortedall;
+  return multirank_bufbeads;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDLangevin::inter_replica_comm_multirank(double **ptr)
+{
+  if (atom->nmax > maxlocal) reallocate_multirank();
   int nlocal = atom->nlocal;
-  tagint *tag = atom->tag;
-  int i, m;
 
-  // communicate values from the other beads
-  if (cmode == SINGLE_PROC) {
-    m = 0;
-    for (i = 0; i < nlocal; i++) {
-      tagint tagtmp = tag[i];
-      bufsorted[tagtmp - 1][0] = ptr[i][0];
-      bufsorted[tagtmp - 1][1] = ptr[i][1];
-      bufsorted[tagtmp - 1][2] = ptr[i][2];
-      m++;
-    }
-    MPI_Allgatherv(bufsorted[0], 3 * m, MPI_DOUBLE, bufsortedall[0], counts, displacements,
-                   MPI_DOUBLE, universe->uworld);
-  } else if (cmode == MULTI_PROC) {
-    // buffers are (re)allocated as needed in reallocate()
-    // copy local values
-    for (i = 0; i < nlocal; i++) {
-      bufbeads[ireplica][3 * i + 0] = ptr[i][0];
-      bufbeads[ireplica][3 * i + 1] = ptr[i][1];
-      bufbeads[ireplica][3 * i + 2] = ptr[i][2];
+  for (int i = 0; i < nlocal; i++) {
+    multirank_bufbeads[ireplica][3 * i + 0] = ptr[i][0];
+    multirank_bufbeads[ireplica][3 * i + 1] = ptr[i][1];
+    multirank_bufbeads[ireplica][3 * i + 2] = ptr[i][2];
+  }
+
+  for (int iplan = 0; iplan < multirank_sizeplan; iplan++) {
+    int nsend = 0;
+    MPI_Sendrecv((void *) &nlocal, 1, MPI_INT, multirank_plansend[iplan], TAG_INTER_REPLICA_COUNT,
+                 (void *) &nsend, 1, MPI_INT, multirank_planrecv[iplan], TAG_INTER_REPLICA_COUNT,
+                 universe->uworld, MPI_STATUS_IGNORE);
+
+    if (nsend > maxsend) {
+      maxsend = nsend + 200;
+      multirank_tagsend = (tagint *) memory->srealloc(
+          multirank_tagsend, sizeof(tagint) * maxsend, "FixPIMDLangevin:multirank_tagsend");
+      multirank_bufsend = (double *) memory->srealloc(
+          multirank_bufsend, sizeof(double) * 3 * maxsend, "FixPIMDLangevin:multirank_bufsend");
     }
 
-    // Loop over replica comm plans
-    for (int iplan = 0; iplan < sizeplan; iplan++) {
+    MPI_Sendrecv((void *) atom->tag, nlocal, MPI_LMP_TAGINT, multirank_plansend[iplan],
+                 TAG_INTER_REPLICA_TAGS, (void *) multirank_tagsend, nsend, MPI_LMP_TAGINT,
+                 multirank_planrecv[iplan], TAG_INTER_REPLICA_TAGS, universe->uworld,
+                 MPI_STATUS_IGNORE);
 
-      // 1) exchange local counts between the paired ranks in universe->uworld
-      int nsend = 0;
-      MPI_Sendrecv((void*)&nlocal, 1, MPI_INT,
-                  plansend[iplan], TAG_INTER_REPLICA_COUNT,
-                  (void*)&nsend, 1, MPI_INT,
-                  planrecv[iplan], TAG_INTER_REPLICA_COUNT,
-                  universe->uworld, MPI_STATUS_IGNORE);
+    std::vector<int> miss_idx;
+    std::vector<tagint> miss_tag;
+    miss_idx.reserve(nsend);
+    miss_tag.reserve(nsend);
 
-      // 2) ensure buffers sized for nsend
-      if (nsend > maxsend) {
-        maxsend = nsend + 200;
-        tagsend = (tagint *) memory->srealloc(tagsend, sizeof(tagint) * maxsend,
-                                              "FixPIMDLangevin:tagsend");
-        bufsend = (double *) memory->srealloc(bufsend, sizeof(double) * 3 * maxsend,
-                                              "FixPIMDLangevin:bufsend");
+    for (int i = 0; i < nsend; i++) {
+      const int idx = atom->map(multirank_tagsend[i]);
+      if (idx >= 0 && idx < nlocal) {
+        multirank_bufsend[3 * i + 0] = ptr[idx][0];
+        multirank_bufsend[3 * i + 1] = ptr[idx][1];
+        multirank_bufsend[3 * i + 2] = ptr[idx][2];
+      } else {
+        miss_idx.push_back(i);
+        miss_tag.push_back(multirank_tagsend[i]);
       }
+    }
 
-      // 3) exchange tags:
-      //    send my local tags (atom->tag[0..nlocal-1])
-      //    receive remote rank's local tags into tagsend[0..nsend-1]
-      MPI_Sendrecv((void*)atom->tag, nlocal, MPI_LMP_TAGINT,
-                  plansend[iplan], TAG_INTER_REPLICA_TAGS,
-                  (void*)tagsend, nsend, MPI_LMP_TAGINT,
-                  planrecv[iplan], TAG_INTER_REPLICA_TAGS,
-                  universe->uworld, MPI_STATUS_IGNORE);
+    if (!miss_tag.empty()) {
+      std::vector<tagint> rep_tag;
+      std::vector<double> rep_val;
+      ring_collect(miss_tag, ptr, rep_tag, rep_val);
 
-      // 4) pack ptr for the tags the remote rank needs from me
-      //    For each received tag, find my local index and copy ptr[index][0..2]
-      std::vector<int> miss_idx;
-      std::vector<tagint> miss_tag;
-      miss_idx.reserve(nsend);
-      miss_tag.reserve(nsend);
-
-      for (int i = 0; i < nsend; i++) {
-        const int idx = atom->map(tagsend[i]);
-        if (idx >= 0 && idx < nlocal) {
-          bufsend[3*i + 0] = ptr[idx][0];
-          bufsend[3*i + 1] = ptr[idx][1];
-          bufsend[3*i + 2] = ptr[idx][2];
-        } else {
-          miss_idx.push_back(i);   // remember which slot in bufsend needs collect
-          miss_tag.push_back(tagsend[i]);   // remember which tag that slot corresponds to
-        }
-      }
-
-      // 5) collect missing tags within this world (local-only claiming)
-      if (!miss_tag.empty()) {
-        std::vector<tagint> rep_tag;
-        std::vector<double> rep_val;
-        ring_collect(miss_tag, ptr, rep_tag, rep_val);
-
-        // fill missing slots in bufsend by tag lookup (missing is small)
-        // Use a simple O(N^2) search since missing tags expected to be few
-        for (int k = 0; k < (int)miss_tag.size(); k++) {
-          const tagint t = miss_tag[k];
-          int pos = -1;
-          for (int j = 0; j < (int)rep_tag.size(); j++) {
-            if (rep_tag[j] == t) { pos = j; break; }
+      for (int k = 0; k < (int) miss_tag.size(); k++) {
+        const tagint t = miss_tag[k];
+        int pos = -1;
+        for (int j = 0; j < (int) rep_tag.size(); j++) {
+          if (rep_tag[j] == t) {
+            pos = j;
+            break;
           }
-          if (pos < 0) {
-            auto mesg = fmt::format("collect failed: tag {} not returned on world [{}] rank [{}]\n",
-                                    (int)t, universe->iworld, comm->me);
-            error->universe_one(FLERR, mesg);
-          }
-
-          const int i = miss_idx[k];
-          bufsend[3*i + 0] = rep_val[3*pos + 0];
-          bufsend[3*i + 1] = rep_val[3*pos + 1];
-          bufsend[3*i + 2] = rep_val[3*pos + 2];
         }
+        if (pos < 0) {
+          auto mesg = fmt::format("collect failed: tag {} not returned on world [{}] rank [{}]\n",
+                                  (int) t, universe->iworld, comm->me);
+          error->universe_one(FLERR, mesg);
+        }
+
+        const int i = miss_idx[k];
+        multirank_bufsend[3 * i + 0] = rep_val[3 * pos + 0];
+        multirank_bufsend[3 * i + 1] = rep_val[3 * pos + 1];
+        multirank_bufsend[3 * i + 2] = rep_val[3 * pos + 2];
       }
-
-      // 6) exchange packed x/f buffers:
-      //    - send bufsend (3*nsend) to planrecv[iplan]
-      //    - receive bufrecv (3*nlocal) from plansend[iplan]
-      //
-      // This mirrors your reference's direction choices.
-      MPI_Sendrecv((void*)bufsend, 3*nsend, MPI_DOUBLE,
-                  planrecv[iplan], TAG_INTER_REPLICA_VALS,
-                  (void*)bufrecv, 3*nlocal, MPI_DOUBLE,
-                  plansend[iplan], TAG_INTER_REPLICA_VALS,
-                  universe->uworld, MPI_STATUS_IGNORE);
-
-      // 6) store received x/f for this plan into bufbeads[modeindex[iplan]]
-      memcpy(bufbeads[modeindex[iplan]], bufrecv, sizeof(double) * 3 * nlocal);
     }
+
+    MPI_Sendrecv((void *) multirank_bufsend, 3 * nsend, MPI_DOUBLE, multirank_planrecv[iplan],
+                 TAG_INTER_REPLICA_VALS, (void *) multirank_bufrecv, 3 * nlocal, MPI_DOUBLE,
+                 multirank_plansend[iplan], TAG_INTER_REPLICA_VALS, universe->uworld,
+                 MPI_STATUS_IGNORE);
+
+    memcpy(multirank_bufbeads[multirank_modeindex[iplan]], multirank_bufrecv,
+           sizeof(double) * 3 * nlocal);
   }
 }
 
@@ -1610,15 +1369,8 @@ void FixPIMDLangevin::remove_com_motion()
 
 void FixPIMDLangevin::compute_xf_vir()
 {
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  double xf = 0.0;
   vir_ = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < 3; j++) { xf += x_unwrap[i][j] * atom->f[i][j]; }
-    }
-  }
+  double xf = local_xf_virial_sum(true);
   MPI_Allreduce(&xf, &vir_, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }
 
@@ -1626,15 +1378,10 @@ void FixPIMDLangevin::compute_xf_vir()
 
 void FixPIMDLangevin::compute_cvir()
 {
+  centroid_vir = 0.0;
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
-  double xcf = 0.0;
-  centroid_vir = 0.0;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < 3; j++) { xcf += (x_unwrap[i][j] - xc[i][j]) * atom->f[i][j]; }
-    }
-  }
+  double xcf = local_centroid_virial_sum(true);
   MPI_Allreduce(&xcf, &centroid_vir, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   if (pstyle == ANISO) {
     for (int i = 0; i < 6; i++) c_vir_tensor[i] = 0.0;
@@ -1703,20 +1450,9 @@ void FixPIMDLangevin::compute_stress_tensor()
 
 void FixPIMDLangevin::compute_totke()
 {
-  double kine = 0.0;
   totke = ke_bead = 0.0;
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  int *type = atom->type;
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      for (int j = 0; j < 3; j++) { kine += 0.5 * mass[type[i]] * atom->v[i][j] * atom->v[i][j]; }
-    }
-  }
-  kine *= force->mvv2e;
-  MPI_Allreduce(&kine, &ke_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-  MPI_Allreduce(&ke_bead, &totke, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-  totke /= universe->procs_per_world[universe->iworld];
+  double kine = local_kinetic_energy_sum(true);
+  reduce_bead_and_total(kine, ke_bead, totke);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1724,29 +1460,12 @@ void FixPIMDLangevin::compute_totke()
 void FixPIMDLangevin::compute_spring_energy()
 {
   if (method == NMPIMD) {
-    spring_energy = 0.0;
     total_spring_energy = se_bead = 0.0;
-
-    double **x = atom->x;
-    double *_mass = atom->mass;
-    int *type = atom->type;
-    int nlocal = atom->nlocal;
-    int *mask = atom->mask;
-
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        spring_energy += 0.5 * _mass[type[i]] * fbond * lam[universe->iworld] *
-            (x[i][0] * x[i][0] + x[i][1] * x[i][1] + x[i][2] * x[i][2]);
-      }
-    }
-    MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-    total_spring_energy /= universe->procs_per_world[universe->iworld];
+    spring_energy = local_normal_mode_spring_energy_sum(true);
+    reduce_bead_and_total(spring_energy, se_bead, total_spring_energy);
   } else if (method == PIMD) {
     total_spring_energy = se_bead = 0.0;
-    MPI_Allreduce(&spring_energy, &se_bead, 1, MPI_DOUBLE, MPI_SUM, world);
-    MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-    total_spring_energy /= universe->procs_per_world[universe->iworld];
+    reduce_bead_and_total(spring_energy, se_bead, total_spring_energy);
   } else {
     error->universe_all(
         FLERR,
@@ -1764,7 +1483,7 @@ void FixPIMDLangevin::compute_pote()
   c_pe->compute_scalar();
   pe_bead = c_pe->scalar;
   double pot_energy_partition = pe_bead / universe->procs_per_world[universe->iworld];
-  MPI_Allreduce(&pot_energy_partition, &pote, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  pote = reduce_partition_scalar(pot_energy_partition);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1778,7 +1497,8 @@ void FixPIMDLangevin::compute_tote()
 
 void FixPIMDLangevin::compute_t_prim()
 {
-  t_prim = 1.5 * group->count(igroup) * np * force->boltz * temp - total_spring_energy * inverse_np;
+  t_prim = 1.5 * estimator_atom_count(true) * np * force->boltz * temp -
+      total_spring_energy * inverse_np;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1786,7 +1506,7 @@ void FixPIMDLangevin::compute_t_prim()
 void FixPIMDLangevin::compute_t_vir()
 {
   t_vir = -0.5 * inverse_np * vir_;
-  t_cv = 1.5 * group->count(igroup) * force->boltz * temp - 0.5 * inverse_np * centroid_vir;
+  t_cv = 1.5 * estimator_atom_count(true) * force->boltz * temp - 0.5 * inverse_np * centroid_vir;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1794,7 +1514,7 @@ void FixPIMDLangevin::compute_t_vir()
 void FixPIMDLangevin::compute_p_prim()
 {
   double inv_volume = 1.0 / (domain->xprd * domain->yprd * domain->zprd);
-  p_prim = group->count(igroup) * np * force->boltz * temp * inv_volume -
+  p_prim = estimator_atom_count(true) * np * force->boltz * temp * inv_volume -
       1.0 / 1.5 * inv_volume * total_spring_energy;
   p_prim *= force->nktv2p;
 }
@@ -1838,39 +1558,69 @@ void FixPIMDLangevin::compute_totenthalpy()
     totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * (volume - vol0);
 }
 
-/* ----------------------------------------------------------------------
-   pack entire state of Fix into one write
-------------------------------------------------------------------------- */
-
-void FixPIMDLangevin::write_restart(FILE *fp)
+void FixPIMDLangevin::schedule_common_computes()
 {
-  int nsize = size_restart_global();
+  c_pe->addstep(update->ntimestep + 1);
+  c_press->addstep(update->ntimestep + 1);
+}
 
-  double *list;
-  memory->create(list, nsize, "FixPIMDLangevin:list");
+/* ---------------------------------------------------------------------- */
 
-  pack_restart_data(list);
+double FixPIMDLangevin::compute_vector(int n)
+{
+  return FixPIMDNVE::compute_vector(n);
+}
 
-  if (comm->me == 0) {
-    int size = nsize * sizeof(double);
-    fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), nsize, fp);
+/* ---------------------------------------------------------------------- */
+
+int FixPIMDLangevin::subclass_vector_size() const
+{
+  if (!pstat_flag) return 0;
+  if (pstyle == ISO) return 5;
+  if (pstyle == ANISO) return 7;
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixPIMDLangevin::compute_subclass_vector(int n) const
+{
+  if (!pstat_flag) return 0.0;
+
+  const double volume = domain->xprd * domain->yprd * domain->zprd;
+
+  if (pstyle == ISO) {
+    if (n == 0) return vw[0];
+    if (n == 1) {
+      if (barostat == BZP) return 0.5 * W * vw[0] * vw[0];
+      if (barostat == MTTK) return 1.5 * W * vw[0] * vw[0];
+      return 0.0;
+    }
+    if (n == 2) return np * Pext * volume / force->nktv2p;
+    if (n == 3) return -Vcoeff * np * kt * log(volume);
+    if (n == 4) return totenthalpy;
+  } else if (pstyle == ANISO) {
+    if (n == 0) return vw[0];
+    if (n == 1) return vw[1];
+    if (n == 2) return vw[2];
+    if (n == 3) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
+    if (n == 4) return np * Pext * volume / force->nktv2p;
+    if (n == 5) return -Vcoeff * np * kt * log(volume);
+    if (n == 6) return totenthalpy;
   }
-
-  memory->destroy(list);
+  return 0.0;
 }
+
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDLangevin::size_restart_global()
+int FixPIMDLangevin::base_restart_size() const
 {
-  int nsize = 6;
-
-  return nsize;
+  return 6;
 }
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDLangevin::pack_restart_data(double *list)
+int FixPIMDLangevin::pack_base_restart(double *list) const
 {
   int n = 0;
   for (int i = 0; i < 6; i++) list[n++] = vw[i];
@@ -1879,52 +1629,9 @@ int FixPIMDLangevin::pack_restart_data(double *list)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::restart(char *buf)
+int FixPIMDLangevin::unpack_base_restart(const double *list)
 {
   int n = 0;
-  auto *list = (double *) buf;
   for (int i = 0; i < 6; i++) vw[i] = list[n++];
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixPIMDLangevin::compute_vector(int n)
-{
-  if (n == 0) return ke_bead;
-  if (n == 1) return se_bead;
-  if (n == 2) return pe_bead;
-  if (n == 3) return tote;
-  if (n == 4) return t_prim;
-  if (n == 5) return t_vir;
-  if (n == 6) return t_cv;
-  if (n == 7) return p_prim;
-  if (n == 8) return p_md;
-  if (n == 9) return p_cv;
-
-  if (pstat_flag) {
-    double volume = domain->xprd * domain->yprd * domain->zprd;
-    if (pstyle == ISO) {
-      if (n == 10) return vw[0];
-      if (barostat == BZP) {
-        if (n == 11) return 0.5 * W * vw[0] * vw[0];
-      } else if (barostat == MTTK) {
-        if (n == 11) return 1.5 * W * vw[0] * vw[0];
-      }
-      if (n == 12) { return np * Pext * volume / force->nktv2p; }
-      if (n == 13) { return -Vcoeff * np * kt * log(volume); }
-      if (n == 14) return totenthalpy;
-    } else if (pstyle == ANISO) {
-      if (n == 10) return vw[0];
-      if (n == 11) return vw[1];
-      if (n == 12) return vw[2];
-      if (n == 13) return 0.5 * W * (vw[0] * vw[0] + vw[1] * vw[1] + vw[2] * vw[2]);
-      if (n == 14) { return np * Pext * volume / force->nktv2p; }
-      if (n == 15) {
-        double volume = domain->xprd * domain->yprd * domain->zprd;
-        return -Vcoeff * np * kt * log(volume);
-      }
-      if (n == 16) return totenthalpy;
-    }
-  }
-  return 0.0;
+  return n;
 }

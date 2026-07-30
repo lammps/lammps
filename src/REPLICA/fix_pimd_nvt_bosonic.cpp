@@ -11,92 +11,111 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Package      FixPIMDBNVT
-   Purpose      Path Integral Molecular Dynamics of Bosons with Nose-Hoover Thermostat
-   Copyright    Hirshberg lab @ Tel Aviv University
-   Authors      Ofir Blumer, Jacob Higer, Yotam Feldman (yotam.feldman at gmail.com), Barak Hirshberg (hirshb at tauex.tau.ac.il)
-
-   Updated      Jan-06-2025
-   Version      1.0
-------------------------------------------------------------------------- */
-
 #include "fix_pimd_nvt_bosonic.h"
 
 #include "bosonic_exchange.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "error.h"
+#include "memory.h"
 #include "universe.h"
+#include "utils.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
+namespace {
+enum { PHYSICAL, NORMAL };
+}
+
 /* ---------------------------------------------------------------------- */
 
-FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) : FixPIMDNVT(lmp, narg, arg)
-
+FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) :
+    FixPIMDNVT(lmp, narg, arg, true), bosonic_exchange(nullptr), f_tag_order(nullptr),
+    nbosons(atom->nlocal)
 {
-  bosonic_exchange = new BosonicExchange(lmp, atom->nlocal, np, universe->me, true, true);
-  virial = 0.0;
-  prim = 0.0;
-  spring_energy = 0.0;
-  size_vector = 4;
-  if (method != PIMD && method != NMPIMD) {
-    error->universe_all(FLERR,
-                        "Method not supported in fix pimdb/nvt; only methods PIMD and NMPIMD");
-  }
-  if (comm->nprocs != 1)
-    error->universe_all(FLERR,
-                        fmt::format("Fix {} only supports a single processor per bead", style));
+  method = PIMD;
+  mtchain = 2;
+  t_period = 100.0;
+
+  parse_nvt_arguments(narg, arg, [this](int parse_narg, char **parse_arg, int &i) {
+    return parse_bosonic_keyword(parse_narg, parse_arg, i);
+  });
+
+  if (method != PIMD)
+    error->all(FLERR, "Fix pimd/nvt/bosonic only supports method pimd");
+  if (fmmode != PHYSICAL)
+    error->all(FLERR, "Fix pimd/nvt/bosonic only supports fmmode physical");
+
+  finish_nuclear_constructor_setup();
+
+  bosonic_exchange = new BosonicExchange(lmp, nbosons, np, universe->me, true, false);
+  memory->create(f_tag_order, nbosons, 3, "FixPIMDBNVT:f_tag_order");
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixPIMDBNVT::~FixPIMDBNVT()
 {
+  memory->destroy(f_tag_order);
   delete bosonic_exchange;
 }
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDBNVT::pre_spring_force_estimators()
+bool FixPIMDBNVT::parse_bosonic_keyword(int narg, char **arg, int &i)
 {
-  FixPIMDNVT::pre_spring_force_estimators();
-  spring_energy = bosonic_exchange->get_bead_spring_energy();
-  prim = bosonic_exchange->prim_estimator();
+  if (strcmp(arg[i], "nhc") == 0) {
+    if (i + 2 > narg) utils::missing_cmd_args(FLERR, "fix pimd/nvt/bosonic nhc", error);
+    mtchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
+    if (mtchain < 1) error->all(FLERR, "Nose-Hoover chain length for fix {} must be >= 1", style);
+    i += 2;
+    return true;
+  }
+  return false;
 }
 
 /* ---------------------------------------------------------------------- */
-
-void FixPIMDBNVT::prepare_coordinates()
-{
-  comm_exec(atom->x);
-  double **x = atom->x;
-  double *xlast = buf_beads[x_last];
-  double *xnext = buf_beads[x_next];
-  double ff = fbond * atom->mass[atom->type[0]];
-  bosonic_exchange->prepare_with_coordinates(*x, xlast, xnext, beta, -ff);
-}
 
 void FixPIMDBNVT::spring_force()
 {
-  double **f = atom->f;
+  double *me_bead_positions = *(atom->x);
+  double *last_bead_positions = &bufsortedall[x_last * nbosons][0];
+  double *next_bead_positions = &bufsortedall[x_next * nbosons][0];
+  double ff = fbond * atom->mass[atom->type[0]];
 
-  bosonic_exchange->spring_force(f);
+  bosonic_exchange->prepare_with_coordinates(me_bead_positions, last_bead_positions,
+                                             next_bead_positions, beta_np, ff);
+
+  for (int i = 0; i < nbosons; i++) {
+    f_tag_order[i][0] = 0.0;
+    f_tag_order[i][1] = 0.0;
+    f_tag_order[i][2] = 0.0;
+  }
+  bosonic_exchange->spring_force(f_tag_order);
+
+  double **f = atom->f;
+  tagint *tag = atom->tag;
+  for (int i = 0; i < nbosons; i++) {
+    f[i][0] += f_tag_order[tag[i] - 1][0];
+    f[i][1] += f_tag_order[tag[i] - 1][1];
+    f[i][2] += f_tag_order[tag[i] - 1][2];
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixPIMDBNVT::compute_vector(int n)
+void FixPIMDBNVT::compute_spring_energy()
 {
-  if (0 <= n && n < 3) { return FixPIMDNVT::compute_vector(n); }
+  se_bead = bosonic_exchange->get_bead_spring_energy();
+  MPI_Allreduce(&se_bead, &total_spring_energy, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+}
 
-  if (n == 3) {
-    return prim;
-  } else {
-    error->universe_all(FLERR, "Fix only has 4 outputs!");
-  }
+/* ---------------------------------------------------------------------- */
 
-  return 0.0;
+void FixPIMDBNVT::compute_t_prim()
+{
+  double prim = bosonic_exchange->prim_estimator();
+  MPI_Allreduce(&prim, &t_prim, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
 }

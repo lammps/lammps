@@ -359,6 +359,7 @@ accelerated styles exist.
 * :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
 * :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
+* :doc:`pimd/nve <fix_pimd>` - Feynman path-integral molecular dynamics without thermostat
 * :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
 * :doc:`pimd/langevin/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics for with stochastic thermostat
 * :doc:`pimd/nvt/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics with Nose-Hoover thermostat

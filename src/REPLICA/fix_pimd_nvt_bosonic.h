@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------
+/* -*- c++ -*- ----------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -17,8 +17,8 @@ FixStyle(pimd/nvt/bosonic,FixPIMDBNVT);
 // clang-format on
 #else
 
-#ifndef FIX_PIMDB_NVT_H
-#define FIX_PIMDB_NVT_H
+#ifndef LMP_FIX_PIMD_NVT_BOSONIC_H
+#define LMP_FIX_PIMD_NVT_BOSONIC_H
 
 #include "fix_pimd_nvt.h"
 
@@ -28,16 +28,17 @@ class FixPIMDBNVT : public FixPIMDNVT {
  public:
   FixPIMDBNVT(class LAMMPS *, int, char **);
   ~FixPIMDBNVT() override;
-  double compute_vector(int) override;
 
  protected:
-  void prepare_coordinates() override;
+  bool parse_bosonic_keyword(int, char **, int &);
   void spring_force() override;
-  void pre_spring_force_estimators() override;
+  void compute_spring_energy() override;
+  void compute_t_prim() override;
 
  private:
   class BosonicExchange *bosonic_exchange;
-  double prim;
+  double **f_tag_order;
+  int nbosons;
 };
 
 }    // namespace LAMMPS_NS

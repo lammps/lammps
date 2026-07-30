@@ -1,0 +1,66 @@
+# Quadratic toy model regression for PIMD at constant potential.
+#
+# Launch this example with one partition per bead, e.g.
+#
+#   mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt
+#
+# The electronic generalized coordinate Ne is coupled to
+#
+#   dE/dN = k * (Ne - N0)
+#
+# so the analytic equilibrium is
+#
+#   Ne* = N0 + mu/k
+
+units           lj
+atom_style      atomic
+atom_modify     map yes
+boundary        p p p
+
+lattice         sc 0.7
+region          box block 0 2 0 2 0 2
+create_box      1 box
+create_atoms    1 box
+
+mass            1 1.0
+pair_style      zero 2.5
+pair_coeff      * *
+
+neighbor        0.3 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.002
+
+# Give each bead a small initial offset to exercise the inter-partition path.
+variable        beadshift universe 0.0 0.15
+displace_atoms  all move ${beadshift} 0.0 0.0 units box
+velocity        all create 0.8 97531 mom yes rot no dist gaussian
+
+variable        mu_target equal 1.5
+variable        k_quad    equal 3.0
+variable        N0_quad   equal 1.2
+variable        Ne_init   equal 1.8
+variable        Ne_target equal v_N0_quad + v_mu_target/v_k_quad
+print           "Quadratic toy model target Ne* = ${Ne_target}"
+
+# Per-partition world id for partition-specific restart filenames.
+# In a 2-bead PIMD run, partition 0 gets 0, partition 1 gets 1.
+variable        worldid   universe 0 1
+
+# For tchain 3, Ne, Ne_dot, dEdN, and mu are f_cp[23:26].
+# These electronic outputs are global values and are not normalized by natoms.
+variable        dEdN      equal v_k_quad*(f_cp[23]-v_N0_quad)
+
+fix             cp all pimd/uvt method nmpimd thermostat NHC &
+                integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1 &
+                mu ${mu_target} Udamp 0.2 ne ${Ne_init} &
+                ne_velocity 0.0 &
+                dedn v_dEdN
+
+thermo          50
+thermo_style    custom step temp etotal f_cp[23] f_cp[24] f_cp[25] f_cp[26]
+thermo_modify   flush yes
+
+run             1000
+
+write_restart   pimd_uvt.restart.${worldid}

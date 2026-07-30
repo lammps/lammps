@@ -1,0 +1,29 @@
+# Restart regression for the PIMD quadratic constant-potential toy model.
+#
+# Run with the same partition layout used for in.electron_pimd_uvt, e.g.
+#
+#   mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt_restart
+
+# Per-partition world id must match in.electron_pimd_uvt:
+# partition 0 reads pimd_uvt.restart.0, partition 1 reads pimd_uvt.restart.1
+variable        worldid   universe 0 1
+read_restart    pimd_uvt.restart.${worldid}
+
+variable        mu_target equal 1.5
+variable        k_quad    equal 3.0
+variable        N0_quad   equal 1.2
+variable        Ne_init   equal 1.8
+# The electronic outputs f_cp[23:26] are global values and are not normalized by natoms.
+variable        dEdN      equal v_k_quad*(f_cp[23]-v_N0_quad)
+
+fix             cp all pimd/uvt method nmpimd thermostat NHC &
+                integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1 &
+                mu ${mu_target} Udamp 0.2 ne ${Ne_init} &
+                ne_velocity 0.0 &
+                dedn v_dEdN
+
+thermo          50
+thermo_style    custom step temp etotal f_cp[23] f_cp[24] f_cp[25] f_cp[26]
+thermo_modify   flush yes
+
+run             100

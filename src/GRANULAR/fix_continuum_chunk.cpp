@@ -1108,31 +1108,48 @@ void FixContinuumChunk::end_of_step()
   }
 
   // gradients
-  int shift[3], mp, mm, chunk_axis;
+  int shift[3], mp, mm, ac;
   for (m = 0; m < nchunk; m++) {
     field_index = 0;
     for (auto &val : values) {
       style = val.first;
       component = val.second;
+
+      if (style != MGRAD && style != VGRAD) {
+        field_index++;
+        continue;
+      }
+
       a = component % 3;
       b = (component - a) / 3;
 
+      ac = -1;
+      for (int c = 0; c < ncoord; c++)
+        if (chunk_dim[c] == a)
+          ac = c;
+
+      if (ac == -1) {
+        values_sum[m][field_index] = 0.0;
+        field_index++;
+        continue;
+      }
+
       shift[0] = shift[1] = shift[2] = 0;
-      shift[a] = 1;
+      shift[ac] = 1;
       mp = shifted_bin(m, shift);
-      shift[a] = -1;
+      shift[ac] = -1;
       mm = shifted_bin(m, shift);
 
+      if (mp == -1 || mm == -1) {
+        values_sum[m][field_index] = 0.0;
+        field_index++;
+        continue;
+      }
+
       if (style == MGRAD) {
-        if (mp == -1 || mm == -1)
-          values_sum[m][field_index] = 0.0;
-        else
-          values_sum[m][field_index] = (values_sum[mp][index_momentum[b]] - values_sum[mm][index_momentum[b]]) / (2.0 * delta[a]);
+        values_sum[m][field_index] = (values_sum[mp][index_momentum[b]] - values_sum[mm][index_momentum[b]]) / (2.0 * delta[a]);
       } else if (style == VGRAD) {
-        if (mp == -1 || mm == -1)
-          values_sum[m][field_index] = 0.0;
-        else
-          values_sum[m][field_index] = (values_sum[mp][index_velocity[b]] - values_sum[mm][index_velocity[b]]) / (2.0 * delta[a]);
+        values_sum[m][field_index] = (values_sum[mp][index_velocity[b]] - values_sum[mm][index_velocity[b]]) / (2.0 * delta[a]);
       }
 
       field_index++;
@@ -1527,18 +1544,13 @@ void FixContinuumChunk::add_vector_component(char *option, int variable)
 }
 
 /* ----------------------------------------------------------------------
-   accepts origin bin and the x/y/z shifts in bins in the box coordinates
-     the x/y/z order of box coordinates are then remapped to the order
-     of chunk coordinates and used to find the chunk ID of the shifted bin
+   accepts origin bin and the shifts in bins in the order of chunk coordinates
+     note: the chunk's order of coordinates may note match xyz
 ------------------------------------------------------------------------- */
 
-int FixContinuumChunk::shifted_bin(int origin_bin, int *dn_box_axis) const
+int FixContinuumChunk::shifted_bin(int origin_bin, int *dn) const
 {
   int x[3] = {0, 0, 0};
-
-  int dn[3];
-  for (int a = 0; a < ncoord; a++)
-    dn[a] = dn_box_axis[chunk_dim[a]];
 
   x[0] = origin_bin % nlayers[0] + dn[0];
 

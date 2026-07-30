@@ -227,8 +227,11 @@ a nonperiodic boundary.
 
 The *velocity* field is calculated as the ratio of the *momentum* and *density*
 fields. The *velocity/grad* field is then calculated using a finite difference
-approximation between neighboring chunks. Gradient values are zero on bins that are
-adjacent to a nonperiodic boundary.
+approximation between neighboring chunks, such that the size of the chunk does
+matter. Gradient values are zero on bins that are adjacent to a nonperiodic
+boundary. Therefore, if a dimension of the box is spanned by a single chunk, then
+gradients will be zero along that dimension. For instance, if a 3D box is only
+chunked in the x and y dimensions, then the gradients along z will be zero.
 
 The *boundary/force* field is the interaction force density of boundaries as
 defined in :ref:`(Weinhart)`. It is calculated as

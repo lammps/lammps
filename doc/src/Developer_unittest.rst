@@ -1014,7 +1014,7 @@ time-resolved trajectories of small, analytically tractable granular
 systems.  These tests are only enabled if the :ref:`GRANULAR
 package<PKG-GRANULAR>` is enabled.
 
-There are 14 test programs, ``test_dem_01`` through ``test_dem_14``,
+There are 15 test programs, ``test_dem_01`` through ``test_dem_15``,
 covering particle-impact-level benchmarks: two-sphere and sphere-wall
 collisions, oblique and spinning-sphere impacts, rolling and slipping
 contact, cohesive pull-off, settling under fluid drag, exact ballistic
@@ -1075,6 +1075,9 @@ velocity under drag).  The test programs are:
    * - ``test_dem_14``
      - granular heat conduction in static contact
      - ``heat_equilibration``
+   * - ``test_dem_15``
+     - oblique impact of two spheres (gross sliding)
+     - ``oblique_impact_pair``
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the
@@ -1218,6 +1221,8 @@ currently implemented are:
      - Hertzian peak energy balance :math:`\tfrac{1}{2}\mu_{red} V_{rela}^2 = \tfrac{2}{5} P_{max}\alpha_{max}`
    * - oblique_impact
      - gross-sliding rebound :math:`v_x' = v_x - \mu(1+e)v_z`, :math:`\omega_y = \tfrac{5}{2}\mu(1+e)v_z/r`
+   * - oblique\_impact\_pair
+     - symmetric two-sphere gross-sliding impact: per sphere :math:`v_n' = -e v_n`, :math:`v_t' = v_t - \mu(1+e)v_n`, :math:`\omega' = -\tfrac{5}{2}\mu(1+e)v_n/r`
    * - slip_cessation
      - rolling-without-slipping limit :math:`u = 5 u_0/7`, :math:`\omega = u/r`
    * - spin\_impact

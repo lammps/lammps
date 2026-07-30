@@ -7,7 +7,7 @@ stored per-atom reference trajectory.
 
 ## Layout
 
-- `test_dem_01..14.cpp` — the fourteen test drivers. Each is a thin GoogleTest
+- `test_dem_01..15.cpp` — the fifteen test drivers. Each is a thin GoogleTest
   fixture (`newton_on` / `newton_off`) that hands off to the shared trajectory
   runner; all scenario-specific behavior lives in the YAML files.
 - `test_dem_common.{cpp,h}` — builds the system from a YAML config, runs it in
@@ -44,9 +44,12 @@ scenario across different contact models, dimensions, and parameters.
 | 12 | superellipsoid collision | `momentum_conservation` |
 | 13 | spinning sphere damped by twisting friction | `twist_decay`, `twist_decay_marshall` |
 | 14 | granular heat conduction in static contact | `heat_equilibration` |
+| 15 | two-sphere oblique impact (gross-sliding friction) | `oblique_impact_pair` |
 
 Variants exercise the `hooke`, `hooke/history`, `hertz`, `hertz/material`,
-`mindlin`, and `mindlin/rescale` models, a 2D/LJ-units case, and friction/angle
+`mindlin`, `mindlin/rescale`, and the `mindlin[_rescale]/force` models, the
+`velocity`, `mass_velocity`, and `tsuji` damping variants, a 2D/LJ-units case,
+and friction/angle
 sweeps.  Variants named `demNN-legacy-*` (YAML tag `legacy`, also a CTest
 label) exercise the classic `gran/hooke`, `gran/hooke/history`, and
 `gran/hertz/history` pair styles and the classic `fix wall/gran` models.
@@ -60,7 +63,7 @@ drivers:
     cmake --build . --target test_dem_01 test_dem_02 test_dem_03 test_dem_04 \
                             test_dem_05 test_dem_06 test_dem_07 test_dem_08 \
                             test_dem_09 test_dem_10 test_dem_11 test_dem_12 \
-                            test_dem_13 test_dem_14 -j
+                            test_dem_13 test_dem_14 test_dem_15 -j
 
 ## Running
 

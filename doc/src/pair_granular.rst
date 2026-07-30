@@ -397,18 +397,24 @@ compatible with cohesive normal models such as *JKR* or *DMT*. The parameter
 
 .. math::
 
-   \alpha = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
+   \alpha / \sqrt{2} = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
 
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but
 no error check is performed on this.
 
-The *coeff_restitution* model is useful when a specific normal coefficient of
-restitution :math:`e` is required. It operates much like the *Tsuji* model
-but, the normal coefficient of restitution :math:`e` is specified as an input
-in place of the usual :math:`\eta_{n0}` value in the normal model. Following
-the approach of :ref:`(Brilliantov et al) <Brill1996>`, when using the *hooke*
-normal model, *coeff_restitution* then calculates the damping coefficient as:
+This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
+where the factor of :math:`sqrt{2}` arises from a difference in convention
+from Tsuji when defining :math:`\alpha` using either the mass vs. effective
+mass. This factor was missing in earlier versions of LAMMPS.
+
+The *coeff_restitution* model is useful when a specific normal
+coefficient of restitution :math:`e` is required.  It operates much like
+the *Tsuji* model but, the normal coefficient of restitution :math:`e`
+is specified as an input in place of the usual :math:`\eta_{n0}` value
+in the normal model.  Following the approach of :ref:`(Brilliantov et al)
+<Brill1996_1>`, when using the *hooke* normal model, *coeff_restitution*
+then calculates the damping coefficient as:
 
 .. math::
 

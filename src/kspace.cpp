@@ -43,6 +43,7 @@ KSpace::KSpace(LAMMPS *lmp) :
 
   triclinic_support = 1;
   ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = rk_flag = 0;
+  xtbflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -148,18 +149,6 @@ KSpace::KSpace(LAMMPS *lmp) :
   dgcons[6][3] = 5005.0 / 128.0;
   dgcons[6][4] = -4095.0 / 256.0;
   dgcons[6][5] = 693.0 / 256.0;
-}
-
-/* ----------------------------------------------------------------------
-   map an atom-centered charge to its site and force recipients
-------------------------------------------------------------------------- */
-
-int KSpace::get_charge_site(int i, double *site, int *indices, double *weights)
-{
-  for (int dim = 0; dim < 3; ++dim) site[dim] = atom->x[i][dim];
-  indices[0] = i;
-  weights[0] = 1.0;
-  return 1;
 }
 
 /* ---------------------------------------------------------------------- */

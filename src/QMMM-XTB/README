@@ -14,7 +14,8 @@ Requirements
 * the libxtb Fortran `.mod` files, built with the same Fortran compiler as
   LAMMPS
 * mctc-lib and BLAS
-* a CMake LAMMPS build with the KSPACE package
+* a CMake LAMMPS build with the KSPACE package; simulations must select
+  `kspace_style pppm/xtb` or `pppm/tip4p/xtb`
 
 The adapter compiles against libxtb's internal SCC modules, whose source API
 is not covered by libxtb's public compatibility guarantee.  Compatible newer

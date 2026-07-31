@@ -30,6 +30,6 @@ Fx2     = -11.365132 kcal/mol/Angstrom
 ```
 
 The same values should be obtained with multiple MPI ranks.  Quantitative
-force finite differences should use a tighter PPPM accuracy such as 1.0e-7;
+force finite differences should use a tighter `pppm/xtb` accuracy such as 1.0e-7;
 the requested PPPM force accuracy also controls the mesh potential supplied
 to the SCC Hamiltonian.

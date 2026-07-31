@@ -30,7 +30,7 @@ group           qm id 1 2
 # real-space terms involving QM atoms without touching unrelated MM forces.
 pair_style      coul/long 8.0
 pair_coeff      * *
-kspace_style    pppm 1.0e-5
+kspace_style    pppm/xtb 1.0e-5
 
 fix             qmmm qm qmmm/xtb elements H Na Cl cutoff 8.0 method gfn2 charge 0 uhf 0
 

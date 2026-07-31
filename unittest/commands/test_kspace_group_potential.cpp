@@ -20,6 +20,8 @@
 #include "group.h"
 #include "kspace.h"
 #include "math_const.h"
+#include "pppm_tip4p_xtb.h"
+#include "pppm_xtb.h"
 #include "gtest/gtest.h"
 
 #include <cmath>
@@ -48,9 +50,9 @@ constexpr double charge_epsilon      = 1.0e-5;
 constexpr double potential_tolerance = 2.0e-7;
 #endif
 
-TEST_F(KSpaceGroupPotentialTest, PPPMZeroChargeSensorMatchesEnergyDerivative)
+TEST_F(KSpaceGroupPotentialTest, PPPMXTBZeroChargeSensorMatchesEnergyDerivative)
 {
-    if (!info->has_style("kspace", "pppm")) GTEST_SKIP();
+    if (!info->has_style("kspace", "pppm/xtb")) GTEST_SKIP();
     if (!info->has_style("pair", "coul/long")) GTEST_SKIP();
 
     HIDE_OUTPUT([&] {
@@ -71,7 +73,7 @@ TEST_F(KSpaceGroupPotentialTest, PPPMZeroChargeSensorMatchesEnergyDerivative)
         command("group sensor id 3");
         command("pair_style coul/long 4.5");
         command("pair_coeff * *");
-        command("kspace_style pppm 1.0e-9");
+        command("kspace_style pppm/xtb 1.0e-9");
         command("run 0 post no");
     });
 
@@ -85,10 +87,10 @@ TEST_F(KSpaceGroupPotentialTest, PPPMZeroChargeSensorMatchesEnergyDerivative)
     ASSERT_LT(sensor, lmp->atom->nlocal);
 
     std::vector<double> potential(lmp->atom->nmax, 0.0);
-    ASSERT_EQ(lmp->force->kspace->compute_group_potential(potential.data(),
-                                                          lmp->group->bitmask[sensor_group],
-                                                          lmp->group->bitmask[source_group], false),
-              1);
+    auto *xtb_kspace = dynamic_cast<PPPMXTB *>(lmp->force->kspace);
+    ASSERT_NE(xtb_kspace, nullptr);
+    xtb_kspace->compute_group_potential(potential.data(), lmp->group->bitmask[sensor_group],
+                                        lmp->group->bitmask[source_group], false);
     EXPECT_NE(potential[sensor], 0.0);
 
     auto reciprocal_energy = [&](double sensor_charge) {
@@ -113,9 +115,9 @@ TEST_F(KSpaceGroupPotentialTest, PPPMZeroChargeSensorMatchesEnergyDerivative)
     EXPECT_NEAR(projected, derivative, potential_tolerance);
 }
 
-TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PUsesVirtualMChargeSite)
+TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PXTBUsesVirtualMChargeSite)
 {
-    if (!info->has_style("kspace", "pppm/tip4p")) GTEST_SKIP();
+    if (!info->has_style("kspace", "pppm/tip4p/xtb")) GTEST_SKIP();
     if (!info->has_style("pair", "lj/cut/tip4p/long")) GTEST_SKIP();
     if (!info->has_style("bond", "harmonic")) GTEST_SKIP();
     if (!info->has_style("angle", "harmonic")) GTEST_SKIP();
@@ -147,7 +149,7 @@ TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PUsesVirtualMChargeSite)
         command("group sensor id 4");
         command("pair_style lj/cut/tip4p/long 1 2 1 1 0.1546 4.5");
         command("pair_coeff * * 0.0 1.0");
-        command("kspace_style pppm/tip4p 1.0e-9");
+        command("kspace_style pppm/tip4p/xtb 1.0e-9");
         command("run 0 post no");
     });
 
@@ -160,10 +162,10 @@ TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PUsesVirtualMChargeSite)
     ASSERT_LT(sensor, lmp->atom->nlocal);
 
     std::vector<double> potential(lmp->atom->nmax, 0.0);
-    ASSERT_EQ(lmp->force->kspace->compute_group_potential(potential.data(),
-                                                          lmp->group->bitmask[sensor_group],
-                                                          lmp->group->bitmask[source_group], false),
-              1);
+    auto *xtb_kspace = dynamic_cast<PPPMTIP4PXTB *>(lmp->force->kspace);
+    ASSERT_NE(xtb_kspace, nullptr);
+    xtb_kspace->compute_group_potential(potential.data(), lmp->group->bitmask[sensor_group],
+                                        lmp->group->bitmask[source_group], false);
 
     auto reciprocal_energy = [&](double sensor_charge) {
         lmp->atom->q[sensor] = sensor_charge;

@@ -3,6 +3,10 @@
 # as LAMMPS, because the public C API cannot inject an atom-dependent shift at
 # every SCC iteration.
 
+if(NOT PKG_KSPACE)
+  message(FATAL_ERROR "The QMMM-XTB package requires the KSPACE package")
+endif()
+
 enable_language(Fortran)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(XTB REQUIRED IMPORTED_TARGET "xtb>=6.7")

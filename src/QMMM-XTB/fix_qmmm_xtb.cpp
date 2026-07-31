@@ -23,13 +23,18 @@
 #include "memory.h"
 #include "modify.h"
 #include "pair.h"
+#include "pppm_tip4p_xtb.h"
+#include "pppm_xtb.h"
 #include "qmmm_xtb_adapter.h"
+#include "qmmm_xtb_ewald.h"
 #include "update.h"
 #include "utils.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#include <exception>
+#include <memory>
 #include <numeric>
 #include <string>
 
@@ -68,7 +73,7 @@ FixQMMMXTB::FixQMMMXTB(LAMMPS *lmp, int narg, char **arg) :
     cutoff(-1.0), accuracy(1.0e-3), electronic_temperature(300.0), mm_hardness(0.0),
     image_alpha(-1.0), image_kmax({8, 8, 8}), image_ksqmax(64), nqm(0), pair_mm_energy(0.0),
     pair_full_energy(0.0), mm_kspace_energy(0.0), qm_energy(0.0), energy_correction(0.0),
-    adapter_active(false)
+    pppm_xtb(nullptr), pppm_tip4p_xtb(nullptr), image_ewald(new QMMMXTBEwald), adapter_active(false)
 {
   if (!atom->tag_enable) error->all(FLERR, "Fix qmmm/xtb requires atom IDs");
   if (atom->map_style == Atom::MAP_NONE) error->all(FLERR, "Fix qmmm/xtb requires an atom map");
@@ -99,8 +104,7 @@ FixQMMMXTB::FixQMMMXTB(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (std::strcmp(arg[iarg], "method") == 0) {
       if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "fix qmmm/xtb method", error);
-      if (std::strcmp(arg[iarg + 1], "gfn1") == 0 ||
-          std::strcmp(arg[iarg + 1], "gfn1-xtb") == 0)
+      if (std::strcmp(arg[iarg + 1], "gfn1") == 0 || std::strcmp(arg[iarg + 1], "gfn1-xtb") == 0)
         xtb_method = 1;
       else if (std::strcmp(arg[iarg + 1], "gfn2") == 0 ||
                std::strcmp(arg[iarg + 1], "gfn2-xtb") == 0)
@@ -208,15 +212,28 @@ void FixQMMMXTB::init()
     error->all(FLERR, "Fix qmmm/xtb currently supports real and metal units");
   if (std::fabs(force->dielectric - 1.0) > 1.0e-12)
     error->all(FLERR, "Fix qmmm/xtb requires dielectric 1.0");
-  if (!force->kspace || !force->kspace->pppmflag)
-    error->all(FLERR, "Fix qmmm/xtb requires a PPPM KSpace style");
+  if (!force->kspace || !force->kspace->pppmflag || !force->kspace->xtbflag ||
+      force->kspace->dispersionflag)
+    error->all(FLERR, "Fix qmmm/xtb requires kspace style pppm/xtb or pppm/tip4p/xtb");
+  if (force->kspace->tip4pflag) {
+    pppm_tip4p_xtb = dynamic_cast<PPPMTIP4PXTB *>(force->kspace);
+    if (!pppm_tip4p_xtb)
+      error->all(FLERR, "Fix qmmm/xtb found an incompatible TIP4P xTB KSpace implementation");
+  } else {
+    pppm_xtb = dynamic_cast<PPPMXTB *>(force->kspace);
+    if (!pppm_xtb)
+      error->all(FLERR, "Fix qmmm/xtb found an incompatible xTB KSpace implementation");
+  }
 
   if (force->kspace->tip4pflag) {
     // Accept the standard combined TIP4P/LJ styles as well as the Coulomb-only
     // style.  Non-Coulomb terms are identical in the two reference captures
     // and cancel from the QM/MM correction.
-    const char *tip4p_styles[] = {"tip4p/long", "tip4p/long/omp", "lj/cut/tip4p/long",
-                                  "lj/cut/tip4p/long/omp", "lj/cut/tip4p/long/opt",
+    const char *tip4p_styles[] = {"tip4p/long",
+                                  "tip4p/long/omp",
+                                  "lj/cut/tip4p/long",
+                                  "lj/cut/tip4p/long/omp",
+                                  "lj/cut/tip4p/long/opt",
                                   "lj/cut/tip4p/long/gpu"};
     for (const char *style : tip4p_styles) {
       pair_long = force->pair_match(style, 1, 0);
@@ -229,8 +246,7 @@ void FixQMMMXTB::init()
     error->all(FLERR, "Fix qmmm/xtb requires a compatible long-range Coulomb pair style");
   int cut_dim = 0;
   auto *coulomb_cutoff = static_cast<double *>(pair_long->extract("cut_coul", cut_dim));
-  if (!coulomb_cutoff ||
-      std::fabs(*coulomb_cutoff - cutoff) > 1.0e-8 * std::max(1.0, cutoff))
+  if (!coulomb_cutoff || std::fabs(*coulomb_cutoff - cutoff) > 1.0e-8 * std::max(1.0, cutoff))
     error->all(FLERR, "Fix qmmm/xtb cutoff must equal the Coulomb pair-style cutoff");
 
   gather_qm_atoms(true);
@@ -316,6 +332,23 @@ int FixQMMMXTB::pack_forward_comm(int n, int *list, double *buffer, int, int *)
 void FixQMMMXTB::unpack_forward_comm(int n, int first, double *buffer)
 {
   for (int i = 0; i < n; ++i) atom->q[first + i] = buffer[i];
+}
+
+int FixQMMMXTB::get_charge_site(int i, double *site, int *indices, double *weights)
+{
+  if (pppm_tip4p_xtb) return pppm_tip4p_xtb->get_charge_site(i, site, indices, weights);
+  return pppm_xtb->get_charge_site(i, site, indices, weights);
+}
+
+void FixQMMMXTB::compute_group_potential(double *potential, int sensor_groupbit,
+                                         int source_groupbit, bool invert_source)
+{
+  if (pppm_tip4p_xtb) {
+    pppm_tip4p_xtb->compute_group_potential(potential, sensor_groupbit, source_groupbit,
+                                            invert_source);
+  } else {
+    pppm_xtb->compute_group_potential(potential, sensor_groupbit, source_groupbit, invert_source);
+  }
 }
 
 void FixQMMMXTB::gather_qm_atoms(bool initialize)
@@ -421,7 +454,7 @@ void FixQMMMXTB::gather_mm_points()
 
     double site[3], force_weights[3];
     int force_indices[3];
-    const int nforce = force->kspace->get_charge_site(i, site, force_indices, force_weights);
+    const int nforce = get_charge_site(i, site, force_indices, force_weights);
     if (nforce < 1 || nforce > 3)
       error->one(FLERR, "Invalid charge-site force mapping for fix qmmm/xtb");
 
@@ -460,7 +493,7 @@ void FixQMMMXTB::gather_mm_points()
     local.push_back(point);
   }
 
-  const int nlocal_mm = local.size();
+  int nlocal_mm = local.size();
   std::vector<int> counts(comm->nprocs), displs(comm->nprocs, 0);
   MPI_Allgather(&nlocal_mm, 1, MPI_INT, counts.data(), 1, MPI_INT, world);
   for (int iproc = 1; iproc < comm->nprocs; ++iproc)
@@ -535,7 +568,7 @@ void FixQMMMXTB::validate_tip4p_qm_group()
   for (int i = 0; i < atom->nlocal && !local_invalid; ++i) {
     double site[3], weights[3];
     int indices[3];
-    const int nforce = force->kspace->get_charge_site(i, site, indices, weights);
+    const int nforce = get_charge_site(i, site, indices, weights);
     if (nforce == 1) continue;
     for (int iparent = 0; iparent < nforce; ++iparent)
       if (atom->mask[indices[iparent]] & groupbit) local_invalid = 1;
@@ -557,7 +590,7 @@ void FixQMMMXTB::capture_pair(std::vector<double> &captured_force, double &captu
   for (int i = 0; i < atom->nlocal; ++i)
     for (int dim = 0; dim < 3; ++dim) captured_force[3 * i + dim] = atom->f[i][dim];
 
-  const double local_energy = pair_long->eng_coul + pair_long->eng_vdwl;
+  double local_energy = pair_long->eng_coul + pair_long->eng_vdwl;
   MPI_Allreduce(&local_energy, &captured_energy, 1, MPI_DOUBLE, MPI_SUM, world);
   for (int i = 0; i < 6; ++i) captured_virial[i] = pair_long->virial[i];
 }
@@ -578,8 +611,7 @@ void FixQMMMXTB::capture_kspace(std::vector<double> &captured_force, double &cap
 void FixQMMMXTB::compute_mm_shift(std::vector<double> &shift)
 {
   std::vector<double> potential(atom->nmax, 0.0);
-  if (!force->kspace->compute_group_potential(potential.data(), groupbit, groupbit, true))
-    error->all(FLERR, "Selected PPPM style does not support source/sensor potentials");
+  compute_group_potential(potential.data(), groupbit, groupbit, true);
 
   shift.assign(nqm, 0.0);
   for (int i = 0; i < atom->nlocal; ++i) {
@@ -661,21 +693,29 @@ void FixQMMMXTB::build_periodic_forces()
     mm_force_correction[i] = -mm_gradient[i] * xtb_force_to_lmp;
 
   std::vector<double> image_force(3 * nqm, 0.0);
-  image_ewald.add_force(qm_x, qm_charge_scf, image_force);
+  try {
+    image_ewald->add_force(qm_x, qm_charge_scf, image_force);
+  } catch (const std::exception &exception) {
+    error->all(FLERR, "Fix qmmm/xtb direct-Ewald force failed: {}", exception.what());
+  }
   for (int i = 0; i < 3 * nqm; ++i) qm_force_correction[i] += force->qqrd2e * image_force[i];
 
   const double alpha = force->kspace->g_ewald;
-  for (int iqm = 0; iqm < nqm; ++iqm) {
-    for (int imm = 0; imm < static_cast<int>(mm_points.size()); ++imm) {
-      double fqm[3] = {0.0, 0.0, 0.0};
-      double fmm[3] = {0.0, 0.0, 0.0};
-      QMMMXTBEwald::add_erf_pair_force(&qm_x[3 * iqm], mm_points[imm].x, qm_charge_scf[iqm],
-                                       mm_points[imm].charge, alpha, fqm, fmm);
-      for (int dim = 0; dim < 3; ++dim) {
-        qm_force_correction[3 * iqm + dim] += force->qqrd2e * fqm[dim];
-        mm_force_correction[3 * imm + dim] += force->qqrd2e * fmm[dim];
+  try {
+    for (int iqm = 0; iqm < nqm; ++iqm) {
+      for (int imm = 0; imm < static_cast<int>(mm_points.size()); ++imm) {
+        double fqm[3] = {0.0, 0.0, 0.0};
+        double fmm[3] = {0.0, 0.0, 0.0};
+        QMMMXTBEwald::add_erf_pair_force(&qm_x[3 * iqm], mm_points[imm].x, qm_charge_scf[iqm],
+                                         mm_points[imm].charge, alpha, fqm, fmm);
+        for (int dim = 0; dim < 3; ++dim) {
+          qm_force_correction[3 * iqm + dim] += force->qqrd2e * fqm[dim];
+          mm_force_correction[3 * imm + dim] += force->qqrd2e * fmm[dim];
+        }
       }
     }
+  } catch (const std::exception &exception) {
+    error->all(FLERR, "Fix qmmm/xtb QM/MM Ewald force failed: {}", exception.what());
   }
 }
 
@@ -701,9 +741,13 @@ void FixQMMMXTB::pre_force(int vflag)
   const double alpha = image_alpha > 0.0
       ? image_alpha
       : 10.0 / std::cbrt(domain->xprd * domain->yprd * domain->zprd);
-  image_ewald.setup({domain->xprd, domain->yprd, domain->zprd}, alpha, image_kmax, image_ksqmax);
   std::vector<double> image_response;
-  image_ewald.response(qm_x, image_response);
+  try {
+    image_ewald->setup({domain->xprd, domain->yprd, domain->zprd}, alpha, image_kmax, image_ksqmax);
+    image_ewald->response(qm_x, image_response);
+  } catch (const std::exception &exception) {
+    error->all(FLERR, "Fix qmmm/xtb direct-Ewald response failed: {}", exception.what());
+  }
   for (double &value : image_response) value *= BOHR_TO_ANGSTROM;
 
   run_xtb(mm_shift, image_response);

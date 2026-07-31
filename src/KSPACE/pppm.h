@@ -39,7 +39,6 @@ class PPPM : public KSpace {
   double memory_usage() override;
 
   void compute_group_group(int, int, int) override;
-  int compute_group_potential(double *, int, int, bool) override;
 
  protected:
   int me, nprocs;
@@ -124,7 +123,6 @@ class PPPM : public KSpace {
 
   virtual void particle_map();
   virtual void make_rho();
-  void make_rho_group(int, bool);
   virtual void brick2fft();
 
   virtual void poisson();
@@ -141,7 +139,6 @@ class PPPM : public KSpace {
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_rho_coeff();
-  void project_group_potential(double *, int);
   virtual void slabcorr();
 
  public:

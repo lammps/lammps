@@ -16,13 +16,17 @@ FixStyle(qmmm/xtb,FixQMMMXTB);
 #define LMP_FIX_QMMM_XTB_H
 
 #include "fix.h"
-#include "qmmm_xtb_ewald.h"
 
 #include <array>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
 namespace LAMMPS_NS {
+
+class PPPMTIP4PXTB;
+class PPPMXTB;
+class QMMMXTBEwald;
 
 class FixQMMMXTB : public Fix {
  public:
@@ -77,11 +81,15 @@ class FixQMMMXTB : public Fix {
   double pair_mm_energy, pair_full_energy, mm_kspace_energy;
   double qm_energy, energy_correction;
 
-  QMMMXTBEwald image_ewald;
+  PPPMXTB *pppm_xtb;
+  PPPMTIP4PXTB *pppm_tip4p_xtb;
+  std::unique_ptr<QMMMXTBEwald> image_ewald;
   bool adapter_active;
 
   void gather_qm_atoms(bool);
   void gather_mm_points();
+  int get_charge_site(int, double *, int *, double *);
+  void compute_group_potential(double *, int, int, bool);
   void validate_tip4p_qm_group();
   void set_qm_charges(double);
   void restore_qm_charges();

@@ -39,11 +39,13 @@ Examples
    pair_style hybrid/overlay lj/cut 10.0 coul/long 8.0
    pair_coeff * * lj/cut 0.10 3.0
    pair_coeff * * coul/long
-   kspace_style pppm 1.0e-7
+   kspace_style pppm/xtb 1.0e-7
    fix qmmm qm qmmm/xtb elements H O Na Cl cutoff 8.0 charge 0 uhf 0
 
 Description
 """""""""""
+
+.. versionadded:: TBD
 
 This fix performs a non-covalent, electrostatically embedded GFN1-xTB or
 GFN2-xTB QM/MM calculation in a three-dimensional periodic cell.  The
@@ -106,9 +108,9 @@ region independently of the PPPM accuracy.
 Classical force-field setup
 """""""""""""""""""""""""""
 
-With ordinary PPPM, the fix requires a distinct Coulomb-only
+With ``kspace_style pppm/xtb``, the fix requires a distinct Coulomb-only
 :doc:`pair_style coul/long <pair_coul>` sub-style whose cutoff equals
-*cutoff*.  With ``kspace_style pppm/tip4p``, either the Coulomb-only
+*cutoff*.  With ``kspace_style pppm/tip4p/xtb``, either the Coulomb-only
 ``pair_style tip4p/long`` or the standard combined
 :doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>` may be used.  In the
 combined style, the two reference evaluations have identical Lennard-Jones
@@ -159,8 +161,9 @@ The initial implementation has these restrictions:
 * the global :doc:`dielectric <dielectric>` setting must remain 1.0;
 * the box must be orthorhombic, periodic in all three dimensions, and
   remain fixed;
-* ordinary :doc:`kspace_style pppm <kspace_style>` and ``pppm/tip4p`` are
-  supported; dispersion PPPM, slab, and wire variants are not supported;
+* :doc:`kspace_style pppm/xtb <kspace_style>` and ``pppm/tip4p/xtb`` are
+  supported; other PPPM variants, including dispersion, slab, and wire
+  styles, are not supported;
 * the QM group and its atom IDs must remain fixed and the QM region must
   be compact relative to the periodic cell;
 * covalent QM/MM boundaries and link atoms are not supported;
@@ -172,8 +175,8 @@ Related commands
 
 :doc:`fix qmmm <fix_qmmm>`, :doc:`fix mdi/qmmm <fix_mdi_qmmm>`,
 :doc:`pair_style coul/long <pair_coul>`, ``pair_style tip4p/long``,
-:doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`, :doc:`kspace_style pppm
-<kspace_style>`
+:doc:`pair_style lj/cut/tip4p/long <pair_lj_cut_tip4p>`,
+:doc:`kspace_style pppm/xtb <kspace_style>`, ``kspace_style pppm/tip4p/xtb``
 
 Default
 """""""

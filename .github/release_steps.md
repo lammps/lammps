@@ -187,23 +187,8 @@ attached to the GitHub release page.
 
 #### LAMMPS Online Manual
 
-Creating the online docs requires setting some environment variables to have
-the extra box at the bottom of the navigation bar included that allows to
-switch between release, stable, and develop branch versions of the manual.
-Also the search box should use Google search instead of the javascript search.
-
-``` sh
-cd lammps-release
-make -C doc clean
-make -C doc upgrade
-env LAMMPS_WEBSITE_BUILD=1 LAMMPS_WEBSITE_BUILD_VERSION=release LAMMPS_WEBSITE_BASEURL="https://docs.lammps.org/" \
-    make -C doc html WEB_SEARCH=YES
-make -C doc pdf
-mv doc/Manual.pdf doc/html
-rsync -arpv doc/html/ www.lammps.org:/var/www/lammps/docs/release-new
-
-Then log into www.lammps.org and move the current folder away and
-the new folder in its place and update permissions.
+The online manual pages are now automatically updated by the scripts in
+the [lammps-docs](https://github.com/lammps/lammps-docs/) repository.
 
 #### Clean up:
 

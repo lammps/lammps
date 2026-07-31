@@ -1,4 +1,4 @@
-LAMMPS (11 Feb 2026 - Development - patch_11Feb2026-274-gb4dcbc8748)
+LAMMPS (4 Jul 2026 - Development - c1d745b79e)
   using 1 OpenMP thread(s) per MPI task
 # Depositing TIP3P water into MOF with QeQ charges obtained with Ongari scheme
 
@@ -42,7 +42,7 @@ Finding 1-2 1-3 1-4 neighbors ...
     25 = max # of 1-4 neighbors
     24 = max # of special neighbors
   special bonds CPU = 0.001 seconds
-  read_data CPU = 0.081 seconds
+  read_data CPU = 0.091 seconds
 
 group           mof type 1 2 3 4 5 6 7 8 9 10 11
 888 atoms in group mof
@@ -299,7 +299,7 @@ Your simulation uses code contributions which should be cited:
  pages = {054802},
  year = {2023},
  doi = {10.1063/5.0156036},
- version = {1.3.12}
+ version = {1.4.0}
 }
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
@@ -334,7 +334,7 @@ Neighbor list info ...
       bin: none
 WARNING: Inconsistent image flags
 For more information see https://docs.lammps.org/err0027 (src/domain.cpp:1052)
-Per MPI rank memory allocation (min/avg/max) = 21.26 | 21.26 | 21.26 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 22.57 | 22.57 | 22.57 Mbytes
    Step          Time           Temp          E_vdwl         E_coul         E_pair         E_bond        E_angle        E_dihed        E_impro         E_mol          E_long         E_tail        v_e1bpip       v_e2bpip       v_e3bpip       v_e4bpip       v_edisp        v_ebuck         v_eele         v_etot         PotEng         TotEng    
          0   0              298.15        -8176.5335      11692.335      3515.8017      333.85691      4108.0644      1369.7935      5.4245589      5817.1394      0             -23.891377      0.45689944     0              0              0             -2.3771962e-06  0             -7923.955      -1.1954777      9332.9411      10123.909    
          1   0.2            298.02821     -8176.4176      11692.427      3516.0089      333.6563       4108.171       1369.9997      5.4284001      5817.2554      0             -23.891377      0.47083048     0              0              0             -2.3321913e-06  0             -7923.993      -1.1939972      9333.2643      10123.91     
@@ -437,21 +437,21 @@ Per MPI rank memory allocation (min/avg/max) = 21.26 | 21.26 | 21.26 Mbytes
         98   19.6           421.74162     -8167.4074      11699.395      3531.9875      492.04515      3449.5823      1355.5035      49.729018      5346.86        0             -23.891377      0.39659715     0              0              0             -3.227711e-06   0             -7902.8475     -0.53532385     8878.8475      9997.6947    
         99   19.8           415.57236     -8166.5618      11699.438      3532.8765      503.65243      3452.4595      1353.7593      50.195047      5360.0662      0             -23.891377      0.43664364     0              0              0             -3.1607943e-06  0             -7901.8367     -0.53029933     8892.9427      9995.4233    
        100   20             410.14444     -8165.7119      11699.51       3533.7979      513.26482      3455.2638      1352.1124      50.678742      5371.3198      0             -23.891377      0.48982774     0              0              0             -3.0911163e-06  0             -7900.8651     -0.52529645     8905.1177      9993.1984    
-Loop time of 32.7372 on 1 procs for 100 steps with 891 atoms
+Loop time of 18.0736 on 1 procs for 100 steps with 891 atoms
 
-Performance: 0.053 ns/day, 454.683 hours/ns, 3.055 timesteps/s, 2.722 katom-step/s
-98.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.096 ns/day, 251.022 hours/ns, 5.533 timesteps/s, 4.930 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 32.64      | 32.64      | 32.64      |   0.0 | 99.70
-Bond    | 0.036319   | 0.036319   | 0.036319   |   0.0 |  0.11
+Pair    | 18.002     | 18.002     | 18.002     |   0.0 | 99.60
+Bond    | 0.031661   | 0.031661   | 0.031661   |   0.0 |  0.18
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0023362  | 0.0023362  | 0.0023362  |   0.0 |  0.01
-Output  | 0.0076394  | 0.0076394  | 0.0076394  |   0.0 |  0.02
-Modify  | 0.050201   | 0.050201   | 0.050201   |   0.0 |  0.15
-Other   |            | 0.001155   |            |       |  0.00
+Comm    | 0.0021185  | 0.0021185  | 0.0021185  |   0.0 |  0.01
+Output  | 0.00712    | 0.00712    | 0.00712    |   0.0 |  0.04
+Modify  | 0.030078   | 0.030078   | 0.030078   |   0.0 |  0.17
+Other   |            | 0.0007133  |            |       |  0.00
 
 Nlocal:            891 ave         891 max         891 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -468,4 +468,4 @@ Dangerous builds = 0
 
 # write_data      final.data nocoeff
 # write_restart   restart.inter
-Total wall time: 0:00:33
+Total wall time: 0:00:18

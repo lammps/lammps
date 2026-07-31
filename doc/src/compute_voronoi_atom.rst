@@ -190,7 +190,7 @@ Voro++ software in the src/VORONOI/README file.
 Output info
 """""""""""
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
    The *peratom* keyword was removed as it is no longer required.
 

@@ -313,7 +313,7 @@ defined as :math:`\kappa_e = D_e \cdot rho_e \cdot C_e`, where
 
 Electronic pressure effects are included in the TTM model to account for
 the blast force acting on ions because of electronic pressure gradient
-(see :ref:`(Chen) <Chen>`, :ref:`(Norman) <Norman>`).  The total force
+(see :ref:`(Chen2) <Chen>`, :ref:`(Norman) <Norman>`).  The total force
 acting on an ion is:
 
 .. math::
@@ -543,7 +543,7 @@ Condens. Matter, 19, 496201-496210 (2007).
 
 .. _Chen:
 
-**(Chen)** J Chen, D Tzou and J Beraun, Int. J. Heat
+**(Chen2)** J Chen, D Tzou and J Beraun, Int. J. Heat
 Mass Transfer, 49, 307-316 (2006).
 
 .. _Norman:

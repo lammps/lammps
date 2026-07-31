@@ -216,5 +216,5 @@ none
 
 .. _FumiTosi:
 
-Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
+**(FumiTosi)** Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
 Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).

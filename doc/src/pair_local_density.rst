@@ -247,9 +247,9 @@ none
 
 .. _Sanyal1:
 
-.. _Sanyal2:
-
 **(Sanyal1)** Sanyal and Shell, Journal of Chemical Physics, 2016, 145 (3), 034109.
+
+.. _Sanyal2:
 
 **(Sanyal2)** Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 

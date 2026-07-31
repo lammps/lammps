@@ -1,4 +1,4 @@
-LAMMPS (11 Feb 2026 - Development - patch_11Feb2026-274-gb4dcbc8748)
+LAMMPS (4 Jul 2026 - Development - c1d745b79e)
   using 1 OpenMP thread(s) per MPI task
 processors      * * * map xyz
 
@@ -32,7 +32,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_data CPU = 0.057 seconds
+  read_data CPU = 0.063 seconds
 
 pair_style      mbx 9.0
 
@@ -96,7 +96,7 @@ Your simulation uses code contributions which should be cited:
  pages = {054802},
  year = {2023},
  doi = {10.1063/5.0156036},
- version = {1.3.12}
+ version = {1.4.0}
 }
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
@@ -114,7 +114,7 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 8.784 | 8.784 | 8.784 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 10.1 | 10.1 | 10.1 Mbytes
    Step          Time           Temp          TotEng         KinEng         PotEng        Enthalpy       Density           Lx             Ly             Lz           Volume          Pxx            Pyy            Pzz           Press     
          0   0              298           -3243.6847      1361.7354     -4605.4201     -3659.9061      0.38301942     20             20             100            40000         -636.37649     -547.97788     -956.11844     -713.49094    
          1   0.5            295.83833     -3243.6773      1351.8575     -4595.5348     -3647.0291      0.38301942     20             20             100            40000         -636.17688     -651.22248     -786.89029     -691.42988    
@@ -217,21 +217,21 @@ Per MPI rank memory allocation (min/avg/max) = 8.784 | 8.784 | 8.784 Mbytes
         98   49             301.32967     -3269.9895      1376.9506     -4646.9401     -3899.5651      0.38301942     20             20             100            40000         -1485.9786     -248.10397     -1503.5924     -1079.225     
         99   49.5           301.08075     -3270.6746      1375.8131     -4646.4878     -3878.8165      0.38301942     20             20             100            40000         -1534.157      -263.76305     -1329.5294     -1042.4831    
        100   50             298.97024     -3271.0136      1366.169      -4637.1826     -3805.2011      0.38301942     20             20             100            40000         -1456.1214     -241.9852      -1049.0228     -915.70982    
-Loop time of 305.598 on 1 procs for 100 steps with 1534 atoms
+Loop time of 182.424 on 1 procs for 100 steps with 1534 atoms
 
-Performance: 0.014 ns/day, 1697.768 hours/ns, 0.327 timesteps/s, 501.966 atom-step/s
-99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.024 ns/day, 1013.464 hours/ns, 0.548 timesteps/s, 840.900 atom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 305.45     | 305.45     | 305.45     |   0.0 | 99.95
-Bond    | 0.00015109 | 0.00015109 | 0.00015109 |   0.0 |  0.00
-Neigh   | 0.018338   | 0.018338   | 0.018338   |   0.0 |  0.01
-Comm    | 0.0042832  | 0.0042832  | 0.0042832  |   0.0 |  0.00
-Output  | 0.0075068  | 0.0075068  | 0.0075068  |   0.0 |  0.00
-Modify  | 0.118      | 0.118      | 0.118      |   0.0 |  0.04
-Other   |            | 0.001342   |            |       |  0.00
+Pair    | 182.32     | 182.32     | 182.32     |   0.0 | 99.94
+Bond    | 0.00015233 | 0.00015233 | 0.00015233 |   0.0 |  0.00
+Neigh   | 0.015411   | 0.015411   | 0.015411   |   0.0 |  0.01
+Comm    | 0.0027668  | 0.0027668  | 0.0027668  |   0.0 |  0.00
+Output  | 0.0070976  | 0.0070976  | 0.0070976  |   0.0 |  0.00
+Modify  | 0.080628   | 0.080628   | 0.080628   |   0.0 |  0.04
+Other   |            | 0.0009226  |            |       |  0.00
 
 Nlocal:           1534 ave        1534 max        1534 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -248,4 +248,4 @@ Dangerous builds = 0
 
 # write_data      final.data
 # write_restart   restart.new
-Total wall time: 0:05:08
+Total wall time: 0:03:04

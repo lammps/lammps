@@ -358,7 +358,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-MacKerell:
 
-**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586 . https://doi.org/10.1021/jp973084f
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem B, 102, 3586. https://doi.org/10.1021/jp973084f
 
 .. _howto-Cornell:
 
@@ -382,7 +382,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-Jorgensen:
 
-**(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
+**(Jorgensen2)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
 
 .. _howto-Maple:
 

@@ -143,7 +143,7 @@ Please cite also the relevant oxDNA/oxRNA publications. These are
 :ref:`(Bonato) <Bonato>` for oxDNA3,
 :ref:`(Sulc1) <Sulc01>` for oxRNA2
 and for sequence-specific hydrogen-bonding and stacking interactions
-:ref:`(Sulc2) <Sulc02>`.
+:ref:`(Sulc) <Sulc02>`.
 
 ----------
 
@@ -228,4 +228,4 @@ none
 
 .. _Sulc02:
 
-**(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
+**(Sulc)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).

@@ -54,7 +54,7 @@ Description
 
 This fix implements the asymmetric version of the enhanced heat
 exchange algorithm :ref:`(Wirnsberger) <Wirnsberger>`. The eHEX algorithm is
-an extension of the heat exchange algorithm :ref:`(Ikeshoji) <Ikeshoji>` and
+an extension of the heat exchange algorithm :ref:`(Ikeshoji2) <Ikeshoji>` and
 adds an additional coordinate integration to account for higher-order
 truncation terms in the operator splitting.  The original HEX
 algorithm (implemented as :doc:`fix heat <fix_heat>`) is known to
@@ -198,7 +198,7 @@ none
 
 .. _Ikeshoji:
 
-**(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
+**(Ikeshoji2)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
 
 .. _Wirnsberger:
 

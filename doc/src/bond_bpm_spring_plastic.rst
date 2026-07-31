@@ -77,7 +77,7 @@ or extension, it will plastically activate and :math:`r_\mathrm{eq}` will evolve
 to ensure :math:`|(r-r_\mathrm{eq})/r_\mathrm{eq}|` never exceeds :math:`\epsilon_p`.
 Therefore, if a bond is continually loaded in either tension or compression, the
 force will initially grow elastically before plateauing. See
-:ref:`(Clemmer) <plastic-Clemmer>` for more details on these mechanics.
+:ref:`(Clemmer4) <plastic-Clemmer>` for more details on these mechanics.
 
 Bonds will break at a strain of :math:`\epsilon_c`.  This is done by setting
 the bond type to 0 such that forces are no longer computed.
@@ -185,5 +185,5 @@ The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *
 
 .. _plastic-Clemmer:
 
-**(Clemmer)** Clemmer and Lechman, Powder Technology (2025).
+**(Clemmer4)** Clemmer and Lechman, Powder Technology (2025).
 

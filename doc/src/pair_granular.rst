@@ -1137,7 +1137,7 @@ reduction. Journal of the Mechanics and Physics of Solids, 183, 105492.
 
 .. _Zunker2024II:
 
-**(Zunker and Kamrin, 2024)** Zunker, W., & Kamrin, K. (2024).
+**(Zunker and Kamrin, 2024b)** Zunker, W., & Kamrin, K. (2024).
 A mechanically-derived contact model for adhesive elastic-perfectly
 plastic particles, Part II: Contact under high compaction-modeling
 a bulk elastic response. Journal of the Mechanics and Physics of Solids,

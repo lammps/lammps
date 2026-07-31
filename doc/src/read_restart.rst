@@ -36,7 +36,7 @@ processors in the current simulation and the settings of the
 changed by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands.
 
-.. deprecated:: 23Jun2022
+.. versionremoved:: 23Jun2022
 
 Atom coordinates that are found to be outside the simulation box when
 reading the restart will be remapped back into the box and their image

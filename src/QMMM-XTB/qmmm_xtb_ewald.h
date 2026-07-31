@@ -19,7 +19,12 @@ namespace LAMMPS_NS {
 // for the usually small QM-image response that changes every SCC iteration.
 class QMMMXTBEwald {
  public:
-  void setup(const std::array<double, 3> &, double, const std::array<int, 3> &, int);
+  // Cell vectors are stored as columns of this row-major matrix.  Accepting
+  // the full matrix keeps the reciprocal-space construction valid for both
+  // orthogonal and triclinic periodic cells.
+  using CellMatrix = std::array<double, 9>;
+
+  void setup(const CellMatrix &, double, const std::array<int, 3> &, int);
   void response(const std::vector<double> &, std::vector<double> &) const;
   double energy(const std::vector<double> &, const std::vector<double> &) const;
   void add_force(const std::vector<double> &, const std::vector<double> &,
@@ -34,7 +39,6 @@ class QMMMXTBEwald {
     double coefficient;
   };
 
-  std::array<double, 3> box_{};
   double alpha_ = 0.0;
   double volume_ = 0.0;
   std::vector<KTerm> kterms_;

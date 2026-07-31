@@ -19,16 +19,32 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-void QMMMXTBEwald::setup(const std::array<double, 3> &box, double alpha,
-                         const std::array<int, 3> &kmax, int ksqmax)
+void QMMMXTBEwald::setup(const CellMatrix &cell, double alpha, const std::array<int, 3> &kmax,
+                         int ksqmax)
 {
-  box_ = box;
   alpha_ = alpha;
-  volume_ = box[0] * box[1] * box[2];
   kterms_.clear();
+
+  // H stores the direct lattice vectors as columns.  Its inverse transpose
+  // maps an integer reciprocal vector n to H^-T n; multiplying by 2*pi then
+  // gives the Cartesian k vector used in the Ewald phase and force.
+  const double determinant = cell[0] * (cell[4] * cell[8] - cell[5] * cell[7]) -
+      cell[1] * (cell[3] * cell[8] - cell[5] * cell[6]) +
+      cell[2] * (cell[3] * cell[7] - cell[4] * cell[6]);
+  volume_ = determinant;
 
   if (alpha <= 0.0 || volume_ <= 0.0 || ksqmax <= 0)
     throw std::invalid_argument("Invalid direct-Ewald parameters");
+
+  const double inverse[9] = {(cell[4] * cell[8] - cell[5] * cell[7]) / determinant,
+                             (cell[2] * cell[7] - cell[1] * cell[8]) / determinant,
+                             (cell[1] * cell[5] - cell[2] * cell[4]) / determinant,
+                             (cell[5] * cell[6] - cell[3] * cell[8]) / determinant,
+                             (cell[0] * cell[8] - cell[2] * cell[6]) / determinant,
+                             (cell[2] * cell[3] - cell[0] * cell[5]) / determinant,
+                             (cell[3] * cell[7] - cell[4] * cell[6]) / determinant,
+                             (cell[1] * cell[6] - cell[0] * cell[7]) / determinant,
+                             (cell[0] * cell[4] - cell[1] * cell[3]) / determinant};
 
   for (int ix = 0; ix <= kmax[0]; ++ix) {
     const int iylo = (ix == 0) ? 0 : -kmax[1];
@@ -39,9 +55,12 @@ void QMMMXTBEwald::setup(const std::array<double, 3> &box, double alpha,
         if (isq == 0 || isq > ksqmax) continue;
 
         KTerm term;
-        term.k[0] = MY_2PI * ix / box[0];
-        term.k[1] = MY_2PI * iy / box[1];
-        term.k[2] = MY_2PI * iz / box[2];
+        const double integer_k[3] = {static_cast<double>(ix), static_cast<double>(iy),
+                                     static_cast<double>(iz)};
+        for (int dim = 0; dim < 3; ++dim)
+          term.k[dim] = MY_2PI *
+              (inverse[dim] * integer_k[0] + inverse[3 + dim] * integer_k[1] +
+               inverse[6 + dim] * integer_k[2]);
         const double ksq = term.k[0] * term.k[0] + term.k[1] * term.k[1] + term.k[2] * term.k[2];
         term.coefficient = 4.0 * MY_PI / volume_ * std::exp(-ksq / (4.0 * alpha * alpha)) / ksq;
         kterms_.push_back(term);

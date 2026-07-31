@@ -7,6 +7,9 @@ example is deliberately minimal and omits an MM short-range potential.
 The input selects GFN2-xTB explicitly; change `method gfn2` to `method gfn1`
 to run the same system with GFN1-xTB.
 
+`in.qmmm-xtb-triclinic` runs the same model in a fixed primitive triclinic
+lattice whose Wigner-Seitz cell is a truncated octahedron.
+
 Build LAMMPS with the QMMM-XTB and KSPACE packages as described in
 `src/QMMM-XTB/README`.  A typical run is:
 
@@ -33,3 +36,16 @@ The same values should be obtained with multiple MPI ranks.  Quantitative
 force finite differences should use a tighter `pppm/xtb` accuracy such as 1.0e-7;
 the requested PPPM force accuracy also controls the mesh potential supplied
 to the SCC Hamiltonian.
+
+For `in.qmmm-xtb-triclinic`, the corresponding default GFN2-xTB reference is:
+
+```
+PotEng  = -666.11749 kcal/mol
+f_qmmm  = -615.55912 kcal/mol
+q1      = -0.039929003
+q2      =  0.039929003
+Fx1     = 12.334963 kcal/mol/Angstrom
+Fx2     = -12.334963 kcal/mol/Angstrom
+```
+
+These triclinic values are likewise independent of the MPI rank count.

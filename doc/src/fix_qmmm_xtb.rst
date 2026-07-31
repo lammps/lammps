@@ -159,8 +159,8 @@ The initial implementation has these restrictions:
 * GFN1-xTB and GFN2-xTB are supported;
 * only ``real`` and ``metal`` units are supported;
 * the global :doc:`dielectric <dielectric>` setting must remain 1.0;
-* the box must be orthorhombic, periodic in all three dimensions, and
-  remain fixed;
+* orthogonal and triclinic boxes are supported, but the box must remain
+  fixed and periodic in all three dimensions;
 * :doc:`kspace_style pppm/xtb <kspace_style>` and ``pppm/tip4p/xtb`` are
   supported; other PPPM variants, including dispersion, slab, and wire
   styles, are not supported;

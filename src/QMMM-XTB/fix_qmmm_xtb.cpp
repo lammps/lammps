@@ -7,7 +7,7 @@
 
    GFN-xTB electrostatic-embedding QM/MM with a self-consistent PME
    partition.  The implementation supports a compact, non-covalently
-   embedded QM region in a 3-D orthorhombic periodic cell.
+   embedded QM region in a fixed 3-D periodic cell.
 ------------------------------------------------------------------------- */
 
 #include "fix_qmmm_xtb.h"
@@ -207,7 +207,6 @@ void FixQMMMXTB::init()
   if (!atom->q_flag) error->all(FLERR, "Fix qmmm/xtb requires per-atom charge");
   if (domain->dimension != 3 || !domain->xperiodic || !domain->yperiodic || !domain->zperiodic)
     error->all(FLERR, "Fix qmmm/xtb requires 3-D periodic boundaries");
-  if (domain->triclinic) error->all(FLERR, "Fix qmmm/xtb currently requires an orthorhombic box");
   if (std::strcmp(update->unit_style, "real") != 0 && std::strcmp(update->unit_style, "metal") != 0)
     error->all(FLERR, "Fix qmmm/xtb currently supports real and metal units");
   if (std::fabs(force->dielectric - 1.0) > 1.0e-12)
@@ -743,7 +742,19 @@ void FixQMMMXTB::pre_force(int vflag)
       : 10.0 / std::cbrt(domain->xprd * domain->yprd * domain->zprd);
   std::vector<double> image_response;
   try {
-    image_ewald->setup({domain->xprd, domain->yprd, domain->zprd}, alpha, image_kmax, image_ksqmax);
+    // LAMMPS stores a restricted triclinic cell as columns
+    // a=(xprd,0,0), b=(xy,yprd,0), c=(xz,yz,zprd).  Passing the full matrix
+    // lets the direct QM-image Ewald operator construct 2*pi*H^-T*n.
+    const QMMMXTBEwald::CellMatrix cell = {domain->h[0],
+                                           domain->triclinic ? domain->h[5] : 0.0,
+                                           domain->triclinic ? domain->h[4] : 0.0,
+                                           0.0,
+                                           domain->h[1],
+                                           domain->triclinic ? domain->h[3] : 0.0,
+                                           0.0,
+                                           0.0,
+                                           domain->h[2]};
+    image_ewald->setup(cell, alpha, image_kmax, image_ksqmax);
     image_ewald->response(qm_x, image_response);
   } catch (const std::exception &exception) {
     error->all(FLERR, "Fix qmmm/xtb direct-Ewald response failed: {}", exception.what());

@@ -38,7 +38,7 @@ bool verbose = false;
 
 namespace {
 
-class KSpaceGroupPotentialTest : public LAMMPSTest {};
+class KSpaceGroupPotentialTest : public LAMMPSTest, public ::testing::WithParamInterface<bool> {};
 
 #if defined(FFT_SINGLE)
 // A larger charge displacement avoids cancellation when reciprocal-space
@@ -50,7 +50,7 @@ constexpr double charge_epsilon      = 1.0e-5;
 constexpr double potential_tolerance = 2.0e-7;
 #endif
 
-TEST_F(KSpaceGroupPotentialTest, PPPMXTBZeroChargeSensorMatchesEnergyDerivative)
+TEST_P(KSpaceGroupPotentialTest, PPPMXTBZeroChargeSensorMatchesEnergyDerivative)
 {
     if (!info->has_style("kspace", "pppm/xtb")) GTEST_SKIP();
     if (!info->has_style("pair", "coul/long")) GTEST_SKIP();
@@ -60,7 +60,10 @@ TEST_F(KSpaceGroupPotentialTest, PPPMXTBZeroChargeSensorMatchesEnergyDerivative)
         command("atom_style charge");
         command("atom_modify map array");
         command("boundary p p p");
-        command("region box block 0 12 0 11 0 10 units box");
+        if (GetParam())
+            command("region box prism 0 12 0 11 0 10 2.0 -1.0 1.5 units box");
+        else
+            command("region box block 0 12 0 11 0 10 units box");
         command("create_box 1 box");
         command("create_atoms 1 single 2.1 3.2 4.3 units box");
         command("create_atoms 1 single 8.4 7.1 1.8 units box");
@@ -115,7 +118,7 @@ TEST_F(KSpaceGroupPotentialTest, PPPMXTBZeroChargeSensorMatchesEnergyDerivative)
     EXPECT_NEAR(projected, derivative, potential_tolerance);
 }
 
-TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PXTBUsesVirtualMChargeSite)
+TEST_P(KSpaceGroupPotentialTest, PPPMTIP4PXTBUsesVirtualMChargeSite)
 {
     if (!info->has_style("kspace", "pppm/tip4p/xtb")) GTEST_SKIP();
     if (!info->has_style("pair", "lj/cut/tip4p/long")) GTEST_SKIP();
@@ -127,7 +130,10 @@ TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PXTBUsesVirtualMChargeSite)
         command("atom_style full");
         command("atom_modify map array");
         command("boundary p p p");
-        command("region box block 0 12 0 11 0 10 units box");
+        if (GetParam())
+            command("region box prism 0 12 0 11 0 10 2.0 -1.0 1.5 units box");
+        else
+            command("region box block 0 12 0 11 0 10 units box");
         command("create_box 3 box bond/types 1 angle/types 1 "
                 "extra/bond/per/atom 2 extra/angle/per/atom 1 extra/special/per/atom 2");
         command("create_atoms 1 single 3.0 3.0 3.0 units box");
@@ -182,6 +188,12 @@ TEST_F(KSpaceGroupPotentialTest, PPPMTIP4PXTBUsesVirtualMChargeSite)
 
     EXPECT_NEAR(lmp->force->qqrd2e * potential[sensor], derivative, potential_tolerance);
 }
+
+INSTANTIATE_TEST_SUITE_P(OrthogonalAndTriclinic, KSpaceGroupPotentialTest,
+                         ::testing::Values(false, true),
+                         [](const ::testing::TestParamInfo<bool> &info) {
+                             return info.param ? "Triclinic" : "Orthogonal";
+                         });
 
 } // namespace
 

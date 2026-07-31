@@ -18,11 +18,15 @@
 #include "grid3d.h"
 #include "memory.h"
 
+#include <array>
+#include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
+static constexpr int GRID_OFFSET = 16384;
 
 namespace LAMMPS_NS {
 
@@ -34,8 +38,12 @@ template <class Solver> class QMMMXTBPPPMHelper {
   static void compute_group_potential(Solver &, double *, int, int, bool);
 
  private:
-  static void make_rho_group(Solver &, int, bool);
-  static void project_group_potential(Solver &, double *, int);
+  using MeshSites = std::vector<std::array<double, 3>>;
+
+  static void build_mesh_sites(Solver &, MeshSites &);
+  static void map_mesh_sites(Solver &, const MeshSites &);
+  static void make_rho_group(Solver &, const MeshSites &, int, bool);
+  static void project_group_potential(Solver &, const MeshSites &, double *, int);
 };
 
 }    // namespace LAMMPS_NS
@@ -53,10 +61,7 @@ void QMMMXTBPPPMHelper<Solver>::compute_group_potential(Solver &solver, double *
                                                         int sensor_groupbit, int source_groupbit,
                                                         bool invert_source)
 {
-  if (solver.triclinic)
-    solver.error->all(FLERR, "KSpace style pppm/xtb requires an orthorhombic box");
-
-  solver.boxlo = solver.domain->boxlo;
+  solver.boxlo = solver.triclinic ? solver.domain->boxlo_lamda : solver.domain->boxlo;
   if (solver.atom->nmax > solver.nmax) {
     solver.memory->destroy(solver.part2grid);
     solver.nmax = solver.atom->nmax;
@@ -71,8 +76,15 @@ void QMMMXTBPPPMHelper<Solver>::compute_group_potential(Solver &solver, double *
                                    solver.nylo_out, solver.nyhi_out, solver.nxlo_out,
                                    solver.nxhi_out, "pppm/xtb:u_brick");
 
-  solver.particle_map();
-  make_rho_group(solver, source_groupbit, invert_source);
+  // Keep atom coordinates in Cartesian space.  The core PPPM path temporarily
+  // converts local atoms to lamda coordinates, which complicates TIP4P because
+  // bonded ghost hydrogens remain Cartesian.  Precomputing every charge site
+  // in Cartesian space and converting only the site avoids mixed coordinate
+  // systems while reproducing PPPM's fractional mesh assignment.
+  MeshSites mesh_sites;
+  build_mesh_sites(solver, mesh_sites);
+  map_mesh_sites(solver, mesh_sites);
+  make_rho_group(solver, mesh_sites, source_groupbit, invert_source);
   solver.gc->reverse_comm(Grid3d::KSPACE, &solver, KSpace::REVERSE_RHO, 1, sizeof(FFT_SCALAR),
                           solver.gc_buf1, solver.gc_buf2, MPI_FFT_SCALAR);
   solver.brick2fft();
@@ -99,7 +111,7 @@ void QMMMXTBPPPMHelper<Solver>::compute_group_potential(Solver &solver, double *
 
   solver.gc->forward_comm(Grid3d::KSPACE, &solver, KSpace::FORWARD_AD, 1, sizeof(FFT_SCALAR),
                           solver.gc_buf1, solver.gc_buf2, MPI_FFT_SCALAR);
-  project_group_potential(solver, potential, sensor_groupbit);
+  project_group_potential(solver, mesh_sites, potential, sensor_groupbit);
 
   if (temporary_u_brick)
     solver.memory->destroy3d_offset(solver.u_brick, solver.nzlo_out, solver.nylo_out,
@@ -107,12 +119,64 @@ void QMMMXTBPPPMHelper<Solver>::compute_group_potential(Solver &solver, double *
 }
 
 /* ----------------------------------------------------------------------
+   construct mesh coordinates for real atoms and implicit TIP4P charge sites
+------------------------------------------------------------------------- */
+
+template <class Solver>
+void QMMMXTBPPPMHelper<Solver>::build_mesh_sites(Solver &solver, MeshSites &mesh_sites)
+{
+  mesh_sites.resize(solver.atom->nlocal);
+  for (int i = 0; i < solver.atom->nlocal; ++i) {
+    double site[3], weights[3];
+    int indices[3];
+    solver.get_charge_site(i, site, indices, weights);
+    if (solver.triclinic)
+      solver.domain->x2lamda(site, mesh_sites[i].data());
+    else
+      for (int dim = 0; dim < 3; ++dim) mesh_sites[i][dim] = site[dim];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   map precomputed charge sites to the local PPPM mesh
+------------------------------------------------------------------------- */
+
+template <class Solver>
+void QMMMXTBPPPMHelper<Solver>::map_mesh_sites(Solver &solver, const MeshSites &mesh_sites)
+{
+  if (!std::isfinite(solver.boxlo[0]) || !std::isfinite(solver.boxlo[1]) ||
+      !std::isfinite(solver.boxlo[2]))
+    solver.error->one(FLERR, "Non-numeric box dimensions - simulation unstable");
+
+  int out_of_range = 0;
+  for (int i = 0; i < solver.atom->nlocal; ++i) {
+    const auto &site = mesh_sites[i];
+    const int nx =
+        static_cast<int>((site[0] - solver.boxlo[0]) * solver.delxinv + solver.shift) - GRID_OFFSET;
+    const int ny =
+        static_cast<int>((site[1] - solver.boxlo[1]) * solver.delyinv + solver.shift) - GRID_OFFSET;
+    const int nz =
+        static_cast<int>((site[2] - solver.boxlo[2]) * solver.delzinv + solver.shift) - GRID_OFFSET;
+
+    solver.part2grid[i][0] = nx;
+    solver.part2grid[i][1] = ny;
+    solver.part2grid[i][2] = nz;
+    if (nx + solver.nlower < solver.nxlo_out || nx + solver.nupper > solver.nxhi_out ||
+        ny + solver.nlower < solver.nylo_out || ny + solver.nupper > solver.nyhi_out ||
+        nz + solver.nlower < solver.nzlo_out || nz + solver.nupper > solver.nzhi_out)
+      out_of_range = 1;
+  }
+
+  if (out_of_range) solver.error->one(FLERR, "Out of range atoms - cannot compute PPPM");
+}
+
+/* ----------------------------------------------------------------------
    create a discretized density from a selected source group
 ------------------------------------------------------------------------- */
 
 template <class Solver>
-void QMMMXTBPPPMHelper<Solver>::make_rho_group(Solver &solver, int source_groupbit,
-                                               bool invert_source)
+void QMMMXTBPPPMHelper<Solver>::make_rho_group(Solver &solver, const MeshSites &mesh_sites,
+                                               int source_groupbit, bool invert_source)
 {
   std::memset(&(solver.density_brick[solver.nzlo_out][solver.nylo_out][solver.nxlo_out]), 0,
               solver.ngrid * sizeof(FFT_SCALAR));
@@ -121,10 +185,7 @@ void QMMMXTBPPPMHelper<Solver>::make_rho_group(Solver &solver, int source_groupb
     const bool in_source = !!(solver.atom->mask[i] & source_groupbit) != invert_source;
     if (!in_source) continue;
 
-    double site[3], weights[3];
-    int indices[3];
-    solver.get_charge_site(i, site, indices, weights);
-
+    const auto &site = mesh_sites[i];
     const int nx = solver.part2grid[i][0];
     const int ny = solver.part2grid[i][1];
     const int nz = solver.part2grid[i][2];
@@ -154,8 +215,8 @@ void QMMMXTBPPPMHelper<Solver>::make_rho_group(Solver &solver, int source_groupb
 ------------------------------------------------------------------------- */
 
 template <class Solver>
-void QMMMXTBPPPMHelper<Solver>::project_group_potential(Solver &solver, double *potential,
-                                                        int sensor_groupbit)
+void QMMMXTBPPPMHelper<Solver>::project_group_potential(Solver &solver, const MeshSites &mesh_sites,
+                                                        double *potential, int sensor_groupbit)
 {
   const bigint ngridtotal = static_cast<bigint>(solver.nx_pppm) * solver.ny_pppm * solver.nz_pppm;
   const double scaleinv = 1.0 / ngridtotal;
@@ -163,10 +224,7 @@ void QMMMXTBPPPMHelper<Solver>::project_group_potential(Solver &solver, double *
   for (int i = 0; i < solver.atom->nlocal; ++i) {
     if (!(solver.atom->mask[i] & sensor_groupbit)) continue;
 
-    double site[3], weights[3];
-    int indices[3];
-    solver.get_charge_site(i, site, indices, weights);
-
+    const auto &site = mesh_sites[i];
     const int nix = solver.part2grid[i][0];
     const int niy = solver.part2grid[i][1];
     const int niz = solver.part2grid[i][2];

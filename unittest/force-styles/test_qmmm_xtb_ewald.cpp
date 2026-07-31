@@ -20,10 +20,16 @@ using namespace LAMMPS_NS;
 
 namespace {
 
+QMMMXTBEwald::CellMatrix restricted_cell(double xprd, double yprd, double zprd, double xy = 0.0,
+                                         double xz = 0.0, double yz = 0.0)
+{
+    return {xprd, xy, xz, 0.0, yprd, yz, 0.0, 0.0, zprd};
+}
+
 TEST(QMMMXTBEwald, ResponseIsSymmetricAndTranslationInvariant)
 {
     QMMMXTBEwald ewald;
-    ewald.setup({18.0, 19.0, 20.0}, 0.55, {10, 10, 10}, 100);
+    ewald.setup(restricted_cell(18.0, 19.0, 20.0), 0.55, {10, 10, 10}, 100);
 
     const std::vector<double> x    = {4.2, 5.1, 6.3, 9.4, 8.7, 7.6, 13.1, 3.8, 11.2};
     std::vector<double> translated = x;
@@ -50,7 +56,7 @@ TEST(QMMMXTBEwald, ResponseIsSymmetricAndTranslationInvariant)
 TEST(QMMMXTBEwald, AnalyticForceMatchesEnergyFiniteDifference)
 {
     QMMMXTBEwald ewald;
-    ewald.setup({18.0, 19.0, 20.0}, 0.55, {12, 12, 12}, 144);
+    ewald.setup(restricted_cell(18.0, 19.0, 20.0), 0.55, {12, 12, 12}, 144);
 
     std::vector<double> x       = {4.2, 5.1, 6.3, 9.4, 8.7, 7.6, 13.1, 3.8, 11.2};
     const std::vector<double> q = {-0.35, 0.20, 0.15};
@@ -70,6 +76,51 @@ TEST(QMMMXTBEwald, AnalyticForceMatchesEnergyFiniteDifference)
 
     for (int dim = 0; dim < 3; ++dim)
         EXPECT_NEAR(force[dim] + force[3 + dim] + force[6 + dim], 0.0, 2.0e-14);
+}
+
+TEST(QMMMXTBEwald, TriclinicAnalyticForceMatchesEnergyFiniteDifference)
+{
+    QMMMXTBEwald ewald;
+    ewald.setup(restricted_cell(18.0, 19.0, 20.0, 3.2, -1.4, 2.1), 0.55, {12, 12, 12}, 144);
+
+    std::vector<double> x       = {4.2, 5.1, 6.3, 9.4, 8.7, 7.6, 13.1, 3.8, 11.2};
+    const std::vector<double> q = {-0.35, 0.20, 0.15};
+    std::vector<double> force(x.size(), 0.0);
+    ewald.add_force(x, q, force);
+
+    constexpr double step = 1.0e-5;
+    for (std::size_t coordinate = 0; coordinate < x.size(); ++coordinate) {
+        x[coordinate] += step;
+        const double energy_plus = ewald.energy(x, q);
+        x[coordinate] -= 2.0 * step;
+        const double energy_minus = ewald.energy(x, q);
+        x[coordinate] += step;
+        const double finite_difference_force = -(energy_plus - energy_minus) / (2.0 * step);
+        EXPECT_NEAR(force[coordinate], finite_difference_force, 2.0e-10);
+    }
+
+    for (int dim = 0; dim < 3; ++dim)
+        EXPECT_NEAR(force[dim] + force[3 + dim] + force[6 + dim], 0.0, 2.0e-14);
+}
+
+TEST(QMMMXTBEwald, TriclinicResponseMatchesReciprocalLatticeReference)
+{
+    QMMMXTBEwald ewald;
+    ewald.setup(restricted_cell(18.0, 19.0, 20.0, 3.2, -1.4, 2.1), 0.55, {10, 10, 10}, 100);
+
+    const std::vector<double> x = {4.2, 5.1, 6.3, 9.4, 8.7, 7.6, 13.1, 3.8, 11.2};
+    std::vector<double> response;
+    ewald.response(x, response);
+
+    // Independent values from the reciprocal-lattice convention
+    // k = 2*pi*H^-T*n with the same half-space integer-vector enumeration.
+    const std::vector<double> reference = {
+        -0.14934592489933957, -0.13448377698551009, -0.11316607730419709,
+        -0.13448377698551009, -0.14934592489933957, -0.13659403366664649,
+        -0.11316607730419709, -0.13659403366664649, -0.14934592489933957};
+    ASSERT_EQ(response.size(), reference.size());
+    for (std::size_t i = 0; i < response.size(); ++i)
+        EXPECT_NEAR(response[i], reference[i], 2.0e-14);
 }
 
 TEST(QMMMXTBEwald, ErfCorrectionForceMatchesEnergyFiniteDifference)

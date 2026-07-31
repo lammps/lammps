@@ -147,6 +147,23 @@ the extensive QM/MM energy correction.  It also updates ``q`` for QM
 atoms with the converged Mulliken charges.  No per-atom energy, per-atom
 virial, global vector, or per-atom array is provided.
 
+Minimization
+""""""""""""
+
+Fixed-box atom-coordinate minimization is supported.  The xTB SCC solve,
+MM potential projection, and periodic corrections are recomputed at every
+trial geometry requested by the minimizer.  The QM/MM correction energy is
+included in the minimizer objective by default.  Do not use
+``fix_modify ID energy no`` during minimization; the fix rejects that
+inconsistent configuration.
+
+Energy minimization is more sensitive to numerical noise than dynamics.
+Converge the xTB *accuracy*, PPPM accuracy, and direct-Ewald parameters for
+the requested force tolerance.  Also avoid placing MM sites close to the
+explicit *cutoff*, since changing the explicit point-charge set during a line
+search can make the numerical objective less smooth.  Cell optimization with
+``fix box/relax`` remains unsupported.
+
 Restrictions
 """"""""""""
 
@@ -167,7 +184,8 @@ The initial implementation has these restrictions:
 * the QM group and its atom IDs must remain fixed and the QM region must
   be compact relative to the periodic cell;
 * covalent QM/MM boundaries and link atoms are not supported;
-* minimization and r-RESPA are not supported;
+* fixed-box atom-coordinate minimization is supported, but r-RESPA and
+  ``fix box/relax`` are not;
 * constant-pressure fixes and changing-box fixes are not supported.
 
 Related commands

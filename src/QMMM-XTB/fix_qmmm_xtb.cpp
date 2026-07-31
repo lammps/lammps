@@ -191,6 +191,8 @@ int FixQMMMXTB::setmask()
   int mask = 0;
   mask |= PRE_FORCE;
   mask |= POST_FORCE;
+  mask |= MIN_PRE_FORCE;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -198,12 +200,13 @@ void FixQMMMXTB::init()
 {
   if (modify->get_fix_by_style("^qmmm/xtb$").size() > 1)
     error->all(FLERR, "Only one instance of fix qmmm/xtb is supported");
-  if (update->whichflag == 2)
-    error->all(FLERR, "Fix qmmm/xtb does not yet support energy minimization");
   if (update->integrate_style && utils::strmatch(update->integrate_style, "^respa"))
     error->all(FLERR, "Fix qmmm/xtb does not yet support r-RESPA");
-  if (!modify->get_fix_by_style("(npt|nph|press/|deform)").empty())
+  if (!modify->get_fix_by_style("(npt|nph|press/|deform)").empty() ||
+      !modify->get_fix_by_style("^box/relax").empty())
     error->all(FLERR, "Fix qmmm/xtb does not yet support a changing simulation box");
+  if (update->whichflag == 2 && !thermo_energy)
+    error->all(FLERR, "Fix qmmm/xtb requires fix_modify energy yes during minimization");
   if (!atom->q_flag) error->all(FLERR, "Fix qmmm/xtb requires per-atom charge");
   if (domain->dimension != 3 || !domain->xperiodic || !domain->yperiodic || !domain->zperiodic)
     error->all(FLERR, "Fix qmmm/xtb requires 3-D periodic boundaries");
@@ -266,17 +269,40 @@ void FixQMMMXTB::init()
 
 void FixQMMMXTB::setup_pre_force(int vflag)
 {
-  // Verlet invokes setup_pre_force() before its first KSpace::setup().  The
-  // QM/MM reference solve needs volume-dependent PPPM data (notably volume,
-  // influence functions, and the Ewald parameter), so initialize it here.
-  // Verlet's immediately following setup call is harmless and keeps the
-  // normal KSpace lifecycle intact.
+  // Verlet and Min invoke setup_pre_force() before the first KSpace::setup().
+  // The QM/MM reference solve needs volume-dependent PPPM data (notably
+  // volume, influence functions, and the Ewald parameter), so initialize it
+  // here.  The immediately following regular setup call is harmless and keeps
+  // the normal KSpace lifecycle intact.
   force->kspace->setup();
   pre_force(vflag);
 }
 
 void FixQMMMXTB::setup(int vflag)
 { post_force(vflag); }
+
+void FixQMMMXTB::min_setup(int vflag)
+{
+  // Min::setup() performs the initial pre-force QM/MM solve through
+  // setup_pre_force(), followed by the regular pair and KSpace evaluations.
+  // Complete that first energy/force evaluation with the same correction used
+  // by Verlet before the minimizer records its initial objective and gradient.
+  post_force(vflag);
+}
+
+void FixQMMMXTB::min_pre_force(int vflag)
+{
+  // Every line-search trial needs a fresh self-consistent QM/MM state at its
+  // trial coordinates before LAMMPS computes the production pair/KSpace terms.
+  pre_force(vflag);
+}
+
+void FixQMMMXTB::min_post_force(int vflag)
+{
+  // Assemble the energy correction and replace double-counted classical
+  // forces after the minimizer's production pair/KSpace evaluation.
+  post_force(vflag);
+}
 
 void FixQMMMXTB::save_entry_forces()
 {

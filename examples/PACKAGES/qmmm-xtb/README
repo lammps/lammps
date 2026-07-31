@@ -10,6 +10,11 @@ to run the same system with GFN1-xTB.
 `in.qmmm-xtb-triclinic` runs the same model in a fixed primitive triclinic
 lattice whose Wigner-Seitz cell is a truncated octahedron.
 
+`in.qmmm-xtb-minimize` keeps the two MM point charges fixed and minimizes the
+H2 QM geometry with tighter SCC, PPPM, and direct-Ewald settings.  The force
+constraint is defined after `fix qmmm/xtb` so it is applied after the QM/MM
+force correction.
+
 Build LAMMPS with the QMMM-XTB and KSPACE packages as described in
 `src/QMMM-XTB/README`.  A typical run is:
 
@@ -49,3 +54,11 @@ Fx2     = -12.334963 kcal/mol/Angstrom
 ```
 
 These triclinic values are likewise independent of the MPI rank count.
+
+The minimization example converges in eight CG iterations to approximately:
+
+```
+PotEng  = -662.66955 kcal/mol
+H-H     = 0.77939451 Angstrom
+max |F| = 9.7e-8 kcal/mol/Angstrom
+```

@@ -39,6 +39,9 @@ class FixQMMMXTB : public Fix {
   void setup(int) override;
   void pre_force(int) override;
   void post_force(int) override;
+  void min_setup(int) override;
+  void min_pre_force(int) override;
+  void min_post_force(int) override;
   double compute_scalar() override;
   double memory_usage() override;
   int pack_forward_comm(int, int *, double *, int, int *) override;

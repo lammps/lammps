@@ -169,7 +169,7 @@ Restrictions
 
 This fix is part of the QMMM-XTB package.  It is available only when
 LAMMPS is built with that package and compatible libxtb 6.7 or newer Fortran
-modules; see ``src/QMMM-XTB/README``.
+modules; see the :ref:`QMMM-XTB build instructions <qmmm-xtb>`.
 
 The initial implementation has these restrictions:
 

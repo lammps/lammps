@@ -2640,7 +2640,7 @@ supported.
 
 This package requires libxtb 6.7 or newer, its installed Fortran module files,
 mctc-lib, and BLAS.  It supports only the CMake build.  See
-``src/QMMM-XTB/README`` for build details.
+:ref:`QMMM-XTB build instructions <qmmm-xtb>` for details.
 
 **Supporting info:**
 

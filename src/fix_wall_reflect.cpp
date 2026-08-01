@@ -35,7 +35,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), nwall(0), varflag(0), imgobjs(nullptr), imgparms(nullptr)
+    Fix(lmp, narg, arg), nwall(0), varstr{}, varflag(0), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/reflect", error);
 
@@ -144,6 +144,20 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if (wallstyle[m] == VARIABLE) varflag = 1;
 
   // for rendering walls with dump image.
+  allocate_image_objects();
+}
+
+/* ----------------------------------------------------------------------
+   (re-)create the graphics objects for rendering walls with dump image.
+   must be (re-)done after parsing the walls, since derived classes
+   (e.g. fix wall/reflect/stochastic) parse their arguments themselves
+   and may arrive at a different wall count than the base class parser.
+------------------------------------------------------------------------- */
+
+void FixWallReflect::allocate_image_objects()
+{
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
   if (domain->dimension == 2) {
     // one cylinder object per wall to draw in 2d
     memory->create(imgobjs, nwall, "fix_wall_reflect:imgobjs");

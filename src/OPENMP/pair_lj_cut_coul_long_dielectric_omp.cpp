@@ -220,7 +220,7 @@ void PairLJCutCoulLongDielectricOMP::eval(int iifrom, int iito, ThrData *const t
         epot[i] += epot_i;
 
         if (EFLAG) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
             else {

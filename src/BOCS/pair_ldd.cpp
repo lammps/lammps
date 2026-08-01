@@ -79,7 +79,11 @@ constexpr char cite_pair_ldd2_c[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairLdd::PairLdd(LAMMPS *lmp) : Pair(lmp)
+PairLdd::PairLdd(LAMMPS *lmp) :
+    Pair(lmp), indicator_map(nullptr), potential_map(nullptr), self_interaction(nullptr),
+    ignore_pair(nullptr), ignore_me(nullptr), bGradient(nullptr), Inds(nullptr), Potls(nullptr),
+    GradPotls(nullptr), local_density(nullptr), grad_density(nullptr), ld_energy(nullptr),
+    ld_grad_energy(nullptr), total_energy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_ldd1_c);
   if (lmp->citeme) lmp->citeme->add(cite_pair_ldd2_c);
@@ -96,18 +100,7 @@ PairLdd::PairLdd(LAMMPS *lmp) : Pair(lmp)
   comm_forward = 4 * atom->ntypes;
   comm_reverse = 4 * atom->ntypes;
 
-  // Initialize these to NULL
-  Inds = nullptr;
-  Potls = nullptr;
-  GradPotls = nullptr;
-
-  // per-atom local-density arrays owned by this pair style (see header)
   nmax = 0;
-  local_density = nullptr;
-  grad_density = nullptr;
-  ld_energy = nullptr;
-  ld_grad_energy = nullptr;
-  total_energy = nullptr;
 
   map = new int[atom->ntypes + 1];
 
@@ -520,10 +513,17 @@ void PairLdd::coeff_ldd(int si, int sj, int narg, char **arg)
       if (bkInd) ErrorDoubleKeyword(KEY_LDD_IND);
       bkInd = true;
       if (iarg + 3 >= narg) ErrorNumKeywordArgs(KEY_LDD_IND, "wtype r0 rc");
+      const double r0 = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      const double rc = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      // all indicator variants divide by rc (and some by rc - r0) when setting
+      // up their coefficients, so these values must be validated before init_coeffs()
+      if ((rc <= 0.0) || (r0 < 0.0) || (r0 >= rc))
+        error->all(FLERR,
+                   "ldd species pair {} {}: indicator cutoff rc ({}) must be positive and the "
+                   "inner radius r0 ({}) must be non-negative and smaller than rc",
+                   elements[si], elements[sj], rc, r0);
       Inds[si][sj] = new_indicator(arg[iarg + 1]);
-      Inds[si][sj]->init_coeffs(utils::numeric(FLERR, arg[iarg + 2], false, lmp),
-                                utils::numeric(FLERR, arg[iarg + 3], false, lmp),
-                                domain->dimension);
+      Inds[si][sj]->init_coeffs(r0, rc, domain->dimension);
       iarg += 4;
     } else if (strcmp(arg[iarg], KEY_LDD_SELF) == 0) {
       if (bkSelf) ErrorDoubleKeyword(KEY_LDD_SELF);
@@ -574,9 +574,6 @@ void PairLdd::coeff_ldd(int si, int sj, int narg, char **arg)
     if (!bkSelf)
       error->all(FLERR, "ldd species pair {} {}: missing required keyword {}", elements[si],
                  elements[sj], KEY_LDD_SELF);
-    if (Inds[si][sj]->r0 >= Inds[si][sj]->rc)
-      error->all(FLERR, "ldd species pair {} {}: r0 ({}) must be less than rc ({})", elements[si],
-                 elements[sj], Inds[si][sj]->r0, Inds[si][sj]->rc);
 
     if (bSelf) {
       if (si == sj)
@@ -898,7 +895,7 @@ void PairLdd::read_file(char *filename)
   }
 
   // track which ordered species pairs have been defined (duplicate/completeness checks)
-  std::vector<int> seen(nelements * nelements, 0);
+  std::vector<int> seen((std::size_t)nelements * nelements, 0);
 
   char line[MAXLINE];
   int done = 0;

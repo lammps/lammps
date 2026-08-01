@@ -137,7 +137,6 @@ int AtomVecPeri::property_atom(const std::string &name)
 
 void AtomVecPeri::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int n = 0;
 

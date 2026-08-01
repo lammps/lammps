@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solvent rattle 1.0e-5 20 4 b 5 a 1
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |-
   -6.7489444076122581e+01 -3.6466857275816793e+01 -4.1453650662488030e+01 -3.0881715538687999e+01 -2.8271646386126275e+01  1.8512924155867125e-01

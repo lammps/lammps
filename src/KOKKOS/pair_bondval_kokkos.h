@@ -135,15 +135,15 @@ class PairBondValKokkos : public PairBondVal, public KokkosBase {
   KK_FLOAT m_energy0[MAX_TYPES_STACKPARAMS+1];
 
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  typename AT::tdual_kkfloat_2d k_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
   typename AT::t_kkfloat_2d d_cutsq;
 
-  typename AT::t_kkfloat_1d_3 x;
+  typename AT::t_kkfloat_1d_3_lr x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d type;
 
-  DAT::tdual_kkacc_1d k_eatom;
-  DAT::tdual_kkacc_1d_6 k_vatom;
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d d_eatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 

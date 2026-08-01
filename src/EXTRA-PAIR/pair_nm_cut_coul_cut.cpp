@@ -36,7 +36,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairNMCutCoulCut::PairNMCutCoulCut(LAMMPS *lmp) : Pair(lmp)
+PairNMCutCoulCut::PairNMCutCoulCut(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
+    e0(nullptr), r0(nullptr), nn(nullptr), mm(nullptr), nm(nullptr), e0nm(nullptr), r0n(nullptr),
+    r0m(nullptr), offset(nullptr)
 {
   born_matrix_enable = 1;
   writedata = 1;

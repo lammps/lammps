@@ -121,15 +121,17 @@ void ComputeAcklandAtomOMP::compute_peratom()
           }
         }
 
-        // Select 6 nearest neighbors
+        // Select up to 6 nearest neighbors
+        // undercoordinated atoms (n < 6) use all their neighbors
 
-        select2(6, n, t_distsq, t_nearest);
+        const int nsel = MIN(6, n);
+        select2(nsel, n, t_distsq, t_nearest);
 
         // Mean squared separation
 
         double r0_sq = 0.;
-        for (int j = 0; j < 6; j++) r0_sq += t_distsq[j];
-        r0_sq /= 6.;
+        for (int j = 0; j < nsel; j++) r0_sq += t_distsq[j];
+        if (nsel > 0) r0_sq /= nsel;
 
         // n0 near neighbors with: distsq<1.45*r0_sq
         // n1 near neighbors with: distsq<1.55*r0_sq

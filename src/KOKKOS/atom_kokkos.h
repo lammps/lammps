@@ -62,6 +62,9 @@ class AtomKokkos : public Atom {
   DAT::ttransform_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
   DAT::ttransform_kkfloat_2d k_dvector;
+  DAT::tdual_int_2d_lr k_ivector;         // width-1: single contiguous 2D view
+  tdual_struct_tdual_int_2d_1d k_iarray;  // ragged cols: view-of-views
+  tdual_struct_tdual_double_2d_1d k_darray;
 
   // SPIN package
 
@@ -164,6 +167,7 @@ class AtomKokkos : public Atom {
   void init() override;
   void update_property_atom();
   void allocate_type_arrays() override;
+  void *extract(const char *) override;
   void sync(const ExecutionSpace space, uint64_t mask);
   void modified(const ExecutionSpace space, uint64_t mask);
   void sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag = 0);

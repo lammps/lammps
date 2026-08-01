@@ -43,7 +43,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLubricate::PairLubricate(LAMMPS *lmp) : Pair(lmp)
+PairLubricate::PairLubricate(LAMMPS *lmp) :
+    Pair(lmp), wallfix(nullptr), cut_inner(nullptr), cut(nullptr)
 {
   single_enable = 0;
 

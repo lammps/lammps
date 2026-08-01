@@ -65,7 +65,7 @@ FixPrecessionSpin::FixPrecessionSpin(LAMMPS *lmp, int narg, char **arg) :
   magstr = nullptr;
   magfieldstyle = CONSTANT;
 
-  H_field = 0.0;
+  H_field = hfield = 0.0;
   nhx = nhy = nhz = 0.0;
   hx = hy = hz = 0.0;
   stt_field = 0.0;
@@ -264,9 +264,12 @@ void FixPrecessionSpin::init()
   const double mub = 5.78901e-5;                // in eV/T
   const double gyro = 2.0*mub/hbar;             // in rad.THz/T
 
-  // convert field quantities to rad.THz
+  // convert field quantities to rad.THz. these conversions must not modify
+  // the values parsed from the fix arguments: init() is called at every run
+  // and repeating the conversion would compound it (e.g. a run continued
+  // from a restart would see a different field than an uninterrupted run).
 
-  H_field *= gyro;
+  hfield = H_field*gyro;
   Kah = Ka/hbar;
   k1ch = k1c/hbar;
   k2ch = k2c/hbar;
@@ -421,7 +424,7 @@ double FixPrecessionSpin::compute_zeeman_energy(double spi[4])
 {
   double energy = 0.0;
   double scalar = nhx*spi[0]+nhy*spi[1]+nhz*spi[2];
-  energy = hbar*H_field*spi[3]*scalar;
+  energy = hbar*hfield*spi[3]*scalar;
   return energy;
 }
 
@@ -585,9 +588,9 @@ double FixPrecessionSpin::compute_hexaniso_energy(double spi[3])
 void FixPrecessionSpin::set_magneticprecession()
 {
   if (zeeman_flag) {
-    hx = H_field*nhx;
-    hy = H_field*nhy;
-    hz = H_field*nhz;
+    hx = hfield*nhx;
+    hy = hfield*nhy;
+    hz = hfield*nhz;
   }
 
   if (stt_flag) {

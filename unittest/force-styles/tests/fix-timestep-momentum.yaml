@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute momentum 4 linear 1 1 1 angular rescale
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.7092515033692477e-01  2.4909547171567490e+00 -1.6650992918211599e-01

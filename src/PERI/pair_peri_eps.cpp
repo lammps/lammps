@@ -310,8 +310,21 @@ void PairPeriEPS::compute(int eflag, int vflag)
       if (elastic) {
         rkNew = tdtrialValue;
       } else {
+        // Plastic step. The deviatoric force state used for the force is the
+        // trial state projected back onto the yield surface (the closest-point
+        // or "radial" return), rkNew = (sqrt(2*psi0)/||t_d||) * t_d_trial, as in:
+        //    Mitchell 2011 (SAND2011-3166) Eq. 45.
+        // but need to multiply by 0.5 * r0 to account for definition of influence
+        // function omega (here has units of 1/length but report assumes dimensionless).
         rkNew = (sqrt(2.0*pointwiseYieldvalue) * tdtrialValue) / tdnorm;
-        deviatorPlasticExtTemp[i][jj] = edpNp1 + rkNew * deltalambda;
+        deviatorPlasticExtTemp[i][jj] = edpNp1 + rkNew * deltalambda * (0.5 * r0[i][jj]);
+
+        // NOTE: a better solution might be to use radial return to ensure the
+        //  solution does not leave the yield surface, such as
+        //
+        //     edpNp1 + (deviatoric_extension - edpNp1) * (1.0 - sqrt(2*psi0)/||t_d||);
+        //
+        // See the discussion in pull request #5046 and issue #5064
       }
 
       if (r > 0.0) fbondElastoPlastic = -((rkNew/r) * vfrac[j] * vfrac_scale);
@@ -561,9 +574,11 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
       double omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       double omega_minus = influence_function(delx0,dely0,delz0);
 
+      // the yield-norm trial force state must match the deviatoric force state
+      // prior to 6/26, (omega*theta/wvolume) form carried a spurious extra theta
       tdtrial = ( 15 * shearmodulus[itype][itype]) *
-           ((omega_plus * theta[i] / wvolume[i]) +
-             ( omega_minus * theta[j] / wvolume[j] ) ) * (ed - edPNP1);
+           ((omega_plus / wvolume[i]) +
+             ( omega_minus / wvolume[j] ) ) * (ed - edPNP1);
 
       norm += tdtrial * tdtrial * vfrac[j] * vfrac_scale;
     }

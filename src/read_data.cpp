@@ -90,7 +90,9 @@ bool ReadData::is_data_section(const std::string &keyword)
 }
 
 /* ---------------------------------------------------------------------- */
-ReadData::ReadData(LAMMPS *_lmp) : Command(_lmp), coeffarg(nullptr), lmap(nullptr)
+ReadData::ReadData(LAMMPS *_lmp) :
+    Command(_lmp), coeffarg(nullptr), lmap(nullptr), fix_index(nullptr), fix_header(nullptr),
+    fix_section(nullptr)
 {
   MPI_Comm_rank(world, &me);
   line = new char[MAXLINE];
@@ -696,7 +698,7 @@ void ReadData::command(int narg, char **arg)
       }
     }
 
-    // setup simulation box and paritioning in Domain and Comm classes
+    // setup simulation box and partioning in Domain and Comm classes
 
     domain->print_box("  ");
     domain->set_initial_box();

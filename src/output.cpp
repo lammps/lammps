@@ -385,7 +385,7 @@ void Output::write(bigint ntimestep)
   //   if wrap when timestep size varies frequently,
   //     then can do many unneeded addstep() --> inefficient
   //   hard to know if timestep varies, since run every could change it
-  //   can't remove an uneeded addstep from a compute, b/c don't know
+  //   can't remove an unneeded addstep from a compute, b/c don't know
   //     what other command may have added it
 
   int mode_dump_any = 0;  // any variable time or clearstep dump

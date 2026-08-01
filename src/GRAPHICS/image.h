@@ -24,6 +24,10 @@ namespace LAMMPS_NS {
 
 class Image : protected Pointers {
  public:
+  // indices of the colormaps managed by this class.  The order must match
+  // how DumpImage allocates and addresses them (amap/gmap/bmap).
+  enum { ATOM_MAP = 0, GRID_MAP = 1, BOND_MAP = 2 };
+
   int width, height;          // size of image
   double theta, phi;          // view image from theta,phi
   double xctr, yctr, zctr;    // center of image in user coords

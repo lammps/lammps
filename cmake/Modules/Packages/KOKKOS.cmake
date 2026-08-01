@@ -165,7 +165,9 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp)
+                       ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/tune_kokkos.cpp)
+
 
 # fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
 if(PKG_GRANULAR)

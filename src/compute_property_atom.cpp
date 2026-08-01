@@ -39,7 +39,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg), buf(nullptr), count_history_ptr(nullptr), 
+    most_recent_index_ptr(nullptr), history(nullptr)
 {
   if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
@@ -415,8 +416,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     } else if (std::strncmp(arg[iarg], "history[", 8) == 0) {
       historyflag = 1;
 
-      bool is_numeric = utils::strmatch(arg[iarg], "^history\\[\\d+\\]\\[\\d+\\]$");
-      bool is_asterisk = utils::strmatch(arg[iarg], "^history\\[\\*\\]\\[\\d+\\]$");
+      bool is_numeric = utils::strmatch(arg[iarg], R"(^history\[\d+\]\[\d+\]$)");
+      bool is_asterisk = utils::strmatch(arg[iarg], R"(^history\[\*\]\[\d+\]$)");
 
       if (is_numeric || is_asterisk) {
         ValueTokenizer hist(arg[iarg],"[]");

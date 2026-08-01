@@ -104,8 +104,8 @@ function executed, and finally the class instance is deleted.
  * \param  argv  argument vector  */
 
 Input::Input(LAMMPS *lmp, int argc, char **argv) :
-    Pointers(lmp), variable(nullptr), labelstr(nullptr), infiles(nullptr), inlines(nullptr),
-    command_map(nullptr)
+    Pointers(lmp), command(nullptr), variable(nullptr), labelstr(nullptr), infiles(nullptr),
+    inlines(nullptr), command_map(nullptr)
 {
   MPI_Comm_rank(world, &me);
 

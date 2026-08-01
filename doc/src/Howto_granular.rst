@@ -1,12 +1,32 @@
 Granular models
 ===============
 
-Granular systems are typically composed of spherical particles with a diameter,
-as opposed to point particles.  This means they have an angular
-velocity and torque can be imparted to them to cause them to rotate.
+Granular systems are composed of finite-size spherical or aspherical
+particles with explicit diameters, as opposed to point particles.
+This means they have an angular velocity and torque can be imparted
+to them to cause them to rotate.
 
-To run a simulation of a granular model, you will typically want to use
-the following commands:
+The various atom, pair, fix, and compute styles listed below on this
+page are useful for creating granular models with such particles.
+
+You can also define granular "surfaces" which are a collection of line
+segments (2d systems) or triangles (3d systems), which act as
+boundaries interacting with the particles.  This is particularly
+useful for defining a complex wall or boundary geometry.
+Particle/surface interactions can be specified with similar options as
+the pair styles listed below for particle/particle interactions.
+
+These doc pages describe how to define and use granular surfaces:
+
+* :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+* :doc:`fix surface/global <fix_surface_global>`
+* :doc:`fix surface/local <fix_surface_local>`
+* :doc:`pair_style surf/granular <pair_surf_granular>`
+
+----------
+
+To run a simulation of particles with a granular model, you will
+typically want to use the following commands:
 
 * :doc:`atom_style sphere <atom_style>`
 * :doc:`fix nve/sphere <fix_nve_sphere>`
@@ -21,7 +41,9 @@ This compute
 * :doc:`compute erotate/sphere <compute_erotate_sphere>`
 
 calculates rotational kinetic energy which can be :doc:`output with
-thermodynamic info <Howto_output>`.  The compute
+thermodynamic info <Howto_output>`.
+
+The compute
 
 * :doc:`compute fabric <compute_fabric>`
 
@@ -36,6 +58,18 @@ between interacting pairs of particles:
 * :doc:`pair_style gran/hertzian <pair_gran>`
 * :doc:`pair_style granular <pair_granular>`
 
+The first 3 are the older, original granular pair styles implemented
+in LAMMPS.  The 4th :doc:`pair_style gran/no_history <pair_gran>` is
+the newest and most flexible.  It's pairwise interaction models
+include options similar to the first 3 pair styles, plus many
+additional models.
+
+To add your own custom granular contact model to the :doc:`pair_style
+granular <pair_granular>` command, see the :doc:`Modifying granular
+sub-models <Modify_gran_sub_mod>` doc page.
+
+----------
+
 These commands implement fix options specific to granular systems:
 
 * :doc:`fix freeze <fix_freeze>`
@@ -45,7 +79,7 @@ These commands implement fix options specific to granular systems:
 * :doc:`fix wall/gran/region <fix_wall_gran_region>`
 
 The fix style *freeze* zeroes both the force and torque of frozen
-atoms, and should be used for granular system instead of the fix style
+atoms, and should be used for granular systems instead of the fix style
 *setforce*\ .
 
 To model heat conduction, one must add the temperature and heatflow
@@ -53,11 +87,11 @@ atom variables with:
 
 * :doc:`fix property/atom <fix_property_atom>`
 
-a temperature integration fix
+plus a temperature integration fix
 
 * :doc:`fix heat/flow <fix_heat_flow>`
 
-and a heat conduction option defined in both
+and a heat conduction option defined in both these commands:
 
 * :doc:`pair_style granular <pair_granular>`
 * :doc:`fix wall/gran <fix_wall_gran>`
@@ -74,6 +108,3 @@ computations between frozen atoms by using this command:
    will be the same as in 3d.  If you wish to model granular particles in
    2d as 2d discs, see the note on this topic on the :doc:`Howto 2d <Howto_2d>`
    doc page, where 2d simulations are discussed.
-
-To add custom granular contact models, see the
-:doc:`modifying granular sub-models page <Modify_gran_sub_mod>`.

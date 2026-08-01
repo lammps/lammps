@@ -70,12 +70,11 @@ struct PairExp6ParamDataType
 
 /* ---------------------------------------------------------------------- */
 
-PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp),
-                                      mol2param(nullptr),
-                                      nparams(0),
-                                      params(nullptr),
-                                      nspecies(0),
-                                      fractionalWeighting(true)
+PairExp6rx::PairExp6rx(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
+    buck1(nullptr), buck2(nullptr), offset(nullptr), mol2param(nullptr), nparams(0),
+    params(nullptr), nspecies(0), site1(nullptr), site2(nullptr), coeffAlpha(nullptr),
+    coeffEps(nullptr), coeffRm(nullptr), fractionalWeighting(true)
 {
   writedata = 1;
   nmax_exp6 = 0;
@@ -656,6 +655,25 @@ void PairExp6rx::coeff(int narg, char **arg)
         else
           isite2 = isp;
       }
+
+    // verify that a species named as site1 or site2 has an entry in the exp6 parameter file.
+    // otherwise the mixing weights would later be computed from unset parameters.
+
+    if (!isOneFluidApprox(isite1)) {
+      int iparam;
+      for (iparam = 0; iparam < nparams; ++iparam)
+        if (params[iparam].ispecies == isite1) break;
+      if (iparam == nparams)
+        error->all(FLERR, "Site1 species {} has no exp6 parameters in file {}", site1, arg[2]);
+    }
+
+    if (!isOneFluidApprox(isite2)) {
+      int iparam;
+      for (iparam = 0; iparam < nparams; ++iparam)
+        if (params[iparam].ispecies == isite2) break;
+      if (iparam == nparams)
+        error->all(FLERR, "Site2 species {} has no exp6 parameters in file {}", site2, arg[2]);
+    }
 
     for (int iparam = 0; iparam < nparams; ++iparam) {
       switch (params[iparam].potentialType) {

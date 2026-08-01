@@ -26,6 +26,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "tune_kokkos.h"
 #include "update.h"
 
 #include <cmath>
@@ -41,6 +42,7 @@ template<class DeviceType>
 PairLJCutCoulLongKokkos<DeviceType>::PairLJCutCoulLongKokkos(LAMMPS *lmp):PairLJCutCoulLong(lmp)
 {
   respa_enable = 0;
+  tuner = nullptr;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -62,6 +64,8 @@ PairLJCutCoulLongKokkos<DeviceType>::~PairLJCutCoulLongKokkos()
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
     memoryKK->destroy_kokkos(k_cut_ljsq,cut_ljsq);
   }
+
+  delete tuner;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -118,6 +122,10 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
   EV_FLOAT ev;
   if (ncoultablebits)
     ev = pair_compute<PairLJCutCoulLongKokkos<DeviceType>,CoulLongTable<1> >
@@ -152,6 +160,7 @@ void PairLJCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
+  copymode = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -431,6 +440,14 @@ void PairLJCutCoulLongKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    if (!force->newton_pair)
+      tuner = new TuneKokkos(lmp, TuneKokkos::PAIR, lmp->kokkos->autotuning,
+        2, "pair-lj-cut-coul-long");
+    else
+      error->warning(FLERR,"Autotuner for pair lj/cut/coul/long/kk is disabled with 'newton on'");
+  }
 }
 
 /* ----------------------------------------------------------------------

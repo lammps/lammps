@@ -131,8 +131,19 @@ void MSM::init()
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Kspace style requires atom attribute q");
 
-  if ((slabflag == 1) && (me == 0))
-    error->warning(FLERR, "Slab correction not needed for MSM");
+  // MSM is a true non-periodic method: it handles non-periodic boundaries
+  // natively via the 'boundary' command, so the EW3DC slab correction is
+  // meaningless for MSM and is ignored.  The reset must run on all MPI ranks
+  // (not just rank 0): the shared KSpace::x2lamdaT() scales the z component by
+  // slab_volfactor when slabflag == 1, so a rank-dependent slab_volfactor would
+  // corrupt the parallel triclinic reciprocal-space transform.
+
+  if (slabflag == 1) {
+    if (me == 0)
+      error->warning(FLERR, "Slab correction not needed for MSM and will be ignored");
+    slabflag = 0;
+    slab_volfactor = 1.0;
+  }
 
   if ((order < 4) || (order > 10) || (order%2 != 0))
     error->all(FLERR, Error::NOLASTLINE, "MSM order must be 4, 6, 8, or 10");

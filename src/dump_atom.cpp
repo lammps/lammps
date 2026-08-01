@@ -32,7 +32,8 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr)
+  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr), convert_choice(nullptr),
+  write_choice(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump atom command");
 

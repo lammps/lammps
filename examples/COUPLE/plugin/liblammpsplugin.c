@@ -49,7 +49,7 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   if (lib == NULL) return NULL;
 
 #ifdef _WIN32
-  handle = (void *) LoadLibrary(lib);
+  handle = (void *) LoadLibraryA(lib);
 #else
   handle = dlopen(lib,RTLD_NOW|RTLD_GLOBAL);
 #endif
@@ -200,8 +200,11 @@ liblammpsplugin_t *liblammpsplugin_load(const char *lib)
   ADDSYM(is_running);
   ADDSYM(force_timeout);
 
-  // symbol not present
-  if (!lmp->config_has_exceptions) return NULL;
+  // symbol not present: release the handle and storage before bailing out
+  if (!lmp->config_has_exceptions) {
+    liblammpsplugin_release(lmp);
+    return NULL;
+  }
 
   lmp->has_exceptions = lmp->config_has_exceptions();
   if (lmp->has_exceptions) {

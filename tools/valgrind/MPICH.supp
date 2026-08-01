@@ -358,3 +358,42 @@
    fun:PMPI_Init
    ...
 }
+
+# ---------------------------------------------------------------------------
+# Additional MPICH 4.x / libfabric (OFI/psmx3) and Hydra process-manager
+# false positives seen during the ctest memcheck runs (issue #4537).  All are
+# in MPI/PMI startup, teardown, or the Hydra process-manager event loop and
+# are outside of LAMMPS.  Deliberately generic (anchored on a single stable
+# frame, wildcard for the rest) so they keep matching across MPICH/libfabric
+# updates rather than needing to be re-derived each time.
+# ---------------------------------------------------------------------------
+{
+   MPICH_OFI_sendto_uninitialised
+   Memcheck:Param
+   socketcall.sendto(msg)
+   fun:send
+   ...
+}
+{
+   MPICH_MPI_Init_leak
+   Memcheck:Leak
+   ...
+   fun:PMPI_Init
+   ...
+}
+{
+   MPICH_Hydra_pmi_cond_uninitialised
+   Memcheck:Cond
+   ...
+   fun:HYDT_dmxu_poll_wait_for_event
+   ...
+}
+{
+   MPICH_Hydra_pmi_write_uninitialised
+   Memcheck:Param
+   write(buf)
+   fun:write
+   ...
+   fun:HYDT_dmxu_poll_wait_for_event
+   ...
+}

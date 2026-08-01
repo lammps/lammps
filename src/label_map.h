@@ -339,7 +339,7 @@ Currently used when combining data from multiple sources with
    *
    * the string buffer is allocated with new and must be freed by the calling code with delete[]
    *
-   * \param fp  FILE pointer of the openend file
+   * \param fp  FILE pointer of the opened file
    * \return pointer to the allocated string buffer */
   char *read_string(FILE *fp);
 

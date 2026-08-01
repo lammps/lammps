@@ -434,10 +434,18 @@ void VerletKokkos::run(int n)
       }
     }
 
+    // when a non-KOKKOS style runs inside a KOKKOS run, enable auto_sync for
+    // the duration of its compute so that any sync()/modified() it triggers
+    // (e.g. via the DomainKokkos x2lamda/lamda2x overrides) writes changes
+    // through to the legacy host arrays the style reads and writes
+
     if (pair_compute_flag) {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->pair->kokkosable) lmp->kokkos->auto_sync = 1;
       atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|datamask_exclude));
       force->pair->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|datamask_exclude));
       timer->stamp(Timer::PAIR);
@@ -447,7 +455,14 @@ void VerletKokkos::run(int n)
       if (pair_compute_flag && force->pair->datamask_modify != datamask_exclude)
         Kokkos::fence();
       atomKK->sync_pinned(HostKK,~(~datamask_read_host|datamask_exclude),1);
-      if (pair_compute_flag && (force->pair->execution_space != HostKK &&
+      // zero the host-side force buffer before the host styles accumulate into
+      // it, so the later device/host force merge does not re-add stale values.
+      // skip this only when the pair style itself runs on the host, since then
+      // the pair force we want to merge already lives in this buffer.  the old
+      // guard required pair_compute_flag, so with the pair disabled (e.g.
+      // "pair_modify compute no") but host-side bonded styles still present the
+      // buffer was left stale and its contents were re-added every step.
+      if (!pair_compute_flag || (force->pair->execution_space != HostKK &&
           force->pair->execution_space != Host)) {
         Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
         atomKK->k_f.modify_hostkk_legacy();
@@ -456,31 +471,46 @@ void VerletKokkos::run(int n)
 
     if (atomKK->molecular) {
       if (force->bond) {
+        int prev_auto_sync = lmp->kokkos->auto_sync;
+        if (!force->bond->kokkosable) lmp->kokkos->auto_sync = 1;
         atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|datamask_exclude));
         force->bond->compute(eflag,vflag);
+        lmp->kokkos->auto_sync = prev_auto_sync;
         atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|datamask_exclude));
       }
       if (force->angle) {
+        int prev_auto_sync = lmp->kokkos->auto_sync;
+        if (!force->angle->kokkosable) lmp->kokkos->auto_sync = 1;
         atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|datamask_exclude));
         force->angle->compute(eflag,vflag);
+        lmp->kokkos->auto_sync = prev_auto_sync;
         atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|datamask_exclude));
       }
       if (force->dihedral) {
+        int prev_auto_sync = lmp->kokkos->auto_sync;
+        if (!force->dihedral->kokkosable) lmp->kokkos->auto_sync = 1;
         atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|datamask_exclude));
         force->dihedral->compute(eflag,vflag);
+        lmp->kokkos->auto_sync = prev_auto_sync;
         atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|datamask_exclude));
       }
       if (force->improper) {
+        int prev_auto_sync = lmp->kokkos->auto_sync;
+        if (!force->improper->kokkosable) lmp->kokkos->auto_sync = 1;
         atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|datamask_exclude));
         force->improper->compute(eflag,vflag);
+        lmp->kokkos->auto_sync = prev_auto_sync;
         atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|datamask_exclude));
       }
       timer->stamp(Timer::BOND);
     }
 
     if (kspace_compute_flag) {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
       atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|datamask_exclude));
       force->kspace->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
       atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|datamask_exclude));
       timer->stamp(Timer::KSPACE);
     }

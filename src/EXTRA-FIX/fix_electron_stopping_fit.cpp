@@ -131,6 +131,9 @@ void FixElectronStoppingFit::init()
   f_dot_v_prior = 0.;
   f_dot_v_current = 0.;
   last_step = update->ntimestep;
+
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 };
 
 // ---------------------------------------------------------------------

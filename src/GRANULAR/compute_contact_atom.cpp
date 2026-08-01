@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeContactAtom::ComputeContactAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), group2(nullptr), contact(nullptr)
+    Compute(lmp, narg, arg), group2(nullptr), list(nullptr), contact(nullptr)
 {
   if ((narg != 3) && (narg != 4)) error->all(FLERR, "Illegal compute contact/atom command");
 

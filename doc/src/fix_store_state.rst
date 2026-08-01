@@ -90,7 +90,7 @@ Examples
 Description
 """""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    The *history* keyword was added.
 

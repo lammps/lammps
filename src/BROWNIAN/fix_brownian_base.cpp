@@ -33,12 +33,16 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+// size of the Marsaglia RNG state vector (see RanMars::get_state())
+static constexpr int PRNGSIZE = 98 + 2 + 3;
+
 /* ---------------------------------------------------------------------- */
 FixBrownianBase::FixBrownianBase(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), gamma_t_inv(nullptr), gamma_r_inv(nullptr), gamma_t_invsqrt(nullptr),
     gamma_r_invsqrt(nullptr), dipole_body(nullptr), rng(nullptr)
 {
   time_integrate = 1;
+  restart_global = 1;
 
   noise_flag = 1;
   gaussian_noise_flag = 0;
@@ -265,4 +269,44 @@ void FixBrownianBase::reset_dt()
   dt = update->dt;
   sqrtdt = sqrt(dt);
   g2 *= sqrtdt_old / sqrtdt;
+}
+
+/* ----------------------------------------------------------------------
+   pack the per-processor RNG state into the restart file so that a run
+   continued from a restart reproduces the original stochastic trajectory
+------------------------------------------------------------------------- */
+
+void FixBrownianBase::write_restart(FILE *fp)
+{
+  int nsize = PRNGSIZE * comm->nprocs + 1;    // pRNG state per proc + nprocs
+  auto *list = new double[nsize];
+
+  if (comm->me == 0) list[0] = comm->nprocs;
+
+  double state[PRNGSIZE];
+  rng->get_state(state);
+  MPI_Gather(state, PRNGSIZE, MPI_DOUBLE, list + 1, PRNGSIZE, MPI_DOUBLE, 0, world);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), nsize, fp);
+  }
+  delete[] list;
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restore the RNG state
+------------------------------------------------------------------------- */
+
+void FixBrownianBase::restart(char *buf)
+{
+  auto *list = (double *) buf;
+
+  int nprocs = (int) list[0];
+  if (nprocs != comm->nprocs) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Different number of procs. Cannot restore RNG state.");
+  } else
+    rng->set_state(list + 1 + comm->me * PRNGSIZE);
 }

@@ -185,6 +185,7 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
       if (!domain->get_region_by_id(arg[iarg + 1]))
         error->all(FLERR, iarg + 1, "Region {} for compute chunk/atom does not exist",
                    arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       regionflag = 1;
       iarg += 2;

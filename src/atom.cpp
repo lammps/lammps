@@ -325,8 +325,7 @@ Atom::~Atom()
   }
   for (int i = 0; i < ndvector; i++) {
     delete[] dvname[i];
-    if (dvector) // (needed for Kokkos)
-      memory->destroy(dvector[i]);
+    memory->destroy(dvector[i]);
   }
   for (int i = 0; i < niarray; i++) {
     delete[] ianame[i];

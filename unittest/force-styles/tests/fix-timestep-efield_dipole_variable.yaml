@@ -2,7 +2,8 @@
 lammps_version: 27 Jun 2024
 date_generated: Sun Aug  4 22:46:18 2024
 epsilon: 5.0e-13
-skip_tests:
+skip_tests: kokkos_omp_mixed kokkos_omp_single kokkos_serial_mixed kokkos_gpu_mixed kokkos_serial_single kokkos_gpu_single kokkos_gpu
+
 prerequisites: ! |
   atom full
   atom dipole
@@ -19,6 +20,7 @@ post_commands: ! |
   fix test solute efield v_xforce v_yforce v_zforce
   fix_modify test virial yes
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

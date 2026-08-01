@@ -384,7 +384,7 @@ class Atom : protected Pointers {
   virtual int add_custom(const char *, int, int, int ghost = 0);
   virtual void remove_custom(int, int, int);
 
-  void *extract(const char *);
+  virtual void *extract(const char *);
   int extract_datatype(const char *);
   int extract_size(const char *, int);
 

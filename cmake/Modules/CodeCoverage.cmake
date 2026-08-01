@@ -46,7 +46,7 @@ if(ENABLE_COVERAGE)
                           */*/*/*/*.gcda */*/*/*/*/*.gcda */*/*/*/*/*/*.gcda
                           */*/*/*/*/*/*/*.gcda */*/*/*/*/*/*/*/*.gcda
                           */*/*/*/*/*/*/*/*/*.gcda */*/*/*/*/*/*/*/*/*/*.gcda
-        WORKIND_DIRECTORY ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Deleting coverage data files..."
     )
     add_dependencies(reset_coverage clean_coverage_html)

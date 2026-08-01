@@ -43,7 +43,17 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) : Pair(lmp), fix_lrf(nullptr)
+PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) :
+    Pair(lmp), epsilon_bkbk(nullptr), sigma_bkbk(nullptr), cut_bkbk_ast(nullptr),
+    cutsq_bkbk_ast(nullptr), lj1_bkbk(nullptr), lj2_bkbk(nullptr), b_bkbk(nullptr),
+    cut_bkbk_c(nullptr), cutsq_bkbk_c(nullptr), epsilon_bkbs(nullptr), sigma_bkbs(nullptr),
+    cut_bkbs_ast(nullptr), cutsq_bkbs_ast(nullptr), lj1_bkbs(nullptr), lj2_bkbs(nullptr),
+    b_bkbs(nullptr), cut_bkbs_c(nullptr), cutsq_bkbs_c(nullptr), epsilon_bsbs(nullptr),
+    sigma_bsbs(nullptr), cut_bsbs_ast(nullptr), cutsq_bsbs_ast(nullptr), lj1_bsbs(nullptr),
+    lj2_bsbs(nullptr), b_bsbs(nullptr), cut_bsbs_c(nullptr), cutsq_bsbs_c(nullptr),
+    sigma4_bsbs(nullptr), cut4_bsbs_ast(nullptr), cut4sq_bsbs_ast(nullptr), lj14_bsbs(nullptr),
+    lj24_bsbs(nullptr), b4_bsbs(nullptr), cut4_bsbs_c(nullptr), cut4sq_bsbs_c(nullptr),
+    nxyz_xtrct(nullptr), fix_lrf(nullptr)
 {
   single_enable = 0;
   writedata = 0;

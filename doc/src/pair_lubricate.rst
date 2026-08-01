@@ -114,7 +114,7 @@ as long as *flagVF* is set to 1 (default).
 Style *lubricate* requires monodisperse spherical particles; style
 *lubricate/poly* allows for polydisperse spherical particles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 The near-field resistance functions used by *lubricate/poly* for
 particles of unequal radii were corrected so that the pairwise

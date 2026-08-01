@@ -47,7 +47,7 @@ const std::vector<std::string> AtomVec::default_data_vel = {};
 
 /* ---------------------------------------------------------------------- */
 
-AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
+AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp), onemols(nullptr), h_rate(nullptr)
 {
   nmax = 0;
   ngrow = 0;
@@ -2459,6 +2459,7 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
+  delete[] threads;
   if (ngrow)
     threads = new bool[ngrow];
   else
@@ -2599,6 +2600,23 @@ void AtomVec::init_method(int nfield, Method *method)
       method->plength[i] = field.address_length;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   Set pointers to default atom arrays
+     used by hybrid style to set substyle pointers
+------------------------------------------------------------------------- */
+
+void AtomVec::grow_default_pointers(tagint *tag2, int *type2, int *mask2, imageint *image2,
+                                    double **x2, double **v2, double **f2)
+{
+  tag = tag2;
+  type = type2;
+  mask = mask2;
+  image = image2;
+  x = x2;
+  v = v2;
+  f = f2;
 }
 
 /* ----------------------------------------------------------------------

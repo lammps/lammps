@@ -163,6 +163,9 @@ TEST_F(AdvancedUtils, expand_args)
     args[8]            = utils::strdup("c_gofr[*][*]");
 
     // disable use of input->command and input->arg which point to the last run command right now
+    // must be restored afterwards, or Input cannot free its argument list
+    char *saved_command = lmp->input->command;
+    char **saved_arg    = lmp->input->arg;
     lmp->input->command = nullptr;
     lmp->input->arg     = nullptr;
 
@@ -253,6 +256,9 @@ TEST_F(AdvancedUtils, expand_args)
     for (int i = 0; i < oarg; ++i)
         delete[] args[i];
     delete[] args;
+
+    lmp->input->command = saved_command;
+    lmp->input->arg     = saved_arg;
 }
 
 TEST_F(AdvancedUtils, check_packages_for_style)

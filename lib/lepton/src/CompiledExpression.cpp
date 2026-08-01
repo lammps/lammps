@@ -70,6 +70,13 @@ CompiledExpression::CompiledExpression(const CompiledExpression& expression) : j
 }
 
 CompiledExpression& CompiledExpression::operator=(const CompiledExpression& expression) {
+    if (this == &expression)
+        return *this;
+    // free any operations held from a previous assignment before overwriting
+    // the pointers with fresh clones below (the destructor deletes them too)
+    for (int i = 0; i < (int) operation.size(); i++)
+        if (operation[i] != NULL)
+            delete operation[i];
     arguments = expression.arguments;
     target = expression.target;
     variableIndices = expression.variableIndices;

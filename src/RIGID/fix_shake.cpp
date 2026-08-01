@@ -77,7 +77,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   molecular = atom->molecular;
   if (molecular == Atom::ATOMIC)
-    error->all(FLERR, "Cannot use fix {} with non-molecular system", style);
+    error->all(FLERR, Error::COMMAND, "Cannot use fix {} with non-molecular system", style);
 
   // do not store constraint forces by default
 
@@ -158,7 +158,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->nbondtypes)
-        error->all(FLERR,"Invalid bond type {} index for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid bond type {} index for {}", arg[next], mystyle);
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
@@ -166,7 +166,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->nangletypes)
-        error->all(FLERR,"Invalid angle type {} for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid angle type {} for {}", arg[next], mystyle);
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
@@ -174,17 +174,18 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->ntypes)
-        error->all(FLERR,"Invalid atom type {} for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid atom type {} for {}", arg[next], mystyle);
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
       double massone = utils::numeric(FLERR, arg[next], false, lmp);
-      if (massone == 0.0) error->all(FLERR,"Invalid atom mass {} for {}", arg[next], mystyle);
+      if (massone == 0.0)
+        error->all(FLERR, next, "Invalid atom mass {} for {}", arg[next], mystyle);
       if (nmass == atom->ntypes)
-        error->all(FLERR,"Too many masses for {}", mystyle);
+        error->all(FLERR, "Too many masses for {}", mystyle);
       mass_list[nmass++] = massone;
 
-    } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[next]);
+    } else error->all(FLERR, next, "Unknown {} command option: {}", mystyle, arg[next]);
     next++;
   }
 
@@ -199,7 +200,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" mol",error);
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule template ID {} for {} does not exist", mystyle, arg[iarg+1]);
+        error->all(FLERR, iarg+1, "Molecule template ID {} for {} does not exist", mystyle, arg[iarg+1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR,"Molecule template for {} has multiple molecules", mystyle);
       onemols = &atom->molecules[imol];
@@ -208,7 +209,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"kbond") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" kbond",error);
       kbond = utils::numeric(FLERR, arg[iarg+1], false, lmp);
-      if (kbond < 0) error->all(FLERR,"Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
+      if (kbond < 0)
+        error->all(FLERR, iarg+1, "Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
       iarg += 2;
     } else if (strcmp(arg[iarg],"store") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" store",error);
@@ -223,7 +225,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
         peratom_freq = 0;
       }
       iarg += 2;
-    } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[iarg]);
+    } else error->all(FLERR, iarg, "Unknown {} command option: {}", mystyle, arg[iarg]);
   }
 
   // error check for Molecule template
@@ -2994,20 +2996,62 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (comm->me == 0) {
-    const int width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+    // when a labelmap is present, report each type by its symbolic label
+    // (matching label-based input), with a numeric fallback for unlabeled types
+    const bool uselabel = (atom->labelmapflag != 0);
+    auto blabel = [&](int i) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(i, Atom::BOND);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(i);
+    };
+    auto alabel = [&](int i) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(i, Atom::ANGLE);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(i);
+    };
+
+    // type-column width: longest label (or type number) actually printed,
+    // shared by the Bond: and Angle: rows so the columns stay aligned
+    int width;
+    if (uselabel) {
+      width = 1;
+      for (int i = 1; i < nb; i++)
+        if (b_count_all[i]) { const int w = (int) blabel(i).size(); if (w > width) width = w; }
+      for (int i = 1; i < na; i++)
+        if (a_count_all[i]) { const int w = (int) alabel(i).size(); if (w > width) width = w; }
+    } else {
+      width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+    }
+
     auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
                             utils::uppercase(style), update->ntimestep);
     for (int i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];
-      if (bcnt)
-        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+      if (bcnt) {
+        if (uselabel) {
+          mesg += fmt::format("Bond:  {:<{}}   {:<9.6} {:<11.6} {:>8d}\n", blabel(i), width,
+                              b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+        } else {
+          mesg += fmt::format("Bond:  {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", i, width,
+                              b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+        }
+      }
     }
     for (int i = 1; i < na; i++) {
       const auto acnt = a_count_all[i];
-      if (acnt)
-        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+      if (acnt) {
+        if (uselabel) {
+          mesg += fmt::format("Angle: {:<{}}   {:<9.6} {:<11.6} {:>8d}\n",alabel(i),width,
+                              a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+        } else {
+          mesg += fmt::format("Angle: {:>{}}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                              a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+        }
+      }
     }
     utils::logmesg(lmp,mesg);
   }

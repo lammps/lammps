@@ -53,11 +53,13 @@ enum{ISO,ANISO,TRICLINIC};
  ---------------------------------------------------------------------- */
 
 FixTGNHDrude::FixTGNHDrude(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), irregular(nullptr), id_temp(nullptr), id_press(nullptr), etamol(nullptr),
+    Fix(lmp, narg, arg), irregular(nullptr), step_respa(nullptr), id_temp(nullptr),
+    id_press(nullptr), temperature(nullptr), pressure(nullptr), etamol(nullptr),
     etamol_dot(nullptr), etamol_dotdot(nullptr), etamol_mass(nullptr), etaint(nullptr),
     etaint_dot(nullptr), etaint_dotdot(nullptr), etaint_mass(nullptr), etadrude(nullptr),
     etadrude_dot(nullptr), etadrude_dotdot(nullptr), etadrude_mass(nullptr), etap(nullptr),
-    etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr)
+    etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr), mass_mol(nullptr), v_mol(nullptr),
+    v_mol_tmp(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix {} command", style);
 

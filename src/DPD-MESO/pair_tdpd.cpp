@@ -54,7 +54,9 @@ static const char cite_pair_tdpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairTDPD::PairTDPD(LAMMPS *lmp) : Pair(lmp)
+PairTDPD::PairTDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cutcc(nullptr), a0(nullptr), gamma(nullptr), sigma(nullptr),
+    power(nullptr), kappa(nullptr), epsilon(nullptr), powercc(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_tdpd);
   cc_species = atom->cc_species;

@@ -29,15 +29,16 @@ Description
 
 The *spherical* dihedral style uses the potential:
 
-.. image:: JPG/dihedral_spherical_angles.jpg
-   :align: center
-
 .. math::
 
    E(\phi,\theta_1,\theta_2) & = \sum_{i=1}^N C_i\ \Phi_i(\phi)\ \Theta_{1i}(\theta_1)\ \Theta_{2i}(\theta_2) \\
    \Phi_{i}(\phi)            & = u_i - \mathrm{cos}((\phi   - a_i)K_i) \\
    \Theta_{1i}(\theta_1)     & = v_i - \mathrm{cos}((\theta_1-b_i)L_i) \\
    \Theta_{2i}(\theta_2)     & = w_i - \mathrm{cos}((\theta_2-c_i)M_i)
+
+.. image:: JPG/dihedral_spherical_angles.png
+   :width: 50%
+   :align: center
 
 For this dihedral style, the energy can be any function that combines the
 4-body dihedral-angle (:math:`\phi`) and the two 3-body bond-angles

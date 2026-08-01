@@ -457,7 +457,8 @@ void FixLambdaLACSPAPIP::pre_force_dyn_pairs()
         pairs_value[n_pairs] = delx * delx + dely * dely + delz * delz;
         pairs_j[n_pairs] = jj;
         pairs_k[n_pairs] = kk;
-        pairs_index[n_pairs++] = n_pairs;
+        pairs_index[n_pairs] = n_pairs;
+        n_pairs++;
       }
     }
 

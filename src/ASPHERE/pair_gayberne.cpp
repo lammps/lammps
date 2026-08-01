@@ -47,7 +47,10 @@ static const char cite_pair_gayberne[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
+PairGayBerne::PairGayBerne(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), shape1(nullptr), shape2(nullptr), lshape(nullptr), well(nullptr),
+    epsilon(nullptr), sigma(nullptr), form(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), offset(nullptr), setwell(nullptr), avec(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_gayberne);
 

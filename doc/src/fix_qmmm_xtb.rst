@@ -117,6 +117,15 @@ combined style, the two reference evaluations have identical Lennard-Jones
 terms, so those terms cancel from the QM/MM correction and the original MM
 Lennard-Jones force and energy are preserved.
 
+When the QM and MM regions use disjoint atom types, a Coulomb-only sub-style
+can instead be assigned to MM-MM type pairs only.  For example, if types 1-5
+are QM and types 6-7 are MM, use
+``pair_coeff 6*7 6*7 tip4p/long`` and assign a separate ``lj/cut`` sub-style
+to the required Lennard-Jones pairs.  The fix verifies the type partition and
+the ``pair_style hybrid/overlay`` mappings before omitting the two pair
+reference evaluations.  A type shared by the QM and MM regions or any other
+partial Coulomb mapping is rejected.
+
 For implicit TIP4P, the oxygen charge is embedded at the virtual M site and
 the returned QM/MM force is redistributed to O/H/H with the same geometry
 weights as the TIP4P pair and KSpace styles.  An implicit TIP4P molecule must
@@ -131,8 +140,8 @@ QM/MM boundary and has no link atoms.  QM/MM pairs must not have
 ``special_bonds`` Coulomb scaling, since xTB's explicit external-charge
 embedding does not apply LAMMPS topology scaling.
 
-Restart, fix_modify, output, run start/stop
-"""""""""""""""""""""""""""""""""""""""""""
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information is written to binary restart files.  Reissue the fix
 command after :doc:`read_restart <read_restart>`; xTB starts a new SCC
@@ -146,9 +155,6 @@ This fix computes a global scalar, accessible as ``f_ID``, containing
 the extensive QM/MM energy correction.  It also updates ``q`` for QM
 atoms with the converged Mulliken charges.  No per-atom energy, per-atom
 virial, global vector, or per-atom array is provided.
-
-Minimization
-""""""""""""
 
 Fixed-box atom-coordinate minimization is supported.  The xTB SCC solve,
 MM potential projection, and periodic corrections are recomputed at every

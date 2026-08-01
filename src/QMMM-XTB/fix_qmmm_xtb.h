@@ -48,6 +48,8 @@ class FixQMMMXTB : public Fix {
   void unpack_forward_comm(int, int, double *) override;
 
  private:
+  enum class PairCoulombMapping { FULL, MM_ONLY, INVALID };
+
   struct MMPoint {
     tagint tag;
     int atomic_number;
@@ -62,6 +64,12 @@ class FixQMMMXTB : public Fix {
   // subtraction.  It may also contain LJ terms, which cancel between the two
   // reference evaluations and therefore remain unchanged in the final force.
   class Pair *pair_long;
+  // True when hybrid/overlay pair_coeff mappings already restrict the
+  // Coulomb-only sub-style to exactly the MM-MM type pairs.
+  bool pair_coulomb_mm_only;
+  // TIP4P parent atoms can only be checked after communication has acquired
+  // the bonded H ghosts using the enlarged TIP4P communication cutoff.
+  bool tip4p_qm_group_validated;
   std::vector<int> elements;
   int xtb_method, qm_charge, qm_uhf, maxiter;
   double cutoff, accuracy, electronic_temperature, mm_hardness;
@@ -94,6 +102,7 @@ class FixQMMMXTB : public Fix {
   int get_charge_site(int, double *, int *, double *);
   void compute_group_potential(double *, int, int, bool);
   void validate_tip4p_qm_group();
+  PairCoulombMapping classify_pair_coulomb_mapping(char *);
   void set_qm_charges(double);
   void restore_qm_charges();
   void save_entry_forces();

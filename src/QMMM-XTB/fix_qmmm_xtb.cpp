@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "pair.h"
+#include "pair_hybrid_overlay.h"
 #include "pppm_tip4p_xtb.h"
 #include "pppm_xtb.h"
 #include "qmmm_xtb_adapter.h"
@@ -69,7 +70,8 @@ int atomic_number(const char *symbol)
 }    // namespace
 
 FixQMMMXTB::FixQMMMXTB(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), pair_long(nullptr), xtb_method(2), qm_charge(0), qm_uhf(0), maxiter(250),
+    Fix(lmp, narg, arg), pair_long(nullptr), pair_coulomb_mm_only(false),
+    tip4p_qm_group_validated(false), xtb_method(2), qm_charge(0), qm_uhf(0), maxiter(250),
     cutoff(-1.0), accuracy(1.0e-3), electronic_temperature(300.0), mm_hardness(0.0),
     image_alpha(-1.0), image_kmax({8, 8, 8}), image_ksqmax(64), nqm(0), pair_mm_energy(0.0),
     pair_full_energy(0.0), mm_kspace_energy(0.0), qm_energy(0.0), energy_correction(0.0),
@@ -186,6 +188,51 @@ FixQMMMXTB::~FixQMMMXTB()
   if (comm->me == 0 && adapter_active) lammps_qmmm_xtb_destroy();
 }
 
+FixQMMMXTB::PairCoulombMapping FixQMMMXTB::classify_pair_coulomb_mapping(char *substyle)
+{
+  auto *hybrid = dynamic_cast<PairHybridOverlay *>(force->pair);
+  if (!hybrid) return PairCoulombMapping::FULL;
+
+  std::vector<int> local_qm_type(atom->ntypes + 1, 0);
+  std::vector<int> local_mm_type(atom->ntypes + 1, 0);
+  for (int i = 0; i < atom->nlocal; ++i) {
+    if (atom->mask[i] & groupbit)
+      local_qm_type[atom->type[i]] = 1;
+    else
+      local_mm_type[atom->type[i]] = 1;
+  }
+
+  std::vector<int> qm_type(atom->ntypes + 1, 0);
+  std::vector<int> mm_type(atom->ntypes + 1, 0);
+  MPI_Allreduce(local_qm_type.data(), qm_type.data(), atom->ntypes + 1, MPI_INT, MPI_MAX, world);
+  MPI_Allreduce(local_mm_type.data(), mm_type.data(), atom->ntypes + 1, MPI_INT, MPI_MAX, world);
+
+  bool full_mapping = true;
+  bool mm_only_mapping = true;
+  for (int itype = 1; itype <= atom->ntypes; ++itype) {
+    if (qm_type[itype] && mm_type[itype]) mm_only_mapping = false;
+    if (!qm_type[itype] && !mm_type[itype]) continue;
+    for (int jtype = itype; jtype <= atom->ntypes; ++jtype) {
+      if (!qm_type[jtype] && !mm_type[jtype]) continue;
+      const bool mapped = hybrid->check_ijtype(itype, jtype, substyle);
+      full_mapping &= mapped;
+      const bool should_map_mm_only = mm_type[itype] && mm_type[jtype];
+      mm_only_mapping &= mapped == should_map_mm_only;
+    }
+  }
+
+  if (full_mapping) return PairCoulombMapping::FULL;
+
+  // Type-pair routing can replace the reference subtraction only for a
+  // Coulomb-only sub-style.  Combined LJ/Coulomb styles would also change
+  // the retained Lennard-Jones interactions when their mappings are pruned.
+  const bool coulomb_only_style = std::strcmp(substyle, "coul/long") == 0 ||
+      std::strcmp(substyle, "coul/long/omp") == 0 || std::strcmp(substyle, "tip4p/long") == 0 ||
+      std::strcmp(substyle, "tip4p/long/omp") == 0;
+  if (coulomb_only_style && mm_only_mapping) return PairCoulombMapping::MM_ONLY;
+  return PairCoulombMapping::INVALID;
+}
+
 int FixQMMMXTB::setmask()
 {
   int mask = 0;
@@ -198,6 +245,9 @@ int FixQMMMXTB::setmask()
 
 void FixQMMMXTB::init()
 {
+  pair_coulomb_mm_only = false;
+  tip4p_qm_group_validated = false;
+
   if (modify->get_fix_by_style("^qmmm/xtb$").size() > 1)
     error->all(FLERR, "Only one instance of fix qmmm/xtb is supported");
   if (update->integrate_style && utils::strmatch(update->integrate_style, "^respa"))
@@ -246,6 +296,11 @@ void FixQMMMXTB::init()
   }
   if (!pair_long)
     error->all(FLERR, "Fix qmmm/xtb requires a compatible long-range Coulomb pair style");
+  // PairHybrid::check_ijtype() uses the sub-style keyword as its public lookup
+  // interface.  Obtain the canonical keyword from the matched Pair instance.
+  char *pair_long_style = force->pair_match_ptr(pair_long);
+  if (!pair_long_style)
+    error->all(FLERR, "Fix qmmm/xtb could not identify the long-range Coulomb pair style");
   int cut_dim = 0;
   auto *coulomb_cutoff = static_cast<double *>(pair_long->extract("cut_coul", cut_dim));
   if (!coulomb_cutoff || std::fabs(*coulomb_cutoff - cutoff) > 1.0e-8 * std::max(1.0, cutoff))
@@ -253,7 +308,18 @@ void FixQMMMXTB::init()
 
   gather_qm_atoms(true);
   if (nqm == 0) error->all(FLERR, "Fix qmmm/xtb QM group is empty");
-  validate_tip4p_qm_group();
+
+  const PairCoulombMapping pair_mapping = classify_pair_coulomb_mapping(pair_long_style);
+  if (pair_mapping == PairCoulombMapping::INVALID)
+    error->all(FLERR,
+               "Fix qmmm/xtb Coulomb pair sub-style must cover all populated type pairs or "
+               "exactly the MM-MM type pairs");
+  pair_coulomb_mm_only = pair_mapping == PairCoulombMapping::MM_ONLY;
+  if (pair_coulomb_mm_only && comm->me == 0)
+    utils::logmesg(lmp,
+                   "Fix qmmm/xtb detected an MM-only {} type-pair mapping; skipping the "
+                   "MM/full pair reference evaluations\n",
+                   pair_long_style);
 
   int status = 0;
   if (comm->me == 0) {
@@ -275,6 +341,12 @@ void FixQMMMXTB::setup_pre_force(int vflag)
   // here.  The immediately following regular setup call is harmless and keeps
   // the normal KSpace lifecycle intact.
   force->kspace->setup();
+  // Fix::init() runs before the first border communication.  Defer this check
+  // until TIP4P's enlarged communication cutoff has acquired bonded H ghosts.
+  if (!tip4p_qm_group_validated) {
+    validate_tip4p_qm_group();
+    tip4p_qm_group_validated = true;
+  }
   pre_force(vflag);
 }
 
@@ -754,7 +826,7 @@ void FixQMMMXTB::pre_force(int vflag)
   // used both for the fixed SCC potential and for energy de-duplication.
   set_qm_charges(0.0);
   gather_mm_points();
-  capture_pair(pair_mm_force, pair_mm_energy, pair_mm_virial);
+  if (!pair_coulomb_mm_only) capture_pair(pair_mm_force, pair_mm_energy, pair_mm_virial);
 
   std::vector<double> mm_shift;
   compute_mm_shift(mm_shift);
@@ -789,7 +861,7 @@ void FixQMMMXTB::pre_force(int vflag)
 
   run_xtb(mm_shift, image_response);
   restore_qm_charges();
-  capture_pair(pair_full_force, pair_full_energy, pair_full_virial);
+  if (!pair_coulomb_mm_only) capture_pair(pair_full_force, pair_full_energy, pair_full_virial);
 
   // The final production PME keeps the cross QM-MM reciprocal force, but the
   // QM-QM reciprocal force is already represented by the SCC image term.
@@ -810,8 +882,8 @@ void FixQMMMXTB::pre_force(int vflag)
 
 void FixQMMMXTB::post_force(int vflag)
 {
-  energy_correction =
-      qm_energy + pair_mm_energy - pair_full_energy + mm_kspace_energy - force->kspace->energy;
+  energy_correction = qm_energy + mm_kspace_energy - force->kspace->energy;
+  if (!pair_coulomb_mm_only) energy_correction += pair_mm_energy - pair_full_energy;
 
   std::vector<double> xtb_local(static_cast<std::size_t>(3) * atom->nlocal, 0.0);
   for (int iqm = 0; iqm < nqm; ++iqm) {
@@ -834,14 +906,16 @@ void FixQMMMXTB::post_force(int vflag)
 
   for (int i = 0; i < atom->nlocal; ++i) {
     for (int dim = 0; dim < 3; ++dim) {
-      atom->f[i][dim] += pair_mm_force[3 * i + dim] - pair_full_force[3 * i + dim] -
-          qmqm_kspace_force[3 * i + dim] + xtb_local[3 * i + dim];
+      atom->f[i][dim] += -qmqm_kspace_force[3 * i + dim] + xtb_local[3 * i + dim];
+      if (!pair_coulomb_mm_only)
+        atom->f[i][dim] += pair_mm_force[3 * i + dim] - pair_full_force[3 * i + dim];
     }
   }
 
   if (vflag_global) {
-    for (int i = 0; i < 6; ++i)
-      virial[i] = pair_mm_virial[i] - pair_full_virial[i] - qmqm_kspace_virial[i] / comm->nprocs;
+    for (int i = 0; i < 6; ++i) virial[i] = -qmqm_kspace_virial[i] / comm->nprocs;
+    if (!pair_coulomb_mm_only)
+      for (int i = 0; i < 6; ++i) virial[i] += pair_mm_virial[i] - pair_full_virial[i];
     for (int i = 0; i < atom->nlocal; ++i) {
       virial[0] += xtb_local[3 * i] * atom->x[i][0];
       virial[1] += xtb_local[3 * i + 1] * atom->x[i][1];

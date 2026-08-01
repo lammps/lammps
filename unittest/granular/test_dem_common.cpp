@@ -212,6 +212,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
             command("run " + std::to_string(config.run_segments[i]) + " post no");
         cleanup_lammps(lmp, config);
         writer.reset();
+        platform::unlink(outfile);
         if (std::rename(tmpfile.c_str(), outfile) != 0)
             FAIL() << "cannot rename " << tmpfile << " to " << outfile;
         return;
@@ -258,6 +259,7 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
 
     cleanup_lammps(lmp, config);
     writer.reset();
+    platform::unlink(outfile);
     if (std::rename(tmpfile.c_str(), outfile) != 0)
         FAIL() << "cannot rename " << tmpfile << " to " << outfile;
 }

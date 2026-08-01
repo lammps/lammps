@@ -211,6 +211,11 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         double vlo = 0.0, vhi = 1.0;
         int guard = 0;
         while ((drag(vhi) < mg) && (guard++ < 200)) vhi *= 2.0;
+        // without a valid bracket the bisection below would return a meaningless
+        // speed, so fail here instead.  this also catches missing or zero
+        // rho_gas / mu_gas settings, for which drag() is not a number.
+        ASSERT_GE(drag(vhi), mg) << "terminal_velocity_schiller_naumann: could not bracket the "
+                                    "terminal speed; check the grav, rho_gas, and mu_gas settings";
         for (int it = 0; it < 100; ++it) {
             const double vm = 0.5 * (vlo + vhi);
             if (drag(vm) < mg)

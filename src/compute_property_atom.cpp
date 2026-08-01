@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), buf(nullptr), count_history_ptr(nullptr), 
+    Compute(lmp, narg, arg), buf(nullptr), count_history_ptr(nullptr),
     most_recent_index_ptr(nullptr), history(nullptr)
 {
   if (narg < 4)  utils::missing_cmd_args(FLERR, "compute property/atom", error);

@@ -142,7 +142,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *specular* or *ssaosamples* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *specular* or *metal* or *metalfinish* or *ssaosamples* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -209,6 +209,10 @@ Syntax
          ambient key fill back = set light intensity value from 0.0 to 1.0
        *specular* arg = style
          style = *none* or *wide* or *narrow* or *tight* = specular highlights off or their width
+       *metal* arg = mfactor
+         mfactor = how metallic the rendered objects appear, from 0.0 (paint) to 1.0 (bare metal)
+       *metalfinish* arg = style
+         style = *satin* or *polished* or *mirror* = surface finish of metallic objects
        *ssaosamples* arg = nsamples
          nsamples = number of SSAO sampling directions per pixel (from 4 to 64)
        *loadcolors* arg = filename
@@ -1410,6 +1414,48 @@ keyword it also sets their width.
 
 .. versionadded:: TBD
 
+The *metal* keyword makes objects look like they are made of metal
+rather than of colored plastic.  Painted surfaces scatter light in all
+directions and reflect it without changing its color, which is what the
+rendering does by default; polished metal instead reflects light back
+directly and colors it in the process.  An *mfactor* value of 0.0 keeps
+the default appearance, 1.0 renders bare metal, and values in between
+blend the two.
+
+Since metal shows its surroundings rather than a color of its own, the
+rendering approximates them with a bright sky above and a dark ground
+below.  This is why metallic objects have a bright upper and a dark
+lower half, and why they need a dark background to look convincing.
+The *color* assigned to an object tints these reflections, so gold
+objects show a golden sheen and aluminum ones a neutral gray sheen.
+The pre-defined color *silver* is a good match for aluminum.  Colors
+chosen for paint are often too saturated for metal: for gold, for
+example, defining a color with the *color* keyword using the values
+1.0 0.766 0.336 looks more like the metal than the pre-defined color
+*gold* does.
+
+.. note::
+
+   These settings imitate the appearance of metal with a few extra
+   operations per pixel.  They do not compute how light actually
+   travels through the scene.  For images where the appearance of the
+   material matters, exporting the atom positions and rendering them
+   with a ray tracing program will always give better results than any
+   combination of these settings.
+
+.. versionadded:: TBD
+
+The *metalfinish* keyword selects the surface finish used when the
+*metal* keyword is enabled.  A *satin* finish has a broad soft sheen
+and resembles brushed metal such as aluminum.  A *polished* finish
+concentrates the sheen into a narrower streak.  A *mirror* finish
+reflects the surroundings the way a curved mirror does, which makes
+spheres look like polished ball bearings, with a darker lower half than
+the other two settings.  This keyword has no effect unless the *metal*
+keyword is set to a value larger than 0.0.
+
+.. versionadded:: TBD
+
 The *ssaosamples* keyword sets the number of directions that the SSAO
 depth shading enabled by the *ssao* keyword examines around each
 pixel.  More directions produce smoother shading; fewer directions
@@ -1573,6 +1619,8 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * gamma = 1.0
 * lights = 0.0 0.9 0.45 0.9
 * specular = width derived from the *shiny* keyword of the dump image command
+* metal = 0.0
+* metalfinish = satin
 * ssaosamples = number derived from the *dfactor* value of the *ssao* keyword
 * bitrate = 2000
 * framerate = 24
@@ -1587,6 +1635,22 @@ Default color sequence: |color_red|  |color_forestgreen|  |color_blue|
 
 These are the standard 109 element names that LAMMPS pre-defines for
 use with the dump image and dump_modify commands.
+
+.. versionchanged:: TBD
+
+The pre-defined colors of the metals magnesium, aluminum, zinc,
+mercury, silver, titanium, chromium, manganese, iron, cobalt, nickel,
+copper, gold, tin, and lead were changed to match the appearance of the
+metals more closely.  Most of them previously shared one generic gray,
+and chromium was green, which is the color of chromium oxide rather
+than of the metal.  The colors also account for how the surfaces of
+these metals typically look: silver is slightly yellow, iron is darker
+and duller than the polished metals, tin and lead are dull with lead
+the darker and more blue of the two, cobalt is distinctly blue and
+manganese faintly pink, while magnesium, aluminum, zinc, and chromium
+keep their bright surfaces.  Images that color atoms by element and use
+any of these fifteen elements will look different than with earlier
+LAMMPS versions.
 
 * 1-10 = "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"
 * 11-20 = "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"

@@ -340,6 +340,14 @@ constexpr char letter_z[] = {
   "    ########################    "
   "                                "};
 
+// the surroundings mirrored by metallic surfaces: a bright sky above a dark
+// ground.  these are not adjustable on purpose.  the effect is a cheap
+// imitation, and a fake environment with more settings still cannot compete
+// with rendering the same scene in a ray tracer
+
+constexpr double SKYCOLOR[3] = {0.90, 0.94, 1.00};
+constexpr double GROUNDCOLOR[3] = {0.10, 0.10, 0.12};
+
 }    // namespace
 
 /* ---------------------------------------------------------------------- */
@@ -417,6 +425,15 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   nospecular = 0;
   specularHardness = 16.0;
   specularIntensity = 1.0;
+
+  // metallic shading is off by default, so that images are unchanged.
+  // the default surroundings are a bright sky over a dark ground, which
+  // is what makes a polished surface read as metal rather than as plastic
+
+  metallic = 0.0;
+  finishMirror = 0;
+  finishBand = 0.6;
+  finishWidth = 2.0;
 
   // named colors
   rgbcolors = {{"aliceblue", {0.941, 0.973, 1.000}},
@@ -567,16 +584,16 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
                  {"B", {{0.900, 0.400, 0.000}, 0.85}},    {"C", {{0.350, 0.350, 0.350}, 0.72}},
                  {"N", {{0.200, 0.200, 0.800}, 0.65}},    {"O", {{0.800, 0.200, 0.200}, 0.6}},
                  {"F", {{0.700, 0.850, 0.450}, 0.5}},     {"Ne", {{0.643, 0.667, 0.678}, 1.5662}},
-                 {"Na", {{0.600, 0.600, 0.800}, 1.8}},    {"Mg", {{0.600, 0.600, 0.700}, 1.5}},
-                 {"Al", {{0.643, 0.667, 0.678}, 1.4255}}, {"Si", {{0.690, 0.769, 0.871}, 1.07}},
+                 {"Na", {{0.600, 0.600, 0.800}, 1.8}},    {"Mg", {{0.950, 0.945, 0.935}, 1.5}},
+                 {"Al", {{0.913, 0.922, 0.924}, 1.4255}}, {"Si", {{0.690, 0.769, 0.871}, 1.07}},
                  {"P", {{0.100, 0.700, 0.300}, 1}},       {"S", {{0.950, 0.900, 0.200}, 1}},
                  {"Cl", {{0.150, 0.500, 0.100}, 1}},      {"Ar", {{0.643, 0.667, 0.678}, 1.8597}},
                  {"K", {{0.800, 0.500, 0.500}, 2.2}},     {"Ca", {{0.800, 0.800, 0.700}, 1.8}},
-                 {"Sc", {{0.643, 0.667, 0.678}, 1.6}},    {"Ti", {{0.643, 0.667, 0.678}, 1.4}},
-                 {"V", {{0.643, 0.667, 0.678}, 1.51995}}, {"Cr", {{0.000, 0.800, 0.000}, 1.44225}},
-                 {"Mn", {{0.643, 0.667, 0.678}, 1.4}},    {"Fe", {{0.518, 0.576, 0.653}, 1.43325}},
-                 {"Co", {{0.643, 0.667, 0.678}, 1.35}},   {"Ni", {{0.257, 0.267, 0.271}, 1.35}},
-                 {"Cu", {{0.950, 0.790, 0.014}, 1.278}},  {"Zn", {{0.643, 0.667, 0.678}, 1.35}},
+                 {"Sc", {{0.643, 0.667, 0.678}, 1.6}},    {"Ti", {{0.542, 0.497, 0.449}, 1.4}},
+                 {"V", {{0.643, 0.667, 0.678}, 1.51995}}, {"Cr", {{0.630, 0.650, 0.660}, 1.44225}},
+                 {"Mn", {{0.570, 0.545, 0.545}, 1.4}},    {"Fe", {{0.480, 0.470, 0.462}, 1.43325}},
+                 {"Co", {{0.565, 0.590, 0.645}, 1.35}},   {"Ni", {{0.660, 0.609, 0.526}, 1.35}},
+                 {"Cu", {{0.955, 0.638, 0.538}, 1.278}},  {"Zn", {{0.828, 0.843, 0.855}, 1.35}},
                  {"Ga", {{0.900, 0.000, 1.000}, 1.3}},    {"Ge", {{0.643, 0.667, 0.678}, 1.25}},
                  {"As", {{1.000, 1.000, 0.300}, 1.15}},   {"Se", {{0.643, 0.667, 0.678}, 1.15}},
                  {"Br", {{0.500, 0.080, 0.120}, 1.15}},   {"Kr", {{0.643, 0.667, 0.678}, 2.0223}},
@@ -585,8 +602,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
                  {"Nb", {{0.643, 0.667, 0.678}, 1.6504}}, {"Mo", {{0.643, 0.667, 0.678}, 1.3872}},
                  {"Tc", {{0.643, 0.667, 0.678}, 1.35}},   {"Ru", {{0.643, 0.667, 0.678}, 1.3}},
                  {"Rh", {{0.643, 0.667, 0.678}, 1.35}},   {"Pd", {{0.643, 0.667, 0.678}, 1.4}},
-                 {"Ag", {{0.643, 0.667, 0.678}, 1.6}},    {"Cd", {{0.643, 0.667, 0.678}, 1.55}},
-                 {"In", {{0.643, 0.667, 0.678}, 1.55}},   {"Sn", {{0.643, 0.667, 0.678}, 1.45}},
+                 {"Ag", {{0.972, 0.960, 0.915}, 1.6}},    {"Cd", {{0.643, 0.667, 0.678}, 1.55}},
+                 {"In", {{0.643, 0.667, 0.678}, 1.55}},   {"Sn", {{0.600, 0.596, 0.592}, 1.45}},
                  {"Sb", {{0.643, 0.667, 0.678}, 1.45}},   {"Te", {{0.643, 0.667, 0.678}, 1.4}},
                  {"I", {{0.500, 0.100, 0.500}, 1.4}},     {"Xe", {{0.643, 0.667, 0.678}, 2.192}},
                  {"Cs", {{0.643, 0.667, 0.678}, 2.6}},    {"Ba", {{0.643, 0.667, 0.678}, 2.15}},
@@ -601,8 +618,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
                  {"Ta", {{0.643, 0.667, 0.678}, 1.6529}}, {"W", {{0.643, 0.667, 0.678}, 1.5826}},
                  {"Re", {{0.643, 0.667, 0.678}, 1.35}},   {"Os", {{0.643, 0.667, 0.678}, 1.3}},
                  {"Ir", {{0.643, 0.667, 0.678}, 1.35}},   {"Pt", {{0.643, 0.667, 0.678}, 1.35}},
-                 {"Au", {{0.900, 0.800, 0.000}, 1.35}},   {"Hg", {{0.643, 0.667, 0.678}, 1.5}},
-                 {"Tl", {{0.643, 0.667, 0.678}, 1.9}},    {"Pb", {{0.643, 0.667, 0.678}, 1.8}},
+                 {"Au", {{1.000, 0.766, 0.336}, 1.35}},   {"Hg", {{0.780, 0.779, 0.776}, 1.5}},
+                 {"Tl", {{0.643, 0.667, 0.678}, 1.9}},    {"Pb", {{0.520, 0.535, 0.560}, 1.8}},
                  {"Bi", {{0.643, 0.667, 0.678}, 1.6}},    {"Po", {{0.643, 0.667, 0.678}, 1.9}},
                  {"At", {{0.800, 0.200, 0.200}, 1.6}},    {"Rn", {{0.643, 0.667, 0.678}, 1.0}},
                  {"Fr", {{0.643, 0.667, 0.678}, 1.0}},    {"Ra", {{0.643, 0.667, 0.678}, 2.15}},
@@ -1782,14 +1799,37 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
   diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
   diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
 
-  double c[3];
-  c[0] = surfaceColor[0] * ambientColor[0];
-  c[1] = surfaceColor[1] * ambientColor[1];
-  c[2] = surfaceColor[2] * ambientColor[2];
+  // a metal reflects nearly all light directly and tints the reflection with
+  // its own color, while a non-conductor scatters light diffusely and reflects
+  // it without tinting.  "metallic" blends between those two limits: it scales
+  // down the diffuse contributions and turns "reflect" into the color of the
+  // reflected light.  for metallic = 0.0 this reproduces the plain shading.
 
-  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
-  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
-  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
+  const double diffuse = 1.0 - metallic;
+  double reflect[3];
+  reflect[0] = metallic * surfaceColor[0] + diffuse;
+  reflect[1] = metallic * surfaceColor[1] + diffuse;
+  reflect[2] = metallic * surfaceColor[2] + diffuse;
+
+  // every surface becomes mirror-like when viewed at a grazing angle, which
+  // brightens the outline of a curved object.  the amount follows Schlick's
+  // approximation.  the viewing direction is (0,0,1) in these coordinates,
+  // so its dot product with the surface normal is simply the z component
+
+  const double viewdot = saturate(surface[2]);
+  const double grazing = (1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot);
+  reflect[0] += (1.0 - reflect[0]) * grazing;
+  reflect[1] += (1.0 - reflect[1]) * grazing;
+  reflect[2] += (1.0 - reflect[2]) * grazing;
+
+  double c[3];
+  c[0] = surfaceColor[0] * ambientColor[0] * diffuse;
+  c[1] = surfaceColor[1] * ambientColor[1] * diffuse;
+  c[2] = surfaceColor[2] * ambientColor[2] * diffuse;
+
+  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey * diffuse;
+  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey * diffuse;
+  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey * diffuse;
 
   // specular highlights are disabled with dump_modify specular none.
   // check the flag here since view_params() may not run again after
@@ -1799,18 +1839,40 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
     specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
                       specularHardness) * specularIntensity;
 
-    c[0] += keyLightColor[0] * specularKey;
-    c[1] += keyLightColor[1] * specularKey;
-    c[2] += keyLightColor[2] * specularKey;
+    c[0] += keyLightColor[0] * reflect[0] * specularKey;
+    c[1] += keyLightColor[1] * reflect[1] * specularKey;
+    c[2] += keyLightColor[2] * reflect[2] * specularKey;
   }
 
-  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
-  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
-  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
+  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill * diffuse;
+  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill * diffuse;
+  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill * diffuse;
 
-  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
-  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
-  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
+  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack * diffuse;
+  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack * diffuse;
+  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack * diffuse;
+
+  // a metal also mirrors its surroundings, which are approximated by a sky
+  // color above and a ground color below.  the direction into which the
+  // surface reflects the viewer is 2 (n.v) n - v, and only its vertical
+  // component is needed to pick the color from that gradient
+
+  if (metallic > 0.0) {
+    const double updir = finishMirror ? 2.0*viewdot*surface[1] : surface[1];
+    double updown = saturate(0.5 * (updir + 1.0));
+    updown = updown * updown * (3.0 - 2.0*updown);    // narrow the horizon
+
+    // brighten a band around the horizon, where the surroundings of a real
+    // scene are brightest.  this is what produces the light streak across a
+    // polished surface that reads as "shiny metal" rather than "dark paint"
+
+    double band = 0.0;
+    if (finishBand > 0.0) band = finishBand * pow(1.0 - fabs(2.0*updown - 1.0), finishWidth);
+
+    c[0] += metallic * reflect[0] * (GROUNDCOLOR[0] + updown*(SKYCOLOR[0]-GROUNDCOLOR[0]) + band);
+    c[1] += metallic * reflect[1] * (GROUNDCOLOR[1] + updown*(SKYCOLOR[1]-GROUNDCOLOR[1]) + band);
+    c[2] += metallic * reflect[2] * (GROUNDCOLOR[2] + updown*(SKYCOLOR[2]-GROUNDCOLOR[2]) + band);
+  }
 
   c[0] = saturate(c[0]);
   c[1] = saturate(c[1]);

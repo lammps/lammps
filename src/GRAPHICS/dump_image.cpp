@@ -3102,6 +3102,35 @@ int DumpImage::modify_param(int narg, char **arg)
     return 2;
   }
 
+  if (strcmp(arg[0], "metal") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify metal", error);
+    double mval = utils::numeric(FLERR, arg[1], false, lmp);
+    if ((mval < 0.0) || (mval > 1.0))
+      error->all(FLERR, argoff + 1, "Illegal metal value {}", mval);
+    image->metallic = mval;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "metalfinish") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify metalfinish", error);
+    if (strcmp(arg[1], "satin") == 0) {
+      image->finishMirror = 0;
+      image->finishBand = 0.6;
+      image->finishWidth = 2.0;
+    } else if (strcmp(arg[1], "polished") == 0) {
+      image->finishMirror = 0;
+      image->finishBand = 0.6;
+      image->finishWidth = 4.0;
+    } else if (strcmp(arg[1], "mirror") == 0) {
+      image->finishMirror = 1;
+      image->finishBand = 0.4;
+      image->finishWidth = 3.0;
+    } else {
+      error->all(FLERR, argoff + 1, "Unknown metalfinish setting {}", arg[1]);
+    }
+    return 2;
+  }
+
   if (strcmp(arg[0], "savecolors") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify savecolors", error);
 

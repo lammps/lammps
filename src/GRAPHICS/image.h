@@ -66,6 +66,11 @@ class Image : protected Pointers {
   double specularHardness;     // exponent of the specular highlight
   double specularIntensity;    // strength of the specular highlight
 
+  double metallic;         // 0.0 = dielectric ("plastic"), 1.0 = conductor ("metal")
+  int finishMirror;        // 1 = mirror the surroundings, 0 = soft light from above
+  double finishBand;       // extra brightness of the horizon band, 0.0 = off
+  double finishWidth;      // exponent setting the width of the horizon band
+
   Image(class LAMMPS *, int);
   ~Image() override;
   void buffers();

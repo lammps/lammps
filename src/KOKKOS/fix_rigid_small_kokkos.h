@@ -187,7 +187,7 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   // extended size added per body atom to the device-exchange payload, and the
   // atomKK datamask of per-atom views the extended set_xv/set_v kernels modify
   int extended_per_atom = 0;
-  int extended_datamask = 0;
+  uint64_t extended_datamask = 0;
 
   // 1 once grow_kokkos owns the base per-atom pointers
   bool tied_initialized = false;

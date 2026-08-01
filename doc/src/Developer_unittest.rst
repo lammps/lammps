@@ -1293,7 +1293,7 @@ Create ``test_dem_0N.cpp`` as a thin copy of an existing one (only the
 GoogleTest suite name changes), add an
 ``add_executable``/``register_dem_tests`` pair to
 ``unittest/granular/CMakeLists.txt``, and add the corresponding
-``dem0N-*`.yaml`` reference files.  If the new scenario needs a
+``dem0N-*.yaml`` reference files.  If the new scenario needs a
 closed-form check, add a named model to ``test_analytic_models.cpp``
 that reads its parameters from the ``variables`` block (and reads
 masses, radii, etc. from the live LAMMPS instance to avoid depending on

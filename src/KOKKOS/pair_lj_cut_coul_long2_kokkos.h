@@ -42,6 +42,9 @@ PairStyle(lj/cut/coul/long2/kk/host,PairLJCutCoulLong2Kokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+// packed j-side gather record; see the block comment in the .cpp
+struct alignas(16) LJCL2XQ { KK_FLOAT x, y, z, q; };
+
 template<class DeviceType>
 class PairLJCutCoulLong2Kokkos : public PairLJCutCoulLongKokkos<DeviceType> {
  public:
@@ -102,12 +105,31 @@ class PairLJCutCoulLong2Kokkos : public PairLJCutCoulLongKokkos<DeviceType> {
   double inner_cutsq = 0.0;
   bigint dual_built_step = -1;
 
-  // FULL and DUAL are template parameters, not members: the default
+  // ---- packed j-side gather (experimental, LMP_LJCL2_PACK=1) ----
+  // Per neighbor entry the kernel gathers x(j,0..2) (three separate 32-bit
+  // loads: a LayoutRight float*[3] has a 12-byte stride, which nvcc cannot
+  // vectorize), type(j) and, inside the cutoff, q(j).  A per-step packed copy
+  // of (x,y,z,q) as one 16-byte-aligned record plus a byte-wide type array
+  // turns that into a single LDG.128 and one byte load.  The pack pass is a
+  // fully coalesced ~16 MB/step streaming kernel (~15 us).  See kokkos_neigh.md
+  // section 18.2 for the request-rate diagnosis this targets.
+  Kokkos::View<LJCL2XQ*, DeviceType> d_xq;
+  Kokkos::View<unsigned char*, DeviceType> d_type8;
+  int pack_on = -1;           // -1 = not yet probed, 0 = off, 1 = on
+
+  // ---- kernel variant (LMP_LJCL2_VARIANT), see the enum in the .cpp.  0 is the
+  // real kernel, 1-3 delete one component each to measure its cost directly
+  // (their forces are wrong), 4 is the intrinsic-math candidate.
+  int variant = -1;           // -1 = not yet probed
+
+  // FULL, DUAL and PACK are template parameters, not members: the default
   // (half list, no dual cutoff) instantiation must generate exactly the code
-  // it did before either feature existed.  Carrying them as runtime members
+  // it did before any of them existed.  Carrying them as runtime members
   // cost the default path ~7% on A100 -- three extra views in the functor plus
   // a branch in the inner loop is enough to move the register allocation.
-  template<bool FULL, bool DUAL> void flat_compute();
+  int launch_vector_length() const;
+  void pack_refresh();
+  template<bool FULL, bool DUAL, bool PACK, int VAR = 0> void flat_compute();
   template<class FunctorT> void fill_common(FunctorT &ff);
   template<int CI> void union_compute();
   template<int CI> void union_build();

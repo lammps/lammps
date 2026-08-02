@@ -65,6 +65,92 @@ KOKKOS_INLINE_FUNCTION int upopcount(int v) {
   return c;
 }
 
+// ---------------------------------------------------------------------------
+// Packed j-side gather record (LMP_LJCL2_PACK=1).
+//
+// The flat kernel's per-entry cost is set by the NUMBER of memory instructions
+// it issues, not by the bytes it moves.  Per entry it currently issues, from
+// three unrelated arrays: x(j,0), x(j,1), x(j,2) -- three separate 32-bit loads,
+// because a LayoutRight float*[3] has a 12-byte stride and nvcc cannot vectorize
+// a 4-byte-aligned access -- plus type(j), plus q(j) on the ~24.5% of entries
+// that pass the cutoff.  That is ~4.25 scattered loads x 210.5M entries/step.
+//
+// kokkos_neigh.md 18.2 measured this kernel at 47.5% issue with 68% of the warp
+// slots RESIDENT and DRAM at only 14.7%: warps that are present but stalled on
+// memory instructions whose data L2 is already absorbing.  That is a request-rate
+// signature, not a bandwidth or an occupancy one.
+//
+// Packing (x,y,z,q) into one 16-byte-aligned record collapses four loads into a
+// single LDG.128 that always lands inside one 32-byte sector, and demotes the
+// type to a byte array whose sectors carry 32 atoms instead of 8.  Unconditional
+// loads per entry: 4.25 -> 2.  Sectors touched: ~1.65 -> ~1.05.  The packed array
+// is also one contiguous 16 B/atom region rather than three separate ones, so its
+// L2 working set is strictly smaller than the three it replaces.
+//
+// LJCL2XQ itself lives in the header (the pair style owns the array).
+// ---------------------------------------------------------------------------
+
+template<class DeviceType>
+struct LJCL2Pack {
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_1d_randomread q;
+  typename AT::t_int_1d_randomread type;
+  Kokkos::View<LJCL2XQ*, DeviceType> d_xq;
+  Kokkos::View<unsigned char*, DeviceType> d_type8;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const {
+    LJCL2XQ r;
+    r.x = x(i,0); r.y = x(i,1); r.z = x(i,2); r.q = q(i);
+    d_xq(i) = r;
+    d_type8(i) = static_cast<unsigned char>(type(i));
+  }
+};
+
+// ---------------------------------------------------------------------------
+// Kernel variants (LMP_LJCL2_VARIANT).  1-3 are DIAGNOSTIC: they delete part of
+// the pair body, so their forces are wrong and their thermo is meaningless.
+// They exist because every cost attribution in kokkos_neigh.md so far is a fit
+// to end-to-end timings, and the packed-gather result (section 21) contradicted
+// it.  Running the same kernel with one component removed measures that
+// component directly.  Variant 4 is a real candidate, not a diagnostic.
+// ---------------------------------------------------------------------------
+enum {
+  LJCL2_VAR_NORMAL   = 0,
+  LJCL2_VAR_NOATOMIC = 1,  // drop the j-side atomic scatter (i-force still summed)
+  LJCL2_VAR_NOCOUL   = 2,  // drop the Ewald block (exp, divide, poly); keep atomics
+  LJCL2_VAR_WALKONLY = 3,  // list walk + gather + distance test only
+  LJCL2_VAR_FASTMATH = 4   // normal, with __expf / __fdividef for the Ewald block
+};
+
+// The build has no -use_fast_math (CMAKE_CXX_FLAGS is empty), so `Kokkos::exp`
+// is accurate expf and `1.0f/x` is an IEEE-correct division -- roughly a dozen
+// instructions each, both inside the in-cutoff branch.  Over the argument
+// ranges here (-grij^2 in [-12,0]; 1 + EWALD_P*grij in [1,4]) the intrinsics are
+// accurate to ~2 ulp, well below the ~1e-7 accuracy of the Abramowitz-Stegun
+// erfc approximation they feed, so variant 4 is a free-lunch candidate rather
+// than a precision trade.  Guarded on sizeof so a double build folds it away.
+template<bool FAST>
+KOKKOS_INLINE_FUNCTION KK_FLOAT ljcl2_exp(const KK_FLOAT v) {
+#if defined(__CUDA_ARCH__)
+  if (FAST && sizeof(KK_FLOAT) == sizeof(float))
+    return static_cast<KK_FLOAT>(__expf(static_cast<float>(v)));
+#endif
+  return Kokkos::exp(v);
+}
+
+template<bool FAST>
+KOKKOS_INLINE_FUNCTION KK_FLOAT ljcl2_recip(const KK_FLOAT v) {
+#if defined(__CUDA_ARCH__)
+  if (FAST && sizeof(KK_FLOAT) == sizeof(float))
+    return static_cast<KK_FLOAT>(__fdividef(1.0f, static_cast<float>(v)));
+#endif
+  return static_cast<KK_FLOAT>(1.0)/v;
+}
+
 // Per-pair physics, shared by the flat and the union kernel so the two cannot
 // drift apart.  Both evaluate in the same order, so they agree bit for bit.
 template<class DeviceType>
@@ -85,7 +171,10 @@ struct LJCL2Common {
   KK_FLOAT m_cut_ljsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   KK_FLOAT m_cut_coulsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
-  // fpair for one pair already known to satisfy rsq < m_cutsq[itype][jtype]
+  // fpair for one pair already known to satisfy rsq < m_cutsq[itype][jtype].
+  // FAST selects the intrinsic exp/reciprocal; NOCOUL drops the Ewald block
+  // (diagnostic variant 2 only -- the result is not physical).
+  template<bool FAST = false, bool NOCOUL = false>
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT pair_fpair(const KK_FLOAT rsq, const int itype, const int jtype,
                       const KK_FLOAT qiqj, const int sb) const {
@@ -100,13 +189,13 @@ struct LJCL2Common {
         r6inv*(m_params[itype][jtype].lj1*r6inv - m_params[itype][jtype].lj2) * r2inv;
     }
 
-    if (rsq < m_cut_coulsq[itype][jtype]) {
+    if (!NOCOUL && rsq < m_cut_coulsq[itype][jtype]) {
       // analytical Ewald real-space correction (Abramowitz-Stegun 7.1.26)
       const KK_FLOAT r = rsq*rinv;
       const KK_FLOAT grij = g_ewald * r;
-      const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-      const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-        (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+      const KK_FLOAT expm2 = ljcl2_exp<FAST>(-grij*grij);
+      const KK_FLOAT t = ljcl2_recip<FAST>(
+        static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
       const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
                             t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
                             t * static_cast<KK_FLOAT>(A5))))) * expm2;
@@ -121,7 +210,7 @@ struct LJCL2Common {
   }
 };
 
-template<class DeviceType, bool FULL, bool DUAL>
+template<class DeviceType, bool FULL, bool DUAL, bool PACK, int VAR = LJCL2_VAR_NORMAL>
 struct LJCL2Force : public LJCL2Common<DeviceType> {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -131,6 +220,10 @@ struct LJCL2Force : public LJCL2Common<DeviceType> {
   typename AT::t_int_1d d_numneigh;
   typename AT::t_neighbors_2d d_neighbors;        // LayoutLeft  (atom-fast)
   typename AT::t_neighbors_2d_lr d_neighbors_t;   // LayoutRight (jj-fast), transpose
+
+  // packed j-side gather (PACK only); empty views otherwise
+  Kokkos::View<const LJCL2XQ*, DeviceType> d_xq;
+  Kokkos::View<const unsigned char*, DeviceType> d_type8;
 
   // fused dual-cutoff inner list (see the header); dual==0 leaves every branch
   // below compiled out of the hot path by the uniform-across-warp flags
@@ -154,6 +247,13 @@ struct LJCL2Force : public LJCL2Common<DeviceType> {
   // the inner cutoff -- free apart from the store itself, since rsq is already in
   // a register.  The inner row has the same capacity as the master row and the
   // inner list is a subset of it, so the append cannot overflow.
+  //
+  // The append is a contended per-atom atomic.  An atomic-free variant (lane L
+  // owns jj = L, L+vl, ... and writes keepers at L + vl*t) was built and
+  // measured 10% SLOWER: splitting the loop into a refresh branch and a tight
+  // branch inlines this body twice (REG 43 -> 55) and gives the tight loop a
+  // per-lane trip count that nvcc can no longer unroll, which costs more than
+  // the atomics saved.  See kokkos_neigh.md 20.8 before trying it again.
   KOKKOS_INLINE_FUNCTION
   void pair_contrib(const int i, const KK_FLOAT xtmp, const KK_FLOAT ytmp,
                     const KK_FLOAT ztmp, const KK_FLOAT qtmp, const int itype,
@@ -162,23 +262,54 @@ struct LJCL2Force : public LJCL2Common<DeviceType> {
     const int sb = (jraw >> SBBITS) & 3;
     const int j = jraw & NEIGHMASK;
 
-    const KK_FLOAT delx = xtmp - this->x(j,0);
-    const KK_FLOAT dely = ytmp - this->x(j,1);
-    const KK_FLOAT delz = ztmp - this->x(j,2);
-    const int jtype = this->type(j);
+    // One 16-byte load for (x,y,z,q) plus one byte for the type, instead of
+    // three 32-bit loads from x, one from type and one from q.  qj is carried
+    // in a register either way; in the unpacked path q(j) is deliberately read
+    // only inside the cutoff branch, in the packed path it rides along free.
+    KK_FLOAT xj, yj, zj, qj;
+    int jtype;
+    if (PACK) {
+      const LJCL2XQ j4 = d_xq(j);
+      xj = j4.x; yj = j4.y; zj = j4.z; qj = j4.q;
+      jtype = static_cast<int>(d_type8(j));
+    } else {
+      xj = this->x(j,0); yj = this->x(j,1); zj = this->x(j,2);
+      qj = static_cast<KK_FLOAT>(0.0);
+      jtype = this->type(j);
+    }
+
+    const KK_FLOAT delx = xtmp - xj;
+    const KK_FLOAT dely = ytmp - yj;
+    const KK_FLOAT delz = ztmp - zj;
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (DUAL && store && rsq < inner_cutsq)
       d_inbr(i, Kokkos::atomic_fetch_add(&d_innum(i), 1)) = jraw;
 
+    // Diagnostic variant 3: stop after the gather and the distance test.  The
+    // in-cutoff accumulation of the raw separation keeps the loads and the
+    // compare from being dead-code-eliminated without costing a divide, an exp
+    // or an atomic, so the arm measures exactly "walk + gather + test".
+    if (VAR == LJCL2_VAR_WALKONLY) {
+      if (rsq < this->m_cutsq[itype][jtype]) {
+        fx += static_cast<KK_ACC_FLOAT>(delx);
+        fy += static_cast<KK_ACC_FLOAT>(dely);
+        fz += static_cast<KK_ACC_FLOAT>(delz);
+      }
+      return;
+    }
+
     if (rsq < this->m_cutsq[itype][jtype]) {
-      const KK_FLOAT fpair = this->pair_fpair(rsq, itype, jtype, qtmp*this->q(j), sb);
+      const KK_FLOAT fpair =
+        this->template pair_fpair<VAR == LJCL2_VAR_FASTMATH, VAR == LJCL2_VAR_NOCOUL>(
+          rsq, itype, jtype, qtmp*(PACK ? qj : this->q(j)), sb);
 
       fx += static_cast<KK_ACC_FLOAT>(delx*fpair);
       fy += static_cast<KK_ACC_FLOAT>(dely*fpair);
       fz += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
-      if (!FULL && (this->newton_pair || j < this->nlocal)) {
+      if (VAR != LJCL2_VAR_NOATOMIC &&
+          !FULL && (this->newton_pair || j < this->nlocal)) {
         Kokkos::atomic_add(&this->f(j,0), -static_cast<KK_ACC_FLOAT>(delx*fpair));
         Kokkos::atomic_add(&this->f(j,1), -static_cast<KK_ACC_FLOAT>(dely*fpair));
         Kokkos::atomic_add(&this->f(j,2), -static_cast<KK_ACC_FLOAT>(delz*fpair));
@@ -192,11 +323,17 @@ struct LJCL2Force : public LJCL2Common<DeviceType> {
     if (atom_in_team >= this->inum) return;
 
     const int i = this->d_ilist(atom_in_team);
-    const KK_FLOAT xtmp = this->x(i,0);
-    const KK_FLOAT ytmp = this->x(i,1);
-    const KK_FLOAT ztmp = this->x(i,2);
-    const KK_FLOAT qtmp = this->q(i);
-    const int itype = this->type(i);
+    KK_FLOAT xtmp, ytmp, ztmp, qtmp;
+    int itype;
+    if (PACK) {
+      const LJCL2XQ i4 = d_xq(i);
+      xtmp = i4.x; ytmp = i4.y; ztmp = i4.z; qtmp = i4.q;
+      itype = static_cast<int>(d_type8(i));
+    } else {
+      xtmp = this->x(i,0); ytmp = this->x(i,1); ztmp = this->x(i,2);
+      qtmp = this->q(i);
+      itype = this->type(i);
+    }
 
     // dual-cutoff mode: walk (and refill) the master list on a refresh step,
     // walk the inner list otherwise.  d_ictl(0) is uniform across the launch,
@@ -317,23 +454,23 @@ struct LJCL2DualCheck {
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
 
   KOKKOS_INLINE_FUNCTION
-  int count(const int i, const int n, const int inner) const {
-    const KK_FLOAT xt = x(i,0), yt = x(i,1), zt = x(i,2);
-    const int itype = type(i);
-    int c = 0;
-    for (int jj = 0; jj < n; jj++) {
-      const int j = (inner ? d_inbr(i,jj) : d_neighbors(i,jj)) & NEIGHMASK;
-      const KK_FLOAT dx = xt - x(j,0), dy = yt - x(j,1), dz = zt - x(j,2);
-      if (dx*dx + dy*dy + dz*dz < m_cutsq[itype][type(j)]) c++;
-    }
-    return c;
+  int in_cutoff(const int i, const int j) const {
+    const KK_FLOAT dx = x(i,0) - x(j,0);
+    const KK_FLOAT dy = x(i,1) - x(j,1);
+    const KK_FLOAT dz = x(i,2) - x(j,2);
+    return (dx*dx + dy*dy + dz*dz < m_cutsq[type(i)][type(j)]) ? 1 : 0;
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const int ii) const {
     const int i = d_ilist(ii);
-    Kokkos::atomic_add(&d_ictl(4), count(i, d_numneigh(i), 0));
-    Kokkos::atomic_add(&d_ictl(5), count(i, d_innum(i), 1));
+    int cm = 0, ci = 0;
+    const int jnum = d_numneigh(i);
+    for (int jj = 0; jj < jnum; jj++) cm += in_cutoff(i, d_neighbors(i,jj) & NEIGHMASK);
+    const int inum_i = d_innum(i);
+    for (int jj = 0; jj < inum_i; jj++) ci += in_cutoff(i, d_inbr(i,jj) & NEIGHMASK);
+    Kokkos::atomic_add(&d_ictl(4), cm);
+    Kokkos::atomic_add(&d_ictl(5), ci);
   }
 };
 
@@ -712,9 +849,54 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dual_decide(force_refresh);
   }
 
-  if (dual) flat_compute<false,true>();
-  else if (use_full) flat_compute<true,false>();
-  else flat_compute<false,false>();
+  // ---- experimental packed j-side gather
+  if (pack_on < 0) {
+    pack_on = 0;
+    if (const char *e = std::getenv("LMP_LJCL2_PACK")) pack_on = std::atoi(e) ? 1 : 0;
+  }
+  if (pack_on) pack_refresh();
+
+  // ---- kernel variant.  1-3 are diagnostics whose forces are WRONG by
+  // construction; they are only ever selected explicitly, and the style warns
+  // once so no benchmark log can be mistaken for a physical run.
+  if (variant < 0) {
+    variant = LJCL2_VAR_NORMAL;
+    if (const char *e = std::getenv("LMP_LJCL2_VARIANT")) variant = std::atoi(e);
+    if (variant < 0 || variant > LJCL2_VAR_FASTMATH) {
+      if (this->comm->me == 0)
+        this->error->warning(FLERR, "LMP_LJCL2_VARIANT out of range -- ignored");
+      variant = LJCL2_VAR_NORMAL;
+    }
+    if (variant >= LJCL2_VAR_NOATOMIC && variant <= LJCL2_VAR_WALKONLY &&
+        this->comm->me == 0)
+      this->error->warning(FLERR, "lj/cut/coul/long2/kk is running a DIAGNOSTIC "
+                                  "kernel variant: the forces it produces are "
+                                  "incomplete and the trajectory is not physical");
+  }
+
+  if (dual) {
+    if (pack_on) flat_compute<false,true,true>();
+    else         flat_compute<false,true,false>();
+  } else if (use_full) {
+    if (pack_on) flat_compute<true,false,true>();
+    else         flat_compute<true,false,false>();
+  } else if (pack_on) {
+    switch (variant) {
+      case LJCL2_VAR_NOATOMIC: flat_compute<false,false,true,LJCL2_VAR_NOATOMIC>(); break;
+      case LJCL2_VAR_NOCOUL:   flat_compute<false,false,true,LJCL2_VAR_NOCOUL>();   break;
+      case LJCL2_VAR_WALKONLY: flat_compute<false,false,true,LJCL2_VAR_WALKONLY>(); break;
+      case LJCL2_VAR_FASTMATH: flat_compute<false,false,true,LJCL2_VAR_FASTMATH>(); break;
+      default:                 flat_compute<false,false,true>();                    break;
+    }
+  } else {
+    switch (variant) {
+      case LJCL2_VAR_NOATOMIC: flat_compute<false,false,false,LJCL2_VAR_NOATOMIC>(); break;
+      case LJCL2_VAR_NOCOUL:   flat_compute<false,false,false,LJCL2_VAR_NOCOUL>();   break;
+      case LJCL2_VAR_WALKONLY: flat_compute<false,false,false,LJCL2_VAR_WALKONLY>(); break;
+      case LJCL2_VAR_FASTMATH: flat_compute<false,false,false,LJCL2_VAR_FASTMATH>(); break;
+      default:                 flat_compute<false,false,false>();                    break;
+    }
+  }
 
   if (dual && dual_check && (this->update->ntimestep % dual_check) == 0) dual_verify();
 }
@@ -725,17 +907,21 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<bool FULL, bool DUAL>
+template<bool FULL, bool DUAL, bool PACK, int VAR>
 void PairLJCutCoulLong2Kokkos<DeviceType>::flat_compute()
 {
   auto* k_list = static_cast<NeighListKokkos<DeviceType>*>(this->list);
 
-  LJCL2Force<DeviceType,FULL,DUAL> ff;
+  LJCL2Force<DeviceType,FULL,DUAL,PACK,VAR> ff;
   fill_common(ff);
   ff.d_numneigh = k_list->d_numneigh;
   ff.d_neighbors= k_list->d_neighbors;
   ff.d_neighbors_t = k_list->d_neighbors_transpose;  // empty view unless neigh/transpose on
   ff.use_transpose = this->lmp->kokkos->neigh_transpose;
+  if (PACK) {
+    ff.d_xq = d_xq;
+    ff.d_type8 = d_type8;
+  }
   if (DUAL) {
     ff.d_inbr  = d_inbr;
     ff.d_innum = d_innum;
@@ -763,7 +949,7 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::flat_compute()
   // full-list path has ~2x the neighbors per atom, so its optimum may differ; the
   // dual-cutoff inner list has ~0.4x, likewise.
   auto *kk = this->lmp->kokkos;
-  const int vector_length = kk->threads_per_atom_set ? kk->threads_per_atom : 8;
+  const int vector_length = launch_vector_length();
   const int team_size     = kk->pair_team_size_set   ? kk->pair_team_size   : 64;
   const int atoms_per_team = (team_size >= vector_length) ? team_size / vector_length : 1;
   ff.atoms_per_team = atoms_per_team;
@@ -772,6 +958,55 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::flat_compute()
   using policy_t = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>>;
   policy_t policy(nteams, atoms_per_team, vector_length);
   Kokkos::parallel_for("PairLJCutCoulLong2::force", policy, ff);
+}
+
+/* ----------------------------------------------------------------------
+   vector lanes per atom, from the standard KOKKOS package options.  The
+   dual-cutoff inner list is laid out per lane, so its allocation and the
+   force kernel must agree on this value.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int PairLJCutCoulLong2Kokkos<DeviceType>::launch_vector_length() const
+{
+  auto *kk = this->lmp->kokkos;
+  return kk->threads_per_atom_set ? kk->threads_per_atom : 8;
+}
+
+/* ----------------------------------------------------------------------
+   refresh the packed j-side gather arrays.  Runs once per step, before the
+   force kernel, over locals AND ghosts (a neighbor j may be either).  Reads
+   are sequential and coalesced, the write is 16 B/atom: ~16 MB of streaming
+   traffic per step for 500k atoms, i.e. ~15 us against a 3 ms force kernel.
+
+   Types are repacked along with the coordinates rather than only at a
+   reneighbor: it costs one byte store per atom and removes any dependence on
+   when the type array was last modified.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairLJCutCoulLong2Kokkos<DeviceType>::pack_refresh()
+{
+  const int nall = this->atom->nlocal + this->atom->nghost;
+
+  if ((int) d_xq.extent(0) < nall) {
+    const int cap = nall + nall/10 + 8;
+    d_xq = Kokkos::View<LJCL2XQ*, DeviceType>();      // free before reallocating
+    d_type8 = Kokkos::View<unsigned char*, DeviceType>();
+    d_xq = Kokkos::View<LJCL2XQ*, DeviceType>(
+      Kokkos::view_alloc("ljcl2:xq", Kokkos::WithoutInitializing), cap);
+    d_type8 = Kokkos::View<unsigned char*, DeviceType>(
+      Kokkos::view_alloc("ljcl2:type8", Kokkos::WithoutInitializing), cap);
+  }
+
+  LJCL2Pack<DeviceType> fp;
+  fp.x = this->atomKK->k_x.template view<DeviceType>();
+  fp.q = this->atomKK->k_q.template view<DeviceType>();
+  fp.type = this->atomKK->k_type.template view<DeviceType>();
+  fp.d_xq = d_xq;
+  fp.d_type8 = d_type8;
+  Kokkos::parallel_for("PairLJCutCoulLong2::pack",
+                       Kokkos::RangePolicy<DeviceType>(0, nall), fp);
 }
 
 /* ----------------------------------------------------------------------

@@ -218,6 +218,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style <pair_style>`
      - n/a
      - no
+   * - :ref:`FENIX <PKG_FENIX>`
+     - online process recovery with Fenix
+     - :doc:`Howto Fenix <Howto_fenix>`
+     - ``PACKAGES/fenix``
+     - ext
    * - :ref:`FEP <PKG-FEP>`
      - free energy perturbation
      - :doc:`compute fep <compute_fep>`

@@ -1042,6 +1042,37 @@ Additional pair styles that are less commonly used.
 
 ----------
 
+.. _PKG-FENIX:
+
+FENIX package
+-------------
+
+**Contents:**
+
+Fenix is a tool for online process recovery of MPI applications. This package
+provides methods for continuing a distributed simulation after one or more MPI
+processes is lost, without requiring the relaunch of all existing MPI ranks.
+This is accomplished with the :doc:`fenix <fenix>` command.
+
+**Author:** Matthew Whitlock (Sandia)
+
+.. versionadded:: TBD
+
+**Install:**
+
+This package has :ref:`specific installation instructions <fenix_build>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* ``src/FENIX``: filenames -> commands
+* ``src/FENIX/README``
+* :doc:`fenix <fenix>`
+* ``examples/PACKAGES/fenix``
+* :doc:`Howto fenix <Howto_fenix>`
+
+----------
+
 .. _PKG-FEP:
 
 FEP package

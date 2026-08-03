@@ -485,8 +485,11 @@ TEST(PairStyle, plain)
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats) std::cerr << "restart_energy stats:" << stats << std::endl;
 
-    // pair style rann does not support pair_modify nofdotr
-    if (test_config.pair_style != "rann") {
+    // pair style rann does not support pair_modify nofdotr.  styles whose
+    // dissipative or random pair forces are not central (e.g. sdpd) cannot
+    // reproduce the fdotr virial through ev_tally() and may opt out with
+    // the "nofdotr" token in skip_tests.
+    if ((test_config.pair_style != "rann") && !test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         restart_lammps(lmp, test_config, true);
         if (!verbose) ::testing::internal::GetCapturedStdout();

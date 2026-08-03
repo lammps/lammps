@@ -722,6 +722,7 @@ Ctypes
 cuda
 Cuda
 CUDA
+cueing
 cuFFT
 CuH
 Cui
@@ -818,6 +819,8 @@ deeppink
 deepskyblue
 defgrad
 defn
+defocus
+defocusing
 deformable
 Deissenbeck
 del
@@ -841,6 +844,7 @@ Denoual
 dephase
 dephasing
 deprotonated
+depthcue
 dequidt
 Dequidt
 der
@@ -2461,6 +2465,7 @@ mesoscopic
 metadata
 metadynamics
 Metadynamics
+metalfinish
 metallicity
 Methfessel
 methine
@@ -3919,6 +3924,7 @@ srp
 srun
 ss
 ssao
+ssaosamples
 ssDNA
 stamoor
 stamoore

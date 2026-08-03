@@ -11,35 +11,24 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/omp,PairEAMOMP);
+PairStyle(eam/he/kk,PairEAMHEKokkos<LMPDeviceType>);
+PairStyle(eam/he/kk/device,PairEAMHEKokkos<LMPDeviceType>);
+PairStyle(eam/he/kk/host,PairEAMHEKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_EAM_OMP_H
-#define LMP_PAIR_EAM_OMP_H
+#ifndef LMP_PAIR_EAM_HE_KOKKOS_H
+#define LMP_PAIR_EAM_HE_KOKKOS_H
 
-#include "pair_eam.h"
-#include "thr_omp.h"
+#include "pair_eam_kokkos.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMOMP : public PairEAM, public ThrOMP {
-
+template <class DeviceType> class PairEAMHEKokkos : public PairEAMKokkos<DeviceType> {
  public:
-  PairEAMOMP(class LAMMPS *);
-
-  void compute(int, int) override;
-  double memory_usage() override;
-
- private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
-  void eval(int iifrom, int iito, int *beyond_rhomax, ThrData *const thr);
+  PairEAMHEKokkos(class LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

@@ -11,35 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/omp,PairEAMOMP);
+PairStyle(eam/he/opt,PairEAMHEOpt);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_EAM_OMP_H
-#define LMP_PAIR_EAM_OMP_H
+#ifndef LMP_PAIR_EAM_HE_OPT_H
+#define LMP_PAIR_EAM_HE_OPT_H
 
-#include "pair_eam.h"
-#include "thr_omp.h"
+#include "pair_eam_opt.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMOMP : public PairEAM, public ThrOMP {
-
+class PairEAMHEOpt : public PairEAMOpt {
  public:
-  PairEAMOMP(class LAMMPS *);
-
-  void compute(int, int) override;
-  double memory_usage() override;
-
- private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
-  void eval(int iifrom, int iito, int *beyond_rhomax, ThrData *const thr);
+  PairEAMHEOpt(class LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

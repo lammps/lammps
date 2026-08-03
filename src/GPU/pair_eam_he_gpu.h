@@ -11,35 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
-------------------------------------------------------------------------- */
-
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(eam/omp,PairEAMOMP);
+PairStyle(eam/he/gpu,PairEAMHEGPU);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_EAM_OMP_H
-#define LMP_PAIR_EAM_OMP_H
+#ifndef LMP_PAIR_EAM_HE_GPU_H
+#define LMP_PAIR_EAM_HE_GPU_H
 
-#include "pair_eam.h"
-#include "thr_omp.h"
+#include "pair_eam_gpu.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMOMP : public PairEAM, public ThrOMP {
-
+class PairEAMHEGPU : public PairEAMGPU {
  public:
-  PairEAMOMP(class LAMMPS *);
-
-  void compute(int, int) override;
-  double memory_usage() override;
-
- private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
-  void eval(int iifrom, int iito, int *beyond_rhomax, ThrData *const thr);
+  PairEAMHEGPU(class LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

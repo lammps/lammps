@@ -1,4 +1,4 @@
-/* -*- c++ -*- ----------------------------------------------------------
+/* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
@@ -12,37 +12,21 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Axel Kohlmeyer (Temple U)
+   Contributing authors: Xiaowng Zhou (Sandia)
 ------------------------------------------------------------------------- */
 
-#ifdef PAIR_CLASS
-// clang-format off
-PairStyle(eam/omp,PairEAMOMP);
-// clang-format on
-#else
+#include "pair_eam_he_opt.h"
 
-#ifndef LMP_PAIR_EAM_OMP_H
-#define LMP_PAIR_EAM_OMP_H
+using namespace LAMMPS_NS;
 
-#include "pair_eam.h"
-#include "thr_omp.h"
+/* ----------------------------------------------------------------------
+   inherit optimized compute() from PairEAMOpt,
+   select the eam/he file format as in PairEAMHE
+------------------------------------------------------------------------- */
 
-namespace LAMMPS_NS {
-
-class PairEAMOMP : public PairEAM, public ThrOMP {
-
- public:
-  PairEAMOMP(class LAMMPS *);
-
-  void compute(int, int) override;
-  double memory_usage() override;
-
- private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
-  void eval(int iifrom, int iito, int *beyond_rhomax, ThrData *const thr);
-};
-
-}    // namespace LAMMPS_NS
-
-#endif
-#endif
+PairEAMHEOpt::PairEAMHEOpt(LAMMPS *lmp) : PairEAMOpt(lmp)
+{
+  fileformat = FS;
+  one_coeff = 1;
+  he_flag = 1;
+}

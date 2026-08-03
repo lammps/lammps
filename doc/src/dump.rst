@@ -673,9 +673,9 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
-The MPIIO package and the the corresponding "/mpiio" dump styles, except
+The MPIIO package and the corresponding "/mpiio" dump styles, except
 for the unrelated "netcdf/mpiio" style were removed from LAMMPS.
 
 ----------

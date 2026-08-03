@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 07: a spinning sphere on a frictional surface whose
-// rotation is damped by rolling resistance (rolling sds), so its angular
-// velocity decays linearly to zero.  Inspired by Sim C of Mohajeri, Coetzee &
-// Schott, Powder Technology 447 (2024) 120136.  All test logic is shared via
-// test_dem_common; the reference systems live in tests/dem07-*.yaml.
+// DEM verification test 07: spinning sphere damped to rest by rolling resistance (rolling sds).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem07-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

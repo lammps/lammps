@@ -77,7 +77,7 @@ The available models are *linear* and *nn*.
 
 The descriptor style *ace* is a class of highly general atomic
 descriptors, atomic cluster expansion descriptors (ACE) from
-:ref:`(Drautz) <Drautz19>`, that include a radial basis, an angular
+:ref:`(Drautz19) <Drautz19>`, that include a radial basis, an angular
 basis, and bases for other variables (such as chemical species) if
 relevant. In descriptor style *ace*, the *ace* descriptors may be
 defined up to an arbitrary body order. This descriptor style is the same

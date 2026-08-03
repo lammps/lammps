@@ -667,8 +667,8 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
           else if (strcmp(arg[iarg + 1], "bond") == 0)
             scale.mapidx = Image::BOND_MAP;
           else
-            error->all(FLERR, iarg + 1,
-                       "Unknown fix graphics/labels colorscale map value: {}", arg[iarg + 1]);
+            error->all(FLERR, iarg + 1, "Unknown fix graphics/labels colorscale map value: {}",
+                       arg[iarg + 1]);
           iarg += 2;
         } else if (strcmp(arg[iarg], "fontcolor") == 0) {
           if (iarg + 2 > narg)

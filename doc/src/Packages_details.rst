@@ -1797,7 +1797,7 @@ server when the package is installed for the first time.
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-.. deprecated:: 8Feb2023
+.. versionremoved:: 8Feb2023
 
 **Author of the C++ styles:**
 Philipp Kloza (U Cambridge)

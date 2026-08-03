@@ -32,6 +32,8 @@ action pair_eam_alloy_opt.cpp pair_eam_alloy.cpp
 action pair_eam_alloy_opt.h pair_eam_alloy.cpp
 action pair_eam_fs_opt.cpp pair_eam_fs.cpp
 action pair_eam_fs_opt.h pair_eam_fs.cpp
+action pair_eam_he_opt.cpp pair_eam_he.cpp
+action pair_eam_he_opt.h pair_eam_he.cpp
 action pair_eam_opt.cpp pair_eam.cpp
 action pair_eam_opt.h pair_eam.cpp
 action pair_lj_charmm_coul_long_opt.cpp pair_lj_charmm_coul_long.cpp

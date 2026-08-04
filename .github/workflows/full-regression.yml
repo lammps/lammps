@@ -3,6 +3,8 @@ name: "Full Regression Test"
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "25 4 * * MON,THU"
 
 jobs:
   build:

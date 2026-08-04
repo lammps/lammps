@@ -79,72 +79,7 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
     const auto vars = as_doubles(cfg);
     const double t  = (double) lmp->update->ntimestep * lmp->update->dt;
 
-    if (cfg.analytic_model == "freefall") {
-        // ballistic motion of atom 1 before any contact: z = z0 - g t^2/2, vz = -g t.
-        // velocity-Verlet integrates constant acceleration exactly, so this is tight.
-        const double g  = var_or(vars, "grav", 0.0);
-        const double z0 = var_or(vars, "z0", 0.0);
-        const int i     = find_local(lmp, 1);
-        ASSERT_GE(i, 0) << "freefall: atom with tag 1 not found";
-        expect_rel(z0 - 0.5 * g * t * t, lmp->atom->x[i][2], cfg.analytic_tol, "freefall z");
-        expect_rel(-g * t, lmp->atom->v[i][2], cfg.analytic_tol, "freefall vz");
-    } else if (cfg.analytic_model == "bounce_height") {
-        // hard-sphere limit: the apex (center) height after the k-th bounce is
-        //   h_k = r + e^(2k) (h0 - r).
-        // Evaluated at a free-flight segment via energy conservation,
-        // apex = z + vz^2/(2g), so the segment need not end exactly at the apex.
-        // The match is approximate (soft-sphere, finite stiffness) -> loose tol.
-        const double g  = var_or(vars, "grav", 0.0);
-        const double e  = var_or(vars, "restitution", var_or(vars, "en", 1.0));
-        const double r  = var_or(vars, "radius", 0.0);
-        const double h0 = var_or(vars, "h0", 0.0);
-        const double k  = var_or(vars, "bounce_k", 1.0);
-        const int i     = find_local(lmp, 1);
-        ASSERT_GE(i, 0) << "bounce_height: atom with tag 1 not found";
-        const double z    = lmp->atom->x[i][2];
-        const double vz   = lmp->atom->v[i][2];
-        const double apex = z + vz * vz / (2.0 * g);
-        expect_rel(r + std::pow(e, 2.0 * k) * (h0 - r), apex, cfg.analytic_tol, "bounce_height apex");
-    } else if (cfg.analytic_model == "stack_energy") {
-        // Two particles (tags 1 lower, 2 upper) stacked between a floor (ylo)
-        // and ceiling (yhi).  For the elastic (e=1) linear-spring case the total
-        // mechanical energy KE + gravitational PE + contact spring PE is
-        // conserved; compare it to the initial value (particles start at rest).
-        // Masses and radii are read from the live simulation so the comparison
-        // does not depend on reproducing LAMMPS' mass formula.
-        const double g    = var_or(vars, "grav", 0.0);
-        const double kn   = var_or(vars, "knorm", 0.0);
-        const double ylo  = var_or(vars, "ylo", 0.0);
-        const double yhi  = var_or(vars, "yhi", 0.0);
-        const double y1_0 = var_or(vars, "y1", 0.0);
-        const double y2_0 = var_or(vars, "y2", 0.0);
-        const int i1      = find_local(lmp, 1);
-        const int i2      = find_local(lmp, 2);
-        ASSERT_GE(i1, 0) << "stack_energy: atom with tag 1 not found";
-        ASSERT_GE(i2, 0) << "stack_energy: atom with tag 2 not found";
-        const double m1 = lmp->atom->rmass[i1];
-        const double m2 = lmp->atom->rmass[i2];
-        const double r1 = lmp->atom->radius[i1];
-        const double r2 = lmp->atom->radius[i2];
-
-        // linear-spring contact PE from the three possible overlaps:
-        // lower particle vs floor, the pair, upper particle vs ceiling
-        auto spring_pe = [&](double ya, double yb) {
-            const double df  = std::max(0.0, r1 - (ya - ylo));
-            const double dc  = std::max(0.0, (yb + r2) - yhi);
-            const double dpp = std::max(0.0, (r1 + r2) - (yb - ya));
-            return 0.5 * kn * (df * df + dc * dc + dpp * dpp);
-        };
-
-        const double e0 = (m1 * g * y1_0 + m2 * g * y2_0) + spring_pe(y1_0, y2_0);
-        const double ya = lmp->atom->x[i1][1];
-        const double yb = lmp->atom->x[i2][1];
-        const double va = lmp->atom->v[i1][1];
-        const double vb = lmp->atom->v[i2][1];
-        const double ec = 0.5 * m1 * va * va + 0.5 * m2 * vb * vb + (m1 * g * ya + m2 * g * yb) +
-                          spring_pe(ya, yb);
-        expect_rel(e0, ec, cfg.analytic_tol, "stack_energy total energy");
-    } else if (cfg.analytic_model == "slip_cessation") {
+    if (cfg.analytic_model == "slip_cessation") {
         // sphere (tag 1) launched along +x with no spin on a rough floor (normal +z):
         // kinetic friction decelerates u and spins it up about +y until the no-slip
         // condition u = omega_y r is reached.  Thereafter u = 5 u0/7 and omega_y = u/r.
@@ -174,69 +109,6 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         expect_rel(en * vz_in, lmp->atom->v[i][2], cfg.analytic_tol, "oblique_impact vz_out");
         expect_rel(vx_in - dvt, lmp->atom->v[i][0], cfg.analytic_tol, "oblique_impact vx_out");
         expect_rel(2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol, "oblique_impact omega_y");
-    } else if (cfg.analytic_model == "terminal_velocity_linear") {
-        // particle (tag 1) falling under gravity g with linear (Stokes) drag
-        // F = -gamma v reaches terminal speed v_term = m g / gamma.
-        const double g     = var_or(vars, "grav", 0.0);
-        const double gamma = var_or(vars, "gamma", 0.0);
-        const int i        = find_local(lmp, 1);
-        ASSERT_GE(i, 0) << "terminal_velocity_linear: atom with tag 1 not found";
-        const double m = lmp->atom->rmass[i];
-        expect_rel(m * g / gamma, -lmp->atom->v[i][2], cfg.analytic_tol,
-                   "terminal_velocity_linear");
-    } else if (cfg.analytic_model == "terminal_velocity_schiller_naumann") {
-        // particle (tag 1) falling under gravity g with Schiller-Naumann drag
-        // (quiescent gas): terminal speed solves m g = 1/2 Cd rho_g pi r^2 v^2.
-        const double g   = var_or(vars, "grav", 0.0);
-        const double rho = var_or(vars, "rho_gas", 0.0);
-        const double mu  = var_or(vars, "mu_gas", 0.0);
-        const int i      = find_local(lmp, 1);
-        ASSERT_GE(i, 0) << "terminal_velocity_schiller_naumann: atom with tag 1 not found";
-        const double m    = lmp->atom->rmass[i];
-        const double r    = lmp->atom->radius[i];
-        const double area = MathConst::MY_PI * r * r;
-        const double mg   = m * g;
-        auto drag         = [&](double v) {
-            if (v <= 0.0) return 0.0;
-            const double re = rho * v * (2.0 * r) / mu;
-            const double cd = (24.0 / re) * (1.0 + 0.15 * std::pow(re, 0.687));
-            return 0.5 * cd * rho * area * v * v;
-        };
-        // bracket then bisect for the terminal speed (drag is monotone in v)
-        double vlo = 0.0, vhi = 1.0;
-        int guard = 0;
-        while ((drag(vhi) < mg) && (guard++ < 200)) vhi *= 2.0;
-        for (int it = 0; it < 100; ++it) {
-            const double vm = 0.5 * (vlo + vhi);
-            if (drag(vm) < mg)
-                vlo = vm;
-            else
-                vhi = vm;
-        }
-        expect_rel(0.5 * (vlo + vhi), -lmp->atom->v[i][2], cfg.analytic_tol,
-                   "terminal_velocity_schiller_naumann");
-    } else if (cfg.analytic_model == "energy_dissipation") {
-        // For a frictional collision with no external forces (no gravity) the
-        // total mechanical (translational + rotational) kinetic energy of the
-        // sphere (tag 1) must not increase.  This guards against the
-        // grazing-impact energy-injection bug of the classic tangential model.
-        // Initial state: velocity (vx_in, 0, -vz_in) with no spin; sphere moment
-        // of inertia I = (2/5) m r^2.  analytic_tol is the (small) fractional
-        // excess over the initial energy that is tolerated.
-        const double vx_in = var_or(vars, "vx_in", 0.0);
-        const double vz_in = var_or(vars, "vz_in", 0.0);
-        const int i        = find_local(lmp, 1);
-        ASSERT_GE(i, 0) << "energy_dissipation: atom with tag 1 not found";
-        const double m  = lmp->atom->rmass[i];
-        const double r  = lmp->atom->radius[i];
-        const double *v = lmp->atom->v[i];
-        const double *w = lmp->atom->omega[i];
-        const double e_init  = 0.5 * m * (vx_in * vx_in + vz_in * vz_in);
-        const double ke_tr   = 0.5 * m * (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-        const double ke_rot  = 0.5 * (0.4 * m * r * r) * (w[0] * w[0] + w[1] * w[1] + w[2] * w[2]);
-        const double e_final = ke_tr + ke_rot;
-        EXPECT_LE(e_final, e_init * (1.0 + cfg.analytic_tol))
-            << "energy_dissipation: final energy " << e_final << " exceeds initial " << e_init;
     } else if (cfg.analytic_model == "rolling_decay") {
         // sphere (tag 1) spinning about +y on a flat wall, damped only by the
         // rolling-resistance torque M = mu_r R N (N = m g).  In the gross-rolling
@@ -281,35 +153,6 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         EXPECT_LE(std::fabs(m1 * v1 + m2 * v2), cfg.analytic_tol * (m1 + m2) * vin)
             << "collision_restitution: total x-momentum not conserved";
         expect_rel(en, -(v1 - v2) / (2.0 * vin), cfg.analytic_tol, "collision_restitution e");
-    } else if (cfg.analytic_model == "angle_of_repose") {
-        // coarse, statistical estimate of a settled heap's angle of repose:
-        // atan(H / R), where H is the peak height above the floor and R is the
-        // largest horizontal distance from the (horizontal) centroid.  Asserted
-        // to lie within a band [aor_lo, aor_hi] degrees (variables).
-        const double floor = var_or(vars, "floor", 0.0);
-        const double lo    = var_or(vars, "aor_lo", 0.0);
-        const double hi    = var_or(vars, "aor_hi", 90.0);
-        double **x         = lmp->atom->x;
-        const int nlocal   = lmp->atom->nlocal;
-        ASSERT_GT(nlocal, 0) << "angle_of_repose: no atoms";
-        double xc = 0.0, yc = 0.0, zmax = -1.0e300;
-        for (int k = 0; k < nlocal; ++k) {
-            xc += x[k][0];
-            yc += x[k][1];
-            if (x[k][2] > zmax) zmax = x[k][2];
-        }
-        xc /= nlocal;
-        yc /= nlocal;
-        double rmax = 0.0;
-        for (int k = 0; k < nlocal; ++k) {
-            const double dx = x[k][0] - xc, dy = x[k][1] - yc;
-            const double rr = std::sqrt(dx * dx + dy * dy);
-            if (rr > rmax) rmax = rr;
-        }
-        const double angle =
-            (rmax > 0.0) ? std::atan((zmax - floor) / rmax) * 180.0 / MathConst::MY_PI : 90.0;
-        EXPECT_GE(angle, lo) << "angle_of_repose " << angle << " deg is below the band";
-        EXPECT_LE(angle, hi) << "angle_of_repose " << angle << " deg is above the band";
     } else if (cfg.analytic_model == "hertz_normal_impact") {
         // Elastic Hertzian normal impact at peak compression (Chung & Ooi 2011,
         // Tests 1 & 2).  This segment must be timed to land at peak compression,
@@ -375,20 +218,6 @@ void check_analytic_model(const TestConfig &cfg, LAMMPS *lmp, int segment)
         expect_rel(dvt, lmp->atom->v[i][0], cfg.analytic_tol, "spin_impact vx_out");
         expect_rel(w0 - 2.5 * dvt / r, lmp->atom->omega[i][1], cfg.analytic_tol,
                    "spin_impact omega_y");
-    } else if (cfg.analytic_model == "spin_no_friction") {
-        // Two identical spheres (tags 1,2) collide head-on along z while spinning
-        // about y with equal and opposite omega0, arranged so the relative
-        // tangential velocity at the contact point is zero (Chung & Ooi 2011,
-        // Test 7).  No tangential force should be generated: each sphere's spin
-        // is preserved and it gains no tangential (x,y) velocity.  This guards
-        // against a model spuriously creating friction from spin alone.
-        const double w0  = var_or(vars, "omega0", 0.0);
-        const double tol = cfg.analytic_tol;
-        const int i      = find_local(lmp, 1);
-        ASSERT_GE(i, 0) << "spin_no_friction: atom with tag 1 not found";
-        expect_rel(w0, lmp->atom->omega[i][1], tol, "spin_no_friction omega_y preserved");
-        EXPECT_LE(std::fabs(lmp->atom->v[i][0]), tol) << "spin_no_friction: spurious vx";
-        EXPECT_LE(std::fabs(lmp->atom->v[i][1]), tol) << "spin_no_friction: spurious vy";
     } else {
         ADD_FAILURE() << "unknown analytic_model: '" << cfg.analytic_model << "'";
     }

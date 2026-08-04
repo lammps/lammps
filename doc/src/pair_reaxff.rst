@@ -139,7 +139,7 @@ the system.
 
 Using the optional keyword *lgvdw* with the value *yes* turns on the
 low-gradient correction of ReaxFF for long-range London Dispersion,
-as described in the :ref:`(Liu) <Liu_2011>` paper. The bundled force
+as described in the :ref:`(Liu4) <Liu_2011>` paper. The bundled force
 field file *ffield.reax.lg* is designed for this correction, and is
 trained for several energetic materials (see "Liu"). When using *lgvdw yes*,
 the recommended value for parameter *thb* is 0.01, which can be set in the
@@ -419,10 +419,10 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 .. _Aktulga:
 
-(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+**(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
 
 .. _Liu_2011:
 
-**(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
+**(Liu4)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).

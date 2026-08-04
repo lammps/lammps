@@ -136,7 +136,7 @@ endpoints, which the bond style accumulates and communicates internally
 each step.  The canonical references are :ref:`(Silling 2000)
 <Silling2000-bpm>`, :ref:`(Silling 2007) <Silling2007-bpm>`, and
 :ref:`(Parks) <Parks-bpm>`.  The *ves* and *eps* formulations are from
-:ref:`(Mitchell 2011a) <Mitchell2011-bpm>` and :ref:`(Mitchell 2011b)
+:ref:`(Mitchell) <Mitchell2011-bpm>` and :ref:`(Mitchell2)
 <Mitchell2011a-bpm>`; the underlying state-based viscoplasticity theory is
 :ref:`(Foster 2010) <Foster2010-bpm>`, and the original PDLAMMPS
 implementations of these two models by Rahman and Foster are described in
@@ -274,13 +274,13 @@ none
 
 .. _Mitchell2011-bpm:
 
-**(Mitchell 2011a)** Mitchell. A non-local, ordinary-state-based
+**(Mitchell)** Mitchell. A non-local, ordinary-state-based
 viscoelasticity model for peridynamics. Sandia National Lab Report,
 8064:1-28 (2011).
 
 .. _Mitchell2011a-bpm:
 
-**(Mitchell 2011b)** Mitchell. A Nonlocal, Ordinary, State-Based
+**(Mitchell2)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,
 3166:1-34 (2011).
 

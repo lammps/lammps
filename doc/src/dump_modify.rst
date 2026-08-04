@@ -116,12 +116,13 @@ Syntax
 
        *checksum* args = *yes* or *no* (add checksum at end of zst file)
 
-* these keywords apply only to the vtk* dump style
-* keyword = *binary*
+* these keywords apply only to the *vtk* and *grid/vtk* dump styles
+* keyword = *binary* or *double*
 
   .. parsed-literal::
 
        *binary* args = *yes* or *no* (select between binary and text mode VTK files)
+       *double* args = *yes* or *no* (select between double and single precision output)
 
 Examples
 """"""""
@@ -959,14 +960,25 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 ----------
 
-The :ref:`VTK package <PKG-VTK>` offers writing dump files in `VTK file
-formats <https://vtk.org/>`_ that can be read by a variety of
-visualization tools based on the VTK library.  These VTK files follow
+.. versionadded:: TBD
+
+The :ref:`EXTRA-DUMP package <PKG-EXTRA-DUMP>` offers writing dump files
+in `VTK file formats <https://vtk.org/>`_ that can be read by a variety
+of visualization tools based on the VTK library.  These VTK files follow
 naming conventions that collide with the LAMMPS convention to append
 ".bin" to a file name in order to switch to a binary output.  Thus for
-:doc:`vtk style dumps <dump_vtk>` the dump_modify command supports the
-keyword *binary* which selects between generating text mode and binary
-style VTK files.
+:doc:`vtk style dumps <dump_vtk>` and :doc:`grid/vtk style dumps <dump>`
+the dump_modify command supports the keyword *binary* which selects
+between generating text mode and binary style VTK files.
+
+The keyword *double* selects the precision of all floating point data
+written by the *vtk* and *grid/vtk* dump styles.  By default, that data
+is written in single precision, which keeps about 7 significant digits
+and is what visualization tools work with.  With *double* set to *yes*,
+coordinates and data values are written in double precision instead, so
+that dump files can be post-processed quantitatively without loss of
+precision.  Text mode files then store each number with as many digits
+as are needed to read back the identical value.
 
 ----------
 
@@ -988,7 +1000,9 @@ The option defaults are
 
 * append = no
 * balance = no
+* binary = no (dump styles *vtk* and *grid/vtk*)
 * buffer = yes for dump styles *atom*, *custom*, *loca*, and *xyz*
+* double = no (dump styles *vtk* and *grid/vtk*)
 * element = "C" for every atom type
 * every = whatever it was set to via the :doc:`dump <dump>` command
 * fileper = # of processors

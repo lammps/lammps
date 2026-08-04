@@ -25,16 +25,12 @@ DumpStyle(vtk,DumpVTK);
 #define LMP_DUMP_VTK_H
 
 #include "dump_custom.h"
+#include "vtk_writer.h"
+
 #include <map>
 #include <set>
-
-#include <vtkCellArray.h>
-#include <vtkPoints.h>
-#include <vtkSmartPointer.h>
-
-class vtkAbstractArray;
-class vtkRectilinearGrid;
-class vtkUnstructuredGrid;
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -42,16 +38,16 @@ namespace LAMMPS_NS {
  * @brief DumpVTK class
  *        write atom data to vtk files.
  *
- * Similar to the DumpCustom class but uses the vtk library to write data to vtk simple
- * legacy or xml format depending on the filename extension specified. (Since this
- * conflicts with the way binary output is specified, dump_modify allows to set the
- * binary flag for this dump command explicitly).
+ * Similar to the DumpCustom class but uses the built-in VTKWriter class to write data
+ * to vtk simple legacy or xml format depending on the filename extension specified.
+ * (Since this conflicts with the way binary output is specified, dump_modify allows to
+ * set the binary flag for this dump command explicitly).
  * In contrast to DumpCustom class the attributes to be packed are stored in a std::map
  * to avoid duplicate entries and enforce correct ordering of vector components (except
  * for computes and fixes - these have to be given in the right order in the input script).
  * (Note: std::map elements are sorted by their keys.)
  * This dump command does not support compressed files, buffering or custom format strings,
- * multiproc is only supported by the xml formats, multifile option has to be used.
+ * multiproc is only supported by the xml formats.
  */
 
 class DumpVTK : public DumpCustom {
@@ -77,49 +73,48 @@ class DumpVTK : public DumpCustom {
   int count() override;
   void pack(tagint *) override;
   void write_data(int, double *) override;
-  double memory_usage() override;
 
-  int parse_fields(int, char **);
+  int parse_vtk_fields(int, char **);
   void identify_vectors();
-  int add_compute(const char *);
-  int add_fix(const char *);
-  int add_variable(const char *);
-  int add_custom(const char *, int);
   int modify_param(int, char **) override;
 
-  typedef void (DumpVTK::*FnPtrHeader)(bigint);
-  FnPtrHeader header_choice;    // ptr to write header functions
-  void header_vtk(bigint);
-
-  typedef void (DumpVTK::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpVTK::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_vtk(int, double *);
   void write_vtp(int, double *);
   void write_vtu(int, double *);
-  void write_pvtk(int);                  // write parallel .pvtp/.pvtu summary file
-  std::string pvtk_piece_filename(int);  // per-proc piece file name as referenced in summary
+  void write_xml_snapshot(int, double *, bool unstructured);    // shared body of vtp/vtu
+  void write_pvtk();                       // write parallel .pvtp/.pvtu summary file
+  std::string pvtk_piece_filename(int);    // per-proc piece file name as referenced in summary
 
-  void prepare_domain_data(vtkRectilinearGrid *);
-  void prepare_domain_data_triclinic(vtkUnstructuredGrid *);
-  void write_domain_vtk();
-  void write_domain_vtk_triclinic();
-  void write_domain_vtr();
-  void write_domain_vtu_triclinic();
+  void write_points(VTKWriter::Flavor, bool unstructured);    // write the atom data file
+  void check_coordinate_precision(double);    // warn if single precision is too coarse
+  void write_domain(VTKWriter::Flavor);       // write the box data file
 
-  typedef void (DumpVTK::*FnPtrPack)(int);
+  using FnPtrPack = void (DumpVTK::*)(int);
   std::map<int, FnPtrPack> pack_choice;    // ptrs to pack functions
   std::map<int, int> vtype;                // data type
   std::map<int, std::string> name;         // attribute labels
   std::set<int> vector_set;                // set of vector attributes
   int current_pack_choice_key;
 
-  // vtk data containers
-  vtkSmartPointer<vtkPoints> points;
-  vtkSmartPointer<vtkCellArray> pointsCells;
-  std::map<int, vtkSmartPointer<vtkAbstractArray>> myarrays;
+  // data collected for the current snapshot.  one entry per attribute that
+  // is not a point coordinate, in the order the values appear in buf.
+
+  struct VTKArray {
+    std::string name;
+    int type;                            // Dump::INT, Dump::DOUBLE or Dump::STRING
+    int ncomp;                           // 1 or 3
+    std::vector<double> values;          // for INT and DOUBLE
+    std::vector<std::string> strings;    // for STRING
+  };
+
+  std::vector<double> points;    // coordinates of the dumped atoms
+  std::vector<VTKArray> myarrays;
 
   int n_calls_;
-  double (*boxcorners)[3];    // corners of triclinic domain box
+  int precision_warned;              // 1 after the single precision warning was printed
+  VTKWriter::Precision writeprec;    // precision of floating point output, dump_modify double
   char *filecurrent;
   char *domainfilecurrent;
   char *parallelfilecurrent;
@@ -130,10 +125,10 @@ class DumpVTK : public DumpCustom {
   void reset_vtk_data_containers();
 
   // customize by adding a method prototype
-  void pack_compute(int);
-  void pack_fix(int);
-  void pack_variable(int);
-  void pack_custom(int);
+  void pack_vtk_compute(int);
+  void pack_vtk_fix(int);
+  void pack_vtk_variable(int);
+  void pack_vtk_custom(int);
 };
 
 }    // namespace LAMMPS_NS

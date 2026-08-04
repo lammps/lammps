@@ -1633,6 +1633,7 @@ hertzian
 Hertzsch
 heterointerfaces
 heterostructures
+hexahedron
 hexahedrons
 hexatic
 hexorder
@@ -3265,6 +3266,7 @@ Politano
 Politecnico
 polyA
 polybond
+polydata
 polydisperse
 polydispersity
 polyelectrolyte
@@ -4474,6 +4476,7 @@ vstyle
 vtarget
 vtk
 VTK
+vti
 vtp
 vtr
 vtu

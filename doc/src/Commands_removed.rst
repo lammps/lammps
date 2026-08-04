@@ -17,6 +17,15 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+VTK package
+-----------
+
+.. versionremoved:: TBD
+
+The VTK package has been removed since :doc:`dump style vtk <dump_vtk>`
+no longer requires the VTK libraries and has thus been moved to the
+:ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>` package.
+
 ML-RANN package
 ---------------
 

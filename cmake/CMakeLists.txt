@@ -247,6 +247,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VER
   target_link_libraries(lammps PRIVATE c++fs)
 endif()
 
+# zlib is used by multiple packages and by the VTK file writer in the core, so
+# we look for it once here instead of repeating the search in each package file.
+find_package(ZLIB QUIET)
+option(WITH_ZLIB "Enable compression support via the zlib library" ${ZLIB_FOUND})
+if(WITH_ZLIB)
+  find_package(ZLIB REQUIRED)
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_ZLIB)
+  target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
+endif()
+
 # tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
 if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
   set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
@@ -350,7 +360,6 @@ set(STANDARD_PACKAGES
   TALLY
   UEF
   VORONOI
-  VTK
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
@@ -595,7 +604,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL GRAPHICS KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP ML-RUNNER SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
+        PLUMED QMMM ML-QUIP ML-RUNNER SCAFACOS MACHDYN KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()

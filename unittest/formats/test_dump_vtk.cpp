@@ -172,10 +172,10 @@ TEST_F(DumpVTKTest, legacy_attributes)
     EXPECT_THAT(text, HasSubstr("id 1 32 int\n1 2 3 4 5 6 7 8 9\n"));
     EXPECT_THAT(text, HasSubstr("type 1 32 int\n"));
     EXPECT_THAT(text, HasSubstr("element 1 32 string\nC\nC\n"));
-    EXPECT_THAT(text, HasSubstr("mass 1 32 double\n"));
-    EXPECT_THAT(text, HasSubstr("v 3 32 double\n"));
-    EXPECT_THAT(text, HasSubstr("f 3 32 double\n"));
-    EXPECT_THAT(text, Not(HasSubstr("x 1 32 double\n")));
+    EXPECT_THAT(text, HasSubstr("mass 1 32 float\n"));
+    EXPECT_THAT(text, HasSubstr("v 3 32 float\n"));
+    EXPECT_THAT(text, HasSubstr("f 3 32 float\n"));
+    EXPECT_THAT(text, Not(HasSubstr("x 1 32 float\n")));
 
     delete_file(dump_file);
     delete_file(box_file);
@@ -290,7 +290,7 @@ TEST_F(DumpVTKTest, xml_polydata_run0)
     EXPECT_THAT(text, HasSubstr(R"(<Piece NumberOfPoints="32" NumberOfVerts="32")"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int32" Name="id" format="ascii">)"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int32" Name="type" format="ascii">)"));
-    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float64" Name="v" NumberOfComponents="3")"));
+    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float32" Name="v" NumberOfComponents="3")"));
     EXPECT_THAT(text,
                 HasSubstr(R"(<DataArray type="Float32" Name="Points" NumberOfComponents="3")"));
 
@@ -418,7 +418,7 @@ TEST_F(DumpVTKTest, per_processor_polydata)
     EXPECT_THAT(summary, HasSubstr(R"(<PDataArray type="Int32" Name="type"/>)"));
     EXPECT_THAT(summary, HasSubstr(R"(<PDataArray type="String" Name="element"/>)"));
     EXPECT_THAT(summary,
-                HasSubstr(R"(<PDataArray type="Float64" Name="v" NumberOfComponents="3"/>)"));
+                HasSubstr(R"(<PDataArray type="Float32" Name="v" NumberOfComponents="3"/>)"));
     EXPECT_THAT(summary,
                 HasSubstr(R"(<PDataArray type="Float32" Name="Points" NumberOfComponents="3"/>)"));
     EXPECT_THAT(summary, HasSubstr(fmt::format(R"(<Piece Source="{}"/>)", piece_file)));
@@ -497,6 +497,69 @@ TEST_F(DumpVTKTest, write_dump)
 }
 
 //-------------------------------------------------------------------------------------------------
+// double precision output
+//-------------------------------------------------------------------------------------------------
+
+TEST_F(DumpVTKTest, double_precision_legacy)
+{
+    const std::string dump_file = "dump_vtk_double.vtk";
+    const std::string box_file  = "dump_vtk_double_boundingBox.vtk";
+
+    // dump_modify double yes switches all floating point data to double
+    // precision, including the box file
+
+    generate_dump(dump_file, "id vx vy vz", "double yes sort id", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto text = slurp(dump_file);
+    EXPECT_THAT(text, HasSubstr("POINTS 32 double\n"));
+    EXPECT_THAT(text, HasSubstr("v 3 32 double\n"));
+
+    ASSERT_FILE_EXISTS(box_file);
+    EXPECT_THAT(slurp(box_file), HasSubstr("X_COORDINATES 2 double\n"));
+
+    delete_file(dump_file);
+    delete_file(box_file);
+}
+
+TEST_F(DumpVTKTest, double_precision_xml)
+{
+    const std::string dump_file = "dump_vtk_double.vtp";
+    const std::string box_file  = "dump_vtk_double_boundingBox.vtr";
+
+    generate_dump(dump_file, "id vx vy vz", "double yes sort id", 0);
+
+    ASSERT_FILE_EXISTS(dump_file);
+    auto text = slurp(dump_file);
+    EXPECT_THAT(text,
+                HasSubstr(R"(<DataArray type="Float64" Name="Points" NumberOfComponents="3")"));
+    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float64" Name="v" NumberOfComponents="3")"));
+
+    delete_file(dump_file);
+    delete_file(box_file);
+}
+
+TEST_F(DumpVTKTest, double_precision_summary)
+{
+    // the per processor summary file has to declare the same types that the
+    // piece files contain
+
+    generate_dump("dump_vtk_dpar_%.vtp", "id vx vy vz", "double yes", 0);
+
+    const std::string summary_file = "dump_vtk_dpar_.pvtp";
+    ASSERT_FILE_EXISTS(summary_file);
+    auto summary = slurp(summary_file);
+    EXPECT_THAT(summary,
+                HasSubstr(R"(<PDataArray type="Float64" Name="v" NumberOfComponents="3"/>)"));
+    EXPECT_THAT(summary,
+                HasSubstr(R"(<PDataArray type="Float64" Name="Points" NumberOfComponents="3"/>)"));
+
+    delete_file("dump_vtk_dpar__0.vtp");
+    delete_file(summary_file);
+    delete_file("dump_vtk_dpar__boundingBox.vtr");
+}
+
+//-------------------------------------------------------------------------------------------------
 // selecting a subset of the atoms
 //-------------------------------------------------------------------------------------------------
 
@@ -562,6 +625,14 @@ TEST_F(DumpVTKTest, single_precision_warning)
     });
     EXPECT_THAT(output, HasSubstr("Dump vtk writes atom coordinates in single precision"));
 
+    // with double precision output there is nothing to warn about
+
+    output = CAPTURE_OUTPUT([&] {
+        command(fmt::format("write_dump all vtk {} id type modify double yes", dump_file));
+    });
+    EXPECT_THAT(output, Not(HasSubstr("single precision")));
+    EXPECT_THAT(slurp(dump_file), HasSubstr("POINTS 32 double\n"));
+
     delete_file(dump_file);
     delete_file(box_file);
 }
@@ -586,7 +657,12 @@ TEST_F(DumpVTKTest, dump_modify_invalid)
 
     TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
                  command("dump_modify id binary xxx"););
-    TEST_FAILURE(".*Illegal dump_modify command \\[label\\].*", command("dump_modify id label"););
+    TEST_FAILURE(".*Expected boolean parameter instead of 'xxx'.*",
+                 command("dump_modify id double xxx"););
+    TEST_FAILURE(".*Illegal dump_modify double command: missing argument.*",
+                 command("dump_modify id double"););
+    TEST_FAILURE(".*Illegal dump_modify label command: missing argument.*",
+                 command("dump_modify id label"););
     TEST_FAILURE(".*Number of dump_modify element names does not match number of atom types.*",
                  command("dump_modify id element"););
     TEST_FAILURE(".*Dump_modify region nosuchregion does not exist.*",

@@ -37,15 +37,16 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
+#include "platform.h"
 #include "region.h"
+#include "safe_pointers.h"
 #include "update.h"
 #include "variable.h"
 
-#include <cmath>
-#include <limits>
 #include <cstdio>
 #include <cstring>
 #include <sstream>
+#include <utility>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -71,20 +72,32 @@ enum{X,Y,Z, // required for vtk, must come first
 enum{LT,LE,GT,GE,EQ,NEQ,XOR};
 enum{VTK,VTP,VTU,PVTP,PVTU}; // file formats
 
+// replace the '%' character in a file name with the given text
+
+static std::string percent_subst(const std::string &name, const std::string &subst)
+{
+  auto pos = name.find('%');
+  if (pos == std::string::npos) return name;
+  return name.substr(0,pos) + subst + name.substr(pos+1);
+}
+
+// insert text in front of the file name extension
+
+static std::string insert_before_extension(const std::string &name, const std::string &text)
+{
+  auto pos = name.find_last_of('.');
+  if (pos == std::string::npos) return name + text;
+  return name.substr(0,pos) + text + name.substr(pos);
+}
+
 /* ---------------------------------------------------------------------- */
 
 DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
-    DumpCustom(lmp, narg, arg), label(nullptr), boxcorners(nullptr), filecurrent(nullptr),
+    DumpCustom(lmp, narg, arg), label(nullptr), write_choice(nullptr), n_calls_(0),
+    precision_warned(0), writeprec(VTKWriter::SINGLE), filecurrent(nullptr),
     domainfilecurrent(nullptr), parallelfilecurrent(nullptr), multiname_ex(nullptr)
 {
   if (narg < 6) utils::missing_cmd_args(FLERR, "dump vtk", error);
-
-  pack_choice.clear();
-  vtype.clear();
-  name.clear();
-
-  myarrays.clear();
-  n_calls_ = 0;
 
   // process attributes
   // ioptional = start of additional optional args
@@ -98,18 +111,6 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
   current_pack_choice_key = -1;
 
   if (filewriter) reset_vtk_data_containers();
-
-  {
-    // parallel vtp/vtu requires proc number to be preceded by underscore '_'
-    multiname_ex = nullptr;
-    char *ptr = strchr(filename,'%');
-    if (ptr) {
-      multiname_ex = new char[strlen(filename) + 16];
-      *ptr = '\0';
-      sprintf(multiname_ex,"%s_%d%s",filename,me,ptr+1);
-      *ptr = '%';
-    }
-  }
 
   vtk_file_format = VTK;
 
@@ -130,8 +131,6 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
 
     if (multiproc) {
       MPI_Comm_free(&clustercomm);
-      delete[] multiname_ex;
-      multiname_ex = nullptr;
 
       char *ptr = strchr(filename,'%');
       *ptr = '\0';
@@ -150,13 +149,9 @@ DumpVTK::DumpVTK(LAMMPS *lmp, int narg, char **arg) :
     nclusterprocs = nprocs;
   }
 
-  precision_warned = 0;
-  filecurrent = nullptr;
-  domainfilecurrent = nullptr;
-  parallelfilecurrent = nullptr;
-  header_choice = nullptr;
-  write_choice = nullptr;
-  boxcorners = nullptr;
+  // parallel vtp/vtu requires the proc number to be preceded by underscore '_'
+
+  if (multiproc) multiname_ex = utils::strdup(percent_subst(filename, fmt::format("_{}", me)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,8 +184,6 @@ void DumpVTK::init_style()
   domain->boundary_string(boundstr);
 
   // setup function ptrs
-
-  header_choice = &DumpVTK::header_vtk;
 
   if (vtk_file_format == VTP || vtk_file_format == PVTP)
     write_choice = &DumpVTK::write_vtp;
@@ -248,12 +241,6 @@ void DumpVTK::init_style()
 /* ---------------------------------------------------------------------- */
 
 void DumpVTK::write_header(bigint)
-{
-}
-
-/* ---------------------------------------------------------------------- */
-
-void DumpVTK::header_vtk(bigint)
 {
 }
 
@@ -875,7 +862,6 @@ void DumpVTK::write()
     boxzhi = domain->boxhi[2];
   } else {
     domain->box_corners();
-    boxcorners = domain->corners;
   }
 
   // nme = # of dump lines this proc contributes to dump
@@ -891,16 +877,6 @@ void DumpVTK::write()
   int nmax;
   if (multiproc != nprocs) MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
   else nmax = nme;
-
-  // write timestep header
-  // for multiproc,
-  //   nheader = # of lines in this file via Allreduce on clustercomm
-
-  bigint nheader = ntotal;
-  if (multiproc)
-    MPI_Allreduce(&bnme,&nheader,1,MPI_LMP_BIGINT,MPI_SUM,clustercomm);
-
-  if (filewriter) write_header(nheader);
 
   // ensure buf is sized for packing and communicating
   // use nmax to ensure filewriter proc can receive info from others
@@ -987,97 +963,41 @@ void DumpVTK::write_data(int n, double *mybuf)
 /* ---------------------------------------------------------------------- */
 
 void DumpVTK::setFileCurrent() {
+
+  // per processor piece file.  "%" was replaced with "_<me>" in the
+  // constructor; dump_modify fileper or nfile group procs into fewer files,
+  // so their file id has to be recomputed for every snapshot
+
+  if (multiproc > 1) {
+    delete[] multiname_ex;
+    int id;
+    if (me + nclusterprocs == nprocs) // last filewriter
+      id = multiproc - 1;
+    else
+      id = me/nclusterprocs;
+    multiname_ex = utils::strdup(percent_subst(filename, fmt::format("_{}", id)));
+  }
+
+  std::string current = multiproc ? multiname_ex : filename;
+  if (multifile) current = utils::star_subst(current, update->ntimestep, padflag);
   delete[] filecurrent;
-  filecurrent = nullptr;
+  filecurrent = utils::strdup(current);
 
-  char *filestar = filename;
-  if (multiproc) {
-    if (multiproc > 1) { // if dump_modify fileper or nfile was used
-      delete[] multiname_ex;
-      multiname_ex = nullptr;
-      char *ptr = strchr(filename,'%');
-      if (ptr) {
-        int id;
-        if (me + nclusterprocs == nprocs) // last filewriter
-          id = multiproc -1;
-        else
-          id = me/nclusterprocs;
-        multiname_ex = new char[strlen(filename) + 16];
-        *ptr = '\0';
-        sprintf(multiname_ex,"%s_%d%s",filename,id,ptr+1);
-        *ptr = '%';
-      }
-    } // else multiname_ex built in constructor is OK
-    filestar = multiname_ex;
-  }
+  // domain box data file: common for all procs, so without the "_<id>" part
 
-  if (multifile == 0) {
-    filecurrent = utils::strdup(filestar);
-  } else {
-    filecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
-  }
-
-  // filename of domain box data file
+  std::string domaincurrent = insert_before_extension(percent_subst(filename, ""), "_boundingBox");
+  if (multifile) domaincurrent = utils::star_subst(domaincurrent, update->ntimestep, padflag);
   delete[] domainfilecurrent;
-  domainfilecurrent = nullptr;
-  if (multiproc) {
-    // remove '%' character
-    char *ptr = strchr(filename,'%');
-    domainfilecurrent = new char[strlen(filename)];
-    *ptr = '\0';
-    sprintf(domainfilecurrent,"%s%s",filename,ptr+1);
-    *ptr = '%';
-    // insert "_boundingBox" string
-    ptr = strrchr(domainfilecurrent,'.');
-    filestar = new char[strlen(domainfilecurrent)+16];
-    *ptr = '\0';
-    sprintf(filestar,"%s_boundingBox.%s",domainfilecurrent,ptr+1);
-    delete [] domainfilecurrent;
-    domainfilecurrent = nullptr;
+  domainfilecurrent = utils::strdup(domaincurrent);
 
-    if (multifile == 0) {
-      domainfilecurrent = new char[strlen(filestar) + 1];
-      strcpy(domainfilecurrent, filestar);
-    } else {
-      domainfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
-    }
-    delete[] filestar;
-    filestar = nullptr;
-  } else {
-    domainfilecurrent = new char[strlen(filecurrent) + 16];
-    char *ptr = strrchr(filecurrent,'.');
-    *ptr = '\0';
-    sprintf(domainfilecurrent,"%s_boundingBox.%s",filecurrent,ptr+1);
-    *ptr = '.';
-  }
+  // parallel summary file: "%" removed and 'p' added to the file extension
 
-  // filename of parallel file
   if (multiproc && me == 0) {
+    std::string parallelcurrent = percent_subst(filename, "");
+    parallelcurrent.insert(parallelcurrent.find_last_of('.') + 1, "p");
+    if (multifile) parallelcurrent = utils::star_subst(parallelcurrent, update->ntimestep, padflag);
     delete[] parallelfilecurrent;
-    parallelfilecurrent = nullptr;
-
-    // remove '%' character and add 'p' to file extension
-    // -> string length stays the same
-    char *ptr = strchr(filename,'%');
-    filestar = new char[strlen(filename) + 1];
-    *ptr = '\0';
-    sprintf(filestar,"%s%s",filename,ptr+1);
-    *ptr = '%';
-    ptr = strrchr(filestar,'.');
-    ptr++;
-    *ptr++='p';
-    *ptr++='v';
-    *ptr++='t';
-    *ptr++= (vtk_file_format == PVTP)?'p':'u';
-    *ptr++= 0;
-
-    if (multifile == 0) {
-      parallelfilecurrent = utils::strdup(filestar);
-    } else {
-      parallelfilecurrent = utils::strdup(utils::star_subst(filestar, update->ntimestep, padflag));
-    }
-    delete[] filestar;
-    filestar = nullptr;
+    parallelfilecurrent = utils::strdup(parallelcurrent);
   }
 }
 
@@ -1085,6 +1005,12 @@ void DumpVTK::setFileCurrent() {
 
 void DumpVTK::buf2arrays(int n, double *mybuf)
 {
+  points.reserve(points.size() + (std::size_t) 3*n);
+  for (auto &array : myarrays) {
+    if (array.type == Dump::STRING) array.strings.reserve(array.strings.size() + n);
+    else array.values.reserve(array.values.size() + (std::size_t) n*array.ncomp);
+  }
+
   for (int iatom=0; iatom < n; ++iatom) {
     const double *atom = &mybuf[iatom*size_one];
 
@@ -1110,20 +1036,21 @@ void DumpVTK::buf2arrays(int n, double *mybuf)
 void DumpVTK::write_domain(VTKWriter::Flavor flavor)
 {
   try {
-    VTKWriter writer(flavor, binary != 0);
+    VTKWriter writer(flavor, binary != 0, writeprec);
     writer.set_title(label ? label : "Generated by LAMMPS");
 
     if (domain->triclinic == 0) {
       writer.set_rectilinear_grid({boxxlo, boxxhi}, {boxylo, boxyhi}, {boxzlo, boxzhi});
     } else {
 
-      // the corners of a LAMMPS box and the corners of a VTK hexahedron cell
-      // run in a different order around the bottom and top faces
+      // the corners of a LAMMPS box (from Domain::box_corners() called in
+      // write()) and the corners of a VTK hexahedron cell run in a different
+      // order around the bottom and top faces
 
       static const int corner_map[8] = {0, 1, 3, 2, 4, 5, 7, 6};
       double corners[8][3];
       for (int i = 0; i < 8; ++i)
-        for (int j = 0; j < 3; ++j) corners[i][j] = boxcorners[corner_map[i]][j];
+        for (int j = 0; j < 3; ++j) corners[i][j] = domain->corners[corner_map[i]][j];
       writer.set_hexahedron(corners);
     }
     writer.write(domainfilecurrent);
@@ -1139,20 +1066,24 @@ void DumpVTK::write_domain(VTKWriter::Flavor flavor)
 void DumpVTK::write_points(VTKWriter::Flavor flavor, bool unstructured)
 {
   try {
-    VTKWriter writer(flavor, binary != 0);
+    VTKWriter writer(flavor, binary != 0, writeprec);
     writer.set_title(label ? label : "Generated by LAMMPS");
 
-    if (unstructured) writer.set_unstructured_grid(points);
-    else writer.set_polydata(points);
+    // the collected data is donated to the writer, since it is rebuilt for
+    // every snapshot anyway.  only the array names and types remain valid,
+    // which is all that write_pvtk() needs afterwards.
+
+    if (unstructured) writer.set_unstructured_grid(std::move(points));
+    else writer.set_polydata(std::move(points));
 
     for (auto &array : myarrays) {
       if (array.type == Dump::STRING) {
-        writer.add_point_array(array.name, array.strings);
+        writer.add_point_array(array.name, std::move(array.strings));
       } else if (array.type == Dump::INT) {
-        std::vector<int> ivalues(array.values.begin(), array.values.end());
-        writer.add_point_array(array.name, array.ncomp, ivalues);
+        writer.add_point_array(array.name, array.ncomp,
+                               std::vector<int>(array.values.begin(), array.values.end()));
       } else {
-        writer.add_point_array(array.name, array.ncomp, array.values);
+        writer.add_point_array(array.name, array.ncomp, std::move(array.values));
       }
     }
     writer.write(filecurrent);
@@ -1163,21 +1094,24 @@ void DumpVTK::write_points(VTKWriter::Flavor flavor, bool unstructured)
 }
 
 /* ----------------------------------------------------------------------
-   atom coordinates are stored in single precision, which is what
-   visualization programs expect.  warn once when the system has grown so
-   large that this no longer resolves the coordinates well enough.
+   atom coordinates are stored in single precision by default, which is
+   what visualization programs expect.  warn once when the system has
+   grown so large that this no longer resolves the coordinates well
+   enough.  with dump_modify double yes nothing is tracked, so the
+   warning is skipped automatically.
 ------------------------------------------------------------------------- */
 
 void DumpVTK::check_coordinate_precision(double maxcoord)
 {
   if (precision_warned || (me != 0)) return;
-  if (maxcoord <= VTKWriter::SINGLE_PRECISION_LIMIT * force->angstrom) return;
+  const double resolution = VTKWriter::single_precision_resolution(maxcoord, force->angstrom);
+  if (resolution == 0.0) return;
 
   precision_warned = 1;
   error->warning(FLERR,"Dump vtk writes atom coordinates in single precision, which resolves "
                  "the largest coordinate of this system, {:.4g}, to only about {:.2g} length "
-                 "units. If your analysis needs more resolution than that, please contact the "
-                 "LAMMPS developers.", maxcoord, maxcoord * std::numeric_limits<float>::epsilon());
+                 "units. Use dump_modify double yes if your analysis needs more resolution "
+                 "than that.", maxcoord, resolution);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1203,34 +1137,19 @@ void DumpVTK::write_vtk(int n, double *mybuf)
 
 void DumpVTK::write_vtp(int n, double *mybuf)
 {
-  ++n_calls_;
-
-  buf2arrays(n, mybuf);
-
-  if (n_calls_ < nclusterprocs)
-    return; // multiple processors but not all are filewriters (-> nclusterprocs procs contribute to the filewriter's output data)
-
-  setFileCurrent();
-
-  write_points(VTKWriter::XML, false);
-
-  if (me == 0) {
-    // write the parallel summary file ourselves (see write_pvtk()), since the
-    // VTK parallel writer derives wrong piece file names from multi-dot names
-    if (multiproc) write_pvtk(PVTP);
-
-    // adjust the filename extension to the dataset type used for the box
-
-    domainfilecurrent[strlen(domainfilecurrent)-1] = (domain->triclinic == 0) ? 'r' : 'u';
-    write_domain(VTKWriter::XML);
-  }
-
-  reset_vtk_data_containers();
+  write_xml_snapshot(n, mybuf, false);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void DumpVTK::write_vtu(int n, double *mybuf)
+{
+  write_xml_snapshot(n, mybuf, true);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void DumpVTK::write_xml_snapshot(int n, double *mybuf, bool unstructured)
 {
   ++n_calls_;
 
@@ -1241,17 +1160,16 @@ void DumpVTK::write_vtu(int n, double *mybuf)
 
   setFileCurrent();
 
-  write_points(VTKWriter::XML, true);
+  write_points(VTKWriter::XML, unstructured);
 
   if (me == 0) {
-    // write the parallel summary file ourselves (see write_pvtk()), since the
-    // VTK parallel writer derives wrong piece file names from multi-dot names
-    if (multiproc) write_pvtk(PVTU);
+    if (multiproc) write_pvtk();
 
-    // the extension is already correct for the triclinic box, which is
-    // written as an unstructured grid like the atom data
+    // adjust the filename extension to the dataset type used for the box:
+    // rectilinear grid (.vtr) for an orthogonal box, unstructured grid
+    // (.vtu) for a triclinic one
 
-    if (domain->triclinic == 0) domainfilecurrent[strlen(domainfilecurrent)-1] = 'r';
+    domainfilecurrent[strlen(domainfilecurrent)-1] = (domain->triclinic == 0) ? 'r' : 'u';
     write_domain(VTKWriter::XML);
   }
 
@@ -1269,14 +1187,12 @@ void DumpVTK::write_vtu(int n, double *mybuf)
 
 std::string DumpVTK::pvtk_piece_filename(int id)
 {
-  char *ptr = strchr(filename,'%');
-  std::string fname = std::string(filename, ptr-filename) + "_" + std::to_string(id) + (ptr+1);
+  std::string fname = percent_subst(filename, fmt::format("_{}", id));
   if (multifile) fname = utils::star_subst(fname, update->ntimestep, padflag);
 
-  // strip leading directory so the reference is relative to the summary file
-  auto pos = fname.find_last_of("/\\");
-  if (pos != std::string::npos) fname = fname.substr(pos+1);
-  return fname;
+  // strip the leading directory so the reference is relative to the summary file
+
+  return platform::path_basename(fname);
 }
 
 /* ----------------------------------------------------------------------
@@ -1290,31 +1206,30 @@ std::string DumpVTK::pvtk_piece_filename(int id)
    file directly.  called on rank 0 only, with multiproc set.
 ------------------------------------------------------------------------- */
 
-void DumpVTK::write_pvtk(int fileformat)
+void DumpVTK::write_pvtk()
 {
-  FILE *fp = fopen(parallelfilecurrent,"w");
+  SafeFilePtr fp(fopen(parallelfilecurrent,"w"));
   if (!fp)
     error->one(FLERR,"Cannot open dump vtk parallel file {}: {}",
                parallelfilecurrent, utils::getsyserror());
 
-  const char *gridtype = (fileformat == PVTP) ? "PPolyData" : "PUnstructuredGrid";
-
-  int one = 1;
-  const char *byte_order = (*((char *) &one)) ? "LittleEndian" : "BigEndian";
+  const char *gridtype = (vtk_file_format == PVTP) ? "PPolyData" : "PUnstructuredGrid";
 
   utils::print(fp, R"(<?xml version="1.0"?>)" "\n");
-  utils::print(fp, R"(<VTKFile type="{}" version="1.0" byte_order="{}">)" "\n", gridtype, byte_order);
+  utils::print(fp, R"(<VTKFile type="{}" version="1.0" byte_order="{}">)" "\n", gridtype,
+               VTKWriter::xml_byte_order());
   utils::print(fp, R"(  <{} GhostLevel="0">)" "\n", gridtype);
 
-  // point data array declarations, in the same order/grouping as the piece
-  // files (mirrors reset_vtk_data_containers(): skip x,y,z, group vectors)
-
   // declare the same arrays that reset_vtk_data_containers() set up for the
-  // piece files, so that the two can never get out of step
+  // piece files, so that the two can never get out of step.  the declared
+  // types have to match what write_points() makes the writer produce, so
+  // floating point arrays follow the selected precision
+
+  const char *real_type = VTKWriter::xml_real_type(writeprec);
 
   utils::print(fp, R"(    <PPointData>)" "\n");
   for (const auto &array : myarrays) {
-    const char *type = "Float64";
+    const char *type = real_type;
     if (array.type == Dump::INT) type = "Int32";
     else if (array.type == Dump::STRING) type = "String";
     if (array.ncomp == 3) {
@@ -1326,10 +1241,9 @@ void DumpVTK::write_pvtk(int fileformat)
   }
   utils::print(fp, R"(    </PPointData>)" "\n");
 
-  // point coordinates are stored in single precision, see write_points()
-
   utils::print(fp, R"(    <PPoints>)" "\n");
-  utils::print(fp, R"(      <PDataArray type="Float32" Name="Points" NumberOfComponents="3"/>)" "\n");
+  utils::print(fp, R"(      <PDataArray type="{}" Name="Points" NumberOfComponents="3"/>)" "\n",
+               real_type);
   utils::print(fp, R"(    </PPoints>)" "\n");
 
   // one <Piece> entry per per-processor piece file
@@ -1340,7 +1254,6 @@ void DumpVTK::write_pvtk(int fileformat)
 
   utils::print(fp, R"(  </{}>)" "\n", gridtype);
   utils::print(fp, R"(</VTKFile>)" "\n");
-  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1641,7 +1554,7 @@ int DumpVTK::parse_vtk_fields(int narg, char **arg)
           if (argi.get_dim() > 0 && argi.get_index1() > icompute->size_peratom_cols)
             error->all(FLERR,"Dump vtk compute {} vector is accessed out-of-range{}",
                        aname, utils::errorurl(20));
-          field2index[ATTRIBUTES+iarg] = add_vtk_compute(aname);
+          field2index[ATTRIBUTES+iarg] = add_compute(aname);
           name[ATTRIBUTES+iarg] = arg[iarg];
         }
         break;
@@ -1669,7 +1582,7 @@ int DumpVTK::parse_vtk_fields(int narg, char **arg)
             error->all(FLERR,"Dump vtk fix {} vector is accessed out-of-range{}",
                        aname, utils::errorurl(20));
 
-          field2index[ATTRIBUTES+iarg] = add_vtk_fix(aname);
+          field2index[ATTRIBUTES+iarg] = add_fix(aname);
           name[ATTRIBUTES+iarg] = arg[iarg];
         }
         break;
@@ -1686,7 +1599,7 @@ int DumpVTK::parse_vtk_fields(int narg, char **arg)
         if (input->variable->atomstyle(n) == 0)
           error->all(FLERR,"Dump vtk variable {} is not atom-style variable",aname);
 
-        field2index[ATTRIBUTES+iarg] = add_vtk_variable(aname);
+        field2index[ATTRIBUTES+iarg] = add_variable(aname);
         name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
@@ -1710,7 +1623,7 @@ int DumpVTK::parse_vtk_fields(int narg, char **arg)
             error->all(FLERR,"Dump vtk property array {} is accessed out-of-range{}",aname,
                        utils::errorurl(20));
         }
-        field2index[ATTRIBUTES+iarg] = add_vtk_custom(aname,1);
+        field2index[ATTRIBUTES+iarg] = add_custom(aname,1);
         name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
@@ -1734,7 +1647,7 @@ int DumpVTK::parse_vtk_fields(int narg, char **arg)
             error->all(FLERR,"Dump vtk property array {} is accessed out-of-range{}",aname,
                        utils::errorurl(20));
         }
-        field2index[ATTRIBUTES+iarg] = add_vtk_custom(aname,0);
+        field2index[ATTRIBUTES+iarg] = add_custom(aname,0);
         name[ATTRIBUTES+iarg] = arg[iarg];
         break;
 
@@ -1803,103 +1716,6 @@ void DumpVTK::identify_vectors()
   }
 }
 
-/* ----------------------------------------------------------------------
-   add Compute to list of Compute objects used by dump
-   return index of where this Compute is in list
-   if already in list, do not add, just return index, else add to list
-------------------------------------------------------------------------- */
-
-int DumpVTK::add_vtk_compute(const char *id)
-{
-  int icompute;
-  for (icompute = 0; icompute < ncompute; icompute++)
-    if (strcmp(id,id_compute[icompute]) == 0) break;
-  if (icompute < ncompute) return icompute;
-
-  id_compute = (char **)
-    memory->srealloc(id_compute,(ncompute+1)*sizeof(char *),"dump:id_compute");
-  delete[] compute;
-  compute = new Compute*[ncompute+1];
-
-  id_compute[ncompute] = utils::strdup(id);
-  ncompute++;
-  return ncompute-1;
-}
-
-/* ----------------------------------------------------------------------
-   add Fix to list of Fix objects used by dump
-   return index of where this Fix is in list
-   if already in list, do not add, just return index, else add to list
-------------------------------------------------------------------------- */
-
-int DumpVTK::add_vtk_fix(const char *id)
-{
-  int ifix;
-  for (ifix = 0; ifix < nfix; ifix++)
-    if (strcmp(id,id_fix[ifix]) == 0) break;
-  if (ifix < nfix) return ifix;
-
-  id_fix = (char **)
-    memory->srealloc(id_fix,(nfix+1)*sizeof(char *),"dump:id_fix");
-  delete[] fix;
-  fix = new Fix*[nfix+1];
-
-  id_fix[nfix] = utils::strdup(id);
-  nfix++;
-  return nfix-1;
-}
-
-/* ----------------------------------------------------------------------
-   add Variable to list of Variables used by dump
-   return index of where this Variable is in list
-   if already in list, do not add, just return index, else add to list
-------------------------------------------------------------------------- */
-
-int DumpVTK::add_vtk_variable(const char *id)
-{
-  int ivariable;
-  for (ivariable = 0; ivariable < nvariable; ivariable++)
-    if (strcmp(id,id_variable[ivariable]) == 0) break;
-  if (ivariable < nvariable) return ivariable;
-
-  id_variable = (char **)
-    memory->srealloc(id_variable,(nvariable+1)*sizeof(char *),
-                     "dump:id_variable");
-  delete[] variable;
-  variable = new int[nvariable+1];
-  delete[] vbuf;
-  vbuf = new double*[nvariable+1];
-  for (int i = 0; i <= nvariable; i++) vbuf[i] = nullptr;
-
-  id_variable[nvariable] = utils::strdup(id);
-  nvariable++;
-  return nvariable-1;
-}
-
-/* ----------------------------------------------------------------------
-   add custom atom property to list used by dump
-   return index of where this property is in Atom class custom lists
-   if already in list, do not add, just return index, else add to list
-------------------------------------------------------------------------- */
-
-int DumpVTK::add_vtk_custom(const char *id, int flag)
-{
-  int icustom;
-  for (icustom = 0; icustom < ncustom; icustom++)
-    if (strcmp(id,id_custom[icustom]) == 0) break;
-  if (icustom < ncustom) return icustom;
-
-  id_custom = (char **) memory->srealloc(id_custom,(ncustom+1)*sizeof(char *),"dump:id_custom");
-  custom = (int *) memory->srealloc(custom,(ncustom+1)*sizeof(int),"dump:custom");
-  custom_flag = (int *) memory->srealloc(custom_flag,(ncustom+1)*sizeof(int),"dump:custom_flag");
-
-  id_custom[ncustom] = utils::strdup(id);
-  custom_flag[ncustom] = flag;
-  ncustom++;
-
-  return ncustom-1;
-}
-
 /* ---------------------------------------------------------------------- */
 
 int DumpVTK::modify_param(int narg, char **arg)
@@ -1919,15 +1735,21 @@ int DumpVTK::modify_param(int narg, char **arg)
   }
 
   if (strcmp(arg[0],"label") == 0) {
-     if (narg < 2) error->all(FLERR,"Illegal dump_modify command [label]");
+     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify label", error);
      delete[] label;
      label = utils::strdup(arg[1]);
      return 2;
    }
 
   if (strcmp(arg[0],"binary") == 0) {
-     if (narg < 2) error->all(FLERR,"Illegal dump_modify command [binary]");
+     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify binary", error);
      binary = utils::logical(FLERR,arg[1],false,lmp);
+     return 2;
+  }
+
+  if (strcmp(arg[0],"double") == 0) {
+     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify double", error);
+     writeprec = utils::logical(FLERR,arg[1],false,lmp) ? VTKWriter::DOUBLE : VTKWriter::SINGLE;
      return 2;
   }
 
@@ -2104,7 +1926,7 @@ int DumpVTK::modify_param(int narg, char **arg)
               argi.get_index1() > icompute->size_peratom_cols)
             error->all(FLERR,"Dump modify compute ID {} vector is not large enough",aname);
 
-          field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_compute(aname);
+          field2index[ATTRIBUTES+nfield+nthresh] = add_compute(aname);
         }
         break;
       }
@@ -2128,7 +1950,7 @@ int DumpVTK::modify_param(int narg, char **arg)
           if (argi.get_index1() > 0 && argi.get_index1() > ifix->size_peratom_cols)
             error->all(FLERR,"Dump modify fix ID {} vector is not large enough",aname);
 
-          field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_fix(aname);
+          field2index[ATTRIBUTES+nfield+nthresh] = add_fix(aname);
         }
         break;
       }
@@ -2142,7 +1964,7 @@ int DumpVTK::modify_param(int narg, char **arg)
         if (input->variable->atomstyle(n) == 0)
           error->all(FLERR,"Dump modify variable {} is not atom-style variable",aname);
 
-        field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_variable(aname);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_variable(aname);
         break;
 
       // custom per atom floating point vector or array
@@ -2164,7 +1986,7 @@ int DumpVTK::modify_param(int narg, char **arg)
           thresh_array[nthresh] = DARRAY;
         }
 
-        field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_custom(aname,thresh_array[nthresh]);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_custom(aname,thresh_array[nthresh]);
         break;
 
       // custom per atom integer vector or array
@@ -2186,7 +2008,7 @@ int DumpVTK::modify_param(int narg, char **arg)
           thresh_array[nthresh] = IARRAY;
         }
 
-        field2index[ATTRIBUTES+nfield+nthresh] = add_vtk_custom(aname,thresh_array[nthresh]);
+        field2index[ATTRIBUTES+nfield+nthresh] = add_custom(aname,thresh_array[nthresh]);
         break;
 
       // no match
@@ -2237,20 +2059,6 @@ int DumpVTK::modify_param(int narg, char **arg)
   }
 
   return 0;
-}
-
-/* ----------------------------------------------------------------------
-   return # of bytes of allocated memory in buf, choose, variable arrays
-------------------------------------------------------------------------- */
-
-double DumpVTK::memory_usage()
-{
-  double bytes = Dump::memory_usage();
-  bytes += memory->usage(choose,maxlocal);
-  bytes += memory->usage(dchoose,maxlocal);
-  bytes += memory->usage(clist,maxlocal);
-  bytes += memory->usage(vbuf,nvariable,maxlocal);
-  return bytes;
 }
 
 /* ----------------------------------------------------------------------

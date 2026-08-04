@@ -47,7 +47,7 @@ namespace LAMMPS_NS {
  * for computes and fixes - these have to be given in the right order in the input script).
  * (Note: std::map elements are sorted by their keys.)
  * This dump command does not support compressed files, buffering or custom format strings,
- * multiproc is only supported by the xml formats, multifile option has to be used.
+ * multiproc is only supported by the xml formats.
  */
 
 class DumpVTK : public DumpCustom {
@@ -56,7 +56,6 @@ class DumpVTK : public DumpCustom {
   ~DumpVTK() override;
 
   void write() override;
-  double memory_usage() override;
 
  protected:
   char *label;    // string for dump file header
@@ -77,22 +76,15 @@ class DumpVTK : public DumpCustom {
 
   int parse_vtk_fields(int, char **);
   void identify_vectors();
-  int add_vtk_compute(const char *);
-  int add_vtk_fix(const char *);
-  int add_vtk_variable(const char *);
-  int add_vtk_custom(const char *, int);
   int modify_param(int, char **) override;
-
-  using FnPtrHeader = void (DumpVTK::*)(bigint);
-  FnPtrHeader header_choice;    // ptr to write header functions
-  void header_vtk(bigint);
 
   using FnPtrWrite = void (DumpVTK::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_vtk(int, double *);
   void write_vtp(int, double *);
   void write_vtu(int, double *);
-  void write_pvtk(int);                    // write parallel .pvtp/.pvtu summary file
+  void write_xml_snapshot(int, double *, bool unstructured);    // shared body of vtp/vtu
+  void write_pvtk();                       // write parallel .pvtp/.pvtu summary file
   std::string pvtk_piece_filename(int);    // per-proc piece file name as referenced in summary
 
   void write_points(VTKWriter::Flavor, bool unstructured);    // write the atom data file
@@ -121,8 +113,8 @@ class DumpVTK : public DumpCustom {
   std::vector<VTKArray> myarrays;
 
   int n_calls_;
-  int precision_warned;       // 1 after the single precision warning was printed
-  double (*boxcorners)[3];    // corners of triclinic domain box
+  int precision_warned;              // 1 after the single precision warning was printed
+  VTKWriter::Precision writeprec;    // precision of floating point output, dump_modify double
   char *filecurrent;
   char *domainfilecurrent;
   char *parallelfilecurrent;

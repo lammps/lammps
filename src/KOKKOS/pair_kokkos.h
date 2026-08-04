@@ -2113,23 +2113,41 @@ void prune_inner_list(NeighListKokkos<DeviceType>* list, XViewType x,
   auto d_neighbors   = list->d_neighbors;     // master
   auto d_in_numneigh = list->d_inner_numneigh;
   auto d_in_neighbors= list->d_inner_neighbors;
+
+  // Warp-per-atom, matching the force kernels: a whole warp's vector lanes split
+  // atom i's neighbor loop, so the d_neighbors(i,jj) reads are contiguous across
+  // the warp.  One thread per atom (a flat RangePolicy) would have adjacent
+  // threads reading maxneighs*4 bytes apart -- one cache line per load, and the
+  // prune then costs more than the force kernel it is meant to speed up.
+  // The vector prefix scan compacts survivors in index order, so the inner list
+  // is a subsequence of the master and force accumulation order is unchanged.
+  using policy_t = Kokkos::TeamPolicy<DeviceType, Kokkos::IndexType<int>>;
+  using member_t = typename policy_t::member_type;
+  const int vector_length = 32;
+  const int atoms_per_team = 4;
+  const int nteams = (inum_prune + atoms_per_team - 1) / atoms_per_team;
   Kokkos::parallel_for("PairKokkos::prune_inner",
-      Kokkos::RangePolicy<typename DeviceType::execution_space>(0, inum_prune),
-      KOKKOS_LAMBDA(const int ii) {
+      policy_t(nteams, atoms_per_team, vector_length),
+      KOKKOS_LAMBDA(const member_t& team) {
+    const int ii = team.league_rank()*atoms_per_team + team.team_rank();
+    if (ii >= inum_prune) return;
     const int i = d_ilist(ii);
     const auto xt = x(i,0), yt = x(i,1), zt = x(i,2);
     const int jnum = d_numneigh(i);
-    int n = 0;
-    for (int jj = 0; jj < jnum; jj++) {
+    int nkeep = 0;
+    Kokkos::parallel_scan(Kokkos::ThreadVectorRange(team, jnum),
+        [&](const int jj, int& slot, const bool final) {
       const int jo = d_neighbors(i,jj);
       const int j = jo & NEIGHMASK;
       const auto dx = xt - x(j,0);
       const auto dy = yt - x(j,1);
       const auto dz = zt - x(j,2);
-      if ((double)(dx*dx + dy*dy + dz*dz) <= cutsq_inner)
-        d_in_neighbors(i,n++) = jo;
-    }
-    d_in_numneigh(i) = n;
+      if ((double)(dx*dx + dy*dy + dz*dz) <= cutsq_inner) {
+        if (final) d_in_neighbors(i,slot) = jo;
+        slot++;
+      }
+    }, nkeep);
+    Kokkos::single(Kokkos::PerThread(team), [&]() { d_in_numneigh(i) = nkeep; });
   });
 }
 #endif

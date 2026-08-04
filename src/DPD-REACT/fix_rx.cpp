@@ -67,6 +67,8 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), list(nullptr), mol2param(nullptr), nreactions(0), params(nullptr),
+    nspecies(0), species_ind_to_atom_prop_ind(nullptr),
+    species_ind_to_atom_prop_ind_old(nullptr),
     Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr), stoich(nullptr),
     stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
     dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
@@ -270,8 +272,12 @@ Fix* FixRX::get_rx_fix_base(LAMMPS * lmp) {
   return rx_fix;
 }
 
+FixRX * FixRX::get_rx_fix_unsafe(LAMMPS * lmp) {
+  return dynamic_cast<FixRX *>(get_rx_fix_base(lmp));
+}
+
 FixRX * FixRX::get_rx_fix(LAMMPS * lmp) {
-  auto rx_fix = dynamic_cast<FixRX *>(get_rx_fix_base(lmp));
+  auto rx_fix = get_rx_fix_unsafe(lmp);
 
   if (!rx_fix) {
     lmp->error->all(FLERR, "No fix/rx instance available.");

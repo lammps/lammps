@@ -42,6 +42,7 @@ class FixRX : public Fix {
   void pre_force(int) override;
 
   static FixRX * get_rx_fix(class LAMMPS *);
+  static FixRX * get_rx_fix_unsafe(class LAMMPS *);
 
   int get_nspecies() const;
   const int * get_species_ind_to_atom_prop_ind() const;

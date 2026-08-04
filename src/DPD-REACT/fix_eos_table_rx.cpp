@@ -45,14 +45,14 @@ using namespace FixConst;
 
 FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), ntables(0), tables(nullptr),
-  tables2(nullptr), rx_fix(FixRX::get_rx_fix(lmp)),
+  tables2(nullptr), rx_fix(FixRX::get_rx_fix_unsafe(lmp)),
   dHf(nullptr), eosSpecies(nullptr)
 {
   if (narg != 8 && narg != 10) error->all(FLERR,"Illegal fix eos/table/rx command");
   nevery = 1;
 
   rx_flag = (rx_fix != nullptr);
-  nspecies = rx_fix->get_nspecies();
+  nspecies = (rx_flag ? rx_fix->get_nspecies() : 1);
 
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in fix eos/table/rx");
@@ -297,6 +297,9 @@ void FixEOStableRX::read_file(char *file)
     PotentialFileReader reader(lmp, file, "eos/table/rx");
     char * line;
 
+    /* This line assumes that rx_flag == true. However, this is
+       acceptable because this member function is only called if
+       rx_flag == true. */
     const auto & species_str_to_species_ind =
       rx_fix->get_species_str_to_species_ind();
 
@@ -621,10 +624,10 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
   nTotalPG = 0.0;
   nPG = 0;
 
-  const auto & species_ind_to_atom_prop_ind =
-    rx_fix->get_species_ind_to_atom_prop_ind();
-
   if (rx_flag) {
+    const auto & species_ind_to_atom_prop_ind =
+      rx_fix->get_species_ind_to_atom_prop_ind();
+
     for (int ispecies=0;ispecies<nspecies;ispecies++) {
       const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
 

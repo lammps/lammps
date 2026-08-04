@@ -57,6 +57,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 
   void compute(int, int) override;
   void settings(int, char **) override;
+  void coeff(int, char **) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);

@@ -71,7 +71,7 @@ struct PairExp6ParamDataType
 
 /* ---------------------------------------------------------------------- */
 
-PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(FixRX::get_rx_fix(lmp)),
+PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(nullptr),
     cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
     buck1(nullptr), buck2(nullptr), offset(nullptr), mol2param(nullptr), nparams(0),
     params(nullptr), nspecies(0), site1(nullptr), site2(nullptr), coeffAlpha(nullptr),
@@ -600,10 +600,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 9) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairExp6rx requires a fix rx command.");
+  rx_fix = FixRX::get_rx_fix(lmp);
 
   if (!allocated) allocate();
 

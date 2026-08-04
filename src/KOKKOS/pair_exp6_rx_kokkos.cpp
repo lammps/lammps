@@ -65,7 +65,7 @@ PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 
-  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1669,6 +1669,9 @@ template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairExp6rx::coeff(narg,arg);
+
+  // rx_fix is initialized by PairExp6rx::coeff().
+  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
 
   if (scalingFlag == POLYNOMIAL)
     for (int i = 0; i < 6; i++) {

@@ -68,7 +68,7 @@ static const char cite_pair_multi_lucy_rx[] =
 /* ---------------------------------------------------------------------- */
 
 PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) :
-  Pair(lmp), rx_fix(FixRX::get_rx_fix(lmp)),
+  Pair(lmp), rx_fix(nullptr),
   ntables(0), tables(nullptr), tabindex(nullptr),
   site1(nullptr), site2(nullptr), nmax(0),
   mixWtSite1old(nullptr), mixWtSite2old(nullptr),
@@ -363,10 +363,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 {
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairMultiLucyRX requires a fix rx command.");
+  rx_fix = FixRX::get_rx_fix(lmp);
 
   if (!allocated) allocate();
 

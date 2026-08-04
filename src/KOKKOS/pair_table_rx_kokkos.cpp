@@ -173,7 +173,7 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
   site1 = nullptr;
   site2 = nullptr;
 
-  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK(lmp);
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1057,10 +1057,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
+  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK(lmp);
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);

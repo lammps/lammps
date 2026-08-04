@@ -46,7 +46,7 @@ enum{NONE,RLINEAR,RSQ,BMP};
 /* ---------------------------------------------------------------------- */
 
 PairTableRX::PairTableRX(LAMMPS *lmp) :
-  PairTable(lmp), rx_fix(FixRX::get_rx_fix(lmp)),
+  PairTable(lmp), rx_fix(nullptr),
   site1(nullptr), site2(nullptr), nmax_rx(0),
   mixWtSite1old(nullptr), mixWtSite2old(nullptr),
   mixWtSite1(nullptr), mixWtSite2(nullptr),
@@ -305,10 +305,7 @@ void PairTableRX::coeff(int narg, char **arg)
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"Pair style table/rx requires a fix rx command.");
+  rx_fix = FixRX::get_rx_fix(lmp);
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);

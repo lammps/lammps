@@ -71,7 +71,7 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
 
-  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,6 +90,17 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
   delete d_table;
   tabindex = nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMultiLucyRXKokkos<DeviceType>::coeff(int narg, char **arg) {
+  PairMultiLucyRX::coeff(narg, arg);
+
+  // rx_fix is initialized in PairMultiLucyRX::coeff().
+  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
+}
+
 
 /* ---------------------------------------------------------------------- */
 

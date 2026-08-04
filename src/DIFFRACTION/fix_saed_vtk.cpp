@@ -33,6 +33,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -40,7 +41,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{ONE,RUNNING,WINDOW};
-enum{FIRST,MULTI};
 enum{VTKLEGACY,VTKXML};
 
 
@@ -106,9 +106,6 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix saed/vtk command");
 
   // allocate memory for averaging
-
-  vector = vector_total = nullptr;
-  vector_list = nullptr;
 
   if (ave == WINDOW)
     memory->create(vector_list,nwindow,1,"saed/vtk:vector_list");
@@ -432,7 +429,7 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
       VTKWriter writer((vtkformat == VTKXML) ? VTKWriter::XML : VTKWriter::LEGACY, binaryflag);
       writer.set_title(fmt::format("Image data set c_{}", ids));
       writer.set_image_data(Dim, origin, dK);
-      writer.add_point_array("intensity", 1, intensity);
+      writer.add_point_array("intensity", 1, std::move(intensity));
       writer.set_active_scalars("intensity");
       writer.write(nName);
     } catch (VTKWriterException &e) {
@@ -471,7 +468,7 @@ void FixSAEDVTK::options(int narg, char **arg)
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk file",error);
       if (comm->me == 0) {
         nOutput = 0;
         delete[] filename;
@@ -489,20 +486,20 @@ void FixSAEDVTK::options(int narg, char **arg)
       binaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk ave",error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
       else error->all(FLERR,"Illegal fix saed/vtk command");
       if (ave == WINDOW) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk ave window",error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix saed/vtk command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk start",error);
       startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix saed/vtk command");
@@ -548,11 +545,4 @@ bigint FixSAEDVTK::nextvalid()
     nvalid -= ((bigint)nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixSAEDVTK::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix saed/vtk missed timestep");
 }

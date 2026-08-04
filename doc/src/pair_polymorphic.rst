@@ -110,7 +110,7 @@ The potential reduces to a modified Stillinger-Weber potential
    W_{IJ}\left(r\right) & = u_{IJ}\left(r\right) \\
    G_{JIK}\left(\cos\theta\right) & = g_{JIK}\left(\cos\theta\right)
 
-The potential reduces to a Rockett-Tersoff potential (:ref:`Wang3
+The potential reduces to a Rockett-Tersoff potential (:ref:`(Wang5)
 <Wang3>`) if we set
 
 .. math::
@@ -355,7 +355,7 @@ Related commands
 
 .. _Wang3:
 
-**(Wang)** J. Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
+**(Wang5)** J. Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
 
 .. _poly-Daw:
 

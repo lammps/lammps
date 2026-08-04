@@ -1017,7 +1017,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
    get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder
       in.lj is suitable as it doesn't need any potential file, nor any extra packages
 '''
-def get_reference_walltime(lmp_binary, config):
+def get_reference_walltime(lmp_binary, config, example_toplevel):
     cmd_str = ""
     # check if mpiexec/mpirun is used
     if config['mpiexec']:
@@ -1027,7 +1027,7 @@ def get_reference_walltime(lmp_binary, config):
     lmp_build_folder = lmp_binary.rsplit('/', 1)[0]
 
     # guess the bench folder
-    lmp_bench_folder = lmp_build_folder + "/../bench/"
+    lmp_bench_folder = example_toplevel + "/../bench/"
 
     # run with replicate for a copple of seconds long run
     cmd_str += lmp_binary + " -in " + lmp_bench_folder + "in.lj -v x 2 -v y 2 -v z 1 " + config['args']
@@ -1486,7 +1486,7 @@ if __name__ == "__main__":
             print(f"    Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
 
     # get a reference walltime
-    walltime_ref = get_reference_walltime(lmp_binary, config)
+    walltime_ref = get_reference_walltime(lmp_binary, config, example_toplevel)
 
     # record all the failure cases (overwrite if the file exists)
     failure_file_abs = pwd + "/" + failure_file

@@ -17,10 +17,46 @@ stop LAMMPS and print a suitable error message in most cases, when a
 style/command is used that has been removed or will replace the command
 with the direct alternative (if available) and print a warning.
 
+VTK package
+-----------
+
+.. versionremoved:: TBD
+
+The VTK package has been removed since :doc:`dump style vtk <dump_vtk>`
+no longer requires the VTK libraries and has thus been moved to the
+:ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>` package.
+
+ML-RANN package
+---------------
+
+.. deprecated:: TBD
+
+.. index:: pair_style rann
+
+The ML-RANN package and its pair style *rann* have been removed because
+they were unmaintained in LAMMPS for a long time and caused to much work
+to keep it aligned with the LAMMPS coding conventions.  The ML-RANN
+developers are maintaining an independent fork of their code.  They plan
+to submit a second generation of their package when it is ready.  Until
+then we recommend to use the LAMMPS 22Jul2025 stable version if you want
+to use this package.
+
+Pair style agni
+---------------
+
+.. deprecated:: TBD
+
+.. index:: pair_style agni
+.. index:: pair_style agni/omp
+
+The pair style *agni* has been removed since it was unmaintained
+for a long time and its developers have moved on to alternate
+machine learning potentials that are more efficient and accurate.
+
 amber2lmp tools
 ---------------
 
-.. deprecated:: 11Feb2026
+.. versionremoved:: 11Feb2026
 
 The tools in the ``tools/amber2lmp`` folder have been removed because
 they were unmaintained for a long time and required Python 2 which has
@@ -32,7 +68,11 @@ purpose.  There is an `Howto_amber2lammps` included in this manual.
 ATC, AWPMD, and POEMS packages
 ------------------------------
 
-.. deprecated:: 10Sep2025
+.. versionremoved:: 10Sep2025
+
+.. index:: fix poems
+.. index:: fix atc
+.. index:: pair_style awpmd/cut
 
 The ATC, AWPMD, and POEMS packages are removed because they were
 unmaintained for a long time and their legacy C++ programming style
@@ -50,7 +90,7 @@ and compile this version, if you want to use any of these packages.
 Neighbor style and comm mode multi/old
 --------------------------------------
 
-.. deprecated:: 10Sep2025
+.. versionremoved:: 10Sep2025
 
 The original implementation of neighbor style multi and comm mode multi,
 most recently available under "multi/old" has been removed.  The new
@@ -59,7 +99,7 @@ implementation should be used instead.
 LAMMPS-GUI source code
 ----------------------
 
-.. deprecated:: 10Sep2025
+.. versionremoved:: 10Sep2025
 
 The LAMMPS-GUI sources used to be included in LAMMPS but they are now
 hosted in their own git repository at
@@ -69,7 +109,7 @@ documentation is at https://lammps-gui.lammps.org/
 GJF formulation in fix langevin
 -------------------------------
 
-.. deprecated:: 22Jul2025
+.. versionremoved:: 22Jul2025
 
 The *gjf* keyword in fix langevin has been removed.  The GJF
 functionality has been moved to its own fix style :doc:`fix gjf
@@ -79,7 +119,7 @@ functionality has been moved to its own fix style :doc:`fix gjf
 LAMMPS shell
 ------------
 
-.. deprecated:: 29Aug2024
+.. versionremoved:: 29Aug2024
 
 The LAMMPS shell has been removed from the LAMMPS distribution. Users
 are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
@@ -87,7 +127,7 @@ are encouraged to use the :ref:`LAMMPS-GUI <lammps_gui>` tool instead.
 i-PI tool
 ---------
 
-.. deprecated:: 27Jun2024
+.. versionremoved:: 27Jun2024
 
 The i-PI tool has been removed from the LAMMPS distribution.  Instead,
 instructions to install i-PI from PyPI via pip are provided.
@@ -95,7 +135,7 @@ instructions to install i-PI from PyPI via pip are provided.
 USER-REAXC package
 ------------------
 
-.. deprecated:: 7Feb2024
+.. versionremoved:: 7Feb2024
 
 The USER-REAXC package has been renamed to :ref:`REAXFF <PKG-REAXFF>`.
 In the process also the pair style and related fixes were renamed to use
@@ -106,7 +146,7 @@ been removed, so using "reaxff" is now *required*.
 MPIIO package
 -------------
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
 The MPIIO package has been removed from LAMMPS since it was unmaintained
 for many years and thus not updated to incorporate required changes that
@@ -124,7 +164,9 @@ see :doc:`restart <restart>`, :doc:`read_restart <read_restart>`,
 MSCG package
 ------------
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
+
+.. index:: fix mscg
 
 The MSCG package has been removed from LAMMPS since it was unmaintained
 for many years and instead superseded by the `OpenMSCG software
@@ -134,7 +176,9 @@ University of Chicago, which can be used independent from LAMMPS.
 LATTE package
 -------------
 
-.. deprecated:: 15Jun2023
+.. versionremoved:: 15Jun2023
+
+.. index:: fix latte
 
 The LATTE package with the fix latte command was removed from LAMMPS.
 This functionality has been superseded by :doc:`fix mdi/qm <fix_mdi_qm>`
@@ -148,7 +192,7 @@ well as on a different set of MPI processors.
 Minimize style fire/old
 -----------------------
 
-.. deprecated:: 8Feb2023
+.. versionremoved:: 8Feb2023
 
 Minimize style *fire/old* has been removed. Its functionality can be
 reproduced with style *fire* with specific options. Please see the
@@ -157,7 +201,7 @@ reproduced with style *fire* with specific options. Please see the
 Pair style mesont/tpm, compute style mesont, atom style mesont
 --------------------------------------------------------------
 
-.. deprecated:: 8Feb2023
+.. versionremoved:: 8Feb2023
 
 Pair style *mesont/tpm*, compute style *mesont*, and atom style
 *mesont* have been removed from the :ref:`MESONT package <PKG-MESONT>`.
@@ -169,7 +213,7 @@ The same functionality is available through
 Box command
 -----------
 
-.. deprecated:: 22Dec2022
+.. versionremoved:: 22Dec2022
 
 The *box* command has been removed and the LAMMPS code changed so it won't
 be needed.  If present, LAMMPS will ignore the command and print a warning.
@@ -177,7 +221,7 @@ be needed.  If present, LAMMPS will ignore the command and print a warning.
 Reset_ids, reset_atom_ids, reset_mol_ids commands
 -------------------------------------------------
 
-.. deprecated:: 22Dec2022
+.. versionremoved:: 22Dec2022
 
 The *reset_ids*, *reset_atom_ids*, and *reset_mol_ids* commands have
 been folded into the :doc:`reset_atoms <reset_atoms>` command.  If
@@ -187,7 +231,7 @@ warning.
 MESSAGE package
 ---------------
 
-.. deprecated:: 4May2022
+.. versionremoved:: 4May2022
 
 The MESSAGE package has been removed since it was superseded by the
 :ref:`MDI package <PKG-MDI>`. MDI implements the same functionality
@@ -196,7 +240,7 @@ and in a more general way with direct support for more applications.
 REAX package
 ------------
 
-.. deprecated:: 4Jan2019
+.. versionremoved:: 4Jan2019
 
 The REAX package has been removed since it was superseded by the
 :ref:`REAXFF package <PKG-REAXFF>`.  The REAXFF package has been tested
@@ -210,7 +254,7 @@ USER-REAXC.
 MEAM package
 ------------
 
-.. deprecated:: 4Jan2019
+.. versionremoved:: 4Jan2019
 
 The MEAM package in Fortran has been replaced by a C++ implementation.
 The code in the :ref:`MEAM package <PKG-MEAM>` is a translation of the
@@ -224,7 +268,7 @@ coexist with the Fortran version.
 USER-CUDA package
 -----------------
 
-.. deprecated:: 31May2016
+.. versionremoved:: 31May2016
 
 The USER-CUDA package had been removed, since it had been unmaintained
 for a long time and had known bugs and problems.  Significant parts of
@@ -237,7 +281,7 @@ and allow running LAMMPS with GPU acceleration.
 Compute atom/molecule
 ---------------------
 
-.. deprecated:: 11 Dec2015
+.. versionremoved:: 11 Dec2015
 
 The atom/molecule command has been removed from LAMMPS since it was superseded
 by the more general and extensible "chunk infrastructure".  Here the system is
@@ -249,7 +293,7 @@ refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 Fix ave/spatial and fix ave/spatial/sphere
 ------------------------------------------
 
-.. deprecated:: 11Dec2015
+.. versionremoved:: 11Dec2015
 
 The fixes ave/spatial and ave/spatial/sphere have been removed from LAMMPS
 since they were superseded by the more general and extensible "chunk
@@ -261,7 +305,7 @@ Please refer to the :doc:`chunk HOWTO <Howto_chunk>` section for an overview.
 restart2data tool
 -----------------
 
-.. deprecated:: 23Nov2013
+.. versionremoved:: 23Nov2013
 
 The functionality of the restart2data tool has been folded into the
 LAMMPS executable directly instead of having a separate tool.  A

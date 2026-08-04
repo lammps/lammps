@@ -16,7 +16,7 @@ Syntax
   .. parsed-literal::
 
      one or more keyword value pairs may be appended
-     keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *modulus* or *temp* or *flip*
+     keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *temp* or *flip*
        *iso* or *aniso* or *tri* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
          Pdamp = pressure damping parameter (time units)

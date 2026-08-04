@@ -716,7 +716,7 @@ void FixBondReact::post_constructor()
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
-  group->find_or_create(master_group.c_str());
+  group->find_or_create(master_group);
   std::string cmd = fmt::format("{} dynamic all property limit_tags",master_group);
   group->assign(cmd);
 
@@ -737,7 +737,7 @@ void FixBondReact::post_constructor()
       std::string exclude_PARENT_group = exclude_group;
       exclude_group = exclude_PARENT_group + "_REACT";
 
-      group->find_or_create(exclude_group.c_str());
+      group->find_or_create(exclude_group);
       if (groupid == -1)
         cmd = fmt::format("{} dynamic all property statted_tags", exclude_group);
       else

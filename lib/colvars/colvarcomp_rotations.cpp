@@ -251,8 +251,9 @@ colvarvalue colvar::orientation_angle::dist2_rgrad(colvarvalue const &x1,
 }
 
 
-void colvar::orientation_angle::wrap(colvarvalue & /* x_unwrapped */) const {}
-
+void colvar::orientation_angle::wrap(colvarvalue &x_unwrapped) const {
+  return cvc::wrap(x_unwrapped);
+}
 
 
 colvar::orientation_proj::orientation_proj()

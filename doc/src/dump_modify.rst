@@ -960,6 +960,8 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 ----------
 
+.. versionadded:: TBD
+
 The :ref:`EXTRA-DUMP package <PKG-EXTRA-DUMP>` offers writing dump files
 in `VTK file formats <https://vtk.org/>`_ that can be read by a variety
 of visualization tools based on the VTK library.  These VTK files follow
@@ -968,12 +970,6 @@ naming conventions that collide with the LAMMPS convention to append
 :doc:`vtk style dumps <dump_vtk>` and :doc:`grid/vtk style dumps <dump>`
 the dump_modify command supports the keyword *binary* which selects
 between generating text mode and binary style VTK files.
-
-.. versionchanged:: TBD
-
-The *binary* keyword now also applies to the *grid/vtk* dump style.
-
-.. versionadded:: TBD
 
 The keyword *double* selects the precision of all floating point data
 written by the *vtk* and *grid/vtk* dump styles.  By default, that data

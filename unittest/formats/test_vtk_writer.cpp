@@ -224,10 +224,10 @@ TEST_F(VTKWriterTest, LegacyAsciiPolyData)
     // arrays that are not the active scalars become field data
     EXPECT_THAT(text, HasSubstr("POINT_DATA 4\nFIELD FieldData 2\n"));
     EXPECT_THAT(text, HasSubstr("id 1 4 int\n1 2 3 4 \n"));
-    EXPECT_THAT(text, HasSubstr("v 3 4 double\n"));
+    EXPECT_THAT(text, HasSubstr("v 3 4 float\n"));
     EXPECT_THAT(text, Not(HasSubstr("SCALARS")));
 
-    EXPECT_EQ(parse_numbers(text.substr(text.find("POINTS 4 float\n") + 15)).size() >= 12, true);
+    EXPECT_GE(parse_numbers(text.substr(text.find("POINTS 4 float\n") + 15)).size(), 12u);
 }
 
 TEST_F(VTKWriterTest, LegacyActiveScalars)
@@ -241,7 +241,7 @@ TEST_F(VTKWriterTest, LegacyActiveScalars)
     writer.write(file);
 
     const auto text = slurp(file);
-    EXPECT_THAT(text, HasSubstr("SCALARS intensity double\nLOOKUP_TABLE default\n1 2 3 4 \n"));
+    EXPECT_THAT(text, HasSubstr("SCALARS intensity float\nLOOKUP_TABLE default\n1 2 3 4 \n"));
 
     // the remaining array is still written as field data
     EXPECT_THAT(text, HasSubstr("FIELD FieldData 1\n"));
@@ -322,7 +322,7 @@ TEST_F(VTKWriterTest, XmlAsciiPolyData)
     EXPECT_THAT(text, HasSubstr(R"(header_type="UInt32")"));
     EXPECT_THAT(text, HasSubstr(R"(<Piece NumberOfPoints="4" NumberOfVerts="4")"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int32" Name="id" format="ascii">)"));
-    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float64" Name="v" NumberOfComponents="3")"));
+    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float32" Name="v" NumberOfComponents="3")"));
     EXPECT_THAT(text,
                 HasSubstr(R"(<DataArray type="Float32" Name="Points" NumberOfComponents="3")"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int64" Name="connectivity")"));
@@ -361,6 +361,8 @@ TEST_F(VTKWriterTest, Hexahedron)
                             {2, 1, 7}, {7, 1, 7}, {8, 5, 7}, {3, 5, 7}};
     VTKWriter writer(VTKWriter::XML, false);
     writer.set_hexahedron(corners);
+    EXPECT_EQ(writer.number_of_points(), 8);
+    EXPECT_EQ(writer.number_of_cells(), 1);
     writer.write(file);
 
     const auto text = slurp(file);
@@ -486,7 +488,7 @@ TEST_F(VTKWriterTest, ImageData)
     const auto ltext = slurp(legacy);
     EXPECT_THAT(ltext, HasSubstr("DATASET STRUCTURED_POINTS\nDIMENSIONS 3 2 2\n"));
     EXPECT_THAT(ltext, HasSubstr("SPACING 0.25 0.5 1\nORIGIN -1 -2 -3\n"));
-    EXPECT_THAT(ltext, HasSubstr("POINT_DATA 12\nSCALARS intensity double\n"));
+    EXPECT_THAT(ltext, HasSubstr("POINT_DATA 12\nSCALARS intensity float\n"));
 }
 
 TEST_F(VTKWriterTest, TracksSinglePrecisionMagnitude)
@@ -499,7 +501,9 @@ TEST_F(VTKWriterTest, TracksSinglePrecisionMagnitude)
     writer.set_polydata({0.0, -5.0, 0.0, 1.5, 0.0, 2.0e5});
     EXPECT_DOUBLE_EQ(writer.max_single_precision_value(), 2.0e5);
 
-    // data arrays are not affected, they stay in double precision
+    // data arrays are written in single precision too, but not tracked:
+    // their values only need relative resolution, which single precision
+    // always provides.  only coordinates need absolute resolution.
     writer.add_point_array("big", 1, std::vector<double>({1.0e30, -1.0e30}));
     EXPECT_DOUBLE_EQ(writer.max_single_precision_value(), 2.0e5);
 
@@ -513,10 +517,52 @@ TEST_F(VTKWriterTest, TracksSinglePrecisionMagnitude)
     exact.set_polydata({0.0, 0.0, 0.0, 9.0e9, 0.0, 0.0});
     EXPECT_DOUBLE_EQ(exact.max_single_precision_value(), 0.0);
 
-    // and then the coordinates really are written as Float64
+    // and then coordinates and data arrays really are written as Float64
+    exact.add_point_array("val", 1, std::vector<double>({1.0, 2.0}));
     const auto file = tempfile("vtkwriter_double.vtp");
     exact.write(file);
-    EXPECT_THAT(slurp(file), HasSubstr(R"(type="Float64" Name="Points")"));
+    const auto text = slurp(file);
+    EXPECT_THAT(text, HasSubstr(R"(type="Float64" Name="Points")"));
+    EXPECT_THAT(text, HasSubstr(R"(type="Float64" Name="val")"));
+}
+
+TEST_F(VTKWriterTest, DoublePrecisionRoundTrips)
+{
+    // double precision ASCII output uses the shortest representation that
+    // reads back as exactly the same number, unlike the 11 significant
+    // digits the VTK library writes
+
+    const std::vector<double> exact = {1.0 / 3.0, 2.0e-101, 3.141592653589793};
+    const std::vector<double> coords = {0.1, 0.2, 0.3};
+
+    const auto file = tempfile("vtkwriter_roundtrip.vtp");
+    VTKWriter writer(VTKWriter::XML, false, VTKWriter::DOUBLE);
+    writer.set_polydata(coords);
+    writer.add_point_array("val", 3, exact);
+    writer.write(file);
+
+    const auto text = slurp(file);
+    const auto vals = parse_numbers(payload_after(text, R"(Name="val")"));
+    ASSERT_EQ(vals.size(), exact.size());
+    for (std::size_t i = 0; i < exact.size(); ++i)
+        EXPECT_DOUBLE_EQ(vals[i], exact[i]);
+    EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="Points")")), coords);
+
+    // the same values in the legacy format
+    const auto legacy = tempfile("vtkwriter_roundtrip.vtk");
+    VTKWriter lwriter(VTKWriter::LEGACY, false, VTKWriter::DOUBLE);
+    lwriter.set_polydata(coords);
+    lwriter.add_point_array("val", 3, exact);
+    lwriter.write(legacy);
+
+    const auto ltext = slurp(legacy);
+    EXPECT_THAT(ltext, HasSubstr("POINTS 1 double\n0.1 0.2 0.3 \n"));
+    const auto pos = ltext.find("val 3 1 double\n");
+    ASSERT_NE(pos, std::string::npos);
+    const auto lvals = parse_numbers(ltext.substr(pos + strlen("val 3 1 double\n")));
+    ASSERT_GE(lvals.size(), exact.size());
+    for (std::size_t i = 0; i < exact.size(); ++i)
+        EXPECT_DOUBLE_EQ(lvals[i], exact[i]);
 }
 
 TEST_F(VTKWriterTest, SinglePrecisionResolutionLimit)

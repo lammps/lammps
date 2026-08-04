@@ -67,23 +67,52 @@ class VTKWriter {
 
   /** Coordinates larger than this many length units keep fewer than 3 digits
       after the decimal point when stored in single precision, which has a
-      relative resolution of about 1.2e-7.  Callers scale this with
-      force->angstrom so that the same physical resolution applies in every
-      unit system, and compare it against max_single_precision_value(). */
+      relative resolution of about 1.2e-7.  single_precision_resolution()
+      scales this with force->angstrom so that the same physical resolution
+      applies in every unit system. */
 
   static constexpr double SINGLE_PRECISION_LIMIT = 1.0e4;
 
+  /** Resolution of single precision storage at the given coordinate magnitude.
+   *
+   * Callers pass the value reported by max_single_precision_value() and warn
+   * with the returned resolution when it is not zero.  Keeping this test next
+   * to SINGLE_PRECISION_LIMIT ensures all callers warn consistently.
+   *
+   * \param  maxcoord  largest coordinate magnitude written in single precision
+   * \param  angstrom  length units per Angstrom, that is force->angstrom
+   * \return absolute resolution at that magnitude when it warrants a warning, 0.0 otherwise */
+
+  static double single_precision_resolution(double maxcoord, double angstrom);
+
+  /** XML type name for floating point data at the given precision.
+   *
+   * Exposed so that the parallel summary files written by dump vtk always
+   * declare exactly the types that the piece files contain.
+   *
+   * \param  precision  SINGLE or DOUBLE
+   * \return "Float32" or "Float64" */
+
+  static const char *xml_real_type(Precision precision);
+
+  /** Byte order attribute written into XML files on this machine.
+   *
+   * \return "LittleEndian" or "BigEndian" */
+
+  static const char *xml_byte_order();
+
   /** Create a writer for one file.
    *
-   * Point coordinates are stored in single precision by default, which is what
-   * visualization programs expect and what the VTK library wrote.  See
-   * max_single_precision_value() for how to tell when that is not enough.
+   * All floating point data, that is point coordinates and data arrays alike,
+   * is stored in single precision by default, which is what visualization
+   * programs expect.  See max_single_precision_value() for how to tell when
+   * that is not enough for the coordinates.
    *
-   * \param  flavor                LEGACY for the simple legacy format, XML for the XML format
-   * \param  binary                true to store the data as binary numbers instead of as text
-   * \param  coordinate_precision  precision used for point coordinates */
+   * \param  flavor     LEGACY for the simple legacy format, XML for the XML format
+   * \param  binary     true to store the data as binary numbers instead of as text
+   * \param  precision  precision used for all floating point data */
 
-  VTKWriter(Flavor flavor, bool binary, Precision coordinate_precision = SINGLE);
+  VTKWriter(Flavor flavor, bool binary, Precision precision = SINGLE);
 
   /** Set the title written into the header of legacy files, ignored for XML.
    *
@@ -92,19 +121,21 @@ class VTKWriter {
   void set_title(const std::string &title);
 
   // dataset selection.  exactly one of these must be called before write().
-  // coordinates are passed as 3 doubles per point.
+  // coordinates are passed as 3 doubles per point.  coordinate and data
+  // vectors are taken by value: pass with std::move() to avoid copying data
+  // that is no longer needed after the call.
 
   /** Select points with one vertex cell each, written as POLYDATA / PolyData.
    *
    * \param  xyz  coordinates, 3 values per point */
 
-  void set_polydata(const std::vector<double> &xyz);
+  void set_polydata(std::vector<double> xyz);
 
   /** Select points with one vertex cell each, written as UNSTRUCTURED_GRID.
    *
    * \param  xyz  coordinates, 3 values per point */
 
-  void set_unstructured_grid(const std::vector<double> &xyz);
+  void set_unstructured_grid(std::vector<double> xyz);
 
   /** Select a single hexahedron cell, written as UNSTRUCTURED_GRID.
    *
@@ -119,8 +150,7 @@ class VTKWriter {
    * \param  yc  coordinates of the cell boundaries along y
    * \param  zc  coordinates of the cell boundaries along z */
 
-  void set_rectilinear_grid(const std::vector<double> &xc, const std::vector<double> &yc,
-                            const std::vector<double> &zc);
+  void set_rectilinear_grid(std::vector<double> xc, std::vector<double> yc, std::vector<double> zc);
 
   /** Select a grid with uniform spacing, written as STRUCTURED_POINTS / ImageData.
    *
@@ -130,14 +160,15 @@ class VTKWriter {
 
   void set_image_data(const int dim[3], const double origin[3], const double spacing[3]);
 
-  // data arrays.  "data" holds ncomp consecutive values per point or cell.
+  // data arrays.  "data" holds ncomp consecutive values per point or cell
+  // and is taken by value, so callers can std::move() it in.
 
-  void add_point_array(const std::string &name, int ncomp, const std::vector<int> &data);
-  void add_point_array(const std::string &name, int ncomp, const std::vector<double> &data);
-  void add_point_array(const std::string &name, const std::vector<std::string> &data);
-  void add_cell_array(const std::string &name, int ncomp, const std::vector<int> &data);
-  void add_cell_array(const std::string &name, int ncomp, const std::vector<double> &data);
-  void add_cell_array(const std::string &name, const std::vector<std::string> &data);
+  void add_point_array(const std::string &name, int ncomp, std::vector<int> data);
+  void add_point_array(const std::string &name, int ncomp, std::vector<double> data);
+  void add_point_array(const std::string &name, std::vector<std::string> data);
+  void add_cell_array(const std::string &name, int ncomp, std::vector<int> data);
+  void add_cell_array(const std::string &name, int ncomp, std::vector<double> data);
+  void add_cell_array(const std::string &name, std::vector<std::string> data);
 
   /** Mark a previously added array as the default one for coloring.
    *
@@ -148,12 +179,14 @@ class VTKWriter {
 
   void set_active_scalars(const std::string &name);
 
-  /** largest absolute value among the numbers that are written in single
+  /** largest absolute value among the coordinates that are written in single
       precision, or 0.0 if there are none.  callers use this to warn when the
-      resolution of single precision is no longer sufficient for the data at
-      hand, which happens for very large coordinates.
+      resolution of single precision is no longer sufficient, which happens
+      for very large coordinates because they need absolute resolution.  data
+      arrays are not tracked: their values only need the relative resolution
+      that single precision always provides.
    *
-   * \return largest magnitude written in single precision, 0.0 if there is none */
+   * \return largest coordinate magnitude written in single precision, 0.0 if there is none */
 
   [[nodiscard]] double max_single_precision_value() const { return maxsingle; }
 
@@ -187,7 +220,7 @@ class VTKWriter {
 
   Flavor flavor;
   bool binary;
-  Precision coordprec;
+  Precision prec;
   double maxsingle;
   Dataset dataset;
   std::string title;
@@ -202,16 +235,18 @@ class VTKWriter {
 
   std::vector<DataArray> point_arrays, cell_arrays;
 
-  void set_vertex_cells(const std::vector<double> &xyz, Dataset type);
+  void set_vertex_cells(std::vector<double> &&xyz, Dataset type);
   void add_array(std::vector<DataArray> &arrays, int nitems, const char *kind, DataArray &&array);
 
-  // coordinates honor the selected precision, all other data does not
+  // coordinates and floating point data arrays honor the selected precision.
+  // only coordinates are tracked for the single precision warning, because
+  // only they need absolute resolution.
 
   void track_single(const std::vector<double> &values);
-  void write_legacy_coords(FILE *fp, const std::vector<double> &values);
-  [[nodiscard]] std::string xml_coords(const std::vector<double> &values, int indent) const;
-  [[nodiscard]] const char *legacy_coord_type() const;
-  [[nodiscard]] const char *xml_coord_type() const;
+  void write_legacy_reals(FILE *fp, const std::vector<double> &values);
+  [[nodiscard]] std::string xml_reals(const std::vector<double> &values, int indent) const;
+  [[nodiscard]] const char *legacy_real_type() const;
+  [[nodiscard]] const char *xml_real_type() const;
 
   // legacy format
 

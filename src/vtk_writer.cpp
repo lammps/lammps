@@ -50,6 +50,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <iterator>
+#include <limits>
 
 #if defined(LAMMPS_ZLIB)
 #include <zlib.h>
@@ -139,44 +141,79 @@ template <typename T> void append_raw(std::string &out, T value)
 // the bytes are reordered through char pointers on purpose and are never
 // loaded back into a variable of the original type: reversing floating point
 // numbers by way of a floating point register can alter them on some
-// platforms.  keep this loop byte-wise if it is ever optimized.
+// platforms.  keep this loop byte-wise if it is ever optimized.  the fixed
+// chunk buffer bounds the transient memory for large arrays.
 
 template <typename T> void fwrite_be(FILE *fp, const std::vector<T> &values)
 {
   if (values.empty()) return;
-  std::vector<char> buf(values.size() * sizeof(T));
-  if (little_endian()) {
-    for (std::size_t i = 0; i < values.size(); ++i) {
-      const auto *src = reinterpret_cast<const char *>(&values[i]);
-      for (std::size_t b = 0; b < sizeof(T); ++b) buf[i * sizeof(T) + b] = src[sizeof(T) - 1 - b];
-    }
-  } else {
-    std::memcpy(buf.data(), values.data(), buf.size());
+  if (!little_endian()) {
+    fwrite(values.data(), sizeof(T), values.size(), fp);
+    return;
   }
-  fwrite(buf.data(), 1, buf.size(), fp);
+  char buf[8192];
+  std::size_t used = 0;
+  for (const auto &value : values) {
+    const auto *src = reinterpret_cast<const char *>(&value);
+    for (std::size_t b = 0; b < sizeof(T); ++b) buf[used + b] = src[sizeof(T) - 1 - b];
+    used += sizeof(T);
+    if (used + sizeof(T) > sizeof(buf)) {
+      fwrite(buf, 1, used, fp);
+      used = 0;
+    }
+  }
+  if (used) fwrite(buf, 1, used, fp);
 }
 
-// write values of a legacy data section, either as text or as binary
+// append the shortest decimal representation that reads back as the same
+// number.  the VTK library writes 11 significant digits for doubles instead,
+// but that does not round-trip, which defeats the point of double precision
+// output.
 
-template <typename T, typename F>
-void write_legacy_values(FILE *fp, bool binary, const std::vector<T> &values, F &&tostr)
+template <typename T> void append_value(std::string &out, T value)
+{
+  fmt::format_to(std::back_inserter(out), "{}", value);
+}
+
+void append_value(std::string &out, std::uint8_t value)
+{
+  fmt::format_to(std::back_inserter(out), "{}", static_cast<int>(value));
+}
+
+std::string fmt_double(double value)
+{
+  return fmt::format("{}", value);
+}
+
+// write values of a legacy data section, either as text or as binary.  the
+// text is flushed in chunks so that large arrays need neither one stdio
+// call per value nor the whole payload in memory.
+
+static constexpr std::size_t WRITE_CHUNK = 1 << 20;
+
+template <typename T> void write_legacy_values(FILE *fp, bool binary, const std::vector<T> &values)
 {
   if (binary) {
     fwrite_be(fp, values);
     fputc('\n', fp);
     return;
   }
+  std::string out;
   for (std::size_t i = 0; i < values.size(); ++i) {
-    fputs(tostr(values[i]).c_str(), fp);
-    fputc(((i + 1) % PER_LINE == 0) ? '\n' : ' ', fp);
+    append_value(out, values[i]);
+    out += ((i + 1) % PER_LINE == 0) ? '\n' : ' ';
+    if (out.size() > WRITE_CHUNK) {
+      fwrite(out.data(), 1, out.size(), fp);
+      out.clear();
+    }
   }
-  if (values.size() % PER_LINE != 0) fputc('\n', fp);
+  if (values.size() % PER_LINE != 0) out += '\n';
+  fwrite(out.data(), 1, out.size(), fp);
 }
 
 // build the content of an XML data array, either as text or base64 encoded
 
-template <typename T, typename F>
-std::string xml_values(bool binary, const std::vector<T> &values, F &&tostr, int indent)
+template <typename T> std::string xml_values(bool binary, const std::vector<T> &values, int indent)
 {
   if (binary) {
     std::string raw;
@@ -187,95 +224,86 @@ std::string xml_values(bool binary, const std::vector<T> &values, F &&tostr, int
 
   const std::string pad(indent, ' ');
   std::string out;
+  out.reserve(values.size() * 8 + (values.size() / PER_LINE + 1) * pad.size());
   for (std::size_t i = 0; i < values.size(); ++i) {
     if (i % PER_LINE == 0) out += pad;
-    out += tostr(values[i]);
+    append_value(out, values[i]);
     out += ((i + 1) % PER_LINE == 0) ? '\n' : ' ';
   }
   if (values.size() % PER_LINE != 0) out += '\n';
   return out;
 }
 
-std::string fmt_int(int value)
-{
-  return fmt::format("{}", value);
-}
-
-// the shortest decimal representation that reads back as the same number
-
-std::string fmt_float(float value)
-{
-  return fmt::format("{}", value);
-}
-
-std::string fmt_int64(std::int64_t value)
-{
-  return fmt::format("{}", value);
-}
-
-std::string fmt_uint8(std::uint8_t value)
-{
-  return fmt::format("{}", static_cast<int>(value));
-}
-
-// 11 significant digits is what the VTK library writes for double values
-
-std::string fmt_double(double value)
-{
-  return fmt::format("{:.11g}", value);
-}
-
 }    // namespace
 
 /* ----------------------------------------------------------------------
-   remember the largest magnitude that goes through single precision, so
-   that callers can warn when its resolution is no longer sufficient
+   remember the largest coordinate magnitude that goes through single
+   precision, so that callers can warn when its resolution is no longer
+   sufficient.  only the set_*() methods call this: data arrays need no
+   tracking since their values only require relative resolution
 ------------------------------------------------------------------------- */
 
 void VTKWriter::track_single(const std::vector<double> &values)
 {
-  if (coordprec != SINGLE) return;
+  if (prec != SINGLE) return;
   for (const double v : values)
     if (std::fabs(v) > maxsingle) maxsingle = std::fabs(v);
 }
 
 /* ----------------------------------------------------------------------
-   write a list of coordinates in the precision selected for this writer
+   write a list of floating point values in the precision selected for
+   this writer
 ------------------------------------------------------------------------- */
 
-void VTKWriter::write_legacy_coords(FILE *fp, const std::vector<double> &values)
+void VTKWriter::write_legacy_reals(FILE *fp, const std::vector<double> &values)
 {
-  if (coordprec == SINGLE) {
+  if (prec == SINGLE) {
     const std::vector<float> single(values.begin(), values.end());
-    write_legacy_values(fp, binary, single, fmt_float);
+    write_legacy_values(fp, binary, single);
   } else {
-    write_legacy_values(fp, binary, values, fmt_double);
+    write_legacy_values(fp, binary, values);
   }
 }
 
-std::string VTKWriter::xml_coords(const std::vector<double> &values, int indent) const
+std::string VTKWriter::xml_reals(const std::vector<double> &values, int indent) const
 {
-  if (coordprec == SINGLE) {
+  if (prec == SINGLE) {
     const std::vector<float> single(values.begin(), values.end());
-    return xml_values(binary, single, fmt_float, indent);
+    return xml_values(binary, single, indent);
   }
-  return xml_values(binary, values, fmt_double, indent);
+  return xml_values(binary, values, indent);
 }
 
-const char *VTKWriter::legacy_coord_type() const
+const char *VTKWriter::legacy_real_type() const
 {
-  return (coordprec == SINGLE) ? "float" : "double";
+  return (prec == SINGLE) ? "float" : "double";
 }
 
-const char *VTKWriter::xml_coord_type() const
+const char *VTKWriter::xml_real_type() const
 {
-  return (coordprec == SINGLE) ? "Float32" : "Float64";
+  return xml_real_type(prec);
+}
+
+const char *VTKWriter::xml_real_type(Precision precision)
+{
+  return (precision == SINGLE) ? "Float32" : "Float64";
+}
+
+const char *VTKWriter::xml_byte_order()
+{
+  return little_endian() ? "LittleEndian" : "BigEndian";
+}
+
+double VTKWriter::single_precision_resolution(double maxcoord, double angstrom)
+{
+  if (maxcoord <= SINGLE_PRECISION_LIMIT * angstrom) return 0.0;
+  return maxcoord * std::numeric_limits<float>::epsilon();
 }
 
 /* ---------------------------------------------------------------------- */
 
-VTKWriter::VTKWriter(Flavor _flavor, bool _binary, Precision _coordprec) :
-    flavor(_flavor), binary(_binary), coordprec(_coordprec), maxsingle(0.0), dataset(NONE),
+VTKWriter::VTKWriter(Flavor _flavor, bool _binary, Precision _prec) :
+    flavor(_flavor), binary(_binary), prec(_prec), maxsingle(0.0), dataset(NONE),
     title("Generated by LAMMPS"), npoints(0), ncells(0), celltype(VTK_VERTEX)
 {
   dims[0] = dims[1] = dims[2] = 0;
@@ -296,27 +324,27 @@ void VTKWriter::set_title(const std::string &_title)
 
 /* ---------------------------------------------------------------------- */
 
-void VTKWriter::set_vertex_cells(const std::vector<double> &xyz, Dataset type)
+void VTKWriter::set_vertex_cells(std::vector<double> &&xyz, Dataset type)
 {
   if (dataset != NONE) throw VTKWriterException("VTK writer already has a dataset");
   if (xyz.size() % 3) throw VTKWriterException("VTK point list is not a multiple of 3");
 
-  points = xyz;
+  points = std::move(xyz);
   track_single(points);
-  npoints = static_cast<int>(xyz.size() / 3);
+  npoints = static_cast<int>(points.size() / 3);
   ncells = npoints;
   celltype = VTK_VERTEX;
   dataset = type;
 }
 
-void VTKWriter::set_polydata(const std::vector<double> &xyz)
+void VTKWriter::set_polydata(std::vector<double> xyz)
 {
-  set_vertex_cells(xyz, POLYDATA);
+  set_vertex_cells(std::move(xyz), POLYDATA);
 }
 
-void VTKWriter::set_unstructured_grid(const std::vector<double> &xyz)
+void VTKWriter::set_unstructured_grid(std::vector<double> xyz)
 {
-  set_vertex_cells(xyz, UNSTRUCTURED);
+  set_vertex_cells(std::move(xyz), UNSTRUCTURED);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -338,22 +366,22 @@ void VTKWriter::set_hexahedron(const double corners[8][3])
 
 /* ---------------------------------------------------------------------- */
 
-void VTKWriter::set_rectilinear_grid(const std::vector<double> &xc, const std::vector<double> &yc,
-                                     const std::vector<double> &zc)
+void VTKWriter::set_rectilinear_grid(std::vector<double> xc, std::vector<double> yc,
+                                     std::vector<double> zc)
 {
   if (dataset != NONE) throw VTKWriterException("VTK writer already has a dataset");
   if (xc.empty() || yc.empty() || zc.empty())
     throw VTKWriterException("VTK rectilinear grid needs coordinates in all 3 dimensions");
 
-  xcoord = xc;
-  ycoord = yc;
-  zcoord = zc;
+  xcoord = std::move(xc);
+  ycoord = std::move(yc);
+  zcoord = std::move(zc);
   track_single(xcoord);
   track_single(ycoord);
   track_single(zcoord);
-  dims[0] = static_cast<int>(xc.size());
-  dims[1] = static_cast<int>(yc.size());
-  dims[2] = static_cast<int>(zc.size());
+  dims[0] = static_cast<int>(xcoord.size());
+  dims[1] = static_cast<int>(ycoord.size());
+  dims[2] = static_cast<int>(zcoord.size());
   npoints = dims[0] * dims[1] * dims[2];
   ncells = (dims[0] - 1) * (dims[1] - 1) * (dims[2] - 1);
   dataset = RECTILINEAR;
@@ -409,34 +437,39 @@ void VTKWriter::add_array(std::vector<DataArray> &arrays, int nitems, const char
 
 /* ---------------------------------------------------------------------- */
 
-void VTKWriter::add_point_array(const std::string &name, int ncomp, const std::vector<int> &data)
+void VTKWriter::add_point_array(const std::string &name, int ncomp, std::vector<int> data)
 {
-  add_array(point_arrays, npoints, "points", DataArray{name, TYPE_INT, ncomp, data, {}, {}});
+  add_array(point_arrays, npoints, "points",
+            DataArray{name, TYPE_INT, ncomp, std::move(data), {}, {}});
 }
 
-void VTKWriter::add_point_array(const std::string &name, int ncomp, const std::vector<double> &data)
+void VTKWriter::add_point_array(const std::string &name, int ncomp, std::vector<double> data)
 {
-  add_array(point_arrays, npoints, "points", DataArray{name, TYPE_DOUBLE, ncomp, {}, data, {}});
+  add_array(point_arrays, npoints, "points",
+            DataArray{name, TYPE_DOUBLE, ncomp, {}, std::move(data), {}});
 }
 
-void VTKWriter::add_point_array(const std::string &name, const std::vector<std::string> &data)
+void VTKWriter::add_point_array(const std::string &name, std::vector<std::string> data)
 {
-  add_array(point_arrays, npoints, "points", DataArray{name, TYPE_STRING, 1, {}, {}, data});
+  add_array(point_arrays, npoints, "points",
+            DataArray{name, TYPE_STRING, 1, {}, {}, std::move(data)});
 }
 
-void VTKWriter::add_cell_array(const std::string &name, int ncomp, const std::vector<int> &data)
+void VTKWriter::add_cell_array(const std::string &name, int ncomp, std::vector<int> data)
 {
-  add_array(cell_arrays, ncells, "cells", DataArray{name, TYPE_INT, ncomp, data, {}, {}});
+  add_array(cell_arrays, ncells, "cells",
+            DataArray{name, TYPE_INT, ncomp, std::move(data), {}, {}});
 }
 
-void VTKWriter::add_cell_array(const std::string &name, int ncomp, const std::vector<double> &data)
+void VTKWriter::add_cell_array(const std::string &name, int ncomp, std::vector<double> data)
 {
-  add_array(cell_arrays, ncells, "cells", DataArray{name, TYPE_DOUBLE, ncomp, {}, data, {}});
+  add_array(cell_arrays, ncells, "cells",
+            DataArray{name, TYPE_DOUBLE, ncomp, {}, std::move(data), {}});
 }
 
-void VTKWriter::add_cell_array(const std::string &name, const std::vector<std::string> &data)
+void VTKWriter::add_cell_array(const std::string &name, std::vector<std::string> data)
 {
-  add_array(cell_arrays, ncells, "cells", DataArray{name, TYPE_STRING, 1, {}, {}, data});
+  add_array(cell_arrays, ncells, "cells", DataArray{name, TYPE_STRING, 1, {}, {}, std::move(data)});
 }
 
 /* ---------------------------------------------------------------------- */
@@ -492,9 +525,9 @@ void VTKWriter::write_legacy_cells(FILE *fp, const char *keyword)
 
   utils::print(fp, "{} {} {}\n", keyword, ncells + 1, connectivity.size());
   utils::print(fp, "OFFSETS vtktypeint64\n");
-  write_legacy_values(fp, binary, offsets, fmt_int64);
+  write_legacy_values(fp, binary, offsets);
   utils::print(fp, "CONNECTIVITY vtktypeint64\n");
-  write_legacy_values(fp, binary, connectivity, fmt_int64);
+  write_legacy_values(fp, binary, connectivity);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -503,10 +536,10 @@ void VTKWriter::write_legacy_array_data(FILE *fp, const DataArray &array)
 {
   switch (array.type) {
     case TYPE_INT:
-      write_legacy_values(fp, binary, array.ivalues, fmt_int);
+      write_legacy_values(fp, binary, array.ivalues);
       break;
     case TYPE_DOUBLE:
-      write_legacy_values(fp, binary, array.dvalues, fmt_double);
+      write_legacy_reals(fp, array.dvalues);
       break;
     case TYPE_STRING:
       if (binary) {
@@ -542,7 +575,7 @@ void VTKWriter::write_legacy_arrays(FILE *fp, const std::vector<DataArray> &arra
   int nfield = 0;
   for (const auto &array : arrays) {
     if (array.name == scalars) {
-      const char *type = (array.type == TYPE_INT) ? "int" : "double";
+      const char *type = (array.type == TYPE_INT) ? "int" : legacy_real_type();
       if (array.type == TYPE_STRING)
         throw VTKWriterException("VTK string arrays cannot be used as active scalars");
       utils::print(fp, "SCALARS {} {}", array.name, type);
@@ -558,7 +591,7 @@ void VTKWriter::write_legacy_arrays(FILE *fp, const std::vector<DataArray> &arra
   utils::print(fp, "FIELD FieldData {}\n", nfield);
   for (const auto &array : arrays) {
     if (array.name == scalars) continue;
-    const char *type = "double";
+    const char *type = legacy_real_type();
     if (array.type == TYPE_INT) type = "int";
     if (array.type == TYPE_STRING) type = "string";
     utils::print(fp, "{} {} {} {}\n", array.name, array.ncomp, nitems, type);
@@ -574,30 +607,30 @@ void VTKWriter::write_legacy(FILE *fp)
 
   switch (dataset) {
     case POLYDATA:
-      utils::print(fp, "DATASET POLYDATA\nPOINTS {} {}\n", npoints, legacy_coord_type());
-      write_legacy_coords(fp, points);
+      utils::print(fp, "DATASET POLYDATA\nPOINTS {} {}\n", npoints, legacy_real_type());
+      write_legacy_reals(fp, points);
       write_legacy_cells(fp, "VERTICES");
       break;
 
     case UNSTRUCTURED: {
-      utils::print(fp, "DATASET UNSTRUCTURED_GRID\nPOINTS {} {}\n", npoints, legacy_coord_type());
-      write_legacy_coords(fp, points);
+      utils::print(fp, "DATASET UNSTRUCTURED_GRID\nPOINTS {} {}\n", npoints, legacy_real_type());
+      write_legacy_reals(fp, points);
       write_legacy_cells(fp, "CELLS");
       std::vector<int> types(ncells, celltype);
       utils::print(fp, "CELL_TYPES {}\n", ncells);
-      write_legacy_values(fp, binary, types, fmt_int);
+      write_legacy_values(fp, binary, types);
       break;
     }
 
     case RECTILINEAR:
       utils::print(fp, "DATASET RECTILINEAR_GRID\nDIMENSIONS {} {} {}\n", dims[0], dims[1],
                    dims[2]);
-      utils::print(fp, "X_COORDINATES {} {}\n", dims[0], legacy_coord_type());
-      write_legacy_coords(fp, xcoord);
-      utils::print(fp, "Y_COORDINATES {} {}\n", dims[1], legacy_coord_type());
-      write_legacy_coords(fp, ycoord);
-      utils::print(fp, "Z_COORDINATES {} {}\n", dims[2], legacy_coord_type());
-      write_legacy_coords(fp, zcoord);
+      utils::print(fp, "X_COORDINATES {} {}\n", dims[0], legacy_real_type());
+      write_legacy_reals(fp, xcoord);
+      utils::print(fp, "Y_COORDINATES {} {}\n", dims[1], legacy_real_type());
+      write_legacy_reals(fp, ycoord);
+      utils::print(fp, "Z_COORDINATES {} {}\n", dims[2], legacy_real_type());
+      write_legacy_reals(fp, zcoord);
       break;
 
     case IMAGE:
@@ -639,23 +672,22 @@ void VTKWriter::write_xml_data_array(FILE *fp, const char *type, const std::stri
 
 void VTKWriter::write_xml_array(FILE *fp, const DataArray &array, int indent)
 {
-  const std::string pad(indent, ' ');
-
   switch (array.type) {
     case TYPE_INT:
       write_xml_data_array(fp, "Int32", array.name, array.ncomp,
-                           xml_values(binary, array.ivalues, fmt_int, indent + 2), indent);
+                           xml_values(binary, array.ivalues, indent + 2), indent);
       break;
 
     case TYPE_DOUBLE:
-      write_xml_data_array(fp, "Float64", array.name, array.ncomp,
-                           xml_values(binary, array.dvalues, fmt_double, indent + 2), indent);
+      write_xml_data_array(fp, xml_real_type(), array.name, array.ncomp,
+                           xml_reals(array.dvalues, indent + 2), indent);
       break;
 
     case TYPE_STRING: {
       // string arrays use <Array> and store the characters of all strings,
       // each terminated by a zero byte
 
+      const std::string pad(indent, ' ');
       std::string payload;
       if (binary) {
         std::string raw;
@@ -670,7 +702,7 @@ void VTKWriter::write_xml_array(FILE *fp, const DataArray &array, int indent)
           for (const char c : s) codes.push_back(static_cast<unsigned char>(c));
           codes.push_back(0);
         }
-        payload = xml_values(false, codes, fmt_int, indent + 2);
+        payload = xml_values(false, codes, indent + 2);
       }
       utils::print(fp,
                    R"({}<Array type="String" Name="{}" format="{}">)"
@@ -722,14 +754,14 @@ void VTKWriter::write_xml_cells(FILE *fp, const char *tag, int indent)
     connectivity[i] = static_cast<std::int64_t>(i);
 
   utils::print(fp, "{}<{}>\n", pad, tag);
-  write_xml_data_array(fp, "Int64", "connectivity", 1,
-                       xml_values(binary, connectivity, fmt_int64, indent + 4), indent + 2);
-  write_xml_data_array(fp, "Int64", "offsets", 1,
-                       xml_values(binary, offsets, fmt_int64, indent + 4), indent + 2);
+  write_xml_data_array(fp, "Int64", "connectivity", 1, xml_values(binary, connectivity, indent + 4),
+                       indent + 2);
+  write_xml_data_array(fp, "Int64", "offsets", 1, xml_values(binary, offsets, indent + 4),
+                       indent + 2);
 
   if (strcmp(tag, "Cells") == 0) {
     std::vector<std::uint8_t> types(ncells, static_cast<std::uint8_t>(celltype));
-    write_xml_data_array(fp, "UInt8", "types", 1, xml_values(binary, types, fmt_uint8, indent + 4),
+    write_xml_data_array(fp, "UInt8", "types", 1, xml_values(binary, types, indent + 4),
                          indent + 2);
   }
   utils::print(fp, "{}</{}>\n", pad, tag);
@@ -744,11 +776,9 @@ void VTKWriter::write_xml(FILE *fp)
   if (dataset == RECTILINEAR) gridtype = "RectilinearGrid";
   if (dataset == IMAGE) gridtype = "ImageData";
 
-  const char *byte_order = little_endian() ? "LittleEndian" : "BigEndian";
-
   utils::print(fp, "<?xml version=\"1.0\"?>\n");
   utils::print(fp, R"(<VTKFile type="{}" version="0.1" byte_order="{}" header_type="UInt32")",
-               gridtype, byte_order);
+               gridtype, xml_byte_order());
 #if defined(LAMMPS_ZLIB)
   if (binary) utils::print(fp, R"( compressor="vtkZLibDataCompressor")");
 #endif
@@ -789,23 +819,23 @@ void VTKWriter::write_xml(FILE *fp)
   switch (dataset) {
     case POLYDATA:
       utils::print(fp, "      <Points>\n");
-      write_xml_data_array(fp, xml_coord_type(), "Points", 3, xml_coords(points, 10), 8);
+      write_xml_data_array(fp, xml_real_type(), "Points", 3, xml_reals(points, 10), 8);
       utils::print(fp, "      </Points>\n");
       write_xml_cells(fp, "Verts", 6);
       break;
 
     case UNSTRUCTURED:
       utils::print(fp, "      <Points>\n");
-      write_xml_data_array(fp, xml_coord_type(), "Points", 3, xml_coords(points, 10), 8);
+      write_xml_data_array(fp, xml_real_type(), "Points", 3, xml_reals(points, 10), 8);
       utils::print(fp, "      </Points>\n");
       write_xml_cells(fp, "Cells", 6);
       break;
 
     case RECTILINEAR:
       utils::print(fp, "      <Coordinates>\n");
-      write_xml_data_array(fp, xml_coord_type(), "x", 1, xml_coords(xcoord, 10), 8);
-      write_xml_data_array(fp, xml_coord_type(), "y", 1, xml_coords(ycoord, 10), 8);
-      write_xml_data_array(fp, xml_coord_type(), "z", 1, xml_coords(zcoord, 10), 8);
+      write_xml_data_array(fp, xml_real_type(), "x", 1, xml_reals(xcoord, 10), 8);
+      write_xml_data_array(fp, xml_real_type(), "y", 1, xml_reals(ycoord, 10), 8);
+      write_xml_data_array(fp, xml_real_type(), "z", 1, xml_reals(zcoord, 10), 8);
       utils::print(fp, "      </Coordinates>\n");
       break;
 

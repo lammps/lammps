@@ -516,8 +516,7 @@ shared with the :doc:`dump vtk <dump_vtk>` and :doc:`fix saed/vtk
 <fix_saed_vtk>` styles.  The header now declares the file version and
 byte order as the format requires, no longer sets grid origin and
 spacing properties that have no meaning for a rectilinear grid, and the
-grid data is written with full precision instead of being truncated to
-about 6 digits.
+grid data is no longer truncated to about 6 digits.
 
 .. versionadded:: TBD
 
@@ -532,15 +531,16 @@ ending in *.vtk* selects the simple legacy VTK format.
 Since these naming conventions collide with the LAMMPS convention of
 appending ".bin" to a file name to select binary output, this style
 supports the :doc:`dump_modify binary <dump_modify>` keyword to request
-binary data explicitly.  Binary data keeps the full precision of the
-values, and in the two XML formats it is compressed as well if LAMMPS
-was built with the zlib library.
+binary data explicitly.  Binary data is more compact, and in the two XML
+formats it is compressed as well if LAMMPS was built with the zlib
+library.
 
-The grid cell coordinates are stored in single precision, which resolves
-them to less than 0.001 length units as long as they stay below about
-10000 length units.  LAMMPS prints a warning for grids that extend
-beyond that; please contact the LAMMPS developers if you need more
-resolution.  The grid data itself is written in double precision.
+All floating point data, that is grid cell coordinates and grid data
+alike, is stored in single precision by default, which resolves the
+coordinates to less than 0.001 length units as long as they stay below
+about 10000 length units.  LAMMPS prints a warning for grids that extend
+beyond that.  Use the :doc:`dump_modify double yes <dump_modify>`
+command to write all floating point data in double precision instead.
 
 .. versionadded:: 4May2022
 

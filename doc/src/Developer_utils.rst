@@ -661,26 +661,32 @@ turn it into a LAMMPS error.
 
     try {
       VTKWriter writer(VTKWriter::XML, false);
-      writer.set_polydata(coords);
-      writer.add_point_array("id", 1, ids);
+      writer.set_polydata(std::move(coords));
+      writer.add_point_array("id", 1, std::move(ids));
       writer.write("positions.vtp");
     } catch (VTKWriterException &e) {
       error->one(FLERR, e.what());
     }
 
-Point coordinates are stored in single precision, since that is what
-visualization programs work with, while all other data is stored in
-double precision.  Because single precision only keeps about 7
-significant digits, this becomes noticeable for very large coordinates.
-The class therefore records the largest magnitude that it wrote in single
+Coordinate and data vectors are taken by value, so callers that do not
+need their copy afterwards pass it with ``std::move()``, as in the
+example, and no data is copied.
+
+All floating point data, coordinates and data arrays alike, is stored in
+single precision by default, since that is what visualization programs
+work with.  The constructor takes an optional precision argument, which
+the dump styles expose through their *dump_modify double* keyword.
+Because single precision only keeps about 7 significant digits, it
+becomes noticeable for very large coordinates.  The class therefore
+records the largest coordinate magnitude that it wrote in single
 precision in :cpp:func:`max_single_precision_value
-<LAMMPS_NS::VTKWriter::max_single_precision_value>`, which callers compare
-against :cpp:var:`SINGLE_PRECISION_LIMIT
-<LAMMPS_NS::VTKWriter::SINGLE_PRECISION_LIMIT>`, scaled by
-``force->angstrom`` so that the same physical resolution applies in every
-unit system, to print a warning.  Should this become a limitation in
-practice, the constructor already accepts a precision argument and only
-needs to be made accessible from the corresponding commands.
+<LAMMPS_NS::VTKWriter::max_single_precision_value>`, and
+:cpp:func:`single_precision_resolution
+<LAMMPS_NS::VTKWriter::single_precision_resolution>` turns that magnitude
+into the absolute resolution for a warning message, or 0.0 while single
+precision still resolves the coordinates well enough.  Data arrays are
+not tracked, because their values only need the relative resolution that
+single precision always provides.
 
 .. doxygenclass:: LAMMPS_NS::VTKWriter
    :project: progguide

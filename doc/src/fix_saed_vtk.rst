@@ -114,10 +114,10 @@ visualization programs.
 
 Setting *binary* to *yes* stores the intensities as binary numbers
 rather than as text.  This is worth doing for finely sampled reciprocal
-space maps, which can otherwise reach hundreds of megabytes: the values
-keep their full precision, and in the XML format they are compressed as
-well if LAMMPS was built with the zlib library, which typically reduces
-the file to a small fraction of the size of the text version.
+space maps, which can otherwise reach hundreds of megabytes: binary data
+is more compact, and in the XML format it is compressed as well if
+LAMMPS was built with the zlib library, which typically reduces the file
+to a small fraction of the size of the text version.
 
 By default the header contains the following information (with example data):
 
@@ -131,7 +131,7 @@ By default the header contains the following information (with example data):
    SPACING 0.00507953 0.00785161 0.00821458
    ORIGIN -0.853361 -0.855826 -0.854316
    POINT_DATA 15424827
-   SCALARS intensity double
+   SCALARS intensity float
    LOOKUP_TABLE default
    ...data
 
@@ -141,9 +141,9 @@ The files are now written through the built-in VTK file writer that is
 shared with the :doc:`dump vtk and dump grid/vtk <dump>` styles.  The
 header uses the current version of the legacy VTK file format, which
 spells the grid spacing keyword *SPACING* instead of the obsolete
-*ASPECT_RATIO*, and the intensities are written with full precision
-instead of being truncated to about 6 digits.  Visualization software
-that reads the previous output reads the new output as well.
+*ASPECT_RATIO*, and the intensities are no longer truncated to about 6
+digits.  Visualization software that reads the previous output reads the
+new output as well.
 
 In this example, kspace is sampled across a 337 x 219 x 209 point mesh
 where the mesh spacing is approximately 0.005, 0.007, and 0.008

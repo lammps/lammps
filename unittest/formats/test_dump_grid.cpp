@@ -23,6 +23,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
 #include <sstream>
@@ -38,7 +39,8 @@ bool verbose = false;
 
 namespace LAMMPS_NS {
 
-// read a whole file, including the null bytes of binary data
+// read a whole file, dropping any '\r' so that assertions with '\n' literals
+// also hold on Windows, where dump grid writes through a text mode FILE
 
 static std::string slurp(const std::string &filename)
 {
@@ -230,7 +232,7 @@ TEST_F(DumpGridTest, vtk_rectilinear_run0)
 
     // a single field becomes a scalar cell array, one value per grid cell
 
-    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float64" Name="Scalar" format="ascii">)"));
+    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float32" Name="Scalar" format="ascii">)"));
     EXPECT_THAT(text, HasSubstr("4 4 4 4 4 4 4 4 \n"));
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float32" Name="x" format="ascii">)"));
 
@@ -254,7 +256,7 @@ TEST_F(DumpGridTest, vtk_legacy_run0)
 
     // three fields become a vector cell array with three components
 
-    EXPECT_THAT(text, HasSubstr("CELL_DATA 8\nFIELD FieldData 1\nVector 3 8 double\n"));
+    EXPECT_THAT(text, HasSubstr("CELL_DATA 8\nFIELD FieldData 1\nVector 3 8 float\n"));
 
     delete_file(dump_file);
 }
@@ -271,8 +273,8 @@ TEST_F(DumpGridTest, vtk_image_run0)
     // all cells have the same size, so origin and spacing describe the grid
 
     EXPECT_THAT(text, HasSubstr(R"(<ImageData WholeExtent="0 2 0 2 0 2" Origin="0 0 0" )"
-                                R"(Spacing="1.6795961914 1.6795961914 1.6795961914">)"));
-    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float64" Name="Scalar" format="ascii">)"));
+                                R"(Spacing="1.6795961913825073 1.6795961913825073 1.6795961913825073">)"));
+    EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Float32" Name="Scalar" format="ascii">)"));
     EXPECT_THAT(text, Not(HasSubstr("<Coordinates>")));
 
     delete_file(dump_file);
@@ -306,11 +308,41 @@ TEST_F(DumpGridTest, vtk_binary_run0)
 
     ASSERT_FILE_EXISTS(xml_file);
     auto xml = slurp(xml_file);
-    EXPECT_THAT(xml, HasSubstr(R"(<DataArray type="Float64" Name="Scalar" format="binary">)"));
+    EXPECT_THAT(xml, HasSubstr(R"(<DataArray type="Float32" Name="Scalar" format="binary">)"));
     EXPECT_THAT(xml, Not(HasSubstr(R"(format="ascii")")));
 
     ASSERT_FILE_EXISTS(legacy_file);
     EXPECT_THAT(slurp(legacy_file), HasSubstr("BINARY\nDATASET RECTILINEAR_GRID\n"));
+
+    delete_file(xml_file);
+    delete_file(legacy_file);
+}
+
+TEST_F(DumpGridTest, vtk_double_precision_run0)
+{
+    const std::string xml_file    = "dump_grid_double.0.vtr";
+    const std::string legacy_file = "dump_grid_double.0.vtk";
+
+    // dump_modify double yes switches the grid coordinates and the cell data
+    // to double precision
+
+    BEGIN_HIDE_OUTPUT();
+    command("dump xml all grid/vtk 1 dump_grid_double.*.vtr f_ave:grid:count");
+    command("dump_modify xml double yes");
+    command("dump legacy all grid/vtk 1 dump_grid_double.*.vtk f_ave:grid:data[*]");
+    command("dump_modify legacy double yes");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    ASSERT_FILE_EXISTS(xml_file);
+    auto xml = slurp(xml_file);
+    EXPECT_THAT(xml, HasSubstr(R"(<DataArray type="Float64" Name="Scalar" format="ascii">)"));
+    EXPECT_THAT(xml, HasSubstr(R"(<DataArray type="Float64" Name="x" format="ascii">)"));
+
+    ASSERT_FILE_EXISTS(legacy_file);
+    auto legacy = slurp(legacy_file);
+    EXPECT_THAT(legacy, HasSubstr("X_COORDINATES 3 double\n0 1.6795961913825073"));
+    EXPECT_THAT(legacy, HasSubstr("Vector 3 8 double\n"));
 
     delete_file(xml_file);
     delete_file(legacy_file);

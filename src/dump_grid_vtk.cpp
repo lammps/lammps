@@ -17,11 +17,10 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "vtk_writer.h"
 
 #include <cstring>
-#include <limits>
 #include <string>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -50,6 +49,7 @@ DumpGridVTK::DumpGridVTK(LAMMPS *lmp, int narg, char **arg) :
   vtkflavor = VTKXML;
   dataset = RECTILINEAR;
   precision_warned = 0;
+  writeprec = VTKWriter::SINGLE;
 
   std::string fname(filename);
   auto dot = fname.find_last_of('.');
@@ -86,7 +86,10 @@ void DumpGridVTK::init_style()
     error->all(FLERR,
                "Dump grid/vtk does not support triclinic simulation boxes, use dump grid instead");
 
-  if (!xcoord) {
+  // the image data format describes the grid by origin and spacing alone,
+  // so the cell boundary coordinates are only needed for rectilinear grids
+
+  if ((dataset == RECTILINEAR) && !xcoord) {
     memory->create(xcoord, nxgrid + 1, "dumpgridVTK:xcoord");
     memory->create(ycoord, nygrid + 1, "dumpgridVTK:ycoord");
     memory->create(zcoord, nzgrid + 1, "dumpgridVTK:zcoord");
@@ -102,7 +105,7 @@ void DumpGridVTK::write_header(bigint /*ndump*/)
   // the grid data of one snapshot is collected by write_data() and only
   // written out by write_footer(), so all this has to do is prepare for it
 
-  xyz_grid();
+  if (dataset == RECTILINEAR) xyz_grid();
 
   values.clear();
   values.reserve((std::size_t) nxgrid * nygrid * nzgrid * nfield);
@@ -123,7 +126,8 @@ void DumpGridVTK::write_footer()
   if (me) return;
 
   try {
-    VTKWriter writer((vtkflavor == VTKXML) ? VTKWriter::XML : VTKWriter::LEGACY, binary != 0);
+    VTKWriter writer((vtkflavor == VTKXML) ? VTKWriter::XML : VTKWriter::LEGACY, binary != 0,
+                     writeprec);
 
     if (dataset == IMAGE) {
 
@@ -145,21 +149,26 @@ void DumpGridVTK::write_footer()
                                   {zcoord, zcoord + nzgrid + 1});
     }
 
-    writer.add_cell_array((mode == SCALAR) ? "Scalar" : "Vector", nfield, values);
+    // the collected data is donated to the writer, it is rebuilt for every
+    // snapshot anyway
+
+    writer.add_cell_array((mode == SCALAR) ? "Scalar" : "Vector", nfield, std::move(values));
     writer.write(fp);
 
-    // grid coordinates are stored in single precision, warn once if that no
-    // longer resolves them well enough
+    // grid coordinates are stored in single precision by default, warn once
+    // if that no longer resolves them well enough.  with dump_modify double
+    // yes nothing is tracked, so the warning is skipped automatically.
 
     const double maxcoord = writer.max_single_precision_value();
-    if (!precision_warned && (maxcoord > VTKWriter::SINGLE_PRECISION_LIMIT * force->angstrom)) {
+    const double resolution = VTKWriter::single_precision_resolution(maxcoord, force->angstrom);
+    if (!precision_warned && (resolution > 0.0)) {
       precision_warned = 1;
       error->warning(FLERR,
                      "Dump grid/vtk writes grid coordinates in single precision, which "
                      "resolves the largest coordinate of this grid, {:.4g}, to only about {:.2g} "
-                     "length units. If your analysis needs more resolution than that, please "
-                     "contact the LAMMPS developers.",
-                     maxcoord, maxcoord * std::numeric_limits<float>::epsilon());
+                     "length units. Use dump_modify double yes if your analysis needs more "
+                     "resolution than that.",
+                     maxcoord, resolution);
     }
   } catch (VTKWriterException &e) {
     error->one(FLERR, "Cannot write dump grid/vtk file {}: {}", filename, e.what());
@@ -176,6 +185,11 @@ int DumpGridVTK::modify_param(int narg, char **arg)
   if (strcmp(arg[0], "binary") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify binary", error);
     binary = utils::logical(FLERR, arg[1], false, lmp);
+    return 2;
+  }
+  if (strcmp(arg[0], "double") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify double", error);
+    writeprec = utils::logical(FLERR, arg[1], false, lmp) ? VTKWriter::DOUBLE : VTKWriter::SINGLE;
     return 2;
   }
   return 0;

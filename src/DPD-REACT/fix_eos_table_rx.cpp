@@ -657,6 +657,9 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
       if (nPG > 0) ui += moleculeCorrCoeff[ispecies]*nTotalPG/double(nPG); // molecule correction
 
       if (rx_flag) {
+        const auto & species_ind_to_atom_prop_ind =
+          rx_fix->get_species_ind_to_atom_prop_ind();
+
         const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
         nMolecules = atom->dvector[atom_ind][id];
       }

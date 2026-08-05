@@ -451,10 +451,10 @@ accelerated styles exist.
 * :doc:`ti/spring <fix_ti_spring>` - perform thermodynamic integration between a solid and an Einstein crystal
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration
 * :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling (replicated grid)
+* :doc:`ttm/cascade <fix_ttm>` - a two-temperature model for radiation damage cascades
 * :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`ttm/thermal <fix_ttm>` - a two-temperature model for thermal transport
-* :doc:`ttm/cascade <fix_ttm>` - a two-temperature model for radiation damage cascades
 * :doc:`tune/kspace <fix_tune_kspace>` - auto-tune :math:`k`-space parameters
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation

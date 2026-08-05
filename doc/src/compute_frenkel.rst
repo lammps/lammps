@@ -39,11 +39,22 @@ The reference lattice is taken from the most recently defined
 :doc:`lattice <lattice>` command: the compute generates one lattice site
 at every basis point of every unit cell that lies inside the simulation
 box (exactly as :doc:`create_atoms <create_atoms>` would, but without
-adding any atoms to the system).  Each atom is then assigned to the
-nearest lattice site.  A site with no atoms is a *vacancy*; a site with
-two atoms holds an *interstitial*; a site with more than two atoms is
-counted as an interstitial and additionally flagged as *irregular*.
-Neighboring vacant or over-occupied sites are grouped into clusters.
+adding any atoms to the system).  Each atom in the compute group is then
+assigned to the nearest lattice site.  Atoms that are not in the compute
+group are ignored and never count as occupants of a lattice site; this
+can be used, for example, to exclude gas atoms such as helium in
+tungsten from the analysis.  A site with no atoms is a *vacancy*; a site
+with two atoms holds an *interstitial*; a site with more than two atoms
+is counted as an interstitial and additionally flagged as *irregular*.
+
+Nearby defects are further grouped into clusters: a vacant site within
+the distance *drvac*, or a multiply occupied site within the distance
+*drint*, of another defective site belongs to the same cluster.  The
+size of a cluster is the number of its interstitials minus the number of
+its vacancies, so the sign of the size distinguishes interstitial-type
+from vacancy-type clusters.  Note that the identification and counting
+of the vacancies and interstitials themselves depends only on the number
+of atoms at each site, not on this clustering or the two distances.
 
 .. figure:: JPG/frenkel-diagram.png
    :figwidth: 50%
@@ -53,25 +64,41 @@ Neighboring vacant or over-occupied sites are grouped into clusters.
    from its lattice site leaving a vacancy and gets squeezed in
    between the atoms of neighboring occupied lattice sites
 
-The search radii used to associate atoms with sites can be adjusted with
-the *drvac* and *drint* keywords of the :doc:`compute_modify
-<compute_modify>` command; by default they are derived from the lattice
-spacing.  The following :doc:`compute_modify <compute_modify>` keywords
+Several settings of this compute can be adjusted with the
+:doc:`compute_modify <compute_modify>` command.  The following keywords
 are recognized:
 
 .. parsed-literal::
 
-   *drvac* value = cutoff distance for detecting vacancies (distance units)
-   *drint* value = cutoff distance for detecting interstitials (distance units)
+   *drvac* value = distance for including vacancies in a cluster (distance units)
+   *drint* value = distance for including interstitials in a cluster (distance units)
    *region* value = ID of a region (or *none*) to restrict the lattice sites to
-   *frenkelgroup* value = ID of a group of atoms to restrict the defect search to
    *rescale* value = *yes* or *no* to co-scale the reference sites with the box
-   *site_file* value = name of a file with explicit "x y z" site coordinates (or *none*)
+   *site_file* value = name of a file to read explicit "x y z" site coordinates from (or *none*)
+
+The *drvac* and *drint* distances default to 1.01 and 1.42 lattice
+spacings, respectively, so that vacancy clusters connect first- and
+second-neighbor sites while the spatially more extended interstitial
+configurations (e.g. dumbbells) connect over a somewhat larger distance.
+
+Use the *region* keyword to exclude lattice sites where no atoms are
+expected.  This is required when parts of the simulation box are empty,
+for example the vacuum above a free surface in a non-periodic dimension;
+otherwise all sites in the empty space are counted as vacancies.
 
 Use *rescale yes* when the box changes size during the run (for example
 under :doc:`fix npt <fix_nh>` or while heating), so that the reference
 sites expand and contract with the box and thermal expansion is not
 mistaken for defect formation.
+
+With the *site_file* keyword the reference sites are not generated from
+the lattice but read from the given text file, which must contain one
+site per line as three coordinates "x y z" (anything following a "#"
+character is ignored).  This allows using a reference structure that is
+not a perfect lattice, for example the relaxed atom positions from the
+beginning of the simulation.  A :doc:`lattice <lattice>` command is
+still required, since the shape of the Wigner-Seitz cells and the
+default distances are derived from it.
 
 .. note::
 
@@ -81,6 +108,13 @@ mistaken for defect formation.
    usually best to use the thermally expanded lattice constant (or
    *rescale yes*), and to analyze the inherent structure (a quenched or
    minimized snapshot) when the thermal displacements are large.
+
+In a restarted simulation this compute behaves like any other compute:
+the :doc:`lattice <lattice>`, compute, and :doc:`compute_modify
+<compute_modify>` commands must be repeated in the input script and the
+reference sites are then regenerated at the beginning of the run.  With
+*rescale yes* the lattice constant must be chosen to match the size of
+the box stored in the restart file.
 
 This compute is described in :ref:`(Hammond) <compute-frenkel-Hammond>`.
 
@@ -98,12 +132,15 @@ more than two atoms), each summed over all MPI processes.  Thus
 The **global array** has 2 rows and 20 columns and is a histogram of the
 defect cluster sizes: row 1 counts vacancy clusters and row 2 counts
 interstitial clusters, with column *k* holding the number of clusters
-containing *k* defects (clusters larger than 20 are added to the last
-column).
+with a net content of *k* defects (clusters larger than 20 are added to
+the last column).  Clusters containing as many vacancies as
+interstitials, i.e. Frenkel pairs that are about to recombine, have a
+net size of zero and are not included in the histogram.
 
 The **per-atom vector** is the distance of each atom from its nearest
 lattice site, which can be used to color atoms in a :doc:`dump image
-<dump_image>` or to select displaced atoms.
+<dump_image>` or to select displaced atoms.  For atoms outside the
+compute group the value is 0.0.
 
 The **local array** has 5 columns and one row per defect cluster owned by
 the MPI process: the cluster ID, the cluster size (negative for vacancy
@@ -214,6 +251,10 @@ defined (for example with ``atom_modify map array``).  A :doc:`lattice
 <lattice>` must be defined to provide the reference sites; a general
 triclinic lattice is not supported.
 
+This compute cannot be used together with :doc:`comm_style tiled
+<comm_style>` or :doc:`fix balance <fix_balance>`, and the *rescale*
+option does not support triclinic simulation boxes.
+
 Related commands
 """"""""""""""""
 
@@ -225,9 +266,9 @@ Related commands
 Default
 """""""
 
-The *drvac* and *drint* cutoffs default to values derived from the lattice
-spacing; *region* = none, *frenkelgroup* = the compute group, *rescale* =
-no, *site_file* = none.
+The *drvac* and *drint* distances default to 1.01 and 1.42 lattice
+spacings, respectively; *region* = none, *rescale* = no, *site_file* =
+none.
 
 ----------
 

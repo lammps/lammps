@@ -29,10 +29,10 @@
 #include "error.h"
 #include "force.h"
 #include "graphics.h"
-#include "group.h"
 #include "lattice.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "text_file_reader.h"
@@ -80,7 +80,7 @@ static const char cite_compute_frenkel_c[] =
 
 ComputeFrenkel::ComputeFrenkel(class LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), image_objvec(nullptr), image_objarray(nullptr), image_nmax(0),
-    region(nullptr), ifgroup(igroup), fgroupbit(groupbit), rescale(false), mindist(nullptr),
+    region(nullptr), rescale(false), mindist(nullptr),
     site_mindist(nullptr), noccupants(nullptr), occupant_tag(nullptr), nnormal(0), normal(nullptr),
     nlatsites(0), nlatghosts(0), latsites(nullptr), latsites0(nullptr), site_tag(nullptr),
     first_local_tag(0), nlatbins{0, 0, 0, 0}, latbins(nullptr), clusterID(nullptr),
@@ -174,12 +174,6 @@ int ComputeFrenkel::modify_param(int narg, char **arg)
       if (!region) error->all(FLERR, "compute_modify region {} does not exist", arg[1]);
     }
     return 2;
-  } else if (strcmp(arg[0], "frenkelgroup") == 0) {
-    if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify frenkelgroup", error);
-    ifgroup = group->find(arg[1]);
-    if (ifgroup == -1) error->all(FLERR, "compute_modify frenkelgroup {} does not exist", arg[1]);
-    fgroupbit = group->bitmask[ifgroup];
-    return 2;
   } else if (strcmp(arg[0], "rescale") == 0) {
     if (narg < 2) utils::missing_cmd_args(FLERR, "compute_modify rescale", error);
     rescale = utils::logical(FLERR, arg[1], false, lmp);
@@ -210,6 +204,22 @@ void ComputeFrenkel::init()
   // Make sure we have a way to generate lattice sites
   if (!domain->lattice)
     error->all(FLERR, Error::NOLASTLINE, "Use of compute style frenkel with undefined lattice");
+
+  // Unsupported cases: the reference sites do not follow a changing box tilt,
+  // and the site-to-processor assignment and ghost-site exchange assume the
+  // regular processor grid, which mid-run rebalancing or comm_style tiled break.
+  if (rescale && domain->triclinic)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Compute frenkel with rescale yes does not support triclinic simulation boxes; "
+               "please contact the LAMMPS developers");
+  if (comm->style == Comm::TILED)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Compute frenkel is not compatible with comm_style tiled; "
+               "please contact the LAMMPS developers");
+  if (modify->get_fix_by_style("^balance").size() > 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Compute frenkel is not compatible with fix balance; "
+               "please contact the LAMMPS developers");
 
   // Recompute the derived search/bin cutoffs from the (possibly compute_modify
   // changed) vacancy and interstitial radii, so drvac/drint stay consistent
@@ -313,8 +323,10 @@ void ComputeFrenkel::find_defects()
 
   double cutsq = cutoff * cutoff;
 
-  // Loop over all atoms and ghosts
+  // Loop over all atoms and ghosts; atoms outside the compute group are
+  // ignored and never counted as occupants of a lattice site
   for (int n = 0; n < atom->nlocal + atom->nghost; n++) {
+    if (!(atom->mask[n] & groupbit)) continue;
 
     // Find closest lattice bin
     int ii, jj, kk;
@@ -388,8 +400,11 @@ void ComputeFrenkel::find_defects()
   }
 
   // Exchange mindist info amongst processes for ghost atoms
-  //comm->reverse_comm_compute (this);
   comm->reverse_comm(this);
+
+  // per-atom output values for atoms outside the compute group are zero
+  for (int i = 0; i < atom->nlocal; i++)
+    if (!(atom->mask[i] & groupbit)) mindist[i] = 0.0;
 }
 
 /****************************************************************************/
@@ -1037,29 +1052,61 @@ int ComputeFrenkel::site_tag2index(tagint tag)
 
 /****************************************************************************/
 
-// Post nonblocking sends of sbuf(p) and matching receives into rbuf(p) for all
-// p != me (message length in datatype units = n_send[p]*stride on send,
-// n_recv[p]*stride on receive), then wait for all to complete.  The caller
-// handles the self (p == me) copy.  One fixed tag per message type keeps the
-// tags well below MPI_TAG_UB; the source rank already disambiguates messages.
+// The only ranks that can hold ghost copies of my sites (and vice versa) are
+// the up to 26 subdomains around mine in the processor grid.  Collect their
+// ranks, deduplicated: small processor grids fold several stencil directions
+// onto the same rank, including my own rank for periodic self-images.  The
+// stencil is symmetric, so every rank in my list has me in its list, which
+// guarantees that all sends and receives of the ghost exchange match up.
+void ComputeFrenkel::build_ghost_procs()
+{
+  ghost_procs.clear();
+  for (int ix = -1; ix <= 1; ix++) {
+    if (ix == -1 && comm->myloc[0] == 0 && !domain->xperiodic) continue;
+    if (ix == 1 && comm->myloc[0] == comm->procgrid[0] - 1 && !domain->xperiodic) continue;
+    for (int iy = -1; iy <= 1; iy++) {
+      if (iy == -1 && comm->myloc[1] == 0 && !domain->yperiodic) continue;
+      if (iy == 1 && comm->myloc[1] == comm->procgrid[1] - 1 && !domain->yperiodic) continue;
+      for (int iz = -1; iz <= 1; iz++) {
+        if (ix == 0 && iy == 0 && iz == 0) continue;
+        if (iz == -1 && comm->myloc[2] == 0 && !domain->zperiodic) continue;
+        if (iz == 1 && comm->myloc[2] == comm->procgrid[2] - 1 && !domain->zperiodic) continue;
+        const int p = process_neighbor(ix, iy, iz);
+        if (std::find(ghost_procs.begin(), ghost_procs.end(), p) == ghost_procs.end())
+          ghost_procs.push_back(p);
+      }
+    }
+  }
+}
+
+/****************************************************************************/
+
+// Post nonblocking sends of sbuf(q) and matching receives into rbuf(q) for the
+// adjacent ranks procs[q] (message length in datatype units = n_send[q]*stride
+// on send, n_recv[q]*stride on receive), then wait for all to complete.  The
+// caller handles the self (procs[q] == me) copy.  One fixed tag per message
+// type keeps the tags well below MPI_TAG_UB; the source rank already
+// disambiguates messages.
 void ComputeFrenkel::exchange_one(const std::function<void *(int)> &sbuf,
                                   const std::function<void *(int)> &rbuf,
-                                  const std::vector<int> &n_send, const std::vector<int> &n_recv,
-                                  int stride, MPI_Datatype type, int tag)
+                                  const std::vector<int> &procs, const std::vector<int> &n_send,
+                                  const std::vector<int> &n_recv, int stride, MPI_Datatype type,
+                                  int tag)
 {
   const int me = comm->me;
-  const int nprocs = comm->nprocs;
-  if (nprocs == 1) return;    // nothing to exchange in serial
+  const int nexch = (int) procs.size();
 
-  std::vector<MPI_Request> sreq(nprocs, MPI_REQUEST_NULL);
-  std::vector<MPI_Request> rreq(nprocs, MPI_REQUEST_NULL);
-  for (int p = 0; p < nprocs; p++) {
-    if (p == me) continue;
-    if (n_send[p] > 0) MPI_Isend(sbuf(p), n_send[p] * stride, type, p, tag, world, &sreq[p]);
-    if (n_recv[p] > 0) MPI_Irecv(rbuf(p), n_recv[p] * stride, type, p, tag, world, &rreq[p]);
+  std::vector<MPI_Request> sreq(nexch, MPI_REQUEST_NULL);
+  std::vector<MPI_Request> rreq(nexch, MPI_REQUEST_NULL);
+  for (int q = 0; q < nexch; q++) {
+    if (procs[q] == me) continue;
+    if (n_send[q] > 0)
+      MPI_Isend(sbuf(q), n_send[q] * stride, type, procs[q], tag, world, &sreq[q]);
+    if (n_recv[q] > 0)
+      MPI_Irecv(rbuf(q), n_recv[q] * stride, type, procs[q], tag, world, &rreq[q]);
   }
-  MPI_Waitall(nprocs, sreq.data(), MPI_STATUSES_IGNORE);
-  MPI_Waitall(nprocs, rreq.data(), MPI_STATUSES_IGNORE);
+  MPI_Waitall(nexch, sreq.data(), MPI_STATUSES_IGNORE);
+  MPI_Waitall(nexch, rreq.data(), MPI_STATUSES_IGNORE);
 }
 
 /****************************************************************************/
@@ -1068,10 +1115,20 @@ void ComputeFrenkel::exchange_lattice_ghosts()
 {
   // Exchange sites within one cutoff distance of the edge of the box with
   // adjacent processes.  Quantities exchanged:  site tag, site coordinates,
-  // cluster ID's, and site occupancies.
+  // cluster ID's, and site occupancies.  All buffers and counts are indexed by
+  // position in ghost_procs, the list of up to 26 adjacent ranks, so neither
+  // the number of messages nor any buffer scales with the total rank count.
 
   const int me = comm->me;
-  const int nprocs = comm->nprocs;
+  build_ghost_procs();
+  const int nexch = (int) ghost_procs.size();
+
+  nlatghosts = 0;
+  ghost_index.clear();
+  ghost_send_counts.assign(nexch, 0);
+  ghost_recv_counts.assign(nexch, 0);
+  if (nexch == 0) return;    // serial and fully non-periodic: nothing to exchange
+
   tagint **tag_send;
   tagint **tag_recv;
   tagint **clusterID_send;
@@ -1083,24 +1140,22 @@ void ComputeFrenkel::exchange_lattice_ghosts()
   const int NINCR = 100;
   int max_size = NINCR;
 
-  nlatghosts = 0;
-  ghost_index.clear();
-  std::vector<int> n_send(nprocs, 0);
-  std::vector<int> n_recv(nprocs, 0);
-  std::vector<int> idx(nprocs, 0);
-  memory->create(tag_send, nprocs, max_size, "ComputeFrenkel:tag_send");
-  memory->create(x_send, nprocs, max_size, 3, "ComputeFrenkel:x_send");
-  memory->create(occup_send, nprocs, max_size, "ComputeFrenkel:occup_send");
-  memory->create(clusterID_send, nprocs, max_size, "ComputeFrenkel:clusterID_send");
-  for (int i = 0; i < nprocs * max_size; i++) tag_send[0][i] = -1;
-  for (int i = 0; i < nprocs * max_size * 3; i++) x_send[0][0][i] = 0.0;
-  for (int i = 0; i < nprocs * max_size; i++) occup_send[0][i] = 0;
-  for (int i = 0; i < nprocs * max_size; i++) clusterID_send[0][i] = 0;
+  std::vector<int> n_send(nexch, 0);
+  std::vector<int> n_recv(nexch, 0);
+  std::vector<int> idx(nexch, 0);
+  memory->create(tag_send, nexch, max_size, "ComputeFrenkel:tag_send");
+  memory->create(x_send, nexch, max_size, 3, "ComputeFrenkel:x_send");
+  memory->create(occup_send, nexch, max_size, "ComputeFrenkel:occup_send");
+  memory->create(clusterID_send, nexch, max_size, "ComputeFrenkel:clusterID_send");
+  for (int i = 0; i < nexch * max_size; i++) tag_send[0][i] = -1;
+  for (int i = 0; i < nexch * max_size * 3; i++) x_send[0][0][i] = 0.0;
+  for (int i = 0; i < nexch * max_size; i++) occup_send[0][i] = 0;
+  for (int i = 0; i < nexch * max_size; i++) clusterID_send[0][i] = 0;
 
   // Find out which sites are near the boundaries
   // and which processes those boundaries correspond to.
   double dr[2][3];
-  std::vector<bool> already_sent(nprocs);
+  std::vector<bool> already_sent(nexch);
   for (int k = 0; k < nlatsites; k++) {
     dr[0][0] = latsites[k][0] - domain->sublo[0];
     dr[0][1] = latsites[k][1] - domain->sublo[1];
@@ -1111,7 +1166,7 @@ void ComputeFrenkel::exchange_lattice_ghosts()
 
     // Prepare list of processes to which we've sent this site to (to avoid
     // duplication)
-    for (int p = 0; p < nprocs; p++) already_sent[p] = false;
+    for (int q = 0; q < nexch; q++) already_sent[q] = false;
 
     // Test processes in all 27 directions from this one
     for (int ix = -1; ix <= 1; ix++) {
@@ -1133,140 +1188,137 @@ void ComputeFrenkel::exchange_lattice_ghosts()
           if (iz == -1 && dr[0][2] > cutoff + SMALL) continue;
           if (iz == 1 && dr[1][2] > cutoff + SMALL) continue;
           // Should only get here when exchanging with an adjacent process
-          int p = process_neighbor(ix, iy, iz);
+          const int p = process_neighbor(ix, iy, iz);
+          int q = 0;
+          while (ghost_procs[q] != p) q++;    // always present by construction
           // Don't add site to process multiple times
-          if (already_sent[p]) continue;
-          n_send[p] += 1;
-          if (n_send[p] > max_size) {    // Grow arrays if necessary
-            this->reallocate_array(tag_send, nprocs, max_size, nprocs, max_size + NINCR);
-            this->reallocate_array(x_send, nprocs, max_size, 3, nprocs, max_size + NINCR, 3);
-            this->reallocate_array(occup_send, nprocs, max_size, nprocs, max_size + NINCR);
-            this->reallocate_array(clusterID_send, nprocs, max_size, nprocs, max_size + NINCR);
+          if (already_sent[q]) continue;
+          n_send[q] += 1;
+          if (n_send[q] > max_size) {    // Grow arrays if necessary
+            this->reallocate_array(tag_send, nexch, max_size, nexch, max_size + NINCR);
+            this->reallocate_array(x_send, nexch, max_size, 3, nexch, max_size + NINCR, 3);
+            this->reallocate_array(occup_send, nexch, max_size, nexch, max_size + NINCR);
+            this->reallocate_array(clusterID_send, nexch, max_size, nexch, max_size + NINCR);
             max_size += NINCR;
           }
-          tag_send[p][idx[p]] = site_tag[k];
-          occup_send[p][idx[p]] = noccupants[k];
-          if (clusterID) clusterID_send[p][idx[p]] = clusterID[k];
-          x_send[p][idx[p]][0] = latsites[k][0];
-          x_send[p][idx[p]][1] = latsites[k][1];
-          x_send[p][idx[p]][2] = latsites[k][2];
-          idx[p] += 1;
-          already_sent[p] = true;
+          tag_send[q][idx[q]] = site_tag[k];
+          occup_send[q][idx[q]] = noccupants[k];
+          if (clusterID) clusterID_send[q][idx[q]] = clusterID[k];
+          x_send[q][idx[q]][0] = latsites[k][0];
+          x_send[q][idx[q]][1] = latsites[k][1];
+          x_send[q][idx[q]][2] = latsites[k][2];
+          idx[q] += 1;
+          already_sent[q] = true;
         }
       }
     }
   }
-  // Send your sites to them and get theirs in return
-  std::vector<MPI_Request> send_request(nprocs);
-  std::vector<MPI_Request> recv_request(nprocs);
-  send_request[me] = MPI_REQUEST_NULL;
-  recv_request[me] = MPI_REQUEST_NULL;
-  for (int p = 0; p < nprocs; p++) {
-    if (p == me)
-      n_recv[p] = n_send[p];
+  // Exchange the send counts, but only with the adjacent ranks
+  std::vector<MPI_Request> send_request(nexch, MPI_REQUEST_NULL);
+  std::vector<MPI_Request> recv_request(nexch, MPI_REQUEST_NULL);
+  for (int q = 0; q < nexch; q++) {
+    if (ghost_procs[q] == me)
+      n_recv[q] = n_send[q];
     else {
-      MPI_Isend(&n_send[p], 1, MPI_INT, p, TAG_COUNT, world, &send_request[p]);
-      MPI_Irecv(&n_recv[p], 1, MPI_INT, p, TAG_COUNT, world, &recv_request[p]);
+      MPI_Isend(&n_send[q], 1, MPI_INT, ghost_procs[q], TAG_COUNT, world, &send_request[q]);
+      MPI_Irecv(&n_recv[q], 1, MPI_INT, ghost_procs[q], TAG_COUNT, world, &recv_request[q]);
     }
   }
-  if (nprocs > 1) {
-    MPI_Waitall(nprocs, send_request.data(), MPI_STATUSES_IGNORE);
-    MPI_Waitall(nprocs, recv_request.data(), MPI_STATUSES_IGNORE);
-  }
+  MPI_Waitall(nexch, send_request.data(), MPI_STATUSES_IGNORE);
+  MPI_Waitall(nexch, recv_request.data(), MPI_STATUSES_IGNORE);
 
-  // Remember the per-proc message sizes so push_ghost_labels_to_owners() can
-  // run the reverse (ghost -> owner) exchange.  Record them now, before the
-  // "no ghosts received" early return below: a rank may receive no ghosts of
-  // its own yet still own sites that are ghosts elsewhere, and those owners
-  // will reverse-send label updates back to it.
+  // Remember the per-neighbor message sizes so push_ghost_labels_to_owners()
+  // can run the reverse (ghost -> owner) exchange.
   ghost_send_counts = n_send;
   ghost_recv_counts = n_recv;
 
-  max_size = 0;
-  for (int p = 0; p < nprocs; p++) max_size = MAX(max_size, n_recv[p]);
-  if (max_size == 0) {
-    memory->destroy(tag_send);
-    memory->destroy(x_send);
-    memory->destroy(occup_send);
-    memory->destroy(clusterID_send);
-    return;    // Should only happen if regions don't cross domain boundaries
-  }
-  memory->create(tag_recv, nprocs, max_size, "ComputeFrenkel:tag_recv");
-  memory->create(x_recv, nprocs, max_size, 3, "ComputeFrenkel:x_recv");
-  memory->create(occup_recv, nprocs, max_size, "ComputeFrenkel:occup_recv");
-  memory->create(clusterID_recv, nprocs, max_size, "ComputeFrenkel:clusterID_recv");
-  for (int i = 0; i < nprocs * max_size; i++) tag_recv[0][i] = 0;
-  for (int i = 0; i < nprocs * max_size; i++) occup_recv[0][i] = 0;
-  for (int i = 0; i < nprocs * max_size * 3; i++) x_recv[0][0][i] = 0.0;
-  for (int i = 0; i < nprocs * max_size; i++) clusterID_recv[0][i] = 0;
-  // self (p == me) is just a local copy; the four per-site quantities are then
-  // exchanged with the neighbor processes one message type at a time.  A site is
-  // sent to itself only as a periodic self-image (procgrid == 1 in a periodic
+  // Size the receive buffers.  Even when nothing is received the sends must
+  // still be posted: a neighbor may expect this rank's sites although it has
+  // none to mirror back (e.g. with region-restricted sites), so returning
+  // early based on the receive counts alone would leave that neighbor waiting.
+  max_size = 1;
+  for (int q = 0; q < nexch; q++) max_size = MAX(max_size, n_recv[q]);
+  memory->create(tag_recv, nexch, max_size, "ComputeFrenkel:tag_recv");
+  memory->create(x_recv, nexch, max_size, 3, "ComputeFrenkel:x_recv");
+  memory->create(occup_recv, nexch, max_size, "ComputeFrenkel:occup_recv");
+  memory->create(clusterID_recv, nexch, max_size, "ComputeFrenkel:clusterID_recv");
+  for (int i = 0; i < nexch * max_size; i++) tag_recv[0][i] = 0;
+  for (int i = 0; i < nexch * max_size; i++) occup_recv[0][i] = 0;
+  for (int i = 0; i < nexch * max_size * 3; i++) x_recv[0][0][i] = 0.0;
+  for (int i = 0; i < nexch * max_size; i++) clusterID_recv[0][i] = 0;
+  // self is just a local copy; the four per-site quantities are then exchanged
+  // with the neighbor processes one message type at a time.  A site is sent to
+  // this rank itself only as a periodic self-image (procgrid == 1 in a periodic
   // dimension); the ghost occupancy is a verbatim copy of the owner's, exactly
   // like the cross-proc path -- it is only used to classify the ghost as
   // vacancy/normal/interstitial during clustering and never re-counted (real
   // occupancy is tallied on the owning rank in find_defects).  Accumulating
-  // (+=) would be equivalent anyway: already_sent[p] sends each owned site to a
+  // (+=) would be equivalent anyway: already_sent[q] sends each owned site to a
   // given proc at most once, so every self slot is written exactly once.
-  for (int i = 0; i < n_send[me]; i++) {
-    tag_recv[me][i] = tag_send[me][i];
-    occup_recv[me][i] = occup_send[me][i];
-    clusterID_recv[me][i] = clusterID_send[me][i];
-    x_recv[me][i][0] = x_send[me][i][0];
-    x_recv[me][i][1] = x_send[me][i][1];
-    x_recv[me][i][2] = x_send[me][i][2];
+  for (int q = 0; q < nexch; q++) {
+    if (ghost_procs[q] != me) continue;
+    for (int i = 0; i < n_send[q]; i++) {
+      tag_recv[q][i] = tag_send[q][i];
+      occup_recv[q][i] = occup_send[q][i];
+      clusterID_recv[q][i] = clusterID_send[q][i];
+      x_recv[q][i][0] = x_send[q][i][0];
+      x_recv[q][i][1] = x_send[q][i][1];
+      x_recv[q][i][2] = x_send[q][i][2];
+    }
   }
   exchange_one(
-      [&](int p) {
-        return (void *) tag_send[p];
+      [&](int q) {
+        return (void *) tag_send[q];
       },
-      [&](int p) {
-        return (void *) tag_recv[p];
+      [&](int q) {
+        return (void *) tag_recv[q];
       },
-      n_send, n_recv, 1, MPI_LMP_TAGINT, TAG_SITE);
+      ghost_procs, n_send, n_recv, 1, MPI_LMP_TAGINT, TAG_SITE);
   exchange_one(
-      [&](int p) {
-        return (void *) x_send[p][0];
+      [&](int q) {
+        return (void *) x_send[q][0];
       },
-      [&](int p) {
-        return (void *) x_recv[p][0];
+      [&](int q) {
+        return (void *) x_recv[q][0];
       },
-      n_send, n_recv, 3, MPI_DOUBLE, TAG_X);
+      ghost_procs, n_send, n_recv, 3, MPI_DOUBLE, TAG_X);
   exchange_one(
-      [&](int p) {
-        return (void *) occup_send[p];
+      [&](int q) {
+        return (void *) occup_send[q];
       },
-      [&](int p) {
-        return (void *) occup_recv[p];
+      [&](int q) {
+        return (void *) occup_recv[q];
       },
-      n_send, n_recv, 1, MPI_INT, TAG_OCCUP);
+      ghost_procs, n_send, n_recv, 1, MPI_INT, TAG_OCCUP);
   exchange_one(
-      [&](int p) {
-        return (void *) clusterID_send[p];
+      [&](int q) {
+        return (void *) clusterID_send[q];
       },
-      [&](int p) {
-        return (void *) clusterID_recv[p];
+      [&](int q) {
+        return (void *) clusterID_recv[q];
       },
-      n_send, n_recv, 1, MPI_LMP_TAGINT, TAG_CLUST);
+      ghost_procs, n_send, n_recv, 1, MPI_LMP_TAGINT, TAG_CLUST);
 
   // Reallocate the necessary memory
   nlatghosts = 0;
-  for (int p = 0; p < nprocs; p++) nlatghosts += n_recv[p];
+  for (int q = 0; q < nexch; q++) nlatghosts += n_recv[q];
   memory->grow(latsites, nlatsites + nlatghosts, 3, "ComputeFrenkel:sites2");
   memory->grow(site_tag, nlatsites + nlatghosts, "ComputeFrenkel:site_tag2");
   memory->grow(noccupants, nlatsites + nlatghosts, "ComputeFrenkel:noccupants2");
   if (clusterID) memory->grow(clusterID, nlatsites + nlatghosts, "ComputeFrenkel:clusterID2");
 
-  // Update latsites, site_tag, clusterID, and nlatghosts
+  // Update latsites, site_tag, clusterID, and nlatghosts; the ghosts are
+  // appended in ghost_procs order, which push_ghost_labels_to_owners() relies
+  // on to slice them back into their per-neighbor groups
   int kk = nlatsites;
-  for (int p = 0; p < nprocs; p++) {
-    for (int i = 0; i < n_recv[p]; i++) {
-      site_tag[kk] = tag_recv[p][i];
-      latsites[kk][0] = x_recv[p][i][0];
-      latsites[kk][1] = x_recv[p][i][1];
-      latsites[kk][2] = x_recv[p][i][2];
-      noccupants[kk] = occup_recv[p][i];
-      if (clusterID) clusterID[kk] = clusterID_recv[p][i];
+  for (int q = 0; q < nexch; q++) {
+    for (int i = 0; i < n_recv[q]; i++) {
+      site_tag[kk] = tag_recv[q][i];
+      latsites[kk][0] = x_recv[q][i][0];
+      latsites[kk][1] = x_recv[q][i][1];
+      latsites[kk][2] = x_recv[q][i][2];
+      noccupants[kk] = occup_recv[q][i];
+      if (clusterID) clusterID[kk] = clusterID_recv[q][i];
       ghost_index[site_tag[kk]] = kk;
       kk++;
     }
@@ -1295,65 +1347,70 @@ void ComputeFrenkel::exchange_lattice_ghosts()
 int ComputeFrenkel::push_ghost_labels_to_owners()
 {
   const int me = comm->me;
-  const int nprocs = comm->nprocs;
+  const int nexch = (int) ghost_procs.size();
   int changed = 0;
+  if (nexch == 0) return changed;    // serial and fully non-periodic
 
-  // Slice the ghost range back into the per-proc groups it arrived in: the same
-  // ascending proc order used when the ghosts were appended, ghost_recv_counts[p]
-  // entries each (the p == me group carries periodic self-images).
-  std::vector<std::vector<tagint>> tag_back(nprocs), cid_back(nprocs);
+  // Slice the ghost range back into the per-neighbor groups it arrived in: the
+  // same ghost_procs order used when the ghosts were appended,
+  // ghost_recv_counts[q] entries each (a group for this rank itself carries
+  // periodic self-images).
+  std::vector<std::vector<tagint>> tag_back(nexch), cid_back(nexch);
   int kk = nlatsites;
-  for (int p = 0; p < nprocs; p++) {
-    tag_back[p].reserve(ghost_recv_counts[p]);
-    cid_back[p].reserve(ghost_recv_counts[p]);
-    for (int i = 0; i < ghost_recv_counts[p]; i++, kk++) {
-      tag_back[p].push_back(site_tag[kk]);
-      cid_back[p].push_back(clusterID[kk]);
+  for (int q = 0; q < nexch; q++) {
+    tag_back[q].reserve(ghost_recv_counts[q]);
+    cid_back[q].reserve(ghost_recv_counts[q]);
+    for (int i = 0; i < ghost_recv_counts[q]; i++, kk++) {
+      tag_back[q].push_back(site_tag[kk]);
+      cid_back[q].push_back(clusterID[kk]);
     }
   }
 
   // self group: this rank is the owner, so apply the MIN locally
-  for (std::size_t i = 0; i < tag_back[me].size(); i++) {
-    int idx = site_tag2index(tag_back[me][i]);
-    if (idx >= 0 && idx < nlatsites && cid_back[me][i] < clusterID[idx]) {
-      clusterID[idx] = cid_back[me][i];
-      changed = 1;
+  for (int q = 0; q < nexch; q++) {
+    if (ghost_procs[q] != me) continue;
+    for (std::size_t i = 0; i < tag_back[q].size(); i++) {
+      int idx = site_tag2index(tag_back[q][i]);
+      if (idx >= 0 && idx < nlatsites && cid_back[q][i] < clusterID[idx]) {
+        clusterID[idx] = cid_back[q][i];
+        changed = 1;
+      }
     }
   }
-  if (nprocs == 1) return changed;
+  if (comm->nprocs == 1) return changed;
 
   // Reverse exchange: send each held ghost's label back to its owner.  The send
-  // counts are ghost_recv_counts (ghosts we hold from p) and the receive counts
-  // are ghost_send_counts (our owned sites mirrored onto p, now coming back).
-  std::vector<std::vector<tagint>> rtag(nprocs), rcid(nprocs);
-  for (int p = 0; p < nprocs; p++) {
-    rtag[p].assign(ghost_send_counts[p], 0);
-    rcid[p].assign(ghost_send_counts[p], 0);
+  // counts are ghost_recv_counts (ghosts we hold from that rank) and the receive
+  // counts are ghost_send_counts (our owned sites mirrored there, now coming back).
+  std::vector<std::vector<tagint>> rtag(nexch), rcid(nexch);
+  for (int q = 0; q < nexch; q++) {
+    rtag[q].assign(ghost_send_counts[q], 0);
+    rcid[q].assign(ghost_send_counts[q], 0);
   }
   exchange_one(
-      [&](int p) {
-        return (void *) tag_back[p].data();
+      [&](int q) {
+        return (void *) tag_back[q].data();
       },
-      [&](int p) {
-        return (void *) rtag[p].data();
+      [&](int q) {
+        return (void *) rtag[q].data();
       },
-      ghost_recv_counts, ghost_send_counts, 1, MPI_LMP_TAGINT, TAG_RTAG);
+      ghost_procs, ghost_recv_counts, ghost_send_counts, 1, MPI_LMP_TAGINT, TAG_RTAG);
   exchange_one(
-      [&](int p) {
-        return (void *) cid_back[p].data();
+      [&](int q) {
+        return (void *) cid_back[q].data();
       },
-      [&](int p) {
-        return (void *) rcid[p].data();
+      [&](int q) {
+        return (void *) rcid[q].data();
       },
-      ghost_recv_counts, ghost_send_counts, 1, MPI_LMP_TAGINT, TAG_RCID);
+      ghost_procs, ghost_recv_counts, ghost_send_counts, 1, MPI_LMP_TAGINT, TAG_RCID);
 
   // owner side: keep the smaller of the stored and incoming cluster IDs
-  for (int p = 0; p < nprocs; p++) {
-    if (p == me) continue;
-    for (int i = 0; i < ghost_send_counts[p]; i++) {
-      int idx = site_tag2index(rtag[p][i]);
-      if (idx >= 0 && idx < nlatsites && rcid[p][i] < clusterID[idx]) {
-        clusterID[idx] = rcid[p][i];
+  for (int q = 0; q < nexch; q++) {
+    if (ghost_procs[q] == me) continue;
+    for (int i = 0; i < ghost_send_counts[q]; i++) {
+      int idx = site_tag2index(rtag[q][i]);
+      if (idx >= 0 && idx < nlatsites && rcid[q][i] < clusterID[idx]) {
+        clusterID[idx] = rcid[q][i];
         changed = 1;
       }
     }

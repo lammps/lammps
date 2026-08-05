@@ -664,9 +664,11 @@ void FixStoreState::end_of_step()
         }
 
       // evaluate atom-style variable
+      // avalues is null when there are no atoms on this proc
 
       } else if (val.which == ArgInfo::VARIABLE) {
-        input->variable->compute_atom(val.val.v, igroup, &avalues[0][m], values.size(),0);
+        if (avalues) input->variable->compute_atom(val.val.v, igroup, &avalues[0][m], values.size(),0);
+        else input->variable->compute_atom(val.val.v, igroup, nullptr, values.size(),0);
 
       // access custom atom vector/array fields
 

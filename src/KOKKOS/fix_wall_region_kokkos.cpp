@@ -55,6 +55,21 @@ FixWallRegionKokkos<DeviceType>::~FixWallRegionKokkos()
 
 /* ---------------------------------------------------------------------- */
 
+template<class DeviceType>
+void FixWallRegionKokkos<DeviceType>::init()
+{
+  FixWallRegion::init();
+
+  // without this check a region w/o KOKKOS support was silently ignored:
+  // no wall forces and undefined energy/virial contributions
+
+  if (!dynamic_cast<RegBlockKokkos<DeviceType>*>(region) &&
+      !dynamic_cast<RegSphereKokkos<DeviceType>*>(region))
+    error->all(FLERR,"Fix wall/region/kk requires region style block/kk or sphere/kk");
+}
+
+/* ---------------------------------------------------------------------- */
+
 template <class DeviceType>
 void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 {

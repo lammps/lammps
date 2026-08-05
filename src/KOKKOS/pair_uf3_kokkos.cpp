@@ -76,7 +76,7 @@ template <class DeviceType> PairUF3Kokkos<DeviceType>::~PairUF3Kokkos()
 
 template <class DeviceType>
 template <typename TYPE>
-void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*** &array)
+void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE &data, typename TYPE::value_type*** &array)
 {
   if (array == nullptr) return;
   data = TYPE();
@@ -89,7 +89,7 @@ void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*
 
 template <class DeviceType>
 template <typename TYPE>
-void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE data, typename TYPE::value_type**** &array)
+void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE &data, typename TYPE::value_type**** &array)
 {
   if (array == nullptr) return;
   data = TYPE();

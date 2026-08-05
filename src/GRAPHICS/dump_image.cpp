@@ -115,13 +115,13 @@ savedLights reset_lighting(Image *image, double ambient, double key, double fill
 void restore_lighting(const savedLights &saved, Image *image)
 {
   image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] =
-      std::clamp(0.0, 1.0, saved.ambient);
+      std::clamp(saved.ambient, 0.0, 1.0);
   image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] =
-      std::clamp(0.0, 1.0, saved.key);
+      std::clamp(saved.key, 0.0, 1.0);
   image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] =
-      std::clamp(0.0, 1.0, saved.fill);
+      std::clamp(saved.fill, 0.0, 1.0);
   image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] =
-      std::clamp(0.0, 1.0, saved.back);
+      std::clamp(saved.back, 0.0, 1.0);
 }
 
 }    // namespace
@@ -211,6 +211,7 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   atomflag = YES;
   gridflag = NO;
+  grid_opacity = 1.0;
   lineflag = triflag = bodyflag = ellipsoidflag = NO;
 
   bcolor = ATOM;
@@ -619,6 +620,55 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (ssaoint < 0.0 || ssaoint > 1.0)
         error->all(FLERR, iarg+3, "Invalid dump image ssao intensity value {}", ssaoint);
       image->ssaoint = ssaoint;
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"depthcue") == 0) {
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"dump image depthcue", error);
+      image->depthcue = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      double cfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (cfactor < 0.0 || cfactor > 1.0)
+        error->all(FLERR, iarg+2, "Invalid dump image depthcue strength value {}", cfactor);
+      image->depthcueint = cfactor;
+      if (strcmp(arg[iarg+3],"auto") == 0) {
+        image->depthcuecolor = nullptr;
+      } else {
+        image->depthcuecolor = image->color2rgb(arg[iarg+3]);
+        if (image->depthcuecolor == nullptr)
+          error->all(FLERR, iarg+3, "Invalid dump image depthcue color {}", arg[iarg+3]);
+      }
+      if (strcmp(arg[iarg+4],"auto") == 0) {
+        image->depthcuestartflag = 0;
+      } else {
+        image->depthcuestart = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+        image->depthcuestartflag = 1;
+      }
+      iarg += 5;
+
+    } else if (strcmp(arg[iarg],"defocus") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image defocus", error);
+      image->defocus = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      double bfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (bfactor < 0.0 || bfactor > 1.0)
+        error->all(FLERR, iarg+2, "Invalid dump image defocus strength value {}", bfactor);
+      image->defocusint = bfactor;
+      if (strcmp(arg[iarg+3],"auto") == 0) {
+        image->defocusstartflag = 0;
+      } else {
+        image->defocusstart = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        image->defocusstartflag = 1;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"outline") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image outline", error);
+      image->outline = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      int owidth = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if (owidth < 1 || owidth > 16)
+        error->all(FLERR, iarg+2, "Invalid dump image outline width {}", owidth);
+      image->outlinewidth = owidth;
+      image->outlinecolor = image->color2rgb(arg[iarg+3]);
+      if (image->outlinecolor == nullptr)
+        error->all(FLERR, iarg+3, "Invalid dump image outline color {}", arg[iarg+3]);
       iarg += 4;
 
     } else error->all(FLERR, iarg, "Unknown dump image keyword {}", arg[iarg]);
@@ -1308,8 +1358,8 @@ void DumpImage::create_image()
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
           grid_cell_corners_2d(ix,iy);
           color = image->map_value2color(Image::GRID_MAP,gbuf[n++]);
-          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color);
-          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color);
+          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color,grid_opacity);
+          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color,grid_opacity);
         }
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
@@ -1318,23 +1368,23 @@ void DumpImage::create_image()
             grid_cell_corners_3d(ix,iy,iz);
             color = image->map_value2color(Image::GRID_MAP,gbuf[n++]);
             // lower x face
-            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color);
-            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color);
+            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color,grid_opacity);
             // upper x face
-            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color);
-            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color);
+            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color,grid_opacity);
             // lower y face
-            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color);
-            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color);
+            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color,grid_opacity);
             // upper y face
-            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color);
-            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color);
+            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color,grid_opacity);
             // lower z face
-            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color);
-            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color);
+            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color,grid_opacity);
             // upper z face
-            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color);
-            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color);
+            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color,grid_opacity);
           }
     }
 
@@ -1716,7 +1766,7 @@ void DumpImage::create_image()
           xmid[1] = x[atom2][1] - 0.5*dely;
           xmid[2] = x[atom2][2] - 0.5*delz;
           if (bcolor == ATOM)
-            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom1]]);
+            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom2]]);
           else image->draw_cylinder(xmid,x[atom2],color,diameter,3,bopacity[btype]);
 
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3,bopacity[btype]);
@@ -2982,6 +3032,16 @@ int DumpImage::modify_param(int narg, char **arg)
     return 3;
   }
 
+  if (strcmp(arg[0],"gtrans") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gtrans", error);
+    // ignore if grids are not displayed
+    if (gridflag == NO) return 2;
+    grid_opacity = utils::numeric(FLERR,arg[1],false,lmp);
+    if ((grid_opacity < 0.0) || (grid_opacity > 1.0))
+      error->all(FLERR, argoff + 1, "Invalid gtrans opacity in dump_modify command");
+    return 2;
+  }
+
   // clang-format on
   if (strcmp(arg[0], "lights") == 0) {
     if (narg < 5) utils::missing_cmd_args(FLERR, "dump_modify lights", error);
@@ -3001,6 +3061,74 @@ int DumpImage::modify_param(int narg, char **arg)
     restore_lighting({ambient, key, fill, back}, image);
 
     return 5;
+  }
+
+  if (strcmp(arg[0], "gamma") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gamma", error);
+    double gval = utils::numeric(FLERR, arg[1], false, lmp);
+    if ((gval < 0.1) || (gval > 10.0))
+      error->all(FLERR, argoff + 1, "Illegal gamma value {}", gval);
+    image->gamma = gval;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "ssaosamples") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify ssaosamples", error);
+    int nsamples = utils::inumeric(FLERR, arg[1], false, lmp);
+    if ((nsamples < 4) || (nsamples > 64))
+      error->all(FLERR, argoff + 1, "Illegal ssaosamples value {}", nsamples);
+    image->ssaosamples = nsamples;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "specular") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
+    if (strcmp(arg[1], "none") == 0) {
+      image->nospecular = 1;
+      image->specularIntensity = 0.0;
+      return 2;
+    }
+    if (strcmp(arg[1], "wide") == 0)
+      image->specularHardness = 10.0;
+    else if (strcmp(arg[1], "narrow") == 0)
+      image->specularHardness = 50.0;
+    else if (strcmp(arg[1], "tight") == 0)
+      image->specularHardness = 250.0;
+    else
+      error->all(FLERR, argoff + 1, "Unknown specular setting {}", arg[1]);
+    image->specularflag = 1;
+    image->nospecular = 0;
+    image->specularIntensity = image->shiny;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "metal") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify metal", error);
+    double mval = utils::numeric(FLERR, arg[1], false, lmp);
+    if ((mval < 0.0) || (mval > 1.0))
+      error->all(FLERR, argoff + 1, "Illegal metal value {}", mval);
+    image->metallic = mval;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "metalfinish") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify metalfinish", error);
+    if (strcmp(arg[1], "satin") == 0) {
+      image->finishMirror = 0;
+      image->finishBand = 0.6;
+      image->finishWidth = 2.0;
+    } else if (strcmp(arg[1], "polished") == 0) {
+      image->finishMirror = 0;
+      image->finishBand = 0.6;
+      image->finishWidth = 4.0;
+    } else if (strcmp(arg[1], "mirror") == 0) {
+      image->finishMirror = 1;
+      image->finishBand = 0.4;
+      image->finishWidth = 3.0;
+    } else {
+      error->all(FLERR, argoff + 1, "Unknown metalfinish setting {}", arg[1]);
+    }
+    return 2;
   }
 
   if (strcmp(arg[0], "savecolors") == 0) {

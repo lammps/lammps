@@ -96,7 +96,7 @@ class Output : protected Pointers {
   const std::vector<Dump *> &get_dump_list();    // get vector with all dumps
   int check_time_dumps(bigint);                  // check if any time dump is output now
 
-  void set_thermo(int, char **);        // set thermo output freqquency
+  void set_thermo(int, char **);        // set thermo output frequency
   void create_thermo(int, char **);     // create a thermo style
   void create_restart(int, char **);    // create Restart and restart files
 

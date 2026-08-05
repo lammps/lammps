@@ -37,7 +37,7 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpCFG::DumpCFG(LAMMPS *lmp, int narg, char **arg) :
-  DumpCustom(lmp, narg, arg), auxname(nullptr)
+  DumpCustom(lmp, narg, arg), auxname(nullptr), write_choice(nullptr)
 {
   multifile_override = 0;
 

@@ -212,7 +212,7 @@ void ThirdOrder::options(int narg, char **arg)
 {
   if (narg < 0) error->all(FLERR,"Illegal Third Order command");
   int iarg = 0;
-  const char *filename = "Third Order.dat";
+  const char *filename = "third_order.dat";
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"binary") == 0) {
@@ -238,9 +238,10 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal Third Order command");
   }
-  if (file_flag == 1 && me == 0) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it rank 0 wrote to a null FILE pointer
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -414,6 +415,9 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
+  memory->destroy(neighbortags);
+  memory->destroy(ijnum);
+
   if (screen && me == 0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
@@ -451,7 +455,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     clearerr(fp);
     fwrite(&dynmat[0], sizeof(double), dynlen, fp);
   }
-  if (ferror(fp)) error->one(FLERR,"Error writing to file");
+  if (fp && ferror(fp)) error->one(FLERR,"Error writing to file");
 
 }
 
@@ -771,23 +775,11 @@ void ThirdOrder::getNeighbortags() {
     ijnum[i] = sum;
   }
 
-  sum = 0;
-  for (bigint i=0; i<=natoms-1; i++) {
-    sum += ijnum[i];
-  }
-
-  free (neighbortags);
-  nbytes = ((bigint) sizeof(bigint)) * sum;
-  datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
-  nbytes = ((bigint) sizeof(bigint *)) * natoms;
-  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
-  memset(&datarecv[0],0,sum*sizeof(bigint));
-
-  n = 0;
-  for (bigint i = 0; i < natoms; i++) {
-    neighbortags[i] = &datarecv[n];
-    n += ijnum[i];
-  }
+  memory->sfree(neighbortags);
+  memory->sfree(datarecv);
+  memory->create_ragged(neighbortags, natoms, ijnum, "thirdorder:neighbortags");
+  for (bigint i = 0; i < natoms; i++)
+    memset(neighbortags[i], 0, ijnum[i]*sizeof(bigint));
 
   for (bigint i = 0; i < natoms; i++) {
     int m = 0;
@@ -811,7 +803,8 @@ void ThirdOrder::getNeighbortags() {
     }
   }
 
-  free (firsttags);
+  memory->sfree(data);
+  memory->sfree(firsttags);
   free (ijnumproc);
   free (temptags);
 }

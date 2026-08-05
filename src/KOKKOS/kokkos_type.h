@@ -28,7 +28,10 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+// LMP_KOKKOS_GPU may also be set as a global compile definition by the build
+// system (see cmake/Modules/Packages/KOKKOS.cmake) so that non-KOKKOS sources,
+// which do not include this header, can detect a GPU-enabled Kokkos build.
+#if !defined(LMP_KOKKOS_GPU) && (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET))
 #define LMP_KOKKOS_GPU
 #endif
 

@@ -84,7 +84,6 @@ modules:
       - -D PKG_ML-IAP=yes
       - -D PKG_ML-PACE=yes
       - -D PKG_ML-POD=yes
-      - -D PKG_ML-RANN=yes
       - -D PKG_ML-SNAP=yes
       - -D PKG_ML-UF3=yes
       - -D PKG_MOFFF=yes

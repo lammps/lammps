@@ -154,10 +154,10 @@ class FixSurface : public Fix {
 
   // methods common to both global and local surfs
 
-  void extract_from_molecule(char *, std::map<std::tuple<double, double, double, int>, int> *,
+  void extract_from_molecule(char *, std::map<std::tuple<double, double, double, int>, int> &,
                              int &, int &, Point *&, int &, Line *&, int &, Tri *&);
   void extract_from_stlfile(char *, int, int,
-                            std::map<std::tuple<double, double, double, int>, int> *, int &, int &,
+                            std::map<std::tuple<double, double, double, int>, int> &, int &, int &,
                             Point *&, int &, Tri *&);
 
   void connectivity2d_global(int, int, Line *, Connect2d *&, int **&, int **&);

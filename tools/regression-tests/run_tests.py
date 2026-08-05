@@ -12,7 +12,7 @@ With the current features, users can:
     + specify the list of examples input scripts to test
     + specify tolerances for individual quantities for any input script to override the global values
     + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffixes)
-    + skip certain input files (whose names match specified patterns) if not interested, or packaged not installed, or no reference log file exists
+    + skip certain input files (whose names match specified patterns) if not interested, or package not installed, or no reference log file exists
     + set a timeout for every input script run if they may take too long
     + skip numerical checks if the goal is just to check if the runs do not fail
 
@@ -33,11 +33,15 @@ Input arguments:
       the path to the top-level examples
 
 Output:
-    + failure.yaml : list of the failed runs and reasons
+    + failure.yaml : list of the failed runs and reasons (a subset of progress.yaml)
     + progress.yaml: full testing results of the tested input scripts with the status (completed, failed or skipped)
                      with error messages (for failed runs), and walltime (in seconds)
     + output.xml   :    testing results in the JUnit XML format
     + run.log      :       screen output and error of individual runs
+
+Both YAML files are written incrementally (one line per tested input) and parse as
+a single YAML mapping keyed by the input script name. Multiple JUnit XML files from
+distributed runs can be merged and summarized with merge_results.py in this folder.
 
 Limitations:
     - input scripts use thermo style multi (e.g., examples/peptide) do not work with the expected thermo output format
@@ -48,7 +52,7 @@ The following Python packages need to be installed into an activated environment
 
     python3 -m venv testing-env
     source testing-env/bin/activate
-    pip install numpy pyyaml junit_xml
+    pip install numpy pyyaml
 
 Example usage (aka, tests for this script):
 
@@ -89,20 +93,21 @@ Example usage (aka, tests for this script):
 from argparse import ArgumentParser
 import datetime
 import fnmatch
+import glob
 import logging
 import os
 import random
 import re
+import shutil
+import signal
 import subprocess
 import sys
+import xml.etree.ElementTree as ET
 #from multiprocessing import Pool
 
 # need "pip install numpy pyyaml"
 import numpy as np
 import yaml
-
-# need "pip install junit_xml"
-from junit_xml import TestSuite, TestCase
 
 try:
     from yaml import CSafeLoader as Loader
@@ -117,90 +122,180 @@ sys.path.append(os.path.realpath(os.path.join(LAMMPS_DIR, 'tools', 'regression-t
 import get_quick_list
 
 '''
-   data structure to store the test result
+   data structure to store the result of a single test run
+
+   name    : name of the input script (e.g. in.melt)
+   folder  : full path of the folder containing the input script
+   category: normalized outcome for downstream reporting, one of
+             'passed'    all numerical checks passed
+             'failed'    the run completed but numerical checks failed
+             'error'     the run did not complete (crash, timeout, missing log file)
+             'completed' the run completed but no numerical checks were possible
+                         (e.g. no reference log file, skipped numerical checks)
+             'skipped'   the input script was not run at all
+   status  : human readable description of the outcome (stored in the progress file)
+   message : additional details (e.g. the individual failed checks)
+   time    : walltime of the run in seconds (-1: failed, -2: skipped)
+   checks  : number of performed numerical checks
+   timeout : whether the run was killed after exceeding the timeout
+   memleak : whether valgrind detected memory leaks
 '''
 class TestResult:
-  def __init__(self, name, output=None, time=None, checks=0, status=None):
+  def __init__(self, name, folder=None, category='skipped', status="", message="",
+               time=-2.0, checks=0):
     self.name = name
-    self.output = output
-    self.time = time
-    self.checks = 0
+    self.folder = folder
+    self.category = category
     self.status = status
+    self.message = message
+    self.time = time
+    self.checks = checks
+    self.timeout = False
+    self.memleak = False
 
 '''
-    Iterate over a list of input folders and scripts using the given lmp_binary and the testing configuration
+    condense a (possibly multi-line) text into a single line of limited length
+    suitable for status messages in the progress file and JUnit XML attributes
+'''
+def shorten(text, maxlen=200):
+    text = ' '.join(str(text).split())
+    if len(text) > maxlen:
+        text = text[:maxlen] + " ..."
+    return text
+
+'''
+    write the results of the completed test runs into a JUnit XML file
+    for downstream reporting (merging, summaries, websites)
+
+    output_file: name of the JUnit XML file
+    results    : list of TestResult objects
+    suite_name : name of the test suite (e.g. the test configuration file)
+    properties : dictionary with build and test configuration metadata
+'''
+def write_junit_xml(output_file, results, suite_name, properties=None):
+    testsuite = ET.Element('testsuite')
+    testsuite.set('name', suite_name)
+    testsuite.set('timestamp', datetime.datetime.now().isoformat(timespec='seconds'))
+    num_failures = 0
+    num_errors = 0
+    num_skipped = 0
+    total_time = 0.0
+
+    if properties:
+        props = ET.SubElement(testsuite, 'properties')
+        for key, value in properties.items():
+            prop = ET.SubElement(props, 'property')
+            prop.set('name', str(key))
+            prop.set('value', shorten(value, maxlen=1000))
+
+    for result in results:
+        case = ET.SubElement(testsuite, 'testcase')
+        case.set('name', result.name)
+        # report the folder relative to the examples top-level folder, so that
+        # results from different machines or checkouts can be compared
+        folder = os.path.abspath(result.folder) if result.folder else ''
+        marker = os.sep + 'examples' + os.sep
+        if marker in folder:
+            classname = folder.split(marker, 1)[1]
+        else:
+            classname = os.path.basename(folder)
+        case.set('classname', classname.replace(os.sep, '/'))
+        case.set('time', f"{max(float(result.time), 0.0):.3f}")
+        total_time += max(float(result.time), 0.0)
+
+        if result.category == 'failed':
+            elem = ET.SubElement(case, 'failure')
+            num_failures += 1
+        elif result.category == 'error':
+            elem = ET.SubElement(case, 'error')
+            num_errors += 1
+        elif result.category in ('skipped', 'completed'):
+            # 'completed' means the run finished but nothing could be verified,
+            # so it is reported as skipped rather than as passed
+            elem = ET.SubElement(case, 'skipped')
+            num_skipped += 1
+        else:
+            elem = None
+        if elem is not None:
+            elem.set('message', shorten(result.status))
+            if result.message:
+                elem.text = result.message
+
+    testsuite.set('tests', str(len(results)))
+    testsuite.set('failures', str(num_failures))
+    testsuite.set('errors', str(num_errors))
+    testsuite.set('skipped', str(num_skipped))
+    testsuite.set('time', f"{total_time:.3f}")
+
+    tree = ET.ElementTree(testsuite)
+    ET.indent(tree)
+    tree.write(output_file, encoding='UTF-8', xml_declaration=True)
+
+'''
+    Iterate over a list of input scripts using the given lmp_binary and the testing configuration
 
     lmp_binary   : full path to the LAMMPS binary
     input_folder : the absolute path to the input files
     input_list   : list of the input scripts under the input_folder
     config       : the dict that contains the test configuration
+    results      : list of TestResult objects, one gets appended per input script
+    progress_file: yaml file that stores the tested input script and status
+    failure_file : file that reports the failed runs (a subset of progress_file)
     walltime_ref : reference walltime
+    last_progress: the dictionary that shows the status of the last tests
+    output_buf   : placeholder for storing the output of a given worker
 
     return
-       results   : a list of TestResult objects
        stat      : a dictionary that lists the number of passed, skipped, failed tests
-       progress_file: yaml file that stores the tested input script and status
-       failure_file : file that reports the failed runs (a subset of progress_file)
-       last_progress: the dictionary that shows the status of the last tests
-       output_buf: placeholder for storing the output of a given worker
 '''
 def iterate(lmp_binary, input_folder, input_list, config, results, progress_file, failure_file, walltime_ref=1, verbose=False, last_progress=None, output_buf=None):
 
     num_tests = len(input_list)
-
-    num_skipped = 0 
-    num_error = 0
-    num_timeout = 0
-    num_failed = 0
-    num_completed = 0
-    num_passed = 0
-    num_memleak = 0
+    num_results_initial = len(results)
     test_id = 0
 
-    # using REG-commented input scripts, now turned off (False)
-    using_markers = False
     EPSILON = np.float64(config['epsilon'])
     nugget = float(config['nugget'])
     genref = config['genref']
     compiler = config['compiler']
-    use_valgrind = False
-    if 'valgrind' in config['mpiexec']:
-        use_valgrind = True
+    use_valgrind = 'valgrind' in config['mpiexec']
 
-    # record all the failed runs
-    failure = open(failure_file, "a")
+    # record the outcome of a test: append it to the results list, write one line
+    # to the progress file and, for failed or errored tests, to the failure file;
+    # each line is a flow-style YAML mapping so that the whole file parses as a
+    # single YAML mapping keyed by the input script names
+    def record(result, walltime_norm=None, failed_checks=None, write_progress=True):
+        results.append(result)
+        if not write_progress:
+            return
+        entry = { 'folder': result.folder, 'status': result.status }
+        if failed_checks is not None:
+            entry['failed_checks'] = failed_checks
+        entry['walltime'] = float(result.time)
+        if walltime_norm is not None:
+            entry['walltime_norm'] = float(walltime_norm)
+        value = yaml.safe_dump(entry, default_flow_style=True,
+                               sort_keys=False, width=1000000).strip()
+        line = f"{result.name}: {value}\n"
+        with open(progress_file, "a") as progress:
+            progress.write(line)
+        if result.category in ('failed', 'error'):
+            with open(failure_file, "a") as failure:
+                failure.write(line)
 
     # iterate over the input scripts
     for input in input_list:
 
-        # check if the progress file exists to append or create a new one
-        if os.path.isfile(progress_file) == True:
-            progress = open(progress_file, "a")
-        else:
-            progress = open(progress_file, "w")
-
-        # walltime =   -2: skipped tests
-        #              -1: failed tests
-        #            >= 0: walltime in seconds (e.g. in.melt walltime = 0.2 seconds)
-        walltime = -2
+        input_test = input
+        result = TestResult(name=input, folder=input_folder)
 
         # skip the input file if listed in the config file or matched with a pattern
         if 'skip' in config:
-            if input in config['skip']:
-                msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
-                print(msg)
-                logger.info(msg)
-                progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'skipped', 'walltime': '{walltime}' }} }}\n")
-                progress.close()
-                num_skipped = num_skipped + 1
-                test_id = test_id + 1
-                continue
-
-            matched_pattern = False
-            for skipped_files in config['skip']:
-                if '*' in skipped_files:
-                    # check input script name e.g. in.*_imd*
-                    if fnmatch.fnmatch(input, skipped_files):
+            matched_pattern = input in config['skip']
+            if not matched_pattern:
+                for skipped_files in config['skip']:
+                    # check the input script name against a pattern, e.g. in.*_imd*
+                    if ('*' in skipped_files) and fnmatch.fnmatch(input, skipped_files):
                         matched_pattern = True
                         break
 
@@ -208,56 +303,33 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped as specified in {configFileName}"
                 print(msg)
                 logger.info(msg)
-                progress.write(f"{{ '{input}': {{ 'folder': {input_folder}, 'status': 'skipped', 'walltime': '{walltime}' }} }}\n")
-                progress.close()
-                num_skipped = num_skipped + 1
+                result.status = 'skipped as specified in the test configuration'
+                record(result)
                 test_id = test_id + 1
                 continue
 
         # also skip if the test already completed as marked in the progress file
         if input in last_progress:
-            status = last_progress[input]['status']
+            status = str(last_progress[input].get('status', ''))
             if 'completed' in status or 'numerical checks skipped' in status:
                 msg = "  + " + input + f" ({test_id+1}/{num_tests}): marked as completed or numerical checks skipped (see {progress_file})"
                 logger.info(msg)
                 print(msg)
                 # No need to write to progress again that the run is completed
-                progress.close()
-                num_skipped = num_skipped + 1
+                result.status = 'skipped, already completed in a previous run'
+                record(result, write_progress=False)
                 test_id = test_id + 1
                 continue
 
-            if 'packaged not installed' in status:
+            if 'package not installed' in status:
                 msg = "  + " + input + f" ({test_id+1}/{num_tests}): due to package not installed (see {progress_file})"
                 logger.info(msg)
                 print(msg)
                 # No need to write to progress again that the run gets error due to missing packages
-                progress.close()
-                num_skipped = num_skipped + 1
+                result.status = 'skipped, package not installed in a previous run'
+                record(result, write_progress=False)
                 test_id = test_id + 1
                 continue
-
-        # if annotating input scripts with REG markers is True
-        if using_markers == True:
-            input_test = 'test.' + input
-            if os.path.isfile(input) == True:
-                if has_markers(input):
-                    process_markers(input, input_test)
-
-                else:
-                    print(f"WARNING: {input} does not have REG markers")
-                    input_markers = input + '.markers'
-                    # if the input file with the REG markers does not exist
-                    #   attempt to plug in the REG markers before each run command
-                    if os.path.isfile(input_markers) == False:
-                        cmd_str = "cp " + input + " " + input_markers
-                        os.system(cmd_str)
-                        generate_markers(input, input_markers)
-                        process_markers(input_markers, input_test)
-
-        else:
-            # else the same file name for testing
-            input_test = input
 
         str_t = "   + " + input_test + f" ({test_id+1}/{num_tests})"
         logger.info(str_t)
@@ -267,20 +339,20 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # assuming that input file names start with "in." (except in.disp, in.disp2 and in.dos in phonon/)
         basename = input_test[3:]
         ref_logfile_exist = False
+        thermo_ref_file = ''
 
         # if there are multiple log files for different number of procs, pick the maximum number
-        cmd_str = "ls log.*"
-        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-        logfile_list = p.stdout.split('\n')
-        logfile_list.remove('')
-
         max_np = 1
-        for file in logfile_list:
-            # looks for pattern log.{date}.{basename}.{compiler}.{nprocs}: log.[date].min.box.[compiler]].* vs log.[date].min.[compiler].*
+        for file in sorted(glob.glob("log.*")):
+            # looks for pattern log.{date}.{basename}.{log_compiler}.{nprocs}: log.[date].min.box.[compiler]].* vs log.[date].min.[compiler].*
+            # skip over log files from previous test runs (log.{basename}.{nprocs}) and log.lammps
+            parts = file.split('.')
+            if len(parts) < 5:
+                continue
             # get the date from the log files
-            date = file.split('.',2)[1]
-            compiler = file.rsplit('.',2)[1]
-            pattern = f'log.{date}.{basename}.{compiler}.*'
+            date = parts[1]
+            log_compiler = file.rsplit('.',2)[1]
+            pattern = f'log.{date}.{basename}.{log_compiler}.*'
             if fnmatch.fnmatch(file, pattern):
                 p = file.rsplit('.', 1)
                 if p[1].isnumeric():
@@ -322,24 +394,25 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             config['mpiexec_numproc_flag'] = ""
             nprocs = 1
 
+        # walltime =   -2: skipped tests
+        #              -1: failed tests
+        #            >= 0: walltime in seconds (e.g. in.melt walltime = 0.2 seconds)
         # default walltime value of failed tests
-        walltime = -1
-
-        result = TestResult(name=input, output="", time="", status="passed")
+        result.time = -1.0
 
         # run the LAMMPS binary with the input script
         status = execute(lmp_binary, config, input_test)
-        cmd_str = status['cmd_str']
         output = status['stdout']
         error = status['stderr']
-        returncode = status['returncode']
+        returncode = int(status['returncode'])
         logfilename = status['logfilename']
+        result.timeout = status['timedout']
 
         # restore the nprocs value in the configuration
         config['nprocs'] = saved_nprocs
 
         # check if the output contains ERROR
-        #   there might not be a log file generated at this point, or only the log file contains only the date line
+        #   there might not be a log file generated at this point, or the log file contains only the date line
         if "ERROR" in output:
             error_line = ""
             for line in output.split('\n'):
@@ -349,43 +422,39 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"     The run terminated with {input_test} gives the following output:")
             logger.info(f"       {error_line}")
             if "Unrecognized" in output:
-                result.status = f"failed, unrecognized command, package not installed, {error_line}"
+                result.status = f"failed, unrecognized command, package not installed, {shorten(error_line)}"
             elif "Unknown" in output:
-                result.status = f"failed, unknown command, package not installed, {error_line}"
+                result.status = f"failed, unknown command, package not installed, {shorten(error_line)}"
             else:
-                result.status = f"failed, {error_line}."
+                result.status = f"failed, {shorten(error_line)}"
+            result.category = 'error'
+            result.message = error_line
 
             logger.info(f"     Output:")
             logger.info(f"     {output}")
             logger.info(f"     Failed with {input_test}.\n")
-            num_error = num_error + 1
-
-            results.append(result)
             print(f"{result.status}")
 
-            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}' }} }}\n"
-            progress.write(msg)
-            progress.close()
-            failure.write(msg)
-
+            record(result)
             test_id = test_id + 1
             continue
 
         # check if a log file log.{basename}.{nprocs} exists in the current folder
         if os.path.isfile(logfilename) == False:
-            msg = f"    failed, no log.{basename}.{nprocs} generated with {input_test} with return code {returncode}.\n"
+            msg = f"    failed, no {logfilename} generated with {input_test} with return code {returncode}.\n"
             print(msg)
             logger.info(msg)
             logger.info(f"    Output:")
             logger.info(f"    {output}")
             logger.info(f"    Error:\n{error}")
 
-            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'failed, no log file generated', 'walltime': '{walltime}' }} }}\n"
-            progress.write(msg)
-            progress.close()
-            failure.write(msg)
-
-            num_error = num_error + 1
+            result.category = 'error'
+            if result.timeout:
+                result.status = f"failed, no log file generated, {shorten(error)}"
+            else:
+                result.status = f"failed, no log file generated with return code {returncode}"
+            result.message = shorten(error, maxlen=1000)
+            record(result)
             test_id = test_id + 1
             continue
         else:
@@ -393,56 +462,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             if genref == True:
                 dmy = datetime.datetime.now()
                 date = dmy.strftime("%d%b%y")
-                # assume g++ for now, but is be available from running "lmp_binary -h"
-                compiler = "g++"
-                cmd_str = f"cp log.{basename}.{nprocs} log.{date}.{basename}.{compiler}.{nprocs}"
-                p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
+                shutil.copy(f"log.{basename}.{nprocs}", f"log.{date}.{basename}.{compiler}.{nprocs}")
 
-        # if skip numerical checks, then skip the rest
-        if skip_numerical_check == True:
-            msg = "completed, skipping numerical checks"
-            if use_valgrind == True:
-                if "All heap blocks were freed" in error:
-                    msg += ", no memory leak"
-                else:
-                    msg += ", memory leaks detected"
-                    num_memleak = num_memleak + 1
-            result.status = msg
-            results.append(result)
-
-            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', status: \"{msg}\", 'walltime': '{walltime}' }} }}\n"
-            progress.write(msg)
-            progress.close()
-            failure.write(msg)
-
-            # count the number of completed runs
-            num_completed = num_completed + 1
-            test_id = test_id + 1
-            continue
-
-        # if there is no ERROR in the output, but there is no Total wall time printed out
-        if "Total wall time" not in output:
-            msg = f"     failed, no Total wall time in the output.\n"
-            print(msg)
-            logger.info(msg)
-            logger.info(f"\n{input_test}:")
-            logger.info(f"\n    Output:\n{output}")
-            logger.info(f"\n    Error:\n{error}")
-
-            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'failed, no Total wall time in the output, {error}', 'walltime': '{walltime}' }} }}\n"
-            progress.write(msg)
-            progress.close()
-            failure.write(msg)
-
-            returncode = int(returncode)
-            if returncode == -1:
-                num_timeout = num_timeout + 1
-
-            num_error = num_error + 1
-            test_id = test_id + 1
-            continue
-
+        # parse the total wall time from the screen output (may be absent if the run did not complete)
         # NOTE: Total wall time could be 00:00:00 whereas Loop time is non-zero seconds
+        walltime = None
         walltime_norm = 1.0
         for line in output.split('\n'):
             if "Total wall time" in line:
@@ -453,7 +477,40 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 seconds = float(hms[2])
                 walltime = hours * 3600.0 + minutes * 60.0 + seconds
                 walltime_norm = float(walltime) / float(walltime_ref)
+                result.time = walltime
                 break
+
+        # if skip numerical checks, then skip the rest
+        if skip_numerical_check == True:
+            msg = "completed, skipping numerical checks"
+            result.category = 'completed'
+            if use_valgrind == True:
+                if "All heap blocks were freed" in error:
+                    msg += ", no memory leak"
+                else:
+                    msg += ", memory leaks detected"
+                    result.category = 'failed'
+                    result.memleak = True
+            result.status = msg
+            record(result, walltime_norm=walltime_norm)
+            test_id = test_id + 1
+            continue
+
+        # if there is no ERROR in the output, but there is no Total wall time printed out
+        if walltime is None:
+            msg = f"     failed, no Total wall time in the output.\n"
+            print(msg)
+            logger.info(msg)
+            logger.info(f"\n{input_test}:")
+            logger.info(f"\n    Output:\n{output}")
+            logger.info(f"\n    Error:\n{error}")
+
+            result.category = 'error'
+            result.status = f"failed, no Total wall time in the output, {shorten(error)}"
+            result.message = shorten(error, maxlen=1000)
+            record(result)
+            test_id = test_id + 1
+            continue
 
         # if there is no Step or no Loop printed out
         if "Step" not in output or "Loop" not in output:
@@ -464,12 +521,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, but no Step nor Loop in the output.', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n"
-            progress.write(msg)
-            progress.close()
-            failure.write(msg)
-
-            num_error = num_error + 1
+            result.category = 'completed'
+            result.status = 'completed, but no Step nor Loop in the output'
+            record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
             continue
 
@@ -483,22 +537,20 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"     {output}")
 
             msg = "completed"
-            if 'valgrind' in config['mpiexec']:
-                if "All heap blocks were free" in error:
+            result.category = 'completed'
+            if use_valgrind == True:
+                if "All heap blocks were freed" in error:
                     msg += ", no memory leak"
                 else:
                     msg += ", memory leaks detected"
-                    num_memleak = num_memleak + 1
+                    result.category = 'failed'
+                    result.memleak = True
 
             result.status = msg + f", error parsing {logfilename} into YAML"
-            results.append(result)
-            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-            progress.close()
-
             if verbose == True:
                 print(result.status)
 
-            num_completed = num_completed + 1
+            record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
             continue
 
@@ -512,12 +564,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             else:
                 # the thermo_ref dictionary is empty
                 logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
-                result.status = "skipped numerical checks due to parsing the reference log file"
-                results.append(result)
-                progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped, unsupported log file format', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-                progress.close()
-                num_completed = num_completed + 1
-                num_failed = num_failed + 1
+                result.category = 'completed'
+                result.status = 'completed, numerical checks skipped, unsupported log file format'
+                record(result, walltime_norm=walltime_norm)
                 test_id = test_id + 1
                 continue
         else:
@@ -533,15 +582,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             else:
                 # most likely to reach here if the reference log file does not exist
                 logger.info(f"       {thermo_ref_file} also does not exist in the working directory.")
-                result.status = "skipped due to missing the reference log file"
-                results.append(result)
-
-                msg = f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': 'completed, numerical checks skipped due to missing the reference log file', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n"
-                progress.write(msg)
-                progress.close()
-                failure.write(msg)
-                num_completed = num_completed + 1
-                num_failed = num_failed + 1
+                result.category = 'completed'
+                result.status = 'completed, numerical checks skipped due to missing the reference log file'
+                record(result, walltime_norm=walltime_norm)
                 test_id = test_id + 1
                 continue
 
@@ -552,12 +595,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         if num_runs != num_runs_ref:
             logger.info(f"     ERROR: Number of runs in {logfilename} ({num_runs}) is different from that in the reference log ({num_runs_ref})."
                         " Check README in the folder, possibly due to using mpirun with partitions or parsing the wrong reference log file.")
+            result.category = 'failed'
             result.status = "failed, incomplete runs"
-            results.append(result)
-            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-            progress.close()
-            num_completed = num_completed + 1
-            num_failed = num_failed + 1
+            record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
             continue
 
@@ -569,12 +609,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         if num_fields != num_fields_ref:
             logger.info(f"     failed, number of thermo colums in {logfilename} ({num_fields}) is different from that in the reference log ({num_fields_ref}) in the first run.")
             logger.info(f"     Check both log files for more details.")
+            result.category = 'failed'
             result.status = "failed, mismatched columns in the log files"
-            results.append(result)
-            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-            progress.close()
-            num_completed = num_completed + 1
-            num_failed = num_failed + 1
+            record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
             continue
 
@@ -673,12 +710,9 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     mismatched columns in the log files after the first run. Check both log files for more details."
             print(msg)
             logger.info(msg)
-            result.status = "thermo checks failed due to mismatched log files after the first run"
-            results.append(result)
-            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-            progress.close()
-            num_completed = num_completed + 1
-            num_failed = num_failed + 1
+            result.category = 'failed'
+            result.status = "failed, thermo checks skipped due to mismatched log files after the first run"
+            record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
             continue
 
@@ -687,16 +721,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             msg = f"     mismatched num steps in the log files. Check both log files for more details."
             print(msg)
             logger.info(msg)
-            result.status = "thermo checks failed due to mismatched log files "
-            results.append(result)
-            progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{result.status}', 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-            progress.close()
-            num_completed = num_completed + 1
-            num_failed = num_failed + 1
+            result.category = 'failed'
+            result.status = "failed, thermo checks skipped due to mismatched number of steps in the log files"
+            record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
             continue
 
-        result.status = ""
         if num_abs_failed > 0:
             msg = f"     {num_abs_failed} abs diff checks failed."
             print(msg)
@@ -714,56 +744,63 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(msg)
             for out in failed_rel_output:
                 logger.info(f"        - {out}")
-            
+
             if verbose == True:
                 for out in failed_rel_output:
                     print(f"        - {out}")
 
+        result.checks = num_checks
         if num_abs_failed == 0 and num_rel_failed == 0:
             msg = f"     all {num_checks} checks passed."
             print(msg)
             logger.info(msg)
-
-            result.status = f" 'status': 'passed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
-
-            num_passed = num_passed + 1
+            result.category = 'passed'
+            msg = "completed"
         else:
-            result.status = f" 'status': 'failed', 'abs_diff_failed': '{num_abs_failed}', 'rel_diff_failed': '{num_rel_failed}' "
-            num_failed = num_failed + 1
-
-        results.append(result)
+            result.category = 'failed'
+            result.message = '\n'.join(failed_abs_output + failed_rel_output)
+            msg = f"completed, {num_abs_failed} abs diff and {num_rel_failed} rel diff checks failed"
 
         # check if memleak detects from valgrind run (need to replace "mpirun" -> valgrind --leak-check=yes mpirun")
-        msg = "completed"
         if use_valgrind == True:
             if "All heap blocks were freed" in error:
                 msg += ", no memory leak"
             else:
                 msg += ", memory leaks detected"
-                num_memleak = num_memleak + 1
+                result.category = 'failed'
+                result.memleak = True
+        result.status = msg
 
-        progress.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': {{ {result.status} }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-        progress.close()
-
-        # write to failure if there is any numerical failed check
-        if num_abs_failed > 0 or num_rel_failed > 0:
-            failure.write(f"{{ '{input}': {{ 'folder': '{input_folder}', 'status': '{msg}', 'failed_checks': '{{ {result.status} }}, 'walltime': '{walltime}', 'walltime_norm': '{walltime_norm}' }} }}\n")
-
-        # count the number of completed runs
-        num_completed = num_completed + 1
+        failed_checks = { 'num_checks': num_checks,
+                          'abs_diff_failed': num_abs_failed,
+                          'rel_diff_failed': num_rel_failed }
+        record(result, walltime_norm=walltime_norm, failed_checks=failed_checks)
         test_id = test_id + 1
 
-    # close the failure file
-    failure.close()
-
-    stat = { 'num_completed': num_completed,
-             'num_passed': num_passed,
-             'num_skipped': num_skipped,
-             'num_error': num_error,
-             'num_timeout': num_timeout,
-             'num_failed': num_failed,
-             'num_memleak':  num_memleak,
+    # collect statistics over the results recorded in this call
+    stat = { 'num_completed': 0,
+             'num_passed': 0,
+             'num_skipped': 0,
+             'num_error': 0,
+             'num_timeout': 0,
+             'num_failed': 0,
+             'num_memleak': 0,
            }
+    for result in results[num_results_initial:]:
+        if result.category in ('passed', 'failed', 'completed'):
+            stat['num_completed'] += 1
+        if result.category == 'passed':
+            stat['num_passed'] += 1
+        elif result.category == 'failed':
+            stat['num_failed'] += 1
+        elif result.category == 'error':
+            stat['num_error'] += 1
+        elif result.category == 'skipped':
+            stat['num_skipped'] += 1
+        if result.timeout:
+            stat['num_timeout'] += 1
+        if result.memleak:
+            stat['num_memleak'] += 1
     return stat
 
 # HELPER FUNCTIONS
@@ -914,7 +951,8 @@ def get_lammps_build_configuration(lmp_binary):
        - cmd_str:     the complete command used to launch LAMMPS with the input
        - stdout:      stdout of the process
        - stderr:      stderr of the process
-       - errorcode:   error code returned by the process
+       - returncode:  error code returned by the process
+       - timedout:    whether the run was killed after exceeding the timeout
        - logfilename: the log file name for the given input
                       to avoid duplicate writes to log.lammps if multiple workers execute in the same folder
 '''
@@ -937,28 +975,40 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
         if config['timeout'] != "":
             timeout = int(config['timeout'])
 
+    # launch the run in its own process group, so that on a timeout the whole group
+    # (the shell, mpirun, and the LAMMPS processes) can be killed; with subprocess.run()
+    # only the shell would be killed, leaving orphaned LAMMPS processes behind
+    p = subprocess.Popen(cmd_str, shell=True, text=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, start_new_session=True)
     try:
-        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True, timeout=timeout)
-        status = { 
+        stdout, stderr = p.communicate(timeout=timeout)
+        status = {
             'cmd_str': cmd_str,
-            'stdout': p.stdout,
-            'stderr': p.stderr,
+            'stdout': stdout,
+            'stderr': stderr,
             'returncode': p.returncode,
+            'timedout': False,
             'logfilename': logfilename,
         }
         return status
 
     except subprocess.TimeoutExpired:
+        try:
+            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            p.kill()
+        p.communicate()
         msg = f"     Timeout for: {cmd_str} ({timeout}s expired)"
         logger.info(msg)
         print(msg)
 
     error_str = f"timeout ({timeout}s expired)"
-    status = { 
+    status = {
         'cmd_str': cmd_str,
         'stdout': "",
         'stderr': error_str,
         'returncode': -1,
+        'timedout': True,
         'logfilename': logfilename,
     }
     return status
@@ -967,7 +1017,7 @@ def execute(lmp_binary, config, input_file_name, generate_ref=False):
    get the reference walltime by running the lmp_binary with config with an input script in the bench/ folder
       in.lj is suitable as it doesn't need any potential file, nor any extra packages
 '''
-def get_reference_walltime(lmp_binary, config):
+def get_reference_walltime(lmp_binary, config, example_toplevel):
     cmd_str = ""
     # check if mpiexec/mpirun is used
     if config['mpiexec']:
@@ -977,7 +1027,7 @@ def get_reference_walltime(lmp_binary, config):
     lmp_build_folder = lmp_binary.rsplit('/', 1)[0]
 
     # guess the bench folder
-    lmp_bench_folder = lmp_build_folder + "/../bench/"
+    lmp_bench_folder = example_toplevel + "/../bench/"
 
     # run with replicate for a copple of seconds long run
     cmd_str += lmp_binary + " -in " + lmp_bench_folder + "in.lj -v x 2 -v y 2 -v z 1 " + config['args']
@@ -1062,75 +1112,6 @@ def divide_into_N(original_list, N):
         l = original_list[start:end]
         b.append(l)
     return b
-
-'''
-    process the #REG markers in an input script, add/replace with what follows each marker
-
-    inputFileName:  LAMMPS input file with comments #REG:ADD and #REG:SUB as markers
-    outputFileName: modified input file ready for testing
-'''
-def process_markers(inputFileName, outputFileName):
-  # read in the script
-  with open(inputFileName, 'r') as file:
-    data = file.read()
-
-    # replace #REG:ADD with empty string (i.e. adding the text at the end of the line)
-    data = data.replace("#REG:ADD", "")
-
-    # replace the line contaning #REG:SUB with a line with the text that follows this marker
-    data = data.splitlines()
-    separator="#REG:SUB"
-    out = []
-    for line in data:
-      s = line.split(separator)
-      if len(s) < 2:
-        out.append(line)
-      else:
-        out.append(s[1])
-
-  # write data to the new script
-  with open(outputFileName, 'w') as file:
-    for line in out:
-      file.write(line + "\n")
-
-
-'''
-    attempt to insert the #REG markers before each run command
-    #REG:ADD thermo 10
-    #REG:ADD thermo_style yaml
-
-    inputFileName:  provided LAMMPS input file
-    outputFileName: modified input file ready for testing
-'''
-def generate_markers(inputFileName, outputFileName):
-    # read in the script
-    with open(inputFileName, 'r') as file:
-        data = file.read()
-
-        lines = data.splitlines()
-        out = []
-        for line in lines:
-            s = line.split()
-            if len(s) > 0:
-                if s[0] == "run":
-                    out.append("    #REG:ADD thermo 10")
-                    out.append("    #REG:ADD thermo_style yaml")
-            out.append(line)
-
-    # write data to the new script
-    with open(outputFileName, 'w') as file:
-        for line in out:
-          file.write(line + "\n")
-
-'''
-    check if any input script has any #REG markers
-'''
-def has_markers(inputFileName):
-    with open(inputFileName) as f:
-        if '#REG' in f.read():
-          return True
-    return False
-
 
 '''
     Main entry
@@ -1365,10 +1346,8 @@ if __name__ == "__main__":
                 with open(filename, "w") as f:
                     for folder in list_input:
                         # count the number of input scripts in each folder
-                        cmd_str = f"ls {folder}/in.* | wc -l"
-                        p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-                        num_input = p.stdout.split('\n')[0]
-                        f.write(folder + ' ' + num_input + '\n')
+                        num_input = len(glob.glob(f"{folder}/in.*"))
+                        f.write(f"{folder} {num_input}\n")
                     f.close()
                 idx = idx + 1
 
@@ -1488,9 +1467,7 @@ if __name__ == "__main__":
     all_results = []
 
     # save current working dir
-    p = subprocess.run("pwd", shell=True, text=True, capture_output=True)
-    pwd = p.stdout.split('\n')[0]
-    pwd = os.path.abspath(pwd)
+    pwd = os.getcwd()
     print("\nWorking directory: " + pwd)
 
     progress_file_abs = pwd + "/" + progress_file
@@ -1503,11 +1480,13 @@ if __name__ == "__main__":
             progress = open(progress_file_abs, "r")
             last_progress = yaml.load(progress, Loader=Loader)
             progress.close()
+            if last_progress is None:
+                last_progress = {}
         except Exception:
             print(f"    Cannot open progress file {progress_file_abs} to resume, rerun all the tests")
 
     # get a reference walltime
-    walltime_ref = get_reference_walltime(lmp_binary, config)
+    walltime_ref = get_reference_walltime(lmp_binary, config, example_toplevel)
 
     # record all the failure cases (overwrite if the file exists)
     failure_file_abs = pwd + "/" + failure_file
@@ -1550,10 +1529,7 @@ if __name__ == "__main__":
             logger.info("Entering " + directory)
             os.chdir(directory)
 
-            cmd_str = "ls in.*"
-            p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
-            all_input_list = p.stdout.split('\n')
-            all_input_list.remove('')
+            all_input_list = sorted(glob.glob("in.*"))
 
             # if the list of example input scripts is provided
             #   if an input script is not in the list, then remove it from input_list
@@ -1621,10 +1597,11 @@ if __name__ == "__main__":
 
     # print notice to GitHub
     if 'GITHUB_STEP_SUMMARY' in os.environ:
-        with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'w') as f:
-            print(f"Skipped: {skipped_tests}  Error: {error_tests} Timeout: {timeout_tests} Failed: {failed_tests}  Completed: {completed_tests}", file=f)
+        with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'a') as f:
+            print(f"Total: {total_tests}  Skipped: {skipped_tests}  Error: {error_tests}  Timeout: {timeout_tests}"
+                  f"  Failed: {failed_tests}  Passed: {passed_tests}  Completed: {completed_tests}", file=f)
 
-    if memleak_tests < completed_tests and 'valgrind' in config['mpiexec']:
+    if 'valgrind' in config['mpiexec']:
         msg += f"     - memory leak detected  : {memleak_tests}\n"
     if passed_tests <= completed_tests:
         msg += f"     - numerical tests passed: {passed_tests}\n"
@@ -1636,19 +1613,14 @@ if __name__ == "__main__":
 
     print(msg)
 
-    # optional: need to check if junit_xml packaged is already installed in the env
-    #   generate a JUnit XML file
-    with open(output_file, 'w') as f:
-        test_cases = []
-        for result in all_results:
-            #print(f"{result.name}: {result.status}")
-            case = TestCase(name=result.name, classname=result.name)
-            if "passed" not in result.status:
-                case.add_failure_info(message=result.status)
-            if "skipped" in result.status:
-                case.add_skipped_info(message="Test was skipped.")
-            test_cases.append(case)
-
-        current_timestamp = datetime.datetime.now()
-        ts = TestSuite(f"{configFileName}", test_cases, timestamp=current_timestamp)
-        TestSuite.to_file(f, [ts], prettyprint=True)
+    # generate a JUnit XML file with all test results for downstream reporting
+    properties = {
+        'operating_system': operating_system,
+        'git_info': GitInfo,
+        'compiler': compiler_full,
+        'compile_flags': compile_flags,
+        'config_file': os.path.basename(configFileName),
+        'lmp_binary': lmp_binary,
+    }
+    write_junit_xml(output_file, all_results, suite_name=os.path.basename(configFileName),
+                    properties=properties)

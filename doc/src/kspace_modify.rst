@@ -187,7 +187,7 @@ later than it would if this option were off.
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and reciprocal space computations for the dispersion
-part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
+part of pppm/disp. As shown in :ref:`(Isele-Holder2) <Isele-Holder1>`,
 optimal performance and accuracy in the results is obtained when these
 values are different.
 
@@ -280,7 +280,7 @@ mixing rule, this will speed-up the simulations but introduces some
 error in the force computations, as shown in :ref:`(Wennberg) <Wennberg>`.
 With *none*, it is assumed that no mixing rule is
 applicable. Splitting of the dispersion coefficients will be performed
-as described in :ref:`(Isele-Holder) <Isele-Holder1>`.  The *none*
+as described in :ref:`(Isele-Holder2) <Isele-Holder1>`.  The *none*
 splitting is only available with the PPPM dispersion solver; with
 *ewald/disp* the *none* value is rejected, while *pair* (the default)
 and *geom* are honored.
@@ -494,7 +494,7 @@ This dipole slab correction is currently limited to orthogonal
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and reciprocal space computations for the dispersion
-part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
+part of pppm/disp. As shown in :ref:`(Isele-Holder2) <Isele-Holder1>`,
 optimal performance and accuracy in the results is obtained when these
 values are different.
 
@@ -601,7 +601,7 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Isele-Holder1:
 
-**(Isele-Holder)** Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
+**(Isele-Holder2)** Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
 Chem Theory Comput, 9, 5412 (2013).
 
 .. _Wennberg:

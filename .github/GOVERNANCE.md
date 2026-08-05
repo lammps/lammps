@@ -53,7 +53,7 @@ Current chair: Aidan Thompson ([@athomps](https://github.com/athomps)), SNL
 
 ### 1.5 Meetings and Notes
 
-The TSC meets are held quarterly.  These meetings are open to the
+The TSC meetings are held quarterly.  These meetings are open to the
 public, and are held virtually.
 
 More information about how to attend is on the LAMMPS homepage at

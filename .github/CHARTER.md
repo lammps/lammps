@@ -38,10 +38,10 @@ The mission of the Project is to:
 
 1.4. Continue to adapt the code base to support both:
 
-  - new HPC Cluster hardware architectures, including conventional
+1.4.1. new HPC Cluster hardware architectures, including conventional
     CPU and GPU architectures, as well emerging architectures; and
 
-  - new physics models, including those built on emerging machine
+1.4.2. new physics models, including those built on emerging machine
     learning and artificial intelligence technologies;
 
 1.5. Promote the co-design of physics models and algorithms to drive the
@@ -79,24 +79,24 @@ technical oversight of the open source Project.
      [Governance](https://www.lammps.org/about/governance) page. Unless
      otherwise documented roles are:
 
-   - **Contributors** include anyone in the technical community that
+2.2.1. *Contributors* include anyone in the technical community that
      contributes code, documentation, or other technical artifacts to
      the Project;
 
-   - **Core Developers** are Contributors who have contributed code,
+2.2.2. *Core Developers* are Contributors who have contributed code,
      documentation, and other technical artifacts over a multi-year
      period and/or have unique expertise in specific aspects of the
      Project;
 
-   - **Maintainers** are Core Developers who have earned the ability to
-     merge changes to ("commit") source code, documentation or other
+2.2.3. *Maintainers* are Core Developers who have earned the ability
+     to merge changes to ("commit") source code, documentation or other
      technical artifacts in a project’s repository;
 
-     Core Developers are **recruited** by the existing Core Developers;
-     and Maintainers are **appointed** by the TSC. Anyone, but typically
-     a Core Developer, may become a Maintainer by a majority approval of
-     the existing TSC. A Maintainer may be removed by a majority approval
-     of the TSC.
+2.2.4. Core Developers are **recruited** by the existing Core
+     Developers; and Maintainers are **appointed** by the TSC. Anyone,
+     but typically a Core Developer, may become a Maintainer by a
+     majority approval of the existing TSC. A Maintainer may be removed
+     by a majority approval of the TSC.
 
 2.3. Participation in the Project through becoming a Contributor, Core
     Developer, or Maintainer is open to anyone so long as they abide by
@@ -116,7 +116,7 @@ technical oversight of the open source Project.
     oversight relating to the Project, which may include:
 
 2.6.1. coordinating the technical direction of the Project;
-    
+
 2.6.2. approving project or system proposals (including, but not limited
     to, incubation, deprecation, and changes to a sub-project’s scope);
 
@@ -281,7 +281,7 @@ The Project will:
 This charter may be amended by a two-thirds vote of the entire TSC and
 is subject to approval by LF Projects.
 
------
+---
 
 A [copy of this document](https://github.com/lammps/lammps/blob/develop/.github/CHARTER.md)
 is also available in the LAMMPS git repository as `.github/CHARTER.md`.

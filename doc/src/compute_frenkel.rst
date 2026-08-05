@@ -89,7 +89,8 @@ otherwise all sites in the empty space are counted as vacancies.
 Use *rescale yes* when the box changes size during the run (for example
 under :doc:`fix npt <fix_nh>` or while heating), so that the reference
 sites expand and contract with the box and thermal expansion is not
-mistaken for defect formation.
+mistaken for defect formation.  A warning is printed when the box
+changes during a run while *rescale* is not enabled.
 
 With the *site_file* keyword the reference sites are not generated from
 the lattice but read from the given text file, which must contain one

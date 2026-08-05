@@ -221,6 +221,13 @@ void ComputeFrenkel::init()
                "Compute frenkel is not compatible with fix balance; "
                "please contact the LAMMPS developers");
 
+  // the reference sites follow a changing box only with rescale yes; warn when
+  // the box will change (box-changing fix or shrink-wrapped boundary) without it
+  if (!rescale && (domain->box_change_size || domain->box_change_shape) && (comm->me == 0))
+    error->warning(FLERR,
+                   "The simulation box changes during the run but compute frenkel rescale "
+                   "is not enabled: the reference sites will not follow the box");
+
   // Recompute the derived search/bin cutoffs from the (possibly compute_modify
   // changed) vacancy and interstitial radii, so drvac/drint stay consistent
   // with the values used for binning, ghost exchange, and nearest-site search.

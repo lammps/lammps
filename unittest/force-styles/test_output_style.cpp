@@ -24,8 +24,11 @@
 // array (local_data).  The same code doubles as the reference generator.
 //
 // Styles whose output requires per-atom energy or virial tallies during
-// the run (e.g. compute pe/atom or stress/atom) are not yet supported:
-// they would need to be consumed by another command during the run.
+// the run (e.g. compute pe/atom, stress/atom, or heat/flux) are supported
+// by scheduling the tallies for the final step of the run: every compute
+// with the peatomflag or pressatomflag set - the tested compute or any
+// helper compute it consumes - gets an addstep() request, which makes the
+// integrator enable the per-atom energy/virial accumulation on that step.
 
 #include "error_stats.h"
 #include "test_config.h"
@@ -41,6 +44,7 @@
 #include "info.h"
 #include "input.h"
 #include "modify.h"
+#include "update.h"
 
 #include <exception>
 #include <iostream>
@@ -206,6 +210,14 @@ static LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg)
     for (const auto *ifix : lmp->modify->get_fix_list())
         if (ifix->time_integrate) has_integrator = true;
     if (!has_integrator) command("fix output_nve all nve");
+
+    // schedule per-atom energy/virial tallies for the final step of the
+    // run, so that computes consuming them (pe/atom, stress/atom,
+    // centroid/stress/atom, heat/flux, ...) can be collected after the
+    // run.  this covers the tested compute and any helper computes.
+    const bigint laststep = lmp->update->ntimestep + RUN_STEPS;
+    for (auto *icompute : lmp->modify->get_compute_list())
+        if (icompute->peatomflag || icompute->pressatomflag) icompute->addstep(laststep);
     command(fmt::format("timestep {}", (cfg.timestep > 0.0) ? cfg.timestep : 0.25));
     command("thermo 5");
     command(fmt::format("run {} post no", RUN_STEPS));
@@ -326,7 +338,9 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     try {
         lmp = init_lammps(args, config);
     } catch (std::exception &e) {
-        FAIL() << e.what();
+        // must abort instead of writing a reference file without data
+        std::cerr << "ERROR: system setup failed: " << e.what() << "\n";
+        exit(1);
     }
     if (!lmp) {
         std::cerr << "One or more prerequisite styles are not available "

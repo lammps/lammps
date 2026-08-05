@@ -292,6 +292,7 @@ void FixGEMC::attempt_atomic_exchange_full()
 
     MPI_Bcast(&coord, 3, MPI_DOUBLE, 0, world);
     if (triclinic_flag) {
+      domain->x2lamda(coord, lamda);
       if (lamda[0] >= sublo[0] && lamda[0] < subhi[0] && lamda[1] >= sublo[1] &&
           lamda[1] < subhi[1] && lamda[2] >= sublo[2] && lamda[2] < subhi[2])
         proc_flag = 1;

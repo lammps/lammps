@@ -1442,7 +1442,7 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 
 void FixHyperLocal::grow_bond()
 {
-  if (maxbond + DELTABOND > MAXSMALLINT)
+  if (maxbond > MAXSMALLINT - DELTABOND)
     error->one(FLERR,"Fix hyper/local bond count is too big");
   maxbond += DELTABOND;
   blist = (OneBond *)

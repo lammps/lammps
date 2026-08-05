@@ -81,6 +81,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
+        delete[] pstyle;
         if (lmp->suffix)
           pstyle = utils::strdup(fmt::format("{}/{}",arg[++iarg],lmp->suffix));
         else

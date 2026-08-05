@@ -623,7 +623,7 @@ int Group::find(const std::string &name)
    return group index
 ------------------------------------------------------------------------- */
 
-int Group::find_or_create(const char *name)
+int Group::find_or_create(const std::string &name)
 {
   int igroup = find(name);
   if (igroup >= 0) return igroup;
@@ -772,8 +772,13 @@ void Group::read_restart(FILE *fp)
 
   // delete existing group names
   // atom masks will be overwritten by reading of restart file
+  // also null the pointers: if reading the restart data fails below, the
+  // destructor of a still-active library instance must not free them again
 
-  for (i = 0; i < MAX_GROUP; i++) delete[] names[i];
+  for (i = 0; i < MAX_GROUP; i++) {
+    delete[] names[i];
+    names[i] = nullptr;
+  }
 
   if (me == 0) utils::sfread(FLERR, &ngroup, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&ngroup, 1, MPI_INT, 0, world);
@@ -789,6 +794,7 @@ void Group::read_restart(FILE *fp)
     }
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 0) || (n > 65536)) error->all(FLERR, "Invalid group name length in restart file");
     if (n) {
       names[i] = new char[n];
       if (me == 0) utils::sfread(FLERR, names[i], sizeof(char), n, fp, nullptr, error);

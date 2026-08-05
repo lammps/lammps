@@ -97,6 +97,40 @@ or Lines section, then triangles/lines will be read in and distributed
 along with any particles the data file includes, assuming an appropriate
 :doc:`atom_style <atom_style>` has been specified, as explained below.
 
+.. image:: img/mixer-drum.jpg
+   :width: 50%
+
+.. admonition:: Re-using STL files for 3d-printing
+
+   There are a large number of STL files published and available for
+   download that were generated for 3d-printing (see the cement mixer
+   drum above for example, that was created for printing a cement truck
+   toy model).  Those can in principle be used with LAMMPS, but there
+   are a couple of quirks to watch out for.  Those STL files may contain
+   degenerate triangles; this is not a problem for 3d-printing but for
+   LAMMPS.  LAMMPS will either try to ignore those triangles or stop
+   with an error.  Another issue are duplicate triangles.  Those will
+   double the force in LAMMPS which is not likely what you want.
+   Finally, those STL files may have very long and narrow triangles.
+   These force LAMMPS to have a very large neighbor list and a long
+   communication cutoff (both are detected and warnings or errors are
+   printed).
+
+   Thus in many cases, it is advisable to *remesh* the STL file, i.e.
+   recreate the surface(s) with more regular and fewer triangles.  One
+   option to do this is by using `MeshLab or PyMeshLab
+   <https://meshlab.net>`_.  Here is an example:
+
+   .. code-block:: Python
+
+      import pymeshlab
+      ms = pymeshlab.MeshSet()
+      ms.load_new_mesh('input.stl')
+      ms.meshing_isotropic_explicit_remeshing(iterations=5,
+        targetlen=pymeshlab.PercentageValue(1.0)  # target edge length as % of bbox diagonal
+      )
+      ms.save_current_mesh("output.stl")
+
 ----------
 
 Surface attributes
@@ -416,7 +450,7 @@ unchecked surface with the largest overlap and repeats the process.
 .. figure:: img/gransurf_consistent_side.png
             :figwidth: 33%
             :align: right
-            :target: _images/consistent_side.png
+            :target: _images/gransurf_consistent_side.png
 
 Next, LAMMPS clusters all contacted and connected lines/triangles into
 distinct composite sets each consisting of mutually flat line/triangle

@@ -45,11 +45,36 @@ Input arguments:
 
 Output:
 
-    + failure.yaml : a dictionary of the failed runs and reasons
+    + failure.yaml : a dictionary of the failed runs and reasons (a subset of progress.yaml)
     + progress.yaml: full testing results of the tested input scripts with the status (completed, failed or skipped)
                      with error messages (for failed runs), and walltime (in seconds)
     + output.xml   :    testing results in the JUnit XML format
     + run.log      :       screen output and error of individual runs
+
+Both YAML files are written incrementally (one line per tested input) and parse as a
+single YAML mapping keyed by the input script name.
+
+The JUnit XML file records one test case per input script with the walltime and one of
+four outcomes: passed (all numerical checks passed), failure (the run completed but
+numerical checks failed), error (the run crashed, timed out, or produced no log file),
+or skipped (the input was not run, or it ran but nothing could be checked, e.g. when
+the reference log file is missing). The test case classname is the example folder
+relative to the examples top-level folder, so results from distributed runs can be
+merged and compared across machines.
+
+The JUnit XML files from multiple (distributed) runs can be merged and summarized
+with the merge_results.py script in this folder (which only needs the Python
+standard library):
+
+    python3 merge_results.py --title "Full Regression Test" \
+            --output-xml regression.xml --json run.json --summary summary.md \
+            output-*.xml
+
+This produces a merged JUnit XML file, a JSON file with all results and metadata
+for archiving, and a Markdown summary (use "--summary -" to print it to the screen)
+suitable for $GITHUB_STEP_SUMMARY. With --compare previous-run.json, the summary
+also reports the changes relative to an earlier run: new failures, fixed tests,
+new tests, and removed tests.
 
 Limitations:
 
@@ -61,7 +86,7 @@ The following Python packages need to be installed into an activated environment
 
     python3 -m venv testing-env
     source testing-env/bin/activate
-    pip install numpy pyyaml junit_xml
+    pip install numpy pyyaml
 
 For all the supported arguments, run:
 

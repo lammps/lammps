@@ -235,6 +235,10 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
           mindist = dist;
         }
       }
+
+      // no contact possible if all faces are open
+
+      if (mindist == MAXDOUBLEINT) return 0;
     }
 
     add_contact(0, x, xp, yp, zp);

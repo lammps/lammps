@@ -513,10 +513,17 @@ void PairLdd::coeff_ldd(int si, int sj, int narg, char **arg)
       if (bkInd) ErrorDoubleKeyword(KEY_LDD_IND);
       bkInd = true;
       if (iarg + 3 >= narg) ErrorNumKeywordArgs(KEY_LDD_IND, "wtype r0 rc");
+      const double r0 = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      const double rc = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
+      // all indicator variants divide by rc (and some by rc - r0) when setting
+      // up their coefficients, so these values must be validated before init_coeffs()
+      if ((rc <= 0.0) || (r0 < 0.0) || (r0 >= rc))
+        error->all(FLERR,
+                   "ldd species pair {} {}: indicator cutoff rc ({}) must be positive and the "
+                   "inner radius r0 ({}) must be non-negative and smaller than rc",
+                   elements[si], elements[sj], rc, r0);
       Inds[si][sj] = new_indicator(arg[iarg + 1]);
-      Inds[si][sj]->init_coeffs(utils::numeric(FLERR, arg[iarg + 2], false, lmp),
-                                utils::numeric(FLERR, arg[iarg + 3], false, lmp),
-                                domain->dimension);
+      Inds[si][sj]->init_coeffs(r0, rc, domain->dimension);
       iarg += 4;
     } else if (strcmp(arg[iarg], KEY_LDD_SELF) == 0) {
       if (bkSelf) ErrorDoubleKeyword(KEY_LDD_SELF);
@@ -567,9 +574,6 @@ void PairLdd::coeff_ldd(int si, int sj, int narg, char **arg)
     if (!bkSelf)
       error->all(FLERR, "ldd species pair {} {}: missing required keyword {}", elements[si],
                  elements[sj], KEY_LDD_SELF);
-    if (Inds[si][sj]->r0 >= Inds[si][sj]->rc)
-      error->all(FLERR, "ldd species pair {} {}: r0 ({}) must be less than rc ({})", elements[si],
-                 elements[sj], Inds[si][sj]->r0, Inds[si][sj]->rc);
 
     if (bSelf) {
       if (si == sj)

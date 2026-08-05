@@ -56,6 +56,7 @@ MinLineSearch::MinLineSearch(LAMMPS *lmp) : Min(lmp), x0(nullptr), g(nullptr), h
   searchflag = 1;
   gextra = hextra = nullptr;
   x0extra_atom = gextra_atom = hextra_atom = nullptr;
+  linemin = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,7 +536,7 @@ pseudo code:
 
            // ZERO_ENERGY = 1e-12, is max allowed energy increase
            if (de > ZERO_ENERGY):
-              bactrack = true
+              backtrack = true
 
            // GRAD_TOL = 0.1
            if ((not backtrack) && (fabs(fhCurr/fh0) <= GRAD_TOL)):
@@ -546,7 +547,7 @@ pseudo code:
            if ( fhCurr < 0):
               backtrack = true
 
-           if (bactrack):
+           if (backtrack):
               // forces along search direction changed sign
               if (fhCurr < 0):
                  Get alpha_del by solving for zero
@@ -688,7 +689,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
   alpha_init = MAX(EPS_QUAD, 0.1*fabs(eoriginal)/fdothall);
 
-  // initialize aplha to 0.0
+  // initialize alpha to 0.0
 
   alpha = 0.0;
 
@@ -800,7 +801,7 @@ int MinLineSearch::linemin_forcezero(double eoriginal, double &alpha)
 
       if (hmaxall*alpha_del <= MIN_ALPHA_FAC) {
 
-        // undo all line minization moves
+        // undo all line minimization moves
 
         engCurr = alpha_step(0.0,1);
         ecurrent= engCurr;

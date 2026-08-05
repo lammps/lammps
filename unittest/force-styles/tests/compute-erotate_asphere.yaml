@@ -1,0 +1,18 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:39 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom ellipsoid
+  compute erotate/asphere
+pre_commands: ""
+post_commands: |
+  compute test all erotate/asphere
+input_file: in.ellipsoid
+input_coeffs: coeffs.ellipsoid
+natoms: 48
+global_scalar: 25.613704536555694
+...

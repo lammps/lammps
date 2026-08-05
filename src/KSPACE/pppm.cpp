@@ -98,7 +98,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nfft_both = 0;
+  ngrid = nfft_both = 0;
   nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;

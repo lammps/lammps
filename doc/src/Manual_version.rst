@@ -67,10 +67,9 @@ When a sufficient number of new features and updates have accumulated
 of automated tests, we release it as a *feature release*, which are
 currently made every 4 to 8 weeks.  The *release* branch of the git
 repository is updated with every such *feature release* and a tag in the
-format ``patch_1May2014`` is added.  A summary of the most important
-changes of these releases for the current year are posted on `this
-website page <https://www.lammps.org/bug.html>`_.  More detailed release
-notes are `available on GitHub <https://github.com/lammps/lammps/releases/>`_.
+format ``patch_1May2014`` is added.  Release notes with the most
+important changes of these releases are `available on GitHub
+<https://github.com/lammps/lammps/releases/>`_.
 
 Stable Releases
 """""""""""""""

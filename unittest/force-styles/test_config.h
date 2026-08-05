@@ -15,7 +15,6 @@
 #define TEST_CONFIG_H
 
 #include <set>
-#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -70,6 +69,11 @@ public:
     stress_t run_stress;
     double global_scalar;
     std::vector<double> global_vector;
+    // reference data for the output-style tester (test_output_style):
+    // global array, per-atom data (first column = atom tag), local data
+    std::vector<std::vector<double>> global_array;
+    std::vector<std::vector<double>> peratom_data;
+    std::vector<std::vector<double>> local_data;
     std::vector<coord_t> init_forces;
     std::vector<coord_t> run_forces;
     std::vector<coord_t> run_pos;
@@ -101,6 +105,9 @@ public:
         dihedral_coeff.clear();
         improper_coeff.clear();
         extract.clear();
+        global_array.clear();
+        peratom_data.clear();
+        local_data.clear();
         init_forces.clear();
         run_forces.clear();
         run_pos.clear();
@@ -118,15 +125,14 @@ public:
 
     [[nodiscard]] std::string tags_line() const
     {
-        if (tags.size() > 0) {
-            std::stringstream line;
-            line << tags[0];
-            for (size_t i = 1; i < tags.size(); i++) {
-                line << " " << tags[i];
-            }
-            return line.str();
-        }
-        return "generated";
+        // the "generated" tag is ALWAYS added when reference data is
+        // (re-)generated: it marks data that has not been reviewed and
+        // validated yet and is removed manually as the last step after
+        // validation.  all other tags are passed through.
+        std::string line;
+        for (const auto &tag : tags)
+            if (tag != "generated") line += tag + " ";
+        return line + "generated";
     }
 
     // check whether a given keyword is present in the "tags:" list. used by the

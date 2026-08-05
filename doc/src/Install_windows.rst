@@ -18,7 +18,7 @@ needed to run in parallel with MPI.
 
 The LAMMPS binaries contain *all* :doc:`optional packages <Packages>`
 included in the source distribution except: ADIOS, H5MD, KIM, ML-PACE,
-ML-QUIP, MSCG, NETCDF, QMMM, SCAFACOS, and VTK.  The serial version also
+ML-QUIP, MSCG, NETCDF, QMMM, and SCAFACOS.  The serial version also
 does not include the LATBOLTZ package.  The PYTHON package is only
 available in the Python installers that bundle a Python runtime.  The
 GPU package is compiled for OpenCL with mixed precision kernels.

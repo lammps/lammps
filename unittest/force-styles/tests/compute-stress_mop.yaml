@@ -1,0 +1,19 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:24 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute stress/mop
+pre_commands: ""
+post_commands: |
+  compute test all stress/mop z center total
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  3  2.0753393472398093e+04  2.7135614759244731e+04  5.2237917672216543e+04
+...

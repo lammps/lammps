@@ -579,7 +579,7 @@ void PairGranularSuperellipsoid::init_style()
                                                             "NEIGH_HISTORY_GRANULAR_SE"
                                                             " all NEIGH_HISTORY " +
                                                                 std::to_string(size_history),
-                                                            1));
+                                                            0));
     fix_history->pair = this;
   } else {
     fix_history =

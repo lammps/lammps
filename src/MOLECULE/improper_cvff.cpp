@@ -288,6 +288,8 @@ void ImproperCvff::coeff(int narg, char **arg)
   double k_one = utils::numeric(FLERR, arg[1], false, lmp);
   int sign_one = utils::inumeric(FLERR, arg[2], false, lmp);
   int multiplicity_one = utils::inumeric(FLERR, arg[3], false, lmp);
+  if ((multiplicity_one < 0) || (multiplicity_one > 6))
+    error->all(FLERR, "Improper cvff multiplicity {} must be between 0 and 6", multiplicity_one);
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

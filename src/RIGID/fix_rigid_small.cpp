@@ -1823,13 +1823,11 @@ void FixRigidSmall::setup_bodies_static()
       eflags[i] = 0;
       if (bodytag[i] == 0) continue;
 
-      // set to POINT or SPHERE or ELLIPSOID or LINE
+      // set to POINT or SPHERE or ELLIPSOID or LINE or TRIANGLE
+      // check for bonus data before radius: line and tri particles
+      // also store a bounding-sphere radius for neighboring purposes
 
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         eflags[i] |= ELLIPSOID;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
@@ -1840,6 +1838,10 @@ void FixRigidSmall::setup_bodies_static()
       } else if (tri && tri[i] >= 0) {
         eflags[i] |= TRIANGLE;
         eflags[i] |= ANGMOM;
+        eflags[i] |= TORQUE;
+      } else if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
         eflags[i] |= TORQUE;
       } else eflags[i] |= POINT;
 
@@ -2122,6 +2124,18 @@ void FixRigidSmall::setup_bodies_static()
 
     MathExtra::cross3(ex,ey,cross);
     if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
+
+    // for 2d, ensure ez points in the +z direction
+    // negate both ey and ez to keep the eigenbasis right-handed
+    // the theta-based orientation bookkeeping for line particles requires
+    //   the body frame to be a pure rotation around the +z axis
+
+    if (domain->dimension == 2) {
+      if (ez[2] < 0.0) {
+        MathExtra::negate3(ey);
+        MathExtra::negate3(ez);
+      }
+    }
 
     // create initial quaternion
 
@@ -2723,15 +2737,15 @@ void FixRigidSmall::resample_momenta(int groupbit, int mom_flag, class RanPark *
         else
           wbody[j] = 0.0;
       }
+      MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
     }
-    MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
   }
 
   if (mom_flag && (total_mass > 0.0)) {
     for (int j = 0; j < 3; j++) vcm[j] /= total_mass;
     for (int ibody = 0; ibody < nlocal; ibody++) {
+      b = &body[ibody];
       if (mask[b->ilocal] & groupbit) {
-        b = &body[ibody];
         for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
       }
     }

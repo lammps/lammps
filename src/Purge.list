@@ -59,6 +59,11 @@ mliap_unified_couple.cpp
 mliap_unified_couple.h
 mliap_unified_couple_kokkos.cpp
 mliap_unified_couple_kokkos.h
+# removed in July 2026
+pair_agni.cpp
+pair_agni.h
+pair_rann.cpp
+pair_rann.h
 # moved to new GRAPHICS package in Jan 2026
 dump_image.cpp
 dump_image.h
@@ -1788,8 +1793,6 @@ scafacos.h
 scafacos.cpp
 compute_voronoi_atom.h
 compute_voronoi_atom.cpp
-dump_vtk.h
-dump_vtk.cpp
 bond_oxdna2_fene.cpp
 bond_oxrna2_fene.cpp
 pair_oxdna2_excv.cpp

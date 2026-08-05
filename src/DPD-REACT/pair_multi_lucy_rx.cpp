@@ -40,6 +40,12 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
 using MathConst::MY_PI;
 
 enum{ NONE, RLINEAR, RSQ };
@@ -920,6 +926,8 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
     nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = atom->dvector[isite1+nspecies][id];

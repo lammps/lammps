@@ -417,7 +417,7 @@ void PairMDPD::read_restart_settings(FILE *fp)
 void PairMDPD::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,A_att[i][i],B_rep[i][i],gamma[i][i]);
+    fprintf(fp,"%d %g %g %g %g %g\n",i,A_att[i][i],B_rep[i][i],gamma[i][i],cut[i][i],cut_r[i][i]);
 }
 
 /* ----------------------------------------------------------------------

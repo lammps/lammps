@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 // Shared implementation for the DEM verification test drivers
-// (test_dem_01 ... test_dem_11).  Every driver builds its system entirely
+// (test_dem_01, test_dem_02, ...).  Every driver builds its system entirely
 // from the YAML file: a 'variables' block provides ${var} substitution,
 // 'pre_commands' create the geometry, 'pair_style'/'pair_coeff' set the
 // contact model, and 'post_commands' add the integrator, gravity and walls.

@@ -120,6 +120,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
+  matvecs_s = matvecs_t = 0;
   s = nullptr;
   t = nullptr;
   nprev = 4;
@@ -140,6 +141,9 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   // H matrix
 
+  ilist = jlist = numneigh = nullptr;
+  firstneigh = nullptr;
+  H.n = H.m = 0;
   H.firstnbr = nullptr;
   H.numnbrs = nullptr;
   H.jlist = nullptr;
@@ -151,8 +155,11 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxflag = 0;
+  nlevels_respa = 1;
 
   s_hist = t_hist = nullptr;
+  dist_cutoff_sq = 0.0;
   atom->add_callback(Atom::GROW);
 }
 

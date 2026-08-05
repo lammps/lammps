@@ -135,7 +135,7 @@ void Velocity::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   initialization of defaults before calling velocity methods externaly
+   initialization of defaults before calling velocity methods externally
 ------------------------------------------------------------------------- */
 
 void Velocity::init_external(const char *extgroup)

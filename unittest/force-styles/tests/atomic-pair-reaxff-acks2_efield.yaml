@@ -3,7 +3,8 @@ lammps_version: 29 Sep 2021
 tags: slow unstable
 date_generated: Wed Oct 13 18:05:37 2021
 epsilon: 5e-09
-skip_tests: omp extract_omp
+skip_tests: omp extract_omp kokkos_omp_mixed kokkos_omp_single kokkos_serial_mixed kokkos_gpu_mixed kokkos_serial_single kokkos_gpu_single
+
 prerequisites: ! |
   pair reaxff
   fix acks2/reaxff

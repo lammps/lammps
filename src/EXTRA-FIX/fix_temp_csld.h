@@ -37,6 +37,7 @@ class FixTempCSLD : public Fix {
   void write_restart(FILE *) override;
   void restart(char *buf) override;
   void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  private:
   double t_start, t_stop, t_period, t_target;

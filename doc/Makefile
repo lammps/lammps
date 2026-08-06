@@ -13,7 +13,7 @@ VENV           = $(BUILDDIR)/docenv
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-MATHJAXTAG     = 4.1.2
+MATHJAXTAG     = 4.1.3
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
@@ -76,6 +76,7 @@ help:
 	@echo "  char_check    check for non-ASCII characters"
 	@echo "  role_check    check for misformatted role keywords"
 	@echo "  link_check    check external links in the manual"
+	@echo "  extract_check check extract() function consistency with tables in the manual"
 	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
@@ -84,7 +85,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling clean-linkcheck
-	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doctrees-spelling $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
 
 clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
@@ -155,12 +156,17 @@ fasthtml/%.html: $(RSTDIR)/%.rst
 	@pandoc -s --mathml --css="pandoc.css" --template=$(BUILDDIR)/utils/pandoc.html --metadata title="$@" -o $@ fasthtml/$*.temp.rst
 	@rm -f fasthtml/$*.temp.rst
 
+# use a dedicated doctree cache: the html/epub/pdf builds use -E (which would
+# discard it) and produce different doctrees (e.g. from the sphinx-tabs hack
+# for non-html builders), so sharing $(BUILDDIR)/doctrees would re-read all
+# sources on every run instead of only changed files.
 spelling: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@rm -rf $(BUILDDIR)/spelling
 	@(\
 		. $(VENV)/bin/activate ; \
 		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/;  env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		sphinx-build $(SPHINXEXTRA) -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees-spelling $(RSTDIR) spelling ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
@@ -270,6 +276,13 @@ role_check :
 	@( env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst && exit 1 || : )
 	@( env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                         $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} && exit 1 || : )
+
+extract_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		$(PYTHON) utils/check-fix-adapt-tables.py --root .. ;\
+		deactivate ;\
+	)
 
 upgrade: $(VENV)
 	@(\

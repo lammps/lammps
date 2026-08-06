@@ -31,8 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr double DANGER_ZONE = 0.95;
-
 /* ---------------------------------------------------------------------- */
 
 FixQEqShieldedOMP::FixQEqShieldedOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -67,7 +65,7 @@ void FixQEqShieldedOMP::pre_force(int /*vflag*/)
     memory->create(b_temp, nthreads, nmax_btmp, "qeq/shielded/omp:b_temp");
   }
 
-  init_matvec();
+  init_matvec_thr();
   matvecs = CG(b_s, s);
   matvecs += CG(b_t, t);
   matvecs /= 2;
@@ -78,9 +76,9 @@ void FixQEqShieldedOMP::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqShieldedOMP::init_matvec()
+void FixQEqShieldedOMP::init_matvec_thr()
 {
-  compute_H();
+  compute_H_thr();
 
   int inum, ii, i;
   int *ilist;
@@ -112,7 +110,7 @@ void FixQEqShieldedOMP::init_matvec()
    and reproduce the serial FixQEqShielded::compute_H() layout.
 ------------------------------------------------------------------------- */
 
-void FixQEqShieldedOMP::compute_H()
+void FixQEqShieldedOMP::compute_H_thr()
 {
   int *ilist, *numneigh, **firstneigh;
   int *type = atom->type;

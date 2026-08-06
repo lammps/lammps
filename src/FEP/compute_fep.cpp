@@ -218,8 +218,7 @@ void ComputeFEP::init()
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
-      if ((strcmp(force->pair_style, "hybrid") == 0 ||
-           strcmp(force->pair_style, "hybrid/overlay") == 0)) {
+      if (utils::strmatch(force->pair_style, "^hybrid")) {
         auto *pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
@@ -617,4 +616,19 @@ void ComputeFEP::restore_qfev()
       }
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeFEP::memory_usage()
+{
+  double bytes = (double) nmax * 3 * sizeof(double);    // f_orig[nmax][3]
+  bytes += (double) nmax * sizeof(double);              // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);          // pvatom_orig[nmax][6]
+  if (q_orig) bytes += (double) nmax * sizeof(double);  // q_orig[nmax] (when chgflag)
+  if (keatom_orig) {
+    bytes += (double) nmax * sizeof(double);            // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);        // kvatom_orig[nmax][6]
+  }
+  return bytes;
 }

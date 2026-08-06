@@ -30,6 +30,7 @@ class PPPMDielectric : public PPPM {
   ~PPPMDielectric() override;
   void compute(int, int) override;
   void qsum_qsq(int warning_flag = 1) override;
+  double memory_usage() override;
 
   double **efield;
 

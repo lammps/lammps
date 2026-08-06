@@ -56,7 +56,8 @@ enum {EF_INVALID=0,EF_NONE,EF_PARALLEL,EF_SAME_SIDE_OF_FACE,
 
 /* ---------------------------------------------------------------------- */
 
-PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) : Pair(lmp)
+PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) :
+    Pair(lmp), avec(nullptr), bptr(nullptr)
 {
   dmax = nmax = 0;
   discrete = nullptr;
@@ -2392,3 +2393,11 @@ void PairBodyRoundedPolyhedron::sanity_check()
 */
 }
 
+/* ---------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 6 * sizeof(int);    // dnum+dfirst+ednum+edfirst+facnum+facfirst [nmax]
+  return bytes;
+}

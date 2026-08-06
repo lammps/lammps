@@ -39,6 +39,7 @@ class PairKolmogorovCrespiFull : public Pair {
   void calc_FRep(int, int);
   void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &) override;
+  double memory_usage() override;
 
   static constexpr int NPARAMS_PER_LINE = 12;
 

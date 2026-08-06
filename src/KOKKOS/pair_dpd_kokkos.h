@@ -54,6 +54,8 @@ class PairDPDKokkos : public PairDPD {
   double init_one(int i, int j) override;
   void compute(int, int) override;
 
+  class TuneKokkos* tuner;
+
   struct params_dpd {
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
@@ -77,12 +79,25 @@ class PairDPDKokkos : public PairDPD {
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDKokkos<NEIGHFLAG,EVFLAG>, const int &i, EV_FLOAT&) const;
 
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDPDKokkos<NEIGHFLAG,EVFLAG>,
+                  const typename Kokkos::TeamPolicy<DeviceType>::member_type &team) const;
+
+  template<int NEIGHFLAG, int EVFLAG>
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagDPDKokkos<NEIGHFLAG,EVFLAG>,
+                  const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
+                  EV_FLOAT& ev) const;
+
   template<int NEIGHFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
                 const KK_FLOAT &epair, const KK_FLOAT &fpair,
                 const KK_FLOAT &delx, const KK_FLOAT &dely, const KK_FLOAT &delz) const;
+
+
  private:
   KK_FLOAT special_lj[4], special_rf[4];
   int eflag,vflag;
@@ -120,6 +135,7 @@ class PairDPDKokkos : public PairDPD {
   typename AT::t_kkfloat_1d_3_randomread v;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_tagint_1d tag;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

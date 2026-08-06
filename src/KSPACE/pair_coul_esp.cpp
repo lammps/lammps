@@ -35,13 +35,14 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulEsp::PairCoulEsp(LAMMPS *lmp) : Pair(lmp)
+PairCoulEsp::PairCoulEsp(LAMMPS *lmp) :
+    Pair(lmp), cut_respa(nullptr), scale(nullptr), force_poly_coeff(nullptr),
+    energy_poly_coeff(nullptr)
 {
   ewaldflag = pppmflag = 1;
   espflag = 1;
   ftable = nullptr;
   qdist = 0.0;
-  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

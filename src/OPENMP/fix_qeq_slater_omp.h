@@ -28,8 +28,8 @@ class FixQEqSlaterOMP : public FixQEqSlater {
   void pre_force(int) override;
 
  protected:
-  void init_matvec();
-  void compute_H();
+  void init_matvec_thr();
+  void compute_H_thr();
   void sparse_matvec(sparse_matrix *, double *, double *) override;
 
   double **b_temp;

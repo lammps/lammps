@@ -37,6 +37,12 @@ class PairAIREBOOMP : public PairAIREBO, public ThrOMP {
   double bondorderLJ_thr(int i, int j, double rij[3], double rijmag, double VA, double rij0[3],
                          double rijmag0, ThrData *const thr);
 
+  // threaded mirror of PairAIREBO::bondorder_Pij_cross (bond-centric P cross
+  // force); no-op for atom-centric P, so airebo/omp is unchanged
+  void bondorder_Pij_cross_thr(int i, int j, int itype, int jtype, double VA, double tmppij,
+                               double tmppji, const double dN2PIJ[2], const double dN2PJI[2],
+                               double *const *const f, ThrData *const thr);
+
   void FREBO_thr(int ifrom, int ito, int eflag, double *pv0, ThrData *const thr);
   void FLJ_thr(int ifrom, int ito, int eflag, double *pv1, ThrData *const thr);
   void TORSION_thr(int ifrom, int ito, int eflag, double *pv2, ThrData *const thr);

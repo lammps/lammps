@@ -162,7 +162,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -237,7 +237,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -2585,6 +2585,22 @@ A table with supported keywords is included in the documentation of the
    since per-atom data may be re-distributed, re-allocated, and
    re-ordered at every re-neighboring operation.
 
+.. note::
+
+   When running with the KOKKOS package and per-atom data residing on an
+   accelerator device (e.g. a GPU), the requested data is synchronized from
+   the device to the host before the pointer is returned, so that the host
+   data accessed through it is current even when this function is called
+   between output steps (for example from the LAMMPS GUI or a Python script
+   while a run is in progress).
+
+.. versionchanged:: 4Jul2026
+
+When using the KOKKOS package with a device back end, per-atom data is now
+synchronized from the device to the host before the pointer is returned.
+Previously the host copy could be out-of-date for calls not aligned with an
+output or end-of-run step.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -3248,7 +3264,7 @@ static int set_variable_deprecated_flag = 1;
 /** Set the value of a string-style variable.
 \verbatim embed:rst
 
-.. deprecated:: 7Feb2024
+.. versionremoved:: 7Feb2024
 
 This function assigns a new value from the string str to the
 string-style variable *name*.  This is a way to directly change the
@@ -6814,7 +6830,7 @@ int lammps_config_has_curl_support() {
  *
 \verbatim embed:rst
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
    LAMMPS has now exceptions always enabled, so this function
    will now always return 1 and can be removed from applications

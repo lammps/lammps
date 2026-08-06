@@ -35,6 +35,7 @@
 #include "random_park.h"
 #include "respa.h"
 #include "rigid_const.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
@@ -145,9 +146,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
         MPI_Allreduce(&vmin,&minval,1,MPI_INT,MPI_MIN,world);
 
         for (i = 0; i < nlocal; i++)
-          if (mask[i] & groupbit)
-            bodyID[i] = (tagint)((tagint)value[i] - minval + 1);
-          else bodyID[0] = 0;
+          if (mask[i] & groupbit) bodyID[i] = (tagint)((tagint)value[i] - minval + 1);
+          else bodyID[i] = 0;
         delete[] value;
       } else error->all(FLERR, 4, "Unsupported fix {} custom property {}", style, arg[4]);
   } else error->all(FLERR, 3, "Unknown fix {} body style {}", style, arg[3]);
@@ -1326,11 +1326,11 @@ void FixRigidSmall::set_xv()
     double theta_body,theta;
     double *shape,*quatatom,*inertiaatom;
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega = atom->omega;
     double **angmom = atom->angmom;
@@ -1658,7 +1658,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   }
 
   for (i = 0; i < n; i++) {
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     x = in[i].x;
     bbox[m][0] = MIN(bbox[m][0],x[0]);
     bbox[m][1] = MAX(bbox[m][1],x[0]);
@@ -1697,7 +1697,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   for (m = 0; m < ncount; m++) rsqclose[m] = BIG;
 
   for (i = 0; i < n; i++) {
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     x = in[i].x;
     delx = x[0] - ctr[m][0];
     dely = x[1] - ctr[m][1];
@@ -1717,7 +1717,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   double rsqfar = 0.0;
 
   for (i = 0; i < n; i++) {
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     xown = in[iclose[m]].x;
     x = in[i].x;
     delx = x[0] - xown[0];
@@ -1738,7 +1738,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   for (i = 0; i < nout; i++) {
     proclist[i] = in[i].me;
     out[i].ilocal = in[i].ilocal;
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     out[i].atomID = idclose[m];
   }
 
@@ -1837,13 +1837,11 @@ void FixRigidSmall::setup_bodies_static()
       eflags[i] = 0;
       if (bodytag[i] == 0) continue;
 
-      // set to POINT or SPHERE or ELLIPSOID or LINE
+      // set to POINT or SPHERE or ELLIPSOID or LINE or TRIANGLE
+      // check for bonus data before radius: line and tri particles
+      // also store a bounding-sphere radius for neighboring purposes
 
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         eflags[i] |= ELLIPSOID;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
@@ -1854,6 +1852,10 @@ void FixRigidSmall::setup_bodies_static()
       } else if (tri && tri[i] >= 0) {
         eflags[i] |= TRIANGLE;
         eflags[i] |= ANGMOM;
+        eflags[i] |= TORQUE;
+      } else if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
         eflags[i] |= TORQUE;
       } else eflags[i] |= POINT;
 
@@ -2136,6 +2138,18 @@ void FixRigidSmall::setup_bodies_static()
 
     MathExtra::cross3(ex,ey,cross);
     if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
+
+    // for 2d, ensure ez points in the +z direction
+    // negate both ey and ez to keep the eigenbasis right-handed
+    // the theta-based orientation bookkeeping for line particles requires
+    //   the body frame to be a pure rotation around the +z axis
+
+    if (domain->dimension == 2) {
+      if (ez[2] < 0.0) {
+        MathExtra::negate3(ey);
+        MathExtra::negate3(ez);
+      }
+    }
 
     // create initial quaternion
 
@@ -2461,7 +2475,7 @@ void FixRigidSmall::setup_bodies_dynamic()
 void FixRigidSmall::readfile(int which, double **array, int *inbody)
 {
   int nchunk,eofflag,nlines,xbox,ybox,zbox;
-  FILE *fp;
+  SafeFilePtr fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE] = {'\0'};
 
@@ -2492,7 +2506,6 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
     if (which == 0)
       utils::logmesg(lmp, "Reading rigid body data for {} bodies from file {}\n", nlines, inpfile);
-    if (nlines == 0) fclose(fp);
   }
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
 
@@ -2582,7 +2595,6 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     nread += nchunk;
   }
 
-  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 
@@ -2739,15 +2751,15 @@ void FixRigidSmall::resample_momenta(int groupbit, int mom_flag, class RanPark *
         else
           wbody[j] = 0.0;
       }
+      MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
     }
-    MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
   }
 
   if (mom_flag && (total_mass > 0.0)) {
     for (int j = 0; j < 3; j++) vcm[j] /= total_mass;
     for (int ibody = 0; ibody < nlocal; ibody++) {
+      b = &body[ibody];
       if (mask[b->ilocal] & groupbit) {
-        b = &body[ibody];
         for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
       }
     }

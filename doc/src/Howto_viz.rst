@@ -8,7 +8,7 @@ LAMMPS snapshots are created by the :doc:`dump <dump>` command, which
 can create files in several formats.  The native LAMMPS dump format is a
 text file (see :lammps:`dump atom` or :lammps:`dump custom`) which can
 be visualized by `several visualization tools
-<https://www.lammps.org/viz.html>`_ for MD simulation trajectories.
+<https://www.lammps.org/ecosystem/visualization/>`_ for MD simulation trajectories.
 `OVITO <https://www.ovito.org>`_ and `VMD
 <https://www.ks.uiuc.edu/Research/vmd/>`_ seem to be the most popular
 choices among them.
@@ -157,9 +157,9 @@ or 6x6 times larger to utilize the full resolution of the printer and
 show as much details and be as clean as possible.  Otherwise images have
 to be scaled up which can make them look blurry and with ragged edges.
 
-The keywords *fsaa* and *ssao* can be used to further improve the image
-quality at the expense of significant additional computational cost to
-render the images:
+The keywords *fsaa*, *ssao*, and *depthcue* can be used to further
+improve the image quality and realism at the expense of additional
+computational cost to render the images:
 
 - FSAA stands for `Full Scene Anti-Aliasing
   <https://en.wikipedia.org/wiki/Spatial_anti-aliasing#Super_sampling_/_full-scene_anti-aliasing>`_
@@ -177,11 +177,18 @@ render the images:
   selected pixels in its neighborhood based on that information.  This
   enhances the depth perception of objects in an image.
 
-Both methods are complementary and thus can be combined for additional
-improvement of the image quality.  The images below show from left to
-right the same excerpt of a dump image output with the default settings,
-with *fsaa* enabled, with *ssao* enabled, and with both features
-enabled.
+- Depth cueing adds a `distance fog gradient
+  <https://en.wikipedia.org/wiki/Distance_fog>`_ so objects further from
+  the camera are progressively more obscured by haze.  This technique
+  simulates the effect of light scattering, which causes more distant
+  objects to appear lower in contrast, especially in outdoor
+  environments, and thus enhances depth perception.
+
+The three methods are complementary and thus can be combined for
+additional improvement of the image quality.  The images below show from
+left to right the same excerpt of a dump image output with the default
+settings, with *fsaa* enabled, with *ssao* enabled in addition, and
+with *depthcue* added on top.
 
 .. |imagequality1| image:: JPG/image.default.png
    :width: 24%
@@ -189,7 +196,7 @@ enabled.
    :width: 24%
 .. |imagequality3| image:: JPG/image.ssao.png
    :width: 24%
-.. |imagequality4| image:: JPG/image.both.png
+.. |imagequality4| image:: JPG/image.depth.png
    :width: 24%
 
 |imagequality1|  |imagequality2|  |imagequality3|  |imagequality4|
@@ -197,8 +204,8 @@ enabled.
 The computational cost to create the images with :doc:`dump image
 <dump_image>` depends on the image size, the number of objects to be
 rendered (this number can grow quickly when using fine triangle meshes),
-and the choice of the *fsaa* and *ssao* settings.  For high resolution
-images, a correspondingly large image size has to be chosen.
+and the choice of the *fsaa*, *ssao*, and *depthcue* settings.  For high
+resolution images, a correspondingly large image size has to be chosen.
 
 Since the simulation has to wait for the dump image command to complete
 its image rendering, creating high resolution, high quality images can
@@ -214,6 +221,55 @@ parallelization available (e.g. for SSAO post-processing of image data).
 
 --------------------
 
+Shading style and outline
+-------------------------
+
+The rasterizer in LAMMPS implements a `Phong shading model
+<https://en.wikipedia.org/wiki/Phong_shading>`_ that adds a specular
+highlight to objects which determines how the material of the objects is
+perceived.  The intensity of this effect is controlled by the *shiny*
+keyword of :doc:`dump image <dump_image>` and the material perception by
+the *specular* :doc:`dump_modify <dump_image>` setting.  Using a
+specular setting of `none` turns the specular highlight off and thus
+results in a matted material.  Using the settings `wide`, `narrow`, and
+`tight` reduces the diameter of the highlight and makes the material
+appear more polished.  In addition, there is also an *outline* image
+post-processing step that can add a colored outline to the graphics
+object and can make images more "schematic".  It works best when
+features to enhance image quality with the exception of FSAA are turned
+off.  The images below show from left to right the different specular
+settings (*none*, *wide*, *narrow*, *tight*) and the *outline* drawing
+style with a pixel width of 2 pixels (in gray).
+
+.. |shading1| image:: JPG/shade.none.png
+   :width: 19%
+.. |shading2| image:: JPG/shade.wide.png
+   :width: 19%
+.. |shading3| image:: JPG/shade.narrow.png
+   :width: 19%
+.. |shading4| image:: JPG/shade.tight.png
+   :width: 19%
+.. |shading5| image:: JPG/shade.outline.png
+   :width: 19%
+
+|shading1|  |shading2|  |shading3|  |shading4|  |shading5|
+
+.. admonition:: Transparent backgrounds
+   :class: Hint
+
+   The rasterizer in LAMMPS does not support a so-called "alpha channel"
+   in its rendering processing and thus has no native transparency.
+   This has practical benefits because it makes parallel rendering in
+   parallel convenient even when the objects are distributed across
+   parallel processes.  But another consequence is that it is not
+   possible to create images with a transparent background.  However,
+   adding a thin outline with a suitable color simplifies the process of
+   creating a transparent background in a image processing program. It
+   creates a clean separation between the foreground objects and the
+   background, so the background can be selected and removed.
+
+-------
+
 Color selection and color management
 ------------------------------------
 
@@ -223,16 +279,50 @@ the color is assigned to atom (or bond) types and uses a default map
 with six colors as follows:
 
 * type 1 = red
-* type 2 = green
+* type 2 = forestgreen
 * type 3 = blue
-* type 4 = yellow
+* type 4 = gold
 * type 5 = cyan
 * type 6 = magenta
+* type 7 = silver
+* type 8 = orange
+* type 9 = lime
+* type 10 = gray
+* type 11 = darkred
+* type 12 = darkgreen
+* type 13 = darkblue
+* type 14 = darkcyan
+* type 15 = darkmagenta
+* type 16 = darkgray
 
-and repeats itself for types :math:`> 6`.  This mapping can be changed by the
-"dump_modify acolor" command, though.  If you want to change the color of a
-specific atom type, you can use :doc:`dump modify acolor <dump_image>`.  For
-example to color atoms of type 1 in gray and type 2 in white, you would use:
+
+.. |color_red| image:: img/colors/red.png
+.. |color_forestgreen| image:: img/colors/forestgreen.png
+.. |color_blue| image:: img/colors/blue.png
+.. |color_gold| image:: img/colors/gold.png
+.. |color_cyan| image:: img/colors/cyan.png
+.. |color_magenta| image:: img/colors/magenta.png
+.. |color_silver| image:: img/colors/silver.png
+.. |color_orange| image:: img/colors/orange.png
+.. |color_lime| image:: img/colors/lime.png
+.. |color_gray| image:: img/colors/gray.png
+.. |color_darkred| image:: img/colors/darkred.png
+.. |color_darkgreen| image:: img/colors/darkgreen.png
+.. |color_darkblue| image:: img/colors/darkblue.png
+.. |color_darkcyan| image:: img/colors/darkcyan.png
+.. |color_darkmagenta| image:: img/colors/darkmagenta.png
+.. |color_darkgray| image:: img/colors/darkgray.png
+
+and repeats itself for types > 16. The default color sequence is thus:
+|color_red|       |color_forestgreen|  |color_blue|         |color_gold|
+|color_cyan|      |color_magenta|      |color_silver|       |color_orange|
+|color_lime|      |color_gray|         |color_darkred|      |color_darkgreen|
+|color_darkblue|  |color_darkcyan|     |color_darkmagenta|  |color_darkgray|
+
+This mapping can be changed by the "dump_modify acolor" command, though.
+If you want to change the color of a specific atom type, you can use
+:doc:`dump modify acolor <dump_image>`.  For example to color atoms of
+type 1 in gray and type 2 in white, you would use:
 
 .. code-block:: LAMMPS
 
@@ -291,9 +381,47 @@ the charge:
 
 .. raw:: html
 
-   <center>(Different colorization styles. Left to right: by default
+   <center>(Different colorization settings. Left to right: by default
    type map, by custom type map, by element, and by charge. Click to see
-   the full-size images)</center>
+   the full-size images)</center><br>
+
+.. versionchanged:: 4Jul2026
+
+Similar color selections are available for coloring bonds. The available
+options are: *type*, *atom*, *c_ID* (or *c_ID[I]*), and *none*.  With
+*type* the bonds are colored by having a color assigned to each bond
+type which follows the same color sequence as for atoms but can be set
+for each bond type independent from atom types.  When using the *atom*
+selection the bond color follows the color of the atoms.  Bonds are
+drawn in two pieces as a cylinder from the center of the bond to each of
+the atoms. Thus if two atoms have different color, the bond also as two
+parts with different colors with this setting.  If the a compute
+reference is used (e.g. *c_ID* or *c_ID[I]*) the bond color is taken
+from a colormap and the color depends on the value of the compute for
+the given bond.  An input example for coloring bonds by the force
+magnitude is given below. When the bond color argument is *none*, no
+bonds are drawn.
+
+.. code-block:: LAMMPS
+
+   compute  bforce peptide bond/local force
+   dump     viz    peptide image 100 myimage-*.png element type bond c_bforce type
+
+.. |bcolors1| image:: img/bondcolor-type.png
+   :width: 24%
+.. |bcolors2| image:: img/bondcolor-element.png
+   :width: 24%
+.. |bcolors3| image:: img/bondcolor-mapforce.png
+   :width: 24%
+.. |bcolors4| image:: img/bondcolor-none.png
+   :width: 24%
+
+|bcolors1|  |bcolors2|  |bcolors3|  |bcolors4|
+
+.. raw:: html
+
+   <center>(Different bond colorization settings. Left to right: by type, by element,
+   by bond force, and no bonds. Click to see the full-size images)</center>
 
 --------------------
 
@@ -399,7 +527,7 @@ Play the movie:
    Load the animated GIF or MP4 movie file
 
 #. Use the freely available `VideoLAN media player (vlc)
-   <https://videolan.org>`_ or `FFMpeg player tool (ffplay)
+   <https://www.videolan.org>`_ or `FFMpeg player tool (ffplay)
    <https://ffmpeg.org/>`_ to view a movie.
 
    Both are available for multiple operating systems and support a large
@@ -832,6 +960,7 @@ and fix styles:
    * :doc:`fix indent <fix_indent>`
    * :doc:`fix reaxff/bonds <fix_reaxff_bonds>`
    * :doc:`fix smd/wall_surface <fix_smd_wall_surface>`
+   * :doc:`fix surface/global <fix_surface_global>`
    * :doc:`fix wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`fix wall/body/polyhedron <fix_wall_body_polyhedron>`
    * :doc:`fix wall/ees <fix_wall_ees>`

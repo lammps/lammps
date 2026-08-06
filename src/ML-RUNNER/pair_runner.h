@@ -52,6 +52,8 @@ class PairRuNNer : public Pair {
                                       tagint *tag, int nprop, double *global_properties,
                                       double *local_properties);
 
+  double memory_usage() override;
+
  private:
   double cflength;    // Length conversion factor.
   double cfenergy;    // Energy conversion factor.

@@ -31,8 +31,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr double DANGER_ZONE = 0.95;
-
 /* ---------------------------------------------------------------------- */
 
 FixQEqPointOMP::FixQEqPointOMP(LAMMPS *lmp, int narg, char **arg) :
@@ -69,7 +67,7 @@ void FixQEqPointOMP::pre_force(int /*vflag*/)
     memory->create(b_temp, nthreads, nmax_btmp, "qeq/point/omp:b_temp");
   }
 
-  init_matvec();
+  init_matvec_thr();
   matvecs = CG(b_s, s);         // CG on s - parallel
   matvecs += CG(b_t, t);        // CG on t - parallel
   matvecs /= 2;
@@ -80,9 +78,9 @@ void FixQEqPointOMP::pre_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqPointOMP::init_matvec()
+void FixQEqPointOMP::init_matvec_thr()
 {
-  compute_H();
+  compute_H_thr();
 
   int inum, ii, i;
   int *ilist;
@@ -115,7 +113,7 @@ void FixQEqPointOMP::init_matvec()
    FixQEqPoint::compute_H().
 ------------------------------------------------------------------------- */
 
-void FixQEqPointOMP::compute_H()
+void FixQEqPointOMP::compute_H_thr()
 {
   int *ilist, *numneigh, **firstneigh;
   double **x = atom->x;

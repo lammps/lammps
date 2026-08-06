@@ -4,6 +4,8 @@
 .. index:: pair_style airebo/morse
 .. index:: pair_style airebo/morse/intel
 .. index:: pair_style airebo/morse/omp
+.. index:: pair_style airebo/bc
+.. index:: pair_style airebo/bc/omp
 .. index:: pair_style rebo
 .. index:: pair_style rebo/intel
 .. index:: pair_style rebo/omp
@@ -18,6 +20,11 @@ pair_style airebo/morse command
 
 Accelerator Variants: *airebo/morse/intel*, *airebo/morse/omp*
 
+pair_style airebo/bc command
+============================
+
+Accelerator Variants: *airebo/bc/omp*
+
 pair_style rebo command
 =======================
 
@@ -30,11 +37,11 @@ Syntax
 
    pair_style style cutoff LJ_flag TORSION_flag cutoff_min
 
-* style = *airebo* or *airebo/morse* or *rebo*
-* cutoff = LJ or Morse cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only)
-* LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO and AIREBO-M only, optional)
-* TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO and AIREBO-M only, optional)
-* cutoff_min = Start of the transition region of cutoff (:math:`\sigma` scale factor) (AIREBO and AIREBO-M only, optional)
+* style = *airebo* or *airebo/morse* or *airebo/bc* or *rebo*
+* cutoff = LJ or Morse cutoff (:math:`\sigma` scale factor) (AIREBO, AIREBO-M, and AIREBO-BC only)
+* LJ_flag = 0/1 to turn off/on the LJ or Morse term (AIREBO, AIREBO-M, and AIREBO-BC only, optional)
+* TORSION_flag = 0/1 to turn off/on the torsion term (AIREBO, AIREBO-M, and AIREBO-BC only, optional)
+* cutoff_min = Start of the transition region of cutoff (:math:`\sigma` scale factor) (AIREBO, AIREBO-M, and AIREBO-BC only, optional)
 
 Examples
 """"""""
@@ -47,6 +54,9 @@ Examples
 
    pair_style airebo/morse 3.0
    pair_coeff * * ../potentials/CH.airebo-m H C
+
+   pair_style airebo/bc 3.0
+   pair_coeff * * ../potentials/CH.airebo-bc H C
 
    pair_style rebo
    pair_coeff * * ../potentials/CH.rebo H C
@@ -66,6 +76,32 @@ The Morse potentials are parameterized by high-quality quantum chemistry
 increases. This allows AIREBO-M to retain accuracy to much higher pressures
 than AIREBO (up to 40 GPa for Polyethylene). Details for this potential
 and its parameterization are given in :ref:`(O'Conner) <OConnor>`.
+
+.. versionadded:: 4Jul2026
+
+The *airebo/bc* pair style computes the bond-centric modification of
+AIREBO described in :ref:`(Hur) <Hur>`.  It is equivalent to AIREBO except
+that the :math:`P_{ij}` coordination correction to the bond order is made
+bond-centric rather than atom-centric.  In AIREBO the :math:`P_{ij}` term
+depends only on the number and type of atoms bonded to atom *i*; in
+AIREBO-BC the :math:`P_{CC}` term instead depends on the bond-averaged
+coordination numbers
+
+.. math::
+
+   \bar{N}^t_{ij} = \frac{1}{2} \left( N^t_{ij} + N^t_{ji} \right)
+
+so that the correction reflects the local environment on both sides of the
+bond.  Because stable molecules can then take half-integer coordination
+values, :math:`P_{CC}` is tabulated on a half-integer spline grid and
+re-parameterized accordingly (Table III of :ref:`(Hur) <Hur>`).  This
+improves the description of heterogeneous bonding environments, such as the
+sp/sp2 boundaries found in fullerene fragments and in linear/graphitic
+carbon, where the atom-centric average is qualitatively inaccurate.  All
+other terms of the potential (the angular, radical, and dihedral
+contributions to the bond order, the LJ term, and the torsion term) are
+identical to AIREBO.  Evaluating the denser bond-centric spline makes
+*airebo/bc* somewhat more expensive than *airebo*.
 
 The *rebo* pair style computes the Reactive Empirical Bond Order (REBO)
 Potential of :ref:`(Brenner) <Brenner>`. Note that this is the so-called
@@ -131,10 +167,10 @@ various dihedral angle preferences in hydrocarbon configurations.
 
 ----------
 
-Only a single pair_coeff command is used with the *airebo*, *airebo*
-or *rebo* style which specifies an AIREBO, REBO, or AIREBO-M potential
-file with parameters for C and H.  Note that as of LAMMPS version
-15 May 2019 the *rebo* style in LAMMPS uses its own potential
+Only a single pair_coeff command is used with the *airebo*, *airebo/morse*,
+*airebo/bc*, or *rebo* style which specifies an AIREBO, AIREBO-M, AIREBO-BC,
+or REBO potential file with parameters for C and H.  Note that as of LAMMPS
+version 15 May 2019 the *rebo* style in LAMMPS uses its own potential
 file (CH.rebo).  These are mapped to LAMMPS atom types by specifying
 N additional arguments after the filename in the pair_coeff command,
 where N is the number of LAMMPS atom types:
@@ -173,6 +209,14 @@ paper. Thus the parameters are specific to this potential and the way
 it was fit, so modifying the file should be done cautiously. The
 AIREBO-M Morse potentials were parameterized using a cutoff of
 3.0 (:math:`\sigma`). Modifying this cutoff may impact simulation accuracy.
+
+The parameters/coefficients for the AIREBO-BC potential are listed in
+the CH.airebo-bc file to agree with the :ref:`(Hur) <Hur>` paper.  This
+file is identical to CH.airebo through the standard parameter sections and
+appends the bond-centric :math:`P_{CC}` spline knots of Table III; as such
+it can also be read by the *airebo* style.  As with the other variants,
+the parameters are specific to this potential and the way it was fit, so
+modifying the file should be done cautiously.
 
 This pair style tallies a breakdown of the total AIREBO potential
 energy into sub-categories, which can be accessed via the :doc:`compute pair <compute_pair>` command as a vector of values of length 3.
@@ -222,11 +266,11 @@ enabled if LAMMPS was built with that package.  See the :doc:`Build package <Bui
 These pair potentials require the :doc:`newton <newton>` setting to be
 "on" for pair interactions.
 
-The CH.airebo and CH.airebo-m potential files provided with LAMMPS (see
-the potentials directory) are parameterized for metal :doc:`units
+The CH.airebo, CH.airebo-m, and CH.airebo-bc potential files provided with
+LAMMPS (see the potentials directory) are parameterized for metal :doc:`units
 <units>`.  You can use the pair styles with *any* LAMMPS units, but you
-would need to create your own AIREBO or AIREBO-M potential file with
-coefficients listed in the appropriate units, if your simulation does
+would need to create your own AIREBO, AIREBO-M, or AIREBO-BC potential file
+with coefficients listed in the appropriate units, if your simulation does
 not use "metal" units.
 
 The pair styles provided here **only** support potential files parameterized
@@ -259,3 +303,7 @@ Physics: Condensed Matter, 14, 783-802 (2002).
 .. _OConnor:
 
 **(O'Connor)** O'Connor et al., J. Chem. Phys. 142, 024903 (2015).
+
+.. _Hur:
+
+**(Hur)** Hur and Stuart, J. Chem. Phys. 137, 054102 (2012).

@@ -104,9 +104,9 @@ void BondFENEExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over the bond list
 
-  int bond_blocksize = 0;
-  if (lmp->kokkos->bond_block_size_set)
-    bond_blocksize = lmp->kokkos->bond_block_size;
+  int bond_chunksize = 0;
+  if (lmp->kokkos->bond_chunk_size_set)
+    bond_chunksize = lmp->kokkos->bond_chunk_size;
 
   EV_FLOAT ev;
 
@@ -118,13 +118,13 @@ void BondFENEExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else {
     if (newton_bond) {
-      if (bond_blocksize)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      if (bond_chunksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunksize)),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<1,0> >(0,nbondlist),*this);
     } else {
-      if (bond_blocksize)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      if (bond_chunksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunksize)),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<0,0> >(0,nbondlist),*this);
     }

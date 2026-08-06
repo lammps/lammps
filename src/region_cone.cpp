@@ -39,6 +39,11 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
 {
   options(narg - 9, &arg[9]);
 
+  // defaults, overwritten during parsing below
+
+  radiuslo = radiushi = 0.0;
+  rlostyle = rhistyle = CONSTANT;
+
   // check open face settings
 
   if (openflag)
@@ -215,7 +220,8 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
     if (axis == 'z') lo = zscale * utils::numeric(FLERR, arg[7], false, lmp);
   }
 
-  if (strcmp(arg[8], "INF") == 0 || strcmp(arg[7], "EDGE") == 0) {
+  histyle = CONSTANT;
+  if (strcmp(arg[8], "INF") == 0 || strcmp(arg[8], "EDGE") == 0) {
     if (domain->box_exist == 0)
       error->all(FLERR, "Cannot use region INF or EDGE when box does not exist");
     if (axis == 'x') {
@@ -227,8 +233,9 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
         hi = domain->boxhi_bound[0];
     }
     if (axis == 'y') {
-      if (strcmp(arg[8], "INF") == 0) hi = BIG;
-      if (domain->triclinic == 0)
+      if (strcmp(arg[8], "INF") == 0)
+        hi = BIG;
+      else if (domain->triclinic == 0)
         hi = domain->boxhi[1];
       else
         hi = domain->boxhi_bound[1];
@@ -692,6 +699,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
       if (distsq < distsqprev) crad = 0;
     }
 
+    if (distsq == BIG) return 0;
     add_contact(0, x, nearest[0], nearest[1], nearest[2]);
     contact[0].radius = crad;
     contact[0].iwall = 0;
@@ -756,6 +764,7 @@ int RegCone::surface_exterior(double *x, double cutoff)
       if (distsq < distsqprev) crad = 0;
     }
 
+    if (distsq == BIG) return 0;
     add_contact(0, x, nearest[0], nearest[1], nearest[2]);
     contact[0].radius = crad;
     contact[0].iwall = 0;

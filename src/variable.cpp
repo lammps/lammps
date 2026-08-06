@@ -262,6 +262,7 @@ void Variable::set(int narg, char **arg)
 
   int ivar = find(arg[0]);
   std::string varstyle = arg[1];
+  std::string vartext;
 
   // DELETE
   // doesn't matter if variable no longer exists
@@ -272,6 +273,22 @@ void Variable::set(int narg, char **arg)
                  narg, utils::errorurl(3));
     if (ivar >= 0) remove(ivar);
     return;
+  }
+
+  // For variable style string we allow self-references, so we need to run substitute
+  // on the argument now before the original content is deleted
+
+  if (varstyle == "string") {
+
+    int maxcopy = strlen(arg[2]) + 1;
+    int maxwork = maxcopy;
+    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
+    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
+    strcpy(scopy, arg[2]);
+    input->substitute(scopy, work, maxcopy, maxwork, 1);
+    vartext = scopy;
+    memory->sfree(work);
+    memory->sfree(scopy);
   }
 
   // find unassigned variable struct in list or append one
@@ -478,26 +495,18 @@ void Variable::set(int narg, char **arg)
   // replace pre-existing var if also style STRING (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
+  // variable text has already been substituted on entry and stored in vartext
 
   if (varstyle == "string") {
     if (narg != 3)
       error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
                  utils::errorurl(3));
 
-    int maxcopy = strlen(arg[2]) + 1;
-    int maxwork = maxcopy;
-    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
-    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
-    strcpy(scopy, arg[2]);
-    input->substitute(scopy, work, maxcopy, maxwork, 1);
-    memory->sfree(work);
-
     newvar.num = 1;
     newvar.which = 0;
     newvar.pad = 0;
     newvar.data = new char *[newvar.num];
-    copy(1, &scopy, newvar.data);
-    memory->sfree(scopy);
+    newvar.data[0] = utils::strdup(vartext);
     newvar.style = STRING;
     return;
 
@@ -774,6 +783,14 @@ int Variable::next(int narg, char **arg)
       error->all(FLERR,"All variables in next command must have same style");
   }
 
+  // reject duplicate variable names: incrementing the first copy may
+  // exhaust and remove the variable, leaving a dangling reference
+
+  for (int iarg = 0; iarg < narg-1; iarg++)
+    for (int jarg = iarg+1; jarg < narg; jarg++)
+      if (strcmp(arg[iarg],arg[jarg]) == 0)
+        error->all(FLERR, jarg, "Duplicate variable '{}' in next command", arg[jarg]);
+
   // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
   //                 FORMAT, PYTHON, TIMER, INTERNAL
 
@@ -873,9 +890,8 @@ int Variable::next(int narg, char **arg)
         fp = fopen("tmp.lammps.variable.lock","r");
         if (fp == nullptr) goto uloop_again;
 
-        buf[0] = buf[1] = '\0';
-        auto tmp = fread(buf,1,64,fp);
-        (void) tmp; // can be safely ignored, suppress compiler warning in a portable way
+        auto nread = fread(buf,1,sizeof(buf)-1,fp);
+        buf[nread] = '\0';
 
         if (strlen(buf) > 0) {
           nextindex = std::stoi(buf);
@@ -3729,10 +3745,17 @@ int Variable::find_matching_paren(char *str, int i, char *&contents, int ivar)
   int istop = i;
 
   int n = istop - istart - 1;
+
+  // copy into a fresh buffer first, then replace the old one, so the new
+  // buffer is never aliased with the freed pointer (avoids a use-after-free
+  // warning) and contents is left intact if the copy were to fail.
+
+  char *newcontents = new char[n+1];
+  strncpy(newcontents,&str[istart+1],n);
+  newcontents[n] = '\0';
+
   delete[] contents;
-  contents = new char[n+1];
-  strncpy(contents,&str[istart+1],n);
-  contents[n] = '\0';
+  contents = newcontents;
 
   return istop;
 }
@@ -4252,7 +4275,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
     // pyvar = index of python-style variable which invokes Python function
 
     int pyvar = find(&word[3]);
-    if (variables[pyvar].style != PYTHON)
+    if ((pyvar < 0) || (variables[pyvar].style != PYTHON))
       print_var_error(FLERR,"Invalid python function variable name",ivar);
 
     // check that wrapper matches Python function
@@ -4770,10 +4793,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     std::vector<double> unsorted;
 
     if (compute) {
-      double *vec;
+      double *vec = nullptr;
       if (index) {
         if (compute->array) vec = &compute->array[0][index-1];
-        else vec = nullptr;
+        else print_var_error(FLERR,"Variable formula compute array has no values",ivar);
       } else vec = compute->vector;
 
       if ((method == SORT) || (method == RSORT)) unsorted.reserve(nvec);
@@ -5399,13 +5422,20 @@ void Variable::parse_vector(int ivar, char *str)
   std::vector<std::string> args = Tokenizer(std::string(str+1, str+nstr), ",").as_vector();
 
   auto &var = variables[ivar];
-  var.vec.n = var.vec.nmax = args.size();
-  var.vec.currentstep = -1;
-  delete[] var.vec.values;
-  var.vec.values = new double[var.vec.nmax];
+  int nvec = args.size();
 
-  for (int i = 0; i < var.vec.nmax; i++)
-    var.vec.values[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
+  // parse into a fresh buffer first, then replace the old one.  this keeps
+  // var.vec intact if a token fails to parse, and the new buffer is never
+  // aliased with the freed pointer (avoids a use-after-free warning).
+
+  auto *newvalues = new double[nvec];
+  for (int i = 0; i < nvec; i++)
+    newvalues[i] = utils::numeric(FLERR, utils::trim(args[i]), false, lmp);
+
+  delete[] var.vec.values;
+  var.vec.values = newvalues;
+  var.vec.n = var.vec.nmax = nvec;
+  var.vec.currentstep = -1;
 }
 
 /* ----------------------------------------------------------------------

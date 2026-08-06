@@ -35,7 +35,7 @@ class ComputeSLCSAAtom : public Compute {
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_peratom() override;
-  //  double memory_usage() override;
+  double memory_usage() override;
   int compute_ncomps(int);
   int argmax(double *, int);
 

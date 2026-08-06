@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePlasticityAtom::ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg), fix_peri_neigh(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute plasticity/atom command");
 

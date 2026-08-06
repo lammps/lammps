@@ -31,7 +31,8 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
                  double ***host_rhor_spline, double ***host_z2r_spline,
                  double ***host_frho_spline, double** host_cutsq,
-                 double rdr, double rdrho, double rhomax, int nrhor,
+                 double rdr, double rdrho, double rhomax, double rhomin,
+                 const int he_flag, int nrhor,
                  int nrho, int nz2r, int nfrho, int nr,
                  const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size,
@@ -66,7 +67,7 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
   if (world_me==0)
     init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                        host_type2frho, host_rhor_spline, host_z2r_spline,
-                       host_frho_spline, host_cutsq, rdr, rdrho, rhomax, nrhor, nrho, nz2r,
+                       host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho, nz2r,
                        nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
                        gpu_split, screen);
 
@@ -86,7 +87,7 @@ int eam_fs_gpu_init(const int ntypes, double host_cutforcesq,
     if (gpu_rank==i && world_me!=0)
       init_ok=EAMFSMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
                          host_type2frho, host_rhor_spline, host_z2r_spline,
-                         host_frho_spline, host_cutsq, rdr, rdrho, rhomax, nrhor, nrho,
+                         host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho,
                          nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
                          cell_size, gpu_split, screen);
 

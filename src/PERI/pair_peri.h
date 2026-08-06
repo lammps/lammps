@@ -45,7 +45,7 @@ class PairPeri : public Pair {
   class FixPeriNeigh *fix_peri_neigh;
   double **bulkmodulus, **shearmodulus, **m_lambdai, **m_taubi, **m_yieldstress;
   double **s00, **alpha, **cut, **kspring;
-  double *s0_new, *theta, *elastic_energy;
+  double *s0_new, *smin_new, *theta;
 
   int nmax;
 

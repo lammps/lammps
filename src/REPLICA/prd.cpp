@@ -47,7 +47,12 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
-PRD::PRD(LAMMPS *lmp) : Command(lmp) {}
+PRD::PRD(LAMMPS *lmp) :
+    Command(lmp), loop_setting(nullptr), dist_setting(nullptr), counts(nullptr),
+    displacements(nullptr), tagall(nullptr), xall(nullptr), imageall(nullptr),
+    random_select(nullptr), random_clock(nullptr), random_dephase(nullptr), compute_event(nullptr),
+    fix_event(nullptr), velocity(nullptr), temperature(nullptr), finish(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    perform PRD simulation on one or more replicas
@@ -181,9 +186,8 @@ void PRD::command(int narg, char **arg)
   // assign FixEventPRD to event-detection compute
   // necessary so it will know atom coords at last event
 
-  int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all(FLERR,"Could not find compute ID for PRD");
-  compute_event = modify->compute[icompute];
+  compute_event = modify->get_compute_by_id(id_compute);
+  if (!compute_event) error->all(FLERR,"Could not find compute ID for PRD");
   compute_event->reset_extra_compute_fix("prd_event");
 
   // reset reneighboring criteria since will perform minimizations

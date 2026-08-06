@@ -42,7 +42,16 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) : Pair(lmp)
+PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) :
+    Pair(lmp), k_cxst(nullptr), cut_cxst_0(nullptr), cut_cxst_c(nullptr), cut_cxst_lo(nullptr),
+    cut_cxst_hi(nullptr), cut_cxst_lc(nullptr), cut_cxst_hc(nullptr), b_cxst_lo(nullptr),
+    b_cxst_hi(nullptr), cutsq_cxst_hc(nullptr), a_cxst1(nullptr), theta_cxst1_0(nullptr),
+    dtheta_cxst1_ast(nullptr), b_cxst1(nullptr), dtheta_cxst1_c(nullptr), a_cxst4(nullptr),
+    theta_cxst4_0(nullptr), dtheta_cxst4_ast(nullptr), b_cxst4(nullptr), dtheta_cxst4_c(nullptr),
+    a_cxst5(nullptr), theta_cxst5_0(nullptr), dtheta_cxst5_ast(nullptr), b_cxst5(nullptr),
+    dtheta_cxst5_c(nullptr), a_cxst6(nullptr), theta_cxst6_0(nullptr), dtheta_cxst6_ast(nullptr),
+    b_cxst6(nullptr), dtheta_cxst6_c(nullptr), AA_cxst1(nullptr), BB_cxst1(nullptr),
+    nxyz_xtrct(nullptr), fix_lrf(nullptr)
 {
   // dummy sequence-specific coaxial stacking strength
   // A:0 C:1 G:2 T:3, 3'- [i] X [j] -5'

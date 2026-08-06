@@ -1524,3 +1524,16 @@ void PairDispersionD3::unpack_reverse_comm(int n, int *list, double *buf)
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairDispersionD3::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  int n = atom->ntypes;
+  // c6ab[n+1][n+1][5][5][3] coefficient table
+  bytes += (double)(n+1)*(n+1)*5*5*3 * sizeof(double);
+  // per-atom coordination number and C6 derivative arrays
+  bytes += (double) nmax * 2 * sizeof(double);    // cn[nmax] + dc6[nmax]
+  return bytes;
+}

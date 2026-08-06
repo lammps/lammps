@@ -15,6 +15,7 @@ post_commands: ! |
   pair_coeff * * 0.0 3.0
   fix test solute nve/sphere update dipole
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.7835185784846639e-01  2.4739635976824457e+00 -1.7266540613768827e-01

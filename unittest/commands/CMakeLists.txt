@@ -4,11 +4,26 @@ add_executable(test_simple_commands test_simple_commands.cpp)
 add_library(noplugin MODULE noplugin.cpp)
 set_target_properties(noplugin PROPERTIES PREFIX "" SUFFIX ".so")
 
-# tests for the plugin command require the PLUGIN package
+# tests for the plugin command require the PLUGIN package.
+# With a STATIC LAMMPS library the plugins must be built without embedding a
+# full copy of LAMMPS (loading such a plugin corrupts memory and aborts at
+# program exit, see the comment in examples/plugins/CMakeLists.txt), which
+# requires the COMPILE_ONLY generator expression from CMake 3.27; the test
+# executable must then export its symbols so the loaded plugins can resolve
+# them.  Windows is not affected and keeps linking the full library.
 if(PKG_PLUGIN)
-  add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
-  add_dependencies(test_simple_commands plugins noplugin)
-  target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
+  if(BUILD_SHARED_LIBS OR (CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
+     OR (CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+    add_subdirectory(${LAMMPS_DIR}/examples/plugins ${CMAKE_BINARY_DIR}/build-plugins)
+    add_dependencies(test_simple_commands plugins noplugin)
+    target_compile_definitions(test_simple_commands PRIVATE -DLMP_PLUGIN)
+    if((NOT BUILD_SHARED_LIBS) AND (NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")))
+      set_target_properties(test_simple_commands PROPERTIES ENABLE_EXPORTS TRUE)
+    endif()
+  else()
+    message(WARNING "Skipping tests for the plugin command: they require "
+      "CMake 3.27 or later or setting BUILD_SHARED_LIBS=on")
+  endif()
 endif()
 
 target_link_libraries(test_simple_commands PRIVATE lammps GTest::GMock)
@@ -29,10 +44,19 @@ add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps GTest::GMock)
 add_test(NAME LatticeRegion COMMAND test_lattice_region)
 
+add_executable(test_fix_spring_chunk test_fix_spring_chunk.cpp)
+target_link_libraries(test_fix_spring_chunk PRIVATE lammps GTest::GMock)
+add_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
+
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)
 target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)
 add_test(NAME KSpaceAutoSlab COMMAND test_kspace_auto_slab)
+
+add_executable(test_kspace_group_group_slab test_kspace_group_group_slab.cpp)
+target_compile_definitions(test_kspace_group_group_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(test_kspace_group_group_slab PRIVATE lammps GTest::GMock)
+add_test(NAME KSpaceGroupGroupSlab COMMAND test_kspace_group_group_slab)
 
 add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
@@ -95,3 +119,11 @@ add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
+
+add_executable(test_restart_settings test_restart_settings.cpp)
+target_link_libraries(test_restart_settings PRIVATE lammps GTest::GMock)
+add_test(NAME RestartSettings COMMAND test_restart_settings)
+
+add_executable(test_input_validation test_input_validation.cpp)
+target_link_libraries(test_input_validation PRIVATE lammps GTest::GMock)
+add_test(NAME InputValidation COMMAND test_input_validation)

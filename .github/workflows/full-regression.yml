@@ -3,6 +3,8 @@ name: "Full Regression Test"
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "25 4 * * MON,THU"
 
 jobs:
   build:
@@ -19,7 +21,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2
         show-progress: false
@@ -48,7 +50,7 @@ jobs:
         python3 -m venv linuxenv
         source linuxenv/bin/activate
         python3 -m pip install --upgrade pip
-        python3 -m pip install numpy pyyaml junit_xml
+        python3 -m pip install numpy pyyaml
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/most.cmake \
@@ -85,21 +87,49 @@ jobs:
                --progress-file=progress-${{ matrix.idx }}.yaml \
                --log-file=run-${{ matrix.idx }}.log
 
-        tar -cvf full-regression-test-${{ matrix.idx }}.tar run-${{ matrix.idx }}.log progress-${{ matrix.idx }}.yaml output-${{ matrix.idx }}.xml
-
     - name: Upload artifacts
-      uses: actions/upload-artifact@v4
+      if: always()
+      uses: actions/upload-artifact@v7
       with:
         name: full-regression-test-artifact-${{ matrix.idx }}
-        path: full-regression-test-${{ matrix.idx }}.tar
+        path: |
+          run-${{ matrix.idx }}.log
+          progress-${{ matrix.idx }}.yaml
+          output-${{ matrix.idx }}.xml
 
   merge:
+    name: Merge and Summarize Results
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - name: Merge Artifacts
-        uses: actions/upload-artifact/merge@v4
+      - name: Checkout repository
+        uses: actions/checkout@v7
         with:
-          name: merged-full-regresssion-artifact
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Download test results from all shards
+        uses: actions/download-artifact@v8
+        with:
           pattern: full-regression-test-artifact-*
+          path: shards
+          merge-multiple: true
+
+      - name: Merge results and generate summary
+        shell: bash
+        run: |
+          python3 tools/regression-tests/merge_results.py \
+                 --title "Full Regression Test" \
+                 --output-xml regression.xml --json run.json --summary summary.md \
+                 shards/output-*.xml
+          cat summary.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload merged results
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-regression-test-results
+          path: |
+            regression.xml
+            run.json
+            summary.md
 

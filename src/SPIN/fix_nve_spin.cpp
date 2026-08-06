@@ -297,6 +297,7 @@ void FixNVESpin::init()
   // setting the sector variables/lists
 
   nsectors = 0;
+  memory->destroy(rsec);
   memory->create(rsec,3,"nve/spin:rsec");
 
   // perform the sectoring operation
@@ -732,4 +733,13 @@ void FixNVESpin::final_integrate()
     }
   }
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixNVESpin::memory_usage()
+{
+  double bytes = (double) nlocal_max * 2 * sizeof(int);     // backward_stacks + forward_stacks
+  bytes += (double) nsectors * 2 * sizeof(int);             // stack_head + stack_foot
+  return bytes;
 }

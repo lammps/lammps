@@ -40,7 +40,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairSpinExchangeBiquadratic::PairSpinExchangeBiquadratic(LAMMPS *lmp) :
-  PairSpin(lmp)
+    PairSpin(lmp), J1_mag(nullptr), J1_mech(nullptr), J2(nullptr), J3(nullptr), K1_mag(nullptr),
+    K1_mech(nullptr), K2(nullptr), K3(nullptr), cut_spin_exchange(nullptr)
 {
   e_offset = 0;
 }

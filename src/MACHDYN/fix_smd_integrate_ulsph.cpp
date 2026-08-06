@@ -44,7 +44,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
-                Fix(lmp, narg, arg) {
+    Fix(lmp, narg, arg), list(nullptr), pair(nullptr)
+{
 
         if ((atom->esph_flag != 1) || (atom->vfrac_flag != 1))
                 error->all(FLERR, "fix smd/integrate_ulsph command requires atom_style with both energy and volume");

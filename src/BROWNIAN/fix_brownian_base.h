@@ -25,6 +25,8 @@ class FixBrownianBase : public Fix {
   void init() override;
   int setmask() override;
   void reset_dt() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
 
  protected:

@@ -34,7 +34,7 @@ using namespace RHEO_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairRHEOSolid::PairRHEOSolid(LAMMPS *_lmp) : Pair(_lmp)
+PairRHEOSolid::PairRHEOSolid(LAMMPS *_lmp) : Pair(_lmp), k(nullptr), cut(nullptr), gamma(nullptr)
 {
   writedata = 1;
 }

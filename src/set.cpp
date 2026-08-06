@@ -429,7 +429,7 @@ void Set::process_args(int caller_flag, int narg, char **arg)
   }
 
   // error if any action of fix set command does not use a per-atom variable
-  // b/c fix set is then effectivly a no-op
+  // b/c fix set is then effectively a no-op
 
   if (caller == FIXSET) {
     for (int i = 0; i < naction; i++) {

@@ -58,6 +58,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "compute temp/asphere bias", error);
       tempbias = 1;
+      delete[] id_bias;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {

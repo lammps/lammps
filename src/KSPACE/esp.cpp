@@ -1351,7 +1351,7 @@ void ESP::compute_gf_ik_triclinic()
           for (nx = -nbx; nx <= nbx; nx++) {
             //qx = unitk_lamda[0] + 2.0 * MY_PI * nx_pppm * nx;
 
-            double ph_2_kx_c = order * MY_PI * fabs(kper/nx_pppm + nx) / spreading_select_c;
+            double ph_2_kx_c = order * fabs(MY_PI*kper/nx_pppm + MY_PI*nx) / spreading_select_c;
             wx = 0.00;
             if (ph_2_kx_c <= 1.00) {
               ph_2_kx_c = 2.0 * ph_2_kx_c - 1.0;
@@ -1368,7 +1368,7 @@ void ESP::compute_gf_ik_triclinic()
             for (ny = -nby; ny <= nby; ny++) {
               //qy = unitk_lamda[1] + 2.0 * MY_PI * ny_pppm * ny;
 
-              double ph_2_ky_c = order * MY_PI * fabs(lper/ny_pppm + ny) / spreading_select_c;
+              double ph_2_ky_c = order * fabs(MY_PI*lper/ny_pppm + MY_PI*ny) / spreading_select_c;
               wy = 0.00;
               if (ph_2_ky_c <= 1.00) {
                 ph_2_ky_c = 2.0 * ph_2_ky_c - 1.0;
@@ -1385,7 +1385,7 @@ void ESP::compute_gf_ik_triclinic()
               for (nz = -nbz; nz <= nbz; nz++) {
                 //qz = unitk_lamda[2] + 2.0 * MY_PI * nz_pppm * nz;
 
-                double ph_2_kz_c = order * MY_PI * fabs(mper/nz_pppm + nz) / spreading_select_c;
+                double ph_2_kz_c = order * fabs(MY_PI*mper/nz_pppm + MY_PI*nz) / spreading_select_c;
                 wz = 0.00;
                 if (ph_2_kz_c <= 1.00) {
                   ph_2_kz_c = 2.0 * ph_2_kz_c - 1.0;

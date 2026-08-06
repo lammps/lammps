@@ -11,6 +11,7 @@ post_commands: ! |
   fix all solute nve
   fix test solute temp/csvr 50.0 ${t_target} 1.0 82573
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 138.6918179647654
 run_pos: ! |2

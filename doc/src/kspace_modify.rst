@@ -90,7 +90,7 @@ hardware.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *collective/self/copy* keyword applies only to PPPM and only when
 *collective* is set to *yes*.  It controls whether data remapped to the
@@ -187,7 +187,7 @@ later than it would if this option were off.
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and reciprocal space computations for the dispersion
-part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
+part of pppm/disp. As shown in :ref:`(Isele-Holder2) <Isele-Holder1>`,
 optimal performance and accuracy in the results is obtained when these
 values are different.
 
@@ -280,7 +280,10 @@ mixing rule, this will speed-up the simulations but introduces some
 error in the force computations, as shown in :ref:`(Wennberg) <Wennberg>`.
 With *none*, it is assumed that no mixing rule is
 applicable. Splitting of the dispersion coefficients will be performed
-as described in :ref:`(Isele-Holder) <Isele-Holder1>`.
+as described in :ref:`(Isele-Holder2) <Isele-Holder1>`.  The *none*
+splitting is only available with the PPPM dispersion solver; with
+*ewald/disp* the *none* value is rejected, while *pair* (the default)
+and *geom* are honored.
 
 This splitting can be influenced with the *splittol* keywords.  Only
 the eigenvalues that are larger than tol compared to the largest
@@ -429,7 +432,7 @@ option is explained in the paper by :ref:`(Yeh) <Yeh>`.  The *slab*
 option is also extended to non-neutral systems :ref:`(Ballenegger)
 <Ballenegger>`.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 As an alternative to specifying a fixed volfactor, the keyword
 *auto* can be used to determine the extended z dimension from the
@@ -456,11 +459,29 @@ in lieu of the volfactor.  This turns off all kspace forces in the z
 direction.  The *nozforce* option is not supported by MSM. For MSM,
 any combination of periodic, non-periodic, or shrink-wrapped
 boundaries can be set using :doc:`boundary <boundary>` (the slab
-approximation in not needed).  The *slab* keyword is not currently
-supported by Ewald or PPPM when using a triclinic simulation cell. The
-slab correction has also been extended to point dipole interactions
-:ref:`(Klapp) <Klapp>` in :doc:`kspace_style <kspace_style>`
-*ewald/disp*, *ewald/dipole*, and *pppm/dipole*\ .
+approximation is not needed).  The *slab* keyword with a *volfactor*
+value (the Yeh-Berkowitz EW3DC correction) supports triclinic
+(non-orthogonal) simulation cells for :doc:`kspace_style <kspace_style>`
+*ewald*, *ewald/disp*, *pppm*, *pppm/cg*, and *pppm/kk* (and the OpenMP
+variants that reuse the same slab-correction setup).  Because the slab
+normal must be the Cartesian z axis, only an *xy* tilt is allowed: a
+triclinic slab box with a non-zero *xz* or *yz* tilt is rejected with an
+error.  The z box length must be held fixed for the duration of the run.
+Triclinic cells are not yet supported with the *slab* keyword for the
+*pppm/tip4p*, *pppm/stagger*, *esp*, *pppm/gpu*, or *pppm/intel* styles,
+nor for the *slab nozforce* and *slab ew2d* options.
+
+The slab correction has also been extended to point dipole
+interactions :ref:`(Klapp) <Klapp>` in :doc:`kspace_style
+<kspace_style>` *ewald/disp*, *ewald/dipole*, and *pppm/dipole*\ .
+This dipole slab correction is currently limited to orthogonal
+(non-triclinic) simulation cells.
+
+.. versionchanged:: 4Jul2026
+
+   The *slab* correction with a *volfactor* value now supports triclinic
+   simulation cells for the *ewald*, *ewald/disp*, *pppm*, *pppm/cg*, and
+   *pppm/kk* styles.
 
 .. note::
 
@@ -473,7 +494,7 @@ slab correction has also been extended to point dipole interactions
 
 The *force/disp/real* and *force/disp/kspace* keywords set the force
 accuracy for the real and reciprocal space computations for the dispersion
-part of pppm/disp. As shown in :ref:`(Isele-Holder) <Isele-Holder1>`,
+part of pppm/disp. As shown in :ref:`(Isele-Holder2) <Isele-Holder1>`,
 optimal performance and accuracy in the results is obtained when these
 values are different.
 
@@ -580,7 +601,7 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Isele-Holder1:
 
-**(Isele-Holder)** Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
+**(Isele-Holder2)** Isele-Holder, Mitchell, Hammond, Kohlmeyer, Ismail, J
 Chem Theory Comput, 9, 5412 (2013).
 
 .. _Wennberg:

@@ -31,6 +31,7 @@ class ComputeRDF : public Compute {
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
+  double memory_usage() override;
 
  protected:
   int nbin;                // # of rdf bins

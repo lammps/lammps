@@ -48,6 +48,9 @@ endif()
 
 if(BUILD_LAMMPS_GUI)
   include(ExternalProject)
+  if(NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Building LAMMPS-GUI currently requires setting -D BUILD_SHARED_LIBS=ON")
+  endif()
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
     GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git

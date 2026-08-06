@@ -4537,3 +4537,10 @@ double FixLbFluid::compute_vector(int n)
       return -1;
   }
 }
+
+//==========================================================================
+
+double FixLbFluid::memory_usage()
+{
+  return (double) atom->nmax * (3 + 1) * sizeof(double);    // hydroF[nmax][3] + massp[nmax]
+}

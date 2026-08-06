@@ -34,6 +34,7 @@ class ComputeFEPTA : public Compute {
   ~ComputeFEPTA() override;
   void init() override;
   void compute_vector() override;
+  double memory_usage() override;
 
  private:
   int tailflag;

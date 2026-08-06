@@ -38,7 +38,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp)
+ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) :
+    Improper(lmp), kw(nullptr), w0(nullptr)
 {
   writedata = 1;
 

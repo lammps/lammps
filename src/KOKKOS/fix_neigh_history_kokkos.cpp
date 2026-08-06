@@ -86,6 +86,7 @@ FixNeighHistoryKokkos<DeviceType>::~FixNeighHistoryKokkos()
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
+  // NOTE: if onsided added, should add surface_global logic
   if (onesided)
     error->all(FLERR,"Fix neigh/history/kk does not (yet) support onesided exchange communication");
 

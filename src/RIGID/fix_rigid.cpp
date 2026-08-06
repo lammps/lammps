@@ -162,6 +162,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) molecule[i] = (tagint) ((tagint) value[i] - minval + 1);
+          else molecule[i] = 0;
         delete[] value;
 
       } else
@@ -1575,9 +1576,9 @@ void FixRigid::set_v()
   if (extended) {
     double *shape,*quatatom,*inertiaatom;
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -1680,13 +1681,11 @@ void FixRigid::setup_bodies_static()
       eflags[i] = 0;
       if (body[i] < 0) continue;
 
-      // set to POINT or SPHERE or ELLIPSOID or LINE
+      // set to POINT or SPHERE or ELLIPSOID or LINE or TRIANGLE
+      // check for bonus data before radius: line and tri particles
+      // also store a bounding-sphere radius for neighboring purposes
 
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         eflags[i] |= ELLIPSOID;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
@@ -1697,6 +1696,10 @@ void FixRigid::setup_bodies_static()
       } else if (tri && tri[i] >= 0) {
         eflags[i] |= TRIANGLE;
         eflags[i] |= ANGMOM;
+        eflags[i] |= TORQUE;
+      } else if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
         eflags[i] |= TORQUE;
       } else eflags[i] |= POINT;
 
@@ -1970,6 +1973,18 @@ void FixRigid::setup_bodies_static()
     if (MathExtra::dot3(cross,ez_space[ibody]) < 0.0)
       MathExtra::negate3(ez_space[ibody]);
 
+    // for 2d, ensure ez points in the +z direction
+    // negate both ey and ez to keep the eigenbasis right-handed
+    // the theta-based orientation bookkeeping for line particles requires
+    //   the body frame to be a pure rotation around the +z axis
+
+    if (domain->dimension == 2) {
+      if (ez_space[ibody][2] < 0.0) {
+        MathExtra::negate3(ey_space[ibody]);
+        MathExtra::negate3(ez_space[ibody]);
+      }
+    }
+
     // create initial quaternion
 
     MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],
@@ -2211,7 +2226,7 @@ void FixRigid::setup_bodies_dynamic()
   // extended particles add their rotation to angmom of body
 
   if (extended) {
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -2270,7 +2285,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
 {
   int nchunk,id,eofflag,xbox,ybox,zbox;
   int nlines;
-  FILE *fp;
+  SafeFilePtr fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE] = {'\0'};
 
@@ -2288,7 +2303,6 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
     if (which == 0)
       utils::logmesg(lmp, "Reading rigid body data for {} bodies from file {}\n", nlines, inpfile);
-    if (nlines == 0) fclose(fp);
   }
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
 
@@ -2375,7 +2389,6 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nread += nchunk;
   }
 
-  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 
@@ -2439,8 +2452,8 @@ double FixRigid::memory_usage()
   bytes += (double)maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
     bytes += (double)nmax * sizeof(int);
-    if (orientflag) bytes = (double)nmax*orientflag * sizeof(double);
-    if (dorientflag) bytes = (double)nmax*3 * sizeof(double);
+    if (orientflag) bytes += (double)nmax*orientflag * sizeof(double);
+    if (dorientflag) bytes += (double)nmax*3 * sizeof(double);
   }
   return bytes;
 }

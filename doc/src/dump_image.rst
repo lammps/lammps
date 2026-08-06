@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue* or *defocus* or *outline*
 
   .. parsed-literal::
 
@@ -32,7 +32,9 @@ Syntax
        *adiam* size = numeric value for atom diameter (distance units)
        *autobond* values = cutoff width = bond cutoff and width of bonds
        *bond* values = color width = color and width of bonds
-         color = *atom* or *type* or *none*
+         color = *atom* or *type* or *none* or c_ID or c_ID[I]
+           c_ID = per-bond vector computed by a local compute with ID
+           c_ID[I] = Ith column of per-bond array computed by a local compute with ID
          width = number or *atom* or *type* or *none*
            number = numeric value for bond width (distance units)
        *grid* = per-grid value to use when coloring each grid cell
@@ -113,6 +115,19 @@ Syntax
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
+       *depthcue* values = cueing cfactor color start = depth cueing
+         cueing = *yes* or *no* = turn depth cueing on/off
+         cfactor = strength of fading from 0.0 to 1.0
+         color = fog color name or *auto* = fade toward the background color
+         start = box fraction along the view direction where fading starts, or *auto* = nearest rendered object
+       *defocus* values = blurring bfactor start = defocus of distant objects
+         blurring = *yes* or *no* = turn defocusing on/off
+         bfactor = strength of the blur from 0.0 to 1.0
+         start = box fraction along the view direction where blurring starts, or *auto* = nearest rendered object
+       *outline* values = flag width color = outlines at depth jumps
+         flag = *yes* or *no* = turn outline drawing on/off
+         width = width of the outlines in pixels (from 1 to 16)
+         color = color name of the outlines
 
 .. _dump_modify_image:
 
@@ -127,7 +142,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *lights* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *specular* or *metal* or *metalfinish* or *ssaosamples* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -186,8 +201,20 @@ Syntax
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
+       *gamma* arg = gvalue
+         gvalue = gamma adjustment applied to rendered objects (from 0.1 to 10.0, 1.0 = no change)
+       *gtrans* arg = transparency
+         transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
        *lights* args = ambient key fill back
          ambient key fill back = set light intensity value from 0.0 to 1.0
+       *specular* arg = style
+         style = *none* or *wide* or *narrow* or *tight* = specular highlights off or their width
+       *metal* arg = mfactor
+         mfactor = how metallic the rendered objects appear, from 0.0 (paint) to 1.0 (bare metal)
+       *metalfinish* arg = style
+         style = *satin* or *polished* or *mirror* = surface finish of metallic objects
+       *ssaosamples* arg = nsamples
+         nsamples = number of SSAO sampling directions per pixel (from 4 to 64)
        *loadcolors* arg = filename
          filename = load color definitions, per-type colors, and lights from JSON format file
        *savecolors* arg = filename
@@ -209,6 +236,7 @@ Syntax
        *framerate* arg = fps
          fps = frames per second for movie
        *gmap* args = identical to *amap* args
+       *bmap* args = identical to *amap* args
 
 Examples
 """"""""
@@ -351,7 +379,7 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    Extended list of colors from 6 to 16
 
@@ -457,7 +485,7 @@ If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    Extended list of default colors from 6 to 16
 
@@ -468,6 +496,23 @@ orange, lime, gray, darkred, darkgreen, darkblue, darkcyan, darkmagenta,
 and darkgray for the first 16 bond types and repeats itself after that.
 This mapping can be changed by the "dump_modify bcolor" command, as
 described below.
+
+.. versionadded:: 4Jul2026
+
+If a compute reference *c_ID* or *c_ID[I]* is specified for the *color*
+value, then each bond is colored by a per-bond value taken from that
+compute, mapped to a color through a color map (set with the
+"dump_modify bmap" command, described below) in the same way per-atom
+values are mapped via *amap*.  The referenced compute must produce
+*local* per-bond data, for example :doc:`compute bond/local
+<compute_bond_local>` with the *dist* (bond length) or *engpot* (bond
+energy) attribute.  Use *c_ID* when the compute produces a per-bond
+vector (a single attribute) and *c_ID[I]* to select column *I* when it
+produces a per-bond array (multiple attributes).  The compute must
+generate one value for each bond that is drawn, in the same order, so it
+should compute over the same set of bonds as is being visualized
+(typically the *all* group).  If the number of values produced does not
+match the number of bonds drawn, LAMMPS stops with an error.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -674,7 +719,7 @@ and fix commands are in the :doc:`Howto_viz` howto.
 
    draw style *transparent* was added
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    draw triangulated hull from random points for region style *intersect* or *union*
 
@@ -838,6 +883,85 @@ in combination with the *fsaa* keyword the computational cost of depth
 shading is particularly large.  In case LAMMPS has been :doc:`compiled
 with OpenMP support <Build_basics>`, the SSAO processing is distributed
 across multiple threads.
+
+.. versionchanged:: TBD
+
+The randomization of the SSAO shading is now computed from a
+deterministic noise pattern derived from the pixel position and the
+*seed* value.  Rendered images no longer depend on the number of MPI
+ranks or OpenMP threads, and images of an unchanged scene are exactly
+reproducible, which avoids flickering shading in movies.  Different
+*seed* values shift the noise pattern.
+
+.. versionadded:: TBD
+
+The *depthcue* keyword turns on/off depth cueing.  If *yes* is set,
+rendered objects fade toward the fog color the more distant from the
+viewer they are, similar to looking through fog.  This is perceived as
+depth and helps to visually untangle dense systems.  The *cfactor*
+value scales the strength of the fading: with *cfactor* = 1.0 the most
+distant objects blend completely into the fog color, smaller values
+reduce the maximum amount of fading.  The *color* setting selects the
+fog color: with *auto* the objects fade toward the background color,
+following the background gradient when one is set with the *backcolor2*
+option; any color name known to LAMMPS selects that color instead,
+e.g. white or gray fog over a dark background.  The *start* setting
+determines where the fading begins.  With *auto* it begins at the
+nearest rendered object, so the front of the scene never fades.
+A numeric value instead positions the start as a fraction of the
+simulation box projected onto the view direction, similar to the
+fractions of the *center* keyword but reduced to a single number: 0.0
+starts the fading at the side of the box nearest to the camera, 0.5 at
+its middle, and 1.0 at its far side; values outside this range are
+allowed.  Objects in front of the start position are not faded, which
+avoids darkening most of the scene when the rendered objects span a
+large depth range.  The fading always ends at the most distant rendered
+object.  Unlike the *ssao* keyword, depth cueing adds no significant
+computational cost, and both can be combined.
+
+.. versionadded:: TBD
+
+The *defocus* keyword turns on/off defocusing of distant objects.  If
+*yes* is set, objects are blurred the more distant from the viewer they
+are, as if the camera were focused on the front of the scene.  This
+draws the attention to the objects in front and is often more effective
+for that purpose than the *depthcue* keyword, since it leaves the colors
+of the distant objects untouched.  Both can also be combined.
+
+The *bfactor* value scales the strength of the blur: with *bfactor* =
+1.0 the most distant objects are blurred over a radius of 1 percent of
+the image height, smaller values reduce the blur accordingly.  Blurring
+over much more than the size of the rendered particles turns them into a
+uniform haze, which looks like fog rather than like a photograph taken
+with a shallow depth of field, so moderate values usually give the best
+result.  The *start* setting determines where the blurring begins and
+uses the same convention as the *start* setting of the *depthcue*
+keyword: with *auto* it begins at the nearest rendered object, so the
+front of the scene stays sharp, while a numeric value positions the
+start as a fraction of the simulation box projected onto the view
+direction, with 0.0 at the side of the box nearest to the camera, 0.5 at
+its middle, and 1.0 at its far side.  Objects in front of the start
+position are not blurred, and the blur always reaches its maximum at the
+most distant rendered object.
+
+Only objects behind the start position are blurred; unlike a camera lens
+this does not blur objects in front of the plane of focus.  The cost of
+the blurring is much smaller than that of the *ssao* keyword and grows
+with the *bfactor* value, since wider blurs need more samples per pixel.
+As with the *ssao* keyword, the result does not depend on the number of
+MPI ranks or OpenMP threads, so images of an unchanged scene are exactly
+reproducible.
+
+.. versionadded:: TBD
+
+The *outline* keyword turns on/off drawing outlines where the distance
+from the viewer jumps, i.e. along the visible edges of atoms and other
+objects in front of the background or in front of more distant objects.
+This produces a flat, illustration-like appearance similar to
+hand-drawn molecular graphics, especially when combined with reduced
+shininess or increased ambient lighting.  The *width* value sets the
+width of the outlines in pixels of the final image; the *color* value
+sets their color, e.g. black.
 
 ----------
 
@@ -1168,15 +1292,17 @@ equivalent.
 
 .. versionadded:: 11Feb2026
 
+.. versionchanged:: TBD
+
 Various graphical objects in *dump image* output can be rendered in a
 transparent fashion using the so-called screen-door transparency method.
 This means that only a subset of pixels for a graphical object are
 written to the image.  This can be controlled with various
 *dump\_modify* settings: *atrans* for atoms, *btrans* for bonds,
-*axestrans* for axes lines, *boxtrans* for the simulation box, and
-*subboxtrans* for the subdomain box lines.  The transparency value
-must be between 0.0 (invisible) and 1.0 (fully opaque).  The default
-setting for all is 1.0.
+*gtrans* for grids, *axestrans* for axes lines, *boxtrans* for the
+simulation box, and *subboxtrans* for the subdomain box lines.  The
+transparency value must be between 0.0 (invisible) and 1.0 (fully
+opaque).  The default setting for all is 1.0.
 
 Recommended transparency values are 0.25, 0.5, or 0.75 when used in
 combination with *fsaa on*.
@@ -1227,7 +1353,21 @@ The arguments for the *gmap* keyword are identical to those for the
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
+
+The *bmap* keyword can be used with the dump image command, with its
+*bond* keyword, when the bond *color* value is a compute reference
+(*c_ID* or *c_ID[I]*), to setup a color map.  The color map is used to
+assign a specific RGB (red/green/blue) color value to an individual bond
+when it is drawn, based on the per-bond value returned by the referenced
+compute.
+
+The arguments for the *bmap* keyword are identical to those for the
+*amap* keyword (for atom coloring) described above.
+
+----------
+
+.. versionadded:: 4Jul2026
 
 The *lights* keyword can be used to set the relative intensities of the
 four light sources used to illuminate the scene: *ambient*, *key*,
@@ -1243,9 +1383,93 @@ the main highlights. The *fill* light is a secondary light source that
 softens shadows created by the key light. The *back* light illuminates
 the scene from behind the camera to provide depth.
 
-----------
+.. versionadded:: TBD
+
+The *gamma* keyword adjusts the gamma value of the rendered objects:
+the summed up light contributions of each pixel are raised to the power
+of 1/*gvalue* before they are converted to the 8-bit color values of
+the image file, similar to the gamma adjustment of image manipulation
+programs.  A value larger than 1.0 lightens the image, most strongly in
+the darker regions, and thus can bring out shading detail on the dimly
+lit side of objects; a value smaller than 1.0 darkens the image and
+increases the contrast.  The default rendering is already tuned to look
+right on typical displays, and no gamma information is stored in the
+image files, so this setting fine-tunes the tonal balance rather than
+applying a required display correction.  The adjustment applies only to
+rendered objects; the background colors are used exactly as
+specified.
 
 .. versionadded:: TBD
+
+The *specular* keyword adjusts the specular highlights independently
+from the *shiny* keyword of the dump image command.  The *none*
+setting turns the highlights off entirely, which results in a rough,
+matte surface appearance from the remaining diffuse lighting.  The
+other settings select the width of the highlights: *wide* highlights
+are close to the default appearance, *narrow* highlights are visibly
+smaller, and *tight* produces small sharp highlights with a
+plastic-like appearance.  The *sfactor* value of the *shiny* keyword
+scales the brightness of the highlights; without the *specular*
+keyword it also sets their width.
+
+.. versionadded:: TBD
+
+The *metal* keyword makes objects look like they are made of metal
+rather than of colored plastic.  Painted surfaces scatter light in all
+directions and reflect it without changing its color, which is what the
+rendering does by default; polished metal instead reflects light back
+directly and colors it in the process.  An *mfactor* value of 0.0 keeps
+the default appearance, 1.0 renders bare metal, and values in between
+blend the two.
+
+Since metal shows its surroundings rather than a color of its own, the
+rendering approximates them with a bright sky above and a dark ground
+below.  This is why metallic objects have a bright upper and a dark
+lower half, and why they need a dark background to look convincing.
+The *color* assigned to an object tints these reflections, so gold
+objects show a golden sheen and aluminum ones a neutral gray sheen.
+The pre-defined color *silver* is a good match for aluminum.  Colors
+chosen for paint are often too saturated for metal: for gold, for
+example, defining a color with the *color* keyword using the values
+1.0 0.766 0.336 looks more like the metal than the pre-defined color
+*gold* does.
+
+.. note::
+
+   These settings imitate the appearance of metal with a few extra
+   operations per pixel.  They do not compute how light actually
+   travels through the scene.  For images where the appearance of the
+   material matters, exporting the atom positions and rendering them
+   with a ray tracing program will always give better results than any
+   combination of these settings.
+
+.. versionadded:: TBD
+
+The *metalfinish* keyword selects the surface finish used when the
+*metal* keyword is enabled.  A *satin* finish has a broad soft sheen
+and resembles brushed metal such as aluminum.  A *polished* finish
+concentrates the sheen into a narrower streak.  A *mirror* finish
+reflects the surroundings the way a curved mirror does, which makes
+spheres look like polished ball bearings, with a darker lower half than
+the other two settings.  This keyword has no effect unless the *metal*
+keyword is set to a value larger than 0.0.
+
+.. versionadded:: TBD
+
+The *ssaosamples* keyword sets the number of directions that the SSAO
+depth shading enabled by the *ssao* keyword examines around each
+pixel.  More directions produce smoother shading; fewer directions
+render proportionally faster but make the shading grainier.  Without
+this setting the number of directions is derived from the *dfactor*
+value of the *ssao* keyword and ranges from 8 to 40.  Reducing the
+number of directions is a simple way to trade some image quality for
+faster image output, for example for preview renderings.  The
+graininess is less visible when the *fsaa* keyword of the dump image
+command is also enabled.
+
+----------
+
+.. versionadded:: 4Jul2026
 
 The *loadcolors* and *savecolors* keywords can be used to read or write
 the current per-atom-type color assignments and their definitions from
@@ -1370,6 +1594,9 @@ The defaults for the dump image and dump movie keywords are as follows:
 * shiny = 1.0
 * ssao = no
 * fsaa = no
+* depthcue = no
+* defocus = no
+* outline = no
 
 ----------
 
@@ -1389,7 +1616,12 @@ The defaults for the dump_modify keywords specific to dump image and dump movie 
 * boxtrans = 1.0
 * subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
+* gamma = 1.0
 * lights = 0.0 0.9 0.45 0.9
+* specular = width derived from the *shiny* keyword of the dump image command
+* metal = 0.0
+* metalfinish = satin
+* ssaosamples = number derived from the *dfactor* value of the *ssao* keyword
 * bitrate = 2000
 * framerate = 24
 * gmap = min max cf 0.0 2 min blue max red
@@ -1403,6 +1635,22 @@ Default color sequence: |color_red|  |color_forestgreen|  |color_blue|
 
 These are the standard 109 element names that LAMMPS pre-defines for
 use with the dump image and dump_modify commands.
+
+.. versionchanged:: TBD
+
+The pre-defined colors of the metals magnesium, aluminum, zinc,
+mercury, silver, titanium, chromium, manganese, iron, cobalt, nickel,
+copper, gold, tin, and lead were changed to match the appearance of the
+metals more closely.  Most of them previously shared one generic gray,
+and chromium was green, which is the color of chromium oxide rather
+than of the metal.  The colors also account for how the surfaces of
+these metals typically look: silver is slightly yellow, iron is darker
+and duller than the polished metals, tin and lead are dull with lead
+the darker and more blue of the two, cobalt is distinctly blue and
+manganese faintly pink, while magnesium, aluminum, zinc, and chromium
+keep their bright surfaces.  Images that color atoms by element and use
+any of these fifteen elements will look different than with earlier
+LAMMPS versions.
 
 * 1-10 = "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"
 * 11-20 = "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"

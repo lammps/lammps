@@ -50,7 +50,11 @@ static const char cite_style_classII_xe[] =
 
 /* ---------------------------------------------------------------------- */
 
-AngleClass2xe::AngleClass2xe(LAMMPS *lmp) : Angle(lmp)
+AngleClass2xe::AngleClass2xe(LAMMPS *lmp) :
+    Angle(lmp), theta0(nullptr), k2(nullptr), k3(nullptr), k4(nullptr), bb_d0(nullptr),
+    bb_alpha(nullptr), bb_r1(nullptr), bb_r2(nullptr), ba_d1(nullptr), ba_d2(nullptr),
+    ba_alpha1(nullptr), ba_alpha2(nullptr), ba_r1(nullptr), ba_r2(nullptr), setflag_a(nullptr),
+    setflag_bb(nullptr), setflag_ba(nullptr)
 {
    if (lmp->citeme) lmp->citeme->add(cite_style_classII_xe);
 }

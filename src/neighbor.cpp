@@ -107,8 +107,10 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
-pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
+Neighbor::Neighbor(LAMMPS *lmp) :
+    Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), bondlist(nullptr), anglelist(nullptr),
+    dihedrallist(nullptr), improperlist(nullptr), corners(nullptr), pairclass(nullptr),
+    pairnames(nullptr), pairmasks(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -784,6 +786,19 @@ void Neighbor::init_styles()
 }
 
 /* ----------------------------------------------------------------------
+   base class has no KOKKOS neighbor lists; reaching this means a KOKKOS
+   neighbor list was requested without the KOKKOS package, which cannot happen
+   (a KOKKOS request implies the neighbor object is a NeighborKokkos, whose
+   override assigns lists[i]).  Fail loudly rather than leave lists[i] unset.
+------------------------------------------------------------------------- */
+
+void Neighbor::create_kokkos_list(int /*i*/)
+{
+  error->all(FLERR, "Internal error: KOKKOS neighbor list requested without "
+             "the KOKKOS package");
+}
+
+/* ----------------------------------------------------------------------
    create and initialize NPair classes
 ------------------------------------------------------------------------- */
 
@@ -896,8 +911,8 @@ int Neighbor::init_pair()
   nlist = nrequest;
 
   lists = new NeighList*[nrequest];
-  neigh_bin = new NBin*[nrequest];
-  neigh_stencil = new NStencil*[nrequest];
+  neigh_bin = new NBin*[nrequest]();
+  neigh_stencil = new NStencil*[nrequest]();
   neigh_pair = new NPair*[nrequest];
 
   // allocate new lists
@@ -1240,7 +1255,7 @@ void Neighbor::morph_skip()
   NeighRequest *irq, *jrq, *nrq;
 
   // loop over irq from largest to smallest cutoff
-  //  to prevent adding unecessary neighbor lists
+  //  to prevent adding unnecessary neighbor lists
 
   for (i = nrequest - 1; i >= 0; i--) {
     irq = requests[j_sorted[i]];
@@ -1298,11 +1313,12 @@ void Neighbor::morph_skip()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // NOTE: need check for 2 Kokkos flags?
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1319,12 +1335,12 @@ void Neighbor::morph_skip()
     // else create a new identical list except non-skip
     // for new list, set neigh = 1, skip = 0, no skip vec/array,
     //   copy unique flag (since copy_request() will not do it)
-    // note: parents of skip lists do not have associated history
-    //   b/c child skip lists have the associated history
+    // ensure parent history flag is set if any child sets history flag
 
     if (jj < nrequest) {
       irq->skiplist = j;
       irq->trim = trim_flag;
+      if (irq->history) jrq->history = 1;
     } else {
       int newrequest = request(this, -1);
       irq->skiplist = newrequest;
@@ -1334,6 +1350,7 @@ void Neighbor::morph_skip()
       nrq->pair = nrq->fix = nrq->compute = nrq->command = 0;
       nrq->neigh = 1;
       nrq->skip = 0;
+      if (irq->history) nrq->history = 1;
       if (irq->unique) nrq->unique = 1;
 
       sort_requests();
@@ -1389,8 +1406,8 @@ void Neighbor::morph_granular()
     // force parent newton off (newton = 2) to enable onesided skip by child
     // set parent granonesided = 0, so it stores all neighs in usual manner
     // set off2on = 1 for all children, since they expect newton on lists
-    //   this is b/c granonesided only set by line/gran and tri/gran which
-    //   both require system newton on
+    //   this is b/c granonesided is currently only set by line/tri gran
+    //   both of those pair styles require newton on
 
     if (onesided == 2) {
       irq->newton = 2;
@@ -1462,10 +1479,12 @@ void Neighbor::morph_halffull()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1575,11 +1594,13 @@ void Neighbor::morph_copy_trim()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // no need to check omp b/c it stores same pairs
-      // NOTE: need check for 2 Kokkos flags?
+      // ghost flag logic was checked above
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // no need to check for omp flag b/c it stores same pairs
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
       if (irq->kokkos_host && !jrq->kokkos_host) continue;
@@ -1624,7 +1645,7 @@ void Neighbor::init_topology()
   // set flags that determine which topology neighbor classes to use
   // these settings could change from run to run, depending on fixes defined
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
-  // SHAKE sets bonds and angles negative
+  // SHAKE and ILVES set bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // partial_flag sets bonds to 0
   // delete_bonds sets all interactions negative
@@ -1635,7 +1656,8 @@ void Neighbor::init_topology()
   int improper_off = 0;
 
   for (const auto &ifix : modify->get_fix_list()) {
-    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle"))
+    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle") ||
+        utils::strmatch(ifix->style, "^ilves"))
       bond_off = angle_off = 1;
     if (utils::strmatch(ifix->style, "gcmc"))
       bond_off = angle_off = dihedral_off = improper_off = 1;
@@ -2158,12 +2180,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   int molecular = atom->molecular;
 
-  //printf("PAIR RQ FLAGS: hf %d %d n %d g %d sz %d gos %d r %d b %d o %d i %d "
-  //       "kk %d %d ss %d dn %d sk %d cp %d hf %d oo %d\n",
-  //        rq->half,rq->full,rq->newton,rq->ghost,rq->size,
-  //        rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
-  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,rq->dnum,
-  //      rq->skip,rq->copy,rq->halffull,rq->off2on);
+  //printf("PAIR RQ FLAGS: hf %d %d nw %d gh %d sz %d gos %d ro %d bn %d om %d in %d "
+  //       "kk %d %d ss %d sk %d cp %d hf %d o2o %d\n",
+  //       rq->half,rq->full,rq->newton,rq->ghost,rq->size,
+  //       rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
+  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,
+  //       rq->skip,rq->copy,rq->halffull,rq->off2on);
 
   // use request and system settings to match exactly one NPair class mask
   // checks are bitwise using NeighConst bit masks

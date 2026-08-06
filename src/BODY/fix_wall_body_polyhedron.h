@@ -33,6 +33,7 @@ class FixWallBodyPolyhedron : public Fix {
   void setup(int) override;
   void post_force(int) override;
   void reset_dt() override;
+  double memory_usage() override;
 
   int image(int *&, double **&) override;
 

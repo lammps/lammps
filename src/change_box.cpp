@@ -15,6 +15,7 @@
 #include "change_box.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -24,6 +25,7 @@
 #include "lattice.h"
 #include "modify.h"
 #include "output.h"
+#include "thermo.h"
 
 #include <cmath>
 #include <cstring>
@@ -36,7 +38,8 @@ enum{X=0,Y,Z,YZ,XZ,XY};
 
 /* ---------------------------------------------------------------------- */
 
-ChangeBox::ChangeBox(LAMMPS *lmp) : Command(lmp) {}
+ChangeBox::ChangeBox(LAMMPS *lmp) : Command(lmp), ops(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
@@ -372,14 +375,45 @@ void ChangeBox::command(int narg, char **arg)
   delete irregular;
   if (domain->triclinic) domain->lamda2x(atom->nlocal);
 
-  // check if any atoms were lost
+  // delete atoms that now lie outside non-periodic boundaries.
+  // migrate_atoms() only clamps such atoms onto the nearest proc rather than
+  // removing them, so they must be culled here (as comm->exchange() does
+  // during a run) for the lost-atom count below to be meaningful.
 
-  bigint natoms;
+  AtomVec *avec = atom->avec;
+  x = atom->x;
+  i = 0;
+  while (i < atom->nlocal) {
+    if (!domain->inside_nonperiodic(x[i])) {
+      avec->copy(atom->nlocal-1,i,1);
+      atom->nlocal--;
+    } else i++;
+  }
+
+  // rebuild the atom map since atoms may have been removed
+
+  if (atom->map_style != Atom::MAP_NONE) {
+    atom->nghost = 0;
+    atom->map_init();
+    atom->map_set();
+  }
+
+  // check if any atoms were lost and apply the lost-atoms policy set by
+  // thermo_modify lost: "error" aborts, "warn" warns and continues, "ignore"
+  // is silent.  reset atom->natoms so the system stays self-consistent.
+
   bigint nblocal = atom->nlocal;
+  bigint natoms;
   MPI_Allreduce(&nblocal,&natoms,1,MPI_LMP_BIGINT,MPI_SUM,world);
-  if (natoms != atom->natoms && comm->me == 0)
-    error->warning(FLERR,"Lost atoms via change_box: original {} current {}"+utils::errorurl(8),
-                   atom->natoms,natoms);
+  if (natoms != atom->natoms) {
+    if (output->thermo->lostflag == Thermo::ERROR)
+      error->all(FLERR,"Lost atoms via change_box: original {} current {}"
+                 + utils::errorurl(8), atom->natoms, natoms);
+    if ((output->thermo->lostflag == Thermo::WARN) && (comm->me == 0))
+      error->warning(FLERR,"Lost atoms via change_box: original {} current {}"
+                     + utils::errorurl(8), atom->natoms, natoms);
+    atom->natoms = natoms;
+  }
 }
 
 /* ----------------------------------------------------------------------

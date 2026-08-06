@@ -26,6 +26,7 @@
 #include <cstring>
 
 #include "omp_compat.h"
+
 using namespace LAMMPS_NS;
 using namespace MathExtra;
 using namespace EwaldConst;
@@ -46,8 +47,8 @@ void PairBuckLongCoulLongOMP::compute(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
 
-  const int order1 = ewald_order&(1<<1);
-  const int order6 = ewald_order&(1<<6);
+  const int order1 = ewald_order & EWALD_COUL;
+  const int order6 = ewald_order & EWALD_DISP;
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -363,8 +364,8 @@ void PairBuckLongCoulLongOMP::compute_middle()
 void PairBuckLongCoulLongOMP::compute_outer(int eflag, int vflag)
 {
   ev_init(eflag,vflag);
-  const int order1 = ewald_order&(1<<1);
-  const int order6 = ewald_order&(1<<6);
+  const int order1 = ewald_order & EWALD_COUL;
+  const int order6 = ewald_order & EWALD_DISP;
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
@@ -643,15 +644,12 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
-  const double *x0 = x[0];
-  double *f0 = f[0], *fi = f0;
-
   int *ilist = list->ilist;
 
   // loop over neighbors of my atoms
 
-  int i, ii, j;
-  int *jneigh, *jneighn, typei, typej, ni;
+  int i, ii, j, jj;
+  int typei, typej, ni;
   double qi = 0.0, qri = 0.0, *cutsqi, *cut_bucksqi,
          *buck1i, *buck2i, *buckai, *buckci, *rhoinvi, *offseti;
   double r, rsq, r2inv, force_coul, force_buck;
@@ -659,116 +657,122 @@ void PairBuckLongCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
-    i = ilist[ii]; fi=f0+3*i;
+    i = ilist[ii];
     if (ORDER1) qri = (qi = q[i])*qqrd2e;                // initialize constants
-    offseti = offset[typei = type[i]];
+    typei = type[i];
+    offseti = offset[typei];
     buck1i = buck1[typei]; buck2i = buck2[typei];
-    buckai = buck_a[typei]; buckci = buck_c[typei], rhoinvi = rhoinv[typei];
+    buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
-    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    xi[0] = x[i][0]; xi[1] = x[i][1]; xi[2] = x[i][2];
+    int *jlist = list->firstneigh[i];
+    int jnum = list->numneigh[i];
 
-    for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
-      j = *jneigh;
+    for (jj = 0; jj < jnum; jj++) {                           // loop over neighbors
+      j = jlist[jj];
       ni = sbmask(j);
       j &= NEIGHMASK;
 
-      { const double *xj = x0+(j+(j<<1));
-        d[0] = xi[0] - xj[0];                                // pair vector
-        d[1] = xi[1] - xj[1];
-        d[2] = xi[2] - xj[2]; }
+      d[0] = xi[0] - x[j][0];                                 // pair vector
+      d[1] = xi[1] - x[j][1];
+      d[2] = xi[2] - x[j][2];
 
-      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
+      rsq = dot3(d, d);
+      typej = type[j];
+      if (rsq >= cutsqi[typej]) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
 
       if (ORDER1 && (rsq < cut_coulsq)) {                // coulombic
         if (!CTABLE || rsq <= tabinnersq) {        // series real space
-          double x = g_ewald*r;
-          double s = qri*q[j], t = 1.0/(1.0+EWALD_P*x);
+          double grij = g_ewald*r;
+          double t = 1.0/(1.0+EWALD_P*grij);
+          double erfc_poly = ((((t*A5+A4)*t+A3)*t+A2)*t+A1);
+          double pre = qri*q[j];                            // qqrd2e * qi * qj
           if (ni == 0) {
-            s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s;
+            pre *= g_ewald*exp(-grij*grij);
+            t *= erfc_poly*pre/grij;
+            force_coul = t+EWALD_F*pre;
             if (EFLAG) ecoul = t;
           } else {                                        // special case
-            double f = s*(1.0-special_coul[ni])/r;
-            s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-f;
-            if (EFLAG) ecoul = t-f;
+            double adjust = pre*(1.0-special_coul[ni])/r;
+            pre *= g_ewald*exp(-grij*grij);
+            t *= erfc_poly*pre/grij;
+            force_coul = t+EWALD_F*pre-adjust;
+            if (EFLAG) ecoul = t-adjust;
           }
         } else {                                               // table real space
-          union_int_float_t t;
-          t.f = rsq;
-          const int k = (t.i & ncoulmask) >> ncoulshiftbits;
-          double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
+          union_int_float_t rsq_lookup;
+          rsq_lookup.f = rsq;
+          const int k = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+          double fraction = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
           if (ni == 0) {
-            force_coul = qiqj*(ftable[k]+f*dftable[k]);
-            if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]);
+            force_coul = qiqj*(ftable[k]+fraction*dftable[k]);
+            if (EFLAG) ecoul = qiqj*(etable[k]+fraction*detable[k]);
           } else {                                        // special case
-            t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-            force_coul = qiqj*(ftable[k]+f*dftable[k]-(double)t.f);
-            if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]-(double)t.f);
+            rsq_lookup.f = (1.0-special_coul[ni])*(ctable[k]+fraction*dctable[k]);
+            force_coul = qiqj*(ftable[k]+fraction*dftable[k]-(double)rsq_lookup.f);
+            if (EFLAG) ecoul = qiqj*(etable[k]+fraction*detable[k]-(double)rsq_lookup.f);
           }
         }
       } else force_coul = ecoul = 0.0;
 
       if (rsq < cut_bucksqi[typej]) {                        // buckingham
-        double rn = r2inv*r2inv*r2inv,
+        double r6inv = r2inv*r2inv*r2inv,
                         expr = exp(-r*rhoinvi[typej]);
         if (ORDER6) {                                        // long-range
           if (!DISPTABLE || rsq <= tabinnerdispsq) {
-            double x2 = g2*rsq, a2 = 1.0/x2;
-            x2 = a2*exp(-x2)*buckci[typej];
+            double gr2 = g2*rsq, a2 = 1.0/gr2;
+            double expterm = a2*exp(-gr2)*buckci[typej];
+            double g6term = g6*((a2+1.0)*a2+0.5)*expterm;
+            double g8term = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*expterm*rsq;
             if (ni == 0) {
-              force_buck =
-                r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq;
-              if (EFLAG) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
+              force_buck = r*expr*buck1i[typej]-g8term;
+              if (EFLAG) evdwl = expr*buckai[typej]-g6term;
             } else {                                        // special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              force_buck = f*r*expr*buck1i[typej]-
-                g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*buck2i[typej];
-              if (EFLAG) evdwl = f*expr*buckai[typej] -
-                           g6*((a2+1.0)*a2+0.5)*x2+t*buckci[typej];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              force_buck = factor*r*expr*buck1i[typej]-g8term+t*buck2i[typej];
+              if (EFLAG) evdwl = factor*expr*buckai[typej]-g6term+t*buckci[typej];
             }
           } else {                                              //table real space
-            union_int_float_t disp_t;
-            disp_t.f = rsq;
-            const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            const int disp_k = (rsq_lookup.i & ndispmask)>>ndispshiftbits;
             double f_disp = (rsq-rdisptable[disp_k])*drdisptable[disp_k];
+            double ftable_disp = fdisptable[disp_k]+f_disp*dfdisptable[disp_k];
+            double etable_disp = edisptable[disp_k]+f_disp*dedisptable[disp_k];
             if (ni == 0) {
-              force_buck = r*expr*buck1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej];
-              if (EFLAG) evdwl = expr*buckai[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej];
-            } else {                                             //speial case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              force_buck = f*r*expr*buck1i[typej] -(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej] +t*buck2i[typej];
-              if (EFLAG) evdwl = f*expr*buckai[typej] -(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej]+t*buckci[typej];
+              force_buck = r*expr*buck1i[typej]-ftable_disp*buckci[typej];
+              if (EFLAG) evdwl = expr*buckai[typej]-etable_disp*buckci[typej];
+            } else {                                             //special case
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              force_buck = factor*r*expr*buck1i[typej]-ftable_disp*buckci[typej]+t*buck2i[typej];
+              if (EFLAG) evdwl = factor*expr*buckai[typej]-etable_disp*buckci[typej]+t*buckci[typej];
             }
           }
         } else {                                                // cut
           if (ni == 0) {
-            force_buck = r*expr*buck1i[typej]-rn*buck2i[typej];
-            if (EFLAG) evdwl = expr*buckai[typej] -
-                         rn*buckci[typej]-offseti[typej];
+            force_buck = r*expr*buck1i[typej]-r6inv*buck2i[typej];
+            if (EFLAG) evdwl = expr*buckai[typej]-r6inv*buckci[typej]-offseti[typej];
           } else {                                        // special case
-            double f = special_lj[ni];
-            force_buck = f*(r*expr*buck1i[typej]-rn*buck2i[typej]);
+            double factor = special_lj[ni];
+            force_buck = factor*(r*expr*buck1i[typej]-r6inv*buck2i[typej]);
             if (EFLAG)
-              evdwl = f*(expr*buckai[typej]-rn*buckci[typej]-offseti[typej]);
+              evdwl = factor*(expr*buckai[typej]-r6inv*buckci[typej]-offseti[typej]);
           }
         }
       } else force_buck = evdwl = 0.0;
 
       fpair = (force_coul+force_buck)*r2inv;
 
+      double fdx = d[0]*fpair, fdy = d[1]*fpair, fdz = d[2]*fpair;
+      f[i][0] += fdx;
+      f[i][1] += fdy;
+      f[i][2] += fdz;
       if (NEWTON_PAIR || j < nlocal) {
-        double *fj = f0+(j+(j<<1)), f;
-        fi[0] += f = d[0]*fpair; fj[0] -= f;
-        fi[1] += f = d[1]*fpair; fj[1] -= f;
-        fi[2] += f = d[2]*fpair; fj[2] -= f;
-      } else {
-        fi[0] += d[0]*fpair;
-        fi[1] += d[1]*fpair;
-        fi[2] += d[2]*fpair;
+        f[j][0] -= fdx;
+        f[j][1] -= fdy;
+        f[j][2] -= fdz;
       }
 
       if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
@@ -792,9 +796,6 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
-  const double *x0 = x[0];
-  double *f0 = f[0], *fi = nullptr;
-
   int *ilist = list->ilist_inner;
 
   const int newton_pair = force->newton_pair;
@@ -806,32 +807,33 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
   const double cut_out_on_sq = cut_out_on*cut_out_on;
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
-
-  int *jneigh, *jneighn, typei, typej, ni;
-  const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
-  int i, j, ii;
+  int typei, typej, ni;
+  const int order1 = (ewald_order | ~ewald_off) & EWALD_COUL;
+  int i, j, ii, jj;
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
   double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
-    i = ilist[ii]; fi = f0+3*i;
+    i = ilist[ii];
     if (order1) qri = qqrd2e*q[i];
-    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    cut_bucksqi = cut_bucksq[typei = type[i]];
+    xi[0] = x[i][0]; xi[1] = x[i][1]; xi[2] = x[i][2];
+    typei = type[i];
+    cut_bucksqi = cut_bucksq[typei];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = list->firstneigh_inner[i])+list->numneigh_inner[i];
+    int *jlist = list->firstneigh_inner[i];
+    int jnum = list->numneigh_inner[i];
 
-    for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
-      j = *jneigh;
+    for (jj = 0; jj < jnum; jj++) {                           // loop over neighbors
+      j = jlist[jj];
       ni = sbmask(j);
       j &= NEIGHMASK;
 
-      { const double *xj = x0+(j+(j<<1));
-        d[0] = xi[0] - xj[0];                                // pair vector
-        d[1] = xi[1] - xj[1];
-        d[2] = xi[2] - xj[2]; }
+      d[0] = xi[0] - x[j][0];                                 // pair vector
+      d[1] = xi[1] - x[j][1];
+      d[2] = xi[2] - x[j][2];
 
-      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
+      rsq = dot3(d, d);
+      if (rsq >= cut_out_off_sq) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
 
@@ -839,12 +841,13 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
         force_coul = ni == 0 ?
           qri*q[j]/r : qri*q[j]/r*special_coul[ni];
 
-      if (rsq < cut_bucksqi[typej = type[j]]) {                // buckingham
-        double rn = r2inv*r2inv*r2inv,
+      typej = type[j];
+      if (rsq < cut_bucksqi[typej]) {                          // buckingham
+        double r6inv = r2inv*r2inv*r2inv,
                         expr = exp(-r*rhoinvi[typej]);
         force_buck = ni == 0 ?
-          (r*expr*buck1i[typej]-rn*buck2i[typej]) :
-          (r*expr*buck1i[typej]-rn*buck2i[typej])*special_lj[ni];
+          (r*expr*buck1i[typej]-r6inv*buck2i[typej]) :
+          (r*expr*buck1i[typej]-r6inv*buck2i[typej])*special_lj[ni];
       } else force_buck = 0.0;
 
       fpair = (force_coul + force_buck) * r2inv;
@@ -854,15 +857,14 @@ void PairBuckLongCoulLongOMP::eval_inner(int iifrom, int iito, ThrData * const t
         fpair  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
       }
 
-      if (newton_pair || j < nlocal) {                        // force update
-        double *fj = f0+(j+(j<<1)), f;
-        fi[0] += f = d[0]*fpair; fj[0] -= f;
-        fi[1] += f = d[1]*fpair; fj[1] -= f;
-        fi[2] += f = d[2]*fpair; fj[2] -= f;
-      } else {
-        fi[0] += d[0]*fpair;
-        fi[1] += d[1]*fpair;
-        fi[2] += d[2]*fpair;
+      double fdx = d[0]*fpair, fdy = d[1]*fpair, fdz = d[2]*fpair;
+      f[i][0] += fdx;                                          // force update
+      f[i][1] += fdy;
+      f[i][2] += fdz;
+      if (newton_pair || j < nlocal) {
+        f[j][0] -= fdx;
+        f[j][1] -= fdy;
+        f[j][2] -= fdz;
       }
     }
   }
@@ -883,9 +885,6 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
-  const double *x0 = x[0];
-  double *f0 = f[0], *fi = nullptr;
-
   int *ilist = list->ilist_middle;
 
   const int newton_pair = force->newton_pair;
@@ -902,31 +901,33 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
   const double cut_out_on_sq = cut_out_on*cut_out_on;
   const double cut_out_off_sq = cut_out_off*cut_out_off;
 
-  int *jneigh, *jneighn, typei, typej, ni;
-  const int order1 = (ewald_order|(ewald_off^-1))&(1<<1);
-  int i, j, ii;
+  int typei, typej, ni;
+  const int order1 = (ewald_order | ~ewald_off) & EWALD_COUL;
+  int i, j, ii, jj;
   double qri, *cut_bucksqi, *buck1i, *buck2i, *rhoinvi;
   double xi[3], d[3];
 
   for (ii = iifrom; ii < iito; ++ii) {                        // loop over my atoms
-    i = ilist[ii]; fi = f0+3*i;
+    i = ilist[ii];
     if (order1) qri = qqrd2e*q[i];
-    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    cut_bucksqi = cut_bucksq[typei = type[i]];
+    xi[0] = x[i][0]; xi[1] = x[i][1]; xi[2] = x[i][2];
+    typei = type[i];
+    cut_bucksqi = cut_bucksq[typei];
     buck1i = buck1[typei]; buck2i = buck2[typei]; rhoinvi = rhoinv[typei];
-    jneighn = (jneigh = list->firstneigh_middle[i])+list->numneigh_middle[i];
+    int *jlist = list->firstneigh_middle[i];
+    int jnum = list->numneigh_middle[i];
 
-    for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
-      j = *jneigh;
+    for (jj = 0; jj < jnum; jj++) {                           // loop over neighbors
+      j = jlist[jj];
       ni = sbmask(j);
       j &= NEIGHMASK;
 
-      { const double *xj = x0+(j+(j<<1));
-        d[0] = xi[0] - xj[0];                                // pair vector
-        d[1] = xi[1] - xj[1];
-        d[2] = xi[2] - xj[2]; }
+      d[0] = xi[0] - x[j][0];                                 // pair vector
+      d[1] = xi[1] - x[j][1];
+      d[2] = xi[2] - x[j][2];
 
-      if ((rsq = dot3(d, d)) >= cut_out_off_sq) continue;
+      rsq = dot3(d, d);
+      if (rsq >= cut_out_off_sq) continue;
       if (rsq <= cut_in_off_sq) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
@@ -935,12 +936,13 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
         force_coul = ni == 0 ?
           qri*q[j]/r : qri*q[j]/r*special_coul[ni];
 
-      if (rsq < cut_bucksqi[typej = type[j]]) {                // buckingham
-        double rn = r2inv*r2inv*r2inv,
+      typej = type[j];
+      if (rsq < cut_bucksqi[typej]) {                          // buckingham
+        double r6inv = r2inv*r2inv*r2inv,
                         expr = exp(-r*rhoinvi[typej]);
         force_buck = ni == 0 ?
-          (r*expr*buck1i[typej]-rn*buck2i[typej]) :
-          (r*expr*buck1i[typej]-rn*buck2i[typej])*special_lj[ni];
+          (r*expr*buck1i[typej]-r6inv*buck2i[typej]) :
+          (r*expr*buck1i[typej]-r6inv*buck2i[typej])*special_lj[ni];
       } else force_buck = 0.0;
 
       fpair = (force_coul + force_buck) * r2inv;
@@ -954,15 +956,14 @@ void PairBuckLongCoulLongOMP::eval_middle(int iifrom, int iito, ThrData * const 
         fpair  *= 1.0 + rsw*rsw*(2.0*rsw-3.0);
       }
 
-      if (newton_pair || j < nlocal) {                        // force update
-        double *fj = f0+(j+(j<<1)), f;
-        fi[0] += f = d[0]*fpair; fj[0] -= f;
-        fi[1] += f = d[1]*fpair; fj[1] -= f;
-        fi[2] += f = d[2]*fpair; fj[2] -= f;
-      } else {
-        fi[0] += d[0]*fpair;
-        fi[1] += d[1]*fpair;
-        fi[2] += d[2]*fpair;
+      double fdx = d[0]*fpair, fdy = d[1]*fpair, fdz = d[2]*fpair;
+      f[i][0] += fdx;                                          // force update
+      f[i][1] += fdy;
+      f[i][2] += fdz;
+      if (newton_pair || j < nlocal) {
+        f[j][0] -= fdx;
+        f[j][1] -= fdy;
+        f[j][2] -= fdz;
       }
     }
   }
@@ -986,13 +987,10 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   const double * const special_lj = force->special_lj;
   const double qqrd2e = force->qqrd2e;
 
-  const double *x0 = x[0];
-  double *f0 = f[0], *fi = f0;
-
   int *ilist = list->ilist;
 
-  int i, j, ii;
-  int *jneigh, *jneighn, typei, typej, ni, respa_flag;
+  int i, j, ii, jj;
+  int typei, typej, ni, respa_flag;
   double qi = 0.0, qri = 0.0;
   double *cutsqi, *cut_bucksqi, *buck1i, *buck2i, *buckai, *buckci, *rhoinvi, *offseti;
   double r, rsq, r2inv, force_coul, force_buck;
@@ -1008,26 +1006,29 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
   const double cut_in_on_sq = cut_in_on*cut_in_on;
 
   for (ii = iiform; ii < iito; ++ii) {                        // loop over my atoms
-    i = ilist[ii]; fi = f0+3*i;
+    i = ilist[ii];
     if (ORDER1) qri = (qi = q[i])*qqrd2e;                // initialize constants
-    offseti = offset[typei = type[i]];
+    typei = type[i];
+    offseti = offset[typei];
     buck1i = buck1[typei]; buck2i = buck2[typei];
     buckai = buck_a[typei]; buckci = buck_c[typei]; rhoinvi = rhoinv[typei];
     cutsqi = cutsq[typei]; cut_bucksqi = cut_bucksq[typei];
-    memcpy(xi, x0+(i+(i<<1)), 3*sizeof(double));
-    jneighn = (jneigh = list->firstneigh[i])+list->numneigh[i];
+    xi[0] = x[i][0]; xi[1] = x[i][1]; xi[2] = x[i][2];
+    int *jlist = list->firstneigh[i];
+    int jnum = list->numneigh[i];
 
-    for (; jneigh<jneighn; ++jneigh) {                        // loop over neighbors
-      j = *jneigh;
+    for (jj = 0; jj < jnum; jj++) {                           // loop over neighbors
+      j = jlist[jj];
       ni = sbmask(j);
       j &= NEIGHMASK;
 
-      { const double *xj = x0+(j+(j<<1));
-        d[0] = xi[0] - xj[0];                                // pair vector
-        d[1] = xi[1] - xj[1];
-        d[2] = xi[2] - xj[2]; }
+      d[0] = xi[0] - x[j][0];                                 // pair vector
+      d[1] = xi[1] - x[j][1];
+      d[2] = xi[2] - x[j][2];
 
-      if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
+      rsq = dot3(d, d);
+      typej = type[j];
+      if (rsq >= cutsqi[typej]) continue;
       r2inv = 1.0/rsq;
       r = sqrt(rsq);
 
@@ -1042,103 +1043,106 @@ void PairBuckLongCoulLongOMP::eval_outer(int iiform, int iito, ThrData * const t
 
       if (ORDER1 && (rsq < cut_coulsq)) {                // coulombic
         if (!CTABLE || rsq <= tabinnersq) {        // series real space
-          double s = qri*q[j];
+          double pre = qri*q[j];                            // qqrd2e * qi * qj
           if (respa_flag)                                // correct for respa
-            respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
-          double x = g_ewald*r, t = 1.0/(1.0+EWALD_P*x);
+            respa_coul = ni == 0 ? frespa*pre/r : frespa*pre/r*special_coul[ni];
+          double grij = g_ewald*r, t = 1.0/(1.0+EWALD_P*grij);
+          double erfc_poly = ((((t*A5+A4)*t+A3)*t+A2)*t+A1);
           if (ni == 0) {
-            s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-respa_coul;
+            pre *= g_ewald*exp(-grij*grij);
+            t *= erfc_poly*pre/grij;
+            force_coul = t+EWALD_F*pre-respa_coul;
             if (EFLAG) ecoul = t;
           } else {                                        // correct for special
-            double ri = s*(1.0-special_coul[ni])/r; s *= g_ewald*exp(-x*x);
-            force_coul = (t *= ((((t*A5+A4)*t+A3)*t+A2)*t+A1)*s/x)+EWALD_F*s-ri-respa_coul;
-            if (EFLAG) ecoul = t-ri;
+            double adjust = pre*(1.0-special_coul[ni])/r;
+            pre *= g_ewald*exp(-grij*grij);
+            t *= erfc_poly*pre/grij;
+            force_coul = t+EWALD_F*pre-adjust-respa_coul;
+            if (EFLAG) ecoul = t-adjust;
           }
         } else {                                             // table real space
           if (respa_flag) {
-            double s = qri*q[j];
-            respa_coul = ni == 0 ? frespa*s/r : frespa*s/r*special_coul[ni];
+            double pre = qri*q[j];
+            respa_coul = ni == 0 ? frespa*pre/r : frespa*pre/r*special_coul[ni];
           }
-          union_int_float_t t;
-          t.f = rsq;
-          const int k = (t.i & ncoulmask) >> ncoulshiftbits;
-          double f = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
+          union_int_float_t rsq_lookup;
+          rsq_lookup.f = rsq;
+          const int k = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+          double fraction = (rsq-rtable[k])*drtable[k], qiqj = qi*q[j];
           if (ni == 0) {
-            force_coul = qiqj*(ftable[k]+f*dftable[k]);
-            if (EFLAG) ecoul = qiqj*(etable[k]+f*detable[k]);
+            force_coul = qiqj*(ftable[k]+fraction*dftable[k]);
+            if (EFLAG) ecoul = qiqj*(etable[k]+fraction*detable[k]);
           } else {                                        // correct for special
-            t.f = (1.0-special_coul[ni])*(ctable[k]+f*dctable[k]);
-            force_coul = qiqj*(ftable[k]+f*dftable[k]-(double)t.f);
+            rsq_lookup.f = (1.0-special_coul[ni])*(ctable[k]+fraction*dctable[k]);
+            force_coul = qiqj*(ftable[k]+fraction*dftable[k]-(double)rsq_lookup.f);
             if (EFLAG) {
-              t.f = (1.0-special_coul[ni])*(ptable[k]+f*dptable[k]);
-              ecoul = qiqj*(etable[k]+f*detable[k]-(double)t.f);
+              rsq_lookup.f = (1.0-special_coul[ni])*(ptable[k]+fraction*dptable[k]);
+              ecoul = qiqj*(etable[k]+fraction*detable[k]-(double)rsq_lookup.f);
             }
           }
         }
       } else force_coul = respa_coul = ecoul = 0.0;
 
       if (rsq < cut_bucksqi[typej]) {                        // buckingham
-        double rn = r2inv*r2inv*r2inv,
+        double r6inv = r2inv*r2inv*r2inv,
                         expr = exp(-r*rhoinvi[typej]);
         if (respa_flag) respa_buck = ni == 0 ?                 // correct for respa
-            frespa*(r*expr*buck1i[typej]-rn*buck2i[typej]) :
-            frespa*(r*expr*buck1i[typej]-rn*buck2i[typej])*special_lj[ni];
+            frespa*(r*expr*buck1i[typej]-r6inv*buck2i[typej]) :
+            frespa*(r*expr*buck1i[typej]-r6inv*buck2i[typej])*special_lj[ni];
         if (ORDER6) {                                        // long-range form
           if (!DISPTABLE || rsq <= tabinnerdispsq) {
-            double x2 = g2*rsq, a2 = 1.0/x2;
-            x2 = a2*exp(-x2)*buckci[typej];
+            double gr2 = g2*rsq, a2 = 1.0/gr2;
+            double expterm = a2*exp(-gr2)*buckci[typej];
+            double g6term = g6*((a2+1.0)*a2+0.5)*expterm;
+            double g8term = g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*expterm*rsq;
             if (ni == 0) {
-              force_buck =
-                r*expr*buck1i[typej]-g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq-respa_buck;
-              if (EFLAG) evdwl = expr*buckai[typej]-g6*((a2+1.0)*a2+0.5)*x2;
+              force_buck = r*expr*buck1i[typej]-g8term-respa_buck;
+              if (EFLAG) evdwl = expr*buckai[typej]-g6term;
             } else {                                        // correct for special
-              double f = special_lj[ni], t = rn*(1.0-f);
-              force_buck = f*r*expr*buck1i[typej]-
-                g8*(((6.0*a2+6.0)*a2+3.0)*a2+1.0)*x2*rsq+t*buck2i[typej]-respa_buck;
-              if (EFLAG) evdwl = f*expr*buckai[typej] -
-                           g6*((a2+1.0)*a2+0.5)*x2+t*buckci[typej];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              force_buck = factor*r*expr*buck1i[typej]-g8term+t*buck2i[typej]-respa_buck;
+              if (EFLAG) evdwl = factor*expr*buckai[typej]-g6term+t*buckci[typej];
             }
           } else {          // table real space
-            union_int_float_t disp_t;
-            disp_t.f = rsq;
-            const int disp_k = (disp_t.i & ndispmask)>>ndispshiftbits;
+            union_int_float_t rsq_lookup;
+            rsq_lookup.f = rsq;
+            const int disp_k = (rsq_lookup.i & ndispmask)>>ndispshiftbits;
             double f_disp = (rsq-rdisptable[disp_k])*drdisptable[disp_k];
-            double rn = r2inv*r2inv*r2inv;
+            double ftable_disp = fdisptable[disp_k]+f_disp*dfdisptable[disp_k];
+            double etable_disp = edisptable[disp_k]+f_disp*dedisptable[disp_k];
             if (ni == 0) {
-              force_buck = r*expr*buck1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej]-respa_buck;
-              if (EFLAG) evdwl =  expr*buckai[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej];
+              force_buck = r*expr*buck1i[typej]-ftable_disp*buckci[typej]-respa_buck;
+              if (EFLAG) evdwl = expr*buckai[typej]-etable_disp*buckci[typej];
             } else {                             //special case
-              double f = special_lj[ni], t = rn*(1.0-f);
-              force_buck = f*r*expr*buck1i[typej]-(fdisptable[disp_k]+f_disp*dfdisptable[disp_k])*buckci[typej]+t*buck2i[typej]-respa_buck;
-              if (EFLAG) evdwl = f*expr*buckai[typej]-(edisptable[disp_k]+f_disp*dedisptable[disp_k])*buckci[typej]+t*buckci[typej];
+              double factor = special_lj[ni], t = r6inv*(1.0-factor);
+              force_buck = factor*r*expr*buck1i[typej]-ftable_disp*buckci[typej]+t*buck2i[typej]-respa_buck;
+              if (EFLAG) evdwl = factor*expr*buckai[typej]-etable_disp*buckci[typej]+t*buckci[typej];
             }
           }
         } else {                                                // cut form
           if (ni == 0) {
-            force_buck = r*expr*buck1i[typej]-rn*buck2i[typej]-respa_buck;
+            force_buck = r*expr*buck1i[typej]-r6inv*buck2i[typej]-respa_buck;
             if (EFLAG)
-              evdwl = expr*buckai[typej]-rn*buckci[typej]-offseti[typej];
+              evdwl = expr*buckai[typej]-r6inv*buckci[typej]-offseti[typej];
           } else {                                        // correct for special
-            double f = special_lj[ni];
-            force_buck = f*(r*expr*buck1i[typej]-rn*buck2i[typej])-respa_buck;
+            double factor = special_lj[ni];
+            force_buck = factor*(r*expr*buck1i[typej]-r6inv*buck2i[typej])-respa_buck;
             if (EFLAG)
-              evdwl = f*(expr*buckai[typej]-rn*buckci[typej]-offseti[typej]);
+              evdwl = factor*(expr*buckai[typej]-r6inv*buckci[typej]-offseti[typej]);
           }
         }
       } else force_buck = respa_buck = evdwl = 0.0;
 
       fpair = (force_coul+force_buck)*r2inv;
 
+      double fdx = d[0]*fpair, fdy = d[1]*fpair, fdz = d[2]*fpair;
+      f[i][0] += fdx;
+      f[i][1] += fdy;
+      f[i][2] += fdz;
       if (NEWTON_PAIR || j < nlocal) {
-        double *fj = f0+(j+(j<<1)), f;
-        fi[0] += f = d[0]*fpair; fj[0] -= f;
-        fi[1] += f = d[1]*fpair; fj[1] -= f;
-        fi[2] += f = d[2]*fpair; fj[2] -= f;
-      } else {
-        fi[0] += d[0]*fpair;
-        fi[1] += d[1]*fpair;
-        fi[2] += d[2]*fpair;
+        f[j][0] -= fdx;
+        f[j][1] -= fdy;
+        f[j][2] -= fdz;
       }
 
       if (EVFLAG) {

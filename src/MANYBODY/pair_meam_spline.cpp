@@ -619,7 +619,20 @@ void PairMEAMSpline::unpack_reverse_comm(int /*n*/, int * /*list*/, double * /*b
 ------------------------------------------------------------------------- */
 double PairMEAMSpline::memory_usage()
 {
-  return nmax * sizeof(double);        // The Uprime_values array.
+  double bytes = (double) nmax * sizeof(double);    // Uprime_values array
+  if (nelements > 0) {
+    int nmultichoose2 = nelements*(nelements+1)/2;
+    for (int i = 0; i < nmultichoose2; i++) {
+      bytes += phis[i].memory_usage();
+      bytes += gs[i].memory_usage();
+    }
+    for (int i = 0; i < nelements; i++) {
+      bytes += Us[i].memory_usage();
+      bytes += rhos[i].memory_usage();
+      bytes += fs[i].memory_usage();
+    }
+  }
+  return bytes;
 }
 
 

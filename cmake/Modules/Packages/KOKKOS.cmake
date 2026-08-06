@@ -146,6 +146,16 @@ else()
 endif()
 target_compile_definitions(lammps PUBLIC $<BUILD_INTERFACE:LMP_KOKKOS>)
 
+# In a GPU-enabled Kokkos build every translation unit is processed by the
+# device compiler, so expose LMP_KOKKOS_GPU to all of LAMMPS -- not only files
+# that include kokkos_type.h.  This lets non-KOKKOS host code avoid constructs
+# that only work on the host, e.g. file-scope "const" tables of host function
+# pointers, which clang implicitly shadows into device memory and then fails to
+# link
+if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET)
+  target_compile_definitions(lammps PUBLIC $<BUILD_INTERFACE:LMP_KOKKOS_GPU>)
+endif()
+
 set(KOKKOS_PKG_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/KOKKOS)
 set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/atom_kokkos.cpp
@@ -165,7 +175,9 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
-                       ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp)
+                       ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/tune_kokkos.cpp)
+
 
 # fix wall/gran has been refactored in an incompatible way. Use old version of base class for now
 if(PKG_GRANULAR)

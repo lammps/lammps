@@ -40,7 +40,7 @@ static constexpr int PGDELTA = 1;
 
 /* ---------------------------------------------------------------------- */
 
-PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp)
+PairLCBOP::PairLCBOP(LAMMPS *lmp) : Pair(lmp), pages(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;

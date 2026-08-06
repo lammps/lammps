@@ -58,6 +58,7 @@ namespace fmt
   using std::format;
   using std::format_args;
   using std::format_error;
+  using std::format_to;
   using std::make_format_args;
   using std::string_view;
   using std::vformat;

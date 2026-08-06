@@ -54,7 +54,9 @@ static const char cite_pair_tdpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairTDPD::PairTDPD(LAMMPS *lmp) : Pair(lmp)
+PairTDPD::PairTDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cutcc(nullptr), a0(nullptr), gamma(nullptr), sigma(nullptr),
+    power(nullptr), kappa(nullptr), epsilon(nullptr), powercc(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_tdpd);
   cc_species = atom->cc_species;
@@ -463,6 +465,36 @@ void PairTDPD::read_restart_settings(FILE *fp)
 
   if (random) delete random;
   random = new RanMars(lmp,seed + comm->me);
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes to data file
+------------------------------------------------------------------------- */
+
+void PairTDPD::write_data(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++) {
+    fprintf(fp,"%d %g %g %g %g %g",i,a0[i][i],gamma[i][i],power[i][i],cut[i][i],cutcc[i][i]);
+    for (int k = 0; k < cc_species; k++)
+      fprintf(fp," %g %g %g",kappa[i][i][k],epsilon[i][i][k],powercc[i][i][k]);
+    fputs("\n",fp);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   proc 0 writes all pairs to data file
+------------------------------------------------------------------------- */
+
+void PairTDPD::write_data_all(FILE *fp)
+{
+  for (int i = 1; i <= atom->ntypes; i++) {
+    for (int j = i; j <= atom->ntypes; j++) {
+      fprintf(fp,"%d %d %g %g %g %g %g",i,j,a0[i][j],gamma[i][j],power[i][j],cut[i][j],cutcc[i][j]);
+      for (int k = 0; k < cc_species; k++)
+        fprintf(fp," %g %g %g",kappa[i][j][k],epsilon[i][j][k],powercc[i][j][k]);
+      fputs("\n",fp);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -436,3 +436,13 @@ void ComputeRDF::compute_array()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeRDF::memory_usage()
+{
+  double bytes = 0.0;
+  bytes += (double) npairs * nbin * 2 * sizeof(double);    // hist + histall
+  bytes += (double) nbin * (1 + 2*npairs) * sizeof(double);    // array
+  return bytes;
+}

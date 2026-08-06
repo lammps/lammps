@@ -53,7 +53,7 @@ ComputeDamageAtom::~ComputeDamageAtom()
 void ComputeDamageAtom::init()
 {
   if ((comm->me == 0) && (modify->get_compute_by_style("damage/atom").size() > 1))
-    error->warning(FLERR,"More than one compute dilatation/atom");
+    error->warning(FLERR,"More than one compute damage/atom");
 
   // find associated PERI_NEIGH fix that must exist
 

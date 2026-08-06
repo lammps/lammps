@@ -104,6 +104,7 @@
 /image_objects.h
 /scalable_font.cpp
 /scalable_font.h
+/scalable_sans_font.h
 
 /kim_*.cpp
 /kim_*.h
@@ -466,18 +467,24 @@
 /atom_vec_bpm_sphere.h
 /bond_bpm.cpp
 /bond_bpm.h
+/bond_bpm_peri.cpp
+/bond_bpm_peri.h
 /bond_bpm_rotational.cpp
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp
 /bond_bpm_spring.h
 /bond_bpm_spring_plastic.cpp
 /bond_bpm_spring_plastic.h
+/bond_bpm_zero.cpp
+/bond_bpm_zero.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
 /fix_nve_bpm_sphere.h
 /fix_update_special_bonds.cpp
 /fix_update_special_bonds.h
+/pair_bpm_peri.cpp
+/pair_bpm_peri.h
 /pair_bpm_spring.cpp
 /pair_bpm_spring.h
 
@@ -689,6 +696,8 @@
 /bond_oxrna2_fene.h
 /bond_quartic.cpp
 /bond_quartic.h
+/bond_quarticexp.cpp
+/bond_quarticexp.h
 /bond_special.cpp
 /bond_special.h
 /bond_table.cpp
@@ -1176,6 +1185,12 @@
 /fix_srd.h
 /fix_store_kim.cpp
 /fix_store_kim.h
+/fix_surface.cpp
+/fix_surface.h
+/fix_surface_global.cpp
+/fix_surface_global.h
+/fix_surface_local.cpp
+/fix_surface_local.h
 /fix_temp_rescale_eff.cpp
 /fix_temp_rescale_eff.h
 /fix_tgnh_drude.cpp
@@ -1190,6 +1205,8 @@
 /fix_ti_spring.h
 /fix_tune_kspace.cpp
 /fix_tune_kspace.h
+/fix_viscous_nonlinear.cpp
+/fix_viscous_nonlinear.h
 /fix_viscous_sphere.cpp
 /fix_viscous_sphere.h
 /fix_wall_body_polygon.cpp
@@ -1377,6 +1394,14 @@
 /pair_eam_fs.h
 /pair_eam_he.cpp
 /pair_eam_he.h
+/pair_eam_he_gpu.cpp
+/pair_eam_he_gpu.h
+/pair_eam_he_kokkos.cpp
+/pair_eam_he_kokkos.h
+/pair_eam_he_omp.cpp
+/pair_eam_he_omp.h
+/pair_eam_he_opt.cpp
+/pair_eam_he_opt.h
 /pair_lebedeva_z.cpp
 /pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
@@ -1408,6 +1433,8 @@
 /pair_gran_hooke.h
 /pair_gran_hooke_history.cpp
 /pair_gran_hooke_history.h
+/pair_surf_granular.cpp
+/pair_surf_granular.h
 /pair_gw.cpp
 /pair_gw.h
 /pair_gw_zbl.cpp
@@ -1494,6 +1521,8 @@
 /pair_lj_cut_sphere.h
 /pair_lj_cut_soft.cpp
 /pair_lj_cut_soft.h
+/pair_lj_cut_soft_gapsys.cpp
+/pair_lj_cut_soft_gapsys.h
 /pair_lj_cut_tip4p_long.cpp
 /pair_lj_cut_tip4p_long.h
 /pair_lj_cut_tip4p_long_soft.cpp
@@ -1646,6 +1675,8 @@
 /pppm_old.h
 /pppm_proxy.cpp
 /pppm_proxy.h
+/pppm_rk.cpp
+/pppm_rk.h
 /pppm_stagger.cpp
 /pppm_stagger.h
 /pppm_tip4p.cpp
@@ -1710,6 +1741,8 @@
 /smd_material_models.cpp
 /smd_material_models.h
 /smd_math.h
+/surf_extra.cpp
+/surf_extra.h
 /tad.cpp
 /tad.h
 /temper.cpp
@@ -1724,6 +1757,8 @@
 /thr_data.h
 /verlet_split.cpp
 /verlet_split.h
+/verlet_split_rk.cpp
+/verlet_split_rk.h
 /xdr_compat.cpp
 /xdr_compat.h
 /zstd_file_writer.cpp
@@ -1952,4 +1987,10 @@
 /pair_vashishta*.h
 /pair_lj_pirani.cpp
 /pair_lj_pirani.h
+/pair_airebo_bc.cpp
+/pair_airebo_bc.h
+/pair_bondval.cpp
+/pair_bondval.h
+/pair_bondval_vec.cpp
+/pair_bondval_vec.h
 

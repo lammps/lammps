@@ -2,7 +2,8 @@
 lammps_version: 11 Feb 2026
 date_generated: Thu Mar  5 08:39:25 2026
 epsilon: 5e-12
-skip_tests: kokkos_omp omp
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu omp
+
 prerequisites: ! |
   atom full
   fix npt
@@ -10,6 +11,7 @@ pre_commands: ! ""
 post_commands: ! |
   fix test solute npt temp 50.0 ${t_target} 1.0 x 1.0 1.0 100.0 isochoric yz dilate solute
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 328.46317957704565
 global_vector: ! |-

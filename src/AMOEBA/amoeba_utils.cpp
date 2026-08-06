@@ -97,9 +97,9 @@ void PairAmoeba::kmpole()
         if (angleneigh[j] < smallest) {
           smallest = angleneigh[j];
           k = j;
+          angleneigh[k] = angleneigh[m];
+          angleneigh[m] = smallest;
         }
-        angleneigh[k] = angleneigh[m];
-        angleneigh[m] = smallest;
       }
     }
 

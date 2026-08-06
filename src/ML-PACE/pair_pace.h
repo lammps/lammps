@@ -49,6 +49,7 @@ class PairPACE : public Pair {
 
   void *extract(const char *, int &) override;
   void *extract_peratom(const char *, int &) override;
+  double memory_usage() override;
 
  protected:
   struct ACEImpl *aceimpl;

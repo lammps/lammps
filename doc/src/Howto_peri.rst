@@ -1,9 +1,18 @@
 Peridynamics with LAMMPS
 ========================
 
-This Howto is based on the Sandia report 2010-5549 by Michael L. Parks,
-Pablo Seleson, Steven J. Plimpton, Richard B. Lehoucq, and
-Stewart A. Silling.
+.. note::
+
+   Most of the content in this Howto document is is based on the Sandia
+   report 2010-5549 by Michael L. Parks, Pablo Seleson,
+   Steven J. Plimpton, Richard B. Lehoucq, and Stewart A. Silling.
+
+----
+
+.. contents:: Available topics
+   :local:
+
+----
 
 Overview
 """"""""
@@ -78,6 +87,138 @@ Some notes on this input example:
 - finally, the timestep is set to 0.1 microseconds with the
   :doc:`timestep <timestep>` command.
 
+
+BPM-based peridynamics
+""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+The same four constitutive models are also available through the
+:doc:`bond_style bpm/peri <bond_bpm_peri>` command, which recasts
+peridynamics within the :doc:`BPM (bonded particle model) package
+<Howto_bpm>`.  Peridynamic bonds become real LAMMPS bonds, so the model
+uses the standard :doc:`atom_style bond <atom_style>` (no dedicated atom
+style) and the domains of solid bodies can be controlled using standard
+LAMMPS commands such as :doc:`create_bonds <create_bonds>` or
+:doc:`delete_bonds <delete_bonds>` or by reading bonds from a data file.
+This allows one to create distinct solid bodies within arbitrary
+distances or create small flaws within a body like a crack or void. Each
+bond stores per-bond reference state in :doc:`restart files <restart>`,
+and gains BPM tooling such as broken-bond dumps.  The constitutive law
+is the first :doc:`bond_coeff <bond_coeff>` argument (*pmb*, *lps*,
+*ves*, or *eps*), and a companion :doc:`pair_style bpm/peri
+<pair_bpm_peri>` provides the short-range contact force.
+
+Migrating inputs from the PERI package to BPM
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here is the minimal example above expressed in the BPM framework:
+
+.. code-block:: LAMMPS
+
+   units           si
+   dimension       3
+   boundary        s s s
+   atom_style      bond
+   atom_modify     map array
+   special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+   newton          on off
+   neighbor        0.0010 bin
+   lattice         sc 0.0005
+   region          target cylinder y 0.0 0.0 0.0050 -0.0050 0.0 units box
+   create_box      1 target bond/types 1 extra/bond/per/atom 60 extra/special/per/atom 100
+   create_atoms    1 region target
+
+   # nodal mass (per-type) and nodal volume (the lone user-declared input)
+   mass            * 2.75e-7
+   fix             vol all property/atom d_vfrac d_damage ghost yes
+   set             group all d_vfrac 1.25e-10
+
+   pair_style      bpm/peri
+   pair_coeff      * * 1.6863e22 0.0015001
+   create_bonds    many all all 1 0.0 0.0015001
+   special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+   bond_style      bpm/peri
+   bond_coeff      1 pmb 1.6863e22 0.0015001 0.0005 0.25
+   compute         dmg all property/atom d_damage
+   fix             1 all nve
+   timestep        1.0e-7
+
+Notes specific to the BPM formulation:
+
+- The nodal volume must be declared by the user as a :doc:`fix
+  property/atom <fix_property_atom>` named *vfrac* (group *all*, ghost
+  communication on) **before** the bond style is defined.  This is *input*
+  data: it is populated by :doc:`set <set>` (uniform) or :doc:`read_data
+  <read_data>` (per-node) during input parsing, before any *run*, so it
+  cannot be auto-created the way the internal bookkeeping fields are.  The
+  general rule is: input-data per-atom properties are user-declared;
+  purely internal ones (*s0*, *smin*, *vinter*, and the *eps* *lambda*)
+  are auto-created by the bond style.
+- Because the styles never read the mass (only the integrator does), the
+  nodal mass is supplied independently: a uniform per-type :doc:`mass
+  <mass>` equal to density times nodal volume (here :math:`2200 \times
+  1.25\times10^{-10} = 2.75\times10^{-7}`), or, for variable mass,
+  :doc:`atom_style hybrid sphere bond <atom_style>` with per-atom *rmass*.
+- The peridynamic bonds are created with :doc:`create_bonds many
+  <create_bonds>` out to the horizon; *extra/bond/per/atom* must be large
+  enough for the peridynamic coordination number (often 30-60 or more).
+- :doc:`newton <newton>` must be *bond off* and the two-stage
+  *special_bonds* idiom (coul weight 0 during *create_bonds*, then 1) is
+  required, as for all BPM bond styles.
+- When a body fragments, pieces can leave the domain.  The legacy PERI
+  package tolerates lost atoms silently; in the BPM framework this is an
+  explicit, opt-in choice.  To let a shattering simulation continue, use a
+  fixed (non-shrink-wrap) box with margin and, *after* the
+  :doc:`thermo_style <thermo_style>` command (which resets these settings),
+  add ``thermo_modify lost ignore`` and ``thermo_modify lost/bond ignore``;
+  the latter drops the dangling bonds of an atom that has left the domain so
+  the remaining bonds are unaffected.  See the ``examples/bpm/peri`` decks.
+
+Migrating a PERI input to the BPM framework is mostly a one-to-one
+translation:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - PERI package
+     - BPM framework
+   * - ``atom_style peri``
+     - ``atom_style bond`` (+ ``fix property/atom d_vfrac``)
+   * - ``pair_style peri/pmb`` (+ ``pair_coeff``)
+     - ``pair_style bpm/peri`` + ``bond_style bpm/peri`` (model keyword)
+   * - ``set group all volume V``
+     - ``set group all d_vfrac V``
+   * - ``set group all density D``
+     - ``mass * (D*V)`` (uniform) or per-atom *rmass*
+   * - bonds implicit in the pair neighbor list
+     - explicit ``create_bonds many all all <type> 0.0 <horizon>``
+   * - ``compute damage/atom``
+     - ``fix property/atom d_damage`` + ``compute property/atom d_damage``
+
+The two implementations follow the same constitutive equations.  The
+analytic elastic response (dilatation, energy) agrees; for the *eps*
+model the BPM implementation uses a dimensionally-consistent plastic
+return mapping that is stable under sustained plastic flow.
+
+Performance expectations
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+The based BPM implementation is found to be consistently faster than
+the legacy PERI pair styles by a significant margin.  On a periodic
+16x16x16 simple-cubic block (4096 nodes, 122 bonds per node) the
+per-step force cost is roughly 3.6x (pmb), 5.4x (lps), 4.4x (ves) and
+5.9x (eps) lower than the corresponding ``peri/*`` pair style on a
+single MPI rank, and about 4x lower on four ranks.  The legacy styles
+walk a double-counted partner list (each bond visited from both
+endpoints) and combine bond and contact in one pass, whereas the BPM
+bond style visits each bond once and the contact ``pair_style bpm/peri``
+carries a separate, nearly empty short-range list.  The forward
+communication of the per-step dilatation and break state for the
+state-based models is a negligible fraction of the cost.  See
+``examples/bpm/peri/benchmark`` for the input decks.
 
 Peridynamic Model of a Continuum
 """"""""""""""""""""""""""""""""
@@ -581,11 +722,22 @@ as broken in a simulation by removing them from the bond family
 
 A naive implementation would have us first loop over all bonds and
 compute :math:`s_{min}` in :ref:`(9) <peris0>`, then loop over all bonds
-again and break bonds with a stretch :math:`s > s0` as in
+again and break bonds with a stretch :math:`s > s_0` as in
 :ref:`(8) <perimu>`, and finally loop over all particles and compute forces
 for the next step of :ref:`Algorithm 1 <algvelverlet>`. For reasons of
-computational efficiency, we will utilize the values of :math:`s_0` from
-the *previous* timestep when deciding to break a bond.
+computational efficiency, we instead store the per-particle minimum stretch
+:math:`s_{min}` from the *previous* timestep and, when deciding whether to
+break a bond, form its critical stretch :math:`s_0 = s_{00} - \alpha\,
+s_{min}` from that bond's own :math:`s_{00}` and :math:`\alpha`.  This keeps
+the criterion correct when :math:`s_{00}` and :math:`\alpha` differ between
+atom-type pairs (for example, a deliberately weakened interface).
+
+.. versionchanged:: 4Jul2026
+
+Earlier versions stored a single per-particle critical stretch :math:`s_0`
+(the maximum of :math:`s_{00} - \alpha s` over a particle's bonds), which
+reproduces :ref:`(9) <peris0>` only when :math:`s_{00}` and :math:`\alpha`
+are identical for all atom-type pairs.
 
 .. note::
 
@@ -758,8 +910,12 @@ created for steps 300, 600, and 2000 this way.
 
 |periimage1|  |periimage2|  |periimage3|
 
-For interactive visualization, the `Ovito <https://ovito.org>`_ is very
-convenient to use. Below are steps to create a visualization of the
+For interactive visualization, `OVITO <https://ovito.org>`_ is very
+convenient to use.  As of 2026, many advanced visualizations can now
+also be created with LAMMPS directly using the :doc:`dump image command
+<dump_image>`.  See the :doc:`Howto_viz` page for details.
+
+Below are steps to create a visualization of the
 :ref:`same example from below <periexample>` now using the generated
 trajectory in the ``dump.peri`` file.
 
@@ -860,15 +1016,12 @@ Bugs
 The user is cautioned that this code is a beta release. If you are
 confident that you have found a bug in the peridynamic module, please
 report it in a `GitHub Issue <https://github.com/lammps/lammps/issues>`
-or send an email to the LAMMPS developers. First, check the `New
-features and bug fixes <https://www.lammps.org/bug.html>`_ section of
-the LAMMPS website site to see if the bug has already been reported or
-fixed. If not, the most useful thing you can do for us is to isolate the
-problem. Run it on the smallest number of atoms and fewest number of
-processors and with the simplest input script that reproduces the
-bug. In your message, describe the problem and any ideas you have as to
-what is causing it or where in the code the problem might be.  We'll
-request your input script and data files if necessary.
+or send an email to the LAMMPS developers.  Run it on the smallest
+number of atoms and fewest number of processors and with the simplest
+input script that reproduces the bug. In your message, describe the
+problem and any ideas you have as to what is causing it or where in the
+code the problem might be.  We'll request your input script and data
+files if necessary.
 
 Modifying and Extending the Peridynamic Module
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

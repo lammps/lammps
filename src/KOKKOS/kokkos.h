@@ -66,10 +66,14 @@ class KokkosLMP : protected Pointers {
   int pair_team_size_set;
   int nbin_atoms_per_bin;
   int nbin_atoms_per_bin_set;
-  int nbor_block_size;
-  int nbor_block_size_set;
-  int bond_block_size;
-  int bond_block_size_set;
+  int nbor_chunk_size;
+  int nbor_chunk_size_set;
+  int bond_chunk_size;
+  int bond_chunk_size_set;
+  int autotuning;
+  int perf_nsamples;
+  int perf_mode;
+  double perf_rel_tol;
 
   static int is_finalized;
   static int init_ngpus;

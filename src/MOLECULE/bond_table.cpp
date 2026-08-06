@@ -37,7 +37,7 @@ static constexpr double BIGNUM = 1.0e300;
 
 /* ---------------------------------------------------------------------- */
 
-BondTable::BondTable(LAMMPS *_lmp) : Bond(_lmp)
+BondTable::BondTable(LAMMPS *_lmp) : Bond(_lmp), r0(nullptr), tabindex(nullptr)
 {
   writedata = 0;
   ntables = 0;

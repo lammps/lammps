@@ -1012,3 +1012,15 @@ void PairILPTMD::calc_normal()
     }    // end of four cases of cont
   }      // end of i loop
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairILPTMD::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // ILP_numneigh + ILP_firstneigh
+  bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
+  bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[nmax][3][3]
+  bytes += (double) nmax * 54 * sizeof(double);                  // dnormal[nmax][3][Nnei=6][3]
+  return bytes;
+}

@@ -28,7 +28,10 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+// LMP_KOKKOS_GPU may also be set as a global compile definition by the build
+// system (see cmake/Modules/Packages/KOKKOS.cmake) so that non-KOKKOS sources,
+// which do not include this header, can detect a GPU-enabled Kokkos build.
+#if !defined(LMP_KOKKOS_GPU) && (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET))
 #define LMP_KOKKOS_GPU
 #endif
 
@@ -1131,7 +1134,12 @@ struct TransformView {
 
   bool need_sync_device()
   {
-    return (k_view.need_sync_device() || modified_legacy_device);
+    // Under SINGLE_DEVICE the DualView edge is inert and modify_host() records
+    // legacy->device staleness on the HostKK<->Host edge (modified_legacy_hostkk),
+    // so it must be consulted here to stay consistent with need_sync_host() and
+    // with sync_device()'s own SINGLE_DEVICE delegation to sync_hostkk().
+    return (k_view.need_sync_device() || modified_legacy_device ||
+            (SINGLE_DEVICE && modified_legacy_hostkk));
   }
 
   bool need_sync_host()
@@ -1368,6 +1376,29 @@ typedef tdual_neighbors_2d_lr::t_host_const_randomread t_neighbors_2d_lr_randomr
 //default LAMMPS Types
 typedef struct ArrayTypes<LMPDeviceType> DAT;
 typedef struct ArrayTypes<LMPHostType> HAT;
+
+// View-of-views pattern (used by fix property/atom for the per-atom custom
+// iarray/darray arrays, which are "ragged" -- each property has its own column
+// count, so they cannot be packed into a single rectangular view).  Each struct
+// wraps one inner DualView, and an outer DualView<struct*, ...> holds a
+// dynamically-sized list of them that is accessible on the device.  The custom
+// ivector/dvector are width-1 and instead use a single contiguous 2D view.
+
+namespace LAMMPS_NS {
+
+  struct struct_tdual_int_2d {
+    DAT::tdual_int_2d_lr k_view;
+  };
+  typedef Kokkos::DualView<struct_tdual_int_2d*, Kokkos::LayoutRight, LMPDeviceType>
+    tdual_struct_tdual_int_2d_1d;
+
+  struct struct_tdual_double_2d {
+    DAT::tdual_double_2d_lr k_view;
+  };
+  typedef Kokkos::DualView<struct_tdual_double_2d*, Kokkos::LayoutRight, LMPDeviceType>
+    tdual_struct_tdual_double_2d_1d;
+
+}
 
 
 template<class DeviceType, class BufferView, class DualView>

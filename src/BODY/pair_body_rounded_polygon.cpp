@@ -51,7 +51,8 @@ enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
 
 /* ---------------------------------------------------------------------- */
 
-PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) : Pair(lmp)
+PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) :
+    Pair(lmp), k_n(nullptr), k_na(nullptr), avec(nullptr), bptr(nullptr)
 {
   dmax = nmax = 0;
   discrete = nullptr;
@@ -1369,4 +1370,13 @@ void PairBodyRoundedPolygon::distance(const double* x2, const double* x1,
   r = sqrt((x2[0] - x1[0]) * (x2[0] - x1[0])
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairBodyRoundedPolygon::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
+  return bytes;
 }

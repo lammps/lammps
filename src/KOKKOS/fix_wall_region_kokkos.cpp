@@ -42,7 +42,7 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | MASK_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 }
 
@@ -51,6 +51,21 @@ FixWallRegionKokkos<DeviceType>::~FixWallRegionKokkos()
 {
   if (copymode) return;
   memoryKK->destroy_kokkos(k_vatom,vatom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallRegionKokkos<DeviceType>::init()
+{
+  FixWallRegion::init();
+
+  // without this check a region w/o KOKKOS support was silently ignored:
+  // no wall forces and undefined energy/virial contributions
+
+  if (!dynamic_cast<RegBlockKokkos<DeviceType>*>(region) &&
+      !dynamic_cast<RegSphereKokkos<DeviceType>*>(region))
+    error->all(FLERR,"Fix wall/region/kk requires region style block/kk or sphere/kk");
 }
 
 /* ---------------------------------------------------------------------- */

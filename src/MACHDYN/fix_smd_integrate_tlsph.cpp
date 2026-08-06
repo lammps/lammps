@@ -45,7 +45,8 @@ using namespace std;
 /* ---------------------------------------------------------------------- */
 
 FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
-                Fix(lmp, narg, arg) {
+    Fix(lmp, narg, arg), pair(nullptr)
+{
         if (narg < 3) {
                 printf("narg=%d\n", narg);
                 error->all(FLERR, "Illegal fix smd/integrate_tlsph command");

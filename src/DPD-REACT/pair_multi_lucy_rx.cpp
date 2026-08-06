@@ -40,6 +40,12 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
 using MathConst::MY_PI;
 
 enum{ NONE, RLINEAR, RSQ };
@@ -69,6 +75,8 @@ PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
 
   ntables = 0;
   tables = nullptr;
+  nmax = 0;
+  mixWtSite1old = mixWtSite2old = mixWtSite1 = mixWtSite2 = nullptr;
 
   comm_forward = 1;
   comm_reverse = 1;
@@ -90,6 +98,11 @@ PairMultiLucyRX::~PairMultiLucyRX()
     memory->destroy(cutsq);
     memory->destroy(tabindex);
   }
+
+  memory->destroy(mixWtSite1old);
+  memory->destroy(mixWtSite2old);
+  memory->destroy(mixWtSite1);
+  memory->destroy(mixWtSite2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -126,18 +139,16 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   int jtable;
   double *rho = atom->rho;
 
-  double *mixWtSite1old = nullptr;
-  double *mixWtSite2old = nullptr;
-  double *mixWtSite1 = nullptr;
-  double *mixWtSite2 = nullptr;
+  if (atom->nmax > nmax) {
+    memory->grow(mixWtSite1old, atom->nmax, "PairMultiLucyRX::mixWtSite1old");
+    memory->grow(mixWtSite2old, atom->nmax, "PairMultiLucyRX::mixWtSite2old");
+    memory->grow(mixWtSite1, atom->nmax, "PairMultiLucyRX::mixWtSite1");
+    memory->grow(mixWtSite2, atom->nmax, "PairMultiLucyRX::mixWtSite2");
+    nmax = atom->nmax;
+  }
 
   {
     const int ntotal = nlocal + nghost;
-    memory->create(mixWtSite1old, ntotal, "PairMultiLucyRX::mixWtSite1old");
-    memory->create(mixWtSite2old, ntotal, "PairMultiLucyRX::mixWtSite2old");
-    memory->create(mixWtSite1, ntotal, "PairMultiLucyRX::mixWtSite1");
-    memory->create(mixWtSite2, ntotal, "PairMultiLucyRX::mixWtSite2");
-
     for (int i = 0; i < ntotal; ++i)
        getMixingWeights(i, mixWtSite1old[i], mixWtSite2old[i], mixWtSite1[i], mixWtSite2[i]);
   }
@@ -282,11 +293,6 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
-  memory->destroy(mixWtSite1old);
-  memory->destroy(mixWtSite2old);
-  memory->destroy(mixWtSite1);
-  memory->destroy(mixWtSite2);
 }
 
 /* ----------------------------------------------------------------------
@@ -920,6 +926,8 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
     nTotal += atom->dvector[ispecies][id];
     nTotalOld += atom->dvector[ispecies+nspecies][id];
   }
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
@@ -1026,4 +1034,13 @@ void PairMultiLucyRX::unpack_reverse_comm(int n, int *list, double *buf)
     j = list[i];
     rho[j] += buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairMultiLucyRX::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (mixWtSite1old) bytes += (double) nmax * 4 * sizeof(double);    // 4 mixWtSite arrays
+  return bytes;
 }

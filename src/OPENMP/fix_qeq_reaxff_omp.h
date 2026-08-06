@@ -34,6 +34,7 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
   void init_storage() override;
   void pre_force(int) override;
   void post_constructor() override;
+  double memory_usage() override;
 
  protected:
   double **b_temp;

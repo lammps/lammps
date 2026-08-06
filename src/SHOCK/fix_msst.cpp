@@ -41,8 +41,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), old_velocity(nullptr), id_temp(nullptr), id_press(nullptr), id_pe(nullptr),
-    temperature(nullptr), pressure(nullptr), pe(nullptr)
+    Fix(lmp, narg, arg), old_velocity(nullptr), id_temp(nullptr), id_press(nullptr),
+    id_pe(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr), fix_external(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix msst command");
 

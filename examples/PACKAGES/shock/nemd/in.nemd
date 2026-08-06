@@ -1,0 +1,200 @@
+# 3d Lennard-Jones fluid with shockwave in x
+
+include         shockparams.mod
+include         shocksetup.mod
+
+# fix set command to check for threshold crossings every step
+# when crossing occurs set d_xshock first, then set i_tshock
+
+variable        vxthresh equal ${upneg}*0.5 # threshold velocity = (u0+u1)/2
+fix             vxave all ave/atom 1 ${nevery} ${nevery} vx
+variable        istart atom "f_vxave > v_vxthresh && i_tshock == -1"
+variable        tshock equal step-${nevery}
+variable        inew atom ternary(v_istart,v_tshock,i_tshock)
+variable        dnew atom ternary(v_istart,x,d_xshock)
+fix             setshock all set ${nevery} 0 group all d_xshock v_dnew i_tshock v_inew
+
+# set up vx history, c_vxhist[*][1] not yet supported
+
+variable nhistory equal ${leftwindow}+${rightwindow}
+fix vxhist all store/state 0 vx history ${nevery} ${nhistory} 0
+compute vxhist all property/atom &
+history[$(v_nhistory-010+1)][1] &
+history[$(v_nhistory-020+1)][1] &
+history[$(v_nhistory-030+1)][1] &
+history[$(v_nhistory-040+1)][1] &
+history[$(v_nhistory-050+1)][1] &
+history[$(v_nhistory-060+1)][1] &
+history[$(v_nhistory-070+1)][1] &
+history[$(v_nhistory-080+1)][1] &
+history[$(v_nhistory-090+1)][1] &
+history[$(v_nhistory-100+1)][1] &
+history[$(v_nhistory-110+1)][1] &
+history[$(v_nhistory-120+1)][1] &
+history[$(v_nhistory-130+1)][1] &
+history[$(v_nhistory-140+1)][1] &
+history[$(v_nhistory-150+1)][1] &
+history[$(v_nhistory-160+1)][1] &
+history[$(v_nhistory-170+1)][1] &
+history[$(v_nhistory-180+1)][1] &
+history[$(v_nhistory-190+1)][1] &
+history[$(v_nhistory-200+1)][1] &
+history vxhist
+
+# store vxhist at end of window
+
+variable        step_rightwindow atom i_tshock + ${rightwindow}*${nevery}
+variable        irightwindow atom step == v_step_rightwindow
+variable        dnewvxhist010 atom ternary(v_irightwindow,c_vxhist[1], d_vxhist010)
+variable        dnewvxhist020 atom ternary(v_irightwindow,c_vxhist[2], d_vxhist020)
+variable        dnewvxhist030 atom ternary(v_irightwindow,c_vxhist[3], d_vxhist030)
+variable        dnewvxhist040 atom ternary(v_irightwindow,c_vxhist[4], d_vxhist040)
+variable        dnewvxhist050 atom ternary(v_irightwindow,c_vxhist[5], d_vxhist050)
+variable        dnewvxhist060 atom ternary(v_irightwindow,c_vxhist[6], d_vxhist060)
+variable        dnewvxhist070 atom ternary(v_irightwindow,c_vxhist[7], d_vxhist070)
+variable        dnewvxhist080 atom ternary(v_irightwindow,c_vxhist[8], d_vxhist080)
+variable        dnewvxhist090 atom ternary(v_irightwindow,c_vxhist[9], d_vxhist090)
+variable        dnewvxhist100 atom ternary(v_irightwindow,c_vxhist[10],d_vxhist100)
+variable        dnewvxhist110 atom ternary(v_irightwindow,c_vxhist[11],d_vxhist110)
+variable        dnewvxhist120 atom ternary(v_irightwindow,c_vxhist[12],d_vxhist120)
+variable        dnewvxhist130 atom ternary(v_irightwindow,c_vxhist[13],d_vxhist130)
+variable        dnewvxhist140 atom ternary(v_irightwindow,c_vxhist[14],d_vxhist140)
+variable        dnewvxhist150 atom ternary(v_irightwindow,c_vxhist[15],d_vxhist150)
+variable        dnewvxhist160 atom ternary(v_irightwindow,c_vxhist[16],d_vxhist160)
+variable        dnewvxhist170 atom ternary(v_irightwindow,c_vxhist[17],d_vxhist170)
+variable        dnewvxhist180 atom ternary(v_irightwindow,c_vxhist[18],d_vxhist180)
+variable        dnewvxhist190 atom ternary(v_irightwindow,c_vxhist[19],d_vxhist190)
+variable        dnewvxhist200 atom ternary(v_irightwindow,c_vxhist[20],d_vxhist200)
+
+fix             sethist all set ${nevery} 0 group all &
+d_vxhist010 v_dnewvxhist010 &
+d_vxhist020 v_dnewvxhist020 &
+d_vxhist030 v_dnewvxhist030 &
+d_vxhist040 v_dnewvxhist040 &
+d_vxhist050 v_dnewvxhist050 &
+d_vxhist060 v_dnewvxhist060 &
+d_vxhist070 v_dnewvxhist070 &
+d_vxhist080 v_dnewvxhist080 &
+d_vxhist090 v_dnewvxhist090 &
+d_vxhist100 v_dnewvxhist100 &
+d_vxhist110 v_dnewvxhist110 &
+d_vxhist120 v_dnewvxhist120 &
+d_vxhist130 v_dnewvxhist130 &
+d_vxhist140 v_dnewvxhist140 &
+d_vxhist150 v_dnewvxhist150 &
+d_vxhist160 v_dnewvxhist160 &
+d_vxhist170 v_dnewvxhist170 &
+d_vxhist180 v_dnewvxhist180 &
+d_vxhist190 v_dnewvxhist190 &
+d_vxhist200 v_dnewvxhist200
+
+# run
+
+run		${nsteps}
+
+# average vxhist to get CVCF 
+
+variable vxhist010 atom d_vxhist010
+compute vxhistav010 bulk reduce ave v_vxhist010
+variable cvcfhist010 equal c_vxhistav010/${up}+1.0
+
+variable vxhist020 atom d_vxhist020
+compute vxhistav020 bulk reduce ave v_vxhist020
+variable cvcfhist020 equal c_vxhistav020/${up}+1.0
+
+variable vxhist030 atom d_vxhist030
+compute vxhistav030 bulk reduce ave v_vxhist030
+variable cvcfhist030 equal c_vxhistav030/${up}+1.0
+
+variable vxhist040 atom d_vxhist040
+compute vxhistav040 bulk reduce ave v_vxhist040
+variable cvcfhist040 equal c_vxhistav040/${up}+1.0
+
+variable vxhist050 atom d_vxhist050
+compute vxhistav050 bulk reduce ave v_vxhist050
+variable cvcfhist050 equal c_vxhistav050/${up}+1.0
+
+variable vxhist060 atom d_vxhist060
+compute vxhistav060 bulk reduce ave v_vxhist060
+variable cvcfhist060 equal c_vxhistav060/${up}+1.0
+
+variable vxhist070 atom d_vxhist070
+compute vxhistav070 bulk reduce ave v_vxhist070
+variable cvcfhist070 equal c_vxhistav070/${up}+1.0
+
+variable vxhist080 atom d_vxhist080
+compute vxhistav080 bulk reduce ave v_vxhist080
+variable cvcfhist080 equal c_vxhistav080/${up}+1.0
+
+variable vxhist090 atom d_vxhist090
+compute vxhistav090 bulk reduce ave v_vxhist090
+variable cvcfhist090 equal c_vxhistav090/${up}+1.0
+
+variable vxhist100 atom d_vxhist100
+compute vxhistav100 bulk reduce ave v_vxhist100
+variable cvcfhist100 equal c_vxhistav100/${up}+1.0
+
+variable vxhist110 atom d_vxhist110
+compute vxhistav110 bulk reduce ave v_vxhist110
+variable cvcfhist110 equal c_vxhistav110/${up}+1.0
+
+variable vxhist120 atom d_vxhist120
+compute vxhistav120 bulk reduce ave v_vxhist120
+variable cvcfhist120 equal c_vxhistav120/${up}+1.0
+
+variable vxhist130 atom d_vxhist130
+compute vxhistav130 bulk reduce ave v_vxhist130
+variable cvcfhist130 equal c_vxhistav130/${up}+1.0
+
+variable vxhist140 atom d_vxhist140
+compute vxhistav140 bulk reduce ave v_vxhist140
+variable cvcfhist140 equal c_vxhistav140/${up}+1.0
+
+variable vxhist150 atom d_vxhist150
+compute vxhistav150 bulk reduce ave v_vxhist150
+variable cvcfhist150 equal c_vxhistav150/${up}+1.0
+
+variable vxhist160 atom d_vxhist160
+compute vxhistav160 bulk reduce ave v_vxhist160
+variable cvcfhist160 equal c_vxhistav160/${up}+1.0
+
+variable vxhist170 atom d_vxhist170
+compute vxhistav170 bulk reduce ave v_vxhist170
+variable cvcfhist170 equal c_vxhistav170/${up}+1.0
+
+variable vxhist180 atom d_vxhist180
+compute vxhistav180 bulk reduce ave v_vxhist180
+variable cvcfhist180 equal c_vxhistav180/${up}+1.0
+
+variable vxhist190 atom d_vxhist190
+compute vxhistav190 bulk reduce ave v_vxhist190
+variable cvcfhist190 equal c_vxhistav190/${up}+1.0
+
+variable vxhist200 atom d_vxhist200
+compute vxhistav200 bulk reduce ave v_vxhist200
+variable cvcfhist200 equal c_vxhistav200/${up}+1.0
+
+run 0
+
+print """# t CVCF(t)
+$((010-v_leftwindow)*v_nevery*v_dt) ${cvcfhist010}
+$((020-v_leftwindow)*v_nevery*v_dt) ${cvcfhist020}
+$((030-v_leftwindow)*v_nevery*v_dt) ${cvcfhist030}
+$((040-v_leftwindow)*v_nevery*v_dt) ${cvcfhist040}
+$((050-v_leftwindow)*v_nevery*v_dt) ${cvcfhist050}
+$((060-v_leftwindow)*v_nevery*v_dt) ${cvcfhist060}
+$((070-v_leftwindow)*v_nevery*v_dt) ${cvcfhist070}
+$((080-v_leftwindow)*v_nevery*v_dt) ${cvcfhist080}
+$((090-v_leftwindow)*v_nevery*v_dt) ${cvcfhist090}
+$((100-v_leftwindow)*v_nevery*v_dt) ${cvcfhist100}
+$((110-v_leftwindow)*v_nevery*v_dt) ${cvcfhist110}
+$((120-v_leftwindow)*v_nevery*v_dt) ${cvcfhist120}
+$((130-v_leftwindow)*v_nevery*v_dt) ${cvcfhist130}
+$((140-v_leftwindow)*v_nevery*v_dt) ${cvcfhist140}
+$((150-v_leftwindow)*v_nevery*v_dt) ${cvcfhist150}
+$((160-v_leftwindow)*v_nevery*v_dt) ${cvcfhist160}
+$((170-v_leftwindow)*v_nevery*v_dt) ${cvcfhist170}
+$((180-v_leftwindow)*v_nevery*v_dt) ${cvcfhist180}
+$((190-v_leftwindow)*v_nevery*v_dt) ${cvcfhist190}
+$((200-v_leftwindow)*v_nevery*v_dt) ${cvcfhist200}""" &
+file cvcf.dat screen no

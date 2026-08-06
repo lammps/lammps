@@ -1,0 +1,158 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1073-g9ce00c6bee-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# temporary input for lammps
+
+units     metal
+atom_style full
+
+boundary p p p
+pair_style hybrid/overlay  lj/cut/coul/long 8.0 8.0 bondval 2.0 8.0 bondval/vec 2.0 8.0
+read_data  cubic15final.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (60.53374 60.53374 60.53374)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  16875 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.028 seconds
+kspace_style pppm 1.0e-5
+
+#read_restart BTO.restart
+pair_coeff 1 1 lj/cut/coul/long 2.0  2.44805
+pair_coeff 1 2 lj/cut/coul/long 2.0  2.32592
+pair_coeff 1 3 lj/cut/coul/long 2.0  1.98792
+pair_coeff 2 2 lj/cut/coul/long 2.0  2.73825
+pair_coeff 2 3 lj/cut/coul/long 2.0  1.37741
+pair_coeff 3 3 lj/cut/coul/long 2.0  1.99269
+
+
+#                   r0   Nij    S     v0 rcut
+pair_coeff 1 1 bondval 0.0000000 5.0000000 0.5973900 2.0000000 8.0000000
+pair_coeff 1 2 bondval 0.0000000 5.0000000 0.0000000 0.0000000 8.0000000
+pair_coeff 1 3 bondval 2.2900000 8.9400000 0.0000000 0.0000000 8.0000000
+pair_coeff 2 2 bondval 0.0000000 5.0000000 0.1653300 4.0000000 8.0000000
+pair_coeff 2 3 bondval 1.7980000 5.2000000 0.0000000 0.0000000 8.0000000
+pair_coeff 3 3 bondval 0.0000000 5.0000000 0.9306300 2.0000000 8.0000000
+
+
+#                    r0  Nij     S     Bvv0  rcut
+pair_coeff 1 1 bondval/vec 0.0000000 5.0000000 0.0842900 0.1156100 8.0000000
+pair_coeff 1 2 bondval/vec 0.0000000 5.0000000 0.0000000 0.0000000 8.0000000
+pair_coeff 1 3 bondval/vec 2.1430000 8.9400000 0.0000000 0.0000000 8.0000000
+pair_coeff 2 2 bondval/vec 0.0000000 5.0000000 0.8248400 0.3943700 8.0000000
+pair_coeff 2 3 bondval/vec 1.7980000 5.2000000 0.0000000 0.0000000 8.0000000
+pair_coeff 3 3 bondval/vec 0.0000000 5.0000000 0.2800600 0.3165100 8.0000000
+
+neighbor    2.0 bin
+
+# time unit fs
+timestep     0.001
+#group Pb id 1:512
+#group Ti id 513:1024
+#group O1 id 1025:1536
+#group O2 id 1537:2048
+#group O3 id 2049:2560
+
+# Define computes for pair energy contributions
+compute pairEnergy1 all pair lj/cut/coul/long
+compute pairEnergy2 all pair bondval
+compute pairEnergy3 all pair bondval/vec
+
+thermo     10
+thermo_style custom step temp c_pairEnergy1 c_pairEnergy2 c_pairEnergy3 eangle etotal press vol lx ly lz
+
+thermo_modify line one format float %12.5f
+
+#compute disp all displace/atom
+
+#to equilibrate the system at a constant temperature using the NVT ensemble
+fix 1 all nvt temp 300.0 300.0 1.0
+run 50
+PPPM initialization ...
+WARNING: System is not charge neutral, net charge = 0.033750001
+For more information see https://docs.lammps.org/err0029 (src/kspace.cpp:327)
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.39864309
+  grid = 80 80 80
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00017529437
+  estimated relative force accuracy = 1.217352e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 658503 512000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 13 13 13
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair bondval, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair bondval/vec, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 118.1 | 118.1 | 118.1 Mbytes
+   Step          Temp      c_pairEnergy1  c_pairEnergy2  c_pairEnergy3     E_angle         TotEng         Press          Volume           Lx             Ly             Lz      
+         0       0.00000 -166416.50749    832.74991     95.84606      0.00000 -228521.98319 -2074528.98214 221815.82216     60.53374     60.53374     60.53374
+        10       0.00026 -166416.50814    832.74983     95.84599      0.00000 -228521.98340 -2074528.97722 221815.82216     60.53374     60.53374     60.53374
+        20       0.00603 -166416.51619    832.74801     95.84428      0.00000 -228521.98227 -2074528.79878 221815.82216     60.53374     60.53374     60.53374
+        30       0.13227 -166416.71355    832.70700     95.80553      0.00000 -228521.98232 -2074524.94516 221815.82216     60.53374     60.53374     60.53374
+        40       2.95299 -166421.06287    831.77712     94.92751      0.00000 -228521.95639 -2074439.84707 221815.82216     60.53374     60.53374     60.53374
+        50      65.75696 -166518.12402    810.88386     76.15404      0.00000 -228521.10553 -2072467.62371 221815.82216     60.53374     60.53374     60.53374
+Loop time of 11.9038 on 1 procs for 50 steps with 16875 atoms
+
+Performance: 0.363 ns/day, 66.132 hours/ns, 4.200 timesteps/s, 70.881 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.464      | 8.464      | 8.464      |   0.0 | 71.10
+Bond    | 1.4723e-05 | 1.4723e-05 | 1.4723e-05 |   0.0 |  0.00
+Kspace  | 3.4234     | 3.4234     | 3.4234     |   0.0 | 28.76
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0050084  | 0.0050084  | 0.0050084  |   0.0 |  0.04
+Output  | 0.00035741 | 0.00035741 | 0.00035741 |   0.0 |  0.00
+Modify  | 0.0087014  | 0.0087014  | 0.0087014  |   0.0 |  0.07
+Other   |            | 0.002261   |            |       |  0.02
+
+Nlocal:          16875 ave       16875 max       16875 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          19644 ave       19644 max       19644 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:     2.6055e+06 ave  2.6055e+06 max  2.6055e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2605500
+Ave neighs/atom = 154.4
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+#unfix 1
+#to equilibrate the system at constant temperature and pressure using the NPT ensemble
+#fix 2 all nvt temp 300.0 300.0 1.0
+#dump 2 all custom 100 dumpbcubic15.xyz id type x y z c_disp[1] c_disp[2] c_disp[3] c_disp[4]
+#dump_modify 2 sort id
+#run 50000
+#unfix 2
+
+Total wall time: 0:00:12

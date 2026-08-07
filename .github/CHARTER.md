@@ -127,8 +127,9 @@ technical oversight of the open source Project.
     (published in a
     [.github/CONTRIBUTING.md](https://github.com/lammps/lammps/blob/develop/.github/CONTRIBUTING.md)
     file in the LAMMPS GitHub repository) and coordinating with the
-    series manager of the Project (i.e. the LAMMPS core developer performing
-    the merging of pull requests) to resolve matters or concerns that
+    Series Manager of LF Projects defined
+    [here](https://lfprojects.org/policies/code-of-conduct/)
+    to resolve matters or concerns that
     may arise as set forth in Section 7 of this Charter.
 
 2.6.5. discussions, seeking consensus, and where necessary, voting on

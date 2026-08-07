@@ -1,6 +1,6 @@
 ---
 lammps_version: 4 Jul 2026
-tags: graphics
+tags: graphics unstable
 date_generated: Wed Aug  5 09:20:51 2026
 epsilon_projection: 0.5
 epsilon_blocks: 2

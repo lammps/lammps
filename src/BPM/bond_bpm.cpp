@@ -190,11 +190,6 @@ void BondBPM::init_style()
     }
   }
 
-  // find all instances of bond history to delete/shift data
-  // (bond hybrid may create multiple)
-  histories = modify->get_fix_by_style("BOND_HISTORY");
-  n_histories = histories.size();
-
   // If a bond type isn't set, must be using bond style hybrid
   hybrid_flag = 0;
   for (int i = 1; i <= atom->nbondtypes; i++)
@@ -211,6 +206,11 @@ void BondBPM::init_style()
   }
 
   fix_bond_history->setflag = setflag;
+
+  // find all instances of bond history to delete/shift data
+  // (bond hybrid may create multiple)
+  histories = modify->get_fix_by_style("BOND_HISTORY");
+  n_histories = histories.size();
 }
 
 /* ----------------------------------------------------------------------
@@ -459,35 +459,45 @@ void BondBPM::process_broken(int i, int j)
   int **bond_type = atom->bond_type;
   int *num_bond = atom->num_bond;
 
-  if (i < nlocal) {
-    for (m = 0; m < num_bond[i]; m++) {
-      if (bond_atom[i][m] == tag[j] && setflag[bond_type[i][m]]) {
-        n = num_bond[i];
-        bond_type[i][m] = bond_type[i][n - 1];
-        bond_atom[i][m] = bond_atom[i][n - 1];
+  // If there's a PBC with 1 processor across, could break bond with ghost but both atoms owned
+  //   If so, find index of target to delete
+
+  int id = i;
+  int jd = j;
+  if (i >= nlocal)
+    id = atom->map(tag[i]);
+  if (j >= nlocal)
+    jd = atom->map(tag[j]);
+
+  if (id != -1) {
+    for (m = 0; m < num_bond[id]; m++) {
+      if (bond_atom[id][m] == tag[j] && setflag[bond_type[id][m]]) {
+        n = num_bond[id];
+        bond_type[id][m] = bond_type[id][n - 1];
+        bond_atom[id][m] = bond_atom[id][n - 1];
         for (auto &ihistory : histories) {
           auto *fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
-          fix_bond_history2->shift_history(i, m, n - 1);
-          fix_bond_history2->delete_history(i, n - 1);
+          fix_bond_history2->shift_history(id, m, n - 1);
+          fix_bond_history2->delete_history(id, n - 1);
         }
-        num_bond[i]--;
+        num_bond[id]--;
         break;
       }
     }
   }
 
-  if (j < nlocal) {
-    for (m = 0; m < num_bond[j]; m++) {
-      if (bond_atom[j][m] == tag[i] && setflag[bond_type[j][m]]) {
-        n = num_bond[j];
-        bond_type[j][m] = bond_type[j][n - 1];
-        bond_atom[j][m] = bond_atom[j][n - 1];
+  if (jd != -1) {
+    for (m = 0; m < num_bond[jd]; m++) {
+      if (bond_atom[jd][m] == tag[i] && setflag[bond_type[jd][m]]) {
+        n = num_bond[jd];
+        bond_type[jd][m] = bond_type[jd][n - 1];
+        bond_atom[jd][m] = bond_atom[jd][n - 1];
         for (auto &ihistory : histories) {
           auto *fix_bond_history2 = dynamic_cast<FixBondHistory *>(ihistory);
-          fix_bond_history2->shift_history(j, m, n - 1);
-          fix_bond_history2->delete_history(j, n - 1);
+          fix_bond_history2->shift_history(jd, m, n - 1);
+          fix_bond_history2->delete_history(jd, n - 1);
         }
-        num_bond[j]--;
+        num_bond[jd]--;
         break;
       }
     }

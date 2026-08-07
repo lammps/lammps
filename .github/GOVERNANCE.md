@@ -32,16 +32,16 @@ to remove that member from the TSC.
 ### 1.3 Current TSC Members
 
 1. Steve Plimpton  ([@sjplimp](https://github.com/sjplimp)), unaffiliated
-2. Axel Kohlmeyer ([akohlmey](https://github.com/akohlmey)), Temple U.
-3. Aidan Thompson ([@athomps](https://github.com/athomps)), SNL
-4. Richard Berger ([@rbberger](https://github.com/rbberger)), LANL
-5. Stan Moore ([@stanmoore1](https://github.com/stanmoore1)), SNL
-6. Joel Clemmer, ([@jtclemm](https://github.com/jtclemm)), SNL
-7. Jake Gissinger ([@jrgissing](https://github.com/jrgissing)), Stevens IT
-8. Larry Fried (), LLNL
-9. Chris Knight ([@knightc](https://github.com/knightc)), ANL
-10. Even Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA
-11. Ellad Tadmor (), U. Minnesota
+2. Axel Kohlmeyer ([akohlmey](https://github.com/akohlmey)), Temple University
+3. Aidan Thompson ([@athomps](https://github.com/athomps)), Sandia National Laboratories 
+4. Richard Berger ([@rbberger](https://github.com/rbberger)), Los Alamos National Laboratory
+5. Stan Moore ([@stanmoore1](https://github.com/stanmoore1)), Sandia National Laboratories 
+6. Joel Clemmer, ([@jtclemm](https://github.com/jtclemm)), Sandia National Laboratories 
+7. Jake Gissinger ([@jrgissing](https://github.com/jrgissing)), Stevens Institute of Technology
+8. Larry Fried (), Lawrence Livermore National Laboratory
+9. Chris Knight ([@knightc](https://github.com/knightc)), Argonne National Laboratory
+10. Even Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
+11. Ellad Tadmor (), University of Minnesota
 
 ### 1.4 TSC Chair
 

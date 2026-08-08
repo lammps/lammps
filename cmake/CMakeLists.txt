@@ -491,6 +491,35 @@ if(BUILD_OMP)
   target_link_libraries(lammps PRIVATE OpenMP::OpenMP_CXX)
   target_link_libraries(lmp PRIVATE OpenMP::OpenMP_CXX)
 
+  # Some Clang-based toolchains - most notably hipcc from ROCm - do not ship
+  # omp.h in the compiler's own resource directory, so host code that includes
+  # <omp.h> fails to compile even though -fopenmp is accepted (e.g. when
+  # building the GPU package with GPU_API=hip and a hipcc host compiler).  If
+  # the resource directory has no omp.h, look for a matching-version Clang
+  # omp.h and add it as a fallback include path (with -idirafter, so it is
+  # searched last and does not shadow any other headers).
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} -print-resource-dir
+                    OUTPUT_VARIABLE _omp_resource_dir
+                    OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET
+                    RESULT_VARIABLE _omp_resource_rc)
+    if((_omp_resource_rc EQUAL 0) AND (NOT EXISTS "${_omp_resource_dir}/include/omp.h"))
+      string(REGEX REPLACE "\\..*" "" _omp_clang_major "${CMAKE_CXX_COMPILER_VERSION}")
+      find_path(LAMMPS_OMP_H_DIR NAMES omp.h
+        PATHS /usr/lib/clang/${_omp_clang_major}/include
+              /usr/lib64/clang/${_omp_clang_major}/include
+              /usr/local/lib/clang/${_omp_clang_major}/include)
+      if(LAMMPS_OMP_H_DIR)
+        message(STATUS "Compiler resource directory has no omp.h: "
+                "adding ${LAMMPS_OMP_H_DIR} as a fallback include path")
+        target_compile_options(lammps PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+        target_compile_options(lmp PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-idirafter${LAMMPS_OMP_H_DIR}>)
+      else()
+        message(WARNING "Compiler resource directory has no omp.h and no matching "
+                "Clang omp.h was found; OpenMP host compilation may fail")
+      endif()
+    endif()
+  endif()
   # this hack is required to correctly link with OpenMP support when using CrayClang version 15.0.2
   # CrayClang is only directly recognized by version 3.28 and later
   if(CMAKE_VERSION VERSION_LESS 3.28)
@@ -528,6 +557,9 @@ if(PKG_ATC OR PKG_AWPMD OR PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHE
     file(GLOB LINALG_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
     add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
+    if(LAMMPS_CXX_COMPILER_NAME STREQUAL "hipcc")
+      target_compile_options(linalg PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+    endif()
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
     set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
     target_link_libraries(lammps PRIVATE linalg)
@@ -808,6 +840,19 @@ set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h command.h compute.h
 set(LAMMPS_FMT_HEADERS core.h format.h)
 set(LAMMPS_JSON_HEADERS json_fwd.hpp json.hpp)
 
+# The ROCm hipcc wrapper compiles every .cpp in HIP language mode by default,
+# which triggers an extra device-code compilation pass (e.g. --offload-arch=gfxNNN)
+# and applies HIP host/device call restrictions even to the host pass.  The LAMMPS
+# host library and executable contain no HIP device code, but some host-only headers
+# - most notably the bundled nlohmann/json - use template metaprogramming that clang
+# rejects in HIP language mode: its is_detected SFINAE disables the JSON conversion
+# operators, breaking molecule.cpp, info.cpp, library.cpp, and others.  Force these
+# translation units to be compiled as plain C++ so hipcc skips the HIP passes for
+# them.  The GPU kernel library (lib/gpu) is built by separate targets and keeps HIP.
+if(LAMMPS_CXX_COMPILER_NAME STREQUAL "hipcc")
+  target_compile_options(lammps PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+  target_compile_options(lmp PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+endif()
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
 set_target_properties(lammps PROPERTIES PREFIX "lib")

@@ -1893,6 +1893,8 @@
 /fix_ttm_mod.h
 /fix_ttm_thermal.cpp
 /fix_ttm_thermal.h
+/fix_ttm_cascade.cpp
+/fix_ttm_cascade.h
 /granular_model.cpp
 /granular_model.h
 /gran_sub_mod_normal.cpp

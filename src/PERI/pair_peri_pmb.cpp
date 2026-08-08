@@ -160,9 +160,6 @@ void PairPeriPMB::compute(int eflag, int vflag)
   // loop over my particles and their partners
   // partner list contains all bond partners, so I-J appears twice
   // if bond already broken, skip this partner
-  // first = true if this is first neighbor of particle i
-
-  bool first;
 
   for (i = 0; i < nlocal; i++) {
     xtmp = x[i][0];
@@ -171,7 +168,6 @@ void PairPeriPMB::compute(int eflag, int vflag)
     itype = type[i];
     jnum = npartner[i];
     s0_new[i] = DBL_MAX;
-    first = true;
 
     for (jj = 0; jj < jnum; jj++) {
       if (partner[i][jj] == 0) continue;
@@ -221,23 +217,26 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (eflag) evdwl = 0.5*rk*dr;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
 
-      // find stretch in bond I-J and break if necessary
-      // use s0 from previous timestep
+      // find stretch in bond I-J and break if necessary.
+      // use the minimum stretch (s0) from the previous timestep to form the
+      // per-bond critical stretch crit = s00 - alpha*s0 (Parks 2008, eq. 9).
+      // Evaluating s00/alpha per bond (instead of collapsing into one
+      // per-particle scalar) is required when these coefficients depend on
+      // the type pair; s0 stores min stretch so crit = s00 - alpha*MAX(s0_i,s0_j).
 
-      if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
+      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(s0[i],s0[j]))
+        partner[i][jj] = 0;
 
-      // update s0 for next timestep
-
-      if (first)
-         s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
-      else
-         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
-      first = false;
+      // update minimum stretch s0 for next timestep
+      s0_new[i] = MIN(s0_new[i], stretch);
     }
   }
 
-  // store new s0
-  for (i = 0; i < nlocal; i++) s0[i] = s0_new[i];
+  // store new s0 (minimum bond stretch; used for bond-breaking criterion).
+  // an atom with no surviving bonds keeps the no-breaking sentinel (-DBL_MAX)
+  // so that via the MAX() it cannot trigger breaking of a neighbor's bond.
+  for (i = 0; i < nlocal; i++)
+    s0[i] = (s0_new[i] == DBL_MAX) ? -DBL_MAX : s0_new[i];
 }
 
 /* ----------------------------------------------------------------------

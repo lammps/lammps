@@ -2197,14 +2197,14 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_sfac(real_typ
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
   if (switch_flag == 0) sfac_outer = one;
-  if (switch_flag == 1) {
+  else if (switch_flag == 1) {
     if (r <= rmin0) sfac_outer = one;
     else if (r > rcut) return zero;
     else {
       real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
       sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
     }
-  }
+  } else sfac_outer = zero; // switch_flag is always 0 or 1
 
   if (switch_inner_flag == 0) return sfac_outer;
   if (switch_inner_flag == 1) {
@@ -2230,14 +2230,14 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_ty
   constexpr real_type zero = static_cast<real_type>(0.0);
   constexpr real_type onehalf = static_cast<real_type>(0.5);
   if (switch_flag == 0) dsfac_outer = zero;
-  if (switch_flag == 1) {
+  else if (switch_flag == 1) {
     if (r <= rmin0) dsfac_outer = zero;
     else if (r > rcut) return zero;
     else {
       real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
       dsfac_outer = -onehalf * sin((r - rmin0) * rcutfac) * rcutfac;
     }
-  }
+  } else dsfac_outer = zero; // switch_flag is always 0 or 1
 
   if (switch_inner_flag == 0) return dsfac_outer;
   if (switch_inner_flag == 1) {
@@ -2248,14 +2248,14 @@ real_type SNAKokkos<DeviceType, real_type, vector_length>::compute_dsfac(real_ty
       // calculate sfac_outer
 
       if (switch_flag == 0) sfac_outer = one;
-      if (switch_flag == 1) {
+      else if (switch_flag == 1) {
         if (r <= rmin0) sfac_outer = one;
         else if (r > rcut) sfac_outer = zero;
         else {
           real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
           sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
         }
-      }
+      } else sfac_outer = zero; // switch_flag is always 0 or 1
 
       // calculate sfac_inner
 

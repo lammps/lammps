@@ -176,9 +176,15 @@ void EwaldDisp::init()
         case 3:
           k = 3; break;
         case 6:
-          if (ewald_mix==Pair::GEOMETRIC) { k = 1; break; }
-          else if (ewald_mix==Pair::ARITHMETIC) { k = 2; break; }
-          error->all(FLERR,"Unsupported mixing rule in kspace_style ewald/disp");
+          // honor kspace_modify mix/disp (base-class mixflag): 1 = force geometric,
+          // 2 = none, 0 = follow the pair style's rule.  ewald/disp has no eigenvalue
+          // splitting (the "none" path of pppm/disp), so mix/disp none is rejected.
+          if (mixflag == 2)
+            error->all(FLERR,"kspace_modify mix/disp none is not supported by "
+                             "kspace_style ewald/disp");
+          if ((mixflag == 1) || (ewald_mix == Pair::GEOMETRIC)) k = 1;
+          else if (ewald_mix == Pair::ARITHMETIC) k = 2;
+          else error->all(FLERR,"Unsupported mixing rule in kspace_style ewald/disp");
           break;
         default:
           error->all(FLERR,"Unsupported order in kspace_style ewald/disp");

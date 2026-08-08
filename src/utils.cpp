@@ -238,8 +238,8 @@ std::string utils::point_to_error(Input *input, int failed)
       // construct and append error indicator line
       cmdline += '\n';
       cmdline += std::string(indicator, ' ');
-      cmdline += std::string(strlen((failed < 0) ? input->command : input->arg[failed])
-                             + quoted, '^');
+      int len = strlen(((failed < 0) || !input->arg[failed]) ? input->command : input->arg[failed]);
+      cmdline += std::string(len + quoted, '^');
       cmdline += '\n';
     } else {
       cmdline += lastline;
@@ -852,8 +852,10 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
   nlo = nhi = -1;
 
   // cannot check for typelabels without a LAMMPS instance or a box
-  if (!lmp || !lmp->domain->box_exist)
-    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+  if (!lmp || !lmp->domain->box_exist) {
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp ? lmp->error : nullptr);
+    return;
+  }
 
   char *typestr = nullptr;
   if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))
@@ -1627,7 +1629,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
         ++len;
       }
       if (c != '\'') ++len;
-      c = *++buf;
+      // for an unterminated quote c is already the terminating NUL, so do not
+      // advance past it (which would read one byte beyond the string buffer)
+      if (c) c = *++buf;
 
       // handle triple double quotation marks
     } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
@@ -1650,7 +1654,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         ++len;
       }
       if (c != '"') ++len;
-      c = *++buf;
+      // see comment above: do not advance past the terminating NUL
+      if (c) c = *++buf;
     }
 
     // unquoted

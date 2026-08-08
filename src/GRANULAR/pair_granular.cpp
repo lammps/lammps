@@ -480,10 +480,12 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
+    // since pair style granular does not support any form of acceleration
+    // we must not try using an accelerated version of fix NEIGH_HISTORY.
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
                                                           "NEIGH_HISTORY_GRANULAR"
                                                           " all NEIGH_HISTORY "
-                                                          + std::to_string(size_history),1));
+                                                          + std::to_string(size_history),0));
     fix_history->pair = this;
   } else if (use_history) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
@@ -678,6 +680,8 @@ void PairGranular::read_restart(FILE *fp)
 
   if (me == 0) utils::sfread(FLERR,&nmodels,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
+  if ((nmodels < 0) || (nmodels > maxmodels))
+    error->all(FLERR,"Invalid number of granular models in restart file");
 
   for (i = 0; i < nmodels; i++) {
     delete models_list[i];
@@ -742,7 +746,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->history_update = 0; // Don't update history
 
   // If history is needed
-  double *history,*allhistory;
+  double *history = nullptr, *allhistory = nullptr;
   int jnum = list->numneigh[i];
   int *jlist = list->firstneigh[i];
   if (use_history) {

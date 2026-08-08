@@ -220,10 +220,6 @@ tasks (per node) than GPUs, multiple MPI tasks will share each GPU.
 Optional keyword/value pairs can also be specified.  Each has a
 default value as listed below.
 
-.. versionchanged:: TBD
-
-   Updated description to the current state of the GPU package
-
 The *neigh* keyword specifies where neighbor lists for pair style
 computation will be built.  If *neigh* is *yes*, which is the default,
 neighbor list building is performed on the GPU.  If *neigh* is *no*,

@@ -32,6 +32,7 @@ using MathConst::MY_CUBEROOT2;
 
 BondFENEExpand::~BondFENEExpand()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

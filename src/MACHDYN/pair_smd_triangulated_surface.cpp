@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -39,6 +38,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <Eigen/Eigen>
@@ -144,11 +144,10 @@ void PairTriSurf::compute(int eflag, int vflag) {
                                 error->one(FLERR, "unknown case");
                         }
 
-                        //x_center << x[tri][0], x[tri][1], x[tri][2]; // center of triangle
                         x_center(0) = x[tri][0];
                         x_center(1) = x[tri][1];
                         x_center(2) = x[tri][2];
-                        //x4 << x[particle][0], x[particle][1], x[particle][2];
+
                         x4(0) = x[particle][0];
                         x4(1) = x[particle][1];
                         x4(2) = x[particle][2];
@@ -162,8 +161,6 @@ void PairTriSurf::compute(int eflag, int vflag) {
                         r_particle = scale * radius[particle];
                         rcut = r_tri + r_particle;
                         rcutSq = rcut * rcut;
-
-                        //printf("type i=%d, type j=%d, r=%f, ri=%f, rj=%f\n", itype, jtype, sqrt(rsq), ri, rj);
 
                         if (rsq < rcutSq) {
 
@@ -252,19 +249,16 @@ void PairTriSurf::compute(int eflag, int vflag) {
 
                                                 normal = x4cp / r;
 
-                                                //v_old << v[particle][0], v[particle][1], v[particle][2];
                                                 v_old(0) = v[particle][0];
                                                 v_old(1) = v[particle][1];
                                                 v_old(2) = v[particle][2];
                                                 if (v_old.dot(normal) < 0.0) {
-                                                        //printf("flipping velocity\n");
                                                         vnew = 1.0 * (-2.0 * v_old.dot(normal) * normal + v_old);
                                                         v[particle][0] = vnew(0);
                                                         v[particle][1] = vnew(1);
                                                         v[particle][2] = vnew(2);
                                                 }
 
-                                                //printf("moving particle on top of triangle\n");
                                                 x[particle][0] = cp(0) + touch_distance * normal(0);
                                                 x[particle][1] = cp(1) + touch_distance * normal(1);
                                                 x[particle][2] = cp(2) + touch_distance * normal(2);
@@ -275,17 +269,6 @@ void PairTriSurf::compute(int eflag, int vflag) {
                 }
         }
 
-//      int max_neighs_all = 0;
-//      MPI_Allreduce(&max_neighs, &max_neighs_all, 1, MPI_INT, MPI_MAX, world);
-//      if (comm->me == 0) {
-//              printf("max. neighs in tri pair is %d\n", max_neighs_all);
-//      }
-//
-//              double stable_time_increment_all = 0.0;
-//              MPI_Allreduce(&stable_time_increment, &stable_time_increment_all, 1, MPI_DOUBLE, MPI_MIN, world);
-//              if (comm->me == 0) {
-//                      printf("stable time step tri pair is %f\n", stable_time_increment_all);
-//              }
 }
 
 /* ----------------------------------------------------------------------
@@ -751,55 +734,55 @@ void PairTriSurf::PointTriangleDistance(const Vector3d& sourcePosition, const Ve
         double t = b * d - a * e;
 
         if (s + t < det) {
-                if (s < 0.f) {
-                        if (t < 0.f) {
-                                if (d < 0.f) {
-                                        s = clamp(-d / a, 0.f, 1.f);
-                                        t = 0.f;
+                if (s < 0.0) {
+                        if (t < 0.0) {
+                                if (d < 0.0) {
+                                        s = std::clamp(-d / a, 0.0, 1.0);
+                                        t = 0.0;
                                 } else {
-                                        s = 0.f;
-                                        t = clamp(-e / c, 0.f, 1.f);
+                                        s = 0.0;
+                                        t = std::clamp(-e / c, 0.0, 1.0);
                                 }
                         } else {
-                                s = 0.f;
-                                t = clamp(-e / c, 0.f, 1.f);
+                                s = 0.0;
+                                t = std::clamp(-e / c, 0.0, 1.0);
                         }
-                } else if (t < 0.f) {
-                        s = clamp(-d / a, 0.f, 1.f);
-                        t = 0.f;
+                } else if (t < 0.0) {
+                        s = std::clamp(-d / a, 0.0, 1.0);
+                        t = 0.0;
                 } else {
-                        float invDet = 1.f / det;
+                        double invDet = 1.0 / det;
                         s *= invDet;
                         t *= invDet;
                 }
         } else {
-                if (s < 0.f) {
-                        float tmp0 = b + d;
-                        float tmp1 = c + e;
+                if (s < 0.0) {
+                        double tmp0 = b + d;
+                        double tmp1 = c + e;
                         if (tmp1 > tmp0) {
-                                float numer = tmp1 - tmp0;
-                                float denom = a - 2 * b + c;
-                                s = clamp(numer / denom, 0.f, 1.f);
+                                double numer = tmp1 - tmp0;
+                                double denom = a - 2 * b + c;
+                                s = std::clamp(numer / denom, 0.0, 1.0);
                                 t = 1 - s;
                         } else {
-                                t = clamp(-e / c, 0.f, 1.f);
-                                s = 0.f;
+                                t = std::clamp(-e / c, 0.0, 1.0);
+                                s = 0.0;
                         }
-                } else if (t < 0.f) {
+                } else if (t < 0.0) {
                         if (a + d > b + e) {
-                                float numer = c + e - b - d;
-                                float denom = a - 2 * b + c;
-                                s = clamp(numer / denom, 0.f, 1.f);
+                                double numer = c + e - b - d;
+                                double denom = a - 2 * b + c;
+                                s = std::clamp(numer / denom, 0.0, 1.0);
                                 t = 1 - s;
                         } else {
-                                s = clamp(-e / c, 0.f, 1.f);
-                                t = 0.f;
+                                s = std::clamp(-e / c, 0.0, 1.0);
+                                t = 0.0;
                         }
                 } else {
-                        float numer = c + e - b - d;
-                        float denom = a - 2 * b + c;
-                        s = clamp(numer / denom, 0.f, 1.f);
-                        t = 1.f - s;
+                        double numer = c + e - b - d;
+                        double denom = a - 2 * b + c;
+                        s = std::clamp(numer / denom, 0.0, 1.0);
+                        t = 1.0 - s;
                 }
         }
 
@@ -808,18 +791,7 @@ void PairTriSurf::PointTriangleDistance(const Vector3d& sourcePosition, const Ve
 
 }
 
-double PairTriSurf::clamp(const double a, const double min, const double max) {
-        if (a < min) {
-                return min;
-        } else if (a > max) {
-                return max;
-        } else {
-                return a;
-        }
-}
-
 void *PairTriSurf::extract(const char *str, int &/*i*/) {
-        //printf("in PairTriSurf::extract\n");
         if (strcmp(str, "smd/tri_surface/stable_time_increment_ptr") == 0) {
                 return (void *) &stable_time_increment;
         }

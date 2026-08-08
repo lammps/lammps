@@ -589,6 +589,8 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
     nTotal += dvector(ispecies,id);
     nTotalOld += dvector(ispecies+nspecies,id);
   }
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    Kokkos::abort("The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
     nMoleculesOld1 = dvector(isite1+nspecies,id);

@@ -659,6 +659,7 @@ void FixPIMDNVT::comm_init()
 
   buf_beads = new double *[np];
   for (int i = 0; i < np; i++) buf_beads[i] = nullptr;
+  max_nlocal = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -96,6 +96,8 @@ class DumpVTK : public DumpCustom {
   void write_vtk(int, double *);
   void write_vtp(int, double *);
   void write_vtu(int, double *);
+  void write_pvtk(int);                  // write parallel .pvtp/.pvtu summary file
+  std::string pvtk_piece_filename(int);  // per-proc piece file name as referenced in summary
 
   void prepare_domain_data(vtkRectilinearGrid *);
   void prepare_domain_data_triclinic(vtkUnstructuredGrid *);

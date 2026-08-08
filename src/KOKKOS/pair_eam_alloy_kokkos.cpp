@@ -1289,7 +1289,7 @@ void PairEAMAlloyKokkos<DeviceType>::read_file(char *filename)
         reader.next_dvector(&file->frho[i][1], file->nrho);
         reader.next_dvector(&file->rhor[i][1], file->nr);
         if (unit_convert) {
-          for (int j = 1; j < file->nrho; ++j)
+          for (int j = 1; j <= file->nrho; ++j)
             file->frho[i][j] *= conversion_factor;
         }
       }
@@ -1298,7 +1298,7 @@ void PairEAMAlloyKokkos<DeviceType>::read_file(char *filename)
         for (int j = 0; j <= i; j++) {
           reader.next_dvector(&file->z2r[i][j][1], file->nr);
           if (unit_convert) {
-            for (int k = 1; k < file->nr; ++k)
+            for (int k = 1; k <= file->nr; ++k)
               file->z2r[i][j][k] *= conversion_factor;
           }
         }

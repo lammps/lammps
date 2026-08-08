@@ -32,6 +32,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cfloat>
 #include <cmath>
 #include <cstring>
 
@@ -173,7 +174,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
   int  maxpartner = 0;
   for (i = 0; i < nlocal; i++) maxpartner = MAX(maxpartner,npartner[i]);
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(s0_new);
     memory->destroy(theta);
     nmax = atom->nmax;
@@ -218,7 +219,6 @@ void PairPeriEPS::compute(int eflag, int vflag)
   // if bond already broken, skip this partner
   // first = true if this is first neighbor of particle i
 
-  bool first;
   double omega_minus, omega_plus;
 
   for (i = 0; i < nlocal; i++) {
@@ -230,7 +230,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
     ztmp0 = x0[i][2];
     itype = type[i];
     jnum = npartner[i];
-    first = true;
+    s0_new[i] = DBL_MAX;
 
     const double yieldStress = m_yieldstress[itype][itype];
     const double horizon = cut[itype][itype];
@@ -332,21 +332,19 @@ void PairPeriEPS::compute(int eflag, int vflag)
       // use s0 from previous timestep
 
       stretch = dr / r0[i][jj];
-      if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
+      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(s0[i],s0[j]))
+        partner[i][jj] = 0;
 
-      // update s0 for next timestep
-
-      if (first)
-         s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
-      else
-         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
-      first = false;
+      // update minimum stretch s0 for next timestep
+      s0_new[i] = MIN(s0_new[i], stretch);
     }
   }
 
-  // store new s0
-
-  memcpy(s0,s0_new,sizeof(double)*nlocal);
+  // store new s0 (minimum bond stretch; used for bond-breaking criterion).
+  // an atom with no surviving bonds keeps the no-breaking sentinel (-DBL_MAX)
+  // so that via the MAX() it cannot trigger breaking of a neighbor's bond.
+  for (i = 0; i < nlocal; i++)
+    s0[i] = (s0_new[i] == DBL_MAX) ? -DBL_MAX : s0_new[i];
 
   if (nlocal*maxpartner > 0) {
     memcpy(&(deviatorPlasticextension[0][0]),&(deviatorPlasticExtTemp[0][0]),

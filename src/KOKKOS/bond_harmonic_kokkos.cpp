@@ -190,6 +190,13 @@ template<class DeviceType>
 void BondHarmonicKokkos<DeviceType>::allocate()
 {
   BondHarmonic::allocate();
+
+  int n = atom->nbondtypes;
+  k_k = typename AT::tdual_ffloat_1d("BondHarmonic::k",n+1);
+  k_r0 = typename AT::tdual_ffloat_1d("BondHarmonic::r0",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_r0 = k_r0.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -201,14 +208,9 @@ void BondHarmonicKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   BondHarmonic::coeff(narg, arg);
 
-  int n = atom->nbondtypes;
-  typename AT::tdual_ffloat_1d k_k("BondHarmonic::k",n+1);
-  typename AT::tdual_ffloat_1d k_r0("BondHarmonic::r0",n+1);
-
-  d_k = k_k.template view<DeviceType>();
-  d_r0 = k_r0.template view<DeviceType>();
-
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k.h_view[i] = k[i];
     k_r0.h_view[i] = r0[i];
   }
@@ -229,8 +231,8 @@ void BondHarmonicKokkos<DeviceType>::read_restart(FILE *fp)
   BondHarmonic::read_restart(fp);
 
   int n = atom->nbondtypes;
-  typename AT::tdual_ffloat_1d k_k("BondHarmonic::k",n+1);
-  typename AT::tdual_ffloat_1d k_r0("BondHarmonic::r0",n+1);
+  k_k = typename AT::tdual_ffloat_1d("BondHarmonic::k",n+1);
+  k_r0 = typename AT::tdual_ffloat_1d("BondHarmonic::r0",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();

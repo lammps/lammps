@@ -129,7 +129,7 @@ void PairReaxFFKokkos<DeviceType>::deallocate_views_of_views()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::allocate()
+void PairReaxFFKokkos<DeviceType>::allocate_kokkos()
 {
   int n = atom->ntypes;
 
@@ -197,7 +197,7 @@ void PairReaxFFKokkos<DeviceType>::init_style()
 
   need_dup = lmp->kokkos->need_dup<DeviceType>();
 
-  allocate();
+  allocate_kokkos();
   setup();
   init_md();
 }
@@ -585,9 +585,8 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
   ntypes = atom->ntypes;
 
   for (i = 0; i <= ntypes; ++i) {
-    if (map[i] == -1) continue;
     for (j = i; j <= ntypes; ++j) {
-      if (map[j] == -1) continue;
+      if ((map[i] == -1) || (map[j] == -1)) continue;
       if (LR[i][j].n) {
         sfree(LR[i][j].y);
         sfree(LR[i][j].H);
@@ -597,9 +596,14 @@ void PairReaxFFKokkos<DeviceType>::Deallocate_Lookup_Tables()
         sfree(LR[i][j].CEclmb);
       }
     }
+    // LR[i] is allocated for every type in Init_Lookup_Tables(), so it must be
+    // freed unconditionally -- the map[] check only guards the inner per-pair
+    // spline arrays, which exist only for mapped type pairs. Skipping the row
+    // free for unmapped types (e.g. i == 0) leaked those rows.
     sfree(LR[i]);
   }
   sfree(LR);
+  LR = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2098,10 +2102,10 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
       d_C4dbopi2(i,j_index) = 0.0;
     } else {
       if (ovc >= 0.001) {
-        exp_p1i = exp(-p_boc1 * d_Deltap[i]);
-        exp_p2i = exp(-p_boc2 * d_Deltap[i]);
-        exp_p1j = exp(-p_boc1 * d_Deltap[j]);
-        exp_p2j = exp(-p_boc2 * d_Deltap[j]);
+        exp_p1i = exp((double)(-p_boc1 * d_Deltap[i]));
+        exp_p2i = exp((double)(-p_boc2 * d_Deltap[i]));
+        exp_p1j = exp((double)(-p_boc1 * d_Deltap[j]));
+        exp_p2j = exp((double)(-p_boc2 * d_Deltap[j]));
 
         f2 = exp_p1i + exp_p1j;
         f3 = -1.0/p_boc2*log(0.5*(exp_p2i+exp_p2j));
@@ -4078,7 +4082,7 @@ double PairReaxFFKokkos<DeviceType>::memory_usage()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairReaxFFKokkos<DeviceType>::FindBond(int &numbonds, int groupbit)
+void PairReaxFFKokkos<DeviceType>::FindBond_kokkos(int &numbonds, int groupbit)
 {
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondZero>(0,nmax),*this);

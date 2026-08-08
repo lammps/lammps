@@ -2,6 +2,7 @@
 
 APP_NAME=lammps-gui
 VERSION="$1"
+BUILD_DIR="${PWD}"
 
 echo "Delete old files, if they exist"
 rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS_GUI-macOS-multiarch*.dmg
@@ -25,6 +26,10 @@ mkdir  .background
 mv ${APP_NAME}.app/Contents/Resources/LAMMPS_DMG_Background.png .background/background.png
 mv ${APP_NAME}.app LAMMPS_GUI.app
 cd LAMMPS_GUI.app/Contents
+
+echo "Update rpath for LAMMPS to link to bundled liblammps.0.dylib"
+install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
+install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
 
 echo "Attach icons to LAMMPS console and GUI executables"
 echo "read 'icns' (-16455) \"Resources/lammps.icns\";" > icon.rsrc

@@ -141,7 +141,10 @@ void Compute::modify_params(int narg, char **arg)
 
   int iarg = 0;
   while (iarg < narg) {
-    if (strcmp(arg[iarg],"extra/dof") == 0) {
+    int n = modify_param(narg-iarg, &arg[iarg]);
+    if (n != 0) {
+      iarg += n;
+    } else if (strcmp(arg[iarg],"extra/dof") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute_modify extra/dof", error);
       extra_dof = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
@@ -150,10 +153,8 @@ void Compute::modify_params(int narg, char **arg)
       dynamic_user = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else {
-      int n = modify_param(narg-iarg, &arg[iarg]);
-        if (n== 0)
-          error->all(FLERR, iarg + 1, "Compute {} {} does not support compute_modify {} command",
-                     id, style, arg[iarg]);
+      error->all(FLERR, iarg + 1, "Compute {} {} does not support compute_modify {} command",
+                 id, style, arg[iarg]);
     }
   }
 }

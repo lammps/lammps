@@ -51,6 +51,7 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "bias") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute temp/sphere bias", error);
       tempbias = 1;
+      delete[] id_bias;
       id_bias = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "dof") == 0) {
@@ -126,7 +127,7 @@ void ComputeTempSphere::setup()
 
 void ComputeTempSphere::dof_compute()
 {
-  int count, count_all;
+  int count;
 
   adjust_dof_fix();
   natoms_temp = group->count(igroup);
@@ -168,7 +169,9 @@ void ComputeTempSphere::dof_compute()
       }
   }
 
-  MPI_Allreduce(&count, &count_all, 1, MPI_INT, MPI_SUM, world);
+  bigint count_single = count;
+  bigint count_all;
+  MPI_Allreduce(&count_single, &count_all, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   dof = count_all;
 
   // additional adjustments to dof
@@ -210,7 +213,8 @@ void ComputeTempSphere::dof_compute()
         }
     }
 
-    MPI_Allreduce(&count, &count_all, 1, MPI_INT, MPI_SUM, world);
+    count_single = count;
+    MPI_Allreduce(&count_single, &count_all, 1, MPI_LMP_BIGINT, MPI_SUM, world);
     dof -= count_all;
   }
 

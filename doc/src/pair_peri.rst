@@ -103,6 +103,25 @@ such that c/distance = stiffness/volume\^2, where stiffness is
 energy/distance\^2 and volume is distance\^3.  See the users guide for
 more details.
 
+A bond between particles i and j is broken when its stretch :math:`s_{ij}`
+exceeds the per-bond critical stretch
+:math:`s_{ij}^{crit} = s00 - \alpha \cdot \max(s_i, s_j)`,
+where :math:`s_i` is the minimum stretch over all surviving bonds of
+particle i from the previous timestep.  Using :math:`\max(s_i, s_j)` and
+evaluating the criterion per bond (rather than collapsing to a single
+per-particle scalar) correctly handles simulations with multiple atom types
+that have different s00 and :math:`\alpha` values.  The per-atom quantity
+accessible as ``s0`` via :doc:`compute property/atom <compute_property_atom>`
+stores this minimum stretch (not the critical stretch threshold).
+
+.. note::
+
+   Previously the bond breaking criterion used a single per-particle critical
+   stretch value shared across all bond-type pairs.  This was incorrect when
+   atom types had different s00 or alpha parameters.  The ``s0`` per-atom
+   property now stores the minimum bond stretch rather than the old (incorrect)
+   critical-stretch scalar.
+
 For the *peri/lps* style:
 
 * K (force/area units)
@@ -113,8 +132,9 @@ For the *peri/lps* style:
 
 K is the bulk modulus and G is the shear modulus.  The horizon is a
 cutoff distance for truncating interactions, and s00 and :math:`\alpha`
-are used as a bond breaking criteria. See the users guide for more
-details.
+are used as a bond breaking criteria.  See the peri/pmb description above
+for details of the per-bond critical stretch criterion.  See the users
+guide for more details.
 
 For the *peri/ves* style:
 
@@ -128,7 +148,8 @@ For the *peri/ves* style:
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance for truncating interactions, and s00 and :math:`\alpha`
-are used as a bond breaking criteria. m_lambdai and m_taubi are the
+are used as a bond breaking criteria.  See the peri/pmb description above
+for details of the per-bond critical stretch criterion.  m_lambdai and m_taubi are the
 viscoelastic relaxation parameter and time constant,
 respectively. m_lambdai varies within zero to one. For very small values
 of m_lambdai the viscoelastic model responds very similar to a linear
@@ -146,8 +167,9 @@ For the *peri/eps* style:
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
-criteria.  m_yield_stress is the yield stress of the material. For
-details please see the description in "(Mitchell2011a)".
+criteria.  See the peri/pmb description above for details of the
+per-bond critical stretch criterion.  m_yield_stress is the yield stress
+of the material. For details please see the description in "(Mitchell2011a)".
 
 ----------
 

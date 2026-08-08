@@ -52,9 +52,10 @@ static const char cite_compute_saed_c[] =
 ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), ztype(nullptr), store_tmp(nullptr)
 {
+  nlocalgroup = 0;
   if (lmp->citeme) lmp->citeme->add(cite_compute_saed_c);
 
-  int ntypes = atom->ntypes;
+  ntypes = atom->ntypes;
   int natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;

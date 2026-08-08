@@ -244,7 +244,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
           numtyp u = (numtyp)1.0 - t;
           _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
           prefactor /= (r+EPS_EWALD);
-          force = prefactor * (_erfc + EWALD_F*grij*expm2 - ((numtyp)1.0-factor_coul));
+          force = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
           // Additionally r2inv needs to be accordingly modified since the later
           // scaling of the overall force shall be consistent
           r2inv = ucl_recip(rsq + EPS_EWALD_SQR);

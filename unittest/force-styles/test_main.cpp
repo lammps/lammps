@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "error_stats.h"
+#include "library.h"
 #include "pointers.h"
 #include "test_config.h"
 #include "test_config_reader.h"
@@ -280,6 +281,17 @@ int main(int argc, char **argv)
     }
 
     int rv = RUN_ALL_TESTS();
+
+    // release global resources (Kokkos, embedded Python, plugins) like the
+    // standalone executable does. without this, a test that initialized
+    // Kokkos leaves its teardown to static destructors at program exit,
+    // which run in undefined order and crash (e.g. host-only KOKKOS builds
+    // segfault in a fence call during static destruction).
+
+    lammps_kokkos_finalize();
+    lammps_python_finalize();
+    lammps_plugin_finalize();
+
     MPI_Finalize();
     return rv;
 }

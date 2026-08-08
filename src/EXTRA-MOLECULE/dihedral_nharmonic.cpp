@@ -46,6 +46,8 @@ DihedralNHarmonic::DihedralNHarmonic(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralNHarmonic::~DihedralNHarmonic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     for (int i = 1; i <= atom->ndihedraltypes; i++)
@@ -306,6 +308,10 @@ void DihedralNHarmonic::read_restart(FILE *fp)
     utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
 
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
+
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    if ((nterms[i] < 0) || (nterms[i] > 4096))
+      error->all(FLERR,"Invalid number of terms in restart file");
 
   // allocate
   for (int i = 1; i <= atom->ndihedraltypes; i++)

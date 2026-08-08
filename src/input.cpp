@@ -51,6 +51,7 @@
 #include <cstring>
 #include <cerrno>
 #include <cctype>
+#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -863,9 +864,11 @@ int Input::execute_command()
   }
   if (command_map->find(mycmd) != command_map->end()) {
     CommandCreator &command_creator = (*command_map)[mycmd];
-    Command *cmd = command_creator(lmp);
+    // use a unique_ptr so the command object is destroyed even if its
+    // command() method throws (e.g. an input error caught by a unit test),
+    // which otherwise leaks the partially-run command
+    std::unique_ptr<Command> cmd(command_creator(lmp));
     cmd->command(narg,arg);
-    delete cmd;
     return 0;
   }
 
@@ -887,7 +890,10 @@ void Input::clear()
   lmp->destroy();
   lmp->create();
   lmp->post_create();
+
+  // reset to clean status for classes that are not re-created
   variable->clear_in_progress();
+  error->reset_warn();
 }
 
 /* ---------------------------------------------------------------------- */

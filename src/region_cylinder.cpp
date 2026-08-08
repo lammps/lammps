@@ -451,6 +451,10 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
   double xp, yp, zp;
   double dx, dr, dr2, d2, d2prev;
 
+  // with all three faces open there is no surface left to contact
+
+  if (open_faces[0] && open_faces[1] && open_faces[2]) return 0;
+
   // radius of curvature for granular
   // 0 for flat surfaces (infinite case), 2*radius for curved portion
 
@@ -526,6 +530,9 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           if (r < radius) {
             yp = x[1];
             zp = x[2];
+          } else {
+            yp = c1 + del1 * radius / r;
+            zp = c2 + del2 * radius / r;
           }
           d2prev = d2;
         }
@@ -544,6 +551,9 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           if (r < radius) {
             yp = x[1];
             zp = x[2];
+          } else {
+            yp = c1 + del1 * radius / r;
+            zp = c2 + del2 * radius / r;
           }
         }
       }
@@ -625,6 +635,9 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           if (r < radius) {
             xp = x[0];
             zp = x[2];
+          } else {
+            xp = c1 + del1 * radius / r;
+            zp = c2 + del2 * radius / r;
           }
           d2prev = d2;
         }
@@ -643,6 +656,9 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           if (r < radius) {
             xp = x[0];
             zp = x[2];
+          } else {
+            xp = c1 + del1 * radius / r;
+            zp = c2 + del2 * radius / r;
           }
         }
       }
@@ -724,6 +740,9 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           if (r < radius) {
             xp = x[0];
             yp = x[1];
+          } else {
+            xp = c1 + del1 * radius / r;
+            yp = c2 + del2 * radius / r;
           }
           d2prev = d2;
         }
@@ -742,6 +761,9 @@ int RegCylinder::surface_exterior(double *x, double cutoff)
           if (r < radius) {
             xp = x[0];
             yp = x[1];
+          } else {
+            xp = c1 + del1 * radius / r;
+            yp = c2 + del2 * radius / r;
           }
         }
       }

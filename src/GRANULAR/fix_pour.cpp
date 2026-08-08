@@ -969,6 +969,7 @@ void FixPour::options(int narg, char **arg)
         if (iarg + 3 > narg) utils::missing_cmd_args(FLERR, "pour diam one", error);
         dstyle = ONE;
         radius_one = 0.5 * utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+        if (radius_one <= 0.0) error->all(FLERR, "Illegal fix pour radius: {}", radius_one);
         radius_max = radius_one;
         iarg += 3;
       } else if (strcmp(arg[iarg + 1], "range") == 0) {
@@ -977,6 +978,7 @@ void FixPour::options(int narg, char **arg)
         radius_lo = 0.5 * utils::numeric(FLERR, arg[iarg + 2], false, lmp);
         radius_hi = 0.5 * utils::numeric(FLERR, arg[iarg + 3], false, lmp);
         if (radius_lo > radius_hi) error->all(FLERR, "Illegal fix pour radii: {} exceeds {}", radius_lo, radius_hi);
+        if (radius_lo <= 0.0) error->all(FLERR, "Illegal fix pour radius: {}", radius_lo);
         radius_max = radius_hi;
         iarg += 4;
       } else if (strcmp(arg[iarg + 1], "poly") == 0) {

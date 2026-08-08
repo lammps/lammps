@@ -45,6 +45,15 @@ add_executable(test_set_property test_set_property.cpp)
 target_link_libraries(test_set_property PRIVATE lammps GTest::GMock)
 add_test(NAME SetProperty COMMAND test_set_property)
 
+add_executable(test_pair_brownian_poly test_pair_brownian_poly.cpp)
+target_link_libraries(test_pair_brownian_poly PRIVATE lammps GTest::GMock)
+add_test(NAME PairBrownianPoly COMMAND test_pair_brownian_poly)
+
+add_executable(test_pair_lubricate_poly test_pair_lubricate_poly.cpp)
+target_link_libraries(test_pair_lubricate_poly PRIVATE lammps GTest::GMock)
+add_test(NAME PairLubricatePoly COMMAND test_pair_lubricate_poly)
+
+
 add_executable(test_labelmap test_labelmap.cpp)
 target_compile_definitions(test_labelmap PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_labelmap PRIVATE lammps GTest::GMock)

@@ -45,6 +45,7 @@ class PairGranular : public Pair {
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
   int get_size_history() const { return size_history; }
+  class FixNeighHistory *get_fix_history() const { return fix_history; }
 
   // granular models
   class Granular_NS::GranularModel** models_list;

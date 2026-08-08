@@ -252,6 +252,8 @@ struct remap_plan_3d *remap_3d_create_plan(
   plan = (struct remap_plan_3d *) malloc(sizeof(struct remap_plan_3d));
   if (plan == nullptr) return nullptr;
   plan->usecollective = usecollective;
+  plan->scratch = nullptr;
+  plan->sendbuf = nullptr;
 
   // store parameters in local data structs
 

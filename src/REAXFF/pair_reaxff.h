@@ -81,7 +81,7 @@ class PairReaxFF : public Pair {
   void read_reax_forces(int);
 
   int nmax;
-  void FindBond();
+  virtual void FindBond();
   double memory_usage() override;
 };
 

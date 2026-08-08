@@ -82,8 +82,8 @@ template <class DeviceType> class PairUF3Kokkos : public PairUF3 {
   tdual_ffloat_4d k_min_cut_3b;
   typename tdual_ffloat_3d::t_dev d_cut_3b;
   typename tdual_ffloat_4d::t_dev d_min_cut_3b;
-  template <typename TYPE> void destroy_3d(TYPE data, typename TYPE::value_type*** &array);
-  template <typename TYPE> void destroy_4d(TYPE data, typename TYPE::value_type**** &array);
+  template <typename TYPE> void destroy_3d(TYPE &data, typename TYPE::value_type*** &array);
+  template <typename TYPE> void destroy_4d(TYPE &data, typename TYPE::value_type**** &array);
   Kokkos::View<F_FLOAT **, LMPDeviceType::array_layout, LMPDeviceType> /*d_cutsq,*/ d_cut_3b_list;
   //Kokkos::View<F_FLOAT ***, LMPDeviceType::array_layout, LMPDeviceType> d_cut_3b;
 

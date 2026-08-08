@@ -80,7 +80,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type *&array, int n1, const ch
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-void destroy_kokkos(TYPE data, typename TYPE::value_type* &array)
+void destroy_kokkos(TYPE &data, typename TYPE::value_type* &array)
 {
   if (array == nullptr) return;
   data = TYPE();
@@ -250,7 +250,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type **&array,
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-void destroy_kokkos(TYPE data, typename TYPE::value_type** &array)
+void destroy_kokkos(TYPE &data, typename TYPE::value_type** &array)
 {
   if (array == nullptr) return;
   data = TYPE();
@@ -371,7 +371,7 @@ TYPE grow_kokkos(TYPE &data, typename TYPE::value_type ***&array,
 ------------------------------------------------------------------------- */
 
 template <typename TYPE>
-void destroy_kokkos(TYPE data, typename TYPE::value_type*** &array)
+void destroy_kokkos(TYPE &data, typename TYPE::value_type*** &array)
 {
   if (array == nullptr) return;
   data = TYPE();

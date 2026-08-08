@@ -419,8 +419,7 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
   double rsq, r2inv, force_coul, force_lj;
   double g2 = g_ewald*g_ewald, g6 = g2*g2*g2, g8 = g6*g2;
   double B0, B1, B2, B3, G0, G1, G2, mudi, mudj, muij;
-  double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
-  double mui[3], muj[3], xi[3], d[3];
+  double mui[3], muj[3] = {0.0, 0.0, 0.0}, xi[3], d[3];
 
   double C1 = 2.0 * g_ewald / MY_PIS;
   double C2 = 2.0 * g2 * C1;
@@ -451,6 +450,8 @@ void PairLJLongDipoleLong::compute(int eflag, int vflag)
 
       if ((rsq = dot3(d, d)) >= cutsqi[typej = type[j]]) continue;
       r2inv = 1.0/rsq;
+
+      double force_d[3] = {0.0,0.0,0.0}, ti[3] = {0.0,0.0,0.0}, tj[3] = {0.0,0.0,0.0};
 
       if (order3 && (rsq < cut_coulsq)) {               // dipole
         memcpy(muj, mu0+(j<<2), 3*sizeof(double));

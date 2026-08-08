@@ -68,7 +68,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "nmax") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix vector nmax", error);
       nmaxval = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (nmaxval < 1) error->all(FLERR, "Invalid nmax value");
+      if ((nmaxval < 1) || (nmaxval > MAXSMALLINT)) error->all(FLERR, "Invalid nmax value");
       iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix vector keyword: {}", arg[iarg]);
@@ -80,7 +80,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces either a global vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  int value, finalvalue;
+  int value = 0, finalvalue;
   bool first = true;
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
@@ -159,7 +159,8 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   vector = nullptr;
   array = nullptr;
-  ncount = ncountmax = nindex = 0;
+  ncount = nindex = 0;
+  ncountmax = 1;
   if (values.size() == 1)
     size_vector = 0;
   else
@@ -226,6 +227,7 @@ void FixVector::init()
   bigint finalstep = update->endstep / nevery * nevery;
   if (finalstep > update->endstep) finalstep -= nevery;
   ncountmax = (finalstep - initialstep) / nevery + 1;
+  if (ncountmax <= 0) ncountmax = 1;
   if (ncountmax > nmaxval) ncountmax = nmaxval;
   if (values.size() == 1)
     memory->grow(vector, ncountmax, "vector:vector");

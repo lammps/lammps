@@ -425,6 +425,10 @@ int RegBlock::surface_exterior(double *x, double cutoff)
         mindist = dist;
       }
     }
+
+    // with all six faces open there is no surface left to contact
+
+    if (mindist == BIG) return 0;
   }
 
   add_contact(0, x, xp, yp, zp);

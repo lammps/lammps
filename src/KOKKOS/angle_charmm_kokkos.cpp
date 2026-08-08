@@ -256,6 +256,17 @@ template<class DeviceType>
 void AngleCharmmKokkos<DeviceType>::allocate()
 {
   AngleCharmm::allocate();
+
+  int n = atom->nangletypes;
+  k_k = typename AT::tdual_ffloat_1d("AngleCharmm::k",n+1);
+  k_theta0 = typename AT::tdual_ffloat_1d("AngleCharmm::theta0",n+1);
+  k_k_ub = typename AT::tdual_ffloat_1d("AngleCharmm::k_ub",n+1);
+  k_r_ub = typename AT::tdual_ffloat_1d("AngleCharmm::r_ub",n+1);
+
+  d_k = k_k.template view<DeviceType>();
+  d_theta0 = k_theta0.template view<DeviceType>();
+  d_k_ub = k_k_ub.template view<DeviceType>();
+  d_r_ub = k_r_ub.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -267,18 +278,9 @@ void AngleCharmmKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleCharmm::coeff(narg, arg);
 
-  int n = atom->nangletypes;
-  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
-  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
-
-  d_k = k_k.template view<DeviceType>();
-  d_theta0 = k_theta0.template view<DeviceType>();
-  d_k_ub = k_k_ub.template view<DeviceType>();
-  d_r_ub = k_r_ub.template view<DeviceType>();
-
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
     k_k_ub.h_view[i] = k_ub[i];
@@ -306,10 +308,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  typename AT::tdual_ffloat_1d k_k("AngleCharmm::k",n+1);
-  typename AT::tdual_ffloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  typename AT::tdual_ffloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  typename AT::tdual_ffloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  k_k = typename AT::tdual_ffloat_1d("AngleCharmm::k",n+1);
+  k_theta0 = typename AT::tdual_ffloat_1d("AngleCharmm::theta0",n+1);
+  k_k_ub = typename AT::tdual_ffloat_1d("AngleCharmm::k_ub",n+1);
+  k_r_ub = typename AT::tdual_ffloat_1d("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();

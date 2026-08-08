@@ -837,7 +837,7 @@ void PairOxdnaStk::coeff(int narg, char **arg)
     cosphi_st2_ast_one = utils::numeric(FLERR,arg[23],false,lmp);
   } else { // read values from potential file
     if (comm->me == 0) {
-      PotentialFileReader reader(lmp, arg[6], "oxdna potential", " (stk)");
+      PotentialFileReader reader(lmp, arg[4], "oxdna potential", " (stk)");
       char * line;
       std::string iloc, jloc, potential_name;
 

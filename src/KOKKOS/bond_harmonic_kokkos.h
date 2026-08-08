@@ -76,6 +76,9 @@ class BondHarmonicKokkos : public BondHarmonic {
   int nlocal,newton_bond;
   int eflag,vflag;
 
+  typename AT::tdual_ffloat_1d k_k;
+  typename AT::tdual_ffloat_1d k_r0;
+
   typename AT::t_ffloat_1d d_k;
   typename AT::t_ffloat_1d d_r0;
 

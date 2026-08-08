@@ -374,8 +374,7 @@ void PairBrownian::settings(int narg, char **arg)
 
   if (flaglog == 1 && flagHI == 0) {
     error->warning(FLERR,
-                   "Cannot include log terms without 1/r terms; "
-                   "setting flagHI to 1");
+                   "Cannot include log terms without 1/r terms; setting flagHI to 1");
     flagHI = 1;
   }
 

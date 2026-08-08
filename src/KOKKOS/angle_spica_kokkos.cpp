@@ -405,8 +405,9 @@ void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   AngleSPICA::coeff(narg, arg);
 
-  int n = atom->nangletypes;
-  for (int i = 1; i <= n; i++) {
+  int ilo, ihi;
+  utils::bounds(FLERR, arg[0], 1, atom->nangletypes, ilo, ihi, error);
+  for (int i = ilo; i <= ihi; i++) {
     k_k.h_view[i] = k[i];
     k_theta0.h_view[i] = theta0[i];
     k_repscale.h_view[i] = repscale[i];

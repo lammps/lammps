@@ -1189,11 +1189,19 @@ bool lmp_gpu_requires_host_neighbor()
 {
   UCL_Device gpu;
 
-#if USE_OPENCL
+#if defined(USE_OPENCL)
+  // AMD GPUs with shared (unified) host/device memory cannot reliably build
+  // neighbor lists on the device with the OpenCL API.
   if (gpu.num_platforms() > 0) {
     auto name = gpu.platform_name();
-    if (name.find("AMD") && gpu.shared_memory(0)) return true;
+    if ((name.find("AMD") != std::string::npos) && gpu.shared_memory(0)) return true;
   }
+#elif defined(USE_HIP)
+  // Integrated AMD GPUs (APUs sharing host memory) cannot reliably build neighbor
+  // lists on the device with the HIP API either: device neighbor builds trigger a
+  // memory access fault (e.g. lj/cut/dipole/cut) or hit the ellipsoid/sphere-mix
+  // restriction (e.g. gayberne). Force host-side neighbor lists, matching OpenCL.
+  if (gpu.num_devices() > 0 && gpu.integrated(0)) return true;
 #endif
 
   return false;

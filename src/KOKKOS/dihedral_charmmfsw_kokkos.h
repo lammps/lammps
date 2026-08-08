@@ -101,6 +101,13 @@ class DihedralCharmmfswKokkos : public DihedralCharmmfsw {
   typename AT::t_ffloat_2d d_lj14_3;
   typename AT::t_ffloat_2d d_lj14_4;
 
+  typename AT::tdual_ffloat_1d k_k;
+  typename AT::tdual_ffloat_1d k_multiplicity;
+  typename AT::tdual_ffloat_1d k_shift;
+  typename AT::tdual_ffloat_1d k_sin_shift;
+  typename AT::tdual_ffloat_1d k_cos_shift;
+  typename AT::tdual_ffloat_1d k_weight;
+
   typename AT::t_ffloat_1d d_k;
   typename AT::t_ffloat_1d d_multiplicity;
   typename AT::t_ffloat_1d d_shift;

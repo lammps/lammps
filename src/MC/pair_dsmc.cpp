@@ -291,6 +291,12 @@ void PairDSMC::init_style()
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;
 
+  // free storage from a previous init_style() call
+
+  memory->destroy(particle_list);
+  memory->destroy(first);
+  memory->destroy(number);
+
   memory->create(particle_list,atom->ntypes+1,0,"pair:particle_list");
   memory->create(first,atom->ntypes+1,total_ncells,"pair:first");
   memory->create(number,atom->ntypes+1,total_ncells,"pair:number");

@@ -199,6 +199,7 @@ void ReadRestart::command(int narg, char **arg)
         error->all(FLERR,"Invalid flag in peratom section of restart file");
 
       n = read_int();
+      if (n < 0) error->all(FLERR, 1, "Invalid data size in peratom section of restart file");
       if (n > maxbuf) {
         maxbuf = n;
         memory->destroy(buf);
@@ -206,8 +207,13 @@ void ReadRestart::command(int narg, char **arg)
       }
       read_double_vec(n,buf);
 
+      // the first value of each per-atom chunk is the size of the chunk;
+      // it must be positive so the loop below always advances
+
       m = 0;
       while (m < n) {
+        if (static_cast<int>(buf[m]) < 1)
+          error->all(FLERR, 1, "Invalid data in peratom section of restart file");
         x = &buf[m+1];
         if (remapflag) {
           iptr = (imageint *) &buf[m+7];

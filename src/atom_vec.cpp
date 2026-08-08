@@ -2459,6 +2459,7 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
+  delete[] threads;
   if (ngrow)
     threads = new bool[ngrow];
   else

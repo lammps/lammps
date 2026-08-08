@@ -40,6 +40,11 @@ class PairTableRX : public PairTable {
   int isite1, isite2;
   void getMixingWeights(int, double &, double &, double &, double &);
   bool fractionalWeighting;
+
+  int nmax_rx;
+  double *mixWtSite1old, *mixWtSite2old, *mixWtSite1, *mixWtSite2;
+
+  double memory_usage() override;
 };
 
 }    // namespace LAMMPS_NS

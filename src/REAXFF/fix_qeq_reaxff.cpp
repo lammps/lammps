@@ -144,6 +144,9 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
 
   s_hist = t_hist = nullptr;
+  H.n = H.m = 0;
+  H.firstnbr = H.numnbrs = H.jlist = nullptr;
+  H.val = nullptr;
   atom->add_callback(Atom::GROW);
 }
 

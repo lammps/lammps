@@ -11,7 +11,11 @@ if(ENABLE_TESTING)
     file(READ ${SUPP} SUPPRESSIONS)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/lammps.supp "${SUPPRESSIONS}")
   endforeach()
-  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
+  # blocks that are still reachable when the process exits are not leaks. reporting
+  # them buries the actual defects under thousands of one-time initializations in
+  # OpenSSL, libcurl, CPython, and GoogleTest, plus everything that is still in use
+  # when a command like "quit" or an error exit terminates the process on purpose.
+  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=definite,indirect,possible --track-origins=yes --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
 
   set(MEMORYCHECK_COMMAND "${VALGRIND_BINARY}" CACHE FILEPATH "Memory Check Command")
   set(MEMORYCHECK_COMMAND_OPTIONS "${VALGRIND_DEFAULT_OPTIONS}" CACHE STRING "Memory Check Command Options")

@@ -403,7 +403,7 @@ The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but
 no error check is performed on this.
 
-This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
+This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009>`
 where the factor of :math:`\sqrt{2}` arises from a difference in convention
 from Tsuji when defining :math:`\alpha` using either the mass vs. effective
 mass. This factor was missing in earlier versions of LAMMPS.
@@ -413,7 +413,7 @@ coefficient of restitution :math:`e` is required.  It operates much like
 the *Tsuji* model but, the normal coefficient of restitution :math:`e`
 is specified as an input in place of the usual :math:`\eta_{n0}` value
 in the normal model.  Following the approach of :ref:`(Brilliantov et al)
-<Brill1996_1>`, when using the *hooke* normal model, *coeff_restitution*
+<Brill1996>`, when using the *hooke* normal model, *coeff_restitution*
 then calculates the damping coefficient as:
 
 .. math::

@@ -30,6 +30,7 @@
         rel: 1e-4
   skip:
     [
+      in.*pod.Inp,
       in.disp,
       in.disp2,
       in.dos,

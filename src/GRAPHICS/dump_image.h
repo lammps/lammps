@@ -70,10 +70,10 @@ class DumpImage : public DumpCustom {
   int bodycolor;                  // what determines color of bodies
   double bodyflag1, bodyflag2;    // user-specified params for drawing bodies
 
-  int bondflag;         // NO/YES/AUTO for drawing bonds
-  int bcolor, bdiam;    // what determines color/diam of bonds
-  double bdiamvalue;    // bond diameter value
-  double bondcutoff;    // autobond cutoff
+  int bondflag;             // NO/YES/AUTO for drawing bonds
+  int bcolor, bdiam;        // what determines color/diam of bonds
+  double bdiamvalue;        // bond diameter value
+  double bondcutoff;        // autobond cutoff
   char *id_bond_compute;    // ID of per-bond /local compute for bond coloring (or null)
   Compute *bond_compute;    // ptr to that compute, resolved in init_style()
   int bond_argindex;        // 1-based column for c_ID[N]; 0 selects the whole vector

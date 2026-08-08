@@ -1426,7 +1426,6 @@ void EAPOD::base_descriptors(double *basedesc, double *x,
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -1469,7 +1468,6 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *x,
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -1526,7 +1524,6 @@ void EAPOD::descriptors(double *gd, double *gdd, double *basedesc, double *probd
         Njmax = Nj;
         free_temp_memory();
         allocate_temp_memory(Njmax);
-        if (comm->me == 0) utils::logmesg(lmp, "reallocate temporary memory with Njmax = %d ...\n", Njmax);
       }
 
       double *rij = &tmpmem[0]; // 3*Nj
@@ -2582,8 +2579,12 @@ int EAPOD::estimate_temp_memory(int Nj)
   // abf, abfx, abfy, abfz
   int nmax6 = 4*(Nj+1)*Kmax;
 
+  // P, cp, D, pca in peratom_environment_descriptors(), stored in the same region
+  int nmax6a = 3*nClusters + nComponents;
+
   // Determine the maximum amount of memory needed for U, Ux, Uy, Uz, sumU, cU, rbf, rbfx, rbfy, rbfz, abf, abfx, abfy, abfz
   int nmax7 = (nmax5 > nmax6) ? nmax5 : nmax6;
+  nmax7 = (nmax7 > nmax6a) ? nmax7 : nmax6a;
   int nmax8 = nmax2 + nmax3 + nmax4 + nmax7;
 
   // Determine the total amount of memory needed for all double memory
@@ -2601,13 +2602,25 @@ int EAPOD::estimate_temp_memory(int Nj)
 
 void EAPOD::allocate_temp_memory(int Nj)
 {
+  // guarantee a minimum size so all buffers exist even for atoms without neighbors
+  if (Nj < 1) Nj = 1;
   estimate_temp_memory(Nj);
+
+  // in peratomenergyforce2() the bdd buffer stores the coefficients cb and the
+  // force coefficients, which require (nl2 + nl3 + nl4) + nelements*K3*nrbf3
+  // entries.  this size is set by the potential and does not depend on the
+  // number of neighbors, so it can exceed 3*Nj*Mdesc when Nj is small.
+
+  int nbdd = 3*Nj*Mdesc;
+  int ncb = (nl2 + nl3 + nl4) + nelements*K3*nrbf3;
+  if (nbdd < ncb) nbdd = ncb;
+
   memory->create(tmpmem, ndblmem, "tmpmem");
   memory->create(tmpint, nintmem, "tmpint");
-  memory->create(bd, Mdesc, "bdd");
-  memory->create(bdd, 3*Nj*Mdesc, "bdd");
-  memory->create(pd, nClusters, "bdd");
-  memory->create(pdd, 3*Nj*nClusters, "bdd");
+  memory->create(bd, Mdesc, "bd");
+  memory->create(bdd, nbdd, "bdd");
+  memory->create(pd, nClusters, "pd");
+  memory->create(pdd, 3*Nj*nClusters, "pdd");
 }
 
 void EAPOD::free_temp_memory()

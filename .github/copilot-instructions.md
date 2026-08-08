@@ -127,6 +127,9 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
 - **No alternative logical-operator tokens:** use `&&`, `||`, `!`, `^` -- never `and`,
   `or`, `not`, `xor` (breaks MSVC).
 - **Parenthesize each operand of chained `&&`/`||` conditionals** for readability.
+- **No two-trip loops for trivial initialization:** assign pairs directly
+  (`xstyle[0] = xstyle[1] = NONE;`) instead of a `for` loop with only two trivial
+  trips; keep the loop when the body is substantial (unrolling would duplicate code).
 - **String formatting with fmtlib** (`fmt::format()`), not `sprintf`.
 - **Error handling:** `error->all()` when all MPI ranks hit the error, `error->one()`
   for a single rank; `error->warning()` prints on every rank, so guard with
@@ -135,6 +138,11 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
   the audience is researchers, not software engineers.
 - **RAII for C resources:** prefer `SafeFilePtr` (`src/safe_pointers.h`) over raw
   `FILE *`/`fopen` when touching such code.
+- **`delete[]` before `utils::strdup()`:** when storing a copied name (variable,
+  region, group ID, ...) in a class member, always `delete[]` the member immediately
+  before re-assigning it with `utils::strdup()` -- even when it is provably still
+  `nullptr`.  Static analysis (Coverity) flags the bare assignment as a leak, and the
+  idiom is defensive against keywords being parsed twice.
 - **MPI stubs:** if a serial build misses an MPI symbol, add it to `src/STUBS/mpi.h`
   instead of special-casing the caller.
 - **Block comments:** inside `/* ... */`, an embedded `*/` (e.g. in a glob like
@@ -158,6 +166,11 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
 - Feature branches; PRs target `develop` (NOT `master` or `release`).  The `develop`
   branch is always kept functional (continuous release model).
 - Run `cd src && make check` before committing; watch CI on the PR.
+- A bug found in any style is rarely alone: styles and their accelerator variants are
+  created by copy-adapt, so defects propagate in both directions.  After root-causing
+  a bug, check the base style, all suffix variants (`/omp`, `/kk`, `/gpu`, `/opt`,
+  `/intel`), and sibling styles cloned from the same template for the same code shape,
+  and fix all occurrences together.
 - The PR template contains a mandatory **AI Tools Usage** section whose default text
   states no AI was used; when AI tools generated code, edit that section to disclose it
   honestly.  This section is the ONLY place for AI attribution: do NOT add

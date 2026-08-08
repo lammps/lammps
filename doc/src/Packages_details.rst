@@ -119,7 +119,6 @@ gives those details.
    * :ref:`TALLY <PKG-TALLY>`
    * :ref:`UEF <PKG-UEF>`
    * :ref:`VORONOI <PKG-VORONOI>`
-   * :ref:`VTK <PKG-VTK>`
    * :ref:`YAFF <PKG-YAFF>`
 
 ----------
@@ -981,12 +980,29 @@ EXTRA-DUMP package
 
 **Contents:**
 
-Additional dump styles that are less commonly used.
+Additional dump styles that are less commonly used.  This includes the
+:doc:`dump vtk <dump_vtk>` command, which outputs snapshot info in the
+`VTK format <vtk_>`_ for visualization by `ParaView <paraview_>`_ or
+other tools that read it.
+
+.. versionchanged:: TBD
+
+The *vtk* dump style used to be a package of its own and required the
+VTK library to be installed.  It now writes the files itself and does
+not depend on any external library.
+
+.. _vtk: https://vtk.org
+
+.. _paraview: https://www.paraview.org
+
+**Authors:** the *vtk* dump style was written by Richard Berger (JKU)
+and Daniel Queteschiner (DCS Computing).
 
 **Supporting info:**
 
 * ``src/EXTRA-DUMP``: filenames -> commands
 * :doc:`dump <dump>`
+* :doc:`dump vtk <dump_vtk>`
 
 ----------
 
@@ -3104,39 +3120,6 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 * ``lib/voronoi/README``
 * :doc:`compute voronoi/atom <compute_voronoi_atom>`
 * ``examples/voronoi``
-
-----------
-
-.. _PKG-VTK:
-
-VTK package
-----------------
-
-**Contents:**
-
-A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
-`VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
-other visualization packages.
-
-.. _vtk: https://vtk.org
-
-.. _paraview: https://www.paraview.org
-
-To use this package you must have VTK library available on your
-system.
-
-**Authors:** Richard Berger (JKU) and Daniel Queteschiner (DCS Computing).
-
-**Install:**
-
-This package has :ref:`specific installation instructions <vtk>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* ``src/VTK``: filenames -> commands
-* ``src/VTK/README``
-* ``lib/vtk/README``
-* :doc:`dump vtk <dump_vtk>`
 
 ----------
 

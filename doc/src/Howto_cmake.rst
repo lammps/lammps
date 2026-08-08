@@ -355,6 +355,8 @@ Some common LAMMPS specific variables
      - whether to support JPEG format in :doc:`dump image <dump_image>` (default: ``on`` if found)
    * - ``WITH_PNG``
      - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
+   * - ``WITH_ZLIB``
+     - whether to use the zlib library for compression (default: ``on`` if found)
    * - ``WITH_GZIP``
      - whether to support reading and writing compressed files (default: ``on`` if found)
    * - ``WITH_FFMPEG``

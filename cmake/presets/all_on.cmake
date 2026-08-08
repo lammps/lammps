@@ -97,7 +97,6 @@ set(ALL_PACKAGES
   TALLY
   UEF
   VORONOI
-  VTK
   YAFF)
 
 foreach(PKG ${ALL_PACKAGES})

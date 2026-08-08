@@ -114,6 +114,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
   size_one = 0;
 
   multiproc = 0;
+  nfile = nper = 1;
   nclusterprocs = nprocs;
   filewriter = 0;
   if (me == 0) filewriter = 1;
@@ -212,9 +213,6 @@ void Dump::init()
   }
 
   if (sort_flag) {
-    if (multiproc > 1)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Cannot sort dump when 'nfile' or 'fileper' keywords have non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR, Error::NOLASTLINE,
                  "Cannot sort dump on atom IDs with no atom IDs defined");
@@ -902,6 +900,22 @@ void Dump::balance()
   memory->create(proc_offsets,nprocs+1,"dump:proc_offsets");
   memory->create(proc_new_offsets,nprocs+1,"dump:proc_new_offsets");
 
+  static int warn = 1;
+  if (warn && multiproc > 1 && me == 0) {
+    if (nprocs % nfile) {
+      error->warning(FLERR,"Dump file balancing requested but dump_modify 'nfile'"
+                           " keyword does not divide the number processors evenly;"
+                           " dump files will be of different lengths");
+      warn = 0;
+    }
+    if (nprocs % nper) {
+      error->warning(FLERR,"Dump file balancing requested but dump_modify 'fileper'"
+                           " keyword does not divide the number processors evenly;"
+                           " dump files will be of different lengths");
+      warn = 0;
+    }
+  }
+
   // compute atom offset for this proc
 
   bigint offset;
@@ -1142,7 +1156,7 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify fileper", error);
       if (!multiproc)
         error->all(FLERR, iarg, "Cannot use dump_modify fileper without % in dump file name");
-      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR, iarg + 1, "Invalid dump_modify fileper argument: {}", nper);
 
       multiproc = nprocs/nper;
@@ -1236,7 +1250,7 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify nfile", error);
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify nfile without % in dump file name");
-      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR, "Invalid dump_modify nfile argument: {}", nfile);
       nfile = MIN(nfile,nprocs);
 

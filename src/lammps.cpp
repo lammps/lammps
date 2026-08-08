@@ -1354,7 +1354,7 @@ void _noopt LAMMPS::help()
   fprintf(fp,"\n\n");
 
   pos = 80;
-  fprintf(fp,"* Fix styles\n");
+  fprintf(fp,"* Fix styles:\n");
 #define FIX_CLASS
 #define FixStyle(key,Class) print_style(fp,#key,pos);
 #include "style_fix.h"  // IWYU pragma: keep

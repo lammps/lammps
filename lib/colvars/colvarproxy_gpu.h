@@ -267,8 +267,8 @@ public:
   /**
    * @brief This function will be called after atom groups are calculated on GPU.
    *
-   * This function is useful when additional information is needed to transfer 
-   * from the proxy. For example, the proxy can copy the lattice vectors in a 
+   * This function is useful when additional information is needed to transfer
+   * from the proxy. For example, the proxy can copy the lattice vectors in a
    * separate stream, and this function can wait for that stream to complete.
    */
   virtual int wait_for_extra_info_ready();

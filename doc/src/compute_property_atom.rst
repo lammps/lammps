@@ -33,8 +33,7 @@ Syntax
                              corner1x, corner1y, corner1z,
                              corner2x, corner2y, corner2z,
                              corner3x, corner3y, corner3z,
-                             i_name, d_name, i2_name[I], d2_name[I],
-                             history[\*][J], history[I][J],
+                             i_name, d_name, i2_name[I], d2_name[I], history[I][J],
                              vfrac, s0, espin, eradius, ervel, erforce,
                              rho, drho, e, de, cv, buckling,
                              apip_lambda, apip_lambda_input, apip_e_fast,
@@ -77,8 +76,7 @@ Syntax
            *d_name* = custom floating point vector with name
            *i2_name[I]* = Ith column of custom integer array with name
            *d2_name[I]* = Ith column of custom floating-point array with name
-           *history[\*][J]* = all history frames (Nrepeat frames) for Jth attribute (1 to Nattribute)
-           *history[I][J]* = Ith most recent history frame (1 to Nrepeat) for Jth attribute (1 to Nattribute)
+           *history[I][J]* = Ith most recent history frame (1 to Nrepeat) for Jth attribute (1 to Nattribute), I can be a wildcard (see below)
 
   .. parsed-literal::
 

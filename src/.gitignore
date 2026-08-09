@@ -1394,6 +1394,14 @@
 /pair_eam_fs.h
 /pair_eam_he.cpp
 /pair_eam_he.h
+/pair_eam_he_gpu.cpp
+/pair_eam_he_gpu.h
+/pair_eam_he_kokkos.cpp
+/pair_eam_he_kokkos.h
+/pair_eam_he_omp.cpp
+/pair_eam_he_omp.h
+/pair_eam_he_opt.cpp
+/pair_eam_he_opt.h
 /pair_lebedeva_z.cpp
 /pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
@@ -1885,6 +1893,8 @@
 /fix_ttm_mod.h
 /fix_ttm_thermal.cpp
 /fix_ttm_thermal.h
+/fix_ttm_cascade.cpp
+/fix_ttm_cascade.h
 /granular_model.cpp
 /granular_model.h
 /gran_sub_mod_normal.cpp

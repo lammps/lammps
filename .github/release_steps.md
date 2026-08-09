@@ -42,6 +42,9 @@ https://downloads.lammps.org/analysis/
 If needed, a bug-fix pull request should be created and merged to clear
 pending issues.
 
+As of July 4th, 2026 the post-merge test results are summarized on
+the LAMMPS Testing Dashboard at: https://lammps.github.io/lammps-test-results/
+
 ### Create release on GitHub
 
 When all pending pull requests for the release are merged and have

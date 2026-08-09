@@ -839,7 +839,7 @@ int FixStoreState::pack_exchange(int i, double *buf)
     for (std::size_t m = 0; m < values.size(); m++) buf[m] = avalues[i][m];
 
   if (historyflag) {
-    int m = vsize;
+    int m = 0;
     int k = most_recent_index;
     for (int n = 0; n < count_history; n++) {
       memcpy(&buf[m],avalues_history[k][i],vsize*sizeof(double));
@@ -863,7 +863,7 @@ int FixStoreState::unpack_exchange(int nlocal, double *buf)
     for (std::size_t m = 0; m < values.size(); m++) avalues[nlocal][m] = buf[m];
 
   if (historyflag) {
-    int m = vsize;
+    int m = 0;
     int k = most_recent_index;
     for (int n = 0; n < count_history; n++) {
       memcpy(avalues_history[k][nlocal],&buf[m],vsize*sizeof(double));

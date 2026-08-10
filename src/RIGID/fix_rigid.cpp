@@ -1216,7 +1216,7 @@ bigint FixRigid::dof(int tgroup)
     if (body[i] >= 0 && mask[i] & tgroupbit) {
       // do not count point particles or point dipoles as extended particles
       // a spheroid dipole will be counted as extended
-      if (extended && (eflags[i] & ~(POINT | DIPOLE))) mcount[body[i]]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE | TORQUE))) mcount[body[i]]++;
       else ncount[body[i]]++;
     }
 
@@ -1700,9 +1700,13 @@ void FixRigid::setup_bodies_static()
       } else eflags[i] |= POINT;
 
       // set DIPOLE if atom->mu and mu[3] > 0.0
+      // point dipoles also need TORQUE so the torque
+      // from dipole interactions acts on the body
 
-      if (atom->mu_flag && mu[i][3] > 0.0)
+      if (atom->mu_flag && mu[i][3] > 0.0) {
         eflags[i] |= DIPOLE;
+        if (atom->torque_flag) eflags[i] |= TORQUE;
+      }
     }
   }
 

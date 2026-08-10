@@ -1459,6 +1459,9 @@ Bibliography
 **(Rohart)**
    Rohart and Thiaville, Physical Review B, 88(18), 184422. (2013).
 
+**(Rojano)**
+   A Rojano, R J Hunt, J-P Crocombette and S T Murphy, J. Phys.: Condens. Matter, 36, 335901 (2024)
+
 **(Rosato)**
    Rosato and Guillope  and Legrand, Philosophical Magazine A, 59.2, 321-336 (1989).
 

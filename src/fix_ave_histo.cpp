@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -26,16 +25,23 @@
 #include "variable.h"
 
 #include <cstring>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { ONE, RUNNING };
-enum { SCALAR, VECTOR, WINDOW };
+namespace {
+enum { ONE, RUNNING, WINDOW };
+const char * const ave_string[] = {"one", "running", "window"};
+enum { SCALAR, VECTOR };
+const char * const mode_string[] = {"scalar", "vector"};
 enum { DEFAULT, GLOBAL, PERATOM, LOCAL };
 enum { IGNORE, END, EXTRA };
 
-static constexpr double BIG = 1.0e20;
+constexpr double BIG = 1.0e20;
+};    // namespace
+
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
@@ -361,7 +367,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Histogrammed data for fix %s\n",id);
+    else fprintf(fp,"# Histogrammed data for fix %s mode %s ave %s\n",
+                 id,mode_string[mode],ave_string[ave]);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# TimeStep Number-of-bins "
                  "Total-counts Missing-counts Min-value Max-value\n");

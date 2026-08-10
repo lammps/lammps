@@ -104,8 +104,8 @@ fifth terms are pairwise, bond, angle, dihedral and improper
 contributions, but instead of assigning the virial contribution
 equally to each atom, only the force :math:`\mathbf{F}_I` acting on
 atom :math:`I` due to the interaction and the relative position
-:math:`\mathbf{r}_{I0}` of the atom :math:`I` to the geometric center
-of the interacting atoms, i.e. centroid, is used.  As the geometric
+:math:`\mathbf{r}_{I0}` of the atom :math:`I` to the weighted geometric center
+of the interacting atoms, i.e. centroid, is used.  As the weighted geometric
 center is different for each interaction, the :math:`\mathbf{r}_{I0}`
 also differs. The sixth term, Kspace contribution,
 is computed identically to compute *stress/atom*.
@@ -149,14 +149,21 @@ boundaries so that the cluster of atoms is close together.  The total
 contribution for the cluster interaction is divided evenly among those
 atoms.
 
+.. versionchanged:: TBD
+
 Details of how compute *centroid/stress/atom* obtains the virial for
-individual atoms are given in :ref:`(Surblys2019) <Surblys1>` and
-:ref:`(Surblys2021) <Surblys2>`, where the
-idea is that the virial of the atom :math:`I` is the result of only
-the force :math:`\mathbf{F}_I` on the atom due to the interaction and
-its positional vector :math:`\mathbf{r}_{I0}`, relative to the
-geometric center of the interacting atoms, regardless of the number of
-participating atoms.  The periodic boundary treatment is identical to
+individual atoms are given in :ref:`(Poulos2026) <Poulos1>`, :ref:`(Surblys2019) <Surblys1>` and
+:ref:`(Surblys2021) <Surblys2>`. The main idea is that the virial of the atom :math:`I` is the sum over all many-body interaction terms where atom :math:`I` participates, of the force :math:`\mathbf{F}_I` on the atom due to the specific interaction term and
+its positional vector :math:`\mathbf{r}_{I0}`, relative to the weighted
+geometric center :math:`\mathbf{r}_{0}` of the interacting atoms, regardless of the number of
+participating atoms. The centroid :math:`\mathbf{r}_{I0}` of each interaction term is computed by weighting the positions of the atoms participating in the interaction by the fraction :math:`p_i` of the potential energy :math:`U` of the interaction term attributed to atom :math:`I`:
+
+.. math::
+   \boldsymbol{r}_{0I} &= \boldsymbol{r}_I -\boldsymbol{r}_0 \\
+   \boldsymbol{r}_0 &= \sum_{j=1}^{N} p_j \boldsymbol{r}_j \\
+   p_j &= \frac{U_j}{\sum_{j=1}^{N} U_j}
+
+where :math:`j` runs over all atoms participating in the specific interaction term. The periodic boundary treatment is identical to
 that of compute *stress/atom*, and both of them reduce to identical
 expressions for two-body interactions, i.e. computed values for
 contributions from bonds and two-body pair styles, such as
@@ -264,10 +271,7 @@ The per-atom array values will be in pressure\*volume :doc:`units
 Restrictions
 """"""""""""
 
-Currently, compute *centroid/stress/atom* does not support pair styles
-with many-body interactions (:doc:`EAM <pair_eam>` is an exception,
-since its computations are performed pairwise), nor granular pair
-styles with pairwise forces which are not aligned with the vector
+Currently, compute *centroid/stress/atom* only supports calculations of the atomic stress tensor for the :doc:`Tersoff <pair_tersoff>` and :doc:`Stillinger-Weber <pair_sw>` many-body potentials, as well as for :doc:`EAM <pair_eam>`, since its computations are performed pairwise. It does not support granular pair styles with pairwise forces which are not aligned with the vector
 between the pair of particles.  All bond styles are supported.  All
 angle, dihedral, improper styles are supported with the exception of
 INTEL and KOKKOS variants of specific styles.  It also does not
@@ -313,3 +317,7 @@ By default the compute includes contributions from the keywords:
 .. _Surblys2:
 
 **(Surblys2021)** Surblys, Matsubara, Kikugawa, Ohara, J Appl Phys 130, 215104 (2021).
+
+.. _Poulos1:
+
+**(Poulos2026)** Poulos, Surblys, Termentzidis, Phys Rev B, 113, 045414 (2026).

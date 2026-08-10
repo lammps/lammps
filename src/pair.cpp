@@ -1169,6 +1169,33 @@ void Pair::ev_tally(int i, int j, int nlocal, int newton_pair,
         vatom[j][5] += 0.5*v[5];
       }
     }
+
+    /***************************  CENTROID ADDITION  ************************ */
+    if (cvflag_atom){
+      if (newton_pair || i < nlocal) {
+        cvatom[i][0] += 0.5*v[0];
+        cvatom[i][1] += 0.5*v[1];
+        cvatom[i][2] += 0.5*v[2];
+        cvatom[i][3] += 0.5*v[3];
+        cvatom[i][4] += 0.5*v[4];
+        cvatom[i][5] += 0.5*v[5];
+        cvatom[i][6] += 0.5*v[3];  // Symmetric for pair potentials
+        cvatom[i][7] += 0.5*v[4];  // Symmetric for pair potentials
+        cvatom[i][8] += 0.5*v[5];  // Symmetric for pair potentials
+      }
+      if (newton_pair || j < nlocal) {
+        cvatom[j][0] += 0.5*v[0];
+        cvatom[j][1] += 0.5*v[1];
+        cvatom[j][2] += 0.5*v[2];
+        cvatom[j][3] += 0.5*v[3];
+        cvatom[j][4] += 0.5*v[4];
+        cvatom[j][5] += 0.5*v[5];
+        cvatom[j][6] += 0.5*v[3];  // Symmetric for pair potentials
+        cvatom[j][7] += 0.5*v[4];  // Symmetric for pair potentials
+        cvatom[j][8] += 0.5*v[5];  // Symmetric for pair potentials
+      }
+    }
+/***************************  CENTROID ADDITION  ************************ */
   }
 
   if (num_tally_compute > 0) {
@@ -1797,6 +1824,152 @@ void Pair::v_tally_tensor(int i, int j, int nlocal, int newton_pair,
       vatom[j][3] += 0.5*v[3];
       vatom[j][4] += 0.5*v[4];
       vatom[j][5] += 0.5*v[5];
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------
+Centroid tally functions for many-body potentials (according to Torii 2008):
+
+They take as args for the 3-body case: ijk, fijk, rij/ik/jk, Uijk, pijk and
+apply the centroid formula of Torii 2008 to compute the centroid virial. The
+tallying of the energy is already done correctly by the ev_tally functions,
+so we only need to compute the centroid virial here. The energy is passed
+for the callbacks of centroid tallying functions for the TALLY package.
+It is not used in the virial computation.
+----------------------------------------------------------------------------- */
+
+void Pair::cv_tally3(int i, int j, int k, double *fi, double *fj, double *fk, double Uijk,
+                     double pi, double pj, double pk)
+{
+  if (cvflag_atom){
+    double **x = atom->x;
+    double ri0[3], rj0[3], rk0[3]; // Relative centroid coordinates
+    double rij[3] = {x[i][0] - x[j][0], x[i][1] - x[j][1], x[i][2] - x[j][2]};
+    double rik[3] = {x[i][0] - x[k][0], x[i][1] - x[k][1], x[i][2] - x[k][2]};
+    double rjk[3] = {x[j][0] - x[k][0], x[j][1] - x[k][1], x[j][2] - x[k][2]};
+
+    for(int l=0; l<3; l++) {
+      ri0[l] =  pj*rij[l] + pk*rik[l];
+      rj0[l] = -pi*rij[l] + pk*rjk[l];
+      rk0[l] = -pi*rik[l] - pj*rjk[l];
+    }
+
+    /* Centroid virial tensor */
+    // Atom i
+    cvatom[i][0] += ri0[0] * fi[0];
+    cvatom[i][1] += ri0[1] * fi[1];
+    cvatom[i][2] += ri0[2] * fi[2];
+    cvatom[i][3] += ri0[0] * fi[1];
+    cvatom[i][4] += ri0[0] * fi[2];
+    cvatom[i][5] += ri0[1] * fi[2];
+    cvatom[i][6] += ri0[1] * fi[0];
+    cvatom[i][7] += ri0[2] * fi[0];
+    cvatom[i][8] += ri0[2] * fi[1];
+
+    // Atom j
+    cvatom[j][0] += rj0[0] * fj[0];
+    cvatom[j][1] += rj0[1] * fj[1];
+    cvatom[j][2] += rj0[2] * fj[2];
+    cvatom[j][3] += rj0[0] * fj[1];
+    cvatom[j][4] += rj0[0] * fj[2];
+    cvatom[j][5] += rj0[1] * fj[2];
+    cvatom[j][6] += rj0[1] * fj[0];
+    cvatom[j][7] += rj0[2] * fj[0];
+    cvatom[j][8] += rj0[2] * fj[1];
+
+    // Atom k
+    cvatom[k][0] += rk0[0] * fk[0];
+    cvatom[k][1] += rk0[1] * fk[1];
+    cvatom[k][2] += rk0[2] * fk[2];
+    cvatom[k][3] += rk0[0] * fk[1];
+    cvatom[k][4] += rk0[0] * fk[2];
+    cvatom[k][5] += rk0[1] * fk[2];
+    cvatom[k][6] += rk0[1] * fk[0];
+    cvatom[k][7] += rk0[2] * fk[0];
+    cvatom[k][8] += rk0[2] * fk[1];
+  }
+
+  /* Callbacks to the Compute::pair_cv_tally3_callback() function */
+  if (num_tally_compute > 0) {
+    did_tally_flag = 1;
+    for (int m=0; m < num_tally_compute; ++m) {
+      Compute *c = list_tally_compute[m];
+      c->pair_cv_tally3_callback(i, j, k, fi, fj, fk, Uijk, pi, pj, pk);
+    }
+  }
+}
+
+void Pair::cv_tally4(int i, int j, int k, int l, double *fi, double *fj, double *fk, double *fl, double Uijkl, double pi, double pj, double pk, double pl)
+{
+  if (cvflag_atom){
+    double **x = atom->x;
+    double ri0[3], rj0[3], rk0[3], rl0[3]; // Relative centroid coordinates
+    double rij[3] = {x[i][0] - x[j][0], x[i][1] - x[j][1], x[i][2] - x[j][2]};
+    double rik[3] = {x[i][0] - x[k][0], x[i][1] - x[k][1], x[i][2] - x[k][2]};
+    double ril[3] = {x[i][0] - x[l][0], x[i][1] - x[l][1], x[i][2] - x[l][2]};
+    double rjk[3] = {x[j][0] - x[k][0], x[j][1] - x[k][1], x[j][2] - x[k][2]};
+    double rjl[3] = {x[j][0] - x[l][0], x[j][1] - x[l][1], x[j][2] - x[l][2]};
+    double rkl[3] = {x[k][0] - x[l][0], x[k][1] - x[l][1], x[k][2] - x[l][2]};
+
+    for(int m=0; m<3; m++) {
+      ri0[m] =  pj*rij[m] + pk*rik[m] + pl*ril[m];
+      rj0[m] = -pi*rij[m] + pk*rjk[m] + pl*rjl[m];
+      rk0[m] = -pi*rik[m] - pj*rjk[m] + pl*rkl[m];
+      rl0[m] = -pi*ril[m] - pj*rjl[m] - pk*rkl[m];
+    }
+    /* Centroid virial tensor */
+    // Atom i
+    cvatom[i][0] += ri0[0] * fi[0];
+    cvatom[i][1] += ri0[1] * fi[1];
+    cvatom[i][2] += ri0[2] * fi[2];
+    cvatom[i][3] += ri0[0] * fi[1];
+    cvatom[i][4] += ri0[0] * fi[2];
+    cvatom[i][5] += ri0[1] * fi[2];
+    cvatom[i][6] += ri0[1] * fi[0];
+    cvatom[i][7] += ri0[2] * fi[0];
+    cvatom[i][8] += ri0[2] * fi[1];
+
+    // Atom j
+    cvatom[j][0] += rj0[0] * fj[0];
+    cvatom[j][1] += rj0[1] * fj[1];
+    cvatom[j][2] += rj0[2] * fj[2];
+    cvatom[j][3] += rj0[0] * fj[1];
+    cvatom[j][4] += rj0[0] * fj[2];
+    cvatom[j][5] += rj0[1] * fj[2];
+    cvatom[j][6] += rj0[1] * fj[0];
+    cvatom[j][7] += rj0[2] * fj[0];
+    cvatom[j][8] += rj0[2] * fj[1];
+
+    // Atom k
+    cvatom[k][0] += rk0[0] * fk[0];
+    cvatom[k][1] += rk0[1] * fk[1];
+    cvatom[k][2] += rk0[2] * fk[2];
+    cvatom[k][3] += rk0[0] * fk[1];
+    cvatom[k][4] += rk0[0] * fk[2];
+    cvatom[k][5] += rk0[1] * fk[2];
+    cvatom[k][6] += rk0[1] * fk[0];
+    cvatom[k][7] += rk0[2] * fk[0];
+    cvatom[k][8] += rk0[2] * fk[1];
+
+    // Atom l
+    cvatom[l][0] += rl0[0] * fl[0];
+    cvatom[l][1] += rl0[1] * fl[1];
+    cvatom[l][2] += rl0[2] * fl[2];
+    cvatom[l][3] += rl0[0] * fl[1];
+    cvatom[l][4] += rl0[0] * fl[2];
+    cvatom[l][5] += rl0[1] * fl[2];
+    cvatom[l][6] += rl0[1] * fl[0];
+    cvatom[l][7] += rl0[2] * fl[0];
+    cvatom[l][8] += rl0[2] * fl[1];
+  }
+
+  /* Callbacks to the Compute::pair_cv_tally4_callback() function */
+  if (num_tally_compute > 0) {
+    did_tally_flag = 1;
+    for (int m=0; m < num_tally_compute; ++m) {
+      Compute *c = list_tally_compute[m];
+      c->pair_cv_tally4_callback(i, j, k, l, fi, fj, fk, fl, Uijkl, pi, pj, pk, pl);
     }
   }
 }

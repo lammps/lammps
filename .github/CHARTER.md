@@ -89,7 +89,7 @@ technical oversight of the open source Project.
      Project;
 
 2.2.3. *Maintainers* are Core Developers who have earned the ability
-     to merge changes to ("commit") source code, documentation or other
+     to merge changes ("commit") to source code, documentation or other
      technical artifacts in a project’s repository;
 
 2.2.4. Core Developers are **recruited** by the existing Core

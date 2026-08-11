@@ -39,9 +39,9 @@ to remove that member from the TSC.
 6. Joel Clemmer, ([@jtclemm](https://github.com/jtclemm)), Sandia National Laboratories
 7. Jake Gissinger ([@jrgissing](https://github.com/jrgissing)), Stevens Institute of Technology
 8. Larry Fried (), Lawrence Livermore National Laboratory
-9. Chris Knight ([@knightc](https://github.com/knightc)), Argonne National Laboratory
-10. Even Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
-11. Ellad Tadmor (@tadmor), University of Minnesota
+9. Chris Knight ([@cjknight](https://github.com/cjknight)), Argonne National Laboratory
+10. Evan Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
+11. Ellad Tadmor ([@tadmor](https://github.com/tadmor)), University of Minnesota
 
 ### 1.4 TSC Chair
 

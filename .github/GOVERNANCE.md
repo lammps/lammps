@@ -32,7 +32,7 @@ to remove that member from the TSC.
 ### 1.3 Current TSC Members
 
 1. Steve Plimpton  ([@sjplimp](https://github.com/sjplimp)), unaffiliated
-2. Axel Kohlmeyer ([akohlmey](https://github.com/akohlmey)), Temple University
+2. Axel Kohlmeyer ([@akohlmey](https://github.com/akohlmey)), Temple University
 3. Aidan Thompson ([@athomps](https://github.com/athomps)), Sandia National Laboratories
 4. Richard Berger ([@rbberger](https://github.com/rbberger)), Los Alamos National Laboratory
 5. Stan Moore ([@stanmoore1](https://github.com/stanmoore1)), Sandia National Laboratories

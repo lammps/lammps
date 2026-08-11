@@ -41,7 +41,7 @@ to remove that member from the TSC.
 8. Larry Fried (), Lawrence Livermore National Laboratory
 9. Chris Knight ([@knightc](https://github.com/knightc)), Argonne National Laboratory
 10. Even Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
-11. Ellad Tadmor (), University of Minnesota
+11. Ellad Tadmor (@tadmor), University of Minnesota
 
 ### 1.4 TSC Chair
 

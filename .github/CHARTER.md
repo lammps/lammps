@@ -7,7 +7,7 @@ description: "Scope and Goals of the LAMMPS project"
 
 This is the "Charter" for the LAMMPS Project, part of a Series of LF Projects
 
-Adopted August xx, 2026.
+Adopted August 18, 2026.
 
 This Charter sets forth the responsibilities and procedures for
 technical contribution to, and oversight of the LAMMPS open source

@@ -31,10 +31,8 @@
 #include "error.h"
 #include "grid3d.h"
 #include "memory.h"
-#include "neighbor.h"
 #include "potential_file_reader.h"
 #include "random_mars.h"
-#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -191,12 +189,10 @@ void FixTTMCascade::post_force(int /*vflag*/)
       // evaluates whether the cutoff approach applies in the computation
       if (vsq > v_0_sq) {
         if (cutoff_active) {
-          gamma1 *=
-              (gamma_s / gamma_p); // avoids gamma_p for fast-moving atoms
+          gamma1 *= (gamma_s / gamma_p); // avoids gamma_p for fast-moving atoms
           gamma_cutoff = 0;
         } else {
-          gamma1 *= ((gamma_p * gamma_offset) + gamma_s) /
-                    gamma_p; // standard ttm approach
+          gamma1 *= ((gamma_p * gamma_offset) + gamma_s) / gamma_p; // standard ttm approach
         }
       } else {
         gamma1 *= gamma_offset; // decouples gamma_p when time_offset applies
@@ -240,8 +236,7 @@ void FixTTMCascade::end_of_step() {
   double el_th_diffusivity_global_max = 0.0;
 
   outflag = 0;
-  memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,
-         ngridout*sizeof(double));
+  memset(&net_energy_transfer[nzlo_out][nylo_out][nxlo_out],0,ngridout*sizeof(double));
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -250,12 +245,10 @@ void FixTTMCascade::end_of_step() {
       iz = static_cast<int> ((x[i][2]-boxlo[2])*dzinv + OFFSET) - OFFSET;
 
       net_energy_transfer[iz][iy][ix] +=
-          (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] +
-           flangevin[i][2]*v[i][2]);
+          (flangevin[i][0]*v[i][0] + flangevin[i][1]*v[i][1] + flangevin[i][2]*v[i][2]);
     }
 
-  grid->reverse_comm(Grid3d::FIX,this,0,1,sizeof(double),
-                     grid_buf1,grid_buf2,MPI_DOUBLE);
+  grid->reverse_comm(Grid3d::FIX,this,0,1,sizeof(double),grid_buf1,grid_buf2,MPI_DOUBLE);
 
   // clang-format off
 

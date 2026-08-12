@@ -149,7 +149,7 @@ type. Valid chemical symbols for compute xrd are:
 +------+------+------+-------+------+
 | Fe   | Fe2+ | Fe3+ | Co    | Co2+ |
 +------+------+------+-------+------+
-| Co   | Ni   | Ni2+ | Ni3+  | Cu   |
+| Co3+ | Ni   | Ni2+ | Ni3+  | Cu   |
 +------+------+------+-------+------+
 | Cu1+ | Cu2+ | Zn   | Zn2+  | Ga   |
 +------+------+------+-------+------+
@@ -211,6 +211,16 @@ type. Valid chemical symbols for compute xrd are:
 +------+------+------+-------+------+
 | Pu6+ | Am   | Cm   | Bk    | Cf   |
 +------+------+------+-------+------+
+
+.. versionchanged:: TBD
+
+   The table above listed *Co* twice, in the second and in the third of the
+   three cobalt entries, and the lookup returned the last match.  The
+   coefficients of the third entry are those of Co\ :math:`^{3+}`, so *Co*
+   selected the Co\ :math:`^{3+}` scattering factors and Co\ :math:`^{3+}`
+   itself could not be selected at all.  The third entry is now spelled
+   *Co3+*, so *Co* selects neutral cobalt.  Diffraction intensities of
+   simulations that used *Co* change accordingly.
 
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.

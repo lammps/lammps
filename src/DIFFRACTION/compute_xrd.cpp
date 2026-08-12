@@ -57,7 +57,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_compute_xrd_c);
 
   ntypes = atom->ntypes;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
   int triclinic = domain->triclinic;
@@ -89,6 +89,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     for (int j = 0; j < XRDmaxType; j++) {
       if (utils::lowercase(arg[iarg]) == utils::lowercase(XRDtypeList[j])) {
         ztype[i] = j;
+        break;
        }
      }
     if (ztype[i] == XRDmaxType + 1) error->all(FLERR,"Compute XRD: Invalid ASF atom type {}", arg[iarg]);
@@ -221,7 +222,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
-  int nRows = 0;
+  bigint nRows = 0;
   double dinv2= 0.0;
   double ang = 0.0;
   double K[3];
@@ -244,6 +245,12 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+
+  // store_tmp holds three integers per row, so that product must stay in range too
+
+  if (3*nRows > MAXSMALLINT)
+    error->all(FLERR,"Compute XRD: too many reciprocal lattice nodes ({}); reduce the "
+               "2Theta range or increase the c values",nRows);
 
   size_array_rows = nRows;
   size_array_cols = 2;
@@ -271,7 +278,12 @@ ComputeXRD::~ComputeXRD()
 void ComputeXRD::init()
 {
 
-  int mmax = (2*Knmax[0]+1)*(2*Knmax[1]+1)*(2*Knmax[2]+1);
+  // the rectilinear search box can hold more nodes than fit in an int even when
+  // the number of nodes actually selected does not, so index it with a bigint
+
+  bigint nk1 = 2*Knmax[1]+1;
+  bigint nk2 = 2*Knmax[2]+1;
+  bigint mmax = (2*(bigint)Knmax[0]+1)*nk1*nk2;
   double K[3];
   double dinv2 = 0.0;
   double ang = 0.0;
@@ -280,10 +292,10 @@ void ComputeXRD::init()
   if (radflag == 1) convf = 2;
 
   int n = 0;
-  for (int m = 0; m < mmax; m++) {
-    int k = m%(2*Knmax[2]+1);
-    int j = (m%((2*Knmax[2]+1)*(2*Knmax[1]+1))-k)/(2*Knmax[2]+1);
-    int i = (m-j*(2*Knmax[2]+1)-k)/((2*Knmax[2]+1)*(2*Knmax[1]+1))-Knmax[0];
+  for (bigint m = 0; m < mmax; m++) {
+    int k = (int) (m % nk2);
+    int j = (int) ((m % (nk2*nk1) - k)/nk2);
+    int i = (int) ((m - j*nk2 - k)/(nk2*nk1)) - Knmax[0];
     j = j-Knmax[1];
     k = k-Knmax[2];
     K[0] = i * dK[0];
@@ -322,7 +334,7 @@ void ComputeXRD::compute_array()
   ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
   int *type  = atom->type;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int *mask = atom->mask;
 
   nlocalgroup = 0;

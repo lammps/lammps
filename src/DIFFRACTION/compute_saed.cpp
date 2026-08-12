@@ -56,7 +56,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_compute_saed_c);
 
   ntypes = atom->ntypes;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
   int triclinic = domain->triclinic;
@@ -88,6 +88,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
      for (int j = 0; j < SAEDmaxType; j++) {
        if (utils::lowercase(arg[iarg]) == utils::lowercase(SAEDtypeList[j])) {
          ztype[i] = j;
+         break;
        }
      }
      if (ztype[i] == SAEDmaxType + 1)
@@ -211,7 +212,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
-  int n = 0;
+  bigint n = 0;
   double dinv2, r2, EmdR2, EpdR2;
   double K[3];
 
@@ -255,6 +256,12 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     utils::logmesg(lmp,"-----\nCompute SAED id:{}, # of atoms:{}, # of relp:{}\n"
                    "Reciprocal point spacing in k1,k2,k3 = {:.8} {:.8} {:.8}\n-----\n",
                    id,natoms,n,dK[0],dK[1],dK[2]);
+
+  // store_tmp holds three integers per row, so that product must stay in range too
+
+  if (3*n > MAXSMALLINT)
+    error->all(FLERR,"Compute SAED: too many reciprocal lattice nodes ({}); reduce Kmax "
+               "or increase the c values",n);
 
   nRows = n;
   size_vector = n;
@@ -355,7 +362,7 @@ void ComputeSAED::compute_vector()
   ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
   int *type  = atom->type;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int *mask = atom->mask;
 
   nlocalgroup = 0;

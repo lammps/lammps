@@ -78,6 +78,13 @@ class FixRxKokkos : public FixRX {
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
+  static FixRxKokkos* get_rx_fixKK_from_rx_fix(class LAMMPS *, FixRX *);
+  static FixRxKokkos* get_rx_fixKK_from_rx_fix_unsafe(FixRX *);
+  static FixRxKokkos* get_rx_fixKK(class LAMMPS *);
+
+  const DAT::tdual_int_1d & get_k_species_ind_to_atom_prop_ind() const;
+  const DAT::tdual_int_1d & get_k_species_ind_to_atom_prop_ind_old() const;
+
   // Define a value_type here for the reduction operator on CounterType.
   typedef CounterType value_type;
 
@@ -110,6 +117,14 @@ class FixRxKokkos : public FixRX {
 
   double boltz;
   double t_stop;
+
+  DAT::tdual_int_1d k_species_ind_to_atom_prop_ind,
+    k_species_ind_to_atom_prop_ind_old;
+
+  void allocate_species_ind_to_atom_prop_ind_array() override;
+
+  static FixRxKokkos* get_rx_fixKK_from_fix(class LAMMPS *, Fix *);
+  static FixRxKokkos* get_rx_fixKK_from_fix_unsafe(Fix *);
 
   template <typename T, int stride = 1>
   struct StridedArrayType
@@ -264,6 +279,9 @@ class FixRxKokkos : public FixRX {
 
   typename AT::t_kkfloat_2d  d_dvector;
   typename AT::t_int_1d    d_mask;
+
+  typename AT::t_int_1d d_species_ind_to_atom_prop_ind;
+  typename AT::t_int_1d d_species_ind_to_atom_prop_ind_old;
 
   typename AT::t_kkfloat_1d d_scratchSpace;
   size_t scratchSpaceSize;

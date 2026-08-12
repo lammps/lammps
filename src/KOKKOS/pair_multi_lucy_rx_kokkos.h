@@ -28,6 +28,7 @@ PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>);
 #include "pair_kokkos.h"
 #include "kokkos_base.h"
 #include "kokkos_type.h"
+#include "fix_rx_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -56,6 +57,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 
   void compute(int, int) override;
   void settings(int, char **) override;
+  void coeff(int, char **) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
@@ -175,6 +177,10 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   typename HAT::t_double_1d h_rho;
   typename AT::t_kkfloat_1d uCG, uCGnew;
   typename AT::t_kkfloat_2d dvector;
+
+  FixRxKokkos<DeviceType> * rx_fixKK;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind_old;
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;

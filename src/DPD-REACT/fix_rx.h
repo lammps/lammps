@@ -22,12 +22,16 @@ FixStyle(rx,FixRX);
 
 #include "fix.h"
 
+#include <unordered_map>
+
 namespace LAMMPS_NS {
 
 enum { ODE_LAMMPS_RK4, ODE_LAMMPS_RKF45 };
 
 class FixRX : public Fix {
  public:
+  using SpeciesStrToSpeciesIndMap =  std::unordered_map<std::string, int>;
+
   FixRX(class LAMMPS *, int, char **);
   ~FixRX() override;
   int setmask() override;
@@ -37,10 +41,21 @@ class FixRX : public Fix {
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
+  static FixRX * get_rx_fix(class LAMMPS *);
+  static FixRX * get_rx_fix_unsafe(class LAMMPS *);
+
+  int get_nspecies() const;
+  const int * get_species_ind_to_atom_prop_ind() const;
+  const int * get_species_ind_to_atom_prop_ind_old() const;
+  const SpeciesStrToSpeciesIndMap & get_species_str_to_species_ind() const;
+
+ protected:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+
+  int modify_param(int, char **) override;
 
  protected:
   class NeighList *list;
@@ -58,8 +73,17 @@ class FixRX : public Fix {
   Param *params;    // parameter set for an I-J-K interaction
 
   int nspecies;
+  int *species_ind_to_atom_prop_ind;
+  int *species_ind_to_atom_prop_ind_old;
+  SpeciesStrToSpeciesIndMap species_str_to_species_ind;
+
   void read_file(const std::string &file);
   void setupParams();
+
+  static Fix* get_rx_fix_base(class LAMMPS *);
+
+  virtual void allocate_species_ind_to_atom_prop_ind_array();
+
   double *Arr, *nArr, *Ea, *tempExp;
   double **stoich, **stoichReactants, **stoichProducts;
   double *kR;
@@ -134,6 +158,8 @@ class FixRX : public Fix {
 
   //!< ODE Solver diagnostics.
   void odeDiagnostics();
+
+  bool skipChemistry;
 
  protected:
   std::string kineticsFile;

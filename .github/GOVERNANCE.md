@@ -31,7 +31,7 @@ on whether to remove that member from the TSC.
 
 ### 1.3 Current TSC Members
 
-1. Steve Plimpton  ([@sjplimp](https://github.com/sjplimp)), unaffiliated
+1. Steve Plimpton ([@sjplimp](https://github.com/sjplimp)), unaffiliated
 2. Axel Kohlmeyer ([@akohlmey](https://github.com/akohlmey)), Temple University
 3. Aidan Thompson ([@athomps](https://github.com/athomps)), Sandia National Laboratories
 4. Richard Berger ([@rbberger](https://github.com/rbberger)), Los Alamos National Laboratory
@@ -42,6 +42,8 @@ on whether to remove that member from the TSC.
 9. Chris Knight ([@cjknight](https://github.com/cjknight)), Argonne National Laboratory
 10. Evan Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
 11. Ellad Tadmor ([@tadmor](https://github.com/tadmor)), University of Minnesota
+12. Tim Mattox ([@timattox](https://github.com/timattox)), Hewlett Packard Enterprise
+13. Ian Bogle (), AMD
 
 ### 1.4 TSC Chair
 

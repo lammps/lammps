@@ -94,7 +94,7 @@ technical oversight of the open source Project.
 2.2.3. **Maintainers** are *Core Developers* who have been authorized by
      the TSC to make changes to source code, documentation or other
      technical artifacts in a project’s repository (including permission
-     to merge pull requests to the otherwise protected 'develop'
+     to merge approved pull requests to the otherwise protected 'develop'
      branch), and make any other changes to the project repository's
      configuration on behalf of the TSC, like changing the permissions
      of *Contributors*, *Core Developers*, and other *Maintainers*

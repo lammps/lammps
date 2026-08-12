@@ -40,7 +40,6 @@
 
 #include <cmath>
 #include <cstring>
-#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -220,7 +219,7 @@ void FixTTMCascade::post_force(int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixTTMCascade::end_of_step(){
+void FixTTMCascade::end_of_step() {
   int ix,iy,iz;
 
   double **x = atom->x;
@@ -304,16 +303,15 @@ void FixTTMCascade::end_of_step(){
 
   // store thermal conductivity in a grid for rapid access
 
-  if(ketable_active){
+  if(ketable_active) {
 
     memset(&thermal_conductivity_grid[nzlo_out][nylo_out][nxlo_out],0, ngridout*sizeof(double));
 
     for (iz = nzlo_out; iz <= nzhi_out; iz++)
       for (iy = nylo_out; iy <= nyhi_out; iy++)
-        for (ix = nxlo_out; ix <= nxhi_out; ix++){
+        for (ix = nxlo_out; ix <= nxhi_out; ix++) {
           thermal_conductivity_grid[iz][iy][ix] = linearinterpolation(T_electron_old[iz][iy][ix], "ke");
         }
-
   }
 
 
@@ -399,7 +397,7 @@ double FixTTMCascade::compute_vector(int n)
 ------------------------------------------------------------------------- */
 
 void FixTTMCascade::tableinterpreader(const std::string &filename,
-                                   const std::string &keyword) {
+                                      const std::string &keyword) {
 
   std::vector<double> &temp_vals =
       (keyword == "ce") ? temp_ce_values : temp_ke_values;
@@ -438,7 +436,6 @@ void FixTTMCascade::tableinterpreader(const std::string &filename,
       if (temp_vals[i] >= temp_vals[i + 1]) table_count += 1;
     }
   }
-
 
   int nsize_table = static_cast<int>(temp_vals.size());
   MPI_Bcast(&nsize_table, 1, MPI_INT, 0, world);

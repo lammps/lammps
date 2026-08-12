@@ -52,7 +52,8 @@ static constexpr int OFFSET = 16384;
 /* ---------------------------------------------------------------------- */
 
 FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
-    : FixTTMGrid(lmp, (narg < 13 ? narg : 13), arg) // 13 is to pass non-keyword arguments to FixTTM
+  : FixTTMGrid(lmp, (narg < 13 ? narg : 13), arg), // 13 is to pass non-keyword arguments to FixTTM
+    thermal_conductivity_grid(nullptr)
 {
   cutoff_active = false;
   offset_active = false;
@@ -105,59 +106,35 @@ FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
     }
   }
 
-  // error check
-
-  if (seed <= 0)
-    error->all(FLERR, "Invalid random number seed in fix ttm/cascade command");
-  if (electronic_specific_heat <= 0.0)
-    error->all(FLERR, "Fix ttm/cascade electronic_specific_heat must be > 0.0");
+  // error checks
 
   if (cetable_active) {
     for (int i = 0; i < ce_values.size(); i++) {
       if (ce_values[i] <= 0.0)
-        error->all(FLERR, "Fix ttm/cascade all electronic_specific_heat entries "
-                          "in the file must be > 0.0");
+        error->all(FLERR, Error::NOPOINTER, "Fix ttm/cascade all electronic_specific_heat "
+                   "entries in the file must be > 0.0");
     }
   }
 
   if (ketable_active) {
     for (int i = 0; i < ke_values.size(); i++) {
       if (ke_values[i] <= 0.0)
-        error->all(FLERR, "Fix ttm/cascade all electronic_thermal_conductivity "
-                          "entries in the file must be > 0.0");
+        error->all(FLERR, Error::NOPOINTER, "Fix ttm/cascade all electronic_thermal_conductivity "
+                   "entries in the file must be > 0.0");
     }
   }
 
-  if (offset_active) {
-    if (time_offset < 0)
-      error->all(FLERR, "Fix ttm/cascade time_offset must be >= 0");
-  }
-
   if (offset_active && cutoff_active)
-    error->all(
-        FLERR,
-        "Fix ttm/cascade cannot have cutoff and offset active at the same time");
-
-  if (electronic_density <= 0.0)
-    error->all(FLERR, "Fix ttm/cascade electronic_density must be > 0.0");
-  if (electronic_thermal_conductivity < 0.0)
-    error->all(FLERR,
-               "Fix ttm/cascade electronic_thermal_conductivity must be >= 0.0");
-  if (gamma_p <= 0.0)
-    error->all(FLERR, "Fix ttm/cascade gamma_p must be > 0.0");
-  if (gamma_s < 0.0)
-    error->all(FLERR, "Fix ttm/cascade gamma_s must be >= 0.0");
-  if (v_0 < 0.0)
-    error->all(FLERR, "Fix ttm/cascade v_0 must be >= 0.0");
-  if (nxgrid <= 0 || nygrid <= 0 || nzgrid <= 0)
-    error->all(FLERR, "Fix ttm/cascade grid sizes must be > 0");
+    error->all(FLERR, Error::NOPOINTER,
+               "Fix ttm/cascade cannot have cutoff and offset active at the same time");
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixTTMCascade::~FixTTMCascade()
 {
-  //FixTTMGrid::~FixTTMGrid(); // Deals with this
+  FixTTMCascade::deallocate_grid();
+  deallocate_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -356,8 +333,7 @@ void FixTTMCascade::end_of_step(){
 
     // communicate new T_electron values to ghost grid points
 
-    grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double),
-                       grid_buf1,grid_buf2,MPI_DOUBLE);
+    grid->forward_comm(Grid3d::FIX,this,0,1,sizeof(double),grid_buf1,grid_buf2,MPI_DOUBLE);
   }
 }
 
@@ -367,32 +343,7 @@ void FixTTMCascade::end_of_step(){
 
 void FixTTMCascade::allocate_grid()
 {
-  double maxdist = 0.5 * neighbor->skin;
-
-  grid = new Grid3d(lmp, world, nxgrid, nygrid, nzgrid);
-  grid->set_distance(maxdist);
-  grid->set_stencil_grid(1,1);
-  grid->setup_grid(nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in,
-                   nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out);
-
-  ngridown = (nxhi_in - nxlo_in + 1) * (nyhi_in - nylo_in + 1) *
-    (nzhi_in - nzlo_in + 1);
-  ngridout = (nxhi_out - nxlo_out + 1) * (nyhi_out - nylo_out + 1) *
-    (nzhi_out - nzlo_out + 1);
-
-  // setup grid communication and allocate grid data structs
-
-  grid->setup_comm(ngrid_buf1, ngrid_buf2);
-
-  memory->create(grid_buf1, ngrid_buf1, "ttm/cascade:grid_buf1");
-  memory->create(grid_buf2, ngrid_buf2, "ttm/cascade:grid_buf2");
-
-  memory->create3d_offset(T_electron_old, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
-                          nxhi_out, "ttm/cascade:T_electron_old");
-  memory->create3d_offset(T_electron, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
-                          "ttm/cascade:T_electron");
-  memory->create3d_offset(net_energy_transfer, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
-                          nxhi_out, "ttm/cascade:net_energy_transfer");
+  FixTTMGrid::allocate_grid();
   memory->create3d_offset(thermal_conductivity_grid, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out,
                           nxhi_out, "ttm/cascade:thermal_conductivity_grid");
 }
@@ -403,13 +354,7 @@ void FixTTMCascade::allocate_grid()
 
 void FixTTMCascade::deallocate_grid()
 {
-  delete grid;
-  memory->destroy(grid_buf1);
-  memory->destroy(grid_buf2);
-
-  memory->destroy3d_offset(T_electron_old, nzlo_out, nylo_out, nxlo_out);
-  memory->destroy3d_offset(T_electron, nzlo_out, nylo_out, nxlo_out);
-  memory->destroy3d_offset(net_energy_transfer, nzlo_out, nylo_out, nxlo_out);
+  FixTTMGrid::deallocate_grid();
   memory->destroy3d_offset(thermal_conductivity_grid, nzlo_out, nylo_out, nxlo_out);
 }
 

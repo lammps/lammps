@@ -413,10 +413,12 @@ void FixTTMCascade::tableinterpreader(const std::string &filename,
                                                 : "thermal conductivity table";
     PotentialFileReader reader(lmp, filename, table_label);
     while (char *line = reader.next_line()) {
-      double temp_value, y_value;
-      if (sscanf(line, "%lg %lg", &temp_value, &y_value) == 2) {
-        temp_vals.push_back(temp_value);
-        y_vals.push_back(y_value);
+      try {
+        ValueTokenizer values(line);
+        temp_vals.push_back(values.next_double());
+        y_vals.push_back(values.next_double());
+      } catch (TokenizerException &e) {
+        error->one(FLERR, e.what());
       }
     }
 

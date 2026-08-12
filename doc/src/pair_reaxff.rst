@@ -56,6 +56,15 @@ more technical details about the implementation of ReaxFF in pair style
 was initially implemented as a stand-alone C code and is now converted
 to C++ and integrated into LAMMPS as a package.
 
+.. note::
+
+   There are some differences between the equations in the paper cited
+   above and the ReaxFF reference implementation.  Also, some of the
+   printed equations imply sign conventions for force field parameters
+   that differ from those used in the published parameter files.  Where
+   the printed equations and the reference implementation disagree, pair
+   style *reaxff* follows the reference implementation.
+
 The *reaxff/kk* style is a Kokkos version of the ReaxFF potential that
 is derived from the *reaxff* style.  The Kokkos version can run on GPUs
 and can also use OpenMP multithreading.  For more information about the

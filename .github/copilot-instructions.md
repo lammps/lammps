@@ -83,13 +83,10 @@ python3 tools/regression-tests/run_tests.py --lmp-bin=build/lmp \
 
 ## Continuous Integration
 
-GitHub Actions workflows in `.github/workflows/` (16 files).  On every PR to `develop`:
+GitHub Actions workflows in `.github/workflows/`.  On every PR to `develop`:
 `style-check.yml` (coding standards), `unittest-linux.yml` (CTest), and
-`quick-regression.yml` (regression subset).  Others: `unittest-macos/-arm64/-single/
--kokkos`, `kokkos-regression.yaml`, `check-vla.yml` (no variable-length arrays),
-`check-cpp23.yml`, `check-gnu-make.yml`, `compile-msvc.yml` (Windows),
-`codeql-analysis.yml`, `coverity.yml`, `lammps-gui-flatpak.yml`, and
-`full-regression.yml` (manual trigger only, via workflow_dispatch).
+`quick-regression.yml` (regression subset); see that directory for the further
+platform, style, and regression workflows.
 
 **Debugging CI failures:** style-check -> run the matching `make check-*` target in
 `src/` and the corresponding `make fix-*`; build failures -> check for `-S cmake`,
@@ -98,18 +95,6 @@ package dependencies, and VLA usage; unit tests -> rerun the single test with
 example inputs were modified.
 
 ## Repository Structure
-
-```
-cmake/           CMake build system (main CMakeLists.txt, presets/, Modules/)
-src/             core sources + 80+ package subdirectories (MOLECULE/, KSPACE/,
-                 RIGID/, KOKKOS/, GRANULAR/, ...); Makefile + MAKE/ for legacy build
-unittest/        CTest-based unit tests, by category
-examples/        example input decks        bench/      benchmark inputs
-doc/             documentation sources (doc/src/*.rst, Sphinx)
-lib/             bundled external libraries (kokkos, colvars, ...)
-python/          Python module             potentials/  potential files
-tools/           pre/post-processing; tools/coding_standard/ = style-check scripts
-```
 
 The top-level `LAMMPS` class (`src/lammps.h`) owns pointers to all subsystems (`atom`,
 `force`, `neighbor`, `comm`, `domain`, `modify`, `update`, `output`, `error`, `memory`).

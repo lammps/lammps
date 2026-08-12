@@ -3,8 +3,6 @@ title: "Charter"
 description: "Scope and Goals of the LAMMPS project"
 ---
 
-<sub>(this page and its content is currently a work in progress and not final)</sub>
-
 This is the "Charter" for the LAMMPS Project, part of a Series of LF Projects
 
 Adopted August 18, 2026.
@@ -14,7 +12,8 @@ technical contribution to, and oversight of the LAMMPS open source
 project, which has been established as LAMMPS Project a Series of LF
 Projects (the "Project").  LF Projects, LLC ("LF Projects") is a
 Delaware series limited liability company.  All contributors (including
-Maintainers, Core Developers, and other technical positions) and other
+*Maintainers*, *Core Developers*, and other technical positions, see
+below for a definition of specific roles in the project) and other
 participants in the Project (collectively, "Collaborators") must comply
 with the terms of this Charter.
 
@@ -73,41 +72,50 @@ technical oversight of the open source Project.
      open to the public, and can be conducted electronically, via
      teleconference, or in person.
 
-2.2. TSC projects generally will involve Contributors, Core Developers,
-     and Maintainers.  The TSC may adopt or modify roles so long as the
-     roles are documented in the
-     [Governance](https://www.lammps.org/about/governance) page. Unless
+2.2. TSC projects generally will involve *Contributors*, *Core
+     Developers*, and *Maintainers*.  The TSC may adopt or modify roles
+     so long as the roles are documented in the
+     [Governance](https://www.lammps.org/about/governance) page.  Unless
      otherwise documented roles are:
 
-2.2.1. *Contributors* include anyone in the technical community that
+2.2.1. **Contributors** include anyone in the technical community that
      contributes code, documentation, or other technical artifacts to
-     the Project;
+     the Project.  Selected *Contributors*, for example those that
+     contribute features regularly and/or maintain contributed packages,
+     may be given elevated permissions within the project.
 
-2.2.2. *Core Developers* are Contributors who have contributed code,
+2.2.2. **Core Developers** are *Contributors* who have contributed code,
      documentation, and other technical artifacts over a multi-year
      period and/or have unique expertise in specific aspects of the
-     Project;
+     Project.  Only approvals from *Core Developers* count toward the
+     minimum number of approvales required to merge contributions from
+     pull requests.
 
-2.2.3. *Maintainers* are Core Developers who have earned the ability
-     to merge changes ("commit") to source code, documentation or other
-     technical artifacts in a project’s repository;
+2.2.3. **Maintainers** are *Core Developers* who have been authorized by
+     the TSC to make changes to source code, documentation or other
+     technical artifacts in a project’s repository (including permission
+     to merge pull requests to the otherwise protected 'develop'
+     branch), and make any other changes to the project repository's
+     configuration on behalf of the TSC, like changing the permissions
+     of *Contributors*, *Core Developers*, and other *Maintainers*
+     within the repository.
 
-2.2.4. Core Developers are **recruited** by the existing Core
-     Developers; and Maintainers are **appointed** by the TSC. Anyone,
-     but typically a Core Developer, may become a Maintainer by a
-     majority approval of the existing TSC. A Maintainer may be removed
-     by a majority approval of the TSC.
+2.2.4. *Core Developers* are **recruited** by the existing *Core
+     Developers*; *Maintainers* are **appointed** by the TSC.  Anyone may
+     become a *Maintainer* by a majority approval of the existing TSC, but
+     typically they are chosen from among the *Core Developer*.  A
+     *Maintainer* may be removed by a majority approval of the TSC.
 
-2.3. Participation in the Project through becoming a Contributor, Core
-    Developer, or Maintainer is open to anyone so long as they abide by
-    the terms of this Charter.
+2.3. Participation in the Project through becoming a *Contributor*,
+    *Core Developer*, or *Maintainer* is open to anyone so long as they
+    abide by the terms of this Charter.
 
 2.4. The TSC may (1) establish workflow procedures for the submission,
     approval, and closure/archiving of projects, (2) set requirements
-    for the promotion of Core Developers to Maintainer status, as
+    for the promotion of a *Core Developer* to *Maintainer* status, as
     applicable, and (3) amend, adjust, refine and/or eliminate the roles
-    of Contributors, Core Developers, and Maintainers, and create new
-    roles, and publicly document any TSC roles, as it sees fit.
+    of *Contributors*, *Core Developers*, and *Maintainers*, and create
+    new roles, and publicly document any TSC roles, as it sees fit.
 
 2.5. The TSC may elect a TSC Chair, who will preside over meetings of the
     TSC and will serve until their resignation or replacement by the TSC.
@@ -157,12 +165,12 @@ technical oversight of the open source Project.
     basis.
 
 3.2. Quorum for TSC meetings requires at least fifty percent (50\%) of
-    all voting members of the TSC to be present. The TSC may continue to
+    all voting members of the TSC to be present.  The TSC may continue to
     meet if quorum is not met but will be prevented from making any
     decisions at the meeting.
 
 3.3. Decisions by vote at a meeting require a majority vote of TSC
-    members in attendance, provided quorum is met. Decisions made by
+    members in attendance, provided quorum is met.  Decisions made by
     electronic vote without a meeting require a majority vote of all
     voting members of the TSC.
 
@@ -173,17 +181,17 @@ technical oversight of the open source Project.
 ## 4. Compliance with Policies
 
 4.1. This Charter is subject to the Series Agreement for the Project and
-    the Operating Agreement of LF Projects. Contributors will comply
+    the Operating Agreement of LF Projects.  Contributors will comply
     with the policies of LF Projects as may be adopted and amended by LF
     Projects, including, without limitation the policies listed at
     [https://lfprojects.org/policies/](https://lfprojects.org/policies/)
 
 4.2. The TSC may adopt a code of conduct ("CoC") for the Project, which is
-    subject to approval by the Series Manager. In the event that a
+    subject to approval by the Series Manager.  In the event that a
     Project-specific CoC has not been approved, the LF Projects Code of
     Conduct listed at
     [https://lfprojects.org/policies](https://lfprojects.org/policies)
-    will apply for all Collaborators in the Project.
+    will apply for all *Collaborators* in the Project.
 
 4.3. When amending or adopting any policy applicable to the Project, LF
     Projects will publish such policy, as to be amended or adopted, on
@@ -192,27 +200,27 @@ technical oversight of the open source Project.
     Trademark Policy or Terms of Use of LF Projects, any such amendment
     is effective upon publication on LF Project’s web site.
 
-4.4. All Collaborators must allow open participation from any individual
-    or organization meeting the requirements for contributing under this
-    Charter and any policies adopted for all Collaborators by the TSC,
-    regardless of competitive interests. Put another way, the Project
-    community must not seek to exclude any participant based on any
-    criterion, requirement, or reason other than those that are
+4.4. All *Collaborators* must allow open participation from any
+    individual or organization meeting the requirements for contributing
+    under this Charter and any policies adopted for all *Collaborators*
+    by the TSC, regardless of competitive interests.  Put another way,
+    the Project community must not seek to exclude any participant based
+    on any criterion, requirement, or reason other than those that are
     reasonable and applied on a non-discriminatory basis to all
     Collaborators in the Project community.
 
 4.5. The Project will operate in a transparent, open, collaborative, and
-    ethical manner at all times. The output of all Project discussions,
+    ethical manner at all times.  The output of all Project discussions,
     proposals, timelines, decisions, and status should be made open and
-    easily visible to all. Any potential violations of this requirement
+    easily visible to all.  Any potential violations of this requirement
     should be reported immediately to the Series Manager.
 
 ## 5. Community Assets
 
 5.1. LF Projects will hold title to all trade or service marks used by
     the Project ("Project Trademarks"), whether based on common law or
-    registered rights. Project Trademarks will be transferred and
-    assigned to LF Projects to hold on behalf of the Project. Any use of
+    registered rights.  Project Trademarks will be transferred and
+    assigned to LF Projects to hold on behalf of the Project.  Any use of
     any Project Trademarks by Collaborators in the Project will be in
     accordance with the license from LF Projects and inure to the
     benefit of LF Projects.

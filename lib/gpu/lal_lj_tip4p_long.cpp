@@ -65,6 +65,7 @@ int LJTIP4PLongT::init(const int ntypes,
   k_pair_distrib.set_function(*this->pair_program,"k_lj_tip4p_long_distrib");
   k_pair_reneigh.set_function(*this->pair_program,"k_lj_tip4p_reneigh");
   k_pair_newsite.set_function(*this->pair_program,"k_lj_tip4p_newsite");
+  k_pair_rowmap.set_function(*this->pair_program,"k_lj_tip4p_rowmap");
   #if defined(LAL_OCL_EV_JIT)
   k_pair_distrib_noev.set_function(*this->pair_program_noev,
                                    "k_lj_tip4p_long_distrib");
@@ -122,6 +123,7 @@ int LJTIP4PLongT::init(const int ntypes,
   hneight.alloc(nall*4,*(this->ucl_device), UCL_READ_WRITE);
   m.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
   ansO.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
+  nbor_row.alloc(nall,*(this->ucl_device), UCL_READ_WRITE);
 
   this->tag.alloc(nall,*(this->ucl_device), UCL_READ_ONLY);
   this->atom_sametag.alloc(max_same, *(this->ucl_device), UCL_READ_ONLY);
@@ -130,6 +132,7 @@ int LJTIP4PLongT::init(const int ntypes,
   _allocated=true;
   this->_max_bytes=lj1.row_bytes()+lj3.row_bytes()+cutsq.row_bytes()+
       sp_lj.row_bytes() + hneight.row_bytes()+m.row_bytes()+
+      nbor_row.row_bytes()+
       this->tag.row_bytes()+this->atom_sametag.row_bytes() +
       this->map_array.row_bytes();
   return 0;
@@ -152,11 +155,13 @@ void LJTIP4PLongT::clear() {
   atom_sametag.clear();
   map_array.clear();
   ansO.clear();
+  nbor_row.clear();
   //force_comp.clear();
 
   k_pair_distrib.clear();
   k_pair_reneigh.clear();
   k_pair_newsite.clear();
+  k_pair_rowmap.clear();
   #if defined(LAL_OCL_EV_JIT)
   k_pair_distrib_noev.clear();
   #endif
@@ -182,13 +187,24 @@ int LJTIP4PLongT::loop(const int eflag, const int vflag) {
   int nbor_pitch=this->nbor->nbor_pitch();
   this->time_pair.start();
   int GX;
+
+  // build the atom index -> neighbor list row map.  When this pair style is
+  // a sub-style of pair style hybrid, the neighbor list is a skip list and
+  // the atom index of row ii is ilist[ii] rather than ii itself.
+
+  nbor_row.resize_ib(nall);
+  nbor_row.zero();
+  GX=static_cast<int>(ceil(static_cast<double>(ainum)/BX));
+  this->k_pair_rowmap.set_size(GX,BX);
+  this->k_pair_rowmap.run(&this->nbor->dev_nbor, &ainum, &nbor_row);
+
   GX=static_cast<int>(ceil(static_cast<double>(nall)/BX));
   if (t_ago == 0) {
     this->k_pair_reneigh.set_size(GX,BX);
     this->k_pair_reneigh.run(&this->atom->x,
         &this->nbor->dev_nbor, &this->_nbor_data->begin(),
         &nall, &ainum,&nbor_pitch, &this->_threads_per_atom,
-        &hneight, &m, &TypeO, &TypeH,
+        &hneight, &nbor_row, &m, &TypeO, &TypeH,
         &tag, &map_array, &atom_sametag);
   }
   this->k_pair_newsite.set_size(GX,BX);
@@ -199,12 +215,15 @@ int LJTIP4PLongT::loop(const int eflag, const int vflag) {
           &hneight, &m, &TypeO, &TypeH, &alpha,
           &this->atom->q);
 
+  // ansO is indexed by atom index with a stride of nall, since with a skip
+  // list the atom index of a row is not bounded by the number of rows
+
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/
                                (BX/this->_threads_per_atom)));
   if (vflag) {
-          this->ansO.resize_ib(ainum*3);
+          this->ansO.resize_ib(nall*3);
   } else {
-          this->ansO.resize_ib(ainum);
+          this->ansO.resize_ib(nall);
   }
   this->ansO.zero();
   this->device->gpu->sync();
@@ -213,8 +232,8 @@ int LJTIP4PLongT::loop(const int eflag, const int vflag) {
     this->k_pair_sel->run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
-          &ainum, &nbor_pitch, &this->_threads_per_atom,
-          &hneight, &m, &TypeO, &TypeH, &alpha,
+          &ainum, &nall, &nbor_pitch, &this->_threads_per_atom,
+          &hneight, &nbor_row, &m, &TypeO, &TypeH, &alpha,
           &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
           &cut_coulsq, &cut_coulsqplus, &this->ansO);
   } else {
@@ -222,8 +241,8 @@ int LJTIP4PLongT::loop(const int eflag, const int vflag) {
     this->k_pair.run(&this->atom->x, &lj1, &lj3, &_lj_types, &sp_lj,
           &this->nbor->dev_nbor, &this->_nbor_data->begin(),
           &this->ans->force, &this->ans->engv, &eflag, &vflag,
-          &ainum, &nbor_pitch, &this->_threads_per_atom,
-          &hneight, &m, &TypeO, &TypeH, &alpha,
+          &ainum, &nall, &nbor_pitch, &this->_threads_per_atom,
+          &hneight, &nbor_row, &m, &TypeO, &TypeH, &alpha,
           &this->atom->q, &cutsq, &_qqrd2e, &_g_ewald,
           &cut_coulsq, &cut_coulsqplus, &this->ansO);
   }
@@ -234,9 +253,11 @@ int LJTIP4PLongT::loop(const int eflag, const int vflag) {
 
   GX=static_cast<int>(ceil(static_cast<double>(this->ans->inum())/BX));
   k_pair_dt_sel->set_size(GX,BX);
-  k_pair_dt_sel->run(&this->atom->x, &this->ans->force, &this->ans->engv,
-                     &eflag, &vflag, &ainum, &nbor_pitch,
-                     &this->_threads_per_atom, &hneight, &m, &TypeO, &TypeH,
+  k_pair_dt_sel->run(&this->atom->x, &this->nbor->dev_nbor,
+                     &this->ans->force, &this->ans->engv,
+                     &eflag, &vflag, &ainum, &nall, &nbor_pitch,
+                     &this->_threads_per_atom, &hneight, &nbor_row,
+                     &m, &TypeO, &TypeH,
                      &alpha,&this->atom->q,  &this->ansO);
   this->time_pair.stop();
   return GX;

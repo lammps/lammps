@@ -27,6 +27,7 @@
 #include "safe_pointers.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
+#include "fix_rx.h"
 
 #include <cmath>
 #include <cstring>
@@ -44,30 +45,20 @@ using namespace FixConst;
 
 FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), ntables(0), tables(nullptr),
-  tables2(nullptr), dHf(nullptr), eosSpecies(nullptr)
+  tables2(nullptr), rx_fix(FixRX::get_rx_fix_unsafe(lmp)),
+  dHf(nullptr), eosSpecies(nullptr)
 {
   if (narg != 8 && narg != 10) error->all(FLERR,"Illegal fix eos/table/rx command");
   nevery = 1;
 
-  rx_flag = false;
-  nspecies = 1;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) {
-      rx_flag = true;
-      nspecies = atom->nspecies_dpd;
-      if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
-    }
+  rx_flag = (rx_fix != nullptr);
+  nspecies = (rx_flag ? rx_fix->get_nspecies() : 1);
 
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
   else error->all(FLERR,"Unknown table style in fix eos/table/rx");
 
   tablength = utils::inumeric(FLERR,arg[5],false,lmp);
   if (tablength < 2) error->all(FLERR,"Illegal number of eos/table/rx entries");
-
-  ntables = 0;
-  tables = nullptr;
-  tables2 = nullptr;
-  eosSpecies = nullptr;
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -306,17 +297,23 @@ void FixEOStableRX::read_file(char *file)
     PotentialFileReader reader(lmp, file, "eos/table/rx");
     char * line;
 
+    /* This line assumes that rx_flag == true. However, this is
+       acceptable because this member function is only called if
+       rx_flag == true. */
+    const auto & species_str_to_species_ind =
+      rx_fix->get_species_str_to_species_ind();
+
     while ((line = reader.next_line(min_params_per_line))) {
       try {
         ValueTokenizer values(line);
 
         auto species = values.next_string();
 
-        int ispecies;
-        for (ispecies = 0; ispecies < nspecies; ispecies++)
-          if (species == atom->dvname[ispecies]) break;
+        const auto ispecies_itr = species_str_to_species_ind.find(species);
 
-        if (ispecies < nspecies) {
+        if (ispecies_itr != species_str_to_species_ind.end()) {
+          const auto ispecies = ispecies_itr->second;
+
           dHf[ispecies] = values.next_double();
 
           if (values.has_next()) {
@@ -506,14 +503,13 @@ void FixEOStableRX::param_extract(RxTableFileReader & reader, Table *tb)
     while (reader.has_next_param_token()) {
       auto word = reader.next_param_token_as_string();
 
-      for (ispecies = 0; ispecies < nspecies; ispecies++)
-        if (word == atom->dvname[ispecies]) {
-          eosSpecies[ncolumn] =  ispecies;
-          ncolumn++;
-          break;
-        }
-      if (ispecies == nspecies) {
-        error->one(FLERR, "name={} not found in species list\n"
+      try {
+        const auto ispecies = rx_fix->get_species_str_to_species_ind().at(word);
+        eosSpecies[ncolumn] =  ispecies;
+        ncolumn++;
+      } catch (const std::out_of_range &) {
+        error->one(FLERR,
+                   "name={} not found in species list\n"
                    "Invalid keyword in fix eos/table/rx parameters",
                    word);
       }
@@ -629,11 +625,16 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
   nPG = 0;
 
   if (rx_flag) {
+    const auto & species_ind_to_atom_prop_ind =
+      rx_fix->get_species_ind_to_atom_prop_ind();
+
     for (int ispecies=0;ispecies<nspecies;ispecies++) {
-      nTotal += atom->dvector[ispecies][id];
+      const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+
+      nTotal += atom->dvector[atom_ind][id];
       if (fabs(moleculeCorrCoeff[ispecies]) > tolerance) {
         nPG++;
-        nTotalPG += atom->dvector[ispecies][id];
+        nTotalPG += atom->dvector[atom_ind][id];
       }
     }
   } else {
@@ -655,7 +656,14 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
       uTmp += energyCorr[ispecies]; // energy correction
       if (nPG > 0) ui += moleculeCorrCoeff[ispecies]*nTotalPG/double(nPG); // molecule correction
 
-      if (rx_flag) nMolecules = atom->dvector[ispecies][id];
+      if (rx_flag) {
+        const auto & species_ind_to_atom_prop_ind =
+          rx_fix->get_species_ind_to_atom_prop_ind();
+
+        const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+        nMolecules = atom->dvector[atom_ind][id];
+      }
+
       else nMolecules = 1.0;
       ui += nMolecules*uTmp;
     }

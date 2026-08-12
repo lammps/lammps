@@ -1340,6 +1340,8 @@ void FixRxKokkos<DeviceType>::setup_pre_force(int vflag)
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::pre_force(int vflag)
 {
+  if (skipChemistry) return;
+
   this->solve_reactions( vflag, true );
 }
 

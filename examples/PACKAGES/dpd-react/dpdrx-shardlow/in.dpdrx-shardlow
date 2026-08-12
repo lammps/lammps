@@ -55,4 +55,8 @@ thermo_modify   format float %15.8f flush yes
 dump            2 all custom 1 dump.dpdrx id x y z vx vy vz c_dpdUatom[1] c_dpdUatom[2] c_dpdUatom[3] c_dpdUatom[4] c_crdx
 dump_modify     2 sort id
 
-run             10
+fix_modify      4 rx_chemistry off # Turning off reaction chemistry
+run             10                 # for initial equilibration
+
+fix_modify      4 rx_chemistry on # Turning chemistry back on
+run             10                # actual simulation of reactions

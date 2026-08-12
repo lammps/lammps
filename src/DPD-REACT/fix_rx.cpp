@@ -66,16 +66,16 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), list(nullptr), mol2param(nullptr), nreactions(0), params(nullptr),
-    nspecies(0), species_ind_to_atom_prop_ind(nullptr),
-    species_ind_to_atom_prop_ind_old(nullptr),
-    Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr), stoich(nullptr),
-    stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
-    dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
-    sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
-    sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE{},
-    id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
-    fix_species_old(nullptr)
+  Fix(lmp, narg, arg), list(nullptr), mol2param(nullptr), nreactions(0), params(nullptr),
+  nspecies(0), species_ind_to_atom_prop_ind(nullptr),
+  species_ind_to_atom_prop_ind_old(nullptr),
+  Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr), stoich(nullptr),
+  stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
+  dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
+  sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
+  sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE{},
+  id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
+  fix_species_old(nullptr), skipChemistry(false)
 {
   if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
   nevery = 1;
@@ -807,6 +807,8 @@ void FixRX::setup_pre_force(int /*vflag*/)
 void FixRX::pre_force(int /*vflag*/)
 {
   //TimerType timer_start = getTimeStamp();
+
+  if (skipChemistry) return;
 
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
@@ -1974,4 +1976,23 @@ void FixRX::unpack_reverse_comm(int n, int *list, double *buf)
     dpdThetaLocal[j] += buf[m++];
     sumWeights[j] += buf[m++];
   }
+}
+
+
+/* ---------------------------------------------------------------------- */
+
+int FixRX::modify_param(int narg, char **arg) {
+
+  std::string keyword = "rx_chemistry";
+
+  if (narg < 2) {
+    error->all(FLERR, "Illegal fix_modify {} command", keyword);
+  }
+
+  if (keyword == arg[0]) {
+    skipChemistry = !(utils::logical(FLERR, arg[1], false, lmp));
+    return 2; // Returning the number of arguments consumed
+  }
+
+  return 0; // 0 indicates that an invalid keyword was used.
 }

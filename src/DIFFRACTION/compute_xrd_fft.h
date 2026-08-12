@@ -54,7 +54,8 @@ class ComputeXRDFFT : public ComputeXRD {
   // z-slab decomposition of the mesh, also used as the FFT3d in/out layout
 
   int nzlo_fft, nzhi_fft, nslab;
-  int nfft;    // local mesh points, = nmesh[0]*nmesh[1]*nslab
+  int nfft;             // local mesh points, = nmesh[0]*nmesh[1]*nslab
+  MPI_Comm fft_comm;    // ranks owning a slab; MPI_COMM_NULL on the others
 
   FFT_SCALAR *density_all;     // full mesh, spread into by every rank
   FFT_SCALAR *density_slab;    // this rank's z-slab after the reduction

@@ -68,6 +68,7 @@ ComputeXRDFFT::ComputeXRDFFT(LAMMPS *lmp, int narg, char **arg) :
 {
   nprocs = comm->nprocs;
   setup_done = 0;
+  fft_comm = MPI_COMM_NULL;
 
   order = nufft_order;
   oversample = nufft_oversample;
@@ -97,6 +98,11 @@ void ComputeXRDFFT::deallocate()
 {
   delete fft1;
   fft1 = nullptr;
+
+  if (fft_comm != MPI_COMM_NULL) {
+    MPI_Comm_free(&fft_comm);
+    fft_comm = MPI_COMM_NULL;
+  }
 
   memory->destroy(density_all);
   memory->destroy(density_slab);
@@ -175,19 +181,6 @@ void ComputeXRDFFT::set_grid()
     nmesh[d] = n;
   }
 
-  // the mesh is decomposed into z slabs, so it needs at least one plane per
-  // MPI rank.  growing the mesh only adds oversampling, it does not change
-  // which modes are computed.
-
-  if (nmesh[2] < nprocs) {
-    int n = nprocs;
-    while (!factorable(n)) n++;
-    if ((me == 0) && echo)
-      utils::logmesg(lmp,"Compute XRD/FFT: growing z mesh from {} to {} to match {} MPI ranks\n",
-                     nmesh[2],n,nprocs);
-    nmesh[2] = n;
-  }
-
   bigint ntotal = (bigint)nmesh[0]*(bigint)nmesh[1]*(bigint)nmesh[2];
   if (ntotal > MAXSMALLINT)
     error->all(FLERR,"Compute XRD/FFT: FFT mesh of {}x{}x{} is too large; reduce the 2Theta "
@@ -222,14 +215,19 @@ void ComputeXRDFFT::setup_mesh()
   int nz = nmesh[2];
   int ntotal = nx*ny*nz;
 
+  // the mesh is split into z slabs.  with more ranks than mesh planes the
+  // trailing ranks own nothing: they still spread their own atoms, but they
+  // take no part in the transform.  keeping the mesh independent of the number
+  // of ranks is what makes the result reproducible across rank counts.
+
   nzlo_fft = me*nz/nprocs;
   nzhi_fft = (me+1)*nz/nprocs - 1;
   nslab = nzhi_fft - nzlo_fft + 1;
   nfft = nx*ny*nslab;
 
   memory->create(density_all,ntotal,"xrd/fft:density_all");
-  memory->create(density_slab,nfft,"xrd/fft:density_slab");
-  memory->create(work1,2*nfft,"xrd/fft:work1");
+  memory->create(density_slab,MAX(nfft,1),"xrd/fft:density_slab");
+  memory->create(work1,MAX(2*nfft,1),"xrd/fft:work1");
   memory->create(recvcounts,nprocs,"xrd/fft:recvcounts");
 
   for (int p = 0; p < nprocs; p++) {
@@ -239,13 +237,19 @@ void ComputeXRDFFT::setup_mesh()
   }
 
   // input and output layouts are identical, which lets FFT3d skip the initial
-  // remap: each rank already holds complete x and y pencils
+  // remap: each rank already holds complete x and y pencils.  the transform
+  // runs on a communicator holding only the ranks that own a slab, since not
+  // every FFT backend accepts an empty block.
 
-  int tmp;
-  fft1 = new FFT3d(lmp,world,nx,ny,nz,
-                   0,nx-1,0,ny-1,nzlo_fft,nzhi_fft,
-                   0,nx-1,0,ny-1,nzlo_fft,nzhi_fft,
-                   0,0,&tmp,0,0);
+  MPI_Comm_split(world,(nslab > 0) ? 0 : MPI_UNDEFINED,me,&fft_comm);
+
+  if (nslab > 0) {
+    int tmp;
+    fft1 = new FFT3d(lmp,fft_comm,nx,ny,nz,
+                     0,nx-1,0,ny-1,nzlo_fft,nzhi_fft,
+                     0,nx-1,0,ny-1,nzlo_fft,nzhi_fft,
+                     0,0,&tmp,0,0);
+  }
 
   // group the atom types by element: types sharing a row of ASFXRD have the
   // same scattering factor and can share a transform
@@ -360,7 +364,8 @@ void ComputeXRDFFT::compute_array()
       work1[2*i+1] = (FFT_SCALAR) 0.0;
     }
 
-    fft1->compute(work1,work1,FFT3d::FORWARD);
+
+    if (nslab > 0) fft1->compute(work1,work1,FFT3d::FORWARD);
 
     // the FFT uses the exp(-i...) convention while compute xrd is defined with
     // exp(+i...), so this yields the complex conjugate of F.  only |F|^2 is

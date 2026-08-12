@@ -272,6 +272,12 @@ reciprocal lattice node of the rectilinear search box.  Its size is reported
 when the *echo* keyword is used.  If the mesh does not fit in memory, reduce
 the *2Theta* range, increase the *c* values, or lower *oversample*.
 
+The mesh depends only on the settings of the compute, not on how many
+processors are used, so results are reproducible to round-off across processor
+counts.  The mesh is divided into slabs along :math:`z`; if there are more
+processors than slabs, the extra processors still contribute their own atoms
+but take no part in the transform.
+
 Output info
 """""""""""
 

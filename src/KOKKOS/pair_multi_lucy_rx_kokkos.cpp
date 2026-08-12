@@ -70,6 +70,8 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
   d_table = new TableDevice();
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
+
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,6 +90,17 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
   delete d_table;
   tabindex = nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMultiLucyRXKokkos<DeviceType>::coeff(int narg, char **arg) {
+  PairMultiLucyRX::coeff(narg, arg);
+
+  // rx_fix is initialized in PairMultiLucyRX::coeff().
+  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -156,6 +169,12 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   uCG = atomKK->k_uCG.view<DeviceType>();
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
+
+  species_ind_to_atom_prop_ind =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind().template view<DeviceType>();
+
+  species_ind_to_atom_prop_ind_old =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().template view<DeviceType>();
 
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
   k_cutsq.template sync<DeviceType>();
@@ -592,21 +611,30 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, KK_FLOAT &mixWt
   nTotal = 0.0;
   nTotalOld = 0.0;
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    nTotal += dvector(ispecies,id);
-    nTotalOld += dvector(ispecies+nspecies,id);
+     const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+     const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+     nTotal += dvector(atom_ind,id);
+     nTotalOld += dvector(atom_ind_old,id);
   }
   if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
     Kokkos::abort("The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
-    nMoleculesOld1 = dvector(isite1+nspecies,id);
-    nMolecules1 = dvector(isite1,id);
+    const auto atom_site1_ind = species_ind_to_atom_prop_ind(isite1);
+    const auto atom_site1_ind_old = species_ind_to_atom_prop_ind_old(isite1);
+
+    nMoleculesOld1 = dvector(atom_site1_ind_old,id);
+    nMolecules1 = dvector(atom_site1_ind,id);
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false) {
-    nMoleculesOld2 = dvector(isite2+nspecies,id);
-    nMolecules2 = dvector(isite2,id);
+    const auto atom_site2_ind = species_ind_to_atom_prop_ind(isite2);
+    const auto atom_site2_ind_old = species_ind_to_atom_prop_ind_old(isite2);
+
+    nMoleculesOld2 = dvector(atom_site2_ind_old,id);
+    nMolecules2 = dvector(atom_site2_ind,id);
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
@@ -619,10 +647,14 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, KK_FLOAT &mixWt
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      nMoleculesOFAold += dvector(ispecies+nspecies,id);
-      nMoleculesOFA += dvector(ispecies,id);
-      fractionOFAold += dvector(ispecies+nspecies,id) / nTotalOld;
-      fractionOFA += dvector(ispecies,id) / nTotal;
+
+      const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+      nMoleculesOFAold += dvector(atom_ind_old,id);
+      nMoleculesOFA += dvector(atom_ind,id);
+      fractionOFAold += dvector(atom_ind_old,id) / nTotalOld;
+      fractionOFA += dvector(atom_ind,id) / nTotal;
     }
     if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);

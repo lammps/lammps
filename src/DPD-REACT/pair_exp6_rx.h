@@ -53,6 +53,7 @@ class PairExp6rx : public Pair {
   };
 
  protected:
+  class FixRX * rx_fix;
 
   enum { LINEAR };
   enum { NONE, EXPONENT, POLYNOMIAL };

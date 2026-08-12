@@ -52,8 +52,10 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
   cfv_any = 0;
 
   int iarg = 4;
+  int value_added;
   while (iarg < narg) {
 
+    value_added = 0;
     value_t val;
     val.which = ArgInfo::KEYWORD;
     val.argindex = -1;
@@ -221,18 +223,44 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
     // compute or fix or variable or custom per-atom vector or array
 
     } else {
-      ArgInfo argi(arg[iarg],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
-                   |ArgInfo::DNAME|ArgInfo::INAME);
 
-      val.which = argi.get_type();
-      val.argindex = argi.get_index1();
-      val.id = argi.get_name();
+      value_added = 1;
+      int expand = 0;
+      char **earg;
+      int *amap = nullptr;
+      int nargnew = utils::expand_args(FLERR, 1, &arg[iarg], 1, earg, lmp, &amap);
+      if (earg != &arg[iarg]) expand = 1;
 
-      if (val.which == ArgInfo::NONE) break;
-      if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
-        error->all(FLERR, iarg, "Illegal fix store/state argument: {}", arg[iarg]);
+      int breakflag = 0;
+      for (int i = 0; i < nargnew; i++) {
+        ArgInfo argi(earg[i],ArgInfo::COMPUTE|ArgInfo::FIX|ArgInfo::VARIABLE
+                     |ArgInfo::DNAME|ArgInfo::INAME);
+
+        val.which = argi.get_type();
+        val.argindex = argi.get_index1();
+        val.id = argi.get_name();
+
+        if (val.which == ArgInfo::NONE) {
+          breakflag = 1;
+          break;
+        }
+
+        if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
+          error->all(FLERR, iarg, "Illegal fix store/state argument: {}", arg[iarg]);
+
+        values.push_back(std::move(val));
+      }
+      if (breakflag) break;
+
+      // free earg memory from expand_args()
+
+      if (expand) {
+        for (int i = 0; i < nargnew; i++) delete [] earg[i];
+        memory->sfree(earg);
+        memory->sfree(amap);
+      }
     }
-    values.push_back(std::move(val));
+    if (!value_added) values.push_back(std::move(val));
     iarg++;
   }
 
@@ -811,7 +839,7 @@ int FixStoreState::pack_exchange(int i, double *buf)
     for (std::size_t m = 0; m < values.size(); m++) buf[m] = avalues[i][m];
 
   if (historyflag) {
-    int m = vsize;
+    int m = 0;
     int k = most_recent_index;
     for (int n = 0; n < count_history; n++) {
       memcpy(&buf[m],avalues_history[k][i],vsize*sizeof(double));
@@ -835,7 +863,7 @@ int FixStoreState::unpack_exchange(int nlocal, double *buf)
     for (std::size_t m = 0; m < values.size(); m++) avalues[nlocal][m] = buf[m];
 
   if (historyflag) {
-    int m = vsize;
+    int m = 0;
     int k = most_recent_index;
     for (int n = 0; n < count_history; n++) {
       memcpy(avalues_history[k][nlocal],&buf[m],vsize*sizeof(double));

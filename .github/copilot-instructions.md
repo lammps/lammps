@@ -8,7 +8,7 @@ task-specific guides live in `.github/instructions/` (auto-attached by path patt
 ## Repository Overview
 
 **LAMMPS** (Large-scale Atomic/Molecular Massively Parallel Simulator) is a classical
-molecular dynamics simulation code for parallel computers: a large, mature C++ codebase
+molecular dynamics simulation code for parallel computers: a large, mature C++ code base
 (~600MB, ~4,000 C++ files in `src/`) maintained by an international team of developers led by
 staff at Sandia National Laboratories, open-source under GPL v2.
 
@@ -165,32 +165,74 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
 
 ## Code Review
 
-When performing a code review, apply the general instructions for contributions to
-LAMMPS in https://docs.lammps.org/Modify_requirements.html and the programming style
-instructions in https://docs.lammps.org/Modify_style.html
+When performing a code review, apply the general instructions for
+contributions to LAMMPS in
+https://docs.lammps.org/Modify_requirements.html and the programming
+style instructions in https://docs.lammps.org/Modify_style.html
 
-When performing a code review, check any changes to the documentation (in the
-`doc/src/` folder) to be written in American English and with plain ASCII characters.
+When performing a code review, check any changes to the documentation
+(in the `doc/src/` folder) to be written in American English and with
+plain ASCII characters.
 
-When performing a code review, ensure that the documentation for any new commands or
-added keywords to existing commands contains a `.. versionadded:: TBD` directive.  For
-any modified commands or keywords a `.. versionchanged:: TBD` directive should be
-included in the documentation.  This does not apply to internal commands (style names
-written in upper case) or when the change only adds an accelerated variant of an
-existing style (then add the code letter to the respective `Commands_*.rst` file
-instead).  Check if any examples use the new or modified commands and whether they
+When performing a code review, ensure that the documentation for any new
+commands or added keywords to existing commands contains a
+`.. versionadded:: TBD` directive.  For completely new commands, the
+`.. versionadded:: TBD` statement should be added after the
+"Description" header.  For new keywords to an existing command, the
+statement should be added before the paragraph introducing the new
+keyword.  For any modified commands or keywords a `.. versionchanged::
+TBD` directive should be included in the documentation.  This does not
+apply to internal commands (style names written in upper case) or when
+the change only adds an accelerated variant of an existing style (then
+add the code letter to the respective `Commands_*.rst` file instead).
+Check if any examples use the new or modified commands and whether they
 need updating.
 
-When reviewing C++ code, ensure that no alternative tokens are used for logical
-operators (`&&` not `and`, `||` not `or`, `!` not `not`, `^` not `xor`); alternative
-tokens cause compilation failures with some compilers, most prominently Microsoft
-Visual C++.
+When reviewing C++ code, ensure that no alternative tokens are used for
+logical operators (`&&` not `and`, `||` not `or`, `!` not `not`, `^` not
+`xor`); alternative tokens cause compilation failures with some
+compilers, most prominently Microsoft Visual C++.
 
-When new files are added to package directories in `src`, make sure they are added to
-the `src/.gitignore` file, so that copies made in `src` by the traditional make build
-are not accidentally committed.  When files are renamed or removed in package
-directories, make sure the old names are added to `src/Purge.list` so stale copies are
-removed by `make purge`.
+There should not be any printf() statements or fprintf(screen,...) /
+fprintf(logfile,...)  in new code. Those should be either removed or
+replaced by utils::logmesg().  C++ iostreams (std::cout, std::cerr)
+should be replaced by using C-style stdio, if needed using
+utils::print() or use utils::logmesg(); both of which support
+std::format style formatting.  Any output statements that were added
+for the obvious purpose of aiding in debugging should be removed
+entirely.
+
+There should not be any new error messages of the error->all(FLERR,
+"Illegal XXX command") kind, instead utils::missing_cmd_args() should be
+used or more specific error messages with the error pointer argument to
+highlight the location of the error as described in
+https://docs.lammps.org/Developer_notes.html#errors-warnings-and-informational-messages
+If needed compare with similar code that has already been fully
+converted to this new style of error messages.  Also note the use of
+utils::errorurl() to directing users to more detailed explanations on
+the https://docs.lammps.org/Errors_details.html page.
+
+When parsing text files, there should be no use of strtok(), sscanf(),
+atoi(), atof() and similar, but the Tokenizer or ValueTokenizer classes
+be used and - where possible - also on of the file reader classes. For
+converting arguments to numbers, there are also the utils::numeric(),
+utils::inumeric(), utils::bnumeric(), and utils::tnumeric() classes.
+Same as with error messages, there are likely code block that have been
+modernized and are sufficiently similar to serve as an instructive
+example.
+
+Commented out code that was apparently added for debugging purposes or
+represents disabled features or unused alternative implementations
+should be removed entirely, unless a pull request explicitly explains
+that those are placeholders for future added features.
+
+When new files are added to package directories in `src`, make sure they
+are added to the `src/.gitignore` file, so that copies made in `src` by
+the traditional make build are not accidentally committed.  When files
+are renamed or removed in package directories, make sure the old names
+are added to `src/Purge.list` so stale copies are removed by `make
+purge`.
+
 
 ## Task-Specific Guides
 

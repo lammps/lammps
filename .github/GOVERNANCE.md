@@ -43,7 +43,7 @@ on whether to remove that member from the TSC.
 10. Evan Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
 11. Ellad Tadmor ([@tadmor](https://github.com/tadmor)), University of Minnesota
 12. Tim Mattox ([@timattox](https://github.com/timattox)), Hewlett Packard Enterprise
-13. Ian Bogle ([@ibogle](https://github.com/ibogle)), AMD
+13. Ian Bogle ([@IanBogle](https://github.com/IanBogle)), AMD
 
 ### 1.4 TSC Chair
 

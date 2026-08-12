@@ -32,7 +32,7 @@ class ComputeXRD : public Compute {
   void compute_array() override;
   double memory_usage() override;
 
- private:
+ protected:
   int me;
   int *ztype;           // Atomic number of the different atom types
   double Min2Theta;     // Minimum 2theta value (input in 2theta rad)
@@ -51,6 +51,13 @@ class ComputeXRD : public Compute {
   double lambda;    // Radiation wavelenght (distance units)
   int radflag;
   int *store_tmp;
+
+  // parsed here so that the derived compute xrd/fft style, which builds on this
+  // constructor to guarantee an identical set of reciprocal lattice nodes, can
+  // accept its own keywords.  Unused by compute xrd itself.
+
+  int nufft_order;            // width of the Kaiser-Bessel spreading stencil
+  double nufft_oversample;    // oversampling factor of the FFT mesh
 };
 
 }    // namespace LAMMPS_NS

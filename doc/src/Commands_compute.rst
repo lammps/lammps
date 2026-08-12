@@ -186,3 +186,4 @@ OPT.
    * :doc:`viscosity/cos <compute_viscosity_cos>`
    * :doc:`voronoi/atom <compute_voronoi_atom>`
    * :doc:`xrd <compute_xrd>`
+   * :doc:`xrd/fft <compute_xrd>`

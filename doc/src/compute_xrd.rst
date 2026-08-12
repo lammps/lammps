@@ -1,7 +1,11 @@
 .. index:: compute xrd
+.. index:: compute xrd/fft
 
 compute xrd command
 ===================
+
+compute xrd/fft command
+=======================
 
 Syntax
 """"""
@@ -15,7 +19,7 @@ Syntax
 * lambda = wavelength of incident radiation (length units)
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
-* keyword = *2Theta* or *c* or *LP* or *manual* or *echo*
+* keyword = *2Theta* or *c* or *LP* or *manual* or *echo* or *order* or *oversample*
 
   .. parsed-literal::
 
@@ -30,6 +34,10 @@ Syntax
        *manual* = flag to use manual spacing of reciprocal lattice points
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
+       *order* value = width of the spreading stencil of compute xrd/fft
+         must be an odd number of 3 or larger
+       *oversample* value = oversampling factor of the FFT mesh of compute xrd/fft
+         must be 1.25 or larger
 
 Examples
 """"""""
@@ -38,6 +46,8 @@ Examples
 
    compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo
    compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual
+   compute 3 all xrd/fft 1.541838 Al O 2Theta 10 100 c 1 1 1 LP 1
+   compute 4 all xrd/fft 1.541838 Al O 2Theta 10 100 c 1 1 1 LP 1 order 9
 
    fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
    fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
@@ -205,6 +215,53 @@ type. Valid chemical symbols for compute xrd are:
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.
 
+FFT version of the calculation
+""""""""""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+Compute *xrd* evaluates the structure factor equation directly at every
+reciprocal lattice node, which costs one sine and one cosine evaluation per
+(node, atom) pair.  The cost therefore grows as the product of the number of
+nodes and the number of atoms, which becomes prohibitive for large cells.
+
+Compute *xrd/fft* computes the same quantity with fast Fourier transforms.  The
+atoms are spread onto a uniform mesh with a Kaiser-Bessel window, one FFT is
+taken per chemical element, and the Fourier transform of the window is divided
+out again.  It accepts exactly the same arguments as compute *xrd* and produces
+the same rows in the same order, so it is a drop-in replacement in existing
+input scripts.
+
+Because compute *xrd* samples reciprocal space at multiples of the spacings
+:math:`\Delta k` set by the *c* parameters, and the phase factor
+:math:`\exp(2 \pi i m x \Delta k)` repeats with period :math:`1/\Delta k`, the
+mesh spans a cell of that edge length and the atom coordinates are folded into
+it.  This is exact, and it holds whether that cell is larger than the
+simulation box (small *c* values, finer sampling of reciprocal space) or
+smaller than it (large *c* values).
+
+The result is not identical to the direct sum, but converges rapidly toward it
+as the spreading stencil is widened with the *order* keyword.  For a single
+atom, the relative error of the intensity is about :math:`1 \times 10^{-6}` at
+the default *order* of 7, :math:`1 \times 10^{-8}` at *order* 9, and
+:math:`1 \times 10^{-10}` at *order* 11.  For a system of :math:`N` atoms the
+error of a strong reflection stays at that level, while the relative error of
+the weak diffuse intensity between reflections grows roughly as
+:math:`\sqrt{N}`, since the error scales with the total scattering power while
+the diffuse amplitude scales with its square root.  The default settings are
+appropriate for peak positions and intensities; *order* 9 or 11 is recommended
+for quantitative work on weak diffuse scattering in large systems.
+
+The *oversample* keyword sets how much finer the FFT mesh is than the highest
+reciprocal lattice node explored.  Lowering it reduces the memory needed for
+the mesh but requires a larger *order* for the same accuracy, and it also
+amplifies roundoff, so values below 1.5 are not recommended.
+
+The mesh contains roughly :math:`(2\,\mathrm{oversample})^3` grid points per
+reciprocal lattice node of the rectilinear search box.  Its size is reported
+when the *echo* keyword is used.  If the mesh does not fit in memory, reduce
+the *2Theta* range, increase the *c* values, or lower *oversample*.
+
 Output info
 """""""""""
 
@@ -227,6 +284,11 @@ Restrictions
 
 This compute is part of the DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+
+Compute *xrd/fft* uses the FFT wrappers of the KSPACE package and is only
+available if LAMMPS was built with both the DIFFRACTION and the KSPACE
+packages.  Building with single precision FFTs limits the accuracy of weak
+diffuse intensities.
 
 The compute_xrd command does not work for triclinic cells.
 

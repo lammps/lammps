@@ -103,6 +103,8 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   LP = 1;
   manual = false;
   echo = false;
+  nufft_order = 7;
+  nufft_oversample = 2.0;
 
   // Process optional args
   while (iarg < narg) {
@@ -136,6 +138,19 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"manual") == 0) {
       manual = true;
       iarg += 1;
+
+    // only used by the derived compute xrd/fft style, parsed here because the
+    // reciprocal lattice nodes are enumerated by this constructor
+
+    } else if (strcmp(arg[iarg],"order") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
+      nufft_order = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"oversample") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
+      nufft_oversample = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
 
     } else error->all(FLERR,"Illegal Compute XRD Command");
   }

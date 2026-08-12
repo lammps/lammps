@@ -65,41 +65,43 @@ FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "set") == 0) {
       if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix ttm/cascade command");
+        utils::missing_cmd_args(FLERR, "fix ttm/cascade set", error);
       tinit = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (tinit <= 0.0)
-        error->all(FLERR, "Fix ttm/cascade initial temperature must be > 0.0");
+        error->all(FLERR, iarg + 1, "Fix ttm/cascade initial temperature must be > 0.0");
       iarg += 2;
     } else if (strcmp(arg[iarg], "infile") == 0) {
       if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix ttm/cascade command");
+        utils::missing_cmd_args(FLERR, "fix ttm/cascade infile", error);
       infile = arg[iarg + 1];
       iarg += 2;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 > narg)
-        error->all(FLERR, "Illegal fix ttm/cascade command");
+        utils::missing_cmd_args(FLERR, "fix ttm/cascade cutoff", error);
       cutoff_active = true;
       iarg += 1;
     } else if (strcmp(arg[iarg], "offset") == 0) {
       if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix ttm/cascade command");
+        utils::missing_cmd_args(FLERR, "fix ttm/cascade offset", error);
       offset_active = true;
       time_offset = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (time_offset < 0)
+        error->all(FLERR, iarg + 1, "Fix ttm/cascade time_offset must be >= 0");
       iarg += 2;
     } else if (strcmp(arg[iarg], "cetab") == 0) {
       if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix ttm/cascade command");
+        utils::missing_cmd_args(FLERR, "fix ttm/cascade cetab", error);
       cetable_active = true;
       tableinterpreader(arg[iarg + 1], "ce");
       iarg += 2;
     } else if (strcmp(arg[iarg], "ketab") == 0) {
       if (iarg + 2 > narg)
-        error->all(FLERR, "Illegal fix ttm/cascade command");
+        utils::missing_cmd_args(FLERR, "fix ttm/cascade ketab", error);
       ketable_active = true;
       tableinterpreader(arg[iarg + 1], "ke");
       iarg += 2;
     } else {
-      error->all(FLERR, "Illegal fix ttm/cascade command");
+      error->all(FLERR, iarg, "Unknown fix ttm/cascade keyword {}", arg[iarg]);
     }
   }
 

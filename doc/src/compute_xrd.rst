@@ -265,7 +265,7 @@ for quantitative work on weak diffuse scattering in large systems.
 The *oversample* keyword sets how much finer the FFT mesh is than the highest
 reciprocal lattice node explored.  Lowering it reduces the memory needed for
 the mesh but requires a larger *order* for the same accuracy, and it also
-amplifies roundoff, so values below 1.5 are not recommended.
+amplifies round-off, so values below 1.5 are not recommended.
 
 The mesh contains roughly :math:`(2\,\mathrm{oversample})^3` grid points per
 reciprocal lattice node of the rectilinear search box.  Its size is reported

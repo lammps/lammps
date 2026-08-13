@@ -749,7 +749,7 @@ void PairMultiLucyRX::spline(double *x, double *y, int n,
   y2[n-1] = (un-qn*u[n-2]) / (qn*y2[n-2] + 1.0);
   for (k = n-2; k >= 0; k--) y2[k] = y2[k]*y2[k+1] + u[k];
 
-  delete [] u;
+  delete[] u;
 }
 
 /* ---------------------------------------------------------------------- */

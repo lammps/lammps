@@ -59,8 +59,8 @@ PairTableRX::~PairTableRX()
 {
   if (copymode) return;
 
-  delete [] site1;
-  delete [] site2;
+  delete[] site1;
+  delete[] site2;
 
   memory->destroy(mixWtSite1old);
   memory->destroy(mixWtSite2old);

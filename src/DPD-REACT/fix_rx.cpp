@@ -66,16 +66,14 @@ double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0;
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), list(nullptr), mol2param(nullptr), nreactions(0), params(nullptr),
-  nspecies(0), species_ind_to_atom_prop_ind(nullptr),
-  species_ind_to_atom_prop_ind_old(nullptr),
-  Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr), stoich(nullptr),
-  stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
-  dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
-  sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
-  sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE{},
-  id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
-  fix_species_old(nullptr), skipChemistry(false)
+    Fix(lmp, narg, arg), list(nullptr), mol2param(nullptr), nreactions(0), params(nullptr),
+    nspecies(0), species_ind_to_atom_prop_ind(nullptr), species_ind_to_atom_prop_ind_old(nullptr),
+    Arr(nullptr), nArr(nullptr), Ea(nullptr), tempExp(nullptr), stoich(nullptr),
+    stoichReactants(nullptr), stoichProducts(nullptr), kR(nullptr), pairDPDE(nullptr),
+    dpdThetaLocal(nullptr), sumWeights(nullptr), sparseKinetics_nu(nullptr),
+    sparseKinetics_nuk(nullptr), sparseKinetics_inu(nullptr),
+    sparseKinetics_isIntegralReaction(nullptr), diagnosticCounterPerODE{}, id_fix_species(nullptr),
+    id_fix_species_old(nullptr), fix_species(nullptr), fix_species_old(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix rx", error);
   if (narg > 12) error->all(FLERR, 12, "Too many arguments for fix rx");
@@ -88,6 +86,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   pairDPDE = nullptr;
   id_fix_species = nullptr;
   id_fix_species_old = nullptr;
+  skipChemistry = false;
 
   kineticsFile = arg[3];
 
@@ -155,7 +154,7 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
       diagnosticFrequency = utils::inumeric(FLERR,arg[11],false,lmp);
 
     // maxIters must be at least minSteps.
-    maxIters = std::max( minSteps, maxIters );
+    maxIters = std::max(minSteps, maxIters);
   }
 
   // Initialize/Create the sparse matrix database.
@@ -185,20 +184,20 @@ FixRX::~FixRX()
 
   // De-Allocate memory to prevent memory leak
   for (int ii = 0; ii < nreactions; ii++) {
-    delete [] stoich[ii];
-    delete [] stoichReactants[ii];
-    delete [] stoichProducts[ii];
+    delete[] stoich[ii];
+    delete[] stoichReactants[ii];
+    delete[] stoichProducts[ii];
   }
-  delete [] Arr;
-  delete [] nArr;
-  delete [] Ea;
-  delete [] tempExp;
-  delete [] stoich;
-  delete [] stoichReactants;
-  delete [] stoichProducts;
-  delete [] kR;
-  delete [] id_fix_species;
-  delete [] id_fix_species_old;
+  delete[] Arr;
+  delete[] nArr;
+  delete[] Ea;
+  delete[] tempExp;
+  delete[] stoich;
+  delete[] stoichReactants;
+  delete[] stoichProducts;
+  delete[] kR;
+  delete[] id_fix_species;
+  delete[] id_fix_species_old;
 
   if (useSparseKinetics) {
      memory->destroy( sparseKinetics_nu );
@@ -655,11 +654,11 @@ void FixRX::setup_pre_force(int /*vflag*/)
 
     // Communicate the updated momenta and velocities to all nodes
     comm->forward_comm(this);
-    if (localTempFlag) delete [] dpdThetaLocal;
+    if (localTempFlag) delete[] dpdThetaLocal;
 
-    delete [] userData.kFor;
-    delete [] userData.rxnRateLaw;
-    delete [] rwork;
+    delete[] userData.kFor;
+    delete[] userData.rxnRateLaw;
+    delete[] rwork;
   }
 }
 
@@ -728,9 +727,9 @@ void FixRX::pre_force(int /*vflag*/)
     nFuncs += ode_counter[2];
     nFails += ode_counter[3];
 
-    delete [] rwork;
-    delete [] userData.kFor;
-    delete [] userData.rxnRateLaw;
+    delete[] rwork;
+    delete[] userData.kFor;
+    delete[] userData.rxnRateLaw;
 
   } // end parallel region
 
@@ -738,7 +737,7 @@ void FixRX::pre_force(int /*vflag*/)
 
   // Communicate the updated momenta and velocities to all nodes
   comm->forward_comm(this);
-  if (localTempFlag) delete [] dpdThetaLocal;
+  if (localTempFlag) delete[] dpdThetaLocal;
 
   //TimerType timer_stop = getTimeStamp();
 
@@ -1065,8 +1064,7 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
    // 6)
    rhs(0.0, ytmp, f6, v_param);
 
-   for (int k = 0; k < neq; k++)
-   {
+   for (int k = 0; k < neq; k++) {
       //const double f6 = h * ydot[k];
       f6[k] *= h;
 
@@ -1083,8 +1081,7 @@ void FixRX::rkf45_step (const int neq, const double h, double y[], double y_out[
     //y_out[k] = y[k] + r5; // Local extrapolation
       y_out[k] = y[k] + r4;
    }
-
-   }
+}
 
 int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                      const double hmin, const double hmax,
@@ -1110,8 +1107,7 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    // compute ydot at t=t0
    rhs (t, y, ydot, v_params);
 
-   while (true)
-   {
+   while (true) {
       // Estimate y'' with finite-difference ...
 
       for (int k = 0; k < neq; k++)
@@ -1133,8 +1129,8 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
       // should we accept this?
       if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
-         if (iter == max_iters)
-            fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
+         if ((iter == max_iters) && (comm->me == 0))
+           error->warning(FLERR, "Aborting loop after {} iterations to compute h0\n", iter);
          break;
       }
 
@@ -1232,15 +1228,13 @@ void FixRX::odeDiagnostics()
         averageNumNeighbors /= inum;
      }
 
-     if (rx_weight_index != -1 && !firstStep && false)
-     {
+     if (rx_weight_index != -1 && !firstStep && false) {
         double *rx_weight = atom->dvector[rx_weight_index];
 
         const int nlocal = atom->nlocal;
         const int *mask = atom->mask;
 
-        if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1)
-        {
+        if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1) {
           const double total_time = getElapsedTime( oldTimeStamp, now );
           const double fixrx_time = this->diagnosticCounter[TimeSum];
           const double time_ratio = fixrx_time / total_time;
@@ -1248,18 +1242,15 @@ void FixRX::odeDiagnostics()
           double tsum = 0.0;
           double tmin = 100000, tmax = 0;
           for (int i = 0; i < nlocal; ++i)
-            if (mask[i] & groupbit)
-            {
+            if (mask[i] & groupbit) {
               double nfunc_ratio = double( diagnosticCounterPerODE[FuncSum][i] ) / diagnosticCounter[FuncSum];
               rx_weight[i] = nfunc_ratio * fixrx_time + (total_time - fixrx_time) / nlocal;
               tmin = fmin( tmin, rx_weight[i] );
               tmax = fmax( tmax, rx_weight[i] );
               tsum += rx_weight[i];
             }
-        else
-        {
+        } else {
           error->warning(FLERR, "Dynamic load balancing enabled but per-atom weights not available.");
-
           for (int i = 0; i < nlocal; ++i)
             if (mask[i] & groupbit)
               rx_weight[i] = 1.0;
@@ -1275,10 +1266,10 @@ void FixRX::odeDiagnostics()
     my_vals[i] = this->diagnosticCounter[i] / nTimes;
   }
 
-  MPI_Allreduce (my_vals, sums, numCounters, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(my_vals, sums, numCounters, MPI_DOUBLE, MPI_SUM, world);
 
-  MPI_Reduce (my_vals, max_per_proc, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
-  MPI_Reduce (my_vals, min_per_proc, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
+  MPI_Reduce(my_vals, max_per_proc, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
+  MPI_Reduce(my_vals, min_per_proc, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
 
   const double nODEs = sums[numCounters-1];
 
@@ -1324,13 +1315,13 @@ void FixRX::odeDiagnostics()
       }
     }
 
-    MPI_Reduce (my_sum_sq, sum_sq, 2*numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
+    MPI_Reduce(my_sum_sq, sum_sq, 2*numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
 
-    MPI_Reduce (my_max, max_per_ODE, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
-    MPI_Reduce (my_min, min_per_ODE, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
+    MPI_Reduce(my_max, max_per_ODE, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
+    MPI_Reduce(my_min, min_per_ODE, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
   }
   else
-    MPI_Reduce (my_sum_sq, sum_sq, numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
+    MPI_Reduce(my_sum_sq, sum_sq, numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
 
   TimerType timer_stop = getTimeStamp();
   double time_local = getElapsedTime( timer_start, timer_stop );
@@ -1734,7 +1725,7 @@ void FixRX::computeLocalTemperature()
 
   }
 
-  delete [] sumWeights;
+  delete[] sumWeights;
 }
 
 /* ---------------------------------------------------------------------- */

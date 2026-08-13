@@ -19,6 +19,7 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
+#include "fix_rx.h"
 #include "force.h"
 #include "info.h"
 #include "math_special.h"
@@ -70,18 +71,22 @@ struct PairExp6ParamDataType
 
 /* ---------------------------------------------------------------------- */
 
-PairExp6rx::PairExp6rx(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
+PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(nullptr),
+    cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
     buck1(nullptr), buck2(nullptr), offset(nullptr), mol2param(nullptr), nparams(0),
     params(nullptr), nspecies(0), site1(nullptr), site2(nullptr), coeffAlpha(nullptr),
-    coeffEps(nullptr), coeffRm(nullptr), fractionalWeighting(true)
+    coeffEps(nullptr), coeffRm(nullptr), nmax_exp6(0),
+    exp6_epsilon1(nullptr), exp6_alpha1(nullptr),
+    exp6_rm1(nullptr), exp6_mixWtSite1(nullptr),
+    exp6_epsilon2(nullptr), exp6_alpha2(nullptr),
+    exp6_rm2(nullptr), exp6_mixWtSite2(nullptr),
+    exp6_epsilonOld1(nullptr), exp6_alphaOld1(nullptr),
+    exp6_rmOld1(nullptr), exp6_mixWtSite1old(nullptr),
+    exp6_epsilonOld2(nullptr), exp6_alphaOld2(nullptr),
+    exp6_rmOld2(nullptr), exp6_mixWtSite2old(nullptr),
+    fractionalWeighting(true)
 {
   writedata = 1;
-  nmax_exp6 = 0;
-  exp6_epsilon1 = exp6_alpha1 = exp6_rm1 = exp6_mixWtSite1 = nullptr;
-  exp6_epsilon2 = exp6_alpha2 = exp6_rm2 = exp6_mixWtSite2 = nullptr;
-  exp6_epsilonOld1 = exp6_alphaOld1 = exp6_rmOld1 = exp6_mixWtSite1old = nullptr;
-  exp6_epsilonOld2 = exp6_alphaOld2 = exp6_rmOld2 = exp6_mixWtSite2old = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -595,10 +600,7 @@ void PairExp6rx::coeff(int narg, char **arg)
 {
   if (narg < 6 || narg > 9) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairExp6rx requires a fix rx command.");
+  rx_fix = FixRX::get_rx_fix(lmp);
 
   if (!allocated) allocate();
 
@@ -606,26 +608,28 @@ void PairExp6rx::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  nspecies = atom->nspecies_dpd;
+  nspecies = rx_fix->get_nspecies();
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
   read_file(arg[2]);
 
   site1 = utils::strdup(arg[3]);
 
-  int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
+  const auto & species_str_to_species_ind =
+    rx_fix->get_species_str_to_species_ind();
+
+  if (species_str_to_species_ind.find(site1) == species_str_to_species_ind.end()
+      && strcmp(site1,"1fluid") != 0) {
+    error->all(FLERR,"Site1 name not recognized in pair coefficients" +
+               utils::errorurl(21));
   }
-  if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
-    error->all(FLERR,"Site1 name not recognized in pair coefficients" + utils::errorurl(21));
 
   site2 = utils::strdup(arg[4]);
 
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
+  if (species_str_to_species_ind.find(site2) == species_str_to_species_ind.end()
+      && strcmp(site2,"1fluid") != 0) {
+    error->all(FLERR,"Site2 name not recognized in pair coefficients" +
+               utils::errorurl(21));
   }
-  if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
-    error->all(FLERR,"Site2 name not recognized in pair coefficients" + utils::errorurl(21));
 
   {
     // Set isite1 and isite2 parameters based on site1 and site2 strings.
@@ -633,28 +637,24 @@ void PairExp6rx::coeff(int narg, char **arg)
     if (strcmp(site1,"1fluid") == 0)
       isite1 = oneFluidApproxParameter;
     else {
-        int isp;
-        for (isp = 0; isp < nspecies; isp++)
-          if (strcmp(site1, &atom->dvname[isp][0]) == 0) break;
-
-        if (isp == nspecies)
-          error->all(FLERR,"Site1 name not recognized in pair coefficients" + utils::errorurl(21));
-        else
-          isite1 = isp;
+      try {
+        isite1 = rx_fix->get_species_str_to_species_ind().at(site1);
       }
+      catch (const std::out_of_range &) {
+        error->all(FLERR,"Site1 name not recognized in pair coefficients" + utils::errorurl(21));
+      }
+    }
 
     if (strcmp(site2,"1fluid") == 0)
       isite2 = oneFluidApproxParameter;
     else {
-        int isp;
-        for (isp = 0; isp < nspecies; isp++)
-        if (strcmp(site2, &atom->dvname[isp][0]) == 0) break;
-
-        if (isp == nspecies)
-          error->all(FLERR,"Site2 name not recognized in pair coefficients" + utils::errorurl(21));
-        else
-          isite2 = isp;
+      try {
+        isite2 = rx_fix->get_species_str_to_species_ind().at(site2);
       }
+      catch (const std::out_of_range &) {
+        error->all(FLERR,"Site2 name not recognized in pair coefficients" + utils::errorurl(21));
+      }
+    }
 
     // verify that a species named as site1 or site2 has an entry in the exp6 parameter file.
     // otherwise the mixing weights would later be computed from unset parameters.
@@ -780,6 +780,9 @@ void PairExp6rx::read_file(char *file) {
   // file on proc 0 and then broadcasting the line to all procs is a
   // workaround for this problem.
 
+  const auto & species_str_to_species_ind =
+      rx_fix->get_species_str_to_species_ind();
+
   while (true) {
     if (comm->me == 0) {
       const int params_per_line = 5;
@@ -807,9 +810,13 @@ void PairExp6rx::read_file(char *file) {
       auto species = values.next_string();
 
       int ispecies;
-      for (ispecies = 0; ispecies < nspecies; ispecies++)
-        if (species == atom->dvname[ispecies]) break;
-      if (ispecies == nspecies) continue;
+      const auto ispecies_itr = species_str_to_species_ind.find(species);
+
+      if (ispecies_itr == species_str_to_species_ind.end()) {
+        continue;
+      } else {
+        ispecies = ispecies_itr->second;
+      }
 
       if (nparams == maxparam) {
         maxparam += DELTA;
@@ -1031,18 +1038,27 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
   nTotal = 0.0;
   nTotalOld = 0.0;
 
+  const auto & species_ind_to_atom_prop_ind =
+    rx_fix->get_species_ind_to_atom_prop_ind();
+
+  const auto & species_ind_to_atom_prop_ind_old =
+    rx_fix->get_species_ind_to_atom_prop_ind_old();
+
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    nTotal += atom->dvector[ispecies][id];
-    nTotalOld += atom->dvector[ispecies+nspecies][id];
+    const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old[ispecies];
+
+    nTotal += atom->dvector[atom_ind][id];
+    nTotalOld += atom->dvector[atom_ind_old][id];
 
     iparam = mol2param[ispecies];
 
     if (iparam < 0 || params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == params[iparam].ispecies || isite2 == params[iparam].ispecies) continue;
-      nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
-      nMoleculesOFA += atom->dvector[ispecies][id];
+      nMoleculesOFAold += atom->dvector[atom_ind_old][id];
+      nMoleculesOFA += atom->dvector[atom_ind][id];
     }
   }
   if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
@@ -1056,6 +1072,9 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
     iparam = mol2param[ispecies];
     if (iparam < 0 || params[iparam].potentialType != PotentialType::exp6 ) continue;
 
+    const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old[ispecies];
+
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == params[iparam].ispecies) {
       rm1_old = params[iparam].rm;
@@ -1066,8 +1085,8 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
       alpha1 = params[iparam].alpha;
 
       // Compute the mole fraction of Site1
-      nMoleculesOld1 = atom->dvector[ispecies+nspecies][id];
-      nMolecules1 = atom->dvector[ispecies][id];
+      nMoleculesOld1 = atom->dvector[atom_ind_old][id];
+      nMolecules1 = atom->dvector[atom_ind][id];
       fractionOld1 = nMoleculesOld1/nTotalOld;
       fraction1 = nMolecules1/nTotal;
     }
@@ -1082,10 +1101,10 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
       alpha2 = params[iparam].alpha;
 
       // Compute the mole fraction of Site2
-      nMoleculesOld2 = atom->dvector[ispecies+nspecies][id];
-      nMolecules2 = atom->dvector[ispecies][id];
-      fractionOld2 = atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fraction2 = atom->dvector[ispecies][id]/nTotal;
+      nMoleculesOld2 = atom->dvector[atom_ind_old][id];
+      nMolecules2 = atom->dvector[atom_ind][id];
+      fractionOld2 = atom->dvector[atom_ind_old][id]/nTotalOld;
+      fraction2 = atom->dvector[atom_ind][id]/nTotal;
     }
 
     // If Site1 or Site2 matches is a fluid, then compute the parameters
@@ -1095,11 +1114,14 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
       epsiloni = params[iparam].epsilon;
       alphai = params[iparam].alpha;
       if (nMoleculesOFA<MY_EPSILON) xMolei = 0.0;
-      else xMolei = atom->dvector[ispecies][id]/nMoleculesOFA;
+      else xMolei = atom->dvector[atom_ind][id]/nMoleculesOFA;
       if (nMoleculesOFAold<MY_EPSILON) xMolei_old = 0.0;
-      else xMolei_old = atom->dvector[ispecies+nspecies][id]/nMoleculesOFAold;
+      else xMolei_old = atom->dvector[atom_ind_old][id]/nMoleculesOFAold;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
+        const auto atom_ind_inner = species_ind_to_atom_prop_ind[jspecies];
+        const auto atom_ind_old_inner = species_ind_to_atom_prop_ind_old[jspecies];
+
         jparam = mol2param[jspecies];
         if (jparam < 0 || params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == params[jparam].ispecies || isite2 == params[jparam].ispecies) continue;
@@ -1107,9 +1129,9 @@ void PairExp6rx::getMixingWeights(int id,double &epsilon1,double &alpha1,double 
         epsilonj = params[jparam].epsilon;
         alphaj = params[jparam].alpha;
         if (nMoleculesOFA<MY_EPSILON) xMolej = 0.0;
-        else xMolej = atom->dvector[jspecies][id]/nMoleculesOFA;
+        else xMolej = atom->dvector[atom_ind_inner][id]/nMoleculesOFA;
         if (nMoleculesOFAold<MY_EPSILON) xMolej_old = 0.0;
-        else xMolej_old = atom->dvector[jspecies+nspecies][id]/nMoleculesOFAold;
+        else xMolej_old = atom->dvector[atom_ind_old_inner][id]/nMoleculesOFAold;
 
         rmij = (rmi+rmj)/2.0;
         rm3ij = rmij*rmij*rmij;

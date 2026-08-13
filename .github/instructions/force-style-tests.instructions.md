@@ -41,3 +41,8 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on`, run with
   reference data with `-g`/`-u`, then re-run CMake so new files register with CTest.
 - Verify new force styles against numerical differentiation (`fix numdiff`) where
   possible; see `.github/dev-docs/testing-and-verification.md`.
+- The generators add a `generated` entry to the `tags:` line of newly written
+  files on purpose: it marks reference data that has not been reviewed yet and
+  makes such files easy to find with grep.  Remove the tag as the LAST step,
+  after the reference data has been reviewed and validated -- never leave it in
+  a file you commit as finished work.

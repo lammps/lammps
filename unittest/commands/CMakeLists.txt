@@ -44,6 +44,10 @@ add_executable(test_lattice_region test_lattice_region.cpp)
 target_link_libraries(test_lattice_region PRIVATE lammps GTest::GMock)
 add_test(NAME LatticeRegion COMMAND test_lattice_region)
 
+add_executable(test_fix_spring_chunk test_fix_spring_chunk.cpp)
+target_link_libraries(test_fix_spring_chunk PRIVATE lammps GTest::GMock)
+add_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
+
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)
 target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)
@@ -113,7 +117,6 @@ endif()
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
-target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
 
 add_executable(test_restart_settings test_restart_settings.cpp)

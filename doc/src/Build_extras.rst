@@ -68,7 +68,6 @@ This is the list of packages that may require additional steps.
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`VTK <vtk>`
 
 ----------
 
@@ -2052,33 +2051,4 @@ To build with this package, you must download and build the
       .. versionchanged:: 10Sep2025
 
       The SCAFACOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
-
-----------
-
-.. _vtk:
-
-VTK package
--------------------------------
-
-To build with this package you must have the VTK library installed on
-your system.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_VTK=yes``.
-
-      This should auto-detect the VTK library if it is installed on your
-      system at standard locations.  Several advanced VTK options exist
-      if you need to specify where it was installed.  Use the ``ccmake``
-      (terminal window) or ``cmake-gui`` (graphical) tools to see these
-      options and set them interactively from their user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

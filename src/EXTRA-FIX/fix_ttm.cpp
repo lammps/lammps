@@ -104,7 +104,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
     // error check
 
-    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix ttm command");
+    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix {} command", style);
     if (electronic_specific_heat <= 0.0)
       error->all(FLERR, 4, "Fix {} electronic_specific_heat must be > 0.0", style);
     if (electronic_density <= 0.0)

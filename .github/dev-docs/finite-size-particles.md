@@ -37,13 +37,27 @@ only shows up once a body is rotated -- test with a non-identity quaternion.
 ## Dispatch order and storage traps
 
 - **Check shape indices BEFORE the sphere (radius) branch.** Ellipsoid, superellipsoid,
-  triangle, and body particles also carry a finite `atom->radius` (their bounding
-  radius), so a leading `radius[i] > 0` test silently mis-handles them as spheres.
-  Order the dispatch ellipsoid/line/tri/body first, `radius` last.
+  line, triangle, and body particles also carry a finite `atom->radius` (their bounding
+  radius) -- since the spheroid support for lines/tris (Feb 2026), the line/tri atom
+  vecs ALWAYS store it when bonus data is set -- so a leading `radius[i] > 0` test
+  silently mis-handles them as spheres.  Dispatch on the bonus indices
+  (`ellipsoid/line/tri/body[i] >= 0`) first and on `radius` last; spheroid particles
+  have bonus index -1 with `radius > 0` and still classify as spheres.  Radius-first
+  cascades are a real regressed bug class (they froze tri/line orientations in
+  `fix rigid`/`fix rigid/small` and made `fix srd` do sphere collisions); grep for the
+  pattern whenever touching finite-size dispatch.
 - **Superellipsoids use `bonus_super`, not `bonus`.** `AtomVecEllipsoid` allocates
   exactly one of the two depending on `atom->superellipsoid_flag`; the regular `bonus`
   pointer is null in a superellipsoid system, so dereferencing it crashes.  Branch on
   the flag.
+- **2d rigid-body frames must keep `ez = +z`.**  For 2d bodies the in-plane inertia
+  moments are near-degenerate, so `MathExtra::jacobi3` eigenvector signs are
+  solver/build dependent, and the right-handedness enforcement afterwards can leave
+  `ez = -z`.  The scalar-theta orientation math for LINE particles assumes a pure +z
+  rotation (a flipped frame turns the in-plane map into a reflection, giving wrong
+  per-rod orientations); TRIANGLE quaternion math is immune.  After the handedness
+  fix-up, if `ez[2] < 0` in 2d, negate BOTH `ey` and `ez` (still a right-handed
+  eigenbasis) -- see `setup_bodies_static` in `fix rigid`/`fix rigid/small`.
 - **Angular momentum: OMEGA-type vs ANGMOM-type.** Sphere and line particles carry an
   angular velocity (`atom->omega`); their spin angular momentum is `I_spin * omega`
   (sphere: all 3 components; line: z only).  Ellipsoid, superellipsoid, triangle, and

@@ -54,15 +54,6 @@ static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #define SparseKinetics_enableIntegralReactions (true)
 #define SparseKinetics_invalidIndex (-1)
 
-namespace /* anonymous */
-{
-
-using TimerType = double;
-TimerType getTimeStamp() { return platform::walltime(); }
-double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
-
-} // end namespace
-
 /* ---------------------------------------------------------------------- */
 
 FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
@@ -666,8 +657,6 @@ void FixRX::setup_pre_force(int /*vflag*/)
 
 void FixRX::pre_force(int /*vflag*/)
 {
-  //TimerType timer_start = getTimeStamp();
-
   if (skipChemistry) return;
 
   int nlocal = atom->nlocal;
@@ -683,7 +672,7 @@ void FixRX::pre_force(int /*vflag*/)
     computeLocalTemperature();
   }
 
-  TimerType timer_localTemperature = getTimeStamp();
+  double timer_localTemperature = platform::walltime();
 
   // Zero the counters for the ODE solvers.
   int nSteps = 0;
@@ -733,15 +722,11 @@ void FixRX::pre_force(int /*vflag*/)
 
   } // end parallel region
 
-  TimerType timer_ODE = getTimeStamp();
+  double time_ODE = timer_localTemperature - platform::walltime();
 
   // Communicate the updated momenta and velocities to all nodes
   comm->forward_comm(this);
   if (localTempFlag) delete[] dpdThetaLocal;
-
-  //TimerType timer_stop = getTimeStamp();
-
-  double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
   // Warn the user if a failure was detected in the ODE solver.
   if (nFails > 0)
@@ -1164,7 +1149,7 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
 
 void FixRX::odeDiagnostics()
 {
-  TimerType timer_start = getTimeStamp();
+  double timer_start = platform::walltime();
 
   // Compute:
   // 1) Average # of ODE integrator steps and RHS evaluations per atom globally.
@@ -1203,9 +1188,9 @@ void FixRX::odeDiagnostics()
   {
      static bool firstStep = true;
 
-     static TimerType oldTimeStamp (-1);
+     static double oldTimeStamp (-1);
 
-     TimerType now = getTimeStamp();
+     double now = platform::walltime();
 
      // Query the fix database and look for rx_weight for the balance fix.
      int type_flag = -1;
@@ -1235,7 +1220,7 @@ void FixRX::odeDiagnostics()
         const int *mask = atom->mask;
 
         if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1) {
-          const double total_time = getElapsedTime( oldTimeStamp, now );
+          const double total_time = oldTimeStamp - now;
           const double fixrx_time = this->diagnosticCounter[TimeSum];
           const double time_ratio = fixrx_time / total_time;
 
@@ -1323,8 +1308,7 @@ void FixRX::odeDiagnostics()
   else
     MPI_Reduce(my_sum_sq, sum_sq, numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  TimerType timer_stop = getTimeStamp();
-  double time_local = getElapsedTime( timer_start, timer_stop );
+  double time_local = timer_start - platform::walltime();
 
   if (comm->me == 0) {
     utils::logmesg(lmp,"FixRX::ODE Diagnostics:  # of iters  |# of rhs evals| run-time (sec) | # atoms\n");

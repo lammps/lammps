@@ -32,20 +32,23 @@ class BondBPM : public Bond {
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void read_reference(char*);
+  void write_reference();
   double single(int, double, int, int, double &) override = 0;
 
  protected:
   double r0_max_estimate;
   double max_stretch;
-  int store_local_freq, nhistory, update_flag, hybrid_flag;
+  int store_local_freq, write_ref_freq, nhistory, update_flag, hybrid_flag;
 
   std::vector<int> leftover_iarg;
 
   char *id_fix_dummy_special, *id_fix_dummy_history;
   char *id_fix_update_special_bonds, *id_fix_bond_history;
   char *id_fix_store_local, *id_fix_property_atom;
+  char *id_fix_write_ref;
   char  *ref_filename;
   class FixStoreLocal *fix_store_local;
+  class FixStoreLocal  *fix_write_ref;
   class FixBondHistory *fix_bond_history;
   class FixUpdateSpecialBonds *fix_update_special_bonds;
 
@@ -64,8 +67,9 @@ class BondBPM : public Bond {
   using FnPtrPack = void (BondBPM::*)(int, int, int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;
+  double *output_data_ref;
 
-  int property_atom_flag, nvalues, overlay_flag, break_flag, ignore_special_flag, reference_flag, restore_flag;
+  int property_atom_flag, nvalues, nvalues_ref, overlay_flag, break_flag, ignore_special_flag, reference_flag, restore_flag;
   int index_x_ref, index_y_ref, index_z_ref;
 
   int n_histories;

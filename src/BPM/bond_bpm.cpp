@@ -56,8 +56,9 @@ static const char cite_bpm[] =
 BondBPM::BondBPM(LAMMPS *_lmp) :
     Bond(_lmp), id_fix_dummy_special(nullptr), id_fix_dummy_history(nullptr),
     id_fix_update_special_bonds(nullptr), id_fix_bond_history(nullptr), id_fix_store_local(nullptr),
-    id_fix_property_atom(nullptr), fix_store_local(nullptr), fix_bond_history(nullptr),
-    fix_update_special_bonds(nullptr), pack_choice(nullptr), output_data(nullptr)
+    id_fix_write_ref(nullptr), id_fix_property_atom(nullptr), fix_store_local(nullptr), fix_write_ref(nullptr), 
+    fix_bond_history(nullptr), fix_update_special_bonds(nullptr), pack_choice(nullptr),
+    output_data(nullptr), output_data_ref(nullptr), bListdata(nullptr), bHistdata(nullptr)
 {
   overlay_flag = 0;
   property_atom_flag = 0;
@@ -101,14 +102,17 @@ BondBPM::~BondBPM()
   if (id_fix_update_special_bonds) modify->delete_fix(id_fix_update_special_bonds);
   if (fix_bond_history) modify->delete_fix(id_fix_bond_history);
   if (id_fix_store_local) modify->delete_fix(id_fix_store_local);
+  if (id_fix_write_ref) modify->delete_fix(id_fix_write_ref);
   if (id_fix_property_atom) modify->delete_fix(id_fix_property_atom);
 
   delete[] id_fix_update_special_bonds;
   delete[] id_fix_bond_history;
   delete[] id_fix_store_local;
+  delete[] id_fix_write_ref;
   delete[] id_fix_property_atom;
 
   memory->destroy(output_data);
+  memory->destroy(output_data_ref);
   memory->destroy(bListdata);
   memory->destroy(bHistdata);
 }
@@ -124,6 +128,15 @@ void BondBPM::init_style()
       error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
     fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
     fix_store_local->nvalues = nvalues;
+  }
+
+  if (id_fix_write_ref) {
+    auto *ifix = modify->get_fix_by_id(id_fix_write_ref);
+    if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}", id_fix_write_ref);
+    if (strcmp(ifix->style, "STORE/LOCAL") != 0)
+      error->all(FLERR, "Incorrect fix style matched, not WRITE/REFERENCE: {}", ifix->style);
+    fix_write_ref = dynamic_cast<FixStoreLocal *>(ifix);
+    fix_write_ref->nvalues = nvalues_ref;
   }
 
   if (overlay_flag) {
@@ -280,6 +293,10 @@ void BondBPM::settings(int narg, char **arg)
       reference_flag = 1;
       ref_filename = arg[iarg + 1];
       iarg += 2;
+    } else if (strcmp(arg[iarg], "write/reference") == 0) {
+      id_fix_write_ref = utils::strdup(arg[iarg + 1]);
+      write_ref_freq = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+      iarg += 3;
     } else {
       leftover_iarg.push_back(iarg);
       iarg++;
@@ -362,7 +379,19 @@ void BondBPM::settings(int narg, char **arg)
 
     MPI_Bcast(bListdata, 2*nentries, MPI_INT, 0, world);
     MPI_Bcast(bHistdata, nentries*(nbonddata-2), MPI_DOUBLE, 0, world);
+  }
 
+  if (id_fix_write_ref) {
+
+    // get nvalues_ref from number of bond history vars
+    nvalues_ref = nhistory + 2;
+    memory->create(output_data_ref, nvalues_ref, "bond/bpm:output_data_ref");
+
+    auto *ifix = modify->get_fix_by_id(id_fix_write_ref);
+    if (!ifix)
+      ifix = modify->add_fix(
+          fmt::format("{} all STORE/LOCAL {} {}", id_fix_write_ref, write_ref_freq, nvalues_ref));
+    fix_write_ref = dynamic_cast<FixStoreLocal *>(ifix);
   }
 }
 
@@ -539,6 +568,48 @@ void BondBPM::read_reference(char *file)
 }
 
 /* ----------------------------------------------------------------------
+    write bond data to reference file
+ ------------------------------------------------------------------------- */
+
+void BondBPM::write_reference()
+{
+  if (fix_write_ref) {
+    
+    int i, j, m, type;
+    tagint *tag = atom->tag;
+    int *num_bond = atom->num_bond;
+    tagint **bond_atom = atom->bond_atom;
+    int **bond_type = atom->bond_type;
+    int nlocal = atom->nlocal;
+
+    fix_write_ref->clear_data();
+
+    for (i = 0; i < atom->nlocal; i++) {
+      for (m = 0; m < num_bond[i]; m++) {
+
+        type = bond_type[i][m];
+        if (type <= 0) continue;
+
+        j = atom->map(bond_atom[i][m]);
+        if (j == -1) continue;
+
+        if (tag[i] > tag[j]) continue;
+
+        output_data_ref[0] = tag[i];
+        output_data_ref[1] = tag[j];
+
+        for (int h=0; h < nhistory; h++) {
+          output_data_ref[2+h] = fix_bond_history->get_atom_value(i, m, h);
+        }
+
+        fix_write_ref->add_data(output_data_ref, i, j);
+        
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
    delete and process a given bond
 ------------------------------------------------------------------------- */
 
@@ -680,6 +751,12 @@ void BondBPM::pre_compute()
   }
 
   if (hybrid_flag) fix_bond_history->compress_history();
+
+  if (fix_write_ref && write_ref_freq > 0 && update->ntimestep % write_ref_freq == 0) {
+    //&& update->ntimestep != last_write_ref_step
+    write_reference();
+    //last_write_ref_step = update->ntimestep;
+  }
 
   nbroken = 0;
 }

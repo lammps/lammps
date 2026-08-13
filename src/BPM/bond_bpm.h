@@ -31,6 +31,7 @@ class BondBPM : public Bond {
   double equilibrium_distance(int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
+  void read_reference(char*);
   double single(int, double, int, int, double &) override = 0;
 
  protected:
@@ -43,13 +44,19 @@ class BondBPM : public Bond {
   char *id_fix_dummy_special, *id_fix_dummy_history;
   char *id_fix_update_special_bonds, *id_fix_bond_history;
   char *id_fix_store_local, *id_fix_property_atom;
+  char  *ref_filename;
   class FixStoreLocal *fix_store_local;
   class FixBondHistory *fix_bond_history;
   class FixUpdateSpecialBonds *fix_update_special_bonds;
 
   int nbroken;
 
+  int nbonddata, nentries;
+  int *bListdata;
+  double *bHistdata;
+
   virtual void store_data() = 0;
+  void restore_data();
   void pre_compute();
   void post_compute();
   void process_broken(int, int);
@@ -58,7 +65,7 @@ class BondBPM : public Bond {
   FnPtrPack *pack_choice;    // ptrs to pack functions
   double *output_data;
 
-  int property_atom_flag, nvalues, overlay_flag, break_flag, ignore_special_flag;
+  int property_atom_flag, nvalues, overlay_flag, break_flag, ignore_special_flag, reference_flag, restore_flag;
   int index_x_ref, index_y_ref, index_z_ref;
 
   int n_histories;

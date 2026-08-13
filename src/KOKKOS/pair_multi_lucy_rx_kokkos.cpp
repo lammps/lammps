@@ -98,7 +98,9 @@ void PairMultiLucyRXKokkos<DeviceType>::coeff(int narg, char **arg) {
   PairMultiLucyRX::coeff(narg, arg);
 
   // rx_fix is initialized in PairMultiLucyRX::coeff().
-  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
+  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
+  if (!rx_fixKK)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 }
 
 

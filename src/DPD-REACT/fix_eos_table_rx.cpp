@@ -18,16 +18,17 @@
 
 #include "fix_eos_table_rx.h"
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_rx.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "safe_pointers.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
-#include "fix_rx.h"
 
 #include <cmath>
 #include <cstring>
@@ -44,12 +45,22 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ntables(0), tables(nullptr),
-  tables2(nullptr), rx_fix(FixRX::get_rx_fix_unsafe(lmp)),
+  Fix(lmp, narg, arg), ntables(0), tables(nullptr), tables2(nullptr), rx_fix(nullptr),
   dHf(nullptr), eosSpecies(nullptr)
 {
   if (narg != 8 && narg != 10) error->all(FLERR,"Illegal fix eos/table/rx command");
   nevery = 1;
+
+  // get either the KOKKOS or the plain version of the fix
+  // detect if we need to set kokkosable because we are run *before* the KOKKOS constructor sets it
+  if (lmp->kokkos && lmp->kokkos->kokkos_exists) kokkosable = 1;
+  auto fixes = modify->get_fix_by_style(kokkosable ? "^rx/kk" : "^rx$");
+
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
 
   rx_flag = (rx_fix != nullptr);
   nspecies = (rx_flag ? rx_fix->get_nspecies() : 1);

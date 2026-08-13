@@ -76,41 +76,6 @@ FixRxKokkos<DeviceType>::FixRxKokkos(LAMMPS *lmp, int narg, char **arg) :
 }
 
 template <typename DeviceType>
-FixRxKokkos<DeviceType>*
-FixRxKokkos<DeviceType>::get_rx_fixKK_from_fix_unsafe(Fix * fix) {
-  return dynamic_cast<FixRxKokkos<DeviceType>*>(fix);
-}
-
-template <typename DeviceType>
-FixRxKokkos<DeviceType>* FixRxKokkos<DeviceType>::get_rx_fixKK_from_fix(LAMMPS *lmp,
-                                                                        Fix * fix) {
-  auto * rx_fix = get_rx_fixKK_from_fix_unsafe(fix);
-
-  if (!rx_fix) {
-    lmp->error->all(FLERR, "No fix/rx/kk instance available.");
-  }
-
-  return rx_fix;
-}
-
-template <typename DeviceType>
-FixRxKokkos<DeviceType>*
-FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix_unsafe(FixRX * rx_fix) {
-  return get_rx_fixKK_from_fix_unsafe(rx_fix);
-}
-
-template <typename DeviceType>
-FixRxKokkos<DeviceType>* FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(LAMMPS *lmp,
-                                                                           FixRX * rx_fix) {
-  return get_rx_fixKK_from_fix(lmp, rx_fix);
-}
-
-template <typename DeviceType>
-FixRxKokkos<DeviceType>* FixRxKokkos<DeviceType>::get_rx_fixKK(LAMMPS * lmp) {
-  return get_rx_fixKK_from_fix(lmp, get_rx_fix_base(lmp));
-}
-
-template <typename DeviceType>
 FixRxKokkos<DeviceType>::~FixRxKokkos()
 {
   if (copymode) return;

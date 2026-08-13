@@ -304,8 +304,16 @@ void PairTableRX::coeff(int narg, char **arg)
 {
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
+  // get only the plain version of the fix, KOKKOS version is not derived from this class
+  auto fixes = modify->get_fix_by_style("^rx$");
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+  if (!rx_fix)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 
-  rx_fix = FixRX::get_rx_fix(lmp);
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);

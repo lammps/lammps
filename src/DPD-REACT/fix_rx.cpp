@@ -200,54 +200,6 @@ FixRX::~FixRX()
 
 /* ---------------------------------------------------------------------- */
 
-Fix* FixRX::get_rx_fix_base(LAMMPS * lmp) {
-  auto rx_fixes = lmp->modify->get_fix_by_style("^rx");
-
-  if (rx_fixes.empty()) {
-    lmp->error->all(FLERR,
-                    "Fix instance with style matching '^rx' not yet defined "
-                    "before style instantiated");
-  }
-
-  // The following loop accounts for the possibility of styles with
-  // names that start with the letters "rx" but are not instances of a
-  // style named "rx".
-
-  Fix * rx_fix = nullptr;
-  int num_fixes = 0;
-  for (const auto & curr_fix : rx_fixes) {
-    Tokenizer style_tokens(curr_fix->style, "/");
-
-    if (style_tokens.next() == "rx") {
-      num_fixes++;
-
-      if (num_fixes > 1) {
-        lmp->error->all(FLERR, "More than one fix/rx instance");
-      }
-
-      rx_fix = curr_fix;
-    }
-  }
-
-  return rx_fix;
-}
-
-FixRX * FixRX::get_rx_fix_unsafe(LAMMPS * lmp) {
-  return dynamic_cast<FixRX *>(get_rx_fix_base(lmp));
-}
-
-FixRX * FixRX::get_rx_fix(LAMMPS * lmp) {
-  auto rx_fix = get_rx_fix_unsafe(lmp);
-
-  if (!rx_fix) {
-    lmp->error->all(FLERR, "No fix/rx instance available.");
-  }
-
-  return rx_fix;
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixRX::allocate_species_ind_to_atom_prop_ind_array() {
 
   species_ind_to_atom_prop_ind =

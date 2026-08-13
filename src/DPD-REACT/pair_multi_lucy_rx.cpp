@@ -367,7 +367,15 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 {
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
 
-  rx_fix = FixRX::get_rx_fix(lmp);
+  // get either the KOKKOS or the plain version of the fix
+  auto fixes = modify->get_fix_by_style(kokkosable ? "^rx/kk" : "^rx$");
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+  if (!rx_fix)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 
   if (!allocated) allocate();
 

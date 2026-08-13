@@ -2797,6 +2797,8 @@ double Variable::collapse_tree(Tree *tree)
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
     if (arg2 == 0.0) tree->value = 1.0;
+    else if ((arg1 == 0.0) && (arg2 < 0.0))
+      error->one(FLERR,"Invalid power expression in variable formula");
     else tree->value = pow(arg1,arg2);
     return tree->value;
   }
@@ -3362,9 +3364,12 @@ double Variable::eval_tree(Tree *tree, int i)
     return fmod(eval_tree(tree->first,i),denom);
   }
   if (tree->type == CARAT) {
+    double base = eval_tree(tree->first,i);
     double exponent = eval_tree(tree->second,i);
     if (exponent == 0.0) return 1.0;
-    return pow(eval_tree(tree->first,i),exponent);
+    else if ((base == 0.0) && (exponent < 0.0))
+      error->one(FLERR,"Invalid power expression in variable formula");
+    else return pow(base,exponent);
   }
   if (tree->type == UNARY) return -eval_tree(tree->first,i);
 

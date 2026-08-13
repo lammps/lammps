@@ -56,6 +56,21 @@ overflows the heap once a fix packs more than ~1024 doubles/atom.  Fixed upper b
 `maxexchange_dynamic = 1` and update `maxexchange` as it grows (canonical example:
 `fix_neigh_history` with `maxpartner`).
 
+## Fix lifecycle ordering
+
+**A fix that reads dynamic-group membership must take its first snapshot in
+`setup(int)`, not `init()`.**  `FixGroup` populates dynamic groups in
+`modify->setup()`, which runs after `modify->init()` but before `output->setup()`;
+a group referenced by a fix always precedes that fix in the fix list, so the
+membership is current by the time the fix's own `setup()` runs.  Reading it in
+`init()` sees stale membership.
+
+**A fix that creates its own group must guard the destructor's cleanup.**
+`LAMMPS::destroy()` deletes the `Group` class BEFORE `Modify`, so a fix destructor
+calling `group->assign("<name> delete")` must check `if (group)` and catch
+exceptions (established pattern: `fix_gcmc`); otherwise normal program teardown
+crashes.
+
 ## Argument parsing and validity guards
 
 **`ArgInfo` parses `[i][j]` only for prefixed references** (`c_ f_ v_ d_ i_ c2_ d2_`).

@@ -154,6 +154,9 @@ void Variable::VarInfo::clear()
   name.clear();
   data = nullptr;
   reader = nullptr;
+  vec.n = vec.nmax = 0;
+  vec.dynamic = 1;
+  vec.currentstep = -1;
   vec.values = nullptr;
   num = 0;
   pad = 0;
@@ -179,6 +182,9 @@ Variable::VarInfo::VarInfo(VarInfo &&other) noexcept
   other.style = UNASSIGNED;
   other.reader = nullptr;
   other.data = nullptr;
+  other.vec.n = other.vec.nmax = 0;
+  other.vec.dynamic = 1;
+  other.vec.currentstep = -1;
   other.vec.values = nullptr;
   other.num = 0;
   other.pad = 0;
@@ -205,6 +211,9 @@ Variable::VarInfo &Variable::VarInfo::operator=(VarInfo &&other) noexcept
     other.style = UNASSIGNED;
     other.reader = nullptr;
     other.data = nullptr;
+    other.vec.n = other.vec.nmax = 0;
+    other.vec.dynamic = 1;
+    other.vec.currentstep = -1;
     other.vec.values = nullptr;
     other.eval_in_progress = 0;
     other.num = 0;

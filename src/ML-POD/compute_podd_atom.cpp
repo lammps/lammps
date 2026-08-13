@@ -53,8 +53,6 @@ ComputePODDAtom::ComputePODDAtom(LAMMPS *lmp, int narg, char **arg) :
 
   nmax = 0;
   nijmax = 0;
-  pod = nullptr;
-  elements = nullptr;
 
   if ((((3.0*atom->natoms)*podptr->nClusters)*podptr->Mdesc) > (MAXSMALLINT*1.0))
       error->all(FLERR, "Too many atoms ({}) for compute {}", atom->natoms, style);
@@ -66,6 +64,10 @@ ComputePODDAtom::ComputePODDAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePODDAtom::~ComputePODDAtom()
 {
+  if (elements) {
+    for (int i = 0; i < atom->ntypes; i++) delete[] elements[i];
+    delete[] elements;
+  }
   memory->destroy(map);
   memory->destroy(pod);
   delete podptr;
@@ -134,23 +136,28 @@ void ComputePODDAtom::compute_peratom()
   int Mdesc = podptr->Mdesc;
   double rcutsq = podptr->rcut*podptr->rcut;
 
+  // determine the maximum number of neighbor list candidates for all local atoms
+  // and allocate temporary memory accordingly.  a minimum of one guarantees that
+  // the buffers always exist, even if no atom has any neighbors at all.
+
+  int jnummax = 1;
+  for (int ii = 0; ii < inum; ii++) jnummax = MAX(jnummax, numneigh[ilist[ii]]);
+
+  if (nijmax < jnummax) {
+    nijmax = jnummax;
+    podptr->free_temp_memory();
+    podptr->allocate_temp_memory(nijmax);
+  }
+
+  rij = &podptr->tmpmem[0];
+  tmpmem = &podptr->tmpmem[3*nijmax];
+  ai = &podptr->tmpint[0];
+  aj = &podptr->tmpint[nijmax];
+  ti = &podptr->tmpint[2*nijmax];
+  tj = &podptr->tmpint[3*nijmax];
+
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
-    int jnum = numneigh[i];
-
-    // allocate temporary memory
-    if (nijmax < jnum) {
-      nijmax = MAX(nijmax, jnum);
-      podptr->free_temp_memory();
-      podptr->allocate_temp_memory(nijmax);
-    }
-
-    rij = &podptr->tmpmem[0];
-    tmpmem = &podptr->tmpmem[3*nijmax];
-    ai = &podptr->tmpint[0];
-    aj = &podptr->tmpint[nijmax];
-    ti = &podptr->tmpint[2*nijmax];
-    tj = &podptr->tmpint[3*nijmax];
 
     // get neighbor list for atom i
     lammpsNeighborList(x, firstneigh, atom->tag, type, numneigh, rcutsq, i);

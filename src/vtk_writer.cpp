@@ -59,15 +59,15 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int PER_LINE = 9;
-static constexpr int VTK_VERTEX = 1;
-static constexpr int VTK_HEXAHEDRON = 12;
+namespace {
+
+constexpr int PER_LINE = 9;
+constexpr int VTK_VERTEX = 1;
+constexpr int VTK_HEXAHEDRON = 12;
 
 // longest string we can write into a binary legacy file, see file header
 
-static constexpr std::size_t MAX_BINARY_STRING = 63;
-
-namespace {
+constexpr std::size_t MAX_BINARY_STRING = 63;
 
 const char b64chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
@@ -189,7 +189,7 @@ std::string fmt_double(double value)
 // text is flushed in chunks so that large arrays need neither one stdio
 // call per value nor the whole payload in memory.
 
-static constexpr std::size_t WRITE_CHUNK = 1 << 20;
+constexpr std::size_t WRITE_CHUNK = 1 << 20;
 
 template <typename T> void write_legacy_values(FILE *fp, bool binary, const std::vector<T> &values)
 {

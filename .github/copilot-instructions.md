@@ -8,7 +8,7 @@ task-specific guides live in `.github/instructions/` (auto-attached by path patt
 ## Repository Overview
 
 **LAMMPS** (Large-scale Atomic/Molecular Massively Parallel Simulator) is a classical
-molecular dynamics simulation code for parallel computers: a large, mature C++ codebase
+molecular dynamics simulation code for parallel computers: a large, mature C++ code base
 (~600MB, ~4,000 C++ files in `src/`) maintained by an international team of developers led by
 staff at Sandia National Laboratories, open-source under GPL v2.
 
@@ -83,13 +83,10 @@ python3 tools/regression-tests/run_tests.py --lmp-bin=build/lmp \
 
 ## Continuous Integration
 
-GitHub Actions workflows in `.github/workflows/` (16 files).  On every PR to `develop`:
+GitHub Actions workflows in `.github/workflows/`.  On every PR to `develop`:
 `style-check.yml` (coding standards), `unittest-linux.yml` (CTest), and
-`quick-regression.yml` (regression subset).  Others: `unittest-macos/-arm64/-single/
--kokkos`, `kokkos-regression.yaml`, `check-vla.yml` (no variable-length arrays),
-`check-cpp23.yml`, `check-gnu-make.yml`, `compile-msvc.yml` (Windows),
-`codeql-analysis.yml`, `coverity.yml`, `lammps-gui-flatpak.yml`, and
-`full-regression.yml` (manual trigger only, via workflow_dispatch).
+`quick-regression.yml` (regression subset); see that directory for the further
+platform, style, and regression workflows.
 
 **Debugging CI failures:** style-check -> run the matching `make check-*` target in
 `src/` and the corresponding `make fix-*`; build failures -> check for `-S cmake`,
@@ -98,18 +95,6 @@ package dependencies, and VLA usage; unit tests -> rerun the single test with
 example inputs were modified.
 
 ## Repository Structure
-
-```
-cmake/           CMake build system (main CMakeLists.txt, presets/, Modules/)
-src/             core sources + 80+ package subdirectories (MOLECULE/, KSPACE/,
-                 RIGID/, KOKKOS/, GRANULAR/, ...); Makefile + MAKE/ for legacy build
-unittest/        CTest-based unit tests, by category
-examples/        example input decks        bench/      benchmark inputs
-doc/             documentation sources (doc/src/*.rst, Sphinx)
-lib/             bundled external libraries (kokkos, colvars, ...)
-python/          Python module             potentials/  potential files
-tools/           pre/post-processing; tools/coding_standard/ = style-check scripts
-```
 
 The top-level `LAMMPS` class (`src/lammps.h`) owns pointers to all subsystems (`atom`,
 `force`, `neighbor`, `comm`, `domain`, `modify`, `update`, `output`, `error`, `memory`).
@@ -127,6 +112,9 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
 - **No alternative logical-operator tokens:** use `&&`, `||`, `!`, `^` -- never `and`,
   `or`, `not`, `xor` (breaks MSVC).
 - **Parenthesize each operand of chained `&&`/`||` conditionals** for readability.
+- **No two-trip loops for trivial initialization:** assign pairs directly
+  (`xstyle[0] = xstyle[1] = NONE;`) instead of a `for` loop with only two trivial
+  trips; keep the loop when the body is substantial (unrolling would duplicate code).
 - **String formatting with fmtlib** (`fmt::format()`), not `sprintf`.
 - **Error handling:** `error->all()` when all MPI ranks hit the error, `error->one()`
   for a single rank; `error->warning()` prints on every rank, so guard with
@@ -135,6 +123,11 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
   the audience is researchers, not software engineers.
 - **RAII for C resources:** prefer `SafeFilePtr` (`src/safe_pointers.h`) over raw
   `FILE *`/`fopen` when touching such code.
+- **`delete[]` before `utils::strdup()`:** when storing a copied name (variable,
+  region, group ID, ...) in a class member, always `delete[]` the member immediately
+  before re-assigning it with `utils::strdup()` -- even when it is provably still
+  `nullptr`.  Static analysis (Coverity) flags the bare assignment as a leak, and the
+  idiom is defensive against keywords being parsed twice.
 - **MPI stubs:** if a serial build misses an MPI symbol, add it to `src/STUBS/mpi.h`
   instead of special-casing the caller.
 - **Block comments:** inside `/* ... */`, an embedded `*/` (e.g. in a glob like
@@ -158,6 +151,11 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
 - Feature branches; PRs target `develop` (NOT `master` or `release`).  The `develop`
   branch is always kept functional (continuous release model).
 - Run `cd src && make check` before committing; watch CI on the PR.
+- A bug found in any style is rarely alone: styles and their accelerator variants are
+  created by copy-adapt, so defects propagate in both directions.  After root-causing
+  a bug, check the base style, all suffix variants (`/omp`, `/kk`, `/gpu`, `/opt`,
+  `/intel`), and sibling styles cloned from the same template for the same code shape,
+  and fix all occurrences together.
 - The PR template contains a mandatory **AI Tools Usage** section whose default text
   states no AI was used; when AI tools generated code, edit that section to disclose it
   honestly.  This section is the ONLY place for AI attribution: do NOT add
@@ -167,32 +165,74 @@ mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style header
 
 ## Code Review
 
-When performing a code review, apply the general instructions for contributions to
-LAMMPS in https://docs.lammps.org/Modify_requirements.html and the programming style
-instructions in https://docs.lammps.org/Modify_style.html
+When performing a code review, apply the general instructions for
+contributions to LAMMPS in
+https://docs.lammps.org/Modify_requirements.html and the programming
+style instructions in https://docs.lammps.org/Modify_style.html
 
-When performing a code review, check any changes to the documentation (in the
-`doc/src/` folder) to be written in American English and with plain ASCII characters.
+When performing a code review, check any changes to the documentation
+(in the `doc/src/` folder) to be written in American English and with
+plain ASCII characters.
 
-When performing a code review, ensure that the documentation for any new commands or
-added keywords to existing commands contains a `.. versionadded:: TBD` directive.  For
-any modified commands or keywords a `.. versionchanged:: TBD` directive should be
-included in the documentation.  This does not apply to internal commands (style names
-written in upper case) or when the change only adds an accelerated variant of an
-existing style (then add the code letter to the respective `Commands_*.rst` file
-instead).  Check if any examples use the new or modified commands and whether they
+When performing a code review, ensure that the documentation for any new
+commands or added keywords to existing commands contains a
+`.. versionadded:: TBD` directive.  For completely new commands, the
+`.. versionadded:: TBD` statement should be added after the
+"Description" header.  For new keywords to an existing command, the
+statement should be added before the paragraph introducing the new
+keyword.  For any modified commands or keywords a `.. versionchanged::
+TBD` directive should be included in the documentation.  This does not
+apply to internal commands (style names written in upper case) or when
+the change only adds an accelerated variant of an existing style (then
+add the code letter to the respective `Commands_*.rst` file instead).
+Check if any examples use the new or modified commands and whether they
 need updating.
 
-When reviewing C++ code, ensure that no alternative tokens are used for logical
-operators (`&&` not `and`, `||` not `or`, `!` not `not`, `^` not `xor`); alternative
-tokens cause compilation failures with some compilers, most prominently Microsoft
-Visual C++.
+When reviewing C++ code, ensure that no alternative tokens are used for
+logical operators (`&&` not `and`, `||` not `or`, `!` not `not`, `^` not
+`xor`); alternative tokens cause compilation failures with some
+compilers, most prominently Microsoft Visual C++.
 
-When new files are added to package directories in `src`, make sure they are added to
-the `src/.gitignore` file, so that copies made in `src` by the traditional make build
-are not accidentally committed.  When files are renamed or removed in package
-directories, make sure the old names are added to `src/Purge.list` so stale copies are
-removed by `make purge`.
+There should not be any printf() statements or fprintf(screen,...) /
+fprintf(logfile,...)  in new code. Those should be either removed or
+replaced by utils::logmesg().  C++ iostreams (std::cout, std::cerr)
+should be replaced by using C-style stdio, if needed using
+utils::print() or use utils::logmesg(); both of which support
+std::format style formatting.  Any output statements that were added
+for the obvious purpose of aiding in debugging should be removed
+entirely.
+
+There should not be any new error messages of the error->all(FLERR,
+"Illegal XXX command") kind, instead utils::missing_cmd_args() should be
+used or more specific error messages with the error pointer argument to
+highlight the location of the error as described in
+https://docs.lammps.org/Developer_notes.html#errors-warnings-and-informational-messages
+If needed compare with similar code that has already been fully
+converted to this new style of error messages.  Also note the use of
+utils::errorurl() to directing users to more detailed explanations on
+the https://docs.lammps.org/Errors_details.html page.
+
+When parsing text files, there should be no use of strtok(), sscanf(),
+atoi(), atof() and similar, but the Tokenizer or ValueTokenizer classes
+be used and - where possible - also on of the file reader classes. For
+converting arguments to numbers, there are also the utils::numeric(),
+utils::inumeric(), utils::bnumeric(), and utils::tnumeric() classes.
+Same as with error messages, there are likely code block that have been
+modernized and are sufficiently similar to serve as an instructive
+example.
+
+Commented out code that was apparently added for debugging purposes or
+represents disabled features or unused alternative implementations
+should be removed entirely, unless a pull request explicitly explains
+that those are placeholders for future added features.
+
+When new files are added to package directories in `src`, make sure they
+are added to the `src/.gitignore` file, so that copies made in `src` by
+the traditional make build are not accidentally committed.  When files
+are renamed or removed in package directories, make sure the old names
+are added to `src/Purge.list` so stale copies are removed by `make
+purge`.
+
 
 ## Task-Specific Guides
 

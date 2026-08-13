@@ -593,6 +593,7 @@ void BondBPM::write_reference()
         j = atom->map(bond_atom[i][m]);
         if (j == -1) continue;
 
+        // Only performed once per bond
         if (tag[i] > tag[j]) continue;
 
         output_data_ref[0] = tag[i];
@@ -742,20 +743,16 @@ void BondBPM::pre_compute()
   if (reference_flag && !restore_flag) {
     restore_flag = 1;
 
-    // Override substyle-specific bond history data from ref file
-    restore_data();
+    restore_data(); // Override substyle-specific bond history data from ref file
 
     // Rebuild bondstore array
     fix_bond_history->post_neighbor();
-      
   }
 
   if (hybrid_flag) fix_bond_history->compress_history();
 
   if (fix_write_ref && write_ref_freq > 0 && update->ntimestep % write_ref_freq == 0) {
-    //&& update->ntimestep != last_write_ref_step
     write_reference();
-    //last_write_ref_step = update->ntimestep;
   }
 
   nbroken = 0;

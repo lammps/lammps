@@ -365,6 +365,8 @@ TEST_F(VariableTest, Expressions)
     command("variable pow01  equal     v_ten7^1");
     command("variable pow02  equal     v_ten7^2");
     command("variable pow0v  vector    v_vec1^0");
+    command("variable err4   equal     v_ten7^v_seven");
+    command("variable err5   vector    v_vec1^-1");
 
     variable->set("dummy  index     1 2");
     END_HIDE_OUTPUT();
@@ -421,6 +423,10 @@ TEST_F(VariableTest, Expressions)
         command("print \"${isrt}\""););
     TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
                  command("print \"${xxxl}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Variable err4: Invalid power expression in variable formula.*",
+                 command("print \"${err4}\""););
+    TEST_FAILURE(".*ERROR on proc 0: Invalid power expression in variable formula.*",
+                 command("print \"${err5}\""););
 }
 
 TEST_F(VariableTest, Functions)

@@ -60,7 +60,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   bigint natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
-  int triclinic = domain->triclinic;
+  triclinic = domain->triclinic;
   me = comm->me;
 
   // Checking errors
@@ -68,8 +68,6 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
      error->all(FLERR,"Compute XRD does not work with 2d structures");
   if (narg < 4+ntypes)
      error->all(FLERR,"Illegal Compute XRD Command");
-  if (triclinic == 1)
-     error->all(FLERR,"Compute XRD does not work with triclinic structures");
 
   array_flag = 1;
   extarray = 0;
@@ -177,20 +175,44 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   if (!manual) {
     if (!periodicity[0] && !periodicity[1] && !periodicity[2])
       error->all(FLERR,"Compute SAED must have at least one periodic boundary unless manual spacing specified");
+
+    // a non-periodic direction has no reciprocal lattice vector of its own and
+    // is given the average of the periodic ones, which is only meaningful when
+    // the reciprocal lattice is aligned with the coordinate axes
+
+    if (triclinic && (!periodicity[0] || !periodicity[1] || !periodicity[2]))
+      error->all(FLERR,"Compute XRD with a triclinic cell requires all boundaries to be "
+                 "periodic unless manual spacing is specified");
   }
 
   set_spacing();
 
   // which reciprocal lattice nodes are explored is fixed here and never
   // changes, because the number of rows of the output array cannot change.
-  // dK_orig is the spacing that defines that set; dK follows the box.
+  // rlv_orig is the reciprocal lattice that defines that set; rlv follows the
+  // box.
 
   for (int i=0; i<3; i++) {
     dK_orig[i] = dK[i];
-    Knmax[i] = (int) ceil(Kmax / dK[i]);
     prd_last[i] = domain->prd[i];
+    for (int j=0; j<3; j++) rlv_orig[i][j] = rlv[i][j];
   }
   warned_range = 0;
+
+  // index i of a node satisfies i = K.a_i/c_i, with a_i the box edge vector, so
+  // |i| <= Kmax*|a_i|/c_i bounds the search.  for an orthogonal cell that is
+  // the familiar Kmax/dK.
+
+  if (!triclinic || manual) {
+    for (int i=0; i<3; i++) Knmax[i] = (int) ceil(Kmax / dK[i]);
+  } else {
+    double *h = domain->h;
+    double alen[3];
+    alen[0] = h[0];
+    alen[1] = sqrt(h[5]*h[5] + h[1]*h[1]);
+    alen[2] = sqrt(h[4]*h[4] + h[3]*h[3] + h[2]*h[2]);
+    for (int i=0; i<3; i++) Knmax[i] = (int) ceil(Kmax * alen[i] / c[i]);
+  }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
   bigint nRows = 0;
@@ -202,9 +224,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
     for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
       for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
-        K[0] = i * dK[0];
-        K[1] = j * dK[1];
-        K[2] = k * dK[2];
+        kvector(rlv,i,j,k,K);
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         if  (4 >= dinv2 * lambda * lambda) {
           ang = asin(lambda * sqrt(dinv2) * 0.5);
@@ -272,9 +292,7 @@ void ComputeXRD::init()
     int i = (int) ((m - j*nk2 - k)/(nk2*nk1)) - Knmax[0];
     j = j-Knmax[1];
     k = k-Knmax[2];
-    K[0] = i * dK_orig[0];
-    K[1] = j * dK_orig[1];
-    K[2] = k * dK_orig[2];
+    kvector(rlv_orig,i,j,k,K);
     dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
     if  (4 >= dinv2 * lambda * lambda) {
        ang = asin(lambda * sqrt(dinv2) * 0.5);
@@ -324,6 +342,26 @@ void ComputeXRD::set_spacing()
   }
 
   for (int i = 0; i < 3; i++) dK[i] = prd_inv[i]*c[i];
+
+  // reciprocal lattice vectors of the cell, scaled by the c parameters.  the
+  // rows of the inverse box matrix are the reciprocal lattice vectors, and they
+  // are exactly zero off the diagonal for an orthogonal cell, so this reduces
+  // to the diagonal spacing without changing a single bit.  manual spacing asks
+  // for a fixed grid in absolute units, so it stays aligned with the axes.
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) rlv[i][j] = 0.0;
+
+  rlv[0][0] = dK[0];
+  rlv[1][1] = dK[1];
+  rlv[2][2] = dK[2];
+
+  if (triclinic && !manual) {
+    double *h_inv = domain->h_inv;
+    rlv[0][1] = c[0]*h_inv[5];
+    rlv[0][2] = c[0]*h_inv[4];
+    rlv[1][2] = c[1]*h_inv[3];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -364,9 +402,7 @@ void ComputeXRD::refresh_angles()
 
   for (int n = 0; n < size_array_rows; n++) {
     double K[3];
-    K[0] = store_tmp[3*n+2] * dK[0];
-    K[1] = store_tmp[3*n+1] * dK[1];
-    K[2] = store_tmp[3*n]   * dK[2];
+    kvector(rlv,store_tmp[3*n+2],store_tmp[3*n+1],store_tmp[3*n],K);
     double dinv2 = K[0]*K[0] + K[1]*K[1] + K[2]*K[2];
 
     if (4 >= dinv2 * lambda * lambda) {
@@ -479,9 +515,7 @@ void ComputeXRD::compute_array()
         int k = store_tmp[3*n];
         int j = store_tmp[3*n+1];
         int i = store_tmp[3*n+2];
-        K[0] = i * dK[0];
-        K[1] = j * dK[1];
-        K[2] = k * dK[2];
+        kvector(rlv,i,j,k,K);
 
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         dinv = sqrt(dinv2);
@@ -539,9 +573,7 @@ void ComputeXRD::compute_array()
         int k = store_tmp[3*n];
         int j = store_tmp[3*n+1];
         int i = store_tmp[3*n+2];
-        K[0] = i * dK[0];
-        K[1] = j * dK[1];
-        K[2] = k * dK[2];
+        kvector(rlv,i,j,k,K);
 
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         dinv = sqrt(dinv2);

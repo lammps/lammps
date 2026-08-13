@@ -45,11 +45,13 @@ class ComputeXRDFFT : public ComputeXRD {
   int nmesh[3];          // global FFT mesh dimensions
   double kb_beta[3];     // Kaiser-Bessel shape parameter, per dimension
 
-  // the FFT mesh spans the "diffraction cell" of edge length 1/dK[d], which is
-  // the exact period of exp(2*pi*i*m*x*dK).  mesh_scale converts a Cartesian
-  // coordinate directly into (unfolded) mesh units.
+  // the FFT mesh spans the "diffraction cell", the exact period of the phase
+  // factor of node index d.  mesh_vec[d] projects a Cartesian coordinate onto
+  // that index and scales it to (unfolded) mesh units, so it is the d-th
+  // reciprocal lattice vector times the mesh dimension.  for an orthogonal cell
+  // only component d is nonzero and this is a plain multiplication.
 
-  double mesh_scale[3];
+  double mesh_vec[3][3];
 
   // z-slab decomposition of the mesh, also used as the FFT3d in/out layout
 

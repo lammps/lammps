@@ -21,12 +21,16 @@
    the atoms onto a uniform mesh with a Kaiser-Bessel window, taking one FFT,
    and dividing out the analytic Fourier transform of that window.
 
-   compute xrd samples K = (i*dK[0], j*dK[1], k*dK[2]).  exp(2 pi i m x dK) has
-   period 1/dK in x, so folding the atom coordinates into a cell of edge length
-   1/dK[d] (here called the diffraction cell) is exact rather than an
-   approximation, whether that cell is larger than the simulation box (c < 1) or
-   smaller than it (c > 1).  A single uniform mesh spanning the diffraction cell
-   therefore reproduces the requested nodes exactly.
+   compute xrd samples K = i*g0 + j*g1 + k*g2, with g the reciprocal lattice
+   vectors of the cell scaled by the c parameters.  The phase of node index d
+   is then 2 pi times the projection g_d.r, which is periodic in that
+   projection, so folding it into one period (here called the diffraction cell)
+   is exact rather than an approximation, whether that cell is larger than the
+   simulation box (c < 1) or smaller than it (c > 1).  A single uniform mesh
+   spanning the diffraction cell therefore reproduces the requested nodes
+   exactly.  For a triclinic cell the projections are oblique, which is what
+   mesh_vec accounts for; the mesh itself is uniform in the node indices, just
+   as the kspace styles mesh a triclinic cell uniformly in lamda coordinates.
 
    The atomic scattering factors depend on the atom type and on |K|, so one
    transform is done per distinct element and the results are combined with the
@@ -197,10 +201,6 @@ void ComputeXRDFFT::set_grid()
     kb_beta[d] = MY_PI*sqrt(arg);
   }
 
-  // one mesh unit in each dimension corresponds to 1/(nmesh*dK) in distance
-  // units, so a coordinate maps to mesh units by multiplying with dK*nmesh
-
-  for (int d = 0; d < 3; d++) mesh_scale[d] = dK[d]*nmesh[d];
 }
 
 /* ----------------------------------------------------------------------
@@ -324,14 +324,14 @@ void ComputeXRDFFT::setup_mesh()
 
 void ComputeXRDFFT::refresh_scaling()
 {
-  for (int d = 0; d < 3; d++) mesh_scale[d] = dK[d]*nmesh[d];
+  for (int d = 0; d < 3; d++)
+    for (int e = 0; e < 3; e++) mesh_vec[d][e] = rlv[d][e]*nmesh[d];
 
   for (int a = 0; a < nown; a++) {
     int n = own_row[a];
-    double K0 = store_tmp[3*n+2]*dK[0];
-    double K1 = store_tmp[3*n+1]*dK[1];
-    double K2 = store_tmp[3*n]  *dK[2];
-    double dinv2 = K0*K0 + K1*K1 + K2*K2;
+    double K[3];
+    kvector(rlv,store_tmp[3*n+2],store_tmp[3*n+1],store_tmp[3*n],K);
+    double dinv2 = K[0]*K[0] + K[1]*K[1] + K[2]*K[2];
     double SinTheta_lambda = 0.5*sqrt(dinv2);
 
     // a node driven beyond the limit of the Ewald sphere no longer diffracts
@@ -464,7 +464,8 @@ void ComputeXRDFFT::spread(int s)
       // non-periodic direction, and the cell may be much smaller than the box,
       // so the reduction has to handle arbitrarily large offsets.
 
-      double u = x[ii][d]*mesh_scale[d];
+      double u = x[ii][0]*mesh_vec[d][0] + x[ii][1]*mesh_vec[d][1] +
+                 x[ii][2]*mesh_vec[d][2];
       u -= n*floor(u/n);
       if ((u >= n) || (u < 0.0)) u = 0.0;
 

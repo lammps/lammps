@@ -96,6 +96,14 @@ is defined from the average of the (inversed) box lengths with periodic
 boundary conditions.  Meshes defined by the simulation domain must
 contain at least one periodic boundary.
 
+.. versionadded:: TBD
+
+For a triclinic cell the mesh is built on the reciprocal lattice vectors of the
+cell, which are no longer aligned with the coordinate axes.  This is the same
+construction the :doc:`kspace styles <kspace_style>` use.  A tilted cell needs
+more nodes to reach a given scattering angle than an orthogonal cell of the
+same volume, so the calculation becomes more expensive as the tilt grows.
+
 If the *manual* flag is included, the mesh of reciprocal lattice nodes
 will be defined using the *c* values for the spacing along each
 reciprocal lattice axis. Note that manual mapping of the reciprocal
@@ -301,6 +309,12 @@ Restrictions
 This compute is part of the DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
+For a triclinic cell, all boundaries must be periodic.  A non-periodic
+direction has no reciprocal lattice vector of its own and is given the average
+of the periodic ones, which only makes sense when the reciprocal lattice is
+aligned with the coordinate axes.  The *manual* flag, which sets an
+axis-aligned mesh in absolute units, is not subject to this.
+
 .. versionchanged:: TBD
 
 When the mesh is defined by the simulation domain and the box is resized, by
@@ -326,8 +340,6 @@ Compute *xrd/fft* uses the FFT wrappers of the KSPACE package and is only
 available if LAMMPS was built with both the DIFFRACTION and the KSPACE
 packages.  Building with single precision FFTs limits the accuracy of weak
 diffuse intensities.
-
-The compute_xrd command does not work for triclinic cells.
 
 Related commands
 """"""""""""""""

@@ -113,16 +113,29 @@ diffraction intensity due to Compton scattering.  Compute saed uses
 analytical approximations of the atomic scattering factors that vary
 for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
-:ref:`(Brown) <Brown>`:
+:ref:`(Colliex) <Colliex>`:
 
 .. math::
 
    f_j\left ( \frac{sin(\theta)}{\lambda} \right )=\sum_{i}^{5}
    a_i exp\left ( -b_i \frac{sin^{2}(\theta)}{\lambda^{2}} \right )
 
-Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each
+Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
-type. Valid chemical symbols for compute saed are:
+type.
+
+.. versionchanged:: TBD
+
+Two sets of coefficients are tabulated, one fitted for
+:math:`\sin(\theta)/\lambda` below 2 and one fitted for the range from 2 to 6.
+The set is chosen from the value at each reciprocal lattice node.  Previously
+it was chosen once for the whole calculation from *Kmax*, so a calculation with
+*Kmax* above 4 used the coefficients of the upper range everywhere, including
+at the nodes below 2 where they do not apply.  Scattering factors there were
+wrong by a few percent for most elements and by considerably more for the
+lightest ones.
+
+Valid chemical symbols for compute saed are:
 
 .. table_from_list::
    :columns: 20
@@ -279,12 +292,12 @@ The option defaults are Kmax = 1.70, Zone 1 0 0, c 1 1 1, dR_Ewald =
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
-.. _Brown:
+.. _Colliex:
 
-**(Brown)** Brown et al. International Tables for Crystallography
-Volume C: Mathematical and Chemical Tables, 554-95 (2004).
+**(Colliex)** Colliex et al. International Tables for Crystallography
+Volume C: Mathematical and Chemical Tables, 249-429 (2004).
 
-.. _Fox:
+.. _Peng:
 
-**(Fox)** Fox, O'Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93
-(1989).
+**(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
+(1996).

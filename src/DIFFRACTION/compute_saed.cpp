@@ -408,13 +408,6 @@ void ComputeSAED::compute_vector()
     }
   }
 
- // determining parameter set to use based on maximum S = sin(theta)/lambda
-  double Smax = Kmax / 2;
-
-  int offset = 0;                 // offset the ASFSAED matrix for appropriate value
-  if (Smax <= 2) offset = 0;
-  if (Smax > 2)  offset = 10;
-
   // Setting up OMP
 #if defined(_OPENMP)
   if (me == 0 && echo) utils::logmesg(lmp," using {} OMP thread(s)\n",comm->nthreads);
@@ -426,7 +419,7 @@ void ComputeSAED::compute_vector()
   double frac = 0.1;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(ASFSAED,typelocal,xlocal,Fvec,m,frac)
 #endif
   {
     auto *f = new double[ntypes];    // atomic structure factor by type
@@ -458,7 +451,12 @@ void ComputeSAED::compute_vector()
       Fatom2 = 0.0;
 
       // Calculate the atomic structure factor by type
-      // determining parameter set to use based on S = sin(theta)/lambda <> 2
+      // ASFSAED holds one set of coefficients fitted for sin(theta)/lambda < 2
+      // and a second one fitted for 2 < sin(theta)/lambda < 6, so the set has
+      // to be chosen from the value at this node
+
+      int offset = (SinTheta_lambda > 2.0) ? 10 : 0;
+
       for (int ii = 0; ii < ntypes; ii++) {
         f[ii] = 0;
         for (int C = 0; C < 5; C++) {

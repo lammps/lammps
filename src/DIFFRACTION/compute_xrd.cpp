@@ -75,7 +75,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   // Store radiation wavelength
   lambda = utils::numeric(FLERR,arg[3],false,lmp);
   if (lambda < 0)
-    error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
+    error->all(FLERR,"Compute XRD: Wavelength must be greater than zero");
 
   // Define atom types for atomic scattering factor coefficients
   int iarg = 4;
@@ -174,7 +174,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   // Using distance based on periodic repeating distance
   if (!manual) {
     if (!periodicity[0] && !periodicity[1] && !periodicity[2])
-      error->all(FLERR,"Compute SAED must have at least one periodic boundary unless manual spacing specified");
+      error->all(FLERR,"Compute XRD must have at least one periodic boundary unless manual spacing specified");
 
     // a non-periodic direction has no reciprocal lattice vector of its own and
     // is given the average of the periodic ones, which is only meaningful when
@@ -478,7 +478,7 @@ void ComputeXRD::compute_array()
     utils::logmesg(lmp,"\n");
 
     if (LP == 1)
-        utils::logmesg(lmp,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
+        utils::logmesg(lmp,"Applying Lorentz-Polarization Factor During XRD Calculation\n");
   }
 
   int m = 0;

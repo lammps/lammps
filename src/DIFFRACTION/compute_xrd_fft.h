@@ -85,6 +85,7 @@ class ComputeXRDFFT : public ComputeXRD {
 
   void set_grid();
   void setup_mesh();
+  void refresh_scaling();
   void deallocate();
   void spread(int);
   double kb_window(int, int, double);

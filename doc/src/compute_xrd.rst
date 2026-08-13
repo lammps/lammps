@@ -301,15 +301,26 @@ Restrictions
 This compute is part of the DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-The mesh of reciprocal lattice nodes is built once, when the compute is
-defined, because the number of rows of the output array cannot change
-afterwards.  When the mesh is defined by the simulation domain and the box is
-later resized, by :doc:`fix npt <fix_nh>`, :doc:`fix deform <fix_deform>` or
-:doc:`change_box <change_box>`, the mesh no longer matches the current cell and
-both the diffraction angles and the intensities are wrong; a warning is printed
-in that case.  Either define the compute after the box has reached its final
-size, or use the *manual* flag, whose spacing is set in absolute units and is
-therefore unaffected.
+.. versionchanged:: TBD
+
+When the mesh is defined by the simulation domain and the box is resized, by
+:doc:`fix npt <fix_nh>`, :doc:`fix deform <fix_deform>` or :doc:`change_box
+<change_box>`, the reciprocal lattice is rescaled to follow the cell, so a
+Bragg reflection moves to the diffraction angle of the strained lattice.  This
+follows the same approach as the :doc:`kspace styles <kspace_style>`: *which*
+nodes are explored is fixed when the compute is defined, since the number of
+rows of the output array cannot change afterwards, but the reciprocal lattice
+vectors are scaled with the cell.  Previously the nodes kept the positions they
+had when the compute was defined, which gave the diffraction angles of the
+original lattice.
+
+Because the set of nodes is fixed, a large change of box size moves some of
+them outside the requested *2Theta* range.  Their true angle is still reported,
+so a histogram over the requested range simply excludes them, and a warning is
+printed once when more than one percent of the nodes have left the range.  For
+a long run over a wide range of box sizes, define the compute at a
+representative size, or use the *manual* flag, whose spacing is set in absolute
+units and does not depend on the box at all.
 
 Compute *xrd/fft* uses the FFT wrappers of the KSPACE package and is only
 available if LAMMPS was built with both the DIFFRACTION and the KSPACE

@@ -303,16 +303,44 @@ void ComputeXRDFFT::setup_mesh()
     own_idx[a] = ((iz-nzlo_fft)*ny + iy)*nx + ix;
 
     // the window transform must be evaluated at the signed mode index: it is
-    // even in m but not periodic in m, so the folded index would be wrong
+    // even in m but not periodic in m, so the folded index would be wrong.
+    // it depends only on the mode and the mesh, so a box change cannot alter it
 
     own_deconv[a] = 1.0/(kb_window(i,nx,kb_beta[0]) * kb_window(j,ny,kb_beta[1]) *
                          kb_window(k,nz,kb_beta[2]));
+    a++;
+  }
 
-    double K0 = i*dK[0];
-    double K1 = j*dK[1];
-    double K2 = k*dK[2];
+  refresh_scaling();
+
+  setup_done = 1;
+}
+
+/* ----------------------------------------------------------------------
+   recompute everything that depends on the length of the reciprocal lattice
+   vectors.  the mesh dimensions and the spreading kernel are fixed, as the
+   kspace styles fix their grid, but the mesh is rescaled with the box.
+------------------------------------------------------------------------- */
+
+void ComputeXRDFFT::refresh_scaling()
+{
+  for (int d = 0; d < 3; d++) mesh_scale[d] = dK[d]*nmesh[d];
+
+  for (int a = 0; a < nown; a++) {
+    int n = own_row[a];
+    double K0 = store_tmp[3*n+2]*dK[0];
+    double K1 = store_tmp[3*n+1]*dK[1];
+    double K2 = store_tmp[3*n]  *dK[2];
     double dinv2 = K0*K0 + K1*K1 + K2*K2;
     double SinTheta_lambda = 0.5*sqrt(dinv2);
+
+    // a node driven beyond the limit of the Ewald sphere no longer diffracts
+
+    if (4 < dinv2*lambda*lambda) {
+      own_lp[a] = 0.0;
+      for (int s = 0; s < nslot; s++) own_asf[s*nown + a] = 0.0;
+      continue;
+    }
 
     if (LP == 1) {
       double SinTheta = SinTheta_lambda*lambda;
@@ -330,11 +358,7 @@ void ComputeXRDFFT::setup_mesh()
       f += ASFXRD[ztype_of_slot[s]][8];
       own_asf[s*nown + a] = f;
     }
-
-    a++;
   }
-
-  setup_done = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -342,6 +366,10 @@ void ComputeXRDFFT::setup_mesh()
 void ComputeXRDFFT::compute_array()
 {
   invoked_array = update->ntimestep;
+
+  // rescale the mesh and everything derived from |K| if the box has changed
+
+  if (update_reciprocal()) refresh_scaling();
 
   double t0 = platform::walltime();
 

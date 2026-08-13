@@ -177,54 +177,20 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   if (!manual) {
     if (!periodicity[0] && !periodicity[1] && !periodicity[2])
       error->all(FLERR,"Compute SAED must have at least one periodic boundary unless manual spacing specified");
-
-    double *prd;
-    double ave_inv = 0.0;
-    prd = domain->prd;
-
-    if (periodicity[0]) {
-      prd_inv[0] = 1 / prd[0];
-      ave_inv += prd_inv[0];
-    }
-    if (periodicity[1]) {
-      prd_inv[1] = 1 / prd[1];
-      ave_inv += prd_inv[1];
-    }
-    if (periodicity[2]) {
-      prd_inv[2] = 1 / prd[2];
-      ave_inv += prd_inv[2];
-    }
-
-    // Using the average inverse dimensions for non-periodic direction
-    ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
-    if (!periodicity[0]) {
-      prd_inv[0] = ave_inv;
-    }
-    if (!periodicity[1]) {
-      prd_inv[1] = ave_inv;
-    }
-    if (!periodicity[2]) {
-      prd_inv[2] = ave_inv;
-    }
   }
 
-  // Use manual mapping of reciprocal lattice
-  if (manual) {
-    for (int i=0; i<3; i++) {
-      prd_inv[i] = 1.0;
-    }
-  }
+  set_spacing();
 
-  // Find reciprocal spacing and integer dimensions
+  // which reciprocal lattice nodes are explored is fixed here and never
+  // changes, because the number of rows of the output array cannot change.
+  // dK_orig is the spacing that defines that set; dK follows the box.
+
   for (int i=0; i<3; i++) {
-    dK[i] = prd_inv[i]*c[i];
+    dK_orig[i] = dK[i];
     Knmax[i] = (int) ceil(Kmax / dK[i]);
+    prd_last[i] = domain->prd[i];
   }
-
-  // remember the box the reciprocal lattice was built from, so that a later
-  // change of box size can be reported.  see init().
-
-  for (int i=0; i<3; i++) prd_orig[i] = domain->prd[i];
+  warned_range = 0;
 
   // Finding the intersection of the reciprocal space and Ewald sphere
   bigint nRows = 0;
@@ -286,22 +252,6 @@ void ComputeXRD::init()
   // when the compute was defined, because the number of rows of the output
   // array cannot change afterwards.  if the box has since been resized, by
   // fix npt, fix deform or change_box, the mesh no longer corresponds to the
-  // current cell and both the peak positions and the intensities are wrong.
-  // manual spacing is set in absolute units and is unaffected.
-
-  if (!manual) {
-    double dmax = 0.0;
-    for (int i = 0; i < 3; i++)
-      dmax = MAX(dmax,fabs(domain->prd[i]-prd_orig[i])/prd_orig[i]);
-
-    if ((dmax > 1.0e-4) && (comm->me == 0))
-      error->warning(FLERR,"Box size has changed by {:.3}% since compute {} was defined, but "
-                     "its reciprocal lattice is still that of the original box.  Define the "
-                     "compute after the box reaches its final size, or use manual spacing",
-                     dmax*100.0,id);
-  }
-
-
   // the rectilinear search box can hold more nodes than fit in an int even when
   // the number of nodes actually selected does not, so index it with a bigint
 
@@ -322,9 +272,9 @@ void ComputeXRD::init()
     int i = (int) ((m - j*nk2 - k)/(nk2*nk1)) - Knmax[0];
     j = j-Knmax[1];
     k = k-Knmax[2];
-    K[0] = i * dK[0];
-    K[1] = j * dK[1];
-    K[2] = k * dK[2];
+    K[0] = i * dK_orig[0];
+    K[1] = j * dK_orig[1];
+    K[2] = k * dK_orig[2];
     dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
     if  (4 >= dinv2 * lambda * lambda) {
        ang = asin(lambda * sqrt(dinv2) * 0.5);
@@ -340,6 +290,105 @@ void ComputeXRD::init()
  if (n != size_array_rows)
      error->all(FLERR,"Compute XRD compute_array() rows mismatch");
 
+  // pick up any box change that happened before this run started
+
+  set_spacing();
+  for (int i = 0; i < 3; i++) prd_last[i] = domain->prd[i];
+  refresh_angles();
+}
+
+/* ----------------------------------------------------------------------
+   spacing of the reciprocal lattice nodes for the current box
+------------------------------------------------------------------------- */
+
+void ComputeXRD::set_spacing()
+{
+  if (manual) {
+    for (int i = 0; i < 3; i++) prd_inv[i] = 1.0;
+
+  } else {
+    int *periodicity = domain->periodicity;
+    double *prd = domain->prd;
+    double ave_inv = 0.0;
+
+    for (int i = 0; i < 3; i++)
+      if (periodicity[i]) {
+        prd_inv[i] = 1.0 / prd[i];
+        ave_inv += prd_inv[i];
+      }
+
+    // Using the average inverse dimensions for non-periodic direction
+    ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
+    for (int i = 0; i < 3; i++)
+      if (!periodicity[i]) prd_inv[i] = ave_inv;
+  }
+
+  for (int i = 0; i < 3; i++) dK[i] = prd_inv[i]*c[i];
+}
+
+/* ----------------------------------------------------------------------
+   rescale the reciprocal lattice if the box has changed since it was last
+   set up, following the same approach as the kspace styles: the set of nodes
+   is fixed, but the reciprocal lattice vectors are scaled with the cell.
+   returns 1 if anything changed.
+------------------------------------------------------------------------- */
+
+int ComputeXRD::update_reciprocal()
+{
+  if (manual) return 0;
+
+  double dmax = 0.0;
+  for (int i = 0; i < 3; i++)
+    dmax = MAX(dmax,fabs(domain->prd[i]-prd_last[i])/prd_last[i]);
+  if (dmax == 0.0) return 0;
+
+  set_spacing();
+  for (int i = 0; i < 3; i++) prd_last[i] = domain->prd[i];
+  refresh_angles();
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   recompute the diffraction angle of every node from the current spacing.
+   a node that has moved beyond the limit of the Ewald sphere no longer
+   diffracts; it keeps its row but is flagged with an angle of zero, which is
+   outside any valid 2Theta range.
+------------------------------------------------------------------------- */
+
+void ComputeXRD::refresh_angles()
+{
+  double convf = 360 / MY_PI;
+  if (radflag == 1) convf = 2;
+
+  bigint noutside = 0;
+
+  for (int n = 0; n < size_array_rows; n++) {
+    double K[3];
+    K[0] = store_tmp[3*n+2] * dK[0];
+    K[1] = store_tmp[3*n+1] * dK[1];
+    K[2] = store_tmp[3*n]   * dK[2];
+    double dinv2 = K[0]*K[0] + K[1]*K[1] + K[2]*K[2];
+
+    if (4 >= dinv2 * lambda * lambda) {
+      double ang = asin(lambda * sqrt(dinv2) * 0.5);
+      array[n][0] = ang * convf;
+      if ((ang > Max2Theta) || (ang < Min2Theta)) noutside++;
+    } else {
+      array[n][0] = 0.0;
+      noutside++;
+    }
+  }
+
+  // the node set was fixed when the compute was defined, so a large change of
+  // box size moves part of it out of the requested range
+
+  if (!warned_range && (noutside > size_array_rows/100) && (comm->me == 0)) {
+    warned_range = 1;
+    error->warning(FLERR,"{:.3}% of the reciprocal lattice nodes of compute {} have moved "
+                   "outside its 2Theta range as the box changed.  The node set is fixed when "
+                   "the compute is defined; define it at a representative box size, or use "
+                   "manual spacing",100.0*noutside/size_array_rows,id);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -347,6 +396,8 @@ void ComputeXRD::init()
 void ComputeXRD::compute_array()
 {
   invoked_array = update->ntimestep;
+
+  update_reciprocal();
 
   if (me == 0 && echo) utils::logmesg(lmp, "-----\nComputing XRD intensities");
 

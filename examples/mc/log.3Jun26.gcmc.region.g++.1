@@ -1,0 +1,190 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1076-ge1590e5209)
+  using 1 OpenMP thread(s) per MPI task
+# GCMC for a LJ fluid confined to a spherical region inside the box.
+#
+# This input showcases the "region" keyword of fix gcmc: insertions,
+# deletions, and Monte Carlo translation moves are all restricted to the
+# named region (here a sphere in the center of the box).  For a
+# non-rectangular region, trial positions are drawn from the region's
+# rectangular bounding box and rejected until one falls inside the region.
+#
+# A translation move is also rejected if the displaced atom cannot be
+# placed back inside the region within 1000 trials.  With the reasonable
+# "disp" below this essentially never happens.  To see the
+#   "Fix gcmc could not place a region-restricted trial move ..."
+# warning fire reliably, comment out the first fix command below and
+# uncomment the second one (displace = 1000.0 >> region size).  Because
+# that warning is emitted only once per MPI rank, run on several ranks to
+# see it multiple times, e.g.:
+#
+#   mpirun -np 4 lmp -in in.gcmc.region
+
+# variables modifiable using the -var command line switch
+
+variable        mu    index -1.25
+variable        temp  index 2.0
+variable        disp  index 1.0
+variable        lbox  index 20.0
+
+# global model settings
+
+units           lj
+atom_style      atomic
+pair_style      lj/cut 3.0
+pair_modify     tail no            # turn off to avoid triggering full_energy
+
+# box
+
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox}
+region          box block 0 20.0 0 ${lbox} 0 ${lbox}
+region          box block 0 20.0 0 20.0 0 ${lbox}
+region          box block 0 20.0 0 20.0 0 20.0
+create_box      1 box
+Created orthogonal box = (0 0 0) to (20 20 20)
+  1 by 1 by 1 MPI processor grid
+
+# spherical sub-region that confines all GCMC exchanges and moves
+
+region          sphere sphere $(0.5*v_lbox) $(0.5*v_lbox) $(0.5*v_lbox) 6.0
+region          sphere sphere 10 $(0.5*v_lbox) $(0.5*v_lbox) 6.0
+region          sphere sphere 10 10 $(0.5*v_lbox) 6.0
+region          sphere sphere 10 10 10 6.0
+
+# lj parameters
+
+pair_coeff      * * 1.0 1.0
+mass            * 1.0
+
+# dedicated group for the GCMC atoms
+
+group           gcmcgroup type 1
+0 atoms in group gcmcgroup
+
+# region-restricted GCMC with reasonable settings
+
+fix             mygcmc gcmcgroup gcmc 1 100 100 1 29494 ${temp} ${mu} ${disp} region sphere
+fix             mygcmc gcmcgroup gcmc 1 100 100 1 29494 2.0 ${mu} ${disp} region sphere
+fix             mygcmc gcmcgroup gcmc 1 100 100 1 29494 2.0 -1.25 ${disp} region sphere
+fix             mygcmc gcmcgroup gcmc 1 100 100 1 29494 2.0 -1.25 1.0 region sphere
+
+# ... variant that reliably triggers the region-placement warning.
+# Uncomment the next line (and comment the one above), then run on
+# multiple MPI ranks to see the one-time-per-rank warning several times:
+#fix            mygcmc gcmcgroup gcmc 1 100 100 1 29494 ${temp} ${mu} 1000.0 region sphere
+
+# atom count inside the region
+
+variable        ninreg equal count(gcmcgroup,sphere)
+
+# acceptance statistics
+
+variable        nugget equal 1.0e-8
+variable        tacc equal f_mygcmc[2]/(f_mygcmc[1]+${nugget})
+variable        tacc equal f_mygcmc[2]/(f_mygcmc[1]+1e-08)
+variable        iacc equal f_mygcmc[4]/(f_mygcmc[3]+${nugget})
+variable        iacc equal f_mygcmc[4]/(f_mygcmc[3]+1e-08)
+variable        dacc equal f_mygcmc[6]/(f_mygcmc[5]+${nugget})
+variable        dacc equal f_mygcmc[6]/(f_mygcmc[5]+1e-08)
+
+compute_modify  thermo_temp dynamic/dof yes
+thermo_style    custom step atoms v_ninreg v_iacc v_dacc v_tacc press
+thermo          100
+
+# run
+
+run             5000
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 13 13 13
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 0.4536 | 0.4536 | 0.4536 Mbytes
+   Step        Atoms       v_ninreg        v_iacc         v_dacc         v_tacc         Press     
+         0           0   0              0              0              0              0            
+       100         459   459            0.24256339     0.14899488     0.27256227     0.17541961   
+       200         468   468            0.18189047     0.13537422     0.21571587     0.14786384   
+       300         437   437            0.16547049     0.13637571     0.20332464     0.14533175   
+       400         444   444            0.15710437     0.13493964     0.19729391     0.12856954   
+       500         472   472            0.15151515     0.13265306     0.19164392     0.16687206   
+       600         478   478            0.14600313     0.12978264     0.18585713     0.17144195   
+       700         456   456            0.14159948     0.12846491     0.18171524     0.13702668   
+       800         444   444            0.13924051     0.12823773     0.18124256     0.12581807   
+       900         439   439            0.13741168     0.12795472     0.18088779     0.15095957   
+      1000         417   417            0.13659531     0.12806083     0.18129381     0.13864169   
+      1100         442   442            0.13691599     0.12900474     0.18185711     0.130645     
+      1200         462   462            0.13675086     0.12909614     0.18101009     0.17159487   
+      1300         441   441            0.1353223      0.12878217     0.18011781     0.15690797   
+      1400         456   456            0.1346691      0.12848388     0.17987227     0.15829285   
+      1500         447   447            0.13398619     0.12836828     0.17915118     0.13807142   
+      1600         480   480            0.13318633     0.12785165     0.17795863     0.17714007   
+      1700         431   431            0.13262671     0.12791752     0.17754423     0.13969816   
+      1800         430   430            0.13278928     0.12842588     0.17749628     0.16881766   
+      1900         427   427            0.13292616     0.1286498      0.17756094     0.11588756   
+      2000         456   456            0.1329571      0.12860273     0.17689045     0.1591248    
+      2100         464   464            0.13310723     0.12867581     0.17603009     0.19180551   
+      2200         458   458            0.13222577     0.128082       0.17515313     0.12755837   
+      2300         447   447            0.13179158     0.12790829     0.1749185      0.18797971   
+      2400         446   446            0.13191379     0.12804721     0.17489861     0.11607113   
+      2500         466   466            0.13158253     0.12777146     0.17421036     0.14562576   
+      2600         457   457            0.13176933     0.1279861      0.17388062     0.1460744    
+      2700         440   440            0.13155397     0.12815783     0.17405691     0.12713715   
+      2800         449   449            0.13147111     0.12817672     0.17438437     0.14950865   
+      2900         460   460            0.13142743     0.12811459     0.17424496     0.14067378   
+      3000         451   451            0.13140144     0.12810876     0.17372955     0.1454955    
+      3100         465   465            0.13128486     0.12800552     0.17355553     0.16322308   
+      3200         459   459            0.1309611      0.12786162     0.17327856     0.15797538   
+      3300         456   456            0.13061824     0.12766525     0.17309532     0.16008392   
+      3400         442   442            0.1303246      0.12754913     0.17267079     0.17696904   
+      3500         455   455            0.13021188     0.12752891     0.17244893     0.15686929   
+      3600         442   442            0.13013859     0.12768904     0.17290638     0.1230876    
+      3700         449   449            0.13017182     0.12771378     0.17308554     0.1811767    
+      3800         469   469            0.13035712     0.12775342     0.17336244     0.13761623   
+      3900         446   446            0.13013955     0.12769317     0.17323103     0.15233      
+      4000         450   450            0.13009477     0.12768031     0.17316341     0.13771742   
+      4100         462   462            0.12994113     0.12747936     0.17286995     0.15387732   
+      4200         434   434            0.12992926     0.12756597     0.17267965     0.12531064   
+      4300         437   437            0.12993253     0.12762092     0.17265598     0.13718723   
+      4400         449   449            0.12983324     0.12742708     0.17283911     0.15601195   
+      4500         454   454            0.12996994     0.12754737     0.17271806     0.17018521   
+      4600         440   440            0.13008955     0.12777016     0.17287764     0.11098984   
+      4700         446   446            0.13021324     0.12783891     0.17290629     0.16312331   
+      4800         449   449            0.13021157     0.12784978     0.17281085     0.15347753   
+      4900         440   440            0.13029881     0.12803519     0.17298295     0.16061811   
+      5000         453   453            0.13024458     0.12797962     0.17295936     0.13229587   
+Loop time of 4.9355 on 1 procs for 5000 steps with 453 atoms
+
+Performance: 437645.985 tau/day, 1013.069 timesteps/s, 458.920 katom-step/s
+99.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.39428    | 0.39428    | 0.39428    |   0.0 |  7.99
+Neigh   | 1.2715     | 1.2715     | 1.2715     |   0.0 | 25.76
+Comm    | 0.0098429  | 0.0098429  | 0.0098429  |   0.0 |  0.20
+Output  | 0.0016301  | 0.0016301  | 0.0016301  |   0.0 |  0.03
+Modify  | 3.2457     | 3.2457     | 3.2457     |   0.0 | 65.76
+Other   |            | 0.01255    |            |       |  0.25
+
+Nlocal:            453 ave         453 max         453 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          11953 ave       11953 max       11953 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 11953
+Ave neighs/atom = 26.386313
+Neighbor list builds = 5000
+Dangerous builds = 0
+Total wall time: 0:00:05

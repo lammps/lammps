@@ -144,8 +144,18 @@ atoms or molecules within the region.  If there are no candidates, no
 move or deletion is performed, but it is counted as an attempt move or
 deletion.  If an attempted move places the atom or molecule
 center-of-mass outside the specified region, a new attempted move is
-generated.  This process is repeated until the atom or molecule
-center-of-mass is inside the specified region.
+generated.  This process is repeated up to 1000 times; if no trial
+position with the center-of-mass inside the region is found, the move is
+rejected (but still counted as an attempted move) and a warning is
+printed once.
+
+.. versionchanged:: TBD
+
+Previously a region-restricted translation move whose center-of-mass could
+not be placed inside the region was retried indefinitely, which could make
+the simulation appear to hang.  Such moves are now retried at most 1000
+times and then rejected, consistent with how region-restricted insertions
+are handled.
 
 If used with :doc:`fix nvt <fix_nh>`, the temperature of the imaginary
 reservoir, *T*, should be set to be equivalent to the target temperature

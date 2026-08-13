@@ -713,9 +713,9 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
       temp = t1;
       temp = MAX(temp,tb->lo);
       temp = MIN(temp,tb->hi);
-      char str[256];
-      sprintf(str,"Secant solver did not converge because table bounds were exceeded:  it=%d id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf dpdTheta=%lf\n",it,id,ui,thetai,t1,t2,f1,f2,temp);
-      error->warning(FLERR,str);
+      error->warning(FLERR, "Secant solver did not converge because table bounds were exceeded: "
+                     "it={} id={} ui={} thetai={} t1={} t2={} f1={} f2={} dpdTheta={}\n",
+                     it,id,ui,thetai,t1,t2,f1,f2,temp);
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
@@ -726,13 +726,14 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
     energy_lookup(id,t2,u2);
     f2 = u2 - ui;
   }
-  if (it==maxit) {
-    char str[256];
-    sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
-    if (std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
-      error->one(FLERR,"NaN detected in secant solver.");
-    error->one(FLERR,str);
-  }
+  if (it==maxit)
+    error->one(FLERR, Error::NOLASTLINE, "Maxit exceeded in secant solver: "
+               "id={} ui={} thetai={} t1={} t2={} f1={} f2={}\n",
+               id,ui,thetai,t1,t2,f1,f2);
+  if (std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai)
+      || std::isnan(t1) || std::isnan(t2))
+    error->one(FLERR, Error::NOLASTLINE, "NaN detected in secant solver");
+
   thetai = temp;
 }
 

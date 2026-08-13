@@ -196,19 +196,22 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
         tb = &tables[tabindex[itype][jtype]];
         if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq) {
-          printf("Table inner cutoff = %lf\n",sqrt(tb->innersq));
-          printf("rho[%d]=%lf\n",i,rho[i]);
-          printf("rho[%d]=%lf\n",j,rho[j]);
-          error->one(FLERR,"Density < table inner cutoff");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Density < table inner cutoff:\n"
+                     "  Table inner cutoff = {}\n"
+                     "  rho[{}]={}\n"
+                     "  rho[{}]={}\n",
+                     sqrt(tb->innersq),i,rho[i],j,rho[j]);
         }
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
           jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
           if (itable >= tlm1 || jtable >= tlm1) {
-            printf("Table outer index = %d\n",tlm1);
-            printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-            printf("jtableIndex=%d rho[%d]=%lf\n",jtable,j,rho[j]);
-            error->one(FLERR,"Density > table outer cutoff");
+            error->one(FLERR, Error::NOLASTLINE, "Density > table outer cutoff\n"
+                       "  Table outer index = {}\n"
+                       "  itableIndex={} rho[{}]={}\n"
+                       "  jtableIndex={} rho[{}]={}\n",
+                       tlm1,itable,i,rho[i],jtable,j,rho[j]);
           }
           A_i = tb->f[itable];
           A_j = tb->f[jtable];
@@ -271,13 +274,14 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
     else if (tabstyle == LINEAR) {
       if (itable >= tlm1) {
-        printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-        error->one(FLERR,"Density > table outer cutoff");
+        error->one(FLERR, Error::NOLASTLINE, "Density > table outer cutoff "
+                   "itableIndex={} rho[{}]={}\n",itable,i,rho[i]);
       }
       if (itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
-    } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
+    } else error->one(FLERR, Error::NOLASTLINE, "Only LOOKUP and LINEAR table styles have "
+                      "been implemented for pair style multi/lucy/rx");
 
     evdwl *=(MY_PI*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
     evdwlOld = mixWtSite1old_i*evdwl;

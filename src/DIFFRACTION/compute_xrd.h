@@ -42,6 +42,7 @@ class ComputeXRD : public Compute {
   int Knmax[3];         // maximum integer value for K points in each dimension
   double dK[3];         // Parameters controlling resolution of reciprocal space explored
   double prd_inv[3];    // Inverse spacing of unit cell
+  double prd_orig[3];   // Box dimensions the reciprocal lattice was built from
   int LP;               // Switch to turn on Lorentz-Polarization factor 1=on
   bool echo;            // echo compute_array progress
   bool manual;          // Turn on manual recpiprocal map

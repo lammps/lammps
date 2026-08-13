@@ -301,6 +301,16 @@ Restrictions
 This compute is part of the DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
+The mesh of reciprocal lattice nodes is built once, when the compute is
+defined, because the number of rows of the output array cannot change
+afterwards.  When the mesh is defined by the simulation domain and the box is
+later resized, by :doc:`fix npt <fix_nh>`, :doc:`fix deform <fix_deform>` or
+:doc:`change_box <change_box>`, the mesh no longer matches the current cell and
+both the diffraction angles and the intensities are wrong; a warning is printed
+in that case.  Either define the compute after the box has reached its final
+size, or use the *manual* flag, whose spacing is set in absolute units and is
+therefore unaffected.
+
 Compute *xrd/fft* uses the FFT wrappers of the KSPACE package and is only
 available if LAMMPS was built with both the DIFFRACTION and the KSPACE
 packages.  Building with single precision FFTs limits the accuracy of weak

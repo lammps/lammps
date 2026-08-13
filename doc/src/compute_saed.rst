@@ -250,6 +250,15 @@ This compute is part of the DIFFRACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
+The mesh of reciprocal lattice nodes is built once, when the compute is
+defined, because the length of the output vector cannot change afterwards.
+When the mesh is defined by the simulation domain and the box is later resized,
+by :doc:`fix npt <fix_nh>`, :doc:`fix deform <fix_deform>` or :doc:`change_box
+<change_box>`, the mesh no longer matches the current cell; a warning is
+printed in that case.  Either define the compute after the box has reached its
+final size, or use the *manual* flag, whose spacing is set in absolute units
+and is therefore unaffected.
+
 The compute_saed command does not work for triclinic cells.
 
 Related commands

@@ -221,6 +221,11 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     Knmax[i] = (int) ceil(Kmax / dK[i]);
   }
 
+  // remember the box the reciprocal lattice was built from, so that a later
+  // change of box size can be reported.  see init().
+
+  for (int i=0; i<3; i++) prd_orig[i] = domain->prd[i];
+
   // Finding the intersection of the reciprocal space and Ewald sphere
   bigint nRows = 0;
   double dinv2= 0.0;
@@ -277,6 +282,25 @@ ComputeXRD::~ComputeXRD()
 
 void ComputeXRD::init()
 {
+  // the mesh of reciprocal lattice nodes is built once, from the box as it was
+  // when the compute was defined, because the number of rows of the output
+  // array cannot change afterwards.  if the box has since been resized, by
+  // fix npt, fix deform or change_box, the mesh no longer corresponds to the
+  // current cell and both the peak positions and the intensities are wrong.
+  // manual spacing is set in absolute units and is unaffected.
+
+  if (!manual) {
+    double dmax = 0.0;
+    for (int i = 0; i < 3; i++)
+      dmax = MAX(dmax,fabs(domain->prd[i]-prd_orig[i])/prd_orig[i]);
+
+    if ((dmax > 1.0e-4) && (comm->me == 0))
+      error->warning(FLERR,"Box size has changed by {:.3}% since compute {} was defined, but "
+                     "its reciprocal lattice is still that of the original box.  Define the "
+                     "compute after the box reaches its final size, or use manual spacing",
+                     dmax*100.0,id);
+  }
+
 
   // the rectilinear search box can hold more nodes than fit in an int even when
   // the number of nodes actually selected does not, so index it with a bigint

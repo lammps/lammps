@@ -40,6 +40,7 @@ class ComputeSAED : public Compute {
   double c[3];          // Parameters controlling resolution of reciprocal space explored
   double dR_Ewald;      // Thickness of Ewald sphere slice
   double prd_inv[3];    // Inverse spacing of unit cell
+  double prd_orig[3];   // Box dimensions the reciprocal lattice was built from
   bool echo;            // echo compute_array progress
   bool manual;          // Turn on manual recpiprocal map
   int nRows;            // Number of relp explored

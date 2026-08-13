@@ -389,23 +389,16 @@ void FixRX::post_constructor()
 void FixRX::initSparse()
 {
   // 1) Measure the sparsity of stoich[][]
-  int nzeros = 0;
   int mxprod = 0;
   int mxreac = 0;
   int mxspec = 0;
   for (int i = 0; i < nreactions; ++i) {
     int nreac_i = 0, nprod_i = 0;
     std::string pstr, rstr;
-    bool allAreIntegral = true;
     for (int k = 0; k < nspecies; ++k) {
       const auto atom_ind = species_ind_to_atom_prop_ind[k];
 
-      if (stoichReactants[i][k] == 0 && stoichProducts[i][k] == 0)
-        nzeros++;
-
       if (stoichReactants[i][k] > 0.0) {
-        allAreIntegral &= (std::fmod( stoichReactants[i][k], 1.0 ) == 0.0);
-
         nreac_i++;
         if (rstr.length() > 0) rstr += " + ";
 
@@ -413,8 +406,6 @@ void FixRX::initSparse()
         rstr += atom->dvname[atom_ind];
       }
       if (stoichProducts[i][k] > 0.0) {
-        allAreIntegral &= (std::fmod( stoichProducts[i][k], 1.0 ) == 0.0);
-
         nprod_i++;
         if (pstr.length() > 0) pstr += " + ";
 
@@ -1127,19 +1118,14 @@ void FixRX::odeDiagnostics()
   // # of time-steps for averaging.
   const int nTimes = this->diagnosticCounter[numDiagnosticCounters-1];  // NOLINT
 
-  // # of ODE's per time-step (on average).
-  //const int nODEs  = this->diagnosticCounter[AtomSum] / nTimes;
-
   // Sum up the sums from each task.
   double sums[numCounters];
   double my_vals[numCounters];
   double max_per_proc[numCounters];
   double min_per_proc[numCounters];
 
-  if (true)
-  {
+  if (true) {
      static bool firstStep = true;
-
      static double oldTimeStamp (-1);
 
      double now = platform::walltime();
@@ -1147,23 +1133,7 @@ void FixRX::odeDiagnostics()
      // Query the fix database and look for rx_weight for the balance fix.
      int type_flag = -1;
      int cols;
-     int rx_weight_index = atom->find_custom( "rx_weight", /*0:int, 1:float*/ type_flag, cols );
-
-     // Compute the average # of neighbors.
-     double averageNumNeighbors = 0;
-     {
-        const int inum = pairDPDE->list->inum;
-        const int* ilist = pairDPDE->list->ilist;
-        const int* numneigh = pairDPDE->list->numneigh;
-
-        for (int ii = 0; ii < inum; ++ii)
-        {
-           const int i = ilist[ii];
-           averageNumNeighbors += numneigh[i];
-        }
-
-        averageNumNeighbors /= inum;
-     }
+     int rx_weight_index = atom->find_custom("rx_weight", /*0:int, 1:float*/ type_flag, cols);
 
      if (rx_weight_index != -1 && !firstStep && false) {
         double *rx_weight = atom->dvector[rx_weight_index];
@@ -1174,17 +1144,14 @@ void FixRX::odeDiagnostics()
         if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency == 1) {
           const double total_time = oldTimeStamp - now;
           const double fixrx_time = this->diagnosticCounter[TimeSum];
-          const double time_ratio = fixrx_time / total_time;
 
-          double tsum = 0.0;
           double tmin = 100000, tmax = 0;
           for (int i = 0; i < nlocal; ++i)
             if (mask[i] & groupbit) {
-              double nfunc_ratio = double( diagnosticCounterPerODE[FuncSum][i] ) / diagnosticCounter[FuncSum];
+              double nfunc_ratio = double(diagnosticCounterPerODE[FuncSum][i]) / diagnosticCounter[FuncSum];
               rx_weight[i] = nfunc_ratio * fixrx_time + (total_time - fixrx_time) / nlocal;
-              tmin = fmin( tmin, rx_weight[i] );
-              tmax = fmax( tmax, rx_weight[i] );
-              tsum += rx_weight[i];
+              tmin = fmin(tmin, rx_weight[i]);
+              tmax = fmax(tmax, rx_weight[i]);
             }
         } else {
           error->warning(FLERR, "Dynamic load balancing enabled but per-atom weights not available.");

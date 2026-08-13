@@ -283,6 +283,9 @@ endforeach()
 
 # tester for output data of compute and fix styles
 add_executable(test_output_style test_output_style.cpp)
+if(FFT_SINGLE)
+  target_compile_definitions(test_output_style PRIVATE -DFFT_SINGLE)
+endif()
 target_link_libraries(test_output_style PRIVATE lammps style_tests)
 target_include_directories(test_output_style PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 

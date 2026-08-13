@@ -199,6 +199,7 @@ void ComputeXRDFFT::set_grid()
     double arg = (order*order/(sigma*sigma))*(sigma-0.5)*(sigma-0.5) - 0.8;
     if (arg < 0.0) arg = 0.0;
     kb_beta[d] = MY_PI*sqrt(arg);
+    kb_norm[d] = 1.0/bessel_i0(kb_beta[d]);
   }
 
 }
@@ -373,7 +374,7 @@ void ComputeXRDFFT::compute_array()
 
   double t0 = platform::walltime();
 
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   if (natoms == 0) natoms = 1;
 
   for (int a = 0; a < nown; a++) Fre[a] = Fim[a] = 0.0;
@@ -475,11 +476,17 @@ void ComputeXRDFFT::spread(int s)
       double *rho = (d == 0) ? rho0 : ((d == 1) ? rho1 : rho2);
       int *m = (d == 0) ? mx : ((d == 1) ? my : mz);
 
+      // the window is normalized to a peak of one.  unnormalized it peaks at
+      // I0(beta), which is 1e12 at order 13, so the product of the three
+      // dimensions would put 1e36 in every mesh cell and overflow a single
+      // precision mesh.  the same factor divides out of the window transform
+      // in kb_window(), so the deconvolved result is unchanged.
+
       for (int k = nlower; k <= nupper; k++) {
         double a = (k + delta)*invhalf;
         double sa = 1.0 - a*a;
         if (sa < 0.0) sa = 0.0;
-        rho[k-nlower] = bessel_i0(kb_beta[d]*sqrt(sa));
+        rho[k-nlower] = bessel_i0(kb_beta[d]*sqrt(sa))*kb_norm[d];
         m[k-nlower] = (((ngrid + k) % n) + n) % n;
       }
     }
@@ -508,20 +515,25 @@ void ComputeXRDFFT::spread(int s)
    Fourier transform of the Kaiser-Bessel window at integer mode m of an
    n point mesh:  W*sinh(s)/s with s = sqrt(beta^2 - (pi*W*m/n)^2), W = order,
    continued as W*sin(s)/s where the argument turns imaginary
+
+   scaled by the same 1/I0(beta) as the window itself, see spread()
 ------------------------------------------------------------------------- */
 
 double ComputeXRDFFT::kb_window(int m, int n, double beta)
 {
   double arg = MY_PI*order*((double) m)/n;
   double t = beta*beta - arg*arg;
+  double w;
+
   if (t > 0.0) {
     double s = sqrt(t);
-    return order*sinh(s)/s;
+    w = order*sinh(s)/s;
   } else if (t < 0.0) {
     double s = sqrt(-t);
-    return order*sin(s)/s;
-  }
-  return (double) order;
+    w = order*sin(s)/s;
+  } else w = (double) order;
+
+  return w/bessel_i0(beta);
 }
 
 /* ----------------------------------------------------------------------

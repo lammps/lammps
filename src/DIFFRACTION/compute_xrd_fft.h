@@ -44,6 +44,7 @@ class ComputeXRDFFT : public ComputeXRD {
   int nlower, nupper;    // stencil extent, = -(order-1)/2 and (order-1)/2
   int nmesh[3];          // global FFT mesh dimensions
   double kb_beta[3];     // Kaiser-Bessel shape parameter, per dimension
+  double kb_norm[3];     // 1/I0(beta), normalizes the window to a peak of one
 
   // the FFT mesh spans the "diffraction cell", the exact period of the phase
   // factor of node index d.  mesh_vec[d] projects a Cartesian coordinate onto

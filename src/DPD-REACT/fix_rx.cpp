@@ -87,8 +87,6 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   id_fix_species = nullptr;
   id_fix_species_old = nullptr;
 
-  constexpr int Verbosity = 1;
-
   // Keep track of the argument list.
   int iarg = 3;
 
@@ -123,8 +121,6 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
     else error->all(FLERR, "Illegal command " + std::string(word)
                     + " expected \"sparse\" or \"dense\"\n");
 
-    if (comm->me == 0 && Verbosity > 1)
-      utils::logmesg(lmp, "FixRX: matrix format is {}\n", word);
   }
 
   // Determine the ODE solver/stepper strategy in arg[6].
@@ -160,9 +156,6 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
 
   if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg==8) {
     minSteps = utils::inumeric(FLERR,arg[iarg++],false,lmp);
-
-    if (comm->me == 0 && Verbosity > 1)
-      utils::logmesg(lmp, "FixRX: RK4 numSteps= {}\n", minSteps);
   } else if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg>8) {
     error->all(FLERR,"Illegal fix rx command.  Too many arguments for RK4 solver.");
   } else if (odeIntegrationFlag == ODE_LAMMPS_RKF45) {
@@ -180,11 +173,6 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
 
     // maxIters must be at least minSteps.
     maxIters = std::max( minSteps, maxIters );
-
-    if (comm->me == 0 && Verbosity > 1)
-      utils::logmesg(lmp, "FixRX: RKF45 minSteps= {} maxIters= {} "
-                     "relTol= {:.1e} absTol= {:.1e} diagnosticFrequency= {}\n",
-                     minSteps, maxIters, relTol, absTol, diagnosticFrequency);
   }
 
   // Initialize/Create the sparse matrix database.
@@ -201,7 +189,6 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
 
 FixRX::~FixRX()
 {
-  //printf("Inside FixRX::~FixRX copymode= %d\n", copymode);
   if (copymode) return;
 
   // DPD-REACT
@@ -476,49 +463,6 @@ void FixRX::post_constructor()
 
 void FixRX::initSparse()
 {
-  constexpr int Verbosity = 1;
-
-  if (comm->me == 0 && Verbosity > 1) {
-    for (int k = 0; k < nspecies; ++k) {
-      const auto atom_ind = species_ind_to_atom_prop_ind[k];
-      printf("atom->dvname[%d]= %s\n", atom_ind, atom->dvname[atom_ind]);
-    }
-
-    printf("stoich[][]\n");
-    for (int i = 0; i < nreactions; ++i) {
-      int nreac_i = 0, nprod_i = 0;
-      printf("%d: ", i);
-      for (int k = 0; k < nspecies; ++k) {
-         printf(" %g", stoich[i][k]);
-         if (stoich[i][k] < 0.0) nreac_i++;
-         else if (stoich[i][k] > 0.0) nprod_i++;
-      }
-      printf(" : %d %d\n", nreac_i, nprod_i);
-    }
-
-    printf("stoichReactants[][]\n");
-    for (int i = 0; i < nreactions; ++i) {
-      int nreac_i = 0;
-      printf("%d: ", i);
-      for (int k = 0; k < nspecies; ++k) {
-         printf(" %g", stoichReactants[i][k]);
-         if (stoichReactants[i][k] > 0.0) nreac_i++;
-      }
-      printf(" : %d\n", nreac_i);
-    }
-
-    printf("stoichProducts[][]\n");
-    for (int i = 0; i < nreactions; ++i) {
-      int nprod_i = 0;
-      printf("%d: ", i);
-      for (int k = 0; k < nspecies; ++k) {
-         printf(" %g", stoichProducts[i][k]);
-         if (stoichProducts[i][k] > 0.0) nprod_i++;
-      }
-      printf(" : %d\n", nprod_i);
-    }
-  } // if (Verbose)
-
   // 1) Measure the sparsity of stoich[][]
   int nzeros = 0;
   int mxprod = 0;
@@ -558,22 +502,11 @@ void FixRX::initSparse()
         pstr += atom->dvname[atom_ind];
       }
     }
-    if (comm->me == 0 && Verbosity > 1)
-      utils::logmesg(lmp,"rx{:3d}: {} {} {} ... {} = {}\n",
-                     i, nreac_i, nprod_i, allAreIntegral, rstr, pstr);
 
     mxreac = std::max( mxreac, nreac_i );
     mxprod = std::max( mxprod, nprod_i );
     mxspec = std::max( mxspec, nreac_i + nprod_i );
   }
-
-  if (comm->me == 0 && Verbosity > 1)
-        utils::logmesg(lmp, "FixRX: Sparsity of Stoichiometric Matrix= {:.1f}% non-zeros= {} "
-                       "nspecies= {} nreactions= {} maxReactants= {} maxProducts= {} "
-                       "maxSpecies= {} integralReactions= {}\n",
-                       100*(double(nzeros) / (nspecies * nreactions)), nzeros, nspecies,
-                       nreactions, mxreac, mxprod, (mxreac + mxprod),
-                       SparseKinetics_enableIntegralReactions);
 
   // Allocate the sparse matrix data.
   {
@@ -650,56 +583,6 @@ void FixRX::initSparse()
     if (SparseKinetics_enableIntegralReactions)
        sparseKinetics_isIntegralReaction[i] = isIntegral_i;
   }
-
-  if (comm->me == 0 && Verbosity > 1) {
-    for (int i = 1; i < (int)nu_bin.size(); ++i)
-      if ((nu_bin[i] > 0) && screen)
-        fprintf(screen, "nu_bin[%d] = %d\n", i, nu_bin[i]);
-
-    for (int i = 0; i < nreactions; ++i) {
-      std::string pstr, rstr;
-
-      for (int kk = 0; kk < sparseKinetics_maxReactants; kk++) {
-        const int k = sparseKinetics_nuk[i][kk];
-        const auto atom_ind = species_ind_to_atom_prop_ind[k];
-
-        if (k != SparseKinetics_invalidIndex) {
-          if (rstr.length() > 0)
-            rstr += " + ";
-
-          char digit[6];
-          if (SparseKinetics_enableIntegralReactions && sparseKinetics_isIntegralReaction[i])
-            sprintf(digit,"%d ", sparseKinetics_inu[i][kk]);
-          else
-            sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
-          rstr += digit;
-          rstr += atom->dvname[atom_ind];
-        }
-      }
-
-      for (int kk = sparseKinetics_maxReactants; kk < sparseKinetics_maxSpecies; kk++) {
-        const int k = sparseKinetics_nuk[i][kk];
-        const auto atom_ind = species_ind_to_atom_prop_ind[k];
-
-        if (k != SparseKinetics_invalidIndex) {
-          if (pstr.length() > 0)
-            pstr += " + ";
-
-          char digit[6];
-          if (SparseKinetics_enableIntegralReactions && sparseKinetics_isIntegralReaction[i])
-            sprintf(digit,"%d ", sparseKinetics_inu[i][kk]);
-          else
-            sprintf(digit,"%4.1f ", sparseKinetics_nu[i][kk]);
-          pstr += digit;
-          pstr += atom->dvname[atom_ind];
-        }
-      }
-      if (comm->me == 0 && Verbosity > 1 && screen)
-        fprintf(screen,"rx%3d: %s %s %s\n", i, rstr.c_str(), /*reversible[i]*/ false ? "<=>" : "=", pstr.c_str());
-    }
-    // end for nreactions
-  }
-  // end if Verbose
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1235,12 +1118,6 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    // Adjust upper bound based on ydot ...
    double hg = sqrt(hmin*hmax);
 
-   //if (hmax < hmin)
-   //{
-   //   h0 = hg;
-   //   return;
-   //}
-
    // Start iteration to find solution to ... {WRMS norm of (h0^2 y'' / 2)} = 1
 
    double *ydot  = rwk;
@@ -1275,9 +1152,6 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
 
       yddnrm = sqrt( yddnrm / double(neq) );
 
-      //std::cout << "iter " << _iter << " hg " << hg << " y'' " << yddnrm << std::endl;
-      //std::cout << "ydot " << ydot[neq-1] << std::endl;
-
       // should we accept this?
       if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
@@ -1302,8 +1176,6 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
          hnew_is_ok = true;
       }
 
-      //printf("iter=%d, yddnrw=%e, hnew=%e, hmin=%e, hmax=%e\n", iter, yddnrm, hnew, hmin, hmax);
-
       hg = hnew;
       iter ++;
    }
@@ -1312,7 +1184,6 @@ int FixRX::rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
    h0 = hnew * 0.5;
    h0 = fmax(h0, hmin);
    h0 = fmin(h0, hmax);
-   //printf("h0=%e, hmin=%e, hmax=%e\n", h0, hmin, hmax);
 
    return (iter + 1);
 }
@@ -1383,8 +1254,6 @@ void FixRX::odeDiagnostics()
         averageNumNeighbors /= inum;
      }
 
-     printf("me= %d nst= %g nfc= %g time= %g nlocal= %g lmpnst= %g weight_idx= %d 1st= %d aveNeigh= %g\n", comm->me, this->diagnosticCounter[0], this->diagnosticCounter[1], this->diagnosticCounter[2], this->diagnosticCounter[3], this->diagnosticCounter[4], rx_weight_index, firstStep, averageNumNeighbors);
-
      if (rx_weight_index != -1 && !firstStep && false)
      {
         double *rx_weight = atom->dvector[rx_weight_index];
@@ -1408,11 +1277,7 @@ void FixRX::odeDiagnostics()
               tmin = fmin( tmin, rx_weight[i] );
               tmax = fmax( tmax, rx_weight[i] );
               tsum += rx_weight[i];
-              //rx_weight[i] = (double) diagnosticCounterPerODE[FuncSum][i];
             }
-
-          printf("me= %d total= %g fixrx= %g ratio= %g tsum= %g %g %g %g\n", comm->me, total_time, fixrx_time, time_ratio, tsum, (total_time - fixrx_time) / nlocal, tmin, tmax);
-        }
         else
         {
           error->warning(FLERR, "Dynamic load balancing enabled but per-atom weights not available.");
@@ -1430,7 +1295,6 @@ void FixRX::odeDiagnostics()
   // Compute counters per dpd time-step.
   for (int i = 0; i < numCounters; ++i) {
     my_vals[i] = this->diagnosticCounter[i] / nTimes;
-    //printf("my sum[%d] = %f %d\n", i, my_vals[i], comm->me);
   }
 
   MPI_Allreduce (my_vals, sums, numCounters, MPI_DOUBLE, MPI_SUM, world);
@@ -1584,12 +1448,8 @@ void FixRX::rkf45(int id, double *rwork, void *v_param, int ode_counter[])
   double t = 0.0;
 
   if (h < h_min) {
-    //fprintf(stderr,"hin not implemented yet\n");
-    //exit(-1);
     nfe = rkf45_h0 (neq, t, t_stop, h_min, h_max, h, y, y + neq, v_param);
   }
-
-  //printf("t= %e t_stop= %e h= %e\n", t, t_stop, h);
 
   // Integrate until we reach the end time.
   while (fabs(t - t_stop) > tround) {
@@ -1644,8 +1504,6 @@ void FixRX::rkf45(int id, double *rwork, void *v_param, int ode_counter[])
     nfe += 6;
 
     if (maxIters && nit > maxIters) {
-      //fprintf(stderr,"atom[%d] took too many iterations in rkf45 %d %e %e\n", id, nit, t, t_stop);
-      //nFails ++;
       ode_counter[3] ++;
       break;
       // We should set an error here so that the solution is not used!
@@ -1657,12 +1515,10 @@ void FixRX::rkf45(int id, double *rwork, void *v_param, int ode_counter[])
   ode_counter[1] += nit;
   ode_counter[2] += nfe;
 
-  //if (diagnosticFrequency == 1 && diagnosticCounterPerODE[StepSum] != nullptr)
   if (diagnosticCounterPerODE[StepSum] != nullptr) {
     diagnosticCounterPerODE[StepSum][id] = nst;
     diagnosticCounterPerODE[FuncSum][id] = nfe;
   }
-  //printf("id= %d nst= %d nit= %d\n", id, nst, nit);
 
   // Store the solution back in atom->dvector.
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {

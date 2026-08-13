@@ -2728,8 +2728,8 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    if (arg2 == 0.0) error->one(FLERR,"Power by 0 in variable formula");
-    tree->value = pow(arg1,arg2);
+    if (arg2 == 0.0) tree->value = 1.0;
+    else tree->value = pow(arg1,arg2);
     return tree->value;
   }
 
@@ -3096,7 +3096,6 @@ double Variable::collapse_tree(Tree *tree)
         ivalue3-ivalue1+1 < ivalue2 )
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
-    //else if (update->ntimestep <= ivalue3) {
     else {
       tree->value = ivalue1;
       double logsp = ivalue1;
@@ -3296,7 +3295,7 @@ double Variable::eval_tree(Tree *tree, int i)
   }
   if (tree->type == CARAT) {
     double exponent = eval_tree(tree->second,i);
-    if (exponent == 0.0) error->one(FLERR,"Power by 0 in variable formula");
+    if (exponent == 0.0) return 1.0;
     return pow(eval_tree(tree->first,i),exponent);
   }
   if (tree->type == UNARY) return -eval_tree(tree->first,i);

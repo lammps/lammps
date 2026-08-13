@@ -482,23 +482,18 @@ void FixRX::initSparse()
         allAreIntegral &= (std::fmod( stoichReactants[i][k], 1.0 ) == 0.0);
 
         nreac_i++;
-        if (rstr.length() > 0)
-          rstr += " + ";
+        if (rstr.length() > 0) rstr += " + ";
 
-        char digit[6];
-        sprintf(digit, "%4.1f ", stoichReactants[i][k]); rstr += digit;
+        rstr += fmt::format("{:4.1f}", stoichReactants[i][k]);
         rstr += atom->dvname[atom_ind];
       }
       if (stoichProducts[i][k] > 0.0) {
         allAreIntegral &= (std::fmod( stoichProducts[i][k], 1.0 ) == 0.0);
 
         nprod_i++;
-        if (pstr.length() > 0)
-          pstr += " + ";
+        if (pstr.length() > 0) pstr += " + ";
 
-        char digit[6];
-        sprintf(digit, "%4.1f ", stoichProducts[i][k]); pstr += digit;
-
+        pstr += fmt::format("{:4.1f}", stoichProducts[i][k]);
         pstr += atom->dvname[atom_ind];
       }
     }

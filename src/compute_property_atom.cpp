@@ -442,7 +442,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &ComputePropertyAtom::pack_atom_style;
     }
 
-    values.push_back(std::move(val));
+    values.push_back(val);
     iarg++;
   }
 
@@ -544,7 +544,7 @@ void ComputePropertyAtom::setup_history()
   //   values[i].index    = history frame, 1 to Nrepeat (or still zero here if asterisk was used)
   //   values[i].colindex = fix store/state attribute, 1 to Nattribute
 
-  for (int i = 0; i < values.size(); i++) {
+  for (int i = 0; i < (int)values.size(); i++) {
     if (values[i].pack_choice == &ComputePropertyAtom::pack_history) {
       if (values[i].index > nrepeat_history)
         error->all(FLERR,
@@ -559,7 +559,7 @@ void ComputePropertyAtom::setup_history()
 
   // values[i].index is zero if wildcard was used. expand 'values' here
 
-  for (int i = 0; i < values.size(); i++) {
+  for (int i = 0; i < (int)values.size(); i++) {
     if (values[i].pack_choice == &ComputePropertyAtom::pack_history) {
       if (values[i].index == 0) {
         value_t val;

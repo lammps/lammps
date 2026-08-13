@@ -248,7 +248,7 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
         if ((val.which == ArgInfo::UNKNOWN) || (argi.get_dim() > 1))
           error->all(FLERR, iarg, "Illegal fix store/state argument: {}", arg[iarg]);
 
-        values.push_back(std::move(val));
+        values.push_back(val);
       }
       if (breakflag) break;
 

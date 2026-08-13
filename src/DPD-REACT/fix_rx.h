@@ -49,7 +49,6 @@ class FixRX : public Fix {
   const int * get_species_ind_to_atom_prop_ind_old() const;
   const SpeciesStrToSpeciesIndMap & get_species_str_to_species_ind() const;
 
- protected:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;

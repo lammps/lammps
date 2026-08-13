@@ -66,10 +66,10 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   nspecies = (rx_flag ? rx_fix->get_nspecies() : 1);
 
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
-  else error->all(FLERR,"Unknown table style in fix eos/table/rx");
+  else error->all(FLERR, 3, "Unknown table style in fix eos/table/rx");
 
   tablength = utils::inumeric(FLERR,arg[5],false,lmp);
-  if (tablength < 2) error->all(FLERR,"Illegal number of eos/table/rx entries");
+  if (tablength < 2) error->all(FLERR, 5, "Illegal number of eos/table/rx entries");
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -308,11 +308,9 @@ void FixEOStableRX::read_file(char *file)
     PotentialFileReader reader(lmp, file, "eos/table/rx");
     char * line;
 
-    /* This line assumes that rx_flag == true. However, this is
-       acceptable because this member function is only called if
-       rx_flag == true. */
-    const auto & species_str_to_species_ind =
-      rx_fix->get_species_str_to_species_ind();
+    /* This line assumes that rx_flag == true. However, this is acceptable because
+       this member function is only called if rx_flag == true. */
+    const auto &species_str_to_species_ind = rx_fix->get_species_str_to_species_ind();
 
     while ((line = reader.next_line(min_params_per_line))) {
       try {
@@ -411,35 +409,33 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
                                 ValueTokenizer & values) {
 
-                              values.next_int(); // throw away the index
-                              double rtmp = values.next_double();
+    values.next_int(); // throw away the index
+    double rtmp = values.next_double();
 
-                              int icolumn = 0;
-                              while (values.has_next()) {
+    int icolumn = 0;
+    while (values.has_next()) {
 
-                                if (icolumn >= nspecies) {
-                                  error->one(FLERR,
-                                             "Illegal fix eos/table/rx command: "
-                                             "In file {}, number of columns exceeds "
-                                             "the number of species {}", file, nspecies);
-                                }
+      if (icolumn >= nspecies) {
+        error->one(FLERR, Error::NOLASTLINE, "Illegal fix eos/table/rx command: "
+                   "In file {}, number of columns exceeds the number of species {}",
+                   file, nspecies);
+      }
 
-                                int ispecies = eosSpecies[icolumn];
+      int ispecies = eosSpecies[icolumn];
 
-                                Table *tbl = &tables[ispecies];
-                                Table *tbl2 = &tables2[ispecies];
+      Table *tbl = &tables[ispecies];
+      Table *tbl2 = &tables2[ispecies];
 
-                                double tmpE = values.next_double();
+      double tmpE = values.next_double();
 
-                                tbl->rfile[i] = rtmp;
-                                tbl->efile[i] = tmpE;
+      tbl->rfile[i] = rtmp;
+      tbl->efile[i] = tmpE;
 
-                                tbl2->rfile[i] = tmpE;
-                                tbl2->efile[i] = rtmp;
-
-                                icolumn++;
-                              }
-                            });
+      tbl2->rfile[i] = tmpE;
+      tbl2->efile[i] = rtmp;
+      icolumn++;
+    }
+  });
 }
 
 /* ----------------------------------------------------------------------

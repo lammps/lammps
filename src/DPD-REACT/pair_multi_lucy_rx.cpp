@@ -68,16 +68,15 @@ static const char cite_pair_multi_lucy_rx[] =
 /* ---------------------------------------------------------------------- */
 
 PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) :
-  Pair(lmp), rx_fix(nullptr),
-  ntables(0), tables(nullptr), tabindex(nullptr),
-  site1(nullptr), site2(nullptr), nmax(0),
-  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
-  mixWtSite1(nullptr), mixWtSite2(nullptr),
-  fractionalWeighting(true)
+    Pair(lmp), rx_fix(nullptr), ntables(0), tables(nullptr), tabindex(nullptr), site1(nullptr),
+    site2(nullptr), nmax(0), mixWtSite1old(nullptr), mixWtSite2old(nullptr), mixWtSite1(nullptr),
+    mixWtSite2(nullptr), fractionalWeighting(true)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy_rx);
 
-  if (atom->rho_flag != 1) error->all(FLERR,"Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)");
+  if (atom->rho_flag != 1)
+    error->all(FLERR,
+               "Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)");
 
   comm_forward = 1;
   comm_reverse = 1;
@@ -365,7 +364,8 @@ void PairMultiLucyRX::settings(int narg, char **arg)
 
 void PairMultiLucyRX::coeff(int narg, char **arg)
 {
-  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
+  if (narg != 6 && narg != 7)
+    error->all(FLERR,"Incorrect args for pair coefficients{}", utils::errorurl(21));
 
   // get either the KOKKOS or the plain version of the fix
   auto fixes = modify->get_fix_by_style(kokkosable ? "^rx/kk" : "^rx$");

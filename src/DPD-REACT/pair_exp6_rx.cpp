@@ -38,16 +38,16 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
+namespace {
 #ifdef DBL_EPSILON
-static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
+constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
+constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
 
-namespace {
 // Create a structure to hold the parameter data for all
 // local and neighbor particles. Pack inside this struct
 // to avoid any name clashes.
@@ -589,7 +589,6 @@ void PairExp6rx::settings(int narg, char **arg)
   }
 
   allocated = 0;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -618,13 +617,12 @@ void PairExp6rx::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   nspecies = rx_fix->get_nspecies();
-  if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
+  if (nspecies==0) error->all(FLERR, Error::NOLASTLINE, "There are no rx species specified.");
   read_file(arg[2]);
 
   site1 = utils::strdup(arg[3]);
 
-  const auto & species_str_to_species_ind =
-    rx_fix->get_species_str_to_species_ind();
+  const auto &species_str_to_species_ind = rx_fix->get_species_str_to_species_ind();
 
   if (species_str_to_species_ind.find(site1) == species_str_to_species_ind.end()
       && strcmp(site1,"1fluid") != 0) {

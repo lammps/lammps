@@ -1055,7 +1055,6 @@ template<class DeviceType>
 void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
-  if (!allocated) allocate();
 
   // get only the KOKKOS version is not derived from this class
   auto fixes = modify->get_fix_by_style("^rx/kk");
@@ -1067,6 +1066,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   if (!rx_fixKK)
     error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 
+  if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);

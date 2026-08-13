@@ -77,7 +77,9 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   id_fix_species(nullptr), id_fix_species_old(nullptr), fix_species(nullptr),
   fix_species_old(nullptr), skipChemistry(false)
 {
-  if (narg < 7 || narg > 12) error->all(FLERR,"Illegal fix rx command");
+  if (narg < 7) utils::missing_cmd_args(FLERR, "fix rx", error);
+  if (narg > 12) error->all(FLERR, 12, "Too many arguments for fix rx");
+
   nevery = 1;
 
   nreactions = maxparam = 0;
@@ -87,62 +89,44 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   id_fix_species = nullptr;
   id_fix_species_old = nullptr;
 
-  // Keep track of the argument list.
-  int iarg = 3;
+  kineticsFile = arg[3];
 
-  // Read the kinetic file in arg[3].
-  kineticsFile = std::string(arg[iarg++]);
-
-  // Determine the local temperature averaging method in arg[4].
+  // Determine the local temperature averaging method
   wtFlag = 0;
   localTempFlag = NONE;
 
-  {
-    char *word = arg[iarg++];
-    if (strcmp(word,"none") == 0) {
-      wtFlag = 0;
-      localTempFlag = NONE;
-    } else if (strcmp(word,"lucy") == 0) {
-      wtFlag = LUCY;
-      localTempFlag = HARMONIC;
-    } else error->all(FLERR,"Illegal fix rx local temperature weighting technique");
-  }
+  if (strcmp(arg[4],"none") == 0) {
+    wtFlag = 0;
+    localTempFlag = NONE;
+  } else if (strcmp(arg[4],"lucy") == 0) {
+    wtFlag = LUCY;
+    localTempFlag = HARMONIC;
+  } else error->all(FLERR, 4,"Unknown fix rx local temperature weighting technique {}", arg[4]);
 
   // Select either sparse and dense matrix
   // representations of the stoichiometric matrix.
   useSparseKinetics = true;
-  {
-    char *word = arg[iarg++];
-
-    if (strcmp(word,"sparse") == 0)
-      useSparseKinetics = true;
-    else if (strcmp(word,"dense") == 0)
-      useSparseKinetics = false;
-    else error->all(FLERR, "Illegal command " + std::string(word)
-                    + " expected \"sparse\" or \"dense\"\n");
-
-  }
+  if (strcmp(arg[5],"sparse") == 0)
+    useSparseKinetics = true;
+  else if (strcmp(arg[5],"dense") == 0)
+    useSparseKinetics = false;
+  else
+    error->all(FLERR, 5, "Unknown kinetics keyword {}. Expected \"sparse\" or \"dense\"\n", arg[5]);
 
   // Determine the ODE solver/stepper strategy in arg[6].
   odeIntegrationFlag = ODE_LAMMPS_RK4;
 
-  {
-    char *word = arg[iarg++];
-    if (strcmp(word,"lammps_rk4") == 0 || strcmp(word,"rk4") == 0)
-      odeIntegrationFlag = ODE_LAMMPS_RK4;
-    else if (strcmp(word,"lammps_rkf45") == 0 || strcmp(word,"rkf45") == 0)
-      odeIntegrationFlag = ODE_LAMMPS_RKF45;
-    else {
-      std::string errmsg = "Illegal ODE integration type: " + std::string(word);
-      error->all(FLERR, errmsg);
-    }
-  }
+  if ((strcmp(arg[6],"lammps_rk4") == 0) || (strcmp(arg[6],"rk4") == 0))
+    odeIntegrationFlag = ODE_LAMMPS_RK4;
+  else if ((strcmp(arg[6],"lammps_rkf45") == 0) || (strcmp(arg[6],"rkf45") == 0))
+    odeIntegrationFlag = ODE_LAMMPS_RKF45;
+  else  error->all(FLERR, 6, "Unknown ODE integration type {}", arg[6]);
 
-  /// Set the default ODE parameters here. Modify with arg[].
-  /// 'minSteps' has a different meaning for RK4 and RKF45.
-  /// RK4:   This is the # of steps that will be taken with h = dt_dpd / minSteps;
-  /// RKF45: This sets as h0 = dt_dpd / minSteps. If minSteps == 0, RKF45 will
-  ///        estimate h0 internally. h will be adjusted as needed on subsequent steps.
+  // Set the default ODE parameters here. Modify with arg[].
+  // 'minSteps' has a different meaning for RK4 and RKF45.
+  // RK4:   This is the # of steps that will be taken with h = dt_dpd / minSteps;
+  // RKF45: This sets as h0 = dt_dpd / minSteps. If minSteps == 0, RKF45 will
+  //        estimate h0 internally. h will be adjusted as needed on subsequent steps.
   minSteps = 1;
   maxIters = 100;
   relTol   = 1.0e-6;
@@ -155,21 +139,20 @@ FixRX::FixRX(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg==8) {
-    minSteps = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    minSteps = utils::inumeric(FLERR,arg[7],false,lmp);
   } else if (odeIntegrationFlag == ODE_LAMMPS_RK4 && narg>8) {
-    error->all(FLERR,"Illegal fix rx command.  Too many arguments for RK4 solver.");
+    error->all(FLERR, 8, "Too many arguments ({}) for RK4 solver", narg);
   } else if (odeIntegrationFlag == ODE_LAMMPS_RKF45) {
-    // Must have four options.
-    if (narg < 11)
-      error->all(FLERR,"Illegal fix rx command.  Too few arguments for RKF45 solver.");
+    // Must have four keywords
+    if (narg < 11) utils::missing_cmd_args(FLERR, "fix rx RKF45", error);
 
-    minSteps = utils::inumeric(FLERR,arg[iarg++],false,lmp);
-    maxIters = utils::inumeric(FLERR,arg[iarg++],false,lmp);
-    relTol   = utils::numeric(FLERR,arg[iarg++],false,lmp);
-    absTol   = utils::numeric(FLERR,arg[iarg++],false,lmp);
+    minSteps = utils::inumeric(FLERR,arg[7],false,lmp);
+    maxIters = utils::inumeric(FLERR,arg[8],false,lmp);
+    relTol   = utils::numeric(FLERR,arg[9],false,lmp);
+    absTol   = utils::numeric(FLERR,arg[10],false,lmp);
 
-    if (iarg < narg)
-      diagnosticFrequency = utils::inumeric(FLERR,arg[iarg++],false,lmp);
+    if (narg == 12)
+      diagnosticFrequency = utils::inumeric(FLERR,arg[11],false,lmp);
 
     // maxIters must be at least minSteps.
     maxIters = std::max( minSteps, maxIters );

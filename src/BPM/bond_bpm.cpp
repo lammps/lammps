@@ -294,6 +294,7 @@ void BondBPM::settings(int narg, char **arg)
       ref_filename = arg[iarg + 1];
       iarg += 2;
     } else if (strcmp(arg[iarg], "write/reference") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for write/reference");
       id_fix_write_ref = utils::strdup(arg[iarg + 1]);
       write_ref_freq = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
@@ -730,7 +731,8 @@ void BondBPM::pre_compute()
     fix_bond_history->stored_flag = true;
 
     if (reference_flag) {    
-      // this will be done later
+      // this will be done later since restarts can set stored_flag true
+      // restore done in seperate block
     } else {
       // Calculate substyle-specific bond history data and save to atom arrays
       store_data();
@@ -836,7 +838,7 @@ void BondBPM::restore_data()
       searchkey = std::min(tagi,tagj)*natoms + std::max(tagi,tagj);
       n = hashmap[searchkey];
 
-      // restore history !!! TEMP !!!
+      // restore history
       for (int h = 0; h < (nbonddata - 2); h++) {
         hvar = histfile[n][h];
         fix_bond_history->update_atom_value(i, m, h, hvar);

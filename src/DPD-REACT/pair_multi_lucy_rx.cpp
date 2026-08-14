@@ -68,16 +68,15 @@ static const char cite_pair_multi_lucy_rx[] =
 /* ---------------------------------------------------------------------- */
 
 PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) :
-  Pair(lmp), rx_fix(nullptr),
-  ntables(0), tables(nullptr), tabindex(nullptr),
-  site1(nullptr), site2(nullptr), nmax(0),
-  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
-  mixWtSite1(nullptr), mixWtSite2(nullptr),
-  fractionalWeighting(true)
+    Pair(lmp), rx_fix(nullptr), nmax(0),  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
+    mixWtSite1(nullptr), mixWtSite2(nullptr), ntables(0), tables(nullptr), tabindex(nullptr),
+    nspecies(0), site1(nullptr), site2(nullptr), fractionalWeighting(true)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy_rx);
 
-  if (atom->rho_flag != 1) error->all(FLERR,"Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)");
+  if (atom->rho_flag != 1)
+    error->all(FLERR,
+               "Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)");
 
   comm_forward = 1;
   comm_reverse = 1;
@@ -196,19 +195,22 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
         tb = &tables[tabindex[itype][jtype]];
         if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq) {
-          printf("Table inner cutoff = %lf\n",sqrt(tb->innersq));
-          printf("rho[%d]=%lf\n",i,rho[i]);
-          printf("rho[%d]=%lf\n",j,rho[j]);
-          error->one(FLERR,"Density < table inner cutoff");
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Density < table inner cutoff:\n"
+                     "  Table inner cutoff = {}\n"
+                     "  rho[{}]={}\n"
+                     "  rho[{}]={}\n",
+                     sqrt(tb->innersq),i,rho[i],j,rho[j]);
         }
         if (tabstyle == LOOKUP) {
           itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
           jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
           if (itable >= tlm1 || jtable >= tlm1) {
-            printf("Table outer index = %d\n",tlm1);
-            printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-            printf("jtableIndex=%d rho[%d]=%lf\n",jtable,j,rho[j]);
-            error->one(FLERR,"Density > table outer cutoff");
+            error->one(FLERR, Error::NOLASTLINE, "Density > table outer cutoff\n"
+                       "  Table outer index = {}\n"
+                       "  itableIndex={} rho[{}]={}\n"
+                       "  jtableIndex={} rho[{}]={}\n",
+                       tlm1,itable,i,rho[i],jtable,j,rho[j]);
           }
           A_i = tb->f[itable];
           A_j = tb->f[jtable];
@@ -271,13 +273,14 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
     if (tabstyle == LOOKUP) evdwl = tb->e[itable];
     else if (tabstyle == LINEAR) {
       if (itable >= tlm1) {
-        printf("itableIndex=%d rho[%d]=%lf\n",itable,i,rho[i]);
-        error->one(FLERR,"Density > table outer cutoff");
+        error->one(FLERR, Error::NOLASTLINE, "Density > table outer cutoff "
+                   "itableIndex={} rho[{}]={}\n",itable,i,rho[i]);
       }
       if (itable==0) fraction_i=0.0;
       else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
       evdwl = tb->e[itable] + fraction_i*tb->de[itable];
-    } else error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
+    } else error->one(FLERR, Error::NOLASTLINE, "Only LOOKUP and LINEAR table styles have "
+                      "been implemented for pair style multi/lucy/rx");
 
     evdwl *=(MY_PI*cutsq[itype][itype]*cutsq[itype][itype])/84.0;
     evdwlOld = mixWtSite1old_i*evdwl;
@@ -361,9 +364,18 @@ void PairMultiLucyRX::settings(int narg, char **arg)
 
 void PairMultiLucyRX::coeff(int narg, char **arg)
 {
-  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
+  if (narg != 6 && narg != 7)
+    error->all(FLERR,"Incorrect args for pair coefficients{}", utils::errorurl(21));
 
-  rx_fix = FixRX::get_rx_fix(lmp);
+  // get either the KOKKOS or the plain version of the fix
+  auto fixes = modify->get_fix_by_style(kokkosable ? "^rx/kk" : "^rx$");
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+  if (!rx_fix)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 
   if (!allocated) allocate();
 
@@ -745,7 +757,7 @@ void PairMultiLucyRX::spline(double *x, double *y, int n,
   y2[n-1] = (un-qn*u[n-2]) / (qn*y2[n-2] + 1.0);
   for (k = n-2; k >= 0; k--) y2[k] = y2[k]*y2[k+1] + u[k];
 
-  delete [] u;
+  delete[] u;
 }
 
 /* ---------------------------------------------------------------------- */

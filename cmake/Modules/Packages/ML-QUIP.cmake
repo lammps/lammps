@@ -49,12 +49,13 @@ if(DOWNLOAD_QUIP)
 
   message(STATUS "QUIP download via git requested - we will build our own")
   set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
-  # QUIP has no releases (except for a tag marking the end of Python 2 support). We use the current "public" branch
+  # QUIP has no releases. We use a tested specific commit from the "public" branch.
+  # This needs to be updated occasionally
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)
   ExternalProject_Add(quip_build
     GIT_REPOSITORY "https://github.com/libAtoms/QUIP/"
-    GIT_TAG origin/public
+    GIT_TAG 1e2f84ba94bc715a5d7b0b0c7c2ba1b2d402e730
     GIT_SHALLOW YES
     GIT_PROGRESS YES
     GIT_SUBMODULES "src/fox;src/GAP"

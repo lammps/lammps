@@ -974,7 +974,7 @@ int FixAveTime::column_length(int dynamic)
 
 double FixAveTime::compute_scalar()
 {
-  if (norm) return vector_total[0]/norm;
+  if (norm) return vector_total ? vector_total[0]/norm : 0.0;
   return 0.0;
 }
 
@@ -986,8 +986,8 @@ double FixAveTime::compute_vector(int i)
 {
   if (i >= nrows) return 0.0;
   if (norm) {
-    if (mode == SCALAR) return vector_total[i]/norm;
-    if (mode == VECTOR) return array_total[i][0]/norm;
+    if (mode == SCALAR) return vector_total ? vector_total[i]/norm : 0.0;
+    if (mode == VECTOR) return array_total ? array_total[i][0]/norm : 0.0;
   }
   return 0.0;
 }
@@ -999,7 +999,7 @@ double FixAveTime::compute_vector(int i)
 double FixAveTime::compute_array(int i, int j)
 {
   if (i >= nrows) return 0.0;
-  if (norm) return array_total[i][j]/norm;
+  if (norm) return array_total ? array_total[i][j]/norm : 0.0;
   return 0.0;
 }
 

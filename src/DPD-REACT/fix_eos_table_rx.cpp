@@ -18,16 +18,17 @@
 
 #include "fix_eos_table_rx.h"
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_rx.h"
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
 #include "safe_pointers.h"
 #include "potential_file_reader.h"
 #include "tokenizer.h"
-#include "fix_rx.h"
 
 #include <cmath>
 #include <cstring>
@@ -44,21 +45,31 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ntables(0), tables(nullptr),
-  tables2(nullptr), rx_fix(FixRX::get_rx_fix_unsafe(lmp)),
+  Fix(lmp, narg, arg), ntables(0), tables(nullptr), tables2(nullptr), rx_fix(nullptr),
   dHf(nullptr), eosSpecies(nullptr)
 {
   if (narg != 8 && narg != 10) error->all(FLERR,"Illegal fix eos/table/rx command");
   nevery = 1;
 
+  // get either the KOKKOS or the plain version of the fix
+  // detect if we need to set kokkosable because we are run *before* the KOKKOS constructor sets it
+  if (lmp->kokkos && lmp->kokkos->kokkos_exists) kokkosable = 1;
+  auto fixes = modify->get_fix_by_style(kokkosable ? "^rx/kk" : "^rx$");
+
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+
   rx_flag = (rx_fix != nullptr);
   nspecies = (rx_flag ? rx_fix->get_nspecies() : 1);
 
   if (strcmp(arg[3],"linear") == 0) tabstyle = LINEAR;
-  else error->all(FLERR,"Unknown table style in fix eos/table/rx");
+  else error->all(FLERR, 3, "Unknown table style in fix eos/table/rx");
 
   tablength = utils::inumeric(FLERR,arg[5],false,lmp);
-  if (tablength < 2) error->all(FLERR,"Illegal number of eos/table/rx entries");
+  if (tablength < 2) error->all(FLERR, 5, "Illegal number of eos/table/rx entries");
 
   int me;
   MPI_Comm_rank(world,&me);
@@ -153,11 +164,11 @@ FixEOStableRX::~FixEOStableRX()
   memory->sfree(tables);
   memory->sfree(tables2);
 
-  delete [] dHf;
-  delete [] eosSpecies;
-  delete [] energyCorr;
-  delete [] tempCorrCoeff;
-  delete [] moleculeCorrCoeff;
+  delete[] dHf;
+  delete[] eosSpecies;
+  delete[] energyCorr;
+  delete[] tempCorrCoeff;
+  delete[] moleculeCorrCoeff;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -297,11 +308,9 @@ void FixEOStableRX::read_file(char *file)
     PotentialFileReader reader(lmp, file, "eos/table/rx");
     char * line;
 
-    /* This line assumes that rx_flag == true. However, this is
-       acceptable because this member function is only called if
-       rx_flag == true. */
-    const auto & species_str_to_species_ind =
-      rx_fix->get_species_str_to_species_ind();
+    /* This line assumes that rx_flag == true. However, this is acceptable because
+       this member function is only called if rx_flag == true. */
+    const auto &species_str_to_species_ind = rx_fix->get_species_str_to_species_ind();
 
     while ((line = reader.next_line(min_params_per_line))) {
       try {
@@ -400,35 +409,33 @@ void FixEOStableRX::read_table(Table *tb, Table *tb2, char *file, char *keyword)
   reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
                                 ValueTokenizer & values) {
 
-                              values.next_int(); // throw away the index
-                              double rtmp = values.next_double();
+    values.next_int(); // throw away the index
+    double rtmp = values.next_double();
 
-                              int icolumn = 0;
-                              while (values.has_next()) {
+    int icolumn = 0;
+    while (values.has_next()) {
 
-                                if (icolumn >= nspecies) {
-                                  error->one(FLERR,
-                                             "Illegal fix eos/table/rx command: "
-                                             "In file {}, number of columns exceeds "
-                                             "the number of species {}", file, nspecies);
-                                }
+      if (icolumn >= nspecies) {
+        error->one(FLERR, Error::NOLASTLINE, "Illegal fix eos/table/rx command: "
+                   "In file {}, number of columns exceeds the number of species {}",
+                   file, nspecies);
+      }
 
-                                int ispecies = eosSpecies[icolumn];
+      int ispecies = eosSpecies[icolumn];
 
-                                Table *tbl = &tables[ispecies];
-                                Table *tbl2 = &tables2[ispecies];
+      Table *tbl = &tables[ispecies];
+      Table *tbl2 = &tables2[ispecies];
 
-                                double tmpE = values.next_double();
+      double tmpE = values.next_double();
 
-                                tbl->rfile[i] = rtmp;
-                                tbl->efile[i] = tmpE;
+      tbl->rfile[i] = rtmp;
+      tbl->efile[i] = tmpE;
 
-                                tbl2->rfile[i] = tmpE;
-                                tbl2->efile[i] = rtmp;
-
-                                icolumn++;
-                              }
-                            });
+      tbl2->rfile[i] = tmpE;
+      tbl2->efile[i] = rtmp;
+      icolumn++;
+    }
+  });
 }
 
 /* ----------------------------------------------------------------------
@@ -584,7 +591,7 @@ void FixEOStableRX::spline(double *x, double *y, int n,
   y2[n-1] = (un-qn*u[n-2]) / (qn*y2[n-2] + 1.0);
   for (k = n-2; k >= 0; k--) y2[k] = y2[k]*y2[k+1] + u[k];
 
-  delete [] u;
+  delete[] u;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -713,9 +720,9 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
       temp = t1;
       temp = MAX(temp,tb->lo);
       temp = MIN(temp,tb->hi);
-      char str[256];
-      sprintf(str,"Secant solver did not converge because table bounds were exceeded:  it=%d id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf dpdTheta=%lf\n",it,id,ui,thetai,t1,t2,f1,f2,temp);
-      error->warning(FLERR,str);
+      error->warning(FLERR, "Secant solver did not converge because table bounds were exceeded: "
+                     "it={} id={} ui={} thetai={} t1={} t2={} f1={} f2={} dpdTheta={}\n",
+                     it,id,ui,thetai,t1,t2,f1,f2,temp);
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
@@ -726,13 +733,14 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
     energy_lookup(id,t2,u2);
     f2 = u2 - ui;
   }
-  if (it==maxit) {
-    char str[256];
-    sprintf(str,"Maxit exceeded in secant solver:  id=%d ui=%lf thetai=%lf t1=%lf t2=%lf f1=%lf f2=%lf\n",id,ui,thetai,t1,t2,f1,f2);
-    if (std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai) || std::isnan(t1) || std::isnan(t2))
-      error->one(FLERR,"NaN detected in secant solver.");
-    error->one(FLERR,str);
-  }
+  if (it==maxit)
+    error->one(FLERR, Error::NOLASTLINE, "Maxit exceeded in secant solver: "
+               "id={} ui={} thetai={} t1={} t2={} f1={} f2={}\n",
+               id,ui,thetai,t1,t2,f1,f2);
+  if (std::isnan(f1) || std::isnan(f2) || std::isnan(ui) || std::isnan(thetai)
+      || std::isnan(t1) || std::isnan(t2))
+    error->one(FLERR, Error::NOLASTLINE, "NaN detected in secant solver");
+
   thetai = temp;
 }
 

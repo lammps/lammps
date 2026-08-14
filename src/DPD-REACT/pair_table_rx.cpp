@@ -46,11 +46,9 @@ enum{NONE,RLINEAR,RSQ,BMP};
 /* ---------------------------------------------------------------------- */
 
 PairTableRX::PairTableRX(LAMMPS *lmp) :
-  PairTable(lmp), rx_fix(nullptr),
-  site1(nullptr), site2(nullptr), nmax_rx(0),
-  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
-  mixWtSite1(nullptr), mixWtSite2(nullptr),
-  fractionalWeighting(true)
+  PairTable(lmp), rx_fix(nullptr), site1(nullptr), site2(nullptr), fractionalWeighting(true),
+  nmax_rx(0), mixWtSite1old(nullptr), mixWtSite2old(nullptr),
+  mixWtSite1(nullptr), mixWtSite2(nullptr)
 {}
 
 /* ---------------------------------------------------------------------- */
@@ -59,8 +57,8 @@ PairTableRX::~PairTableRX()
 {
   if (copymode) return;
 
-  delete [] site1;
-  delete [] site2;
+  delete[] site1;
+  delete[] site2;
 
   memory->destroy(mixWtSite1old);
   memory->destroy(mixWtSite2old);
@@ -302,10 +300,20 @@ void PairTableRX::settings(int narg, char **arg)
 
 void PairTableRX::coeff(int narg, char **arg)
 {
-  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
-  if (!allocated) allocate();
+  if (narg != 6 && narg != 7)
+    error->all(FLERR,"Incorrect args for pair coefficients{}", utils::errorurl(21));
 
-  rx_fix = FixRX::get_rx_fix(lmp);
+  // get only the plain version of the fix, KOKKOS version is not derived from this class
+  auto fixes = modify->get_fix_by_style("^rx$");
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+  if (!rx_fix)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
+
+  if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);

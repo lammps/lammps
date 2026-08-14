@@ -30,7 +30,7 @@ enum { ODE_LAMMPS_RK4, ODE_LAMMPS_RKF45 };
 
 class FixRX : public Fix {
  public:
-  using SpeciesStrToSpeciesIndMap =  std::unordered_map<std::string, int>;
+  using SpeciesStrToSpeciesIndMap = std::unordered_map<std::string, int>;
 
   FixRX(class LAMMPS *, int, char **);
   ~FixRX() override;
@@ -41,15 +41,11 @@ class FixRX : public Fix {
   void setup_pre_force(int) override;
   void pre_force(int) override;
 
-  static FixRX * get_rx_fix(class LAMMPS *);
-  static FixRX * get_rx_fix_unsafe(class LAMMPS *);
-
   int get_nspecies() const;
-  const int * get_species_ind_to_atom_prop_ind() const;
-  const int * get_species_ind_to_atom_prop_ind_old() const;
-  const SpeciesStrToSpeciesIndMap & get_species_str_to_species_ind() const;
+  const int *get_species_ind_to_atom_prop_ind() const;
+  const int *get_species_ind_to_atom_prop_ind_old() const;
+  const SpeciesStrToSpeciesIndMap &get_species_str_to_species_ind() const;
 
- protected:
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -80,7 +76,7 @@ class FixRX : public Fix {
   void read_file(const std::string &file);
   void setupParams();
 
-  static Fix* get_rx_fix_base(class LAMMPS *);
+  static Fix *get_rx_fix_base(class LAMMPS *);
 
   virtual void allocate_species_ind_to_atom_prop_ind_array();
 

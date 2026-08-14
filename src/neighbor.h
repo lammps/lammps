@@ -36,8 +36,9 @@ class Neighbor : protected Pointers {
   int build_once;      // 1 if only build lists once per run
 
   double skin;                    // skin distance
-  double cutneighmin;             // min neighbor cutoff for all type pairs
-  double cutneighmax;             // max neighbor cutoff for all type pairs
+  double cutneighmin;             // min neighbor cutoff over type pairs (pair styles)
+  double cutneighminall;          // min neighbor cutoff over type pairs AND custom list requests
+  double cutneighmax;             // max neighbor cutoff over type pairs (pair styles)
   double cutneighmaxsq;           // cutneighmax squared
   double **cutneighsq;            // neighbor cutneigh sq for each type pair
   double **cutneighghostsq;       // cutneigh sq for each ghost type pair

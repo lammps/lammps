@@ -2340,7 +2340,7 @@ void *lammps_extract_global(void *handle, const char *name)
   if (strcmp(name,"q_flag") == 0) return (void *) &lmp->atom->q_flag;
 
   if (strcmp(name,"neigh_skin") == 0) return (void *) &lmp->neighbor->skin;
-  if (strcmp(name,"neigh_cutmin") == 0) return (void *) &lmp->neighbor->cutneighmin;
+  if (strcmp(name,"neigh_cutmin") == 0) return (void *) &lmp->neighbor->cutneighminall;
   if (strcmp(name,"neigh_cutmax") == 0) return (void *) &lmp->neighbor->cutneighmax;
   if (strcmp(name,"neigh_bondlist") == 0) return (void *) lmp->neighbor->bondlist;
   if (strcmp(name,"neigh_anglelist") == 0) return (void *) lmp->neighbor->anglelist;

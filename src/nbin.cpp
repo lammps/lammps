@@ -108,7 +108,7 @@ void NBin::post_constructor(NeighRequest *nrq)
 void NBin::copy_neighbor_info()
 {
   includegroup = neighbor->includegroup;
-  cutneighmin = neighbor->cutneighmin;
+  cutneighminall = neighbor->cutneighminall;
   cutneighmax = neighbor->cutneighmax;
   binsizeflag = neighbor->binsizeflag;
   binsize_user = neighbor->binsize_user;

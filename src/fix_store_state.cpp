@@ -250,15 +250,14 @@ FixStoreState::FixStoreState(LAMMPS *lmp, int narg, char **arg) :
 
         values.push_back(val);
       }
-      if (breakflag) break;
-
-      // free earg memory from expand_args()
+      // free earg memory from expand_args() also when leaving the outer loop
 
       if (expand) {
         for (int i = 0; i < nargnew; i++) delete [] earg[i];
         memory->sfree(earg);
         memory->sfree(amap);
       }
+      if (breakflag) break;
     }
     if (!value_added) values.push_back(std::move(val));
     iarg++;

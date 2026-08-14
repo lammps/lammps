@@ -140,6 +140,7 @@ void NeighborKokkos::grow_ex_mol_intra_kokkos()
    conservative shrink procedure:
      compute distance each of 8 corners of box has moved since last reneighbor
      reduce skin distance by sum of 2 largest of the 8 values
+     if reduced skin distance is negative, set to zero
      new trigger = 1/2 of reduced skin distance
    for orthogonal box, only need 2 lo/hi corners
    for triclinic, need all 8 corners since deformations can displace all 8
@@ -170,6 +171,7 @@ int NeighborKokkos::check_distance_kokkos()
       delz = bboxhi[2] - boxhi_hold[2];
       delta2 = sqrt(delx*delx + dely*dely + delz*delz);
       delta = 0.5 * (skin - (delta1+delta2));
+      if (delta < 0.0) delta = 0.0;
       deltasq = delta*delta;
     } else {
       domain->box_corners();
@@ -183,6 +185,7 @@ int NeighborKokkos::check_distance_kokkos()
         else if (delta > delta2) delta2 = delta;
       }
       delta = 0.5 * (skin - (delta1+delta2));
+      if (delta < 0.0) delta = 0.0;
       deltasq = delta*delta;
     }
   } else deltasq = triggersq;

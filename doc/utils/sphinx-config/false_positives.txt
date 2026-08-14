@@ -1093,6 +1093,7 @@ electronegativities
 electronegativity
 electroneutral
 electroneutrality
+electrostatically
 Eleftheriou
 ElementN
 elementset
@@ -1459,6 +1460,7 @@ Gezelter
 gfile
 gflag
 Gflop
+GFN
 gfortran
 ghostneigh
 ghostwhite
@@ -1921,6 +1923,7 @@ Jiahao
 Jiao
 jik
 JIK
+jkr
 jku
 jN
 Joanes
@@ -2199,6 +2202,7 @@ libqmmm
 librar
 libreax
 libs
+libxtb
 Lifshitz
 ligand
 lightblue
@@ -2353,6 +2357,7 @@ Marrink
 Marroquin
 Marsaglia
 Marseille
+marshall
 Martyna
 Maruyama
 mary
@@ -2412,6 +2417,7 @@ mc
 mcmoves
 McLachlan
 mcmoves
+mctc
 md
 mdf
 mdi
@@ -3750,6 +3756,7 @@ screenshots
 Scripps
 Scripta
 sd
+sds
 sdk
 sdpd
 SDPD
@@ -4611,6 +4618,8 @@ xs
 xsc
 xstk
 xsu
+xtb
+xTB
 xtc
 xu
 Xu

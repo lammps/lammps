@@ -57,6 +57,7 @@ FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
   cetable_active = false;
   ketable_active = false;
   tinit = 0.0;
+  time_offset = 0.0;
 
   // parsing all keywords, standard (set and infile) and custom (cutoff, offset, cetab, and ketab)
   int iarg = 13;

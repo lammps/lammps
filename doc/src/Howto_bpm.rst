@@ -129,13 +129,13 @@ The *read/reference* keyword takes the name of a file to read, e.g.
 defined. Note that reference file data overrides the reference state that would otherwise
 be assigned from the initial configuration. The first two
 columns are read as integer atom IDs and the remaining columns as
-floating-point history values. 
+floating-point history values.
 
 ----------
 
-The expected format fora a reference file is an ordinary 
+The expected format fora a reference file is an ordinary
 :doc:`dump local <dump>` file.  For example :doc:`bond bpm/spring <bond_bpm_spring>`,
-which stores a single history value (the reference length :math:`r_0`), 
+which stores a single history value (the reference length :math:`r_0`),
 has a reference file:
 
 .. code-block:: none
@@ -159,7 +159,7 @@ has a reference file:
 The first two columns are the IDs of the two atoms in the bond and the
 third column is the reference length :math:`r_0`.  Only the data lines
 (after ``ITEM: ENTRIES``) and the two ``ENTRIES`` keyword lines are
-used; with the remaining sections ignored. 
+used; with the remaining sections ignored.
 
 ----------
 
@@ -206,8 +206,8 @@ where the history variables are
   the deviatoric extension and its back-extension used by the *ves*
   viscoelastic recurrence
 
-For :doc:`bond bpm/rotational <bond_bpm_rotational>` and :doc:`bond bpm/peri <bond_bpm_peri>` 
-the number of stored history values, and therefore the number of columns 
+For :doc:`bond bpm/rotational <bond_bpm_rotational>` and :doc:`bond bpm/peri <bond_bpm_peri>`
+the number of stored history values, and therefore the number of columns
 in the reference file, depends on the
 *damping* setting and the constitutive model, respectively.  When a
 :doc:`bpm/peri <bond_bpm_peri>` simulation mixes bond types with different

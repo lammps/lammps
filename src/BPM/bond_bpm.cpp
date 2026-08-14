@@ -56,7 +56,7 @@ static const char cite_bpm[] =
 BondBPM::BondBPM(LAMMPS *_lmp) :
     Bond(_lmp), id_fix_dummy_special(nullptr), id_fix_dummy_history(nullptr),
     id_fix_update_special_bonds(nullptr), id_fix_bond_history(nullptr), id_fix_store_local(nullptr),
-    id_fix_write_ref(nullptr), id_fix_property_atom(nullptr), fix_store_local(nullptr), fix_write_ref(nullptr), 
+    id_fix_write_ref(nullptr), id_fix_property_atom(nullptr), fix_store_local(nullptr), fix_write_ref(nullptr),
     fix_bond_history(nullptr), fix_update_special_bonds(nullptr), pack_choice(nullptr),
     output_data(nullptr), output_data_ref(nullptr), bListdata(nullptr), bHistdata(nullptr)
 {
@@ -374,7 +374,7 @@ void BondBPM::settings(int narg, char **arg)
   if (reference_flag) {
 
     if (comm->me == 0) read_reference(ref_filename);
-    
+
     // broadcast data to other processors
     MPI_Bcast(&nentries, 1, MPI_INT, 0, world);
     MPI_Bcast(&nbonddata, 1, MPI_INT, 0, world);
@@ -487,7 +487,7 @@ void BondBPM::read_reference(char *file)
 
   TableFileReader reader(lmp, file, "bond/bpm");
   std::string keyword = "ENTRIES";
-  
+
   // find first keyword
   char *line = nullptr; int got_line = 0;
   while ((line = reader.next_line())) {
@@ -498,7 +498,7 @@ void BondBPM::read_reference(char *file)
       std::string word = values.next_string();
       if (word == keyword) {
         // matching keyword
-        got_line = 1;  
+        got_line = 1;
         break;
       }
     }
@@ -534,7 +534,7 @@ void BondBPM::read_reference(char *file)
   // allocate memory
   memory->create(bListdata, 2*nentries, "bond/bpm:bListdata");
   memory->create(bHistdata, nentries*(nbonddata-2), "bond/bpm:bHistdata");
-  
+
   // Parse bond data
   for (int t = 0; t < nentries; t++) {
     line = reader.next_line();
@@ -550,7 +550,7 @@ void BondBPM::read_reference(char *file)
       bListdata[2*t] = values.next_int();
       bListdata[2*t + 1] = values.next_int();
       for (int d = 0; d < nbonddata - 2; d++) {
-        double hvar = values.next_double(); 
+        double hvar = values.next_double();
         bHistdata[t*(nbonddata-2) + d] = hvar;
       }
 
@@ -558,8 +558,8 @@ void BondBPM::read_reference(char *file)
       error->one(FLERR, "Error parsing reference file '{}' line {} of {}. {}\nLine was: {}", file,
                  t + 1, nentries, e.what(), line);
     }
-  } 
-  
+  }
+
   printf("  read %i history variables for %i bonds\n",nbonddata-2,nentries);
 }
 
@@ -570,7 +570,7 @@ void BondBPM::read_reference(char *file)
 void BondBPM::write_reference()
 {
   if (fix_write_ref) {
-    
+
     int i, j, m, type;
     tagint *tag = atom->tag;
     int *num_bond = atom->num_bond;
@@ -600,7 +600,7 @@ void BondBPM::write_reference()
         }
 
         fix_write_ref->add_data(output_data_ref, i, j);
-        
+
       }
     }
   }
@@ -725,7 +725,7 @@ void BondBPM::pre_compute()
   if (!fix_bond_history->stored_flag) {
     fix_bond_history->stored_flag = true;
 
-    if (reference_flag) {    
+    if (reference_flag) {
       // this will be done later since restarts can set stored_flag true
       // restore done in seperate block
     } else {
@@ -773,7 +773,7 @@ void BondBPM::post_compute()
 ------------------------------------------------------------------------- */
 
 void BondBPM::restore_data()
-{ 
+{
   int i, j, n, m, type;
   double delx, dely, delz, hvar;
   int iatom, jatom, tagi, tagj, itag, jtag;
@@ -784,14 +784,14 @@ void BondBPM::restore_data()
   long int key, searchkey;
 
   double **bondstore = fix_bond_history->bondstore;
-  
+
   // error checks
   if ((nbonddata-2) != nhistory) error->one(FLERR,"Incorrect number of history variables for {} expected {}",force->bond_style,nhistory);
   if ((nentries != atom->nbonds)) error->one(FLERR,"Incorrect number of bond entries in reference file {} expected {}",ref_filename,atom->nbonds);
-  
+
   int atomfile[nentries][2];
   double histfile[nentries][nbonddata-2];
-  
+
   // Need to store location of bond data in hash table for fast retrieval when restoring
   std::map<long int,long int> hashmap;
 
@@ -801,7 +801,7 @@ void BondBPM::restore_data()
 
     atomfile[t][0] = itag;
     atomfile[t][1] = jtag;
-    
+
     for (int d = 0; d < nbonddata - 2; d++) {
       histfile[t][d] = bHistdata[t*(nbonddata-2) + d];
     }

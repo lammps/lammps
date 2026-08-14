@@ -213,12 +213,12 @@ to the bond history the IDs of the two atoms in the bond are also
 included. See :doc:`Howto bpm <Howto_bpm>` for the complete list of
 included outputs.
 
-If the *read/reference* keyword is used, data is read from the 
+If the *read/reference* keyword is used, data is read from the
 file labeled *filename*. This allows internal bond reference and
 history data to be restored to a previous state. The first two columns
 of the reference file must contain the IDs of the two atoms in the bond,
 with the remaining columns corresponding to the internal bond data.
-For more details on formatting the reference file see 
+For more details on formatting the reference file see
 :doc:`Howto bpm <Howto_bpm>`.
 
 Restart and other info

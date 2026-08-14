@@ -101,6 +101,7 @@ class PPPM : public KSpace {
   double qdist;        // distance from O site to negative charge
   double alpha;        // geometric factor
 
+  void init_tip4p();
   virtual void set_grid_global();
   virtual void set_grid_local();
   void adjust_gewald();

@@ -180,22 +180,6 @@ IDs of the two atoms in the bond. The other attributes for the two atoms
 include the timestep during which the bond broke and the current/initial
 center of mass position of the two atoms.
 
-If the *write/reference* keyword is used, an internal fix will process
-and transfer the internal bond history (e.g. :math:`r_0`) to an
-internal fix labeled *fix_ID*. This allows the internal bond reference
-and history data to be accessed by other LAMMPS commands. In addition
-to the bond history the IDs of the two atoms in the bond are also
-included. See :doc:`Howto bpm <Howto_bpm>` for the complete list of
-included outputs.
-
-If the *read/reference* keyword is used, data is read from the 
-file labeled *filename*. This allows internal bond reference and
-history data to be restored to a previous state. The first two columns
-of the reference file must contain the IDs of the two atoms in the bond,
-with the remaining columns corresponding to the internal bond data.
-For more details on formatting the reference file see 
-:doc:`Howto bpm <Howto_bpm>`.
-
 Data is continuously accumulated over intervals of *N*
 timesteps. At the end of each interval, all of the saved accumulated
 data is deleted to make room for new data. Individual datum may
@@ -218,6 +202,24 @@ query the status of broken bonds or permanently delete them, e.g.:
    delete_bonds all bond 0 remove
 
 ----------
+
+.. versionadded:: TBD
+
+If the *write/reference* keyword is used, an internal fix will process
+and transfer the internal bond history (e.g. :math:`r_0`) to an
+internal fix labeled *fix_ID*. This allows the internal bond reference
+and history data to be accessed by other LAMMPS commands. In addition
+to the bond history the IDs of the two atoms in the bond are also
+included. See :doc:`Howto bpm <Howto_bpm>` for the complete list of
+included outputs.
+
+If the *read/reference* keyword is used, data is read from the 
+file labeled *filename*. This allows internal bond reference and
+history data to be restored to a previous state. The first two columns
+of the reference file must contain the IDs of the two atoms in the bond,
+with the remaining columns corresponding to the internal bond data.
+For more details on formatting the reference file see 
+:doc:`Howto bpm <Howto_bpm>`.
 
 Restart and other info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

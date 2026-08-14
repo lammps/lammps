@@ -14,7 +14,7 @@
 
 namespace LAMMPS_NS {
 
-// Small direct-Ewald operator used inside the xTB SCC loop.  PME remains the
+// Small direct-Ewald operator used inside the xTB SCC loop.  PPPM remains the
 // production long-range solver for the MM system; this dense operator is only
 // for the usually small QM-image response that changes every SCC iteration.
 class QMMMXTBEwald {

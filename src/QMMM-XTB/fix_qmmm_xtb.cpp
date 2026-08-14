@@ -5,7 +5,7 @@
 
    This file is distributed under the GNU General Public License.
 
-   GFN-xTB electrostatic-embedding QM/MM with a self-consistent PME
+   GFN-xTB electrostatic-embedding QM/MM with a self-consistent PPPM
    partition.  The implementation supports a compact, non-covalently
    embedded QM region in a fixed 3-D periodic cell.
 ------------------------------------------------------------------------- */
@@ -822,7 +822,7 @@ void FixQMMMXTB::pre_force(int vflag)
   save_entry_forces();
   gather_qm_atoms(false);
 
-  // First PME pass: QM charges are zero, so this is the MM-only reference
+  // First PPPM pass: QM charges are zero, so this is the MM-only reference
   // used both for the fixed SCC potential and for energy de-duplication.
   set_qm_charges(0.0);
   gather_mm_points();
@@ -863,7 +863,7 @@ void FixQMMMXTB::pre_force(int vflag)
   restore_qm_charges();
   if (!pair_coulomb_mm_only) capture_pair(pair_full_force, pair_full_energy, pair_full_virial);
 
-  // The final production PME keeps the cross QM-MM reciprocal force, but the
+  // The final production PPPM keeps the cross QM-MM reciprocal force, but the
   // QM-QM reciprocal force is already represented by the SCC image term.
   const int nall = atom->nlocal + atom->nghost;
   std::vector<double> saved_charge(nall);

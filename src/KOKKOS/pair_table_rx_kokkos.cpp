@@ -26,7 +26,6 @@
 #include "force.h"
 #include "info.h"
 #include "kokkos.h"
-#include "kokkos.h"
 #include "kokkos_few.h"
 #include "memory_kokkos.h"
 #include "modify.h"
@@ -56,12 +55,14 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void getMixingWeights(
     typename ArrayTypes<DeviceType>::t_kkfloat_2d_randomread dvector,
-    int nspecies,
+    typename ArrayTypes<DeviceType>::t_int_1d species_ind_to_atom_prop_ind,
+    typename ArrayTypes<DeviceType>::t_int_1d species_ind_to_atom_prop_ind_old,
     int isite1, int isite2,
     bool fractionalWeighting,
     int id,
     KK_FLOAT &mixWtSite1old, KK_FLOAT &mixWtSite2old,
     KK_FLOAT &mixWtSite1, KK_FLOAT &mixWtSite2) {
+
   KK_FLOAT fractionOFAold, fractionOFA;
   KK_FLOAT fractionOld1, fraction1;
   KK_FLOAT fractionOld2, fraction2;
@@ -70,15 +71,18 @@ void getMixingWeights(
   KK_FLOAT nMoleculesOld2, nMolecules2;
   KK_FLOAT nTotal, nTotalOld;
 
+  int nspecies = species_ind_to_atom_prop_ind.extent_int(0);
+
   nTotal = 0.0;
   nTotalOld = 0.0;
   assert(id >= 0);
   assert(id < (int)dvector.extent(1));
   for (int ispecies = 0; ispecies < nspecies; ++ispecies) {
-    assert(ispecies < (int)dvector.extent(0));
-    nTotal += dvector(ispecies,id);
-    assert(ispecies+nspecies < (int)dvector.extent(0));
-    nTotalOld += dvector(ispecies+nspecies,id);
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+    nTotal += dvector(atom_ind,id);
+    nTotalOld += dvector(atom_ind_old,id);
   }
   if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
     Kokkos::abort("The number of molecules in CG particle is less than 10*DBL_EPSILON.");
@@ -88,14 +92,20 @@ void getMixingWeights(
   assert(isite2 >= 0);
   assert(isite2 < nspecies);
   if (isOneFluid(isite1) == false) {
-    nMoleculesOld1 = dvector(isite1+nspecies,id);
-    nMolecules1 = dvector(isite1,id);
+    const auto atom_site1_ind = species_ind_to_atom_prop_ind(isite1);
+    const auto atom_site1_ind_old = species_ind_to_atom_prop_ind_old(isite1);
+
+    nMoleculesOld1 = dvector(atom_site1_ind_old,id);
+    nMolecules1 = dvector(atom_site1_ind,id);
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false) {
-    nMoleculesOld2 = dvector(isite2+nspecies,id);
-    nMolecules2 = dvector(isite2,id);
+    const auto atom_site2_ind = species_ind_to_atom_prop_ind(isite2);
+    const auto atom_site2_ind_old = species_ind_to_atom_prop_ind_old(isite2);
+
+    nMoleculesOld2 = dvector(atom_site2_ind_old,id);
+    nMolecules2 = dvector(atom_site2_ind,id);
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
@@ -108,10 +118,14 @@ void getMixingWeights(
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      nMoleculesOFAold += dvector(ispecies+nspecies,id);
-      nMoleculesOFA += dvector(ispecies,id);
-      fractionOFAold += dvector(ispecies+nspecies,id)/nTotalOld;
-      fractionOFA += dvector(ispecies,id)/nTotal;
+
+      const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+      nMoleculesOFAold += dvector(atom_ind_old,id);
+      nMoleculesOFA += dvector(atom_ind,id);
+      fractionOFAold += dvector(atom_ind_old,id)/nTotalOld;
+      fractionOFA += dvector(atom_ind,id)/nTotal;
     }
     if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
@@ -158,6 +172,8 @@ PairTableRXKokkos<DeviceType>::PairTableRXKokkos(LAMMPS *lmp) : PairTable(lmp)
 
   site1 = nullptr;
   site2 = nullptr;
+
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -609,7 +625,8 @@ template<class DeviceType>
 static void getAllMixingWeights(
     int ntotal,
     typename ArrayTypes<DeviceType>::t_kkfloat_2d_randomread dvector,
-    int nspecies,
+    typename ArrayTypes<DeviceType>::t_int_1d species_ind_to_atom_prop_ind,
+    typename ArrayTypes<DeviceType>::t_int_1d species_ind_to_atom_prop_ind_old,
     int isite1, int isite2,
     bool fractionalWeighting,
     Kokkos::View<KK_FLOAT*, DeviceType> const& mixWtSite1old,
@@ -618,8 +635,12 @@ static void getAllMixingWeights(
     Kokkos::View<KK_FLOAT*, DeviceType> const& mixWtSite2) {
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ntotal),
    LAMMPS_LAMBDA(int i) {
-      getMixingWeights<DeviceType>(dvector,nspecies,isite1,isite2,fractionalWeighting,
-        i, mixWtSite1old(i), mixWtSite2old(i), mixWtSite1(i), mixWtSite2(i));
+      getMixingWeights<DeviceType>(dvector,
+                                   species_ind_to_atom_prop_ind,
+                                   species_ind_to_atom_prop_ind_old,
+                                   isite1,isite2,fractionalWeighting,i,
+                                   mixWtSite1old(i), mixWtSite2old(i),
+                                   mixWtSite1(i), mixWtSite2(i));
   });
 }
 
@@ -675,8 +696,10 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
   }
 
   getAllMixingWeights(ntotal, atomKK->k_dvector.template view<DeviceType>(),
-      nspecies, isite1, isite2, fractionalWeighting,
-      mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2);
+                      rx_fixKK->get_k_species_ind_to_atom_prop_ind().template view<DeviceType>(),
+                      rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().template view<DeviceType>(),
+                      isite1, isite2, fractionalWeighting,
+                      mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2);
 
   NeighListKokkos<DeviceType>* l =
     dynamic_cast<NeighListKokkos<DeviceType>*>(list);
@@ -1034,10 +1057,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
   if (!allocated) allocate();
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairTableRX requires a fix rx command.");
+  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK(lmp);
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
@@ -1052,24 +1072,25 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   if (me == 0) read_table(tb,arg[2],arg[3]);
   bcast_table(tb);
 
-  nspecies = atom->nspecies_dpd;
+  nspecies = rx_fixKK->get_nspecies();
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
+
   site1 = utils::strdup(arg[4]);
 
-  int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
+  const auto & species_str_to_species_ind =
+    rx_fixKK->get_species_str_to_species_ind();
+
+  if (species_str_to_species_ind.find(site1) == species_str_to_species_ind.end()
+      && strcmp(site1,"1fluid") != 0) {
+    error->all(FLERR,"Site1 name not recognized in pair coefficients");
   }
 
-  if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
-    error->all(FLERR,"Site1 name not recognized in pair coefficients");
   site2 = utils::strdup(arg[5]);
 
-  for (ispecies = 0; ispecies < nspecies; ispecies++)
-    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
-
-  if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
+  if (species_str_to_species_ind.find(site2) == species_str_to_species_ind.end()
+      && strcmp(site2,"1fluid") != 0) {
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
+  }
 
   // set table cutoff
 
@@ -1127,36 +1148,26 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   ntables++;
 
   {
-     if (strcmp(site1,"1fluid") == 0)
-       isite1 = OneFluidValue;
-     else {
-       isite1 = nspecies;
+    if (strcmp(site1,"1fluid") == 0)
+      isite1 = OneFluidValue;
+    else {
+      try {
+        isite1 = rx_fixKK->get_species_str_to_species_ind().at(site1);
+      } catch (const std::out_of_range &) {
+        error->all(FLERR,"Site1 name not recognized in pair coefficients");
+      }
+    }
 
-       for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site1, atom->dvname[k]) == 0) {
-           isite1 = k;
-           break;
-         }
-       }
-
-       if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
-     }
-
-     if (strcmp(site2,"1fluid") == 0)
-       isite2 = OneFluidValue;
-     else {
-       isite2 = nspecies;
-
-       for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site2, atom->dvname[k]) == 0) {
-           isite2 = ispecies;
-           break;
-         }
-       }
-
-       if (isite2 == nspecies)
-         error->all(FLERR,"isite2 == nspecies");
-     }
+    if (strcmp(site2,"1fluid") == 0)
+      isite2 = OneFluidValue;
+    else {
+      try {
+        isite2 = rx_fixKK->get_species_str_to_species_ind().at(site2);
+      }
+      catch (const std::out_of_range &) {
+        error->all(FLERR,"Site2 name not recognized in pair coefficients");
+      }
+    }
   }
 
 }
@@ -1206,13 +1217,17 @@ double PairTableRXKokkos<DeviceType>::single(int i, int j, int itype, int jtype,
   typename ArrayTypes<LMPHostType>::t_kkfloat_2d_randomread h_dvector =
     atomKK->k_dvector.view_hostkk();
   getMixingWeights<LMPHostType>(h_dvector,
-      nspecies, isite1, isite2, fractionalWeighting,
-      i,mixWtSite1old_i,mixWtSite2old_i,
-      mixWtSite1_i,mixWtSite2_i);
+                                rx_fixKK->get_k_species_ind_to_atom_prop_ind().view_host(),
+                                rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().view_host(),
+                                isite1, isite2, fractionalWeighting,
+                                i,mixWtSite1old_i,mixWtSite2old_i,
+                                mixWtSite1_i,mixWtSite2_i);
   getMixingWeights<LMPHostType>(h_dvector,
-      nspecies, isite1, isite2, fractionalWeighting,
-      j,mixWtSite1old_j,mixWtSite2old_j,
-      mixWtSite1_j,mixWtSite2_j);
+                                rx_fixKK->get_k_species_ind_to_atom_prop_ind().view_host(),
+                                rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().view_host(),
+                                isite1, isite2, fractionalWeighting,
+                                j,mixWtSite1old_j,mixWtSite2old_j,
+                                mixWtSite1_j,mixWtSite2_j);
 
   if (rsq < tb->innersq) error->one(FLERR,"Pair distance < table inner cutoff");
 
@@ -1291,4 +1306,3 @@ template class PairTableRXKokkos<LMPHostType>;
 #endif
 
 }
-

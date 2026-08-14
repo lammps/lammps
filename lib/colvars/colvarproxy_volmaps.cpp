@@ -52,14 +52,14 @@ int colvarproxy_volmaps::add_volmap_slot(int volmap_id)
 
 int colvarproxy_volmaps::check_volmap_by_id(int /* volmap_id */)
 {
-  return cvm::error("Error: selecting volumetric maps is not available.\n",
+  return cvm::error_static("Error: selecting volumetric maps is not available.\n",
                     COLVARS_NOT_IMPLEMENTED);
 }
 
 
 int colvarproxy_volmaps::check_volmap_by_name(const char * /* volmap_name */)
 {
-  return cvm::error("Error: selecting volumetric maps by name is not "
+  return cvm::error_static("Error: selecting volumetric maps by name is not "
                     "available.\n", COLVARS_NOT_IMPLEMENTED);
 }
 
@@ -91,7 +91,7 @@ int colvarproxy_volmaps::check_volmap_by_name(std::string const &volmap_name)
 void colvarproxy_volmaps::clear_volmap(int index)
 {
   if (((size_t) index) >= volmaps_ids.size()) {
-    cvm::error("Error: trying to unrequest a volumetric map that was not "
+    cvm::error_static("Error: trying to unrequest a volumetric map that was not "
                "previously requested.\n", COLVARS_INPUT_ERROR);
   }
 

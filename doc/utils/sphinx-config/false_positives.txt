@@ -517,6 +517,7 @@ Cerda
 ceriotti
 Ceriotti
 Cerutti
+cetab
 cfg
 CFG
 cfile
@@ -691,6 +692,7 @@ Crespi
 Creton
 Creuze
 Critchley
+Crocombette
 crossterm
 Crowson
 Crozier
@@ -1996,6 +1998,7 @@ Kemppainen
 Kemper
 kepler
 Kemppainen
+ketab
 keV
 Keyes
 keyfile
@@ -3635,6 +3638,7 @@ Rohart
 Roncaratti
 Ronchetti
 Ronevich
+Rojano
 Rosati
 Rosato
 Rosenberger

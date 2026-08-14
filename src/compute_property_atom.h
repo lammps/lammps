@@ -35,8 +35,13 @@ class ComputePropertyAtom : public Compute {
  private:
   int nvalues;
   int nmax;
-  int *index, *colindex;
   double *buf;
+
+  struct value_t {
+    int index, colindex;
+    void (ComputePropertyAtom::*pack_choice)(int);    // ptr to pack function
+  };
+  std::vector<value_t> values;
 
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
@@ -54,11 +59,6 @@ class ComputePropertyAtom : public Compute {
   double ***history;
 
   void setup_history();    // (re)resolve fix store/state and cache its extract() pointers
-
-  // function ptr for each attribute
-
-  using FnPtrPack = void (ComputePropertyAtom::*)(int);
-  FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);
   void pack_molecule(int);

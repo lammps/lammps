@@ -39,7 +39,7 @@ using namespace FixConst;
 
 template<class DeviceType>
 FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char **arg) :
-  FixEOStableRX(lmp, narg, arg)
+  FixEOStableRX(lmp, narg, arg), rx_fixKK(nullptr)
 {
   kokkosable = 1;
 
@@ -82,7 +82,7 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
   k_moleculeCorrCoeff.sync<DeviceType>();
   d_moleculeCorrCoeff = k_moleculeCorrCoeff.view<DeviceType>();
 
-  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix_unsafe(rx_fix);
+  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
 }
 
 /* ---------------------------------------------------------------------- */

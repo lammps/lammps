@@ -71,7 +71,6 @@ if(DOWNLOAD_RUNNER)
   ExternalProject_Add(runner_build
     GIT_REPOSITORY "https://gitlab.com/runner-suite/runner2.git"
     GIT_TAG "2.0.4_20260610"
-    UPDATE_DISCONNECTED YES
     GIT_SHALLOW YES
     GIT_PROGRESS YES
 

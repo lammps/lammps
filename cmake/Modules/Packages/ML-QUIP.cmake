@@ -56,7 +56,6 @@ if(DOWNLOAD_QUIP)
   ExternalProject_Add(quip_build
     GIT_REPOSITORY "https://github.com/libAtoms/QUIP/"
     GIT_TAG 1e2f84ba94bc715a5d7b0b0c7c2ba1b2d402e730
-    UPDATE_DISCONNECTED YES
     GIT_SHALLOW YES
     GIT_PROGRESS YES
     GIT_SUBMODULES "src/fox;src/GAP"

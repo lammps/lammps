@@ -63,7 +63,12 @@ void FixSpringRGKokkos<DeviceType>::post_force(int /*vflag*/)
   group->xcm(igroup, masstotal, xcm);
   double rg = group->gyration(igroup, masstotal, xcm);
 
-  double term1 = 2.0 * k * (1.0 - rg0/rg);
+    // rg == 0 means that either there are no atoms in the group or that
+  //         they are exactly on top of each other. nothing to do then
+
+  if (rg == 0.0) return;
+
+  const double term1 = 2.0 * k * (1.0 - rg0/rg);
 
   // apply restoring forces to atoms on device
 

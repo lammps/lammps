@@ -63,6 +63,8 @@ PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
 
 PairLJCutTIP4PLong::~PairLJCutTIP4PLong()
 {
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }

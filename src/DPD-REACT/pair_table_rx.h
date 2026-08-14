@@ -36,6 +36,7 @@ class PairTableRX : public PairTable {
   double memory_usage() override;
 
  protected:
+  class FixRX *rx_fix;
   int nspecies;
   char *site1, *site2;
   int isite1, isite2;

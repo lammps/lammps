@@ -154,6 +154,9 @@ void Variable::VarInfo::clear()
   name.clear();
   data = nullptr;
   reader = nullptr;
+  vec.n = vec.nmax = 0;
+  vec.dynamic = 1;
+  vec.currentstep = -1;
   vec.values = nullptr;
   num = 0;
   pad = 0;
@@ -179,6 +182,9 @@ Variable::VarInfo::VarInfo(VarInfo &&other) noexcept
   other.style = UNASSIGNED;
   other.reader = nullptr;
   other.data = nullptr;
+  other.vec.n = other.vec.nmax = 0;
+  other.vec.dynamic = 1;
+  other.vec.currentstep = -1;
   other.vec.values = nullptr;
   other.num = 0;
   other.pad = 0;
@@ -205,6 +211,9 @@ Variable::VarInfo &Variable::VarInfo::operator=(VarInfo &&other) noexcept
     other.style = UNASSIGNED;
     other.reader = nullptr;
     other.data = nullptr;
+    other.vec.n = other.vec.nmax = 0;
+    other.vec.dynamic = 1;
+    other.vec.currentstep = -1;
     other.vec.values = nullptr;
     other.eval_in_progress = 0;
     other.num = 0;
@@ -2787,8 +2796,10 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    if (arg2 == 0.0) error->one(FLERR,"Power by 0 in variable formula");
-    tree->value = pow(arg1,arg2);
+    if (arg2 == 0.0) tree->value = 1.0;
+    else if ((arg1 == 0.0) && (arg2 < 0.0))
+      error->one(FLERR,"Invalid power expression in variable formula");
+    else tree->value = pow(arg1,arg2);
     return tree->value;
   }
 
@@ -3155,7 +3166,6 @@ double Variable::collapse_tree(Tree *tree)
         ivalue3-ivalue1+1 < ivalue2 )
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
-    //else if (update->ntimestep <= ivalue3) {
     else {
       tree->value = ivalue1;
       double logsp = ivalue1;
@@ -3354,9 +3364,12 @@ double Variable::eval_tree(Tree *tree, int i)
     return fmod(eval_tree(tree->first,i),denom);
   }
   if (tree->type == CARAT) {
+    double base = eval_tree(tree->first,i);
     double exponent = eval_tree(tree->second,i);
-    if (exponent == 0.0) error->one(FLERR,"Power by 0 in variable formula");
-    return pow(eval_tree(tree->first,i),exponent);
+    if (exponent == 0.0) return 1.0;
+    else if ((base == 0.0) && (exponent < 0.0))
+      error->one(FLERR,"Invalid power expression in variable formula");
+    else return pow(base,exponent);
   }
   if (tree->type == UNARY) return -eval_tree(tree->first,i);
 

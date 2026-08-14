@@ -2,7 +2,7 @@
 lammps_version: 4 Jul 2026
 tags: graphics
 date_generated: Wed Aug  5 08:56:06 2026
-epsilon_projection: 0.5
+epsilon_projection: 0.55
 epsilon_blocks: 2
 nprocs: 1
 prerequisites: |

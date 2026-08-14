@@ -65,6 +65,7 @@ BondBPM::BondBPM(LAMMPS *_lmp) :
   break_flag = 1;
   ignore_special_flag = 0;
   nvalues = 0;
+  nvalues_ref = 0;
   writedata = 0;
 
   nhistory = 0;
@@ -128,15 +129,6 @@ void BondBPM::init_style()
       error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
     fix_store_local = dynamic_cast<FixStoreLocal *>(ifix);
     fix_store_local->nvalues = nvalues;
-  }
-
-  if (id_fix_write_ref) {
-    auto *ifix = modify->get_fix_by_id(id_fix_write_ref);
-    if (!ifix) error->all(FLERR, "Cannot find fix STORE/LOCAL id {}", id_fix_write_ref);
-    if (strcmp(ifix->style, "STORE/LOCAL") != 0)
-      error->all(FLERR, "Incorrect fix style matched, not WRITE/REFERENCE: {}", ifix->style);
-    fix_write_ref = dynamic_cast<FixStoreLocal *>(ifix);
-    fix_write_ref->nvalues = nvalues_ref;
   }
 
   if (overlay_flag) {
@@ -225,6 +217,22 @@ void BondBPM::init_style()
   }
 
   fix_bond_history->setflag = setflag;
+
+  if (id_fix_write_ref) {
+    nvalues_ref = nhistory + 2;
+
+    memory->destroy(output_data_ref);
+    memory->create(output_data_ref, nvalues_ref, "bond/bpm:output_data_ref");
+
+    auto *ifix = modify->get_fix_by_id(id_fix_write_ref);
+
+    if (!ifix) {
+      ifix = modify->add_fix(fmt::format("{} all STORE/LOCAL {} {}", id_fix_write_ref, write_ref_freq, nvalues_ref));
+    } else {
+      if (strcmp(ifix->style, "STORE/LOCAL") != 0) error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
+    }
+    fix_write_ref = dynamic_cast<FixStoreLocal *>(ifix);
+  }
 
   // find all instances of bond history to delete/shift data
   // (bond hybrid may create multiple)
@@ -380,19 +388,6 @@ void BondBPM::settings(int narg, char **arg)
 
     MPI_Bcast(bListdata, 2*nentries, MPI_INT, 0, world);
     MPI_Bcast(bHistdata, nentries*(nbonddata-2), MPI_DOUBLE, 0, world);
-  }
-
-  if (id_fix_write_ref) {
-
-    // get nvalues_ref from number of bond history vars
-    nvalues_ref = nhistory + 2;
-    memory->create(output_data_ref, nvalues_ref, "bond/bpm:output_data_ref");
-
-    auto *ifix = modify->get_fix_by_id(id_fix_write_ref);
-    if (!ifix)
-      ifix = modify->add_fix(
-          fmt::format("{} all STORE/LOCAL {} {}", id_fix_write_ref, write_ref_freq, nvalues_ref));
-    fix_write_ref = dynamic_cast<FixStoreLocal *>(ifix);
   }
 }
 

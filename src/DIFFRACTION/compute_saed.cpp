@@ -66,7 +66,8 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   if (dimension == 2)
     error->all(FLERR,"Compute SAED does not work with 2d structures");
   if (narg < 4+ntypes)
-    error->all(FLERR,"Illegal Compute SAED Command");
+    error->all(FLERR,"Compute SAED: expected a wavelength and the chemical symbol of each of "
+               "the {} atom types",ntypes);
   if (triclinic == 1)
     error->all(FLERR,"Compute SAED does not work with triclinic structures");
 
@@ -75,7 +76,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
 
   // Store radiation wavelength
   lambda = utils::numeric(FLERR,arg[3],false,lmp);
-  if (lambda < 0)
+  if (lambda <= 0)
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
   // Define atom types for atomic scattering factor coefficients
@@ -109,30 +110,30 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
 
     if (strcmp(arg[iarg],"Kmax") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal Compute SAED Command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute saed Kmax",error);
       Kmax = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (Kmax / 2 < 0 || Kmax / 2 > 6)
         error->all(FLERR,"Compute SAED: |K|max/2 must be between 0 and 6 ");
       iarg += 2;
 
     } else if (strcmp(arg[iarg],"Zone") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal Compute SAED Command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"compute saed Zone",error);
       Zone[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       Zone[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       Zone[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"c") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal Compute SAED Command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"compute saed c",error);
       c[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       c[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       c[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (c[0] < 0 || c[1] < 0 || c[2] < 0)
+      if ((c[0] <= 0.0) || (c[1] <= 0.0) || (c[2] <= 0.0))
         error->all(FLERR,"Compute SAED: dKs must be greater than 0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"dR_Ewald") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal Compute SAED Command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute saed dR_Ewald",error);
       dR_Ewald = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       if (dR_Ewald < 0)
         error->all(FLERR,"Compute SAED: dR_Ewald slice must be greater than 0");
@@ -147,7 +148,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
       manual_double = 1;
       iarg += 1;
 
-    } else error->all(FLERR,"Illegal Compute SAED Command");
+    } else error->all(FLERR,"Unknown compute saed keyword: {}",arg[iarg]);
   }
 
   // Zone flag to capture entire recrocal space volume
@@ -211,9 +212,10 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     Knmax[i] = (int) ceil(Kmax / dK[i]);
   }
 
-  // remember the box the reciprocal lattice was built from, see init()
+  // remember the box the reciprocal lattice was built from, see check_box_change()
 
-  for (int i=0; i<3; i++) prd_orig[i] = domain->prd[i];
+  for (int i=0; i<6; i++) h_orig[i] = domain->h[i];
+  warned_box = 0;
 
   // Finding the intersection of the reciprocal space and Ewald sphere
   bigint n = 0;
@@ -295,27 +297,46 @@ ComputeSAED::~ComputeSAED()
   delete[] ztype;
 }
 
+/* ----------------------------------------------------------------------
+   the mesh of reciprocal lattice nodes is built once, from the box as it was
+   when the compute was defined, because the length of the output vector
+   cannot change afterwards.  if the box has since been deformed, by fix npt,
+   fix deform or change_box, the mesh no longer corresponds to the current
+   cell.  called both at setup and on every invocation, since the box may
+   only start moving once time integration is under way.  manual spacing is
+   set in absolute units and is unaffected.
+------------------------------------------------------------------------- */
+
+void ComputeSAED::check_box_change()
+{
+  if (manual || warned_box) return;
+
+  // compare the whole box matrix, not only its diagonal: a pure shear changes
+  // the tilt factors and leaves the three edge lengths untouched.  the tilts
+  // are measured against the edge length that bounds them in LAMMPS.
+
+  double dmax = 0.0;
+  for (int i = 0; i < 3; i++)
+    dmax = MAX(dmax,fabs(domain->h[i]-h_orig[i])/h_orig[i]);
+  dmax = MAX(dmax,fabs(domain->h[3]-h_orig[3])/h_orig[1]);
+  dmax = MAX(dmax,fabs(domain->h[4]-h_orig[4])/h_orig[0]);
+  dmax = MAX(dmax,fabs(domain->h[5]-h_orig[5])/h_orig[0]);
+
+  if (dmax <= 1.0e-4) return;
+
+  warned_box = 1;
+  if (comm->me == 0)
+    error->warning(FLERR,"Box has changed by {:.3}% since compute {} was defined, but "
+                   "its reciprocal lattice is still that of the original box.  Define the "
+                   "compute after the box reaches its final size, or use manual spacing",
+                   dmax*100.0,id);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void ComputeSAED::init()
 {
-  // the mesh of reciprocal lattice nodes is built once, from the box as it was
-  // when the compute was defined, because the length of the output vector
-  // cannot change afterwards.  if the box has since been resized, by fix npt,
-  // fix deform or change_box, the mesh no longer corresponds to the current
-  // cell.  manual spacing is set in absolute units and is unaffected.
-
-  if (!manual) {
-    double dmax = 0.0;
-    for (int i = 0; i < 3; i++)
-      dmax = MAX(dmax,fabs(domain->prd[i]-prd_orig[i])/prd_orig[i]);
-
-    if ((dmax > 1.0e-4) && (comm->me == 0))
-      error->warning(FLERR,"Box size has changed by {:.3}% since compute {} was defined, but "
-                     "its reciprocal lattice is still that of the original box.  Define the "
-                     "compute after the box reaches its final size, or use manual spacing",
-                     dmax*100.0,id);
-  }
+  check_box_change();
 
   double dinv2, r2, EmdR2, EpdR2;
   double K[3];
@@ -373,6 +394,8 @@ void ComputeSAED::init()
 void ComputeSAED::compute_vector()
 {
   invoked_vector = update->ntimestep;
+
+  check_box_change();
 
   if (me == 0 && echo)
     utils::logmesg(lmp,"-----\nComputing SAED intensities");

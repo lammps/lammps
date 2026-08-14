@@ -26,7 +26,7 @@ action () {
   fi
 }
 
-# list of files with optional dependcies
+# list of files with optional dependencies
 
 action angle_spica.cpp
 action angle_spica.h

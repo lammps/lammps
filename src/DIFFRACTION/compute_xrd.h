@@ -46,8 +46,7 @@ class ComputeXRD : public Compute {
   int Knmax[3];         // maximum integer value for K points in each dimension
   double dK[3];         // Parameters controlling resolution of reciprocal space explored
   double prd_inv[3];    // Inverse spacing of unit cell
-  double dK_orig[3];    // Spacing that fixed the set of nodes explored
-  double prd_last[3];   // Box dimensions dK was last computed from
+  double h_last[6];      // Box matrix the reciprocal lattice was last built from
   int warned_range;     // 1 once the out of range warning has been given
   int triclinic;        // 1 if the simulation cell is triclinic
 
@@ -79,6 +78,8 @@ class ComputeXRD : public Compute {
   // parsed here so that the derived compute xrd/fft style, which builds on this
   // constructor to guarantee an identical set of reciprocal lattice nodes, can
   // accept its own keywords.  Unused by compute xrd itself.
+
+  static constexpr double MIN_OVERSAMPLE = 1.25;
 
   int nufft_order;            // width of the Kaiser-Bessel spreading stencil
   double nufft_oversample;    // oversampling factor of the FFT mesh

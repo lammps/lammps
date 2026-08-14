@@ -13,9 +13,10 @@ Syntax
 .. code-block:: LAMMPS
 
    compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
+   compute ID group-ID xrd/fft lambda type1 type2 ... typeN keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* xrd = style name of this compute command
+* xrd or xrd/fft = style name of this compute command
 * lambda = wavelength of incident radiation (length units)
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
@@ -34,9 +35,9 @@ Syntax
        *manual* = flag to use manual spacing of reciprocal lattice points
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
-       *order* value = width of the spreading stencil of compute xrd/fft
+       *order* value = width of the spreading stencil of compute xrd/fft (default 7)
          must be an odd number of 3 or larger
-       *oversample* value = oversampling factor of the FFT mesh of compute xrd/fft
+       *oversample* value = oversampling factor of the FFT mesh of compute xrd/fft (default 2.0)
          must be 1.25 or larger
 
 Examples
@@ -222,13 +223,13 @@ type. Valid chemical symbols for compute xrd are:
 
 .. versionchanged:: TBD
 
-   The table above listed *Co* twice, in the second and in the third of the
-   three cobalt entries, and the lookup returned the last match.  The
-   coefficients of the third entry are those of Co\ :math:`^{3+}`, so *Co*
-   selected the Co\ :math:`^{3+}` scattering factors and Co\ :math:`^{3+}`
-   itself could not be selected at all.  The third entry is now spelled
-   *Co3+*, so *Co* selects neutral cobalt.  Diffraction intensities of
-   simulations that used *Co* change accordingly.
+The table above listed *Co* twice, in the second and in the third of the three
+cobalt entries, and the lookup returned the last match.  The coefficients of the
+third entry are those of Co\ :math:`^{3+}`, so *Co* selected the
+Co\ :math:`^{3+}` scattering factors and Co\ :math:`^{3+}` itself could not be
+selected at all.  The third entry is now spelled *Co3+*, so *Co* selects neutral
+cobalt.  Diffraction intensities of simulations that used *Co* change
+accordingly.
 
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.
@@ -285,6 +286,32 @@ processors are used, so results are reproducible to round-off across processor
 counts.  The mesh is divided into slabs along :math:`z`; if there are more
 processors than slabs, the extra processors still contribute their own atoms
 but take no part in the transform.
+
+Cost for large systems
+""""""""""""""""""""""
+
+The work of spreading the atoms onto the mesh is divided over the processors,
+so the atoms themselves are not what limits the size of a calculation.  What
+limits it is the mesh, whose size is set by the volume of the simulation cell
+and by the resolution requested in reciprocal space, and which is currently
+built on every processor before being summed and divided among them.  Its
+memory therefore does not shrink as processors are added, and a warning is
+printed when it exceeds 512 Mbytes per processor.
+
+The *c* values are the control for this.  They set the spacing of the
+reciprocal lattice nodes in units of the inverse cell dimensions, so the number
+of mesh points falls as :math:`c^{-3}` and the number of rows of the output
+array falls with it.  For a cell of a few hundred nanometers, values of *c*
+between 10 and 30 keep both within a few hundred Mbytes per processor while
+still resolving a powder pattern far more finely than the width of a
+measured peak.  Values near 1 are appropriate for small cells, where every
+reciprocal lattice node of the cell is of interest.
+
+The number of rows of the output array is also the same on every processor,
+because that is what a global array is, and one value per row is communicated
+each time the compute is invoked.  Keeping the row count to a few million is
+therefore worthwhile for its own sake; :doc:`fix ave/histo <fix_ave_histo>`
+bins the rows into a pattern afterwards regardless of how many there are.
 
 Output info
 """""""""""
@@ -351,7 +378,7 @@ Default
 """""""
 
 The option defaults are *2Theta* = 1 179 (degrees), *c* = 1 1 1, *LP* = 1,
-no manual flag, no echo flag.
+no manual flag, no echo flag, *order* = 7, *oversample* = 2.0.
 
 ----------
 

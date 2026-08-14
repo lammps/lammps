@@ -59,8 +59,6 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-static constexpr double MIN_OVERSAMPLE = 1.25;
-
 /* ---------------------------------------------------------------------- */
 
 ComputeXRDFFT::ComputeXRDFFT(LAMMPS *lmp, int narg, char **arg) :
@@ -74,13 +72,10 @@ ComputeXRDFFT::ComputeXRDFFT(LAMMPS *lmp, int narg, char **arg) :
   setup_done = 0;
   fft_comm = MPI_COMM_NULL;
 
+  // both are validated by ComputeXRD, which parses them
+
   order = nufft_order;
   oversample = nufft_oversample;
-
-  if ((order < 3) || (order % 2 == 0))
-    error->all(FLERR,"Compute XRD/FFT: order must be an odd number of 3 or larger");
-  if (oversample < MIN_OVERSAMPLE)
-    error->all(FLERR,"Compute XRD/FFT: oversample must be {} or larger",MIN_OVERSAMPLE);
 
   nlower = -(order-1)/2;
   nupper = (order-1)/2;
@@ -176,7 +171,16 @@ void ComputeXRDFFT::set_grid()
     // oversampling.  the 2*Knmax+1 floor keeps modes +Knmax and -Knmax from
     // aliasing onto the same mesh point.
 
-    int nmin = (int) ceil(2.0*oversample*Knmax[d]);
+    // in double, since a large oversample would overflow the count of mesh
+    // points and silently give back a mesh smaller than the one asked for
+
+    double nreq = ceil(2.0*oversample*Knmax[d]);
+    if (nreq > MAXSMALLINT)
+      error->all(FLERR,"Compute XRD/FFT: oversample {} asks for more than {} mesh points in "
+                 "one dimension; reduce the 2Theta range, increase the c values, or reduce "
+                 "oversample",oversample,MAXSMALLINT);
+
+    int nmin = (int) nreq;
     if (nmin < 2*Knmax[d]+1) nmin = 2*Knmax[d]+1;
     if (nmin < order+1) nmin = order+1;
 
@@ -190,6 +194,17 @@ void ComputeXRDFFT::set_grid()
     error->all(FLERR,"Compute XRD/FFT: FFT mesh of {}x{}x{} is too large; reduce the 2Theta "
                "range, increase the c values, or reduce oversample",
                nmesh[0],nmesh[1],nmesh[2]);
+
+  // the mesh is replicated on every rank, see spread(), so its memory and the
+  // volume of the reduction that follows do not shrink as ranks are added.
+  // warn before that, rather than the number of atoms, becomes the limit
+
+  double mesh_mb = (double)ntotal*sizeof(FFT_SCALAR)/1024.0/1024.0;
+  if ((mesh_mb > 512.0) && (me == 0))
+    error->warning(FLERR,"Compute XRD/FFT mesh of {}x{}x{} needs {:.4} Mbytes on every MPI "
+                   "rank, and the mesh is replicated, so this does not shrink as ranks are "
+                   "added.  Increase the c values to explore reciprocal space more coarsely",
+                   nmesh[0],nmesh[1],nmesh[2],mesh_mb);
 
   // Beatty et al, IEEE Trans Med Imaging 24, 799 (2005), optimal Kaiser-Bessel
   // shape parameter for a stencil of width order at oversampling sigma
@@ -595,7 +610,7 @@ double ComputeXRDFFT::memory_usage()
   bytes += (double)size_array_rows*2 * sizeof(double);              // Iloc,Iall
   bytes += (double)nmesh[0]*nmesh[1]*nmesh[2] * sizeof(FFT_SCALAR); // density_all
   bytes += (double)nfft*3 * sizeof(FFT_SCALAR);                     // density_slab,work1
-  bytes += (double)nown*(3+nslot) * sizeof(double);                 // deconv,lp,asf,F
+  bytes += (double)nown*(4+nslot) * sizeof(double);                 // deconv,lp,asf,Fre,Fim
   bytes += (double)nown*2 * sizeof(int);                            // own_row,own_idx
   return bytes;
 }

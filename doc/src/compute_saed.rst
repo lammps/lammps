@@ -263,6 +263,8 @@ This compute is part of the DIFFRACTION package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
+.. versionchanged:: TBD
+
 The mesh of reciprocal lattice nodes is built once, when the compute is
 defined, because the length of the output vector cannot change afterwards.
 When the mesh is defined by the simulation domain and the box is later resized,

@@ -41,7 +41,7 @@ if (test $1 = 1) then
 fi
 
 
-# list of files with dependcies
+# list of files with dependencies
 
 action  constants_oxdna.cpp
 action  constants_oxdna.h

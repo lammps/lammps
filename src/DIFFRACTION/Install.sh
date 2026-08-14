@@ -26,7 +26,7 @@ action () {
   fi
 }
 
-# list of files with optional dependcies
+# list of files with optional dependencies
 
 action compute_saed.cpp
 action compute_saed.h

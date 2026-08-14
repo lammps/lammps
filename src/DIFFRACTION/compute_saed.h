@@ -35,12 +35,15 @@ class ComputeSAED : public Compute {
   double saed_var[10];
 
  private:
+  void check_box_change();
+
   int me;
   int *ztype;           // Atomic number of the different atom types
   double c[3];          // Parameters controlling resolution of reciprocal space explored
   double dR_Ewald;      // Thickness of Ewald sphere slice
   double prd_inv[3];    // Inverse spacing of unit cell
-  double prd_orig[3];   // Box dimensions the reciprocal lattice was built from
+  double h_orig[6];     // Box matrix the reciprocal lattice was built from
+  int warned_box;       // 1 once the box change warning has been given
   bool echo;            // echo compute_array progress
   bool manual;          // Turn on manual recpiprocal map
   int nRows;            // Number of relp explored

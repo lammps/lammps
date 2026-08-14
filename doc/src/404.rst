@@ -11,6 +11,7 @@
 
    **We are sorry.**
 
-   We have looked everywhere, but the page you asked for isn't
-   anywhere in this LAMMPS manual.  It may be in reference to a command that
-   has been renamed or removed, or the link was mistyped.  Please try again.
+   We have looked everywhere, but the page you asked for isn't anywhere in
+   this LAMMPS manual.  It may be in reference to a :doc:`command that
+   has been renamed or removed <Commands_removed>`, or the link was mistyped.
+   Please try again.

@@ -49,15 +49,6 @@ using namespace MathSpecialKokkos;
 enum{NONE,HARMONIC};
 enum{LUCY};
 
-namespace /* anonymous */
-{
-
-typedef double TimerType;
-TimerType getTimeStamp() { return platform::walltime(); }
-double getElapsedTime( const TimerType &t0, const TimerType &t1) { return t1-t0; }
-
-} // end namespace
-
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
@@ -80,6 +71,12 @@ FixRxKokkos<DeviceType>::~FixRxKokkos()
 {
   if (copymode) return;
 
+  memoryKK->destroy_kokkos(k_species_ind_to_atom_prop_ind,
+                           species_ind_to_atom_prop_ind);
+
+  memoryKK->destroy_kokkos(k_species_ind_to_atom_prop_ind_old,
+                           species_ind_to_atom_prop_ind_old);
+
   if (localTempFlag)
     memoryKK->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
 
@@ -89,10 +86,42 @@ FixRxKokkos<DeviceType>::~FixRxKokkos()
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
+const DAT::tdual_int_1d & FixRxKokkos<DeviceType>::get_k_species_ind_to_atom_prop_ind() const {
+  return k_species_ind_to_atom_prop_ind;
+}
+
+template <typename DeviceType>
+const DAT::tdual_int_1d & FixRxKokkos<DeviceType>::get_k_species_ind_to_atom_prop_ind_old() const {
+  return k_species_ind_to_atom_prop_ind_old;
+}
+
+template <typename DeviceType>
+void FixRxKokkos<DeviceType>::allocate_species_ind_to_atom_prop_ind_array() {
+  k_species_ind_to_atom_prop_ind.modify_host();
+  k_species_ind_to_atom_prop_ind_old.modify_host();
+
+  memoryKK->create_kokkos(k_species_ind_to_atom_prop_ind,
+                          species_ind_to_atom_prop_ind,
+                          nspecies, "fix:species_ind_to_atom_prop_ind");
+
+  memoryKK->create_kokkos(k_species_ind_to_atom_prop_ind_old,
+                          species_ind_to_atom_prop_ind_old,
+                          nspecies, "fix:species_ind_to_atom_prop_ind_old");
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <typename DeviceType>
 void FixRxKokkos<DeviceType>::post_constructor()
 {
   // Run the parents and then reset one value.
   FixRX::post_constructor();
+
+  k_species_ind_to_atom_prop_ind.modify_host();
+  k_species_ind_to_atom_prop_ind.template sync<DeviceType>();
+
+  k_species_ind_to_atom_prop_ind_old.modify_host();
+  k_species_ind_to_atom_prop_ind_old.template sync<DeviceType>();
 
   // Need a copy of this
   this->my_restartFlag = fix_species->restart_reset;
@@ -108,16 +137,15 @@ void FixRxKokkos<DeviceType>::init()
     pairDPDE = (PairDPDfdtEnergy *) force->pair_match("dpd/fdt/energy/kk",1);
 
   if (pairDPDE == nullptr)
-    error->all(FLERR,"Must use pair_style dpd/fdt/energy with fix rx");
+    error->all(FLERR, Error::NOLASTLINE, "Must use pair_style dpd/fdt/energy with fix rx");
 
   pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
   if (pairDPDEKK == nullptr)
-    error->all(FLERR,"Must use pair_style dpd/fdt/energy/kk with fix rx/kk");
+    error->all(FLERR, Error::NOLASTLINE, "Must use pair_style dpd/fdt/energy/kk with fix rx/kk");
 
-  bool eos_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^eos/table/rx")) eos_flag = true;
-  if (!eos_flag) error->all(FLERR,"fix rx requires fix eos/table/rx to be specified");
+  auto fixes = modify->get_fix_by_style("^eos/table/rx");
+  if (!fixes.size())
+    error->all(FLERR, Error::NOLASTLINE, "fix rx requires fix eos/table/rx to be specified");
 
   if (update_kinetics_data)
     create_kinetics_data();
@@ -408,14 +436,9 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
 
       yddnrm = sqrt( yddnrm / double(neq) );
 
-      //std::cout << "iter " << _iter << " hg " << hg << " y'' " << yddnrm << std::endl;
-      //std::cout << "ydot " << ydot[neq-1] << std::endl;
-
       // should we accept this?
       if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
-         //if (iter == max_iters)
-         //   fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
          break;
       }
 
@@ -435,8 +458,6 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
          hnew_is_ok = true;
       }
 
-      //printf("iter=%d, yddnrw=%e, hnew=%e, hmin=%e, hmax=%e\n", iter, yddnrm, hnew, hmin, hmax);
-
       hg = hnew;
       iter ++;
    }
@@ -445,7 +466,6 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
    h0 = hnew * 0.5;
    h0 = fmax(h0, hmin);
    h0 = fmin(h0, hmax);
-   //printf("h0=%e, hmin=%e, hmax=%e\n", h0, hmin, hmax);
 
    return (iter + 1);
 }
@@ -482,19 +502,13 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
 
   double t = 0.0;
 
-  if (h < h_min) {
-    //fprintf(stderr,"hin not implemented yet\n");
-    //exit(-1);
+  if (h < h_min)
     nfe = k_rkf45_h0 (neq, t, t_stop, h_min, h_max, h, y, rwork, userData);
-  }
-
-  //printf("t= %e t_stop= %e h= %e\n", t, t_stop, h);
 
   // Integrate until we reach the end time.
-  while (fabs(t - t_stop) > tround)
-  {
-    VectorType& yout = rwork;
-    VectorType  eout ( &yout[neq] );
+  while (fabs(t - t_stop) > tround) {
+    VectorType &yout = rwork;
+    VectorType  eout(&yout[neq]);
 
     // Take a trial step.
     k_rkf45_step (neq, h, y, yout, eout, userData);
@@ -726,8 +740,6 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
       // should we accept this?
       if (hnew_is_ok || iter == max_iters) {
          hnew = hg;
-         if (iter == max_iters)
-            fprintf(stderr, "ERROR_HIN_MAX_ITERS\n");
          break;
       }
 
@@ -755,7 +767,6 @@ int FixRxKokkos<DeviceType>::rkf45_h0(const int neq, const double t, const doubl
    h0 = hnew * 0.5;
    h0 = fmax(h0, hmin);
    h0 = fmin(h0, hmax);
-   //printf("h0=%e, hmin=%e, hmax=%e\n", h0, hmin, hmax);
 
    return (iter + 1);
 }
@@ -1127,50 +1138,9 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
    #undef nu
    #undef inu
    #undef isIntegral
-   //#undef invalidIndex
 
    return 0;
 }
-
-/* ---------------------------------------------------------------------- */
-
-/*template <typename DeviceType>
-  template <typename SolverType>
-// NOLINTNEXTLINE
-    KOKKOS_INLINE_FUNCTION
-void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
-{
-  if (atom->mask[i] & groupbit)
-  {
-    double *rwork = new double[8*nspecies];
-
-    UserRHSData userData;
-    userData.kFor = new double[nreactions];
-    userData.rxnRateLaw = new double[nreactions];
-
-    int ode_counter[4] = { 0 };
-
-    const double theta = (localTempFlag) ? dpdThetaLocal[i] : atom->dpdTheta[i];
-
-    //Compute the reaction rate constants
-    for (int irxn = 0; irxn < nreactions; irxn++)
-    {
-      if (SolverType::setToZero)
-        userData.kFor[irxn] = 0.0;
-      else
-        userData.kFor[irxn] = Arr[irxn]*pow(theta,nArr[irxn])*exp(-Ea[irxn]/force->boltz/theta);
-    }
-
-    if (odeIntegrationFlag == ODE_LAMMPS_RK4)
-      rk4(i, rwork, &userData);
-    else if (odeIntegrationFlag == ODE_LAMMPS_RKF45)
-      rkf45(i, rwork, &userData, ode_counter);
-
-    delete [] rwork;
-    delete [] userData.kFor;
-    delete [] userData.rxnRateLaw;
-  }
-} */
 
 /* ---------------------------------------------------------------------- */
 
@@ -1267,6 +1237,8 @@ void FixRxKokkos<DeviceType>::setup_pre_force(int vflag)
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::pre_force(int vflag)
 {
+  if (skipChemistry) return;
+
   this->solve_reactions( vflag, true );
 }
 
@@ -1318,8 +1290,11 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
     // Update ConcOld and initialize the ODE solution vector y[].
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
     {
-      const double tmp = d_dvector(ispecies, i);
-      d_dvector(ispecies+nspecies, i) = tmp;
+      const auto atom_ind = d_species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = d_species_ind_to_atom_prop_ind_old(ispecies);
+
+      const double tmp = d_dvector(atom_ind, i);
+      d_dvector(atom_ind_old, i) = tmp;
       y[ispecies] = tmp;
     }
 
@@ -1351,7 +1326,8 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
       else if (y[ispecies] < MY_EPSILON)
         y[ispecies] = 0.0;
 
-      d_dvector(ispecies,i) = y[ispecies];
+      const auto atom_ind = d_species_ind_to_atom_prop_ind(ispecies);
+      d_dvector(atom_ind,i) = y[ispecies];
     }
 
     // Update the iteration statistics counter. Is this unique for each iteration?
@@ -1369,8 +1345,6 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
 
   if (update_kinetics_data)
     create_kinetics_data();
-
-  //TimerType timer_start = getTimeStamp();
 
   this->nlocal = atom->nlocal;
   const int nghost = atom->nghost;
@@ -1423,7 +1397,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
 #undef _template_switch
   }
 
-  TimerType timer_localTemperature = getTimeStamp();
+  double timer_localTemperature = platform::walltime();
 
   // Total counters from the ODE solvers.
   CounterType TotalCounters;
@@ -1435,6 +1409,10 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   this->d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   this->d_dvector  = atomKK->k_dvector.view<DeviceType>();
   this->d_mask     = atomKK->k_mask.view<DeviceType>();
+  this->d_species_ind_to_atom_prop_ind =
+    k_species_ind_to_atom_prop_ind.view<DeviceType>();
+  this->d_species_ind_to_atom_prop_ind_old =
+    k_species_ind_to_atom_prop_ind_old.view<DeviceType>();
 
   // Get up-to-date data.
   atomKK->sync( execution_space, MASK_MASK | DVECTOR_MASK | DPDTHETA_MASK );
@@ -1478,7 +1456,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   else
     Kokkos::parallel_reduce( Kokkos::RangePolicy<DeviceType, Tag_FixRxKokkos_solveSystems<false> >(0,nlocal), *this, TotalCounters);
 
-  TimerType timer_ODE = getTimeStamp();
+  double time_ODE =  platform::walltime() - timer_localTemperature;
 
   // Check the error flag for any failures.
   k_error_flag.template modify<DeviceType>();
@@ -1490,24 +1468,21 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   atomKK->modified( execution_space, DVECTOR_MASK );
 
   // Communicate the updated species data to all nodes
-  atomKK->sync ( Host, DVECTOR_MASK );
+  atomKK->sync(Host, DVECTOR_MASK);
 
   comm->forward_comm(this);
 
-  atomKK->modified ( Host, DVECTOR_MASK );
+  atomKK->modified(Host, DVECTOR_MASK);
 
-  double time_ODE = getElapsedTime(timer_localTemperature, timer_ODE);
 
   // Warn the user if a failure was detected in the ODE solver.
   if (TotalCounters.nFails > 0) {
-    char sbuf[128];
-    sprintf(sbuf,"in FixRX::pre_force, ODE solver failed for %d atoms.", TotalCounters.nFails);
-    error->warning(FLERR, sbuf);
+    error->warning(FLERR, "in FixRX::pre_force, ODE solver failed for {} atoms.",
+                   TotalCounters.nFails);
   }
 
   // Compute and report ODE diagnostics, if requested.
-  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency != 0)
-  {
+  if (odeIntegrationFlag == ODE_LAMMPS_RKF45 && diagnosticFrequency != 0) {
     // Update the counters.
     diagnosticCounter[StepSum] += TotalCounters.nSteps;
     diagnosticCounter[FuncSum] += TotalCounters.nFuncs;
@@ -1529,7 +1504,7 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::odeDiagnostics()
 {
-  TimerType timer_start = getTimeStamp();
+  double timer_start = platform::walltime();
 
   // Compute:
   // 1) Average # of ODE integrator steps and RHS evaluations per atom globally.
@@ -1542,9 +1517,9 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
   // ... 3-5 are for load balancing diagnostics.
   //
   // To do this, we'll need to
-  // a) Allreduce (sum) the sum of nSteps / nFuncs. Dividing by atom->natoms
+  // a) Allreduce(sum) the sum of nSteps / nFuncs. Dividing by atom->natoms
   //    gives the avg # of steps/funcs per atom globally.
-  // b) Reduce (sum) to root the sum of squares of the differences.
+  // b) Reduce(sum) to root the sum of squares of the differences.
   //    i) Sum_i (steps_i - avg_steps_global)^2
   //   ii) Sum_i (funcs_i - avg_funcs_global)^2
   //  iii) (avg_steps_local - avg_steps_global)^2
@@ -1569,10 +1544,10 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
     my_vals[i] = this->diagnosticCounter[i] / nTimes;
   }
 
-  MPI_Allreduce (my_vals, sums, numCounters, MPI_DOUBLE, MPI_SUM, world);
+  MPI_Allreduce(my_vals, sums, numCounters, MPI_DOUBLE, MPI_SUM, world);
 
-  MPI_Reduce (my_vals, max_per_proc, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
-  MPI_Reduce (my_vals, min_per_proc, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
+  MPI_Reduce(my_vals, max_per_proc, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
+  MPI_Reduce(my_vals, min_per_proc, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
 
   const double nODEs = sums[numCounters-1];
 
@@ -1595,8 +1570,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
   double max_per_ODE[numCounters], min_per_ODE[numCounters];
 
   // Process the per-ODE RMS of the # of steps/funcs
-  if (diagnosticFrequency == 1)
-  {
+  if (diagnosticFrequency == 1) {
     h_diagnosticCounterPerODEnSteps = k_diagnosticCounterPerODEnSteps.view_host();
     h_diagnosticCounterPerODEnFuncs = k_diagnosticCounterPerODEnFuncs.view_host();
 
@@ -1608,16 +1582,14 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
     nlocal = atom->nlocal;
     HAT::t_int_1d h_mask = atomKK->k_mask.view_host();
 
-    for (int i = 0; i < numCounters; ++i)
-    {
+    for (int i = 0; i < numCounters; ++i) {
       my_sum_sq[i+numCounters] = 0;
       my_max[i] = 0;
       my_min[i] = DBL_MAX;
     }
 
     for (int j = 0; j < nlocal; ++j)
-      if (h_mask(j) & groupbit)
-      {
+      if (h_mask(j) & groupbit) {
         int nSteps = h_diagnosticCounterPerODEnSteps(j);
         double diff_nSteps = double( nSteps ) - avg_per_atom[StepSum];
         my_sum_sq[StepSum+numCounters] += diff_nSteps*diff_nSteps;
@@ -1635,29 +1607,20 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
     memoryKK->destroy_kokkos( k_diagnosticCounterPerODEnSteps, diagnosticCounterPerODEnSteps );
     memoryKK->destroy_kokkos( k_diagnosticCounterPerODEnFuncs, diagnosticCounterPerODEnFuncs );
 
-    MPI_Reduce (my_sum_sq, sum_sq, 2*numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
+    MPI_Reduce(my_sum_sq, sum_sq, 2*numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
 
-    MPI_Reduce (my_max, max_per_ODE, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
-    MPI_Reduce (my_min, min_per_ODE, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
+    MPI_Reduce(my_max, max_per_ODE, numCounters, MPI_DOUBLE, MPI_MAX, 0, world);
+    MPI_Reduce(my_min, min_per_ODE, numCounters, MPI_DOUBLE, MPI_MIN, 0, world);
   }
   else
-    MPI_Reduce (my_sum_sq, sum_sq, numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
+    MPI_Reduce(my_sum_sq, sum_sq, numCounters, MPI_DOUBLE, MPI_SUM, 0, world);
 
-  TimerType timer_stop = getTimeStamp();
-  double time_local = getElapsedTime( timer_start, timer_stop );
+  double time_local = platform::walltime() - timer_start;
 
   if (comm->me == 0) {
-    char smesg[128];
-
-#define print_mesg(smesg) {\
-    if (screen)  fprintf(screen,"%s\n", smesg); \
-    if (logfile) fprintf(logfile,"%s\n", smesg); }
-
-    sprintf(smesg, "FixRX::ODE Diagnostics:  # of iters  |# of rhs evals| run-time (sec) | # atoms");
-    print_mesg(smesg);
-
-    sprintf(smesg, "         AVG per ODE  : %-12.5g | %-12.5g | %-12.5g", avg_per_atom[0], avg_per_atom[1], avg_per_atom[2]);
-    print_mesg(smesg);
+    utils::logmesg(lmp,"FixRX::ODE Diagnostics:  # of iters  |# of rhs evals| run-time (sec) | # atoms\n");
+    utils::logmesg(lmp,"         AVG per ODE  : {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                   avg_per_atom[0], avg_per_atom[1], avg_per_atom[2]);
 
     // only valid for single time-step!
     if (diagnosticFrequency == 1) {
@@ -1665,41 +1628,32 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
       for (int i = 0; i < numCounters; ++i)
         rms_per_ODE[i] = sqrt( sum_sq[i+numCounters] / nODEs );
 
-      sprintf(smesg, "         RMS per ODE  : %-12.5g | %-12.5g ", rms_per_ODE[0], rms_per_ODE[1]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MAX per ODE  : %-12.5g | %-12.5g ", max_per_ODE[0], max_per_ODE[1]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MIN per ODE  : %-12.5g | %-12.5g ", min_per_ODE[0], min_per_ODE[1]);
-      print_mesg(smesg);
+      utils::logmesg(lmp, "         RMS per ODE  : {:>12.5g} | {:>12.5g}\n",
+                     rms_per_ODE[0], rms_per_ODE[1]);
+      utils::logmesg(lmp, "         MAX per ODE  : {:>12.5g} | {:>12.5g}\n",
+                     max_per_ODE[0], max_per_ODE[1]);
+      utils::logmesg(lmp, "         MIN per ODE  : {:>12.5g} | {:>12.5g}\n",
+                     min_per_ODE[0], min_per_ODE[1]);
     }
 
-    sprintf(smesg, "         AVG per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
-    print_mesg(smesg);
+    utils::logmesg(lmp,"         AVG per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                   avg_per_proc[StepSum], avg_per_proc[FuncSum], avg_per_proc[TimeSum], avg_per_proc[AtomSum]);
 
     if (comm->nprocs > 1) {
       double rms_per_proc[numCounters];
       for (int i = 0; i < numCounters; ++i)
         rms_per_proc[i] = sqrt( sum_sq[i] / comm->nprocs );
 
-      sprintf(smesg, "         RMS per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", rms_per_proc[0], rms_per_proc[1], rms_per_proc[2], rms_per_proc[AtomSum]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MAX per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", max_per_proc[0], max_per_proc[1], max_per_proc[2], max_per_proc[AtomSum]);
-      print_mesg(smesg);
-
-      sprintf(smesg, "         MIN per Proc : %-12.5g | %-12.5g | %-12.5g | %-12.5g", min_per_proc[0], min_per_proc[1], min_per_proc[2], min_per_proc[AtomSum]);
-      print_mesg(smesg);
+      utils::logmesg(lmp,"         RMS per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                     rms_per_proc[0], rms_per_proc[1], rms_per_proc[2], rms_per_proc[AtomSum]);
+      utils::logmesg(lmp,"         MAX per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                     max_per_proc[0], max_per_proc[1], max_per_proc[2], max_per_proc[AtomSum]);
+      utils::logmesg(lmp,"         MIN per Proc : {:>12.5g} | {:>12.5g} | {:>12.5g} | {:>12.5g}\n",
+                     min_per_proc[0], min_per_proc[1], min_per_proc[2], min_per_proc[AtomSum]);
     }
 
-    sprintf(smesg, "  AVG'd over %d time-steps", nTimes);
-    print_mesg(smesg);
-    sprintf(smesg, "  AVG'ing took %g sec", time_local);
-    print_mesg(smesg);
-
-#undef print_mesg
-
+    utils::logmesg(lmp, "  AVG'd over {} time-steps\n", nTimes);
+    utils::logmesg(lmp, "  AVG'ing took {} sec\n", time_local);
   }
 
   // Reset the counters.
@@ -1985,12 +1939,21 @@ int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, in
 {
   HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.view_host();
 
+  const auto & h_species_ind_to_atom_prop_ind =
+    k_species_ind_to_atom_prop_ind.view_host();
+
+  const auto & h_species_ind_to_atom_prop_ind_old =
+    k_species_ind_to_atom_prop_ind_old.view_host();
+
   int m = 0;
   for (int ii = 0; ii < n; ii++) {
     const int jj = list[ii];
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-      buf[m++] = h_dvector(ispecies,jj);
-      buf[m++] = h_dvector(ispecies+nspecies,jj);
+      const auto atom_ind = h_species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = h_species_ind_to_atom_prop_ind_old(ispecies);
+
+      buf[m++] = h_dvector(atom_ind,jj);
+      buf[m++] = h_dvector(atom_ind_old,jj);
     }
   }
   return m;
@@ -2003,12 +1966,21 @@ void FixRxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.view_host();
 
+  const auto & h_species_ind_to_atom_prop_ind =
+    k_species_ind_to_atom_prop_ind.view_host();
+
+  const auto & h_species_ind_to_atom_prop_ind_old =
+    k_species_ind_to_atom_prop_ind_old.view_host();
+
   const int last = first + n ;
   int m = 0;
   for (int ii = first; ii < last; ii++) {
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-      h_dvector(ispecies,ii) = buf[m++];
-      h_dvector(ispecies+nspecies,ii) = buf[m++];
+      const auto atom_ind = h_species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = h_species_ind_to_atom_prop_ind_old(ispecies);
+
+      h_dvector(atom_ind,ii) = buf[m++];
+      h_dvector(atom_ind_old,ii) = buf[m++];
     }
   }
 }

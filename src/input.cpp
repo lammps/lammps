@@ -898,7 +898,10 @@ void Input::clear()
   lmp->destroy();
   lmp->create();
   lmp->post_create();
+
+  // reset to clean status for classes that are not re-created
   variable->clear_in_progress();
+  error->reset_warn();
 }
 
 /* ---------------------------------------------------------------------- */

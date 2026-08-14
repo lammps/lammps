@@ -1,0 +1,122 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-1182-g53c241293a-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Ca-O melt with Pedone potential
+
+units metal
+atom_style charge
+
+lattice fcc 4.8105  # experimental lattice parameter for fcc-lattice Ca cations
+Lattice spacing in x,y,z = 4.8105 4.8105 4.8105
+
+region box block 0 4 0 4 0 4
+create_box 2 box
+Created orthogonal box = (0 0 0) to (19.242 19.242 19.242)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 256 atoms
+  using lattice units in orthogonal box = (0 0 0) to (19.242 19.242 19.242)
+  create_atoms CPU = 0.000 seconds
+
+lattice fcc 4.8105 origin 0.5 0.5 0.5 # O anion lattice shifted by half a unit cell
+Lattice spacing in x,y,z = 4.8105 4.8105 4.8105
+create_atoms 2 box
+Created 256 atoms
+  using lattice units in orthogonal box = (0 0 0) to (19.242 19.242 19.242)
+  create_atoms CPU = 0.000 seconds
+
+mass 1 40.078
+mass 2 15.999
+
+set type 1 charge 1.2
+Setting atom values ...
+  256 settings made for charge
+set type 2 charge -1.2
+Setting atom values ...
+  256 settings made for charge
+
+timestep 0.002
+neigh_modify delay 5 every 1 check yes
+
+pair_style hybrid/overlay pedone 15.0 coul/long 15.0
+kspace_style pppm 1.0e-6
+
+pair_coeff * * coul/long
+pair_coeff 1 2 pedone 0.030211 2.241334 2.923245 5.0
+pair_coeff 2 2 pedone 0.042395 1.379316 3.618701 22.0
+
+velocity all create 6000.0 98347
+
+fix 1 all nvt temp 3000.0 3000.0 0.1
+
+# dump 1 all atom 500 Ca-O-melt.lammpstrj
+
+thermo 100
+run 1000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.23676226
+  grid = 24 24 24
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.3089053e-05
+  estimated relative force accuracy = 9.089844e-07
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 29791 13824
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 17
+  ghost atom cutoff = 17
+  binsize = 8.5, bins = 3 3 3
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair pedone, perpetual, skip from (2)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.239 | 9.239 | 9.239 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   6000          -3771.5568      0             -3375.2452      34213.144    
+       100   2894.1756     -3562.491       0             -3371.3251      114640.32    
+       200   2980.3532     -3570.2657      0             -3373.4076      123673.57    
+       300   2783.0436     -3574.5808      0             -3390.7554      119791.26    
+       400   3021.6564     -3568.2148      0             -3368.6286      116032.33    
+       500   3112.041      -3580.0175      0             -3374.4612      114798.61    
+       600   2973.4297     -3577.0564      0             -3380.6556      111844.04    
+       700   3180.263      -3568.4606      0             -3358.3981      121002.25    
+       800   2923.8112     -3573.3018      0             -3380.1784      111459.45    
+       900   2940.5447     -3572.1497      0             -3377.9211      118221.95    
+      1000   3070.655      -3575.5842      0             -3372.7615      114289.62    
+Loop time of 7.86105 on 1 procs for 1000 steps with 512 atoms
+
+Performance: 21.982 ns/day, 1.092 hours/ns, 127.209 timesteps/s, 65.131 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.4158     | 6.4158     | 6.4158     |   0.0 | 81.62
+Kspace  | 1.0371     | 1.0371     | 1.0371     |   0.0 | 13.19
+Neigh   | 0.37419    | 0.37419    | 0.37419    |   0.0 |  4.76
+Comm    | 0.025555   | 0.025555   | 0.025555   |   0.0 |  0.33
+Output  | 0.00022174 | 0.00022174 | 0.00022174 |   0.0 |  0.00
+Modify  | 0.005093   | 0.005093   | 0.005093   |   0.0 |  0.06
+Other   |            | 0.003029   |            |       |  0.04
+
+Nlocal:            512 ave         512 max         512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          10892 ave       10892 max       10892 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         374451 ave      374451 max      374451 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 374451
+Ave neighs/atom = 731.34961
+Neighbor list builds = 71
+Dangerous builds = 0
+Total wall time: 0:00:07

@@ -27,6 +27,7 @@
 #include "error.h"
 #include "modify.h"
 #include "fix.h"
+#include "fix_rx.h"
 
 
 using namespace LAMMPS_NS;
@@ -44,14 +45,11 @@ enum{NONE,RLINEAR,RSQ,BMP};
 
 /* ---------------------------------------------------------------------- */
 
-PairTableRX::PairTableRX(LAMMPS *lmp) : PairTable(lmp)
-{
-  fractionalWeighting = true;
-  site1 = nullptr;
-  site2 = nullptr;
-  nmax_rx = 0;
-  mixWtSite1old = mixWtSite2old = mixWtSite1 = mixWtSite2 = nullptr;
-}
+PairTableRX::PairTableRX(LAMMPS *lmp) :
+  PairTable(lmp), rx_fix(nullptr), site1(nullptr), site2(nullptr), fractionalWeighting(true),
+  nmax_rx(0), mixWtSite1old(nullptr), mixWtSite2old(nullptr),
+  mixWtSite1(nullptr), mixWtSite2(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
@@ -59,8 +57,8 @@ PairTableRX::~PairTableRX()
 {
   if (copymode) return;
 
-  delete [] site1;
-  delete [] site2;
+  delete[] site1;
+  delete[] site2;
 
   memory->destroy(mixWtSite1old);
   memory->destroy(mixWtSite2old);
@@ -302,13 +300,20 @@ void PairTableRX::settings(int narg, char **arg)
 
 void PairTableRX::coeff(int narg, char **arg)
 {
-  if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
-  if (!allocated) allocate();
+  if (narg != 6 && narg != 7)
+    error->all(FLERR,"Incorrect args for pair coefficients{}", utils::errorurl(21));
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"Pair style table/rx requires a fix rx command.");
+  // get only the plain version of the fix, KOKKOS version is not derived from this class
+  auto fixes = modify->get_fix_by_style("^rx$");
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+  if (!rx_fix)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
+
+  if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi;
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
@@ -323,25 +328,25 @@ void PairTableRX::coeff(int narg, char **arg)
   if (me == 0) read_table(tb,arg[2],arg[3]);
   bcast_table(tb);
 
-  nspecies = atom->nspecies_dpd;
+  nspecies = rx_fix->get_nspecies();
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
   site1 = utils::strdup(arg[4]);
 
-  int ispecies;
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site1,&atom->dvname[ispecies][0]) == 0) break;
-  }
-  if (ispecies == nspecies && strcmp(site1,"1fluid") != 0)
+  const auto & species_str_to_species_ind =
+    rx_fix->get_species_str_to_species_ind();
+
+  if (species_str_to_species_ind.find(site1) == species_str_to_species_ind.end()
+      && strcmp(site1,"1fluid") != 0) {
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
+  }
 
   site2 = utils::strdup(arg[5]);
 
-  for (ispecies = 0; ispecies < nspecies; ispecies++) {
-    if (strcmp(site2,&atom->dvname[ispecies][0]) == 0) break;
-  }
-  if (ispecies == nspecies && strcmp(site2,"1fluid") != 0)
+  if (species_str_to_species_ind.find(site2) == species_str_to_species_ind.end()
+      && strcmp(site2,"1fluid") != 0) {
     error->all(FLERR,"Site2 name not recognized in pair coefficients");
+  }
 
   // set table cutoff
 
@@ -399,36 +404,26 @@ void PairTableRX::coeff(int narg, char **arg)
   ntables++;
 
   {
-     if (strcmp(site1,"1fluid") == 0)
-       isite1 = OneFluidValue;
-     else {
-       isite1 = nspecies;
+    if (strcmp(site1,"1fluid") == 0)
+      isite1 = OneFluidValue;
+    else {
+      try {
+        isite1 = rx_fix->get_species_str_to_species_ind().at(site1);
+      } catch (const std::out_of_range &) {
+        error->all(FLERR,"Site1 name not recognized in pair coefficients");
+      }
+    }
 
-       for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site1, atom->dvname[k]) == 0) {
-           isite1 = k;
-           break;
-         }
-       }
-
-       if (isite1 == nspecies) error->all(FLERR,"isite1 == nspecies");
-     }
-
-     if (strcmp(site2,"1fluid") == 0)
-       isite2 = OneFluidValue;
-     else {
-       isite2 = nspecies;
-
-       for (int k = 0; k < nspecies; k++) {
-         if (strcmp(site2, atom->dvname[k]) == 0) {
-           isite2 = ispecies;
-           break;
-         }
-       }
-
-       if (isite2 == nspecies)
-         error->all(FLERR,"isite2 == nspecies");
-     }
+    if (strcmp(site2,"1fluid") == 0)
+      isite2 = OneFluidValue;
+    else {
+      try {
+        isite2 = rx_fix->get_species_str_to_species_ind().at(site2);
+      }
+      catch (const std::out_of_range &) {
+        error->all(FLERR,"Site2 name not recognized in pair coefficients");
+      }
+    }
   }
 
 }
@@ -516,24 +511,39 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
   double nMoleculesOld2, nMolecules2;
   double nTotal, nTotalOld;
 
+  const auto & species_ind_to_atom_prop_ind =
+    rx_fix->get_species_ind_to_atom_prop_ind();
+
+  const auto & species_ind_to_atom_prop_ind_old =
+    rx_fix->get_species_ind_to_atom_prop_ind_old();
+
   nTotal = 0.0;
   nTotalOld = 0.0;
   for (int ispecies = 0; ispecies < nspecies; ++ispecies) {
-    nTotal += atom->dvector[ispecies][id];
-    nTotalOld += atom->dvector[ispecies+nspecies][id];
+    const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old[ispecies];
+
+    nTotal += atom->dvector[atom_ind][id];
+    nTotalOld += atom->dvector[atom_ind_old][id];
   }
   if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
     error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
-    nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
-    nMolecules1 = atom->dvector[isite1][id];
+    const auto atom_site1_ind = species_ind_to_atom_prop_ind[isite1];
+    const auto atom_site1_ind_old = species_ind_to_atom_prop_ind_old[isite1];
+
+    nMoleculesOld1 = atom->dvector[atom_site1_ind_old][id];
+    nMolecules1 = atom->dvector[atom_site1_ind][id];
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false) {
-    nMoleculesOld2 = atom->dvector[isite2+nspecies][id];
-    nMolecules2 = atom->dvector[isite2][id];
+    const auto atom_site2_ind = species_ind_to_atom_prop_ind[isite2];
+    const auto atom_site2_ind_old = species_ind_to_atom_prop_ind_old[isite2];
+
+    nMoleculesOld2 = atom->dvector[atom_site2_ind_old][id];
+    nMolecules2 = atom->dvector[atom_site2_ind][id];
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
@@ -546,10 +556,14 @@ void PairTableRX::getMixingWeights(int id, double &mixWtSite1old, double &mixWtS
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
-      nMoleculesOFA += atom->dvector[ispecies][id];
-      fractionOFAold += atom->dvector[ispecies+nspecies][id]/nTotalOld;
-      fractionOFA += atom->dvector[ispecies][id]/nTotal;
+
+      const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+      const auto atom_ind_old = species_ind_to_atom_prop_ind_old[ispecies];
+
+      nMoleculesOFAold += atom->dvector[atom_ind_old][id];
+      nMoleculesOFA += atom->dvector[atom_ind][id];
+      fractionOFAold += atom->dvector[atom_ind_old][id]/nTotalOld;
+      fractionOFA += atom->dvector[atom_ind][id]/nTotal;
     }
     if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);

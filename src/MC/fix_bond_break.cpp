@@ -583,7 +583,7 @@ void FixBondBreak::rebuild_special_one(int m)
   nspecial[m][0] = cn1;
   nspecial[m][1] = cn2;
   nspecial[m][2] = cn3;
-  memcpy(special[m],copy,cn3*sizeof(int));
+  memcpy(special[m],copy,cn3*sizeof(tagint));
 }
 
 /* ----------------------------------------------------------------------

@@ -1,0 +1,50 @@
+units metal
+atom_style full
+boundary p p p
+
+read_data data.bazro3yh
+include ff.lmp
+
+molecule pre1   pre1.mol
+molecule post1  post1.mol
+molecule pre2   pre2.mol
+molecule post2  post2.mol
+molecule pre3   pre3.mol
+molecule post3  post3.mol
+molecule pre4   pre4.mol
+molecule post4  post4.mol
+molecule o4 o4.mol
+
+# Per-species diabatic offset, applied as an ordinary pair interaction (see
+# pair_style template/offset, added to the hybrid/overlay list in ff.lmp):
+# a constant energy for every O4 in the system.  Decoupled from fix msevb.
+pair_coeff * * template/offset o4 0.843
+
+fix evb all msevb         &
+  coupling geometry/gaussian lambda 0.7998 zeta 16  &
+  reaction pre1 post1 react.map 1.9 taper 1.7 &
+  reaction pre2 post2 react.map 1.9 taper 1.7 &
+  reaction pre3 post3 react.map 1.9 taper 1.7 &
+  reaction pre4 post4 react.map 1.9 taper 1.7 &
+  shells 1         &
+  file msevb.json every 1
+
+fix_modify evb energy yes
+
+fix nve all nve
+fix tst all temp/csvr 1500 1500 0.1 12345
+timestep 0.001
+velocity all create 1500 98765 mom yes dist gaussian
+fix com all momentum 100 linear 1 1 1
+
+thermo_style custom step temp pe ke ecouple f_evb econserve
+thermo_modify flush yes
+thermo 1
+
+variable p world 0 1
+
+labelmap atom 1  Ba 2  Zr 3  Y 4  O1 5  O2 6  O3 7  H1 8  O4
+#dump all_dump all custom 1 all_dump.lammpstrj.${p} id typelabel x y z
+#dump msevb_dump evb_atoms custom 1 msevb_dump.lammpstrj.${p} id typelabel x y z
+
+run 0

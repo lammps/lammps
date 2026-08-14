@@ -1,0 +1,33 @@
+units metal
+atom_style full
+boundary p p p
+
+read_data data.bazro3h
+include ff.lmp
+
+molecule pre pre.mol
+molecule post post.mol
+
+fix evb all msevb         &
+  reaction pre post react.map 1.9 taper 1.7 shells 1 coupling geometry/gaussian lambda 0.7998 zeta 16 &
+  file msevb.json every 1
+
+fix_modify evb energy yes
+
+fix nve all nve
+fix tst all temp/csvr 1500 1500 0.1 12345
+timestep 0.001
+velocity all create 1500.0 98765 mom yes dist gaussian
+fix com all momentum 100 linear 1 1 1
+
+variable p world 0 1
+
+labelmap atom 1  Ba 2  Zr 3   Y 4  O1 5  O2 6  O3 7  H1
+#dump all_dump all custom 1 all_dump.lammpstrj.${p} id typelabel x y z
+#dump msevb_dump evb_atoms custom 1 msevb_dump.lammpstrj.${p} id typelabel x y z
+
+thermo_style custom step temp pe ke etotal f_evb
+thermo_modify flush yes
+thermo 1
+
+run 0

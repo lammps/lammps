@@ -1,0 +1,38 @@
+units real
+atom_style full
+boundary p p p
+
+read_data data.imidazole
+include ff.lmp
+
+variable i0 equal ${iseed0}
+variable i1 equal ${iseed1}
+
+molecule pre  pre.mol
+molecule post post.mol
+
+fix evb all msevb         &
+  reaction pre post react.map 2.8 taper 2.4 shells 3 coupling energy/gaussian a 18.448 b 0.0002821 &
+  file msevb.json every 1000
+
+fix_modify evb energy yes
+
+fix nve all nve
+fix tst all temp/csvr 393 393 0.1 ${i0}
+velocity all create 393.0 ${i1} mom yes dist gaussian
+fix com all momentum 100 linear 1 1 1
+
+timestep 1
+
+variable p world 0 1 2 3 4 5 6 7 8 9
+
+thermo_style custom step temp pe ke etotal f_evb
+thermo_modify flush yes
+thermo 1000
+
+labelmap atom 1 C1Im  2 NAIm  3 C2Im  4 NCIm  5 C3Im  6 H1Im  7 HNIm  8 H3Im  9 H4Im 10 C1Ih 11 NAIh 12 C2Ih 13 H4Ih 14 HNIh 15 H5Ih
+
+dump all_dump all custom 1000 all_dump.lammpstrj.${p} id typelabel x y z
+dump msevb_dump evb_atoms custom 1000 msevb_dump.lammpstrj.${p} id typelabel x y z
+
+run 10000000

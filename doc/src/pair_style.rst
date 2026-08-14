@@ -403,6 +403,7 @@ accelerated styles exist.
 * :doc:`table <pair_table>` - tabulated pair potential
 * :doc:`table/rx <pair_table_rx>` -
 * :doc:`tdpd <pair_mesodpd>` - tDPD particle interactions
+* :doc:`template/offset <pair_template_offset>` - constant energy offset per molecule-template match
 * :doc:`tersoff <pair_tersoff>` - Tersoff 3-body potential
 * :doc:`tersoff/mod <pair_tersoff_mod>` - modified Tersoff 3-body potential
 * :doc:`tersoff/mod/c <pair_tersoff_mod>` -

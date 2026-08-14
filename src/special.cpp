@@ -54,12 +54,12 @@ Special::~Special()
    store first 3 counters in nspecial[i], and 4th in nspecial15[i]
 ------------------------------------------------------------------------- */
 
-void Special::build()
+void Special::build(bool silent)
 {
   MPI_Barrier(world);
   double time1 = platform::walltime();
 
-  if (me == 0) {
+  if (me == 0 && !silent) {
     const double * const special_lj   = force->special_lj;
     const double * const special_coul = force->special_coul;
     utils::logmesg(lmp, "Finding 1-2 1-3 1-4 neighbors ...\n"
@@ -101,8 +101,8 @@ void Special::build()
 
   // print max # of 1-2 neighbors
 
-  if (me == 0)
-    utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n",maxall);
+  if (me == 0 && !silent)
+    utils::logmesg(lmp,"{:>6} = max # of 1-2 neighbors\n", maxall);
 
   // done if special_bond weights for 1-3, 1-4 are set to 1.0
   // onefive_flag must also be off, else 1-4 is needed to create 1-5
@@ -111,11 +111,11 @@ void Special::build()
       force->special_lj[2] == 1.0 && force->special_coul[2] == 1.0 &&
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
-    combine();
+    combine(silent);
     fix_alteration();
     memory->destroy(procowner);
     memory->destroy(atomIDs);
-    timer_output(time1);
+    timer_output(time1, silent);
     return;
   }
 
@@ -126,7 +126,7 @@ void Special::build()
 
   // print max # of 1-3 neighbors
 
-  if (me == 0)
+  if (me == 0 && !silent)
     utils::logmesg(lmp,"{:>6} = max # of 1-3 neighbors\n",maxall);
 
   // done if special_bond weights for 1-4 are set to 1.0
@@ -136,11 +136,11 @@ void Special::build()
       force->special_lj[3] == 1.0 && force->special_coul[3] == 1.0) {
     dedup();
     if (force->special_angle) angle_trim();
-    combine();
+    combine(silent);
     fix_alteration();
     memory->destroy(procowner);
     memory->destroy(atomIDs);
-    timer_output(time1);
+    timer_output(time1, silent);
     return;
   }
 
@@ -151,7 +151,7 @@ void Special::build()
 
   // print max # of 1-4 neighbors
 
-  if (me == 0)
+  if (me == 0 && !silent)
     utils::logmesg(lmp,"{:>6} = max # of 1-4 neighbors\n",maxall);
 
   // optionally store 1-5 neighbors
@@ -160,7 +160,7 @@ void Special::build()
 
   if (onefive_flag) {
     onefive_build();
-    if (me == 0)
+    if (me == 0 && !silent)
       utils::logmesg(lmp,"{:>6} = max # of 1-5 neighbors\n",maxall);
   }
 
@@ -169,11 +169,11 @@ void Special::build()
   dedup();
   if (force->special_angle) angle_trim();
   if (force->special_dihedral) dihedral_trim();
-  combine();
+  combine(silent);
   fix_alteration();
   memory->destroy(procowner);
   memory->destroy(atomIDs);
-  timer_output(time1);
+  timer_output(time1, silent);
 }
 
 /* ----------------------------------------------------------------------
@@ -753,7 +753,7 @@ void Special::dedup()
    if 1-5 is enabled, reset nspecial15/special15 to remove dups with 1-2,1-3,1-4
 ------------------------------------------------------------------------- */
 
-void Special::combine()
+void Special::combine(bool silent)
 {
   int i,j;
   tagint m;
@@ -852,7 +852,7 @@ void Special::combine()
 
   force->special_extra = 0;
 
-  if (me == 0)
+  if (me == 0 && !silent)
     utils::logmesg(lmp,"{:>6} = max # of special neighbors\n",atom->maxspecial);
 
   if (lmp->kokkos) {
@@ -1487,9 +1487,9 @@ void Special::fix_alteration()
    print timing output
 ------------------------------------------------------------------------- */
 
-void Special::timer_output(double time1)
+void Special::timer_output(double time1, bool silent)
 {
-  if (comm->me == 0)
+  if (comm->me == 0 && !silent)
     utils::logmesg(lmp,"  special bonds CPU = {:.3f} seconds\n",
                    platform::walltime()-time1);
 }

@@ -1,0 +1,468 @@
+##############################################################################################
+#### Imidazole (Im) and Imidazolium (ImH) GAFF Force Field
+#### Source: Chen, Yan, Voth, J. Phys. Chem. A 2009, 113, 4507-4517
+#### Table 1: GAFF atom types, RESP partial charges (HF/6-31G*), and VDW parameters
+#### Table 2: Intramolecular bond, angle, dihedral, and improper parameters
+#### NOTE: All 120 pair_coeff cross-terms expanded explicitly via Lorentz-Berthelot rules:
+####       epsilon_ij = sqrt(epsilon_i * epsilon_j),  sigma_ij = (sigma_i + sigma_j) / 2
+##############################################################################################
+#@ 15  atom types
+
+# Imidazole atom types (Figure 1a)
+variable  C1Im   equal  1    # GAFF: CD   C1 (adjacent to NA)
+variable  NAIm   equal  2    # GAFF: NA   N1 (N-H nitrogen)
+variable  C2Im   equal  3    # GAFF: CD   C2 (between two N)
+variable  NCIm   equal  4    # GAFF: NC   N2 (non-H-bearing nitrogen)
+variable  C3Im   equal  5    # GAFF: CC   C3 (adjacent to NC)
+variable  H1Im   equal  6    # GAFF: H4   H on C1
+variable  HNIm   equal  7    # GAFF: HN   H on N1
+variable  H3Im   equal  8    # GAFF: H5   H on C2
+variable  H4Im   equal  9    # GAFF: H4   H on C3
+
+# Imidazolium atom types (Figure 1b; C1=C3 and N1=N2 by molecular symmetry)
+variable  C1Ih  equal 10    # GAFF: C2   C1/C3 (adjacent to NA)
+variable  NAIh  equal 11    # GAFF: NA   N1/N2 (both N-H bearing)
+variable  C2Ih  equal 12    # GAFF: C2   C2 (between two N)
+variable  H4Ih  equal 13    # GAFF: H4   H on C1/C3
+variable  HNIh  equal 14    # GAFF: HN   H on N
+variable  H5Ih  equal 15    # GAFF: H5   H on C2
+
+##############################################################################################
+#### Atoms' masses
+##############################################################################################
+
+# Imidazole
+mass  ${C1Im}   12.011
+mass  ${NAIm}   14.007
+mass  ${C2Im}   12.011
+mass  ${NCIm}   14.007
+mass  ${C3Im}   12.011
+mass  ${H1Im}    1.008
+mass  ${HNIm}    1.008
+mass  ${H3Im}    1.008
+mass  ${H4Im}    1.008
+
+# Imidazolium
+mass  ${C1Ih}  12.011
+mass  ${NAIh}  14.007
+mass  ${C2Ih}  12.011
+mass  ${H4Ih}   1.008
+mass  ${HNIh}   1.008
+mass  ${H5Ih}   1.008
+
+##############################################################################################
+#### Atoms' charges (RESP charges from HF/6-31G*, Table 1)
+##############################################################################################
+
+# Imidazole (Table 1a)
+set type ${C1Im}  charge  -0.335300
+set type ${NAIm}  charge  -0.221400
+set type ${C2Im}  charge   0.203000
+set type ${NCIm}  charge  -0.534800
+set type ${C3Im}  charge   0.146900
+set type ${H1Im}  charge   0.213700
+set type ${HNIm}  charge   0.311000
+set type ${H3Im}  charge   0.111100
+set type ${H4Im}  charge   0.105800
+
+# Imidazolium (Table 1b)
+set type ${C1Ih}  charge  -0.127900
+set type ${NAIh}  charge  -0.146900
+set type ${C2Ih}  charge   0.065000
+set type ${H4Ih}  charge   0.251300
+set type ${HNIh}  charge   0.371000
+set type ${H5Ih}  charge   0.240000
+
+##############################################################################################
+#### Covalent bond parameters (Table 2, bond stretching)
+#### Form (eq. 1): Eb = (1/2) kb (r - r0)^2
+#### LAMMPS harmonic: E = K (r - r0)^2  =>  K = kb/2
+#### LAMMPS Morse:    E = D (1 - exp(-alpha*(r-r0)))^2  (ImH NA-HN only, text eq. 4)
+##############################################################################################
+# bond_coeff format: type  style  K(kcal/mol/A^2)  r0(A)
+#                 or type  morse  D(kcal/mol)  alpha(A^-1)  r0(A)
+
+#@ 15  bond types
+bond_style hybrid harmonic morse
+# ---- Imidazole bonds ----
+#@  C1Im-H1Im
+bond_coeff   1  harmonic   350.010   1.083
+#@  C1Im-NAIm
+bond_coeff   2  harmonic   438.800   1.371
+#@  C2Im-NAIm
+bond_coeff   3  harmonic   438.800   1.371
+#@  C1Im-C3Im
+bond_coeff   4  harmonic   504.000   1.371
+#@  C2Im-H3Im
+bond_coeff   5  harmonic   356.000   1.079
+#@  C2Im-NCIm
+bond_coeff   6  harmonic   494.600   1.335
+#@  NCIm-C3Im
+bond_coeff   7  harmonic   431.600   1.376
+#@  C3Im-H4Im
+bond_coeff   8  harmonic   350.100   1.083
+#@  NAIm-HNIm
+bond_coeff   9  harmonic   406.600   1.011
+
+# ---- Imidazolium bonds ----
+#@  C1Ih-H4Ih
+bond_coeff  10  harmonic   348.600   1.084
+#@  C1Ih-NAIh
+bond_coeff  11  harmonic   411.100   1.391
+#@  C2Ih-NAIh
+bond_coeff  12  harmonic   411.100   1.391
+#@  C1Ih-C1Ih
+bond_coeff  13  harmonic   589.700   1.324
+#@  C2Ih-H5Ih
+bond_coeff  14  harmonic   357.500   1.078
+#@  NAIh-HNIh
+bond_coeff  15  morse        76.874 2.4308 1.0386
+
+##############################################################################################
+#### Angular bending parameters (Table 2)
+#### Form (eq. 2): Ea = (1/2) ka (theta - theta0)^2
+#### LAMMPS harmonic: E = K (theta - theta0)^2  =>  K = ka/2
+##############################################################################################
+# angle_coeff format: type  K(kcal/mol/rad^2)  theta0(deg)
+
+#@ 21  angle types
+angle_style harmonic
+
+# ---- Imidazole angles ----
+#@  C3Im-C1Im-H1Im
+angle_coeff   1   47.200   129.11
+#@  NCIm-C3Im-H4Im
+angle_coeff   2   50.000   120.03
+#@  C1Im-C3Im-H4Im
+angle_coeff   3   47.200   129.11
+#@  NCIm-C2Im-H3Im
+angle_coeff   4   50.100   125.38
+#@  C1Im-NAIm-HNIm
+angle_coeff   5   47.200   124.66
+#@  C2Im-NAIm-HNIm
+angle_coeff   6   47.200   124.66
+#@  NAIm-C2Im-H3Im
+angle_coeff   7   49.800   122.10
+#@  NAIm-C1Im-H1Im
+angle_coeff   8   50.200   119.66
+#@  C3Im-NCIm-C2Im
+angle_coeff   9   70.500   107.47
+#@  NAIm-C1Im-C3Im
+angle_coeff  10   72.900   109.42
+#@  C1Im-C3Im-NCIm
+angle_coeff  11   71.000   114.98
+#@  NCIm-C2Im-NAIm
+angle_coeff  12   74.800   112.02
+#@  C1Im-NAIm-C2Im
+angle_coeff  13   68.600   109.90
+
+# ---- Imidazolium angles ----
+#@  C1Ih-NAIh-HNIh
+angle_coeff  14   47.600   119.28
+#@  C2Ih-NAIh-HNIh
+angle_coeff  15   47.600   119.28
+#@  C1Ih-C1Ih-H4Ih
+angle_coeff  16   49.300   124.68
+#@  NAIh-C1Ih-H4Ih
+angle_coeff  17   50.400   116.25
+#@  NAIh-C2Ih-H5Ih
+angle_coeff  18   48.300   126.39
+#@  C1Ih-NAIh-C2Ih
+angle_coeff  19   67.800   110.37
+#@  C1Ih-C1Ih-NAIh
+angle_coeff  20   69.800   121.38
+#@  NAIh-C2Ih-NAIh
+angle_coeff  21   73.700   109.33
+
+##############################################################################################
+#### Proper dihedral parameters (Table 2, non-improper entries)
+#### Form (eq. 3): Ed = kd [1 + cos(m*phi - phi0)]
+#### LAMMPS charmm: E = K [1 + cos(n*phi - d)]  =>  K=kd, n=m, d=phi0(deg)
+#### weight=0.0: 1-4 LJ handled by special_bonds amber in main script
+##############################################################################################
+# dihedral_coeff format: type  K(kcal/mol)  n  d(deg)  weight
+
+#@ 28  dihedral types
+dihedral_style charmm
+
+# ---- Imidazole proper dihedrals ----
+#@  C3Im-NCIm-C2Im-H3Im
+dihedral_coeff   1   4.75   2   180   0.0
+#@  C3Im-C1Im-NAIm-HNIm
+dihedral_coeff   2   1.70   2   180   0.0
+#@  C2Im-NCIm-C3Im-H4Im
+dihedral_coeff   3   4.75   2   180   0.0
+#@  NAIm-C1Im-C3Im-H4Im
+dihedral_coeff   4   4.00   2   180   0.0
+#@  H4Im-C3Im-C1Im-H1Im
+dihedral_coeff   5   4.00   2   180   0.0
+#@  NCIm-C3Im-C1Im-H1Im
+dihedral_coeff   6   4.00   2   180   0.0
+#@  NCIm-C2Im-NAIm-HNIm
+dihedral_coeff   7   1.70   2   180   0.0
+#@  C2Im-NAIm-C1Im-H1Im
+dihedral_coeff   8   1.70   2   180   0.0
+#@  H3Im-C2Im-NAIm-C1Im
+dihedral_coeff   9   1.70   2   180   0.0
+#@  H3Im-C2Im-NAIm-HNIm
+dihedral_coeff  10   1.70   2   180   0.0
+#@  H1Im-C1Im-NAIm-HNIm
+dihedral_coeff  11   1.70   2   180   0.0
+#@  C3Im-NCIm-C2Im-NAIm
+dihedral_coeff  12   4.75   2   180   0.0
+#@  C3Im-C1Im-NAIm-C2Im
+dihedral_coeff  13   1.70   2   180   0.0
+#@  NCIm-C3Im-C1Im-NAIm
+dihedral_coeff  14   4.00   2   180   0.0
+#@  NCIm-C2Im-NAIm-C1Im
+dihedral_coeff  15   1.70   2   180   0.0
+#@  C1Im-C2Im-NCIm-C1Im
+dihedral_coeff  16   4.75   2   180   0.0
+
+# ---- Imidazolium proper dihedrals ----
+#@  C1Ih-NAIh-C2Ih-H5Ih
+dihedral_coeff  17   0.63   2   180   0.0
+#@  C1Ih-C1Ih-NAIh-HNIh
+dihedral_coeff  18   0.63   2   180   0.0
+#@  H4Ih-C1Ih-NAIh-C2Ih
+dihedral_coeff  19   0.63   2   180   0.0
+#@  H4Ih-C1Ih-NAIh-HNIh
+dihedral_coeff  20   0.63   2   180   0.0
+#@  H4Ih-C1Ih-C1Ih-NAIh
+dihedral_coeff  21   6.65   2   180   0.0
+#@  H4Ih-C1Ih-C1Ih-H4Ih
+dihedral_coeff  22   6.65   2   180   0.0
+#@  NAIh-C2Ih-NAIh-HNIh
+dihedral_coeff  23   0.63   2   180   0.0
+#@  H5Ih-C2Ih-NAIh-HNIh
+dihedral_coeff  24   0.63   2   180   0.0
+#@  C1Ih-NAIh-C2Ih-NAIh
+dihedral_coeff  25   0.63   2   180   0.0
+#@  C1Ih-C1Ih-NAIh-C2Ih
+dihedral_coeff  26   0.632  2   180   0.0
+#@  NAIh-C1Ih-C1Ih-NAIh
+dihedral_coeff  27   6.65   2   180   0.0
+#@  C1Im-C3Im-NCIm-C2Im
+dihedral_coeff  28   4.75   2   180   0.0
+
+##############################################################################################
+#### Improper dihedral parameters (Table 2, entries marked with *)
+#### Form: Ed = kd [1 + cos(m*phi - phi0)]  with phi0=180 => E = kd [1 - cos(m*phi)]
+#### LAMMPS cvff: E = K [1 + d*cos(n*chi)]  =>  K=kd, d=-1, n=m=2
+##############################################################################################
+# improper_coeff format: type  K(kcal/mol)  d  n
+
+#@  8  improper types
+improper_style cvff
+
+#@  NAIm-C1Im-C2Im-HNIm
+improper_coeff  1   1.10   -1   2
+#@  NAIh-C1Ih-C2Ih-HNIh
+improper_coeff  2   1.10   -1   2
+#@  C1Im-NAIm-C3Im-H1Im
+improper_coeff  3   1.10   -1   2
+#@  C2Im-NAIm-NCIm-H3Im
+improper_coeff  4   1.10   -1   2
+#@  C3Im-C1Im-NCIm-H4Im
+improper_coeff  5   1.10   -1   2
+#@  C1Ih-NAIh-C1Ih-H4Ih
+improper_coeff  6   1.10   -1   2
+#@  C2Ih-NAIh-NAIh-H5Ih
+improper_coeff  7   1.10   -1   2
+#@  NAIh-C2Ih-C1Ih-HNIh
+improper_coeff  8   1.10   -1   2
+
+##############################################################################################
+# Pair potentials (LJ 12-6 + Coulomb, eq. 5-7, Table 1)
+# All 120 cross-terms expanded manually via Lorentz-Berthelot (arithmetic) mixing rules:
+#   sigma_ij   = (sigma_i + sigma_j) / 2
+#   epsilon_ij = sqrt(epsilon_i * epsilon_j)
+# 1-4 scaling: VDW x0.500, Coulomb x0.833  [special_bonds amber in main script]
+#
+# Like-pair parameters (from Table 1):
+#   Type  Name   epsilon(kcal/mol)  sigma(Ang)
+#      1  C1Im   0.086000           3.399713
+#      2  NAIm   0.170000           3.250040
+#      3  C2Im   0.086000           3.399713
+#      4  NCIm   0.170000           3.250040
+#      5  C3Im   0.086000           3.399713
+#      6  H1Im   0.015000           2.510584
+#      7  HNIm   0.015700           1.069092
+#      8  H3Im   0.015000           2.421493
+#      9  H4Im   0.015000           2.510584
+#     10  C1Ih   0.086000           3.399713
+#     11  NAIh   0.170000           3.250040
+#     12  C2Ih   0.086000           3.399713
+#     13  H4Ih   0.015000           2.510584
+#     14  HNIh   0.015700           1.069092
+#     15  H5Ih   0.015000           2.421493
+##############################################################################################
+
+variable rcut equal 9.0
+
+pair_style lj/cut/coul/long ${rcut}
+# pair_modify mix arithmetic  # cross-terms now listed explicitly below
+
+# pair_coeff format: type type epsilon(kcal/mol) sigma(Ang)
+
+# ---- i=1 (C1Im) ----
+pair_coeff   1   1   0.086000   3.399713  # C1Im-C1Im
+pair_coeff   1   2   0.120913   3.324877  # C1Im-NAIm
+pair_coeff   1   3   0.086000   3.399713  # C1Im-C2Im
+pair_coeff   1   4   0.120913   3.324877  # C1Im-NCIm
+pair_coeff   1   5   0.086000   3.399713  # C1Im-C3Im
+pair_coeff   1   6   0.035917   2.955149  # C1Im-H1Im
+pair_coeff   1   7   0.036745   2.234403  # C1Im-HNIm
+pair_coeff   1   8   0.035917   2.910603  # C1Im-H3Im
+pair_coeff   1   9   0.035917   2.955149  # C1Im-H4Im
+pair_coeff   1  10   0.086000   3.399713  # C1Im-C1Ih
+pair_coeff   1  11   0.120913   3.324877  # C1Im-NAIh
+pair_coeff   1  12   0.086000   3.399713  # C1Im-C2Ih
+pair_coeff   1  13   0.035917   2.955149  # C1Im-H4Ih
+pair_coeff   1  14   0.036745   2.234403  # C1Im-HNIh
+pair_coeff   1  15   0.035917   2.910603  # C1Im-H5Ih
+
+# ---- i=2 (NAIm) ----
+pair_coeff   2   2   0.170000   3.250040  # NAIm-NAIm
+pair_coeff   2   3   0.120913   3.324877  # NAIm-C2Im
+pair_coeff   2   4   0.170000   3.250040  # NAIm-NCIm
+pair_coeff   2   5   0.120913   3.324877  # NAIm-C3Im
+pair_coeff   2   6   0.050498   2.880312  # NAIm-H1Im
+pair_coeff   2   7   0.051662   2.159566  # NAIm-HNIm
+pair_coeff   2   8   0.050498   2.835767  # NAIm-H3Im
+pair_coeff   2   9   0.050498   2.880312  # NAIm-H4Im
+pair_coeff   2  10   0.120913   3.324877  # NAIm-C1Ih
+pair_coeff   2  11   0.170000   3.250040  # NAIm-NAIh
+pair_coeff   2  12   0.120913   3.324877  # NAIm-C2Ih
+pair_coeff   2  13   0.050498   2.880312  # NAIm-H4Ih
+#pair_coeff   2  14   0.051662   2.159566  # NAIm-HNIh
+pair_coeff   2  14   0.09085   1.2401  # NAIm-HNIh
+pair_coeff   2  15   0.050498   2.835767  # NAIm-H5Ih
+
+# ---- i=3 (C2Im) ----
+pair_coeff   3   3   0.086000   3.399713  # C2Im-C2Im
+pair_coeff   3   4   0.120913   3.324877  # C2Im-NCIm
+pair_coeff   3   5   0.086000   3.399713  # C2Im-C3Im
+pair_coeff   3   6   0.035917   2.955149  # C2Im-H1Im
+pair_coeff   3   7   0.036745   2.234403  # C2Im-HNIm
+pair_coeff   3   8   0.035917   2.910603  # C2Im-H3Im
+pair_coeff   3   9   0.035917   2.955149  # C2Im-H4Im
+pair_coeff   3  10   0.086000   3.399713  # C2Im-C1Ih
+pair_coeff   3  11   0.120913   3.324877  # C2Im-NAIh
+pair_coeff   3  12   0.086000   3.399713  # C2Im-C2Ih
+pair_coeff   3  13   0.035917   2.955149  # C2Im-H4Ih
+pair_coeff   3  14   0.036745   2.234403  # C2Im-HNIh
+pair_coeff   3  15   0.035917   2.910603  # C2Im-H5Ih
+
+# ---- i=4 (NCIm) ----
+pair_coeff   4   4   0.170000   3.250040  # NCIm-NCIm
+pair_coeff   4   5   0.120913   3.324877  # NCIm-C3Im
+pair_coeff   4   6   0.050498   2.880312  # NCIm-H1Im
+pair_coeff   4   7   0.051662   2.159566  # NCIm-HNIm
+pair_coeff   4   8   0.050498   2.835767  # NCIm-H3Im
+pair_coeff   4   9   0.050498   2.880312  # NCIm-H4Im
+pair_coeff   4  10   0.120913   3.324877  # NCIm-C1Ih
+pair_coeff   4  11   0.170000   3.250040  # NCIm-NAIh
+pair_coeff   4  12   0.120913   3.324877  # NCIm-C2Ih
+pair_coeff   4  13   0.050498   2.880312  # NCIm-H4Ih
+#pair_coeff   4  14   0.051662   2.159566  # NCIm-HNIh
+pair_coeff   4  14   0.09085   1.2401  # NCIm-HNIh
+pair_coeff   4  15   0.050498   2.835767  # NCIm-H5Ih
+
+# ---- i=5 (C3Im) ----
+pair_coeff   5   5   0.086000   3.399713  # C3Im-C3Im
+pair_coeff   5   6   0.035917   2.955149  # C3Im-H1Im
+pair_coeff   5   7   0.036745   2.234403  # C3Im-HNIm
+pair_coeff   5   8   0.035917   2.910603  # C3Im-H3Im
+pair_coeff   5   9   0.035917   2.955149  # C3Im-H4Im
+pair_coeff   5  10   0.086000   3.399713  # C3Im-C1Ih
+pair_coeff   5  11   0.120913   3.324877  # C3Im-NAIh
+pair_coeff   5  12   0.086000   3.399713  # C3Im-C2Ih
+pair_coeff   5  13   0.035917   2.955149  # C3Im-H4Ih
+pair_coeff   5  14   0.036745   2.234403  # C3Im-HNIh
+pair_coeff   5  15   0.035917   2.910603  # C3Im-H5Ih
+
+# ---- i=6 (H1Im) ----
+pair_coeff   6   6   0.015000   2.510584  # H1Im-H1Im
+pair_coeff   6   7   0.015346   1.789838  # H1Im-HNIm
+pair_coeff   6   8   0.015000   2.466039  # H1Im-H3Im
+pair_coeff   6   9   0.015000   2.510584  # H1Im-H4Im
+pair_coeff   6  10   0.035917   2.955149  # H1Im-C1Ih
+pair_coeff   6  11   0.050498   2.880312  # H1Im-NAIh
+pair_coeff   6  12   0.035917   2.955149  # H1Im-C2Ih
+pair_coeff   6  13   0.015000   2.510584  # H1Im-H4Ih
+pair_coeff   6  14   0.015346   1.789838  # H1Im-HNIh
+pair_coeff   6  15   0.015000   2.466039  # H1Im-H5Ih
+
+# ---- i=7 (HNIm) ----
+pair_coeff   7   7   0.015700   1.069092  # HNIm-HNIm
+pair_coeff   7   8   0.015346   1.745293  # HNIm-H3Im
+pair_coeff   7   9   0.015346   1.789838  # HNIm-H4Im
+pair_coeff   7  10   0.036745   2.234403  # HNIm-C1Ih
+#pair_coeff   7  11   0.051662   2.159566  # HNIm-NAIh
+pair_coeff   7  11   0.09085   1.2401  # HNIm-NAIh
+pair_coeff   7  12   0.036745   2.234403  # HNIm-C2Ih
+pair_coeff   7  13   0.015346   1.789838  # HNIm-H4Ih
+pair_coeff   7  14   0.015700   1.069092  # HNIm-HNIh
+pair_coeff   7  15   0.015346   1.745293  # HNIm-H5Ih
+
+# ---- i=8 (H3Im) ----
+pair_coeff   8   8   0.015000   2.421493  # H3Im-H3Im
+pair_coeff   8   9   0.015000   2.466039  # H3Im-H4Im
+pair_coeff   8  10   0.035917   2.910603  # H3Im-C1Ih
+pair_coeff   8  11   0.050498   2.835767  # H3Im-NAIh
+pair_coeff   8  12   0.035917   2.910603  # H3Im-C2Ih
+pair_coeff   8  13   0.015000   2.466039  # H3Im-H4Ih
+pair_coeff   8  14   0.015346   1.745293  # H3Im-HNIh
+pair_coeff   8  15   0.015000   2.421493  # H3Im-H5Ih
+
+# ---- i=9 (H4Im) ----
+pair_coeff   9   9   0.015000   2.510584  # H4Im-H4Im
+pair_coeff   9  10   0.035917   2.955149  # H4Im-C1Ih
+pair_coeff   9  11   0.050498   2.880312  # H4Im-NAIh
+pair_coeff   9  12   0.035917   2.955149  # H4Im-C2Ih
+pair_coeff   9  13   0.015000   2.510584  # H4Im-H4Ih
+pair_coeff   9  14   0.015346   1.789838  # H4Im-HNIh
+pair_coeff   9  15   0.015000   2.466039  # H4Im-H5Ih
+
+# ---- i=10 (C1Ih) ----
+pair_coeff  10  10   0.086000   3.399713  # C1Ih-C1Ih
+pair_coeff  10  11   0.120913   3.324877  # C1Ih-NAIh
+pair_coeff  10  12   0.086000   3.399713  # C1Ih-C2Ih
+pair_coeff  10  13   0.035917   2.955149  # C1Ih-H4Ih
+pair_coeff  10  14   0.036745   2.234403  # C1Ih-HNIh
+pair_coeff  10  15   0.035917   2.910603  # C1Ih-H5Ih
+
+# ---- i=11 (NAIh) ----
+pair_coeff  11  11   0.170000   3.250040  # NAIh-NAIh
+pair_coeff  11  12   0.120913   3.324877  # NAIh-C2Ih
+pair_coeff  11  13   0.050498   2.880312  # NAIh-H4Ih
+pair_coeff  11  14   0.051662   2.159566  # NAIh-HNIh
+pair_coeff  11  15   0.050498   2.835767  # NAIh-H5Ih
+
+# ---- i=12 (C2Ih) ----
+pair_coeff  12  12   0.086000   3.399713  # C2Ih-C2Ih
+pair_coeff  12  13   0.035917   2.955149  # C2Ih-H4Ih
+pair_coeff  12  14   0.036745   2.234403  # C2Ih-HNIh
+pair_coeff  12  15   0.035917   2.910603  # C2Ih-H5Ih
+
+# ---- i=13 (H4Ih) ----
+pair_coeff  13  13   0.015000   2.510584  # H4Ih-H4Ih
+pair_coeff  13  14   0.015346   1.789838  # H4Ih-HNIh
+pair_coeff  13  15   0.015000   2.466039  # H4Ih-H5Ih
+
+# ---- i=14 (HNIh) ----
+pair_coeff  14  14   0.015700   1.069092  # HNIh-HNIh
+pair_coeff  14  15   0.015346   1.745293  # HNIh-H5Ih
+
+# ---- i=15 (H5Ih) ----
+pair_coeff  15  15   0.015000   2.421493  # H5Ih-H5Ih
+
+special_bonds lj 0.  0.  0.5  coul 0.  0.  0.8333333333
+
+##############################################################################################
+# Reciprocal-space electrostatics
+##############################################################################################
+
+kspace_style pppm 1.0e-5
+kspace_modify fftbench no

@@ -1,0 +1,11 @@
+# Map file for BaZrO3H proton transfer 
+# Format: REACTER-compatible
+# Atom 2 (H1, ibonding) transfers from Atom 1 (O1, X) to Atom 3 (O2, jbonding/Y)
+
+InitiatorIDs
+2 3
+
+Equivalences
+1 1
+2 2
+3 3

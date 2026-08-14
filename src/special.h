@@ -22,7 +22,7 @@ class Special : protected Pointers {
  public:
   Special(class LAMMPS *);
   ~Special() override;
-  void build();
+  void build(bool silent = false);
 
  private:
   int me, nprocs;
@@ -57,9 +57,9 @@ class Special : protected Pointers {
   void dedup();
   void angle_trim();
   void dihedral_trim();
-  void combine();
+  void combine(bool silent = false);
   void fix_alteration();
-  void timer_output(double);
+  void timer_output(double, bool silent = false);
 
   // callback functions for rendezvous communication
 

@@ -89,6 +89,7 @@ gives those details.
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
    * :ref:`ML-UF3 <PKG-ML-UF3>`
    * :ref:`MOFFF <PKG-MOFFF>`
+   * :ref:`MSEVB <PKG-MSEVB>`
    * :ref:`MOLECULE <PKG-MOLECULE>`
    * :ref:`MOLFILE <PKG-MOLFILE>`
    * :ref:`NETCDF <PKG-NETCDF>`
@@ -2169,6 +2170,26 @@ Rochus Schmid (Ruhr-University Bochum).
 * :doc:`angle_style cosine/buck6d <angle_cosine_buck6d>`
 * :doc:`improper_style inversion/harmonic <improper_inversion_harmonic>`
 * ``examples/PACKAGES/mofff``
+
+----------
+
+.. _PKG-MSEVB:
+
+MSEVB package
+-------------
+
+**Contents:**
+
+A fix style for performing multi-state empirical valence bond (MSEVB)
+molecular dynamics.  MSEVB is a method for modeling chemical reactivity
+with classical force fields (e.g., proton transfer, charge-transfer, radicalization)
+by representing the system as a superposition of multiple reactive states.
+
+**Supporting info:**
+
+* ``src/MSEVB``: filenames -> commands
+* :doc:`fix msevb <fix_msevb>`
+* ``examples/PACKAGES/msevb``
 
 ----------
 

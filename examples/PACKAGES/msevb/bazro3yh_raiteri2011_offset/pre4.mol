@@ -1,0 +1,28 @@
+# Pre-reaction template: O1-H1 + O2 -> O2 + H1-O1
+# Atom 1 (H1) is the transferring H (ibonding)
+# Atom 3 (O2) is the accepting oxygen (jbonding)
+
+3 atoms
+1 bonds
+
+Coords
+
+1    8.677  10.495  10.685 
+2    7.666   9.559  10.761 
+3    6.226   8.445  10.740 
+
+Types
+
+1    8
+2    7
+3    6
+
+Charges
+
+1    -1.308698 
+2     0.308698
+3    -2.000000
+
+Bonds
+
+1    2    1    2

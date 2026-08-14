@@ -1996,3 +1996,16 @@
 /pair_bondval_vec.cpp
 /pair_bondval_vec.h
 
+/fix_msevb.cpp
+/fix_msevb.h
+/fix_msevb_eigensystem.cpp
+/fix_msevb_superimpose.cpp
+/fix_msevb_superimpose.h
+/fix_msevb_topology.cpp
+/fix_msevb_transfer.cpp
+/coupling_grimme2015.h
+/coupling_mdf.h
+/coupling_raiteri2011.h
+/coupling_vuilleumier1998.h
+/jacobi_eigen.h
+

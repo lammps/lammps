@@ -378,6 +378,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style buck6d/coul/gauss <pair_buck6d_coul_gauss>`
      - ``PACKAGES/mofff``
      - no
+   * - :ref:`MSEVB <PKG-MSEVB>`
+     - multi-state empirical valence bond (MSEVB) MD
+     - :doc:`fix msevb <fix_msevb>`
+     - ``PACKAGES/msevb``
+     - no
    * - :ref:`MOLECULE <PKG-MOLECULE>`
      - molecular system force fields
      - :doc:`Howto bioFF <Howto_bioFF>`

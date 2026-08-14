@@ -11,7 +11,7 @@ Syntax
    bond_style bpm/zero keyword value attribute1 attribute2 ...
 
 * zero or more keyword/value pairs may be appended
-* keyword = *manybody* or *overlay/pair* or *break* or *store/local*
+* keyword = *manybody* or *overlay/pair* or *break* or *store/local* or *write/reference* or *read/reference*
 
   .. parsed-literal::
 
@@ -27,6 +27,12 @@ Syntax
        *store/local* values = fix_ID N attributes ...
           (as for :doc:`bond_style bpm/spring <bond_bpm_spring>`)
 
+       *write/reference* values = fix_ID N
+          (as for :doc:`bond_style bpm/spring <bond_bpm_spring>`)
+
+       *read/reference* value = filename
+          (as for :doc:`bond_style bpm/spring <bond_bpm_spring>`)
+
 Examples
 """"""""
 
@@ -37,6 +43,9 @@ Examples
 
    bond_style bpm/zero break no
    bond_coeff 1 0.0
+
+   bond_style bpm/zero write/reference myfix 1000 read/reference bond.ref
+   dump 1 all local 1000 bond*.ref f_myfix[*]
 
 Description
 """""""""""
@@ -66,9 +75,10 @@ The following coefficient must be defined for each bond type via the
 
 The *manybody* keyword toggles an internal per-atom property and its
 forward/reverse communication so the multibody machinery shared by the BPM
-styles can be exercised in isolation.  The *overlay/pair*, *break*, and
-*store/local* keywords behave as for :doc:`bond_style bpm/spring
-<bond_bpm_spring>`; see the :doc:`BPM Howto <Howto_bpm>`.
+styles can be exercised in isolation.  The *overlay/pair*, *break*,
+*store/local*, *write/reference*, and *read/reference* keywords behave as
+for :doc:`bond_style bpm/spring <bond_bpm_spring>`; see the :doc:`BPM Howto
+<Howto_bpm>`.
 
 ----------
 
@@ -77,9 +87,13 @@ Restart and other info
 
 This bond style writes the reference state of each bond to :doc:`binary
 restart files <restart>`.  The reference state is not written to data
-files.  If *store/local* is used, an internal fix records broken-bond data
-accessible through a :doc:`dump local <dump>` command, as for the other BPM
-bond styles.
+files.  After restarting, or after reading a data file, bonds reference
+data can be restored using the *read/reference* option.  If *store/local*
+is used, an internal fix records broken-bond data accessible through a
+:doc:`dump local <dump>` command, as for the other BPM bond styles.  The
+*write/reference* option likewise transfers the internal bond history to
+an internal fix that can be output with a :doc:`dump local <dump>`
+command; see the :doc:`BPM Howto <Howto_bpm>`.
 
 Restrictions
 """"""""""""

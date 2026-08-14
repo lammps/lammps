@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring/plastic keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *smooth* or *normalize* or *break*
+* optional keyword = *overlay/pair* or *store/local* or *write/reference* or *read/reference* or *smooth* or *normalize* or *break*
 
   .. parsed-literal::
 
@@ -23,6 +23,13 @@ Syntax
             *time* = the timestep the bond broke
             *x, y, z* = the center of mass position of the two atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the two atoms (distance units)
+
+       *write/reference* values = fix_ID N
+          * fix_ID = ID of associated internal fix to write data
+          * N = prepare data for output every this many timesteps
+
+       *read/reference* values = filename
+          * filename = name of reference file to read data from
 
        *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces
@@ -47,6 +54,9 @@ Examples
    bond_style bpm/spring/plastic myfix 1000 time id1 id2
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
+
+   bond_style bpm/spring/plastic write/reference myfix 1000 read/reference bond.ref
+   dump 1 all local 1000 bond*.ref f_myfix[*]
 
 Description
 """""""""""
@@ -113,8 +123,8 @@ the data file or restart files read by the :doc:`read_data
 * :math:`\epsilon_p`    (unitless)
 
 See the :doc:`bpm/spring doc page <bond_bpm_spring>` for information on
-the *smooth*, *normalize*, *break*, *overlay/pair*, and *store/local*
-keywords.
+the *smooth*, *normalize*, *break*, *overlay/pair*, *store/local*,
+*write/reference*, and *read/reference* keywords.
 
 Note that when unbroken bonds are dumped to a file via the
 :doc:`dump local <dump>` command, bonds with type 0 (broken bonds)
@@ -136,7 +146,10 @@ This bond style writes the reference state and plastic history of each
 bond to :doc:`binary restart files <restart>`. Loading a restart file
 will properly restore bonds. However, the reference state is NOT written
 to data files.  Therefore reading a data file will not restore bonds and
-will cause their reference states to be redefined.
+will cause their reference states to be redefined.  However, after
+restarting, bonds reference data (both the reference length :math:`r_0`
+and the plastic history) can be restored using the *read/reference*
+option.
 
 The potential energy and the single() function of this bond style
 returns zero.  The single() function also calculates two extra bond

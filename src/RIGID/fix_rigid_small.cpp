@@ -642,10 +642,14 @@ void FixRigidSmall::setup(int vflag)
     error->all(FLERR, Error::NOLASTLINE,
                "Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", maxextent);
 
+  // allocation of array of langevin forces and torques
+
   if (langflag && (nlocal_body > maxlang)) {
     memory->destroy(langextra);
-    maxlang = nlocal_body + nghost_body;
+    maxlang = nlocal_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    for(i = 0; i < maxlang; i++) langextra[i][0] = 0, langextra[i][1] = 0, langextra[i][2] = 0,
+                                   langextra[i][3] = 0, langextra[i][4] = 0, langextra[i][5] = 0;
   }
 
   compute_forces_and_torques();
@@ -669,19 +673,9 @@ void FixRigidSmall::setup(int vflag)
   commflag = FINAL;
   comm->forward_comm(this, FINAL_BUFSZ);
 
-  // set velocity/rotation of atoms in rigid bodues
+  // set velocity/rotation of atoms in rigid bodies
 
   set_v();
-
-  // guesstimate virial as 2x the set_v contribution
-
-  if (vflag_global)
-    for (n = 0; n < 6; n++) virial[n] *= 2.0;
-  if (vflag_atom) {
-    for (i = 0; i < nlocal; i++)
-      for (n = 0; n < 6; n++)
-        vatom[i][n] *= 2.0;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -894,7 +888,7 @@ void FixRigidSmall::apply_langevin_thermostat()
 
   if (nlocal_body > maxlang) {
     memory->destroy(langextra);
-    maxlang = nlocal_body + nghost_body;
+    maxlang = nlocal_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
   }
 
@@ -1195,22 +1189,21 @@ void FixRigidSmall::deform(int flag)
 void FixRigidSmall::set_xv()
 {
   int xbox,ybox,zbox;
-  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
-  double ione[3],exone[3],eyone[3],ezone[3],vr[6],p[3][3];
+  double xy,xz,yz;
+  double ione[3],exone[3],eyone[3],ezone[3],p[3][3];
 
   double xprd = domain->xprd;
   double yprd = domain->yprd;
   double zprd = domain->zprd;
-  double xy = domain->xy;
-  double xz = domain->xz;
-  double yz = domain->yz;
+  if (triclinic) {
+    xy = domain->xy;
+    xz = domain->xz;
+    yz = domain->yz;
+  }
 
   double **x = atom->x;
   double **v = atom->v;
-  double **f = atom->f;
   double *rmass = atom->rmass;
-  double *mass = atom->mass;
-  int *type = atom->type;
   int nlocal = atom->nlocal;
 
   // set x and v of each atom
@@ -1223,23 +1216,6 @@ void FixRigidSmall::set_xv()
     ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
     zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
 
-    // save old positions and velocities for virial
-
-    if (evflag) {
-      if (triclinic == 0) {
-        x0 = x[i][0] + xbox*xprd;
-        x1 = x[i][1] + ybox*yprd;
-        x2 = x[i][2] + zbox*zprd;
-      } else {
-        x0 = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-        x1 = x[i][1] + ybox*yprd + zbox*yz;
-        x2 = x[i][2] + zbox*zprd;
-      }
-      v0 = v[i][0];
-      v1 = v[i][1];
-      v2 = v[i][2];
-    }
-
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
     // enforce 2d x and v
@@ -1248,12 +1224,11 @@ void FixRigidSmall::set_xv()
 
     v[i][0] = b->omega[1]*x[i][2] - b->omega[2]*x[i][1] + b->vcm[0];
     v[i][1] = b->omega[2]*x[i][0] - b->omega[0]*x[i][2] + b->vcm[1];
-    v[i][2] = b->omega[0]*x[i][1] - b->omega[1]*x[i][0] + b->vcm[2];
 
     if (domain->dimension == 2) {
       x[i][2] = 0.0;
       v[i][2] = 0.0;
-    }
+    } else v[i][2] = b->omega[0]*x[i][1] - b->omega[1]*x[i][0] + b->vcm[2];
 
     // add center of mass to displacement
     // map back into periodic box via xbox,ybox,zbox
@@ -1267,31 +1242,6 @@ void FixRigidSmall::set_xv()
       x[i][0] += b->xcm[0] - xbox*xprd - ybox*xy - zbox*xz;
       x[i][1] += b->xcm[1] - ybox*yprd - zbox*yz;
       x[i][2] += b->xcm[2] - zbox*zprd;
-    }
-
-    // virial = unwrapped coords dotted into body constraint force
-    // body constraint force = implied force due to v change minus f external
-    // assume f does not include forces internal to body
-    // 1/2 factor b/c final_integrate contributes other half
-    // assume per-atom contribution is due to constraint force on that atom
-
-    if (evflag) {
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
-
-      vr[0] = 0.5*x0*fc0;
-      vr[1] = 0.5*x1*fc1;
-      vr[2] = 0.5*x2*fc2;
-      vr[3] = 0.5*x0*fc1;
-      vr[4] = 0.5*x0*fc2;
-      vr[5] = 0.5*x1*fc2;
-
-      double rlist[1][3] = {{x0, x1, x2}};
-      double flist[1][3] = {{0.5*fc0, 0.5*fc1, 0.5*fc2}};
-      v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
     }
   }
 
@@ -1384,18 +1334,10 @@ void FixRigidSmall::set_xv()
 
 void FixRigidSmall::set_v()
 {
-  int xbox,ybox,zbox;
-  double x0,x1,x2,v0,v1,v2,fc0,fc1,fc2,massone;
+  double x0, x1, x2, massone;
   double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
+  double fc[3], v_rot[3], acc_centr[3], *langone ;
 
-  double xprd = domain->xprd;
-  double yprd = domain->yprd;
-  double zprd = domain->zprd;
-  double xy = domain->xy;
-  double xz = domain->xz;
-  double yz = domain->yz;
-
-  double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;
@@ -1411,60 +1353,70 @@ void FixRigidSmall::set_v()
 
     MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,displace[i],delta);
 
-    // save old velocities for virial
-
-    if (evflag) {
-      v0 = v[i][0];
-      v1 = v[i][1];
-      v2 = v[i][2];
-    }
-
     // compute new v
     // enforce 2d v
 
     v[i][0] = b->omega[1]*delta[2] - b->omega[2]*delta[1] + b->vcm[0];
     v[i][1] = b->omega[2]*delta[0] - b->omega[0]*delta[2] + b->vcm[1];
-    v[i][2] = b->omega[0]*delta[1] - b->omega[1]*delta[0] + b->vcm[2];
-
     if (domain->dimension == 2) v[i][2] = 0.0;
+    else v[i][2] = b->omega[0]*delta[1] - b->omega[1]*delta[0] + b->vcm[2];
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force due to v change minus f external
     // assume f does not include forces internal to body
-    // 1/2 factor b/c initial_integrate contributes other half
     // assume per-atom contribution is due to constraint force on that atom
 
     if (evflag) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      fc0 = massone*(v[i][0] - v0)/dtf - f[i][0];
-      fc1 = massone*(v[i][1] - v1)/dtf - f[i][1];
-      fc2 = massone*(v[i][2] - v2)/dtf - f[i][2];
-
-      xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
-      ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
-
-      if (triclinic == 0) {
-        x0 = x[i][0] + xbox*xprd;
-        x1 = x[i][1] + ybox*yprd;
-        x2 = x[i][2] + zbox*zprd;
+      MathExtra::cross3( b->omega, delta, v_rot) ;
+      MathExtra::cross3( b->omega, v_rot, acc_centr) ;
+      if(langflag && atom2body[i] < nlocal_body) {
+        // communicated forces/torques for ghost bodies do not contain langevin and gravity contributions
+        langone = langextra[atom2body[i]];
+        fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       } else {
-        x0 = x[i][0] + xbox*xprd + ybox*xy + zbox*xz;
-        x1 = x[i][1] + ybox*yprd + zbox*yz;
-        x2 = x[i][2] + zbox*zprd;
+        fc[0] = massone * (b->fcm[0]/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
+        fc[1] = massone * (b->fcm[1]/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
       }
 
-      vr[0] = 0.5*x0*fc0;
-      vr[1] = 0.5*x1*fc1;
-      vr[2] = 0.5*x2*fc2;
-      vr[3] = 0.5*x0*fc1;
-      vr[4] = 0.5*x0*fc2;
-      vr[5] = 0.5*x1*fc2;
+      if (id_gravity && atom2body[i] < nlocal_body) {
+        fc[0] -= gvec[0]*massone;
+        fc[1] -= gvec[1]*massone;
+        fc[2] -= gvec[2]*massone;
+      }
 
-      double rlist[1][3] = {{x0, x1, x2}};
-      double flist[1][3] = {{0.5*fc0, 0.5*fc1, 0.5*fc2}};
+      vr[0] = delta[0]*fc[0];
+      vr[1] = delta[1]*fc[1];
+      vr[2] = delta[2]*fc[2];
+      vr[3] = delta[0]*fc[1];
+      vr[4] = delta[0]*fc[2];
+      vr[5] = delta[1]*fc[2];
+
+      double rlist[1][3] = {{delta[0], delta[1], delta[2]}};
+      double flist[1][3] = {{fc[0], fc[1], fc[2]}};
       v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
+
+      if (id_gravity) {
+        x0 = delta[0] + b->xcm[0];
+        x1 = delta[1] + b->xcm[1];
+        x2 = delta[2] + b->xcm[2];
+        vr[0] = x0*gvec[0]*massone;
+        vr[1] = x1*gvec[1]*massone;
+        vr[2] = x2*gvec[2]*massone;
+        vr[3] = x0*gvec[1]*massone;
+        vr[4] = x0*gvec[2]*massone;
+        vr[5] = x1*gvec[2]*massone;
+
+        double rlist[1][3] = {{x0, x1, x2}};
+        double flist[1][3] = {{gvec[0]*massone, gvec[1]*massone, gvec[2]*massone}};
+        v_tally(1,&i,1.0,vr,rlist,flist,b->xgc);
+      }
     }
   }
 
@@ -3487,7 +3439,7 @@ void FixRigidSmall::zero_momentum()
   commflag = FINAL;
   comm->forward_comm(this, FINAL_BUFSZ);
 
-  // set velocity of atoms in rigid bodues
+  // set velocity of atoms in rigid bodies
 
   evflag = 0;
   set_v();
@@ -3513,7 +3465,7 @@ void FixRigidSmall::zero_rotation()
   commflag = FINAL;
   comm->forward_comm(this, FINAL_BUFSZ);
 
-  // set velocity of atoms in rigid bodues
+  // set velocity of atoms in rigid bodies
 
   evflag = 0;
   set_v();

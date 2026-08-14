@@ -60,11 +60,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
   avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
 
-  int i;
   int iarg = 3;
   while (iarg < narg) {
-    i = iarg-3;
-
     value_t val;
     val.index = 0;
     val.colindex = 0;
@@ -74,7 +71,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &ComputePropertyAtom::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_molecule;
     } else if (strcmp(arg[iarg],"proc") == 0) {
       val.pack_choice = &ComputePropertyAtom::pack_proc;

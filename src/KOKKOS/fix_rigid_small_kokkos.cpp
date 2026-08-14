@@ -232,6 +232,34 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   if (std::is_same<DeviceType,LMPDeviceType>::value)
     sort_device = (exchange_comm_device && !lmp->kokkos->exchange_comm_legacy) ? 1 : 0;
 
+  // Retire the setup-time placeholder claim on the device, once, at its origin.
+  // The ctor turns on device exchange, so the setup-time exchange runs
+  // pack/unpack_exchange_kokkos before any body exists; those mark the tied
+  // DualViews device-modified over data that is meaningless (the bodies are
+  // built afterwards, on the host, through the base class' raw pointers, which
+  // does not touch the modify flags).  Left in place, that stale claim makes
+  // every later reader defend itself: a sync_host() would pull the placeholder
+  // over the freshly built host arrays, and a modify_host() would trip the
+  // DualView concurrent-modification guard.  Clearing it here -- after the
+  // exchange, before the host build below and before the setup-time sort,
+  // dof() and setup_device_push() that follow -- lets all of them use a plain
+  // modify_host().  Only for the first run: once setupflag is set the device
+  // copies carry real data and their claim must be honoured (the flush below
+  // syncs it down instead).  No-op when host space == device space.
+  if (!setupflag) {
+    k_bodyown.clear_sync_state();
+    k_bodytag.clear_sync_state();
+    k_atom2body.clear_sync_state();
+    k_xcmimage.clear_sync_state();
+    k_displace.clear_sync_state();
+    k_vatom.clear_sync_state();
+    if (extended) {
+      k_eflags.clear_sync_state();
+      if (orientflag) k_orient.clear_sync_state();
+      if (dorientflag) k_dorient.clear_sync_state();
+    }
+  }
+
   // On the 2nd and later runs reinitflag re-runs the host body build
   // (setup_bodies_static/dynamic), which reads bodytag/bodyown/atom2body/
   // xcmimage and rewrites body[].  After a preceding run that state is live on
@@ -298,27 +326,21 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   atomKK->sync(execution_space, datamask_read);
 
   // The host body arrays just (re)written above are authoritative until setup()
-  // pushes them to the device, but the ctor's setup-time exchange left these
-  // DualViews device-modified with placeholder data.  ModifyKokkos::setup() runs
-  // compute temp -> dof() (which sync_host()s them) BEFORE the fix setup() loop;
-  // without clearing that stale flag dof() pulls the placeholder over the good
-  // host arrays and segfaults.  Clear it and re-mark host-modified now (no-op when
-  // host space == device space; setup_device_push() repeats this and pushes).
-  k_bodyown.clear_sync_state();
-  k_bodytag.clear_sync_state();
-  k_atom2body.clear_sync_state();
-  k_xcmimage.clear_sync_state();
-  k_displace.clear_sync_state();
+  // pushes them to the device: mark them so.  ModifyKokkos::setup() runs
+  // compute temp -> dof() (which sync_host()s them) BEFORE the fix setup() loop,
+  // and without this the sync would pull the device copy over the good host
+  // arrays and segfault.  A plain modify_host() suffices here because no device
+  // claim is outstanding: on the first run it was retired at the top of this
+  // function, and on later runs the flush above synced it down (which clears it).
   k_bodyown.modify_host();
   k_bodytag.modify_host();
   k_atom2body.modify_host();
   k_xcmimage.modify_host();
   k_displace.modify_host();
   if (extended) {
-    k_eflags.clear_sync_state();
     k_eflags.modify_host();
-    if (orientflag) { k_orient.clear_sync_state(); k_orient.modify_host(); }
-    if (dorientflag) { k_dorient.clear_sync_state(); k_dorient.modify_host(); }
+    if (orientflag) k_orient.modify_host();
+    if (dorientflag) k_dorient.modify_host();
   }
 }
 
@@ -362,18 +384,10 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 {
   // FixRigidSmall::setup() populated the host per-atom arrays, which are the
   // host mirrors of the tied DualViews -> mark host-modified and push to device.
-  // On a GPU build the setup-time device exchange/sort (enabled by
-  // exchange_comm_device/sort_device in the ctor) has already marked these
-  // DualViews device-modified, with pre-body placeholder data; the host arrays
-  // are now authoritative, so clear the stale device-modified state first --
-  // otherwise the modify_host() below trips the DualView concurrent-modification
-  // guard.  No-op on a host build (device view == host view).
-  k_bodyown.clear_sync_state();
-  k_bodytag.clear_sync_state();
-  k_atom2body.clear_sync_state();
-  k_xcmimage.clear_sync_state();
-  k_displace.clear_sync_state();
-  k_vatom.clear_sync_state();
+  // setup_pre_neighbor() always runs first in the same setup sequence and leaves
+  // no device claim outstanding (it retires the setup-time placeholder on the
+  // first run and syncs the device copy down on later ones), so a plain
+  // modify_host() is safe and cannot trip the concurrent-modification guard.
   k_bodyown.modify_host();
   k_bodytag.modify_host();
   k_atom2body.modify_host();
@@ -2389,25 +2403,25 @@ void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, B
   Kokkos::Profiling::pushRegion("rigid/small sort");
 
   // At setup (setupflag still 0) this sort fires after create_bodies() wrote the
-  // host body arrays -- those host copies are authoritative, but the ctor's
-  // setup-time exchange left the DualViews device-modified with placeholder data,
-  // so the sync<DeviceType>() below would be a no-op and we would sort the stale
-  // device copy and permute it out of alignment with the atoms the sort reorders.
-  // The host bookkeeping then no longer matches the atom order: reset_atom2body
-  // leaves bodyown[map(bodytag)] < 0 and set_v() skips those atoms, leaving their
-  // velocities unprojected.  Make the device copies match the authoritative host
-  // data before sorting.
+  // host body arrays, so those host copies are the ones that must be sorted:
+  // mark them modified, and the sync<DeviceType>() below then carries them to
+  // the device to be permuted alongside the atoms the sort reorders.  Otherwise
+  // the host bookkeeping no longer matches the atom order: reset_atom2body
+  // leaves bodyown[map(bodytag)] < 0 and set_v() skips those atoms, leaving
+  // their velocities unprojected.  No device claim is outstanding here --
+  // setup_pre_neighbor() retired the setup-time placeholder before calling into
+  // the host build this sort runs from -- so modify_host() alone is enough.
   if (!setupflag) {
-    k_bodytag.clear_sync_state();   k_bodytag.modify_host();
-    k_bodyown.clear_sync_state();   k_bodyown.modify_host();
-    k_atom2body.clear_sync_state(); k_atom2body.modify_host();
-    k_xcmimage.clear_sync_state();  k_xcmimage.modify_host();
-    k_displace.clear_sync_state();  k_displace.modify_host();
-    k_vatom.clear_sync_state();     k_vatom.modify_host();
+    k_bodytag.modify_host();
+    k_bodyown.modify_host();
+    k_atom2body.modify_host();
+    k_xcmimage.modify_host();
+    k_displace.modify_host();
+    k_vatom.modify_host();
     if (extended) {
-      k_eflags.clear_sync_state();  k_eflags.modify_host();
-      if (orientflag)  { k_orient.clear_sync_state();  k_orient.modify_host(); }
-      if (dorientflag) { k_dorient.clear_sync_state(); k_dorient.modify_host(); }
+      k_eflags.modify_host();
+      if (orientflag)  k_orient.modify_host();
+      if (dorientflag) k_dorient.modify_host();
     }
   }
 

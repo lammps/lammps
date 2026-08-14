@@ -27,7 +27,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *surf/granular* pair style is designed for interactions between
 granular surfaces made out of lines/triangles and finite-sized atoms

@@ -193,7 +193,7 @@ matching keyword to the name of the KSpace style, as in this table:
 The *ewald* style performs a standard Ewald summation as described in
 any solid-state physics text.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *ewald/gpu* style is a GPU-accelerated version of the *ewald* style.
 Unlike *pppm/gpu*, it requires no FFTs and therefore avoids the
@@ -210,7 +210,7 @@ because of round-off in the structure-factor sums.
 
 The *ewald/disp* style adds a long-range dispersion sum option for
 :math:`1/r^6` potentials and is useful for simulation of interfaces
-:ref:`(Veld) <Veld>`.  It also performs standard Coulombic Ewald summations,
+:ref:`(In 't Veld) <Veld>`.  It also performs standard Coulombic Ewald summations,
 but in a more efficient manner than the *ewald* style.  The :math:`1/r^6`
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
@@ -324,7 +324,7 @@ parameters and how to choose them is described in
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The *pppm/rk* kspace style is a variant of *pppm* designed for a
 heterogeneous multicore pppm computation of long-range forces.  The
@@ -405,7 +405,7 @@ pressure simulation with MSM will cause the code to run slower.
 
 The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver
 library <http://www.scafacos.de/>`_ which provides a variety of solver
-methods which can be used with LAMMPS.  The paper by :ref:`(Sutman)
+methods which can be used with LAMMPS.  The paper by :ref:`(Sutmann2)
 <Sutmann2014>` gives an overview of ScaFaCoS.
 
 ScaFaCoS was developed by a consortium of German research facilities
@@ -517,8 +517,8 @@ will be "too accurate" for some portion of the run.
 
 RMS force errors in real space for *ewald* and *pppm* are estimated
 using equation 18 of :ref:`(Kolafa) <Kolafa>`, which is also referenced as
-equation 9 of :ref:`(Petersen) <Petersen>`. RMS force errors in K-space for
-*ewald* are estimated using equation 11 of :ref:`(Petersen) <Petersen>`,
+equation 9 of :ref:`(Petersen2) <Petersen>`. RMS force errors in K-space for
+*ewald* are estimated using equation 11 of :ref:`(Petersen2) <Petersen>`,
 which is similar to equation 32 of :ref:`(Kolafa) <Kolafa>`. RMS force
 errors in K-space for *pppm* are estimated using equation 38 of
 :ref:`(Deserno) <Deserno>`. RMS force errors for *msm* are estimated
@@ -527,7 +527,7 @@ of particular note. When using *msm* with non-periodic boundary
 conditions, it is expected that the error estimation will be too
 pessimistic. RMS force errors for dipoles when using *ewald/disp*
 or *ewald/dipole* are estimated using equations 33 and 46 of
-:ref:`(Wang) <Wang>`. The RMS force errors for *pppm/dipole* are estimated
+:ref:`(Wang3) <Wang>`. The RMS force errors for *pppm/dipole* are estimated
 using the equations in :ref:`(Cerda) <Cerda2008>`.
 
 See the :doc:`kspace_modify <kspace_modify>` command for additional
@@ -575,7 +575,7 @@ support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 Triclinic (non-orthogonal) box support was added to the *pppm/disp*
 style and its *pppm/disp/tip4p*, *pppm/disp/omp*, and
@@ -663,11 +663,11 @@ Adam Hilger, NY (1989).
 
 .. _Petersen:
 
-**(Petersen)** Petersen, J Chem Phys, 103, 3668 (1995).
+**(Petersen2)** Petersen, J Chem Phys, 103, 3668 (1995).
 
 .. _Wang:
 
-**(Wang)** Wang and Holm, J Chem Phys, 115, 6277 (2001).
+**(Wang3)** Wang and Holm, J Chem Phys, 115, 6277 (2001).
 
 .. _Pollock:
 
@@ -684,7 +684,7 @@ and Computation 5, 2322 (2009)
 
 .. _Veld:
 
-**(Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
+**(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
 
 .. _Toukmaji:
 
@@ -722,5 +722,5 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Sutmann2014:
 
-**(Sutmann)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
+**(Sutmann2)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
   In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.

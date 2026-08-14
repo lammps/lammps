@@ -3,7 +3,7 @@ lammps_version: 30 Mar 2026
 tags: slow
 date_generated: Thu May 28 16:26:50 2026
 epsilon: 7.5e-13
-skip_tests: gpu intel kokkos_omp kokkos_gpu omp extract_omp
+skip_tests: gpu intel omp extract_omp
 prerequisites: ! |
   atom full
   pair coul/long

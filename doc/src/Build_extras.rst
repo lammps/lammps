@@ -68,7 +68,6 @@ This is the list of packages that may require additional steps.
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`VTK <vtk>`
 
 ----------
 
@@ -207,7 +206,7 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API backends
+   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API back ends
                                 # value = sm_XX for cuda and hip/nvcc (see below),
                                 # gfx<XXX> for hip/amd, or spirv for hip/spirv
                                 # defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),
@@ -255,10 +254,10 @@ LAMMPS must be compiled with ``-DFFT_SINGLE`` to use PPPM with GPU acceleration
 or GPU acceleration should be disabled for PPPM (e.g. suffix off or ``pair/only``
 as described in the LAMMPS documentation).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 ``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
-backends.  The backend-specific ``HIP_ARCH`` (for ``GPU_API=hip``)
+back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
@@ -343,7 +342,7 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
 
 .. note::
 
-   Some Clang-based toolchains - in particular ``hipcc`` from ROCm - do not
+   Some Clang-based tool chains - in particular ``hipcc`` from ROCm - do not
    ship the ``omp.h`` header in the compiler's own resource directory.  When
    building with ``-D BUILD_OMP=on`` and such a compiler, host code that
    includes ``<omp.h>`` would fail to compile even though the ``-fopenmp``
@@ -2052,33 +2051,4 @@ To build with this package, you must download and build the
       .. versionchanged:: 10Sep2025
 
       The SCAFACOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
-
-----------
-
-.. _vtk:
-
-VTK package
--------------------------------
-
-To build with this package you must have the VTK library installed on
-your system.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_VTK=yes``.
-
-      This should auto-detect the VTK library if it is installed on your
-      system at standard locations.  Several advanced VTK options exist
-      if you need to specify where it was installed.  Use the ``ccmake``
-      (terminal window) or ``cmake-gui`` (graphical) tools to see these
-      options and set them interactively from their user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

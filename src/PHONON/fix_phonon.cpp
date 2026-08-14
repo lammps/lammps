@@ -291,7 +291,6 @@ return mask;
 void FixPhonon::init()
 {
   // warn if more than one fix-phonon
-  int count = 0;
   if (modify->get_fix_by_style("^phonon").size() > 1)
     error->warning(FLERR,"More than one fix phonon defined");
 }

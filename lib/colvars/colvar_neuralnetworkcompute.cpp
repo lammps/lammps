@@ -13,38 +13,40 @@
 #include "colvar_neuralnetworkcompute.h"
 #include "colvarparse.h"
 #include "colvarproxy.h"
+#include "colvarmodule.h"
 
 namespace neuralnetworkCV {
 std::map<std::string, std::pair<std::function<double(double)>, std::function<double(double)>>> activation_function_map
 {
-    {"tanh",     {[](double x){return std::tanh(x);},
-                  [](double x){return 1.0 - std::tanh(x) * std::tanh(x);}}},
-    {"sigmoid",  {[](double x){return 1.0 / (1.0 + std::exp(-x));},
-                  [](double x){return std::exp(-x) / ((1.0 + std::exp(-x)) * (1.0 + std::exp(-x)));}}},
+    {"tanh",     {[](double x){return cvm::tanh(x);},
+                  [](double x){return 1.0 - cvm::tanh(x) * cvm::tanh(x);}}},
+    {"sigmoid",  {[](double x){return 1.0 / (1.0 + cvm::exp(-x));},
+                  [](double x){return cvm::exp(-x) / ((1.0 + cvm::exp(-x)) * (1.0 + cvm::exp(-x)));}}},
     {"linear",   {[](double x){return x;},
                   [](double /*x*/){return 1.0;}}},
     {"relu",     {[](double x){return x < 0. ? 0. : x;},
                   [](double x){return x < 0. ? 0. : 1.;}}},
     {"lrelu100", {[](double x){return x < 0. ? 0.01 * x : x;},
                   [](double x){return x < 0. ? 0.01     : 1.;}}},
-    {"elu",      {[](double x){return x < 0. ? std::exp(x)-1. : x;},
-                  [](double x){return x < 0. ? std::exp(x)    : 1.;}}}
+    {"elu",      {[](double x){return x < 0. ? cvm::exp(x)-1. : x;},
+                  [](double x){return x < 0. ? cvm::exp(x)    : 1.;}}}
 };
 
 #ifdef LEPTON
 customActivationFunction::customActivationFunction():
 expression(), value_evaluator(nullptr), gradient_evaluator(nullptr),
-input_reference(nullptr), derivative_reference(nullptr) {}
+input_reference(nullptr), derivative_reference(nullptr), cvmodule(nullptr) {
+}
 
-customActivationFunction::customActivationFunction(const std::string& expression_string):
+customActivationFunction::customActivationFunction(const std::string& expression_string, colvarmodule *cvmodule):
 expression(), value_evaluator(nullptr), gradient_evaluator(nullptr),
-input_reference(nullptr), derivative_reference(nullptr) {
+input_reference(nullptr), derivative_reference(nullptr), cvmodule(cvmodule) {
     setExpression(expression_string);
 }
 
 customActivationFunction::customActivationFunction(const customActivationFunction& source):
 expression(), value_evaluator(nullptr), gradient_evaluator(nullptr),
-input_reference(nullptr), derivative_reference(nullptr) {
+input_reference(nullptr), derivative_reference(nullptr), cvmodule(source.cvmodule) {
     // check if the source object is initialized
     if (source.value_evaluator != nullptr) {
         this->setExpression(source.expression);
@@ -73,31 +75,31 @@ void customActivationFunction::setExpression(const std::string& expression_strin
     try {
         parsed_expression = Lepton::Parser::parse(expression);
     } catch (...) {
-        cvm::error("Error parsing or compiling expression \"" + expression + "\".\n", COLVARS_INPUT_ERROR);
+        cvmodule->error("Error parsing or compiling expression \"" + expression + "\".\n", COLVARS_INPUT_ERROR);
     }
     // compile the expression
     try {
         value_evaluator = std::unique_ptr<Lepton::CompiledExpression>(new Lepton::CompiledExpression(parsed_expression.createCompiledExpression()));
     } catch (...) {
-        cvm::error("Error compiling expression \"" + expression + "\".\n", COLVARS_INPUT_ERROR);
+        cvmodule->error("Error compiling expression \"" + expression + "\".\n", COLVARS_INPUT_ERROR);
     }
     // create a compiled expression for the derivative
     try {
         gradient_evaluator = std::unique_ptr<Lepton::CompiledExpression>(new Lepton::CompiledExpression(parsed_expression.differentiate(activation_input_variable).createCompiledExpression()));
     } catch (...) {
-        cvm::error("Error creating compiled expression for variable \"" + activation_input_variable + "\".\n", COLVARS_INPUT_ERROR);
+        cvmodule->error("Error creating compiled expression for variable \"" + activation_input_variable + "\".\n", COLVARS_INPUT_ERROR);
     }
     // get the reference to the input variable in the compiled expression
     try {
         input_reference = &(value_evaluator->getVariableReference(activation_input_variable));
     } catch (...) {
-        cvm::error("Error on getting the reference to variable \"" + activation_input_variable + "\" in the compiled expression.\n", COLVARS_INPUT_ERROR);
+        cvmodule->error("Error on getting the reference to variable \"" + activation_input_variable + "\" in the compiled expression.\n", COLVARS_INPUT_ERROR);
     }
     // get the reference to the input variable in the compiled derivative expression
     try {
         derivative_reference = &(gradient_evaluator->getVariableReference(activation_input_variable));
     } catch (...) {
-        cvm::error("Error on getting the reference to variable \"" + activation_input_variable + "\" in the compiled derivative exprssion.\n", COLVARS_INPUT_ERROR);
+        cvmodule->error("Error on getting the reference to variable \"" + activation_input_variable + "\" in the compiled derivative exprssion.\n", COLVARS_INPUT_ERROR);
     }
 }
 
@@ -116,7 +118,14 @@ double customActivationFunction::derivative(double x) const {
 }
 #endif
 
-denseLayer::denseLayer(const std::string& weights_file, const std::string& biases_file, const std::function<double(double)>& f, const std::function<double(double)>& df): m_activation_function(f), m_activation_function_derivative(df) {
+denseLayer::denseLayer(const std::string& weights_file,
+    const std::string& biases_file,
+    const std::function<double(double)>& f,
+    const std::function<double(double)>& df,
+    colvarmodule *cvmodule)
+    : m_activation_function(f),
+      m_activation_function_derivative(df),
+      cvmodule(cvmodule) {
 #ifdef LEPTON
     m_use_custom_activation = false;
 #endif
@@ -124,9 +133,12 @@ denseLayer::denseLayer(const std::string& weights_file, const std::string& biase
 }
 
 #ifdef LEPTON
-denseLayer::denseLayer(const std::string& weights_file, const std::string& biases_file, const std::string& custom_activation_expression) {
+denseLayer::denseLayer(const std::string& weights_file,
+    const std::string& biases_file,
+    const std::string& custom_activation_expression,
+    colvarmodule *cvmodule) : cvmodule(cvmodule) {
     m_use_custom_activation = true;
-    m_custom_activation_function = customActivationFunction(custom_activation_expression);
+    m_custom_activation_function = customActivationFunction(custom_activation_expression, cvmodule);
     readFromFile(weights_file, biases_file);
 }
 #endif
@@ -136,7 +148,7 @@ void denseLayer::readFromFile(const std::string& weights_file, const std::string
     m_weights.clear();
     m_biases.clear();
     std::string line;
-    colvarproxy *proxy = cvm::main()->proxy;
+    colvarproxy *proxy = cvmodule->proxy;
     auto &ifs_weights = proxy->input_stream(weights_file, "weights file");
     while (std::getline(ifs_weights, line)) {
         if (!ifs_weights) {

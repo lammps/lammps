@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Add a nonlinear (Reynolds-number dependent) drag force to each
 finite-size spherical particle in the group, modeling the interaction

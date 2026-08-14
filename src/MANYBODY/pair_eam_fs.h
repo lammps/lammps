@@ -24,18 +24,9 @@ PairStyle(eam/fs,PairEAMFS);
 
 namespace LAMMPS_NS {
 
-// need virtual public b/c of how eam/fs/opt inherits from it
-
-class PairEAMFS : virtual public PairEAM {
+class PairEAMFS : public PairEAM {
  public:
   PairEAMFS(class LAMMPS *);
-
-  void coeff(int, char **) override;
-
- protected:
-  void read_file(char *) override;
-  void file2array() override;
-  int he_flag;
 };
 
 }    // namespace LAMMPS_NS

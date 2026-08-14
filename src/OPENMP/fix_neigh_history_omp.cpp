@@ -174,8 +174,10 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom
+    // maxpartner is zeroed before the parallel region; do not reset it
+    // here since another thread may already have merged its result
 
-    maxpartner = m = 0;
+    m = 0;
     for (i = lfrom; i < lto; i++) m = MAX(m, npartner[i]);
 
 #if defined(_OPENMP)
@@ -196,8 +198,14 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 void FixNeighHistoryOMP::pre_exchange_newton()
 {
   const int nthreads = comm->nthreads;
+
+  // ensure npartner is zeroed for all current atoms: nall can be larger than
+  // nall_neigh when restart files are written that involve communication calls
+  // but modify->post_neighbor() isn't called
+
   maxpartner = 0;
-  for (int i = 0; i < nall_neigh; i++) npartner[i] = 0;
+  const int nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
 
 #if defined(_OPENMP)
 #pragma omp parallel LMP_DEFAULT_NONE
@@ -213,6 +221,7 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     int i, j, ii, jj, m, n, inum, jnum;
     int *ilist, *jlist, *numneigh, **firstneigh;
     int *allflags;
+    int *type = atom->type;
     double *allvalues, *onevalues, *jvalues;
 
     MyPage<tagint> &ipg = ipage_atom[tid];
@@ -232,10 +241,10 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     firstneigh = list->firstneigh;
 
     // each thread works on a fixed chunk of local and ghost atoms.
-    const int ldelta = 1 + nlocal_neigh / nthreads;
+    const int ldelta = 1 + nall_neigh / nthreads;
     const int lfrom = tid * ldelta;
     const int lmax = lfrom + ldelta;
-    const int lto = (lmax > nlocal_neigh) ? nlocal_neigh : lmax;
+    const int lto = (lmax > nall_neigh) ? nall_neigh : lmax;
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
@@ -255,9 +264,6 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 #if defined(_OPENMP)
 #pragma omp barrier
-    {
-      ;
-    }
 
     // perform reverse comm to augment owned npartner counts with ghost counts
 
@@ -268,31 +274,22 @@ void FixNeighHistoryOMP::pre_exchange_newton()
       comm->reverse_comm(this, 0);
     }
 
-    // get page chunks to store atom IDs and shear history for my atoms
-
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      if ((i >= lfrom) && (i < lto)) {
-        n = npartner[i];
-        partner[i] = ipg.get(n);
-        valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr)
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
-      }
-    }
+    // wait for the reverse comm to complete: the augmented npartner counts
+    // of owned atoms determine the sizes of the page chunks allocated below
 
 #if defined(_OPENMP)
-#pragma omp master
+#pragma omp barrier
 #endif
-    {
-      for (i = nlocal_neigh; i < nall_neigh; i++) {
-        n = npartner[i];
-        partner[i] = ipg.get(n);
-        valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr) {
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
-        }
-      }
+
+    // get page chunks to store atom IDs and shear history for
+    // this thread's chunk of owned and ghost atoms
+
+    for (i = lfrom; i < lto; i++) {
+      n = npartner[i];
+      partner[i] = ipg.get(n);
+      valuepartner[i] = dpg.get(dnum * n);
+      if (partner[i] == nullptr || valuepartner[i] == nullptr)
+        error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
     }
 
     // 2nd loop over neighbor list
@@ -324,16 +321,16 @@ void FixNeighHistoryOMP::pre_exchange_newton()
             m = npartner[j]++;
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
-            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+            if (pair->nondefault_history_transfer)
+              pair->transfer_history(onevalues, jvalues, type[i], type[j]);
+            else
+              for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }
     }
 #if defined(_OPENMP)
 #pragma omp barrier
-    {
-      ;
-    }
 
 #pragma omp master
 #endif
@@ -347,10 +344,18 @@ void FixNeighHistoryOMP::pre_exchange_newton()
       comm->reverse_comm_variable(this);
     }
 
+    // wait for the reverse comm to complete: it appends the ghost atom
+    // contributions to partner, valuepartner, and npartner of owned atoms
+
+#if defined(_OPENMP)
+#pragma omp barrier
+#endif
+
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom
     m = 0;
-    for (i = lfrom; i < lto; i++) m = MAX(m, npartner[i]);
+    for (i = lfrom; i < lto; i++)
+      if (i < nlocal_neigh) m = MAX(m, npartner[i]);
 
 #if defined(_OPENMP)
 #pragma omp critical
@@ -389,6 +394,7 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
     int *ilist, *jlist, *numneigh, **firstneigh;
     int *allflags;
     double *allvalues, *onevalues, *jvalues;
+    int *type = atom->type;
 
     MyPage<tagint> &ipg = ipage_atom[tid];
     MyPage<double> &dpg = dpage_atom[tid];
@@ -476,7 +482,10 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
             m = npartner[j]++;
             partner[j][m] = tag[i];
             jvalues = &valuepartner[j][dnum * m];
-            for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
+            if (pair->nondefault_history_transfer)
+              pair->transfer_history(onevalues, jvalues, type[i], type[j]);
+            else
+              for (n = 0; n < dnum; n++) jvalues[n] = -onevalues[n];
           }
         }
       }
@@ -588,6 +597,8 @@ void FixNeighHistoryOMP::post_neighbor()
         // rflag = 1 if r < radsum in npair_size() method
         // preserve neigh history info if tag[j] is in old-neigh partner list
         // this test could be more geometrically precise for two sphere/line/tri
+        // if use_bit_flag is turned off, always record data since not all npair classes
+        // apply a mask for history (and they could use the bits for special bonds)
 
         if (rflag) {
           if (surface_global) {

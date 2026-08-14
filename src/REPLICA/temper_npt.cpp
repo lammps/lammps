@@ -42,7 +42,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperNPT::TemperNPT(LAMMPS *lmp) : Command(lmp) {}
+TemperNPT::TemperNPT(LAMMPS *lmp) :
+    Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_temp(nullptr),
+    temp2world(nullptr), world2temp(nullptr), world2root(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

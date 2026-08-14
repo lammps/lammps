@@ -24,7 +24,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecSphere::AtomVecSphere(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecSphere::AtomVecSphere(LAMMPS *lmp) :
+    AtomVec(lmp), radius(nullptr), rmass(nullptr), omega(nullptr)
 {
   mass_type = PER_ATOM;
   molecular = Atom::ATOMIC;

@@ -30,7 +30,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNVELimit::FixNVELimit(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), step_respa(nullptr)
 {
   if (narg != 4) utils::missing_cmd_args(FLERR, "fix nve/limit", error);
 

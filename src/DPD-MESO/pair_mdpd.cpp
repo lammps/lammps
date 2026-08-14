@@ -51,7 +51,9 @@ static const char cite_pair_mdpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMDPD::PairMDPD(LAMMPS *lmp) : Pair(lmp)
+PairMDPD::PairMDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_r(nullptr), A_att(nullptr), B_rep(nullptr), gamma(nullptr),
+    sigma(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_mdpd);
 
@@ -415,7 +417,7 @@ void PairMDPD::read_restart_settings(FILE *fp)
 void PairMDPD::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-    fprintf(fp,"%d %g %g %g\n",i,A_att[i][i],B_rep[i][i],gamma[i][i]);
+    fprintf(fp,"%d %g %g %g %g %g\n",i,A_att[i][i],B_rep[i][i],gamma[i][i],cut[i][i],cut_r[i][i]);
 }
 
 /* ----------------------------------------------------------------------

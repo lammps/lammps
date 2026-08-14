@@ -16,7 +16,7 @@
 /// Gaussian aMD (GaMD)
 class colvarbias_reweightaMD : public colvarbias_histogram {
 public:
-  colvarbias_reweightaMD(char const *key);
+  colvarbias_reweightaMD(colvarmodule *cvmodule_in, char const *key);
   virtual ~colvarbias_reweightaMD();
   virtual int init(std::string const &conf) override;
   virtual int update() override;

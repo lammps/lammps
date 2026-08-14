@@ -32,6 +32,7 @@ class FixWallReflect : public Fix {
   ~FixWallReflect() override;
   int setmask() override;
   void init() override;
+  void setup(int) override;
   void post_integrate() override;
 
   int image(int *&, double **&) override;
@@ -47,6 +48,7 @@ class FixWallReflect : public Fix {
   int *imgobjs;
   double **imgparms;
 
+  void allocate_image_objects();
   virtual void wall_particle(int m, int which, double coord);
 };
 

@@ -51,71 +51,71 @@ class LAMMPS;
 
 namespace ILVES {
 
-// dimension constants (matching the GROMACS DIM / XX / YY / ZZ spellings)
-enum { XX = 0, YY = 1, ZZ = 2, DIM = 3 };
+  // dimension constants (matching the GROMACS DIM / XX / YY / ZZ spellings)
+  enum { XX = 0, YY = 1, ZZ = 2, DIM = 3 };
 
-// per-dimension arrays of bond vectors (x[b]-x[a]) over all constraints
-using VecDouble = std::vector<double>;
-using BondVecs = std::array<VecDouble, DIM>;
+  // per-dimension arrays of bond vectors (x[b]-x[a]) over all constraints
+  using VecDouble = std::vector<double>;
+  using BondVecs = std::array<VecDouble, DIM>;
 
-class Ilves {
- public:
-  Ilves(LAMMPS *lmp, const std::vector<int> &catom1, const std::vector<int> &catom2,
-        const std::vector<int> &cnode1, const std::vector<int> &cnode2,
-        const std::vector<double> &cdist, const std::vector<double> &invmass);
+  class Ilves {
+   public:
+    Ilves(LAMMPS *lmp, const std::vector<int> &catom1, const std::vector<int> &catom2,
+          const std::vector<int> &cnode1, const std::vector<int> &cnode2,
+          const std::vector<double> &cdist, const std::vector<double> &invmass);
 
-  ~Ilves() = default;
+    ~Ilves() = default;
 
-  // assemble g(x) and the reference/predicted bond vectors; returns the local
-  // max relative (squared) bond-length violation
-  double prepare(double **x, double **xprime);
+    // assemble g(x) and the reference/predicted bond vectors; returns the local
+    // max relative (squared) bond-length violation
+    double prepare(double **x, double **xprime);
 
-  // one Newton step: assemble and factor the Jacobian, solve it, and accumulate
-  // the position increments (for both atoms of every constraint, home or ghost)
-  // into dx
-  void step(double **dx);
+    // one Newton step: assemble and factor the Jacobian, solve it, and accumulate
+    // the position increments (for both atoms of every constraint, home or ghost)
+    // into dx
+    void step(double **dx);
 
-  // accumulate the multipliers, then reassemble g(x); first_iter selects the
-  // initial multiplier handling.  returns the local max relative violation
-  double recompute(double **x, double **xprime, bool first_iter);
+    // accumulate the multipliers, then reassemble g(x); first_iter selects the
+    // initial multiplier handling.  returns the local max relative violation
+    double recompute(double **x, double **xprime, bool first_iter);
 
-  // add the constraint contribution to the 6-component global virial:
-  // sum over owned constraints of -lambda*inv_dtfsq * r (x) r
-  void add_global_virial(double *v6, double inv_dtfsq) const;
+    // add the constraint contribution to the 6-component global virial:
+    // sum over owned constraints of -lambda*inv_dtfsq * r (x) r
+    void add_global_virial(double *v6, double inv_dtfsq) const;
 
-  // estimate the solver's memory footprint (topology + factored sparse matrix
-  // + the weight/multiplier and bond-vector work arrays) in bytes
-  double memory_usage() const;
+    // estimate the solver's memory footprint (topology + factored sparse matrix
+    // + the weight/multiplier and bond-vector work arrays) in bytes
+    [[nodiscard]] double memory_usage() const;
 
- protected:
-  LAMMPS *lmp;
+   protected:
+    LAMMPS *lmp;
 
-  std::unique_ptr<Molecule> mol;
-  std::unique_ptr<SparseDirectSolver> solver;
+    std::unique_ptr<Molecule> mol;
+    std::unique_ptr<SparseDirectSolver> solver;
 
-  // weights of the entries of the lhs (one per stored matrix entry)
-  VecDouble lhs_weights;
-  // current approximation of the Lagrange multipliers (one per constraint)
-  VecDouble current_lagr;
+    // weights of the entries of the lhs (one per stored matrix entry)
+    VecDouble lhs_weights;
+    // current approximation of the Lagrange multipliers (one per constraint)
+    VecDouble current_lagr;
 
-  // x_ab[d][k]      = (x[b]-x[a])[d]      using reference positions x
-  // xprime_ab[d][k] = (xprime[b]-xprime[a])[d] using predicted positions xprime
-  BondVecs x_ab;
-  BondVecs xprime_ab;
+    // x_ab[d][k]      = (x[b]-x[a])[d]      using reference positions x
+    // xprime_ab[d][k] = (xprime[b]-xprime[a])[d] using predicted positions xprime
+    BondVecs x_ab;
+    BondVecs xprime_ab;
 
-  // assemble g(x) into the solver rhs; returns the local max relative violation
-  double make_rhs(double **x, double **xprime, bool compute_x_ab);
+    // assemble g(x) into the solver rhs; returns the local max relative violation
+    double make_rhs(double **x, double **xprime, bool compute_x_ab);
 
-  // assemble the Jacobian into the solver lhs from the two bond-vector sets
-  void make_lhs(const BondVecs &xab1, const BondVecs &xab2);
+    // assemble the Jacobian into the solver lhs from the two bond-vector sets
+    void make_lhs(const BondVecs &xab1, const BondVecs &xab2);
 
-  void update_current_lagr(bool first_time);
-  // accumulate this iteration's position increments into dx (home + ghost)
-  void accumulate_increment(double **dx) const;
+    void update_current_lagr(bool first_time);
+    // accumulate this iteration's position increments into dx (home + ghost)
+    void accumulate_increment(double **dx) const;
 
- private:
-  void make_weights();
-};
+   private:
+    void make_weights();
+  };
 
 }    // namespace ILVES
 }    // namespace LAMMPS_NS

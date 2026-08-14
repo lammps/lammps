@@ -30,6 +30,7 @@
 #include "kspace.h"
 #include "modify.h"
 #include "pair.h"
+#include "update.h"
 
 #include <cmath>
 
@@ -149,6 +150,10 @@ void run_lammps(LAMMPS *lmp, const TestConfig &cfg)
         command("fix 1 all nve/asphere");
         command("compute etemp all temp/asphere");
         command("thermo_modify temp etemp");
+    } else if (std::find(cfg.tags.begin(), cfg.tags.end(), "spin") != cfg.tags.end()) {
+        // spin systems must define "fix nve/spin" in the yaml post_commands so it is
+        // present in all test stages: the spin pair styles compute the mechanical
+        // forces only when the fix is present (they take its "lattice" setting).
     } else {
         command("fix 1 all nve");
     }
@@ -293,6 +298,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
     writer.emit_block("init_forces", block);
 
+    // init_mag_forces (only for atom_style spin)
+    if (lmp->atom->sp_flag) {
+        block.clear();
+        auto *fm = lmp->atom->fm;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, fm[j][0], fm[j][1],
+                                 fm[j][2]);
+        }
+        writer.emit_block("init_mag_forces", block);
+    }
+
     // do a few steps of MD
     run_lammps(lmp, config);
 
@@ -318,6 +335,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("run_forces", block);
+
+    // run_mag_forces (only for atom_style spin)
+    if (lmp->atom->sp_flag) {
+        block.clear();
+        auto *fm = lmp->atom->fm;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, fm[j][0], fm[j][1],
+                                 fm[j][2]);
+        }
+        writer.emit_block("run_mag_forces", block);
+    }
 
     cleanup_lammps(lmp, config);
 }
@@ -365,6 +394,8 @@ TEST(PairStyle, plain)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, epsilon);
 
     ErrorStats stats;
@@ -378,6 +409,8 @@ TEST(PairStyle, plain)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, epsilon);
 
     stats.reset();
@@ -407,6 +440,8 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       3 * epsilon);
 
@@ -420,6 +455,8 @@ TEST(PairStyle, plain)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                          5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
@@ -440,6 +477,7 @@ TEST(PairStyle, plain)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("restart_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
     EXPECT_STRESS("restart_stress", pair->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -447,8 +485,11 @@ TEST(PairStyle, plain)
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, epsilon);
     if (print_stats) std::cerr << "restart_energy stats:" << stats << std::endl;
 
-    // pair style rann does not support pair_modify nofdotr
-    if (test_config.pair_style != "rann") {
+    // pair style rann does not support pair_modify nofdotr.  styles whose
+    // dissipative or random pair forces are not central (e.g. sdpd) cannot
+    // reproduce the fdotr virial through ev_tally() and may opt out with
+    // the "nofdotr" token in skip_tests.
+    if ((test_config.pair_style != "rann") && !test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
         restart_lammps(lmp, test_config, true);
         if (!verbose) ::testing::internal::GetCapturedStdout();
@@ -456,6 +497,7 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
         EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, epsilon);
 
         stats.reset();
@@ -470,6 +512,7 @@ TEST(PairStyle, plain)
 
     pair = lmp->force->pair;
     EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("data_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
     EXPECT_STRESS("data_stress", pair->virial, test_config.init_stress, epsilon);
 
     stats.reset();
@@ -563,6 +606,8 @@ TEST(PairStyle, omp)
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -575,6 +620,8 @@ TEST(PairStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -585,22 +632,24 @@ TEST(PairStyle, omp)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    pair = lmp->force->pair;
+
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
 
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        try {
-            lmp = init_lammps(args, test_config, false);
-        } catch (std::exception &e) {
-            if (!verbose) ::testing::internal::GetCapturedStdout();
-            FAIL() << e.what();
-        }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-
-        pair = lmp->force->pair;
-
-        EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, epsilon);
+        EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       10 * epsilon);
 
@@ -614,6 +663,8 @@ TEST(PairStyle, omp)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                          5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress,
                       10 * epsilon);
 
@@ -633,6 +684,7 @@ TEST(PairStyle, omp)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -700,6 +752,8 @@ static void run_kokkos_test(LAMMPS::argv &args)
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -712,6 +766,8 @@ static void run_kokkos_test(LAMMPS::argv &args)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -722,21 +778,24 @@ static void run_kokkos_test(LAMMPS::argv &args)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats, newton on: " << stats << std::endl;
 
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    try {
+        lmp = init_lammps(args, test_config, false);
+    } catch (std::exception &e) {
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        FAIL() << e.what();
+    }
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+
+    pair = lmp->force->pair;
+
     // skip over these tests if newton pair is forced to be on
     if (lmp->force->newton_pair == 0) {
-        if (!verbose) ::testing::internal::CaptureStdout();
-        cleanup_lammps(lmp, test_config);
-        try {
-            lmp = init_lammps(args, test_config, false);
-        } catch (std::exception &e) {
-            if (!verbose) ::testing::internal::GetCapturedStdout();
-            FAIL() << e.what();
-        }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
-
-        pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+        EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                          epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
                       10 * epsilon);
 
@@ -750,6 +809,8 @@ static void run_kokkos_test(LAMMPS::argv &args)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                          5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress,
                       10 * epsilon);
 
@@ -769,6 +830,7 @@ static void run_kokkos_test(LAMMPS::argv &args)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -779,6 +841,107 @@ static void run_kokkos_test(LAMMPS::argv &args)
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+
+/* ----------------------------------------------------------------------
+   collect per-atom pair energies from a direct pair->compute() call
+   with explicit energy/virial flags on the current configuration,
+   including the ghost atom reduction done by compute pe/atom. styles
+   must produce the same per-atom energies whether or not the virial is
+   tallied; styles that maintain their tally bookkeeping only when the
+   virial is requested (as the TIP4P OpenMP variants did) assign
+   per-atom energies to stale or invalid atom indices otherwise, which
+   the comparison against the with-virial reference detects
+------------------------------------------------------------------------- */
+
+std::vector<double> eatom_direct(LAMMPS *lmp, bool with_virial)
+{
+    // satisfy the tally timestamp checks of pair->compute consumers
+
+    lmp->update->eflag_atom  = lmp->update->ntimestep;
+    lmp->update->eflag_global = lmp->update->ntimestep;
+    // request the same global-virial mode the integrator would use;
+    // per-atom virial support is not universal (e.g. pair rann)
+    int vflag = 0;
+    if (with_virial) {
+        vflag = lmp->force->pair->no_virial_fdotr_compute ? VIRIAL_PAIR : VIRIAL_FDOTR;
+        lmp->update->vflag_global = lmp->update->ntimestep;
+    }
+    lmp->force->pair->compute(ENERGY_GLOBAL | ENERGY_ATOM, vflag);
+
+    auto *pea = lmp->modify->get_compute_by_id("peaonly");
+    EXPECT_NE(pea, nullptr);
+    pea->compute_peratom();
+    pea->invoked_peratom = -1;    // force a fresh evaluation on the next call
+
+    const int nlocal = lmp->atom->nlocal;
+    const tagint *tag = lmp->atom->tag;
+    std::vector<double> eatom(nlocal, 0.0);
+    for (int i = 0; i < nlocal; i++)
+        eatom[tag[i] - 1] = pea->vector_atom[i];
+    return eatom;
+}
+
+void eatom_only_test(LAMMPS::argv args, const TestConfig &cfg)
+{
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, cfg, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    if (!lmp) GTEST_SKIP();
+
+    // exception safety matters here: leaving the capturer active on a
+    // throw aborts the whole test program at the next captured section
+    ::testing::internal::CaptureStdout();
+    std::vector<double> reference, eonly;
+    try {
+        lmp->input->one("compute peaonly all pe/atom pair");
+        lmp->input->one("run 0 post no");
+        reference = eatom_direct(lmp, true);
+        eonly     = eatom_direct(lmp, false);
+    } catch (std::exception &e) {
+        std::string errout = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << errout;
+        cleanup_lammps(lmp, cfg);
+        FAIL() << e.what();
+    }
+    cleanup_lammps(lmp, cfg);
+    ::testing::internal::GetCapturedStdout();
+
+    ASSERT_EQ(reference.size(), eonly.size());
+    const double epsilon = cfg.epsilon;
+    for (std::size_t i = 0; i < reference.size(); i++)
+        EXPECT_NEAR(eonly[i], reference[i], (fabs(reference[i]) + 1.0) * epsilon * 10.0)
+            << "per-atom energy for atom " << i + 1
+            << " differs between tallying with and without virial";
+}
+
+TEST(PairStyle, eatom_only)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    eatom_only_test(args, test_config);
+}
+
+TEST(PairStyle, eatom_only_omp)
+{
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    if (test_config.skip_tests.count("omp")) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
+    if (test_config.has_tag("single_thread")) args[8] = "1";
+    eatom_only_test(args, test_config);
 }
 
 TEST(PairStyle, kokkos_omp)
@@ -947,6 +1110,8 @@ TEST(PairStyle, gpu)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -959,6 +1124,8 @@ TEST(PairStyle, gpu)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
+                      5 * epsilon);
     EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -1112,6 +1279,8 @@ TEST(PairStyle, opt)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
+                      epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -1141,6 +1310,7 @@ TEST(PairStyle, opt)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();

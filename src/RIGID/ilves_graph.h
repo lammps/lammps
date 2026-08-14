@@ -45,8 +45,7 @@
  *
  */
 
-namespace LAMMPS_NS {
-namespace ILVES {
+namespace LAMMPS_NS::ILVES {
 
 // Data structure for graphs
 class Graph {
@@ -88,22 +87,21 @@ class Graph {
   /**
    * Get the number of nodes in the graph.
    */
-  int num_nodes() const;
+  [[nodiscard]] int num_nodes() const;
 
   /**
    * Get the number of edges in the graph.
    */
-  int num_edges() const;
+  [[nodiscard]] int num_edges() const;
 
   /**
    * Estimate the memory used by the graph (CSR index + adjacency arrays).
    *
    * @return The size of the graph storage in bytes.
    */
-  double memory_usage() const;
+  [[nodiscard]] double memory_usage() const;
 };
 
-}    // namespace ILVES
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::ILVES
 
 #endif

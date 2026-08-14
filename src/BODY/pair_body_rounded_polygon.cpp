@@ -51,7 +51,8 @@ enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
 
 /* ---------------------------------------------------------------------- */
 
-PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) : Pair(lmp)
+PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) :
+    Pair(lmp), k_n(nullptr), k_na(nullptr), avec(nullptr), bptr(nullptr)
 {
   dmax = nmax = 0;
   discrete = nullptr;

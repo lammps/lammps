@@ -5,7 +5,7 @@ atom_style      line
 atom_modify     map array
 boundary        f f p
 dimension       2
-comm_modify     vel yes
+comm_modify     vel yes cutoff 12.5
 
 read_data       data.line
 
@@ -52,8 +52,8 @@ thermo_style    custom step atoms temp c_1 c_2 press
 thermo_modify   lost ignore
 compute_modify  thermo_temp dynamic/dof yes
 
-#dump           2 all image 100 tmp.image.*.ppm type type &
-#               zoom 1.6 adiam 1.0 line type 0.5
-#dump_modify    2 pad 5
+#dump            viz all image 50 line.data-*.ppm type diameter line type 0.2 &
+#                size 800 800 zoom 1.6 shiny 0.2 fsaa yes box yes 0.025 center s 0.5 0.5 0
+#dump_modify viz pad 6 backcolor black backcolor2 white boxcolor gray acolor 1 steelblue
 
 run             10000

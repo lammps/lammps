@@ -432,6 +432,8 @@ action pair_eam_alloy_kokkos.cpp pair_eam_alloy.cpp
 action pair_eam_alloy_kokkos.h pair_eam_alloy.h
 action pair_eam_fs_kokkos.cpp pair_eam_fs.cpp
 action pair_eam_fs_kokkos.h pair_eam_fs.h
+action pair_eam_he_kokkos.cpp pair_eam_he.cpp
+action pair_eam_he_kokkos.h pair_eam_he.h
 action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp

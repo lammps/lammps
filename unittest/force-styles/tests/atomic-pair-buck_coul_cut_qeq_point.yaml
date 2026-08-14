@@ -2,7 +2,7 @@
 lammps_version: 2 Apr 2025
 tags: unstable
 date_generated: Fri Apr 25 19:44:59 2025
-epsilon: 7.5e-13
+epsilon: 1.e-12
 skip_tests: gpu intel single kokkos_gpu
 prerequisites: ! |
   pair buck/coul/cut

@@ -39,7 +39,7 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDfdt::PairDPDfdt(LAMMPS *lmp) : Pair(lmp)
+PairDPDfdt::PairDPDfdt(LAMMPS *lmp) : Pair(lmp), cut(nullptr), a0(nullptr), sigma(nullptr)
 {
   random = nullptr;
   splitFDT_flag = false;

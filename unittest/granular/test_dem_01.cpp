@@ -11,9 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 01: freely falling particle bouncing off a wall.
-// Mirrors MFiX-DEM VVUQ case DEM-01.  All test logic is shared via
-// test_dem_common; the reference systems live in tests/dem01-*.yaml.
+// DEM verification test 01: two identical spheres, head-on normal collision (coefficient of restitution).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem01-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

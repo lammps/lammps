@@ -48,7 +48,8 @@ static constexpr double EPSILON = 1e-2;
 
 PairRHEO::PairRHEO(LAMMPS *lmp) :
     Pair(lmp), csq(nullptr), rho0(nullptr), cs(nullptr), compute_kernel(nullptr),
-    compute_grad(nullptr), compute_interface(nullptr), fix_rheo(nullptr), fix_pressure(nullptr)
+    compute_grad(nullptr), compute_interface(nullptr), fix_rheo(nullptr), fix_pressure(nullptr),
+    fix_thermal(nullptr)
 {
   restartinfo = 0;
   single_enable = 0;

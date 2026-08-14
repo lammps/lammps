@@ -24,7 +24,7 @@ Syntax
                              radius, diameter, omegax, omegay, omegaz,
                              angmomx, angmomy, angmomz, tqx, tqy, tqz,
                              c_ID, c_ID[I], f_ID, f_ID[I], v_name,
-                             d_name, i_name, i2_name[I], d2_name[I],
+                             d_name, i_name, i2_name[I], d2_name[I]
 
   .. parsed-literal::
 
@@ -47,14 +47,14 @@ Syntax
            angmomx,angmomy,angmomz = angular momentum of aspherical particle
            tqx,tqy,tqz = torque on finite-size particles
            *c_ID* = per-atom vector calculated by a compute with ID
-           *c_ID[I]* = Ith column of per-atom array calculated by a compute with ID
+           *c_ID[I]* = Ith column of per-atom array calculated by a compute with ID, I can include wildcard (see below)
            *f_ID* = per-atom vector calculated by a fix with ID
-           *f_ID[I]* = Ith column of per-atom array calculated by a fix with ID
+           *f_ID[I]* = Ith column of per-atom array calculated by a fix with ID, I can include wildcard (see below)
            *v_name* = per-atom vector calculated by an atom-style variable with name
            *i_name* = custom integer vector with name
            *d_name* = custom floating point vector with name
-           *i2_name[I]* = Ith column of custom integer array with name
-           *d2_name[I]* = Ith column of custom floating-point array with name
+           *i2_name[I]* = Ith column of custom integer array with name, I can include wildcard (see below)
+           *d2_name[I]* = Ith column of custom floating-point array with name, I can include wildcard (see below)
 
 * zero or more keyword/value pairs may be appended
 * keyword = *com* or *history* or *thresh*
@@ -86,7 +86,7 @@ Examples
 Description
 """""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
    The *history* keyword was added.
 
@@ -100,6 +100,16 @@ once every *N* steps.  If *N* = 0, then the attributes are stored when
 the fix is defined (see the following Note) and never changed.  The
 latter is a way of archiving an atom attribute for future use in a
 calculation or output.
+
+Note that, for values that reference a compute or fix or custom atom
+property, the bracketed index :math:`i` can be specified using a
+wildcard asterisk with the index to effectively specify multiple values.
+This takes the form "\*" or "\*n" or "m\*" or "m\*n".  If :math:`N` is
+the number of columns in the array, then an asterisk with no numeric
+values means all column indices from 1 to :math:`N`.  A leading asterisk
+means all indices from 1 to n (inclusive).  A trailing asterisk means
+all indices from m to :math:`N` (inclusive).  A middle asterisk means
+all indices from m to n (inclusive).
 
 .. note::
 

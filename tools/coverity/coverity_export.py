@@ -24,7 +24,7 @@ Two subcommands:
 Typical flow:
 
     export COVERITY_COOKIE='COVJSESSIONID-build=..; XSRF-TOKEN=..; isAuthenticated=true; ..'
-    python coverity_export.py defects -p 16404 -v 70697 -o exported_defects.json
+    python coverity_export.py defects -p 12062 -v 63757 -o exported_defects.json
     python coverity_export.py traces \
         --cids-from exported_defects.json --cids '504003 504028 503971' \
         -o traces.json
@@ -51,8 +51,8 @@ AUTH_CHALLENGE_KEYS = ("availableSamlSsoConfigurations", "ldapConfigured",
 # Defect paging is stateful and split across two endpoints:
 #   POST /views/table.json   {projectId,viewId,pageNum}  -> sets the page (no rows)
 #   GET  /reports/table.json ?projectId&viewId            -> rows for the set page
-DEFAULT_VIEWS_URL = "https://scan4.scan.coverity.com/views/table.json"
-DEFAULT_REPORTS_URL = "https://scan4.scan.coverity.com/reports/table.json"
+DEFAULT_VIEWS_URL = "https://scan6.scan.coverity.com/views/table.json"
+DEFAULT_REPORTS_URL = "https://scan6.scan.coverity.com/reports/table.json"
 
 # ----- defects (table.json) field aliases -----------------------------------
 RESULTSET_KEY = "resultSet"
@@ -65,7 +65,7 @@ ID_KEYS = ("cid", "id", "mergedDefectId")
 
 # ----- traces (source.json) endpoint + per-event field aliases --------------
 DEFAULT_TRACE_URL = (
-    "https://scan4.scan.coverity.com/sourcebrowser/source.json"
+    "https://scan6.scan.coverity.com/sourcebrowser/source.json"
     "?projectId={projectId}&fileInstanceId={fileInstanceId}"
     "&defectInstanceId={defectInstanceId}&mergedDefectId={mergedDefectId}"
     "&fileStart=&fileEnd=")
@@ -582,11 +582,11 @@ def main(argv=None):
                         help="Retry attempts per request (default: 4).")
 
     d = sub.add_parser("defects", help="Export the defect table (grid).")
-    d.add_argument("-p", "--project-id", required=True,
-                   help="projectId from the request body (e.g. 16404).")
-    d.add_argument("-v", "--view-id", required=True,
+    d.add_argument("-p", "--project-id", default=12062,
+                   help="projectId from the request body (e.g. 12062).")
+    d.add_argument("-v", "--view-id", default=63757,
                    help="viewId from the request body (the view that lists all "
-                        "defects, e.g. 70697).")
+                        "defects, e.g. 63757).")
     d.add_argument("--reports-url", default=DEFAULT_REPORTS_URL,
                    help=f"Row-data endpoint, GET (default: {DEFAULT_REPORTS_URL}).")
     d.add_argument("--views-url", default=DEFAULT_VIEWS_URL,

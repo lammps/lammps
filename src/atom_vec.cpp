@@ -47,7 +47,7 @@ const std::vector<std::string> AtomVec::default_data_vel = {};
 
 /* ---------------------------------------------------------------------- */
 
-AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
+AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp), onemols(nullptr), h_rate(nullptr)
 {
   nmax = 0;
   ngrow = 0;

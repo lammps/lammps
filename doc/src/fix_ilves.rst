@@ -57,7 +57,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Apply bond-length and angle constraints using the ILVES algorithm of
 :ref:`(Lopez-Villellas) <Lopez-Villellas2025>`.  ILVES enforces holonomic

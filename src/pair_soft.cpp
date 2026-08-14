@@ -30,7 +30,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp)
+PairSoft::PairSoft(LAMMPS *lmp) : Pair(lmp), prefactor(nullptr), cut(nullptr)
 {
   writedata = 1;
 }

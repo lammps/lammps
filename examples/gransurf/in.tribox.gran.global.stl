@@ -42,9 +42,12 @@ thermo_style    custom step atoms temp c_1 c_2 press
 thermo_modify   lost ignore
 compute_modify  thermo_temp dynamic/dof yes
 
-#dump           2 all image 100 tmp.image.*.ppm type type &
-#               zoom 1.4 adiam 1.0 fix 20 type 2 0.5
-#dump_modify        2 pad 5
+#dump            viz all image 100 tribox.global-*.png type diameter &
+#                   size 800 800 zoom 1.5 shiny 0.2 fsaa yes &
+#                   ssao yes 1231541 0.4 view 80 20 box yes 0.025 &
+#                   region slab forestgreen frame 0.2 fix 20 const 1 0
+#dump_modify     viz pad 6 backcolor black backcolor2 white boxcolor midnightblue &
+#                    acolor 1 slategray fcolor 20 yellow lights 0.15 0.9 0.45 0.9
 
 run             5000
 

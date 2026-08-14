@@ -98,6 +98,7 @@ KSpace::KSpace(LAMMPS *lmp) :
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
   copymode = 0;
+  kokkosable = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;

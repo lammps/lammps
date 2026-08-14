@@ -104,8 +104,8 @@ function executed, and finally the class instance is deleted.
  * \param  argv  argument vector  */
 
 Input::Input(LAMMPS *lmp, int argc, char **argv) :
-    Pointers(lmp), variable(nullptr), labelstr(nullptr), infiles(nullptr), inlines(nullptr),
-    command_map(nullptr)
+    Pointers(lmp), command(nullptr), variable(nullptr), labelstr(nullptr), infiles(nullptr),
+    inlines(nullptr), command_map(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -898,7 +898,10 @@ void Input::clear()
   lmp->destroy();
   lmp->create();
   lmp->post_create();
+
+  // reset to clean status for classes that are not re-created
   variable->clear_in_progress();
+  error->reset_warn();
 }
 
 /* ---------------------------------------------------------------------- */

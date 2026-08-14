@@ -165,7 +165,7 @@ the model or behavior, typically including the functional form as a
    Description
    """""""""""
 
-   .. versionadded:: TBD
+   .. versionadded:: 4Jul2026
 
    Pair style *born/gauss* computes pairwise interactions ...
 

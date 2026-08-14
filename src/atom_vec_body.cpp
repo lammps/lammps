@@ -30,7 +30,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecBody::AtomVecBody(LAMMPS *lmp) :
+    AtomVec(lmp), body(nullptr), rmass(nullptr), radius(nullptr), angmom(nullptr),
+    quat_hold(nullptr), icp(nullptr), dcp(nullptr)
 {
   molecular = Atom::ATOMIC;
   bonus_flag = 1;

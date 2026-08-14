@@ -30,16 +30,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBondValVec::PairBondValVec(LAMMPS *lmp) : Pair(lmp)
+PairBondValVec::PairBondValVec(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), r0(nullptr), alpha(nullptr), fp(nullptr), bvvsparam(nullptr),
+    bvvv0(nullptr), s0x(nullptr), s0y(nullptr), s0z(nullptr), Dix(nullptr), Diy(nullptr),
+    Diz(nullptr), s0temp(nullptr), fpx(nullptr), fpy(nullptr), fpz(nullptr), offset(nullptr),
+    cut_respa(nullptr)
 {
   restartinfo = 0;
   nmax = 0;
-  s0x = nullptr;
-  s0y = nullptr;
-  s0z = nullptr;
-  Dix = nullptr;
-  Diy = nullptr;
-  Diz = nullptr;
   comm_forward = 3;
   comm_reverse = 3;
   single_enable = 0;

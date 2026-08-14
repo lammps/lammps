@@ -38,16 +38,16 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
+namespace {
 #ifdef DBL_EPSILON
-static constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
+constexpr double MY_EPSILON = 10.0*DBL_EPSILON;
 #else
-static constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
+constexpr double MY_EPSILON = 10.0*2.220446049250313e-16;
 #endif
 
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
 
-namespace {
 // Create a structure to hold the parameter data for all
 // local and neighbor particles. Pack inside this struct
 // to avoid any name clashes.
@@ -75,7 +75,7 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(nullptr),
     cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
     buck1(nullptr), buck2(nullptr), offset(nullptr), mol2param(nullptr), nparams(0),
     params(nullptr), nspecies(0), site1(nullptr), site2(nullptr), coeffAlpha(nullptr),
-    coeffEps(nullptr), coeffRm(nullptr), nmax_exp6(0),
+    coeffEps(nullptr), coeffRm(nullptr), fractionalWeighting(true), nmax_exp6(0),
     exp6_epsilon1(nullptr), exp6_alpha1(nullptr),
     exp6_rm1(nullptr), exp6_mixWtSite1(nullptr),
     exp6_epsilon2(nullptr), exp6_alpha2(nullptr),
@@ -83,8 +83,7 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(nullptr),
     exp6_epsilonOld1(nullptr), exp6_alphaOld1(nullptr),
     exp6_rmOld1(nullptr), exp6_mixWtSite1old(nullptr),
     exp6_epsilonOld2(nullptr), exp6_alphaOld2(nullptr),
-    exp6_rmOld2(nullptr), exp6_mixWtSite2old(nullptr),
-    fractionalWeighting(true)
+    exp6_rmOld2(nullptr), exp6_mixWtSite2old(nullptr)
 {
   writedata = 1;
 }
@@ -589,7 +588,6 @@ void PairExp6rx::settings(int narg, char **arg)
   }
 
   allocated = 0;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -598,9 +596,18 @@ void PairExp6rx::settings(int narg, char **arg)
 
 void PairExp6rx::coeff(int narg, char **arg)
 {
-  if (narg < 6 || narg > 9) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (narg < 6 || narg > 9)
+    error->all(FLERR,"Incorrect args for pair coefficients{}", utils::errorurl(21));
 
-  rx_fix = FixRX::get_rx_fix(lmp);
+  // get either the KOKKOS or the plain version of the fix
+  auto fixes = modify->get_fix_by_style(kokkosable ? "^rx/kk" : "^rx$");
+  if (fixes.size() == 1) {
+    rx_fix = dynamic_cast<FixRX *>(fixes[0]);
+  } else if (fixes.size() > 1) {
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
+  }
+  if (!rx_fix)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 
   if (!allocated) allocate();
 
@@ -609,13 +616,12 @@ void PairExp6rx::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   nspecies = rx_fix->get_nspecies();
-  if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
+  if (nspecies==0) error->all(FLERR, Error::NOLASTLINE, "There are no rx species specified.");
   read_file(arg[2]);
 
   site1 = utils::strdup(arg[3]);
 
-  const auto & species_str_to_species_ind =
-    rx_fix->get_species_str_to_species_ind();
+  const auto &species_str_to_species_ind = rx_fix->get_species_str_to_species_ind();
 
   if (species_str_to_species_ind.find(site1) == species_str_to_species_ind.end()
       && strcmp(site1,"1fluid") != 0) {

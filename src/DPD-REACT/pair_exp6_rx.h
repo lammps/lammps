@@ -39,13 +39,8 @@ class PairExp6rx : public Pair {
   void read_restart_settings(FILE *) override;
   double memory_usage() override;
 
-  enum class PotentialType: int { UNKNOWN, exp6 }; // If the storage
-                                                   // type for this
-                                                   // changes, the
-                                                   // method
-                                                   // genParamMpiDatatype()
-                                                   // MUST change!
-
+  // If the storage type for this changes, the method genParamMpiDatatype() MUST change!
+  enum class PotentialType : int { UNKNOWN, exp6 };
   struct Param {
     double epsilon, rm, alpha;
     int ispecies;
@@ -53,7 +48,7 @@ class PairExp6rx : public Pair {
   };
 
  protected:
-  class FixRX * rx_fix;
+  class FixRX *rx_fix;
 
   enum { LINEAR };
   enum { NONE, EXPONENT, POLYNOMIAL };
@@ -65,7 +60,7 @@ class PairExp6rx : public Pair {
   virtual void allocate();
   int *mol2param;    // mapping from molecule to parameters
   int nparams;       // # of stored parameter sets
-  Param* params;     // parameter set for an I-J-K interaction
+  Param *params;     // parameter set for an I-J-K interaction
 
   int nspecies;
   void read_file(char *);

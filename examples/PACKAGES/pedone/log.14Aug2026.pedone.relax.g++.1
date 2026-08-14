@@ -1,4 +1,4 @@
-LAMMPS (7 Feb 2024 - Development - patch_7Feb2024_update1-373-g7ac84e18dd)
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-1182-g53c241293a-modified)
   using 1 OpenMP thread(s) per MPI task
 # Ca-O crystal with Pedone potential
 
@@ -53,13 +53,13 @@ fix 1 all box/relax iso 0.0
 minimize 0.0 0.0 1000 10000
 Switching to 'neigh_modify every 1 delay 0 check yes' setting during minimization
 PPPM initialization ...
-  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  using 12-bit tables for long-range coulomb
   G vector (1/distance) = 0.23676226
   grid = 24 24 24
   stencil order = 5
   estimated absolute RMS force accuracy = 1.3089053e-05
   estimated relative force accuracy = 9.089844e-07
-  using double precision FFTW3
+  using double precision KISS FFT
   3d grid and FFT values/proc = 29791 13824
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
@@ -80,42 +80,41 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
 WARNING: Energy due to 1 extra global DOFs will be included in minimizer energies
- (src/min.cpp:219)
+ (src/min.cpp:224)
 Per MPI rank memory allocation (min/avg/max) = 10.33 | 10.33 | 10.33 Mbytes
    Step         v_len            Lx           PotEng         Press     
-         0   4.8105         19.242        -3765.9116     -21299.914    
-       100   4.7797128      19.118851     -3767.814      -164.13101    
-       200   4.7787507      19.115003     -3769.1366     -373.58797    
-       300   4.7768265      19.107306     -3770.5634      48.944709    
-       400   4.7768265      19.107306     -3770.9879     -258.56116    
-       500   4.7758644      19.103458     -3771.3898      173.91894    
-       600   4.7758644      19.103458     -3771.7586     -91.813678    
-       700   4.7758644      19.103458     -3771.9842     -252.52883    
-       800   4.7749023      19.099609     -3772.3526      216.83318    
-       857   4.7747927      19.099171     -3772.8223      32.586251    
-Loop time of 18.0592 on 1 procs for 857 steps with 512 atoms
+         0   4.8105         19.242        -3765.9116     -21299.915    
+       100   4.7797128      19.118851     -3767.8179     -166.83455    
+       200   4.7777886      19.111154     -3769.3099      225.21789    
+       300   4.7777886      19.111154     -3769.9098     -203.61362    
+       400   4.7768265      19.107306     -3770.4354      140.72616    
+       500   4.7768265      19.107306     -3770.9225     -211.4422     
+       600   4.7758644      19.103458     -3771.3592      196.11794    
+       700   4.7749193      19.099677     -3772.8166     -61.19594     
+       754   4.7748323      19.099329     -3772.8234      2.4037305    
+Loop time of 8.61407 on 1 procs for 754 steps with 512 atoms
 
-99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = linesearch alpha is zero
   Energy initial, next-to-last, final = 
-     -3765.91161156884  -3772.82226663623  -3772.82226663623
-  Force two-norm initial, final = 284.3967 0.46963871
-  Force max component initial, final = 284.14458 0.42827677
-  Final line search alpha, max atom move = 2.8580337e-08 1.2240294e-08
-  Iterations, force evaluations = 857 894
+     -3765.91161076688  -3772.82335739879  -3772.82335739879
+  Force two-norm initial, final = 284.39671 0.11729901
+  Force max component initial, final = 284.14459 0.031592436
+  Final line search alpha, max atom move = 4.6321743e-07 1.4634167e-08
+  Iterations, force evaluations = 754 856
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 13.907     | 13.907     | 13.907     |   0.0 | 77.01
-Kspace  | 1.3809     | 1.3809     | 1.3809     |   0.0 |  7.65
+Pair    | 6.4178     | 6.4178     | 6.4178     |   0.0 | 74.50
+Kspace  | 0.9214     | 0.9214     | 0.9214     |   0.0 | 10.70
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.045871   | 0.045871   | 0.045871   |   0.0 |  0.25
-Output  | 0.0002809  | 0.0002809  | 0.0002809  |   0.0 |  0.00
+Comm    | 0.019098   | 0.019098   | 0.019098   |   0.0 |  0.22
+Output  | 0.00018266 | 0.00018266 | 0.00018266 |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.726      |            |       | 15.09
+Other   |            | 1.256      |            |       | 14.58
 
 Nlocal:            512 ave         512 max         512 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -131,4 +130,4 @@ Dangerous builds = 0
 
 print "Expected lattice parameter: 4.7748,  computed: $(v_len:%6.4f)"
 Expected lattice parameter: 4.7748,  computed: 4.7748
-Total wall time: 0:00:18
+Total wall time: 0:00:08

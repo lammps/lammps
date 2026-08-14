@@ -70,10 +70,9 @@ if(DOWNLOAD_RUNNER)
 
   ExternalProject_Add(runner_build
     GIT_REPOSITORY "https://gitlab.com/runner-suite/runner2.git"
-    GIT_TAG "2.0.3_20260528"
+    GIT_TAG "2.0.4_20260610"
     GIT_SHALLOW YES
     GIT_PROGRESS YES
-    PATCH_COMMAND sed -i -e "s/--not --show-signature/--no-show-signature/" build_system/check_git.sh
 
     # Pass CMake arguments to RuNNer's build system
     CMAKE_ARGS

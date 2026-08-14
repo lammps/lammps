@@ -46,11 +46,9 @@ enum{NONE,RLINEAR,RSQ,BMP};
 /* ---------------------------------------------------------------------- */
 
 PairTableRX::PairTableRX(LAMMPS *lmp) :
-  PairTable(lmp), rx_fix(nullptr),
-  site1(nullptr), site2(nullptr), nmax_rx(0),
-  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
-  mixWtSite1(nullptr), mixWtSite2(nullptr),
-  fractionalWeighting(true)
+  PairTable(lmp), rx_fix(nullptr), site1(nullptr), site2(nullptr), fractionalWeighting(true),
+  nmax_rx(0), mixWtSite1old(nullptr), mixWtSite2old(nullptr),
+  mixWtSite1(nullptr), mixWtSite2(nullptr)
 {}
 
 /* ---------------------------------------------------------------------- */

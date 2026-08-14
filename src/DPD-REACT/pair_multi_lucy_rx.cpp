@@ -68,9 +68,9 @@ static const char cite_pair_multi_lucy_rx[] =
 /* ---------------------------------------------------------------------- */
 
 PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) :
-    Pair(lmp), rx_fix(nullptr), ntables(0), tables(nullptr), tabindex(nullptr), site1(nullptr),
-    site2(nullptr), nmax(0), mixWtSite1old(nullptr), mixWtSite2old(nullptr), mixWtSite1(nullptr),
-    mixWtSite2(nullptr), fractionalWeighting(true)
+    Pair(lmp), rx_fix(nullptr), nmax(0),  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
+    mixWtSite1(nullptr), mixWtSite2(nullptr), ntables(0), tables(nullptr), tabindex(nullptr),
+    nspecies(0), site1(nullptr), site2(nullptr), fractionalWeighting(true)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy_rx);
 

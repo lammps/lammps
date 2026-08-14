@@ -75,7 +75,7 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(nullptr),
     cut(nullptr), epsilon(nullptr), rm(nullptr), alpha(nullptr), rminv(nullptr),
     buck1(nullptr), buck2(nullptr), offset(nullptr), mol2param(nullptr), nparams(0),
     params(nullptr), nspecies(0), site1(nullptr), site2(nullptr), coeffAlpha(nullptr),
-    coeffEps(nullptr), coeffRm(nullptr), nmax_exp6(0),
+    coeffEps(nullptr), coeffRm(nullptr), fractionalWeighting(true), nmax_exp6(0),
     exp6_epsilon1(nullptr), exp6_alpha1(nullptr),
     exp6_rm1(nullptr), exp6_mixWtSite1(nullptr),
     exp6_epsilon2(nullptr), exp6_alpha2(nullptr),
@@ -83,8 +83,7 @@ PairExp6rx::PairExp6rx(LAMMPS *lmp) : Pair(lmp), rx_fix(nullptr),
     exp6_epsilonOld1(nullptr), exp6_alphaOld1(nullptr),
     exp6_rmOld1(nullptr), exp6_mixWtSite1old(nullptr),
     exp6_epsilonOld2(nullptr), exp6_alphaOld2(nullptr),
-    exp6_rmOld2(nullptr), exp6_mixWtSite2old(nullptr),
-    fractionalWeighting(true)
+    exp6_rmOld2(nullptr), exp6_mixWtSite2old(nullptr)
 {
   writedata = 1;
 }

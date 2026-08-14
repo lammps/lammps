@@ -225,14 +225,14 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`rigid (o) <fix_rigid>`
    * :doc:`rigid/meso <fix_rigid_meso>`
    * :doc:`rigid/nph (o) <fix_rigid>`
-   * :doc:`rigid/nph/small <fix_rigid>`
+   * :doc:`rigid/nph/small (k) <fix_rigid>`
    * :doc:`rigid/npt (o) <fix_rigid>`
-   * :doc:`rigid/npt/small <fix_rigid>`
+   * :doc:`rigid/npt/small (k) <fix_rigid>`
    * :doc:`rigid/nve (o) <fix_rigid>`
-   * :doc:`rigid/nve/small <fix_rigid>`
+   * :doc:`rigid/nve/small (k) <fix_rigid>`
    * :doc:`rigid/nvt (o) <fix_rigid>`
-   * :doc:`rigid/nvt/small <fix_rigid>`
-   * :doc:`rigid/small (o) <fix_rigid>`
+   * :doc:`rigid/nvt/small (k) <fix_rigid>`
+   * :doc:`rigid/small (ko) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`set <fix_set>`

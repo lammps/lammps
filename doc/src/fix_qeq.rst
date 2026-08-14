@@ -1,9 +1,15 @@
 .. index:: fix qeq/point
 .. index:: fix qeq/point/omp
+.. index:: fix qeq/point/xlmd
+.. index:: fix qeq/point/xlmd/omp
 .. index:: fix qeq/shielded
 .. index:: fix qeq/shielded/omp
+.. index:: fix qeq/shielded/xlmd
+.. index:: fix qeq/shielded/xlmd/omp
 .. index:: fix qeq/slater
 .. index:: fix qeq/slater/omp
+.. index:: fix qeq/slater/xlmd
+.. index:: fix qeq/slater/xlmd/omp
 .. index:: fix qeq/ctip
 .. index:: fix qeq/ctip/omp
 .. index:: fix qeq/dynamic
@@ -16,15 +22,30 @@ fix qeq/point command
 
 Accelerator Variants: *qeq/point/omp*
 
+fix qeq/point/xlmd command
+==========================
+
+Accelerator Variants: *qeq/point/xlmd/omp*
+
 fix qeq/shielded command
 ========================
 
 Accelerator Variants: *qeq/shielded/omp*
 
+fix qeq/shielded/xlmd command
+=============================
+
+Accelerator Variants: *qeq/shielded/xlmd/omp*
+
 fix qeq/slater command
 ======================
 
 Accelerator Variants: *qeq/slater/omp*
+
+fix qeq/slater/xlmd command
+===========================
+
+Accelerator Variants: *qeq/slater/xlmd/omp*
 
 fix qeq/ctip command
 ====================
@@ -49,14 +70,14 @@ Syntax
    fix ID group-ID style Nevery cutoff tolerance maxiter qfile keyword ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *qeq/point* or *qeq/shielded* or *qeq/slater* or *qeq/ctip* or *qeq/dynamic* or *qeq/fire*
+* style = *qeq/point* or *qeq/point/xlmd* or *qeq/shielded* or *qeq/shielded/xlmd* or *qeq/slater* or *qeq/slater/xlmd* or *qeq/ctip* or *qeq/dynamic* or *qeq/fire*
 * Nevery = perform charge equilibration every this many steps
 * cutoff = global cutoff for charge-charge interactions (distance unit)
 * tolerance = precision to which charges will be equilibrated
 * maxiter = maximum iterations to perform charge equilibration
 * qfile = a filename with QEq parameters or *coul/streitz* or *coul/ctip* or *reaxff*
 * zero or more keyword/value pairs may be appended
-* keyword = *alpha* or *cdamp* or *maxrepeat* or *qdamp* or *qstep* or *warn*
+* keyword = *alpha* or *cdamp* or *maxrepeat* or *qdamp* or *qstep* or *warn* or *xlcg* or *xldamp* or *xlkappa*
 
   .. parsed-literal::
 
@@ -68,6 +89,9 @@ Syntax
        *qdamp* value = damping factor for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *qstep* value = time step size for damped dynamics charge solver (qeq/dynamic and qeq/fire only)
        *warn* value = do (=yes) or do not (=no) print a warning when the maximum number of iterations is reached
+       *xlcg* value = number of conjugate gradient iterations per step (\ *xlmd* styles only)
+       *xldamp* value = order of the dissipation term for the auxiliary variables, 0 or 3 to 9 (\ *xlmd* styles only)
+       *xlkappa* value = coupling constant :math:`\kappa = \omega^2 \delta t^2` of the undamped propagation (\ *xlmd* styles only)
 
 Examples
 """"""""
@@ -84,6 +108,9 @@ Examples
    fix 1 all qeq/ctip 1 12 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
    fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq
    fix 1 all qeq/fire 1 10 1.0e-3 100 my_qeq qdamp 0.2 qstep 0.1
+   fix 1 all qeq/shielded/xlmd 1 10 1.0e-6 400 reaxff
+   fix 1 all qeq/shielded/xlmd 1 10 1.0e-6 400 reaxff xlcg 2
+   fix 1 all qeq/point/xlmd 1 10 1.0e-6 200 param.qeq1 xldamp 0 xlkappa 2.0
 
 Description
 """""""""""
@@ -291,16 +318,79 @@ the cutoff is 8 A and the taper width is 2 A, the Coulomb integrals are
 smoothly rescaled from their actual value at r=6 A to zero at r=8 A. For
 backward compatibility, the default taper width is zero.
 
+.. versionadded:: TBD
+
+The *qeq/point/xlmd*, *qeq/shielded/xlmd*, and *qeq/slater/xlmd* styles
+use the same charge models as their parent styles, but employ the
+extended-Lagrangian scheme of :ref:`(Nomura) <Nomura2015>` instead of
+iterating the charges to self-consistency on every step.  Auxiliary
+per-atom variables, which follow the self-consistent solution through a
+harmonic coupling, are propagated time-reversibly by a Verlet
+integrator alongside the atoms.  On each timestep they provide the
+initial guess for the iterative solver, which then applies only a small,
+fixed number of conjugate gradient iterations (keyword *xlcg*, default
+2) instead of iterating to *tolerance*\ .  This reduces the cost of the
+charge equilibration several-fold (typically 5x to 8x) while conserving
+the total energy far better than simply truncating or loosening the
+converged solve, which can heat up the system or become unstable within
+a few hundred steps.
+
+By default, the auxiliary variables are propagated including a weak
+dissipation term of order 5 following :ref:`(Niklasson) <Niklasson2009>`.
+The order can be changed with the *xldamp* keyword: higher orders damp
+more weakly (and thus perturb the time-reversible dynamics less), lower
+orders damp more strongly (and thus bias the charges more).  A value of
+0 selects the original, fully time-reversible scheme of :ref:`(Nomura)
+<Nomura2015>` without dissipation; in this case the *xlkappa* keyword
+may be used to change the coupling constant :math:`\kappa = \omega^2
+\delta t^2` from its default value of 2.0.  The undamped propagation
+slowly accumulates numerical noise in the auxiliary variables, which
+makes long simulations (more than a few thousand steps) unstable, so
+*xldamp* 0 is mainly useful for validation studies.  With the default
+settings the energy conservation was close to that of fully converged
+solves in our tests.  Reducing *xlcg* to 1 reproduces the setting of
+:ref:`(Nomura) <Nomura2015>` and further reduces the cost, but with a
+smaller stability margin: deviations may accumulate unnoticed over
+many picoseconds before degrading the dynamics.
+
+The extended-Lagrangian propagation requires a valid history of
+previous solutions.  Whenever such a history is not available -- at the
+beginning of every :doc:`run <run>`, after reading a :doc:`restart file
+<read_restart>`, and during :doc:`energy minimization <minimize>` (which
+always uses fully converged solves) -- the charges are equilibrated to
+*tolerance* as with the parent fix styles, and the extended-Lagrangian
+propagation switches on automatically after the first few steps.
+Because the auxiliary dynamics is tied to the timestep, these styles
+require *Nevery* = 1.  The charges obtained from the truncated solves
+are not exactly at the energy minimum; the deviations remain small and
+bounded, but it is recommended to verify energy conservation against a
+fully converged reference run when applying these styles to a new
+system.  The average number of solver iterations reported by the fix
+(see below) shows the warm-up and the savings directly.
+
+.. note::
+
+   For charge equilibration with :doc:`pair_style reaxff <pair_reaxff>`
+   the recommended combination is *checkqeq no* in the pair style and
+   ``fix qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff``, which extracts
+   the QEq parameters directly from the pair style.  This is the
+   extended-Lagrangian replacement for :doc:`fix qeq/reaxff
+   <fix_qeq_reaxff>` requested in issue `#507
+   <https://github.com/lammps/lammps/issues/507>`_.  Note that,
+   different from fix qeq/reaxff, the QEQ package fixes ignore
+   :doc:`fix efield <fix_efield>`.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about these fixes is written to :doc:`binary restart
-files <restart>`.  No global scalar or vector or per-atom quantities are
-stored by these fixes for access by various :doc:`output commands
-<Howto_output>`.  No parameter of these fixes can be used with the
-*start/stop* keywords of the :doc:`run <run>` command.
+files <restart>`.  These fixes compute a global scalar with the number
+of iterations used by the charge solver on the current timestep, which
+can be accessed by various :doc:`output commands <Howto_output>`.  No
+parameter of these fixes can be used with the *start/stop* keywords of
+the :doc:`run <run>` command.
 
-Thexe fixes are invoked during :doc:`energy minimization <minimize>`.
+These fixes are invoked during :doc:`energy minimization <minimize>`.
 
 ----------
 
@@ -326,7 +416,7 @@ Related commands
 Default
 """""""
 
-warn yes
+warn yes; for the *xlmd* styles additionally: xlcg 2, xldamp 5, xlkappa 2.0
 
 ----------
 
@@ -374,3 +464,14 @@ Physical Chemistry, 105, 9396-9049 (2001)
 .. _Mei2:
 
 **(Mei)** J. Mei, J. W. Davenport, G. W. Fernando, Phys. Rev. B 43, 4653 (1991).
+
+.. _Nomura2015:
+
+**(Nomura)** K. Nomura, P. E. Small, R. K. Kalia, A. Nakano, P. Vashishta,
+Computer Physics Communications, 192, 91-96 (2015).
+
+.. _Niklasson2009:
+
+**(Niklasson)** A. M. N. Niklasson, P. Steneteg, A. Odell, N. Bock,
+M. Challacombe, C. J. Tymczak, E. Holmstrom, G. Zheng, V. Weber,
+J Chemical Physics, 130, 214109 (2009).

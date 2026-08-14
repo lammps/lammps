@@ -367,8 +367,8 @@ FixAveHisto::FixAveHisto(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Histogrammed data for fix %s mode %s ave %s\n",
-                 id,mode_string[mode],ave_string[ave]);
+    else fprintf(fp,"# Histogrammed data for fix %s mode %s ave %s version %d\n",
+                 id,mode_string[mode],ave_string[ave],lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# TimeStep Number-of-bins "
                  "Total-counts Missing-counts Min-value Max-value\n");

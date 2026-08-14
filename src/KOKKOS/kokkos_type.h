@@ -544,6 +544,7 @@ struct BinOp3DLAMMPS {
   int max_bins_[3] = {};
   double mul_[3]   = {};
   double min_[3]   = {};
+  int bits_        = 0;  // bits per axis for Morton Z-order; 0 = linear raster fallback
 
   BinOp3DLAMMPS() = default;
 
@@ -561,6 +562,26 @@ struct BinOp3DLAMMPS {
     min_[0] = static_cast<double>(min[0]);
     min_[1] = static_cast<double>(min[1]);
     min_[2] = static_cast<double>(min[2]);
+    // Compute bits = ceil(log2(max_dim)) for Morton Z-order sorting.
+    // Fall back to linear raster when max_dim > 512 (bits > 9) to keep the
+    // BinSort count-table allocation bounded at 2^27 = 134M integers.
+    int max_dim = max_bins__[0];
+    if (max_bins__[1] > max_dim) max_dim = max_bins__[1];
+    if (max_bins__[2] > max_dim) max_dim = max_bins__[2];
+    bits_ = 0;
+    while ((1 << bits_) < max_dim) bits_++;
+    if (bits_ > 9) bits_ = 0;
+  }
+
+  // Spread 10 bits to every 3rd bit position (bit i -> bit 3i), yielding a
+  // 30-bit Z-order Morton component for 3D interleaving.
+  KOKKOS_FORCEINLINE_FUNCTION static int spread10(int v) {
+    v &= 0x000003ff;
+    v = (v | (v << 16)) & 0x030000FF;
+    v = (v | (v <<  8)) & 0x0300F00F;
+    v = (v | (v <<  4)) & 0x030C30C3;
+    v = (v | (v <<  2)) & 0x09249249;
+    return v;
   }
 
   template <class ViewType>
@@ -575,13 +596,17 @@ struct BinOp3DLAMMPS {
     ix = MIN(ix,max_bins_[0]-1);
     iy = MIN(iy,max_bins_[1]-1);
     iz = MIN(iz,max_bins_[2]-1);
-    const int ibin = iz*max_bins_[1]*max_bins_[0] + iy*max_bins_[0] + ix;
-    return ibin;
+    if (bits_ > 0)
+      return spread10(ix) | (spread10(iy) << 1) | (spread10(iz) << 2);
+    return iz*max_bins_[1]*max_bins_[0] + iy*max_bins_[0] + ix;
   }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int max_bins() const { return max_bins_[0] * max_bins_[1] * max_bins_[2]; }
+  int max_bins() const {
+    if (bits_ > 0) return 1 << (3 * bits_);
+    return max_bins_[0] * max_bins_[1] * max_bins_[2];
+  }
 
   template <class ViewType, typename iType1, typename iType2>
 // NOLINTNEXTLINE

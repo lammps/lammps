@@ -57,6 +57,10 @@ class KokkosLMP : protected Pointers {
   int neigh_thread;
   int neigh_thread_set;
   int neigh_transpose;
+  int neigh_cluster;
+  int neigh_prune;         // 1 = walk a tight inner list re-pruned from the master
+  int neigh_prune_every;   // re-prune cadence in steps
+  double neigh_prune_skin; // inner list cutoff = pair cutforce + this skin
   int newtonflag;
   int allow_overlap;
   double binsize;

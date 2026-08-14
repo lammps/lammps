@@ -15,6 +15,7 @@
 #include "kokkos.h"
 
 #include "citeme.h"
+#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
@@ -332,6 +333,10 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   neigh_thread = 0;
   neigh_thread_set = 0;
   neigh_transpose = 0;
+  neigh_cluster = 0;
+  neigh_prune = 0;
+  neigh_prune_every = 1;
+  neigh_prune_skin = 1.0;
   if (ngpus > 0) {
     neighflag = FULL;
     neighflag_qeq = FULL;
@@ -683,6 +688,24 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       neigh_transpose = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/cluster") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_cluster = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/prune") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_prune = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/prune/every") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_prune_every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (neigh_prune_every < 1) error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"neigh/prune/skin") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      neigh_prune_skin = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (neigh_prune_skin < 0.0) error->all(FLERR,"Illegal package kokkos command");
+      iarg += 2;
     } else if (strcmp(arg[iarg],"threads/per/atom") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       threads_per_atom = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
@@ -853,10 +876,16 @@ void KokkosLMP::newton_check()
     error->all(FLERR,"Must use 'newton off' with KOKKOS package option 'neigh/thread on'");
 
   if (!neigh_thread) {
-    if (threads_per_atom_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'threads/per/atom'");
-    if (pair_team_size_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'pair/team/size'");
+    // Without neigh/thread on, the stock full-list pair path ignores these two
+    // options -- but half-list warp-per-atom styles (e.g. lj/cut/coul/long2/kk)
+    // DO consume them as their launch shape (threads/per/atom = vector lanes per
+    // atom, pair/team/size = team threads).  So warn rather than abort: the
+    // options are honored by styles that support them and ignored by those that
+    // do not.
+    if ((threads_per_atom_set || pair_team_size_set) && comm->me == 0)
+      error->warning(FLERR,"KOKKOS 'threads/per/atom' / 'pair/team/size' without "
+                     "'neigh/thread on' are used only by half-list warp-per-atom "
+                     "pair styles (e.g. lj/cut/coul/long2/kk); ignored by others");
   }
 }
 

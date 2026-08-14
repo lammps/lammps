@@ -51,7 +51,7 @@ class PairNMCutCoulCut : public Pair {
   double **e0, **r0, **nn, **mm;
   double **nm, **e0nm, **r0n, **r0m, **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

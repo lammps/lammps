@@ -52,7 +52,7 @@ class PairNMCutCoulLong : public Pair {
   double **nm, **e0nm, **r0n, **r0m, **offset;
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

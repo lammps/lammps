@@ -33,7 +33,7 @@ special_bonds lj 0 1 1
 # oxRNA2 pair interactions
 pair_style hybrid/overlay oxrna2/excv oxrna2/stk oxrna2/hbond oxrna2/xstk oxrna2/coaxstk oxrna2/dh
 pair_coeff * * oxrna2/excv    oxrna2_lj.cgdna
-pair_coeff * * oxrna2/stk     seqdep 0.1 1.40206 2.77 oxrna2_lj.cgdna
+pair_coeff * * oxrna2/stk     seqdep 0.1 oxrna2_lj.cgdna
 pair_coeff * * oxrna2/hbond   seqdep oxrna2_lj.cgdna
 pair_coeff 1 4 oxrna2/hbond   seqdep oxrna2_lj.cgdna
 pair_coeff 2 3 oxrna2/hbond   seqdep oxrna2_lj.cgdna
@@ -67,7 +67,7 @@ dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz 
 dump_modify out sort id
 dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
 
-run 1000000
+run 10000
 
 write_data last_config.${number}.* nocoeff
 #write_restart last_config.${number}.*

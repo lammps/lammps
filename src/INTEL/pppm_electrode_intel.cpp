@@ -162,14 +162,6 @@ void PPPMElectrodeIntel::setup()
 
 void PPPMElectrodeIntel::compute(int eflag, int vflag)
 {
-#ifdef _LMP_INTEL_OFFLOAD
-  if (_use_base) {
-    error->all(FLERR, "Cannot use pppm/electrode/intel with offload");
-    // PPPM::compute(eflag, vflag);
-    // would work if the above line referred to PPPMElectrode
-    // but the required multiple inheritances would be insane
-  }
-#endif
 
   ev_init(eflag, vflag);
 
@@ -393,7 +385,7 @@ template <class flt_t, class acc_t, int use_table>
 void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double *vec,
                                      int sensor_grpbit)
 {
-  ATOM_T *_noalias const x = buffers->get_x(0);
+  ATOM_T *_noalias const x = buffers->get_x();
 
   int const nlocal = atom->nlocal;
   int nthr;
@@ -914,8 +906,8 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
 
   FFT_SCALAR *_noalias global_density = &(scratch_brick[nzlo_out][nylo_out][nxlo_out]);
 
-  ATOM_T *_noalias const x = buffers->get_x(0);
-  flt_t *_noalias const q = buffers->get_q(0);
+  ATOM_T *_noalias const x = buffers->get_x();
+  flt_t *_noalias const q = buffers->get_q();
   int nlocal = atom->nlocal;
   int nthr;
   if (_use_lrt)

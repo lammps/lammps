@@ -81,7 +81,7 @@ Case 1: a pairwise additive model
 
 In this section, we will describe the procedure of adding a simple pair
 style to LAMMPS: an empirical model that can be used to model liquid
-mercury.  The pair style shall be called :doc:`bond/gauss
+mercury.  The pair style shall be called :doc:`born/gauss
 <pair_born_gauss>` and the complete implementation can be found in the
 files ``src/EXTRA-PAIR/pair_born_gauss.cpp`` and
 ``src/EXTRA-PAIR/pair_born_gauss.h`` of the LAMMPS source code.
@@ -160,12 +160,12 @@ message and before the include guards for the class definition:
 
    #endif
 
-This block between ``#ifdef PAIR_CLASS`` and ``#else`` will be
-included by the ``Force`` class in ``force.cpp`` to build a map of
-"factory functions" that will create an instance of these classes and
-return a pointer to it.  The map connects the name of the pair style,
+This block between ``#ifdef PAIR_CLASS`` and ``#else`` will be included
+by the ``Force`` class in ``force.cpp`` to build a map of "factory
+functions" that will create an instance of these classes and return a
+pointer to it.  The map connects the name of the pair style,
 "born/gauss", to the name of the class, ``PairBornGauss``.  During
-compilation, LAMMPS constructs a file ``style_pair.h`` that contains
+compilation, LAMMPS generates a file ``style_pair.h`` that contains
 ``#include`` statements for all "installed" pair styles.  Before
 including ``style_pair.h`` into ``force.cpp``, the ``PAIR_CLASS`` define
 is set and the ``PairStyle(name,class)`` macro defined.  The code of the
@@ -407,7 +407,7 @@ the memory allocation and initialization are moved to a function
 
    void PairBornGauss::settings(int narg, char **arg)
    {
-     if (narg != 1) error->all(FLERR, "Pair style bond/gauss must have exactly one argument");
+     if (narg != 1) error->all(FLERR, "Pair style born/gauss must have exactly one argument");
      cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
      // reset per-type pair cutoffs that have been explicitly set previously

@@ -28,6 +28,8 @@ class PairREBO : public PairAIREBO {
  public:
   PairREBO(class LAMMPS *);
   void settings(int, char **) override;
+
+ protected:
   void spline_init() override;
 };
 

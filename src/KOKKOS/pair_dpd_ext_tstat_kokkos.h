@@ -55,8 +55,10 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
   void compute(int, int) override;
 
   struct params_dpd {
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_dpd() {cut=ws=wsT=gamma=sigma=gammaT=sigmaT=0;}
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_dpd(int /*i*/) {cut=ws=wsT=gamma=sigma=gammaT=sigmaT=0;}
     KK_FLOAT cut,ws,wsT,gamma,sigma,gammaT,sigmaT;
@@ -66,14 +68,17 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
   struct TagDPDExtTstatKokkos{};
 
   template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &i) const;
 
   template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator () (TagDPDExtTstatKokkos<NEIGHFLAG,VFLAG>, const int &i, EV_FLOAT&) const;
 
   template<int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &fx,const KK_FLOAT &fy, const KK_FLOAT &fz,
@@ -128,6 +133,7 @@ class PairDPDExtTstatKokkos : public PairDPDExtTstat {
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
   friend void pair_virial_fdotr_compute<PairDPDExtTstatKokkos>(PairDPDExtTstatKokkos*);

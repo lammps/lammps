@@ -1,0 +1,290 @@
+LAMMPS (10 Dec 2025 - Development - patch_10Dec2025-120-ga51f9ba0e7-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# two molecules DGEBA (diepoxy) and one DETA (linker)
+# two crosslinking reactions
+
+units real
+
+boundary p p p
+
+atom_style full
+
+pair_style lj/class2 8
+
+angle_style class2
+
+bond_style class2
+
+dihedral_style class2
+
+improper_style class2
+
+special_bonds lj/coul 0 0 1
+pair_modify tail yes mix sixthpower
+
+read_data tiny_epoxy.data   extra/special/per/atom 25
+Reading data file ...
+  orthogonal box = (10 -10 -15) to (30 20 10)
+  1 by 1 by 1 MPI processor grid
+  reading atom labelmap ...
+  reading bond labelmap ...
+  reading angle labelmap ...
+  reading dihedral labelmap ...
+  reading improper labelmap ...
+  reading atoms ...
+  118 atoms
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  4 = max impropers/atom
+  orthogonal box = (10 -10 -15) to (30 20 10)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  123 bonds
+  reading angles ...
+  221 angles
+  reading dihedrals ...
+  302 dihedrals
+  reading impropers ...
+  115 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        1       
+  special bond factors coul:  0        0        1       
+     4 = max # of 1-2 neighbors
+    10 = max # of 1-3 neighbors
+    39 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.014 seconds
+
+velocity all create 300.0 4928459 dist gaussian
+
+molecule mol1 rxn1_stp1_pre.molecule_template
+Read molecule template mol1:
+rxn1_stp1_pre
+  1 molecules
+  0 fragments
+  0 bodies
+  31 atoms with max type 10
+  30 bonds with max type 15
+  53 angles with max type 29
+  66 dihedrals with max type 39
+  3 impropers with max type 5
+molecule mol2 rxn1_stp1_post.molecule_template
+Read molecule template mol2:
+rxn1_stp1_post
+  1 molecules
+  0 fragments
+  0 bodies
+  31 atoms with max type 10
+  30 bonds with max type 17
+  55 angles with max type 36
+  75 dihedrals with max type 51
+  2 impropers with max type 5
+molecule mol3 rxn1_stp2_post.molecule_template
+Read molecule template mol3:
+rxn1_stp2_post
+  1 molecules
+  0 fragments
+  0 bodies
+  31 atoms with max type 11
+  30 bonds with max type 18
+  53 angles with max type 37
+  72 dihedrals with max type 53
+  3 impropers with max type 5
+molecule mol4 rxn2_stp1_pre.molecule_template
+Read molecule template mol4:
+rxn2_stp1_pre
+  1 molecules
+  0 fragments
+  0 bodies
+  42 atoms with max type 11
+  41 bonds with max type 18
+  73 angles with max type 41
+  96 dihedrals with max type 54
+  3 impropers with max type 5
+molecule mol5 rxn2_stp1_post.molecule_template
+Read molecule template mol5:
+rxn2_stp1_post
+  1 molecules
+  0 fragments
+  0 bodies
+  42 atoms with max type 11
+  41 bonds with max type 18
+  75 angles with max type 37
+  108 dihedrals with max type 53
+  2 impropers with max type 5
+molecule mol6 rxn2_stp2_post.molecule_template
+Read molecule template mol6:
+rxn2_stp2_post
+  1 molecules
+  0 fragments
+  0 bodies
+  42 atoms with max type 11
+  41 bonds with max type 19
+  73 angles with max type 50
+  102 dihedrals with max type 66
+  3 impropers with max type 22
+
+thermo 50
+
+# dump 1 all xyz 1 test_vis.xyz
+# dump_modify 1 types labels
+
+fix rxns all bond/react stabilization yes statted_grp .03   react rxn1_stp1 all 1 0.0 5 mol1 mol2 rxn1_stp1.map   react rxn1_stp2 all 1 0.0 5 mol2 mol3 rxn1_stp2.map   react rxn2_stp1 all 1 0.0 5 mol4 mol5 rxn2_stp1.map   react rxn2_stp2 all 1 0.0 5 mol5 mol6 rxn2_stp2.map
+dynamic group bond_react_MASTER_group defined
+dynamic group statted_grp_REACT defined
+
+
+fix 1 statted_grp_REACT nvt temp 300 300 100
+
+thermo_style custom step temp f_rxns[*]
+thermo_modify colname auto
+
+run 2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
+
+@Article{Gissinger24,
+ author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
+ title = {Type Label Framework for Bonded Force Fields in LAMMPS},
+ journal = {J. Phys. Chem. B},
+ year =    2024,
+ volume =  128,
+ number =  13,
+ pages =   {3282--3297}
+}
+
+- fix bond/react: https://reacter.org, https://doi.org/10.1016/j.polymer.2017.09.038, https://doi.org/10.1021/acs.macromol.0c02012, https://doi.org/10.1016/j.cpc.2024.109287
+
+@Article{Gissinger17,
+ author = {J. R. Gissinger and B. D. Jensen and K. E. Wise},
+ title = {Modeling Chemical Reactions in Classical Molecular Dynamics Simulations},
+ journal = {Polymer},
+ year =    2017,
+ volume =  128,
+ pages =   {211--217}
+}
+
+@Article{Gissinger20,
+ author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},
+ title = {{REACTER}: A Heuristic Method for Reactive Molecular Dynamics},
+ journal = {Macromolecules},
+ year =    2020,
+ volume =  53,
+ number =  22,
+ pages =   {9953--9961}
+}
+
+@Article{Gissinger24,
+ author = {J. R. Gissinger, B. D. Jensen, K. E. Wise},
+ title = {Molecular Modeling of Reactive Systems with REACTER},
+ journal = {Computer Physics Communications},
+ year =    2024,
+ volume =  304,
+ number =  109287
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 55 of 55 mixed pair_coeff terms from sixthpower/sixthpower mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 4 6 5
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/class2, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) fix bond/react, occasional, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 17.76 | 17.76 | 17.76 Mbytes
+   Step          Temp      f_rxns:rxn1_stp1 f_rxns:rxn1_stp2 f_rxns:rxn2_stp1 f_rxns:rxn2_stp2
+         0   300            0              0              0              0            
+        50   366.13708      1              0              0              0            
+       100   460.17785      1              1              0              0            
+       150   563.11         1              1              1              0            
+       200   536.77304      1              1              1              1            
+       250   498.03818      1              1              1              1            
+       300   469.58111      1              1              1              1            
+       350   446.76277      1              1              1              1            
+       400   392.54153      1              1              1              1            
+       450   329.04862      1              1              1              1            
+       500   308.39632      1              1              1              1            
+       550   311.01907      1              1              1              1            
+       600   237.06325      1              1              1              1            
+       650   266.39114      1              1              1              1            
+       700   255.5141       1              1              1              1            
+       750   265.68996      1              1              1              1            
+       800   307.68909      1              1              1              1            
+       850   288.9997       1              1              1              1            
+       900   324.83272      1              1              1              1            
+       950   329.62814      1              1              1              1            
+      1000   292.72795      1              1              1              1            
+      1050   288.99752      1              1              1              1            
+      1100   309.17769      1              1              1              1            
+      1150   334.54694      1              1              1              1            
+      1200   291.39185      1              1              1              1            
+      1250   285.41824      1              1              1              1            
+      1300   278.1858       1              1              1              1            
+      1350   290.69319      1              1              1              1            
+      1400   281.81528      1              1              1              1            
+      1450   303.36654      1              1              1              1            
+      1500   314.34697      1              1              1              1            
+      1550   336.77168      1              1              1              1            
+      1600   305.39633      1              1              1              1            
+      1650   301.20971      1              1              1              1            
+      1700   300.67406      1              1              1              1            
+      1750   285.00769      1              1              1              1            
+      1800   282.98569      1              1              1              1            
+      1850   299.07079      1              1              1              1            
+      1900   279.35446      1              1              1              1            
+      1950   305.10467      1              1              1              1            
+      2000   336.72556      1              1              1              1            
+Loop time of 0.497059 on 1 procs for 2000 steps with 118 atoms
+
+Performance: 347.645 ns/day, 0.069 hours/ns, 4023.666 timesteps/s, 474.793 katom-step/s
+94.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.057538   | 0.057538   | 0.057538   |   0.0 | 11.58
+Bond    | 0.31271    | 0.31271    | 0.31271    |   0.0 | 62.91
+Neigh   | 0.0082429  | 0.0082429  | 0.0082429  |   0.0 |  1.66
+Comm    | 0.0093989  | 0.0093989  | 0.0093989  |   0.0 |  1.89
+Output  | 0.00036701 | 0.00036701 | 0.00036701 |   0.0 |  0.07
+Modify  | 0.098138   | 0.098138   | 0.098138   |   0.0 | 19.74
+Other   |            | 0.01066    |            |       |  2.14
+
+Nlocal:            118 ave         118 max         118 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            422 ave         422 max         422 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3926 ave        3926 max        3926 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3926
+Ave neighs/atom = 33.271186
+Ave special neighs/atom = 7.4576271
+Neighbor list builds = 67
+Dangerous builds = 0
+
+# write_restart restart_longrun
+# write_data restart_longrun.data nofix
+Total wall time: 0:00:00

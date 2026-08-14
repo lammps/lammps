@@ -68,6 +68,15 @@ radian\^2.
 
 ----------
 
+Symmetry convention
+"""""""""""""""""""
+
+For the *harmonic* improper style, the first atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
+
 Restrictions
 """"""""""""
 

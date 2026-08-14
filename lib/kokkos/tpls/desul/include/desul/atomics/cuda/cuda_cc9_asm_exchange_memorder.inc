@@ -1,0 +1,26 @@
+
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER MemoryOrderRelaxed
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM ".relaxed"
+#include "desul/atomics/cuda/cuda_cc9_asm_exchange_op.inc"
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM
+
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER MemoryOrderRelease
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM ".release"
+#include "desul/atomics/cuda/cuda_cc9_asm_exchange_op.inc"
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM
+
+
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER MemoryOrderAcquire
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM ".acquire"
+#include "desul/atomics/cuda/cuda_cc9_asm_exchange_op.inc"
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM
+
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER MemoryOrderAcqRel
+#define __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM ".acq_rel"
+#include "desul/atomics/cuda/cuda_cc9_asm_exchange_op.inc"
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER
+#undef __DESUL_IMPL_CUDA_ASM_MEMORY_ORDER_ASM
+

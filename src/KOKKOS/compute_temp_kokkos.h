@@ -40,10 +40,12 @@ class ComputeTempKokkos : public ComputeTemp {
 
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_CTEMP() {
       t0 = t1 = t2 = t3 = t4 = t5 = 0.0;
     }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_CTEMP& operator+=(const s_CTEMP &rhs) {
       t0 += rhs.t0;
@@ -66,10 +68,12 @@ class ComputeTempKokkos : public ComputeTemp {
   void compute_vector() override;
 
   template<int RMASS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempScalar<RMASS>, const int&, CTEMP&) const;
 
   template<int RMASS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempVector<RMASS>, const int&, CTEMP&) const;
 

@@ -17,14 +17,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_eos_table.h"
+#include "rx_table_file_reader.h"
 
 #include "atom.h"
 #include "error.h"
 #include "memory.h"
 
 #include <cstring>
-
-static constexpr int MAXLINE = 1024;
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -194,53 +193,22 @@ void FixEOStable::free_table(Table *tb)
 
 void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE] = {'\0'};
 
-  // open file
+  RxTableFileReader reader(lmp, keyword, file, "eos/table");
 
-  FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  tb->ninput = tb2->ninput = reader.get_num_table_entries();
 
-  // loop until section found with matching keyword
-
-  while (true) {
-    if (fgets(line,MAXLINE,fp) == nullptr)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
-    param_extract(tb,tb2,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,tb2,line);
   memory->create(tb->rfile,tb->ninput,"eos:rfile");
   memory->create(tb->efile,tb->ninput,"eos:efile");
   memory->create(tb2->rfile,tb2->ninput,"eos:rfile2");
   memory->create(tb2->efile,tb2->ninput,"eos:efile2");
 
-  // read r,e table values from file
-
-  int itmp;
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  for (int i = 0; i < tb->ninput; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    sscanf(line,"%d %lg %lg",&itmp,&tb->rfile[i],&tb->efile[i]);
-    sscanf(line,"%d %lg %lg",&itmp,&tb2->efile[i],&tb2->rfile[i]);
-  }
-
-  fclose(fp);
+  reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
+                                ValueTokenizer & values) {
+                              values.next_int(); // throw away the initial index
+                              tb->rfile[i] = tb2->efile[i] = values.next_double();
+                              tb->efile[i] = tb2->rfile[i] = values.next_double();
+                            });
 }
 
 /* ----------------------------------------------------------------------
@@ -290,33 +258,6 @@ void FixEOStable::compute_table(Table *tb)
   for (int i = 0; i < tlm1; i++) {
     tb->de[i] = tb->e[i+1] - tb->e[i];
   }
-}
-
-/* ----------------------------------------------------------------------
-   extract attributes from parameter line in table section
-   format of line: N value
-   N is required, other params are optional
-------------------------------------------------------------------------- */
-
-void FixEOStable::param_extract(Table *tb, Table *tb2, char *line)
-{
-  tb->ninput = 0;
-  tb2->ninput = 0;
-
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = std::stoi(word);
-      tb2->ninput = std::stoi(word);
-    } else {
-      error->one(FLERR,"Invalid keyword in fix eos/table parameters");
-    }
-    word = strtok(nullptr," \t\n\r\f");
-  }
-
-  if (tb->ninput == 0) error->one(FLERR,"fix eos/table parameters did not set N");
-  if (tb2->ninput == 0) error->one(FLERR,"fix eos/table parameters did not set N");
 }
 
 /* ----------------------------------------------------------------------

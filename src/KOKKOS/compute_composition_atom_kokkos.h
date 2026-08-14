@@ -42,6 +42,7 @@ template <class DeviceType> class ComputeCompositionAtomKokkos : public ComputeC
   void init() override;
   void compute_peratom() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeCompositionAtom, const int &) const;
 

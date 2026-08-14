@@ -57,7 +57,7 @@ class FixPair : public Fix {
   double *vector;
   double **array;
 
-  void query_pstyle(LAMMPS *lmp);
+  void query_pstyle();
 };
 
 }    // namespace LAMMPS_NS

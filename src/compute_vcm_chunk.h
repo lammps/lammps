@@ -38,6 +38,7 @@ class ComputeVCMChunk : public ComputeChunk {
   double *massproc, *masstotal;
   double **vcm, **vcmall;
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

@@ -416,7 +416,8 @@ Using OpenKIM Web Queries in LAMMPS (*kim query*)
 
 The *kim query* command performs a web query to retrieve the predictions of an
 IM set by *kim init* for material properties archived in
-`OpenKIM <https://openkim.org>`_.
+`OpenKIM <https://openkim.org>`_, or to obtain a list of available models
+that support a given set of atomic species.
 
 Syntax
 ------
@@ -482,6 +483,12 @@ comma-separated items in brackets.  The list of supported keywords and the type
 and format of their values depend on the query function used.  The current list
 of query functions is available on the OpenKIM webpage at
 `https://openkim.org/doc/usage/kim-query <https://openkim.org/doc/usage/kim-query/>`_.
+
+.. note::
+
+   The *get_available_models* function's output is post-processed by LAMMPS so that
+   only the names of models that are currently installed are stored in the variable.
+   Matching models that are not installed are instead written to the LAMMPS log file.
 
 .. note::
 

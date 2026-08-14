@@ -41,7 +41,7 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   fragmentID(nullptr)
 {
   if (atom->avec->bonds_allow == 0)
-    error->all(FLERR,"Compute fragment/atom used when bonds are not allowed");
+    error->all(FLERR, Error::NOPOINTER, "Compute fragment/atom used when bonds are not allowed");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -54,10 +54,10 @@ ComputeFragmentAtom::ComputeFragmentAtom(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"single") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal compute fragment/atom command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute fragment/atom", error);
       singleflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
-    } else error->all(FLERR,"Illegal compute fragment/atom command");
+    } else error->all(FLERR, iarg, "Unknown compute fragment/atom keyword {}", arg[iarg]);
   }
 
   nmax = 0;
@@ -81,9 +81,9 @@ ComputeFragmentAtom::~ComputeFragmentAtom()
 void ComputeFragmentAtom::init()
 {
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Cannot use compute fragment/atom unless atoms have IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use compute fragment/atom unless atoms have IDs");
   if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Compute fragment/atom requires a molecular system");
+    error->all(FLERR, Error::NOLASTLINE, "Compute fragment/atom requires a molecular system");
 
   if (modify->get_compute_by_style(style).size() > 1)
     if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);

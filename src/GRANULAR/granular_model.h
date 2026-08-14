@@ -16,8 +16,8 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
 enum SubModelType {
   NORMAL = 0,
@@ -32,7 +32,8 @@ enum SubModelType {
 enum ContactType {
   PAIR = 0,
   WALL = 1,
-  WALLREGION = 2
+  WALLREGION = 2,
+  SURFACE = 3
 };
 
 // forward declarations
@@ -113,7 +114,7 @@ class GranularModel : protected Pointers {
   int *gran_sub_mod_types;
 };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif

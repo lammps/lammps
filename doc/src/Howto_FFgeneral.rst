@@ -25,9 +25,9 @@ the neighboring atoms.
 Force fields differ in the strategies they employ to determine the
 parameters and charge distribution in how generic or specific they are
 which in turn has an impact on the accuracy (compare for example
-CGenFF to CHARMM and GAFF to Amber).  Because of the different
+CGenFF to CHARMM and GAFF to AMBER).  Because of the different
 strategies, it is not a good idea to use a mix of parameters from
-different force field *families* (like CHARMM, Amber, or GROMOS)
+different force field *families* (like CHARMM, AMBER, or GROMOS)
 and that extends to the parameters for the solvent, especially
 water.  The publication describing the parameterization of a force
 field will describe which water model to use.  Changing the water
@@ -35,7 +35,7 @@ model usually leads to overall worse results (even if it may improve
 on the water itself).
 
 In addition, one has to consider that *families* of force fields like
-CHARMM, Amber, OPLS, or GROMOS have evolved over time and thus provide
+CHARMM, AMBER, OPLS, or GROMOS have evolved over time and thus provide
 different *revisions* of the force field parameters.  These often
 corresponds to changes in the functional form or the parameterization
 strategies.  This may also result in changes required for simulation

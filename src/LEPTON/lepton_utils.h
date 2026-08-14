@@ -30,8 +30,8 @@ class ZBLFunction : public CustomFunction {
       qqr2e(_qqr2e), angstrom(_angstrom), qelectron(_qelectron){};
   ZBLFunction() = delete;
 
-  int getNumArguments() const override { return 3; }
-  CustomFunction *clone() const override { return new ZBLFunction(qqr2e, angstrom, qelectron); }
+  [[nodiscard]] int getNumArguments() const override { return 3; }
+  [[nodiscard]] CustomFunction *clone() const override { return new ZBLFunction(qqr2e, angstrom, qelectron); }
   double evaluate(const double *) const override;
   double evaluateDerivative(const double *, const int *) const override;
 

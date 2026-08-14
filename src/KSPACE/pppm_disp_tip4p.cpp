@@ -36,7 +36,9 @@ static constexpr FFT_SCALAR ZEROF = 0.0;
 
 PPPMDispTIP4P::PPPMDispTIP4P(LAMMPS *lmp) : PPPMDisp(lmp)
 {
-  triclinic_support = 0;
+  // triclinic boxes are supported via the M-site reconstruction in find_M();
+  // the slab correction is not (yet) supported for a triclinic box (see init)
+  triclinic_support = 1;
   tip4pflag = 1;
 }
 
@@ -48,6 +50,15 @@ void PPPMDispTIP4P::init()
 
   if (force->newton == 0)
     error->all(FLERR,"Kspace style pppm/disp/tip4p requires newton on");
+
+  // the slab correction is not (yet) supported for triclinic boxes with
+  // pppm/disp/tip4p: the M-site reconstruction in find_M() converts between
+  // lamda and box coordinates, which is not currently combined with the slab
+  // dipole correction
+
+  if (domain->triclinic && slabflag)
+    error->all(FLERR,"Cannot (yet) use pppm/disp/tip4p with triclinic box "
+               "and slab correction");
 
   PPPMDisp::init();
 }
@@ -514,8 +525,13 @@ void PPPMDispTIP4P::slabcorr(int /*eflag*/)
 
   double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
-    for (int i = 0; i < nlocal; i++)
-      dipole_r2 += q[i]*x[i][2]*x[i][2];
+    for (int i = 0; i < nlocal; i++) {
+      if (type[i] == typeO) {
+        find_M(i,iH1,iH2,xM);
+        xi = xM;
+      } else xi = x[i];
+      dipole_r2 += q[i]*xi[2]*xi[2];
+    }
 
     // sum local contributions
 
@@ -532,29 +548,42 @@ void PPPMDispTIP4P::slabcorr(int /*eflag*/)
 
   if (eflag_global) energy_1 += qscale * e_slabcorr;
 
-  // per-atom energy
+  // per-atom energy. for O atoms evaluate at the M site and redistribute
+  // (1-alpha) : alpha/2 : alpha/2 onto O, H1, H2 like fieldforce_c_peratom()
 
   if (eflag_atom) {
     double efact = qscale * MY_2PI/volume;
-    for (int i = 0; i < nlocal; i++)
-      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
+    for (int i = 0; i < nlocal; i++) {
+      if (type[i] == typeO) {
+        find_M(i,iH1,iH2,xM);
+        const double e_pa = efact * q[i]*(xM[2]*dipole_all - 0.5*(dipole_r2 +
+          qsum*xM[2]*xM[2]) - qsum*zprd_slab*zprd_slab/12.0);
+        eatom[i] += e_pa*(1 - alpha);
+        eatom[iH1] += e_pa*alpha*0.5;
+        eatom[iH2] += e_pa*alpha*0.5;
+      } else {
+        eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+          qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
+      }
+    }
   }
 
-  // add on force corrections
+  // add on force corrections. the force on the M site charge is
+  // evaluated at the M site and redistributed onto O, H1, H2
 
   double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) {
-    double fzi_corr = ffact * q[i]*(dipole_all - qsum*x[i][2]);
     if (type[i] == typeO) {
       find_M(i,iH1,iH2,xM);
+      const double fzi_corr = ffact * q[i]*(dipole_all - qsum*xM[2]);
       f[i][2] += fzi_corr*(1 - alpha);
       f[iH1][2] += 0.5*alpha*fzi_corr;
       f[iH2][2] += 0.5*alpha*fzi_corr;
+    } else {
+      f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
     }
-    else f[i][2] += fzi_corr;
   }
 }
 
@@ -566,6 +595,8 @@ void PPPMDispTIP4P::slabcorr(int /*eflag*/)
 
 void PPPMDispTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
 {
+  double **x = atom->x;
+
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);
 
@@ -573,22 +604,107 @@ void PPPMDispTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
   if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
     error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 
-  // set iH1,iH2 to index of closest image to O
+  if (triclinic) {
 
-  iH1 = domain->closest_image(i,iH1);
-  iH2 = domain->closest_image(i,iH2);
+    // need to use custom code to find the closest image for triclinic,
+    // since local atoms are in lambda coordinates, but ghosts are not.
 
-  double **x = atom->x;
+    int *sametag = atom->sametag;
+    double xo[3],xh1[3],xh2[3],xm[3];
+    const int nlocal = atom->nlocal;
 
-  double delx1 = x[iH1][0] - x[i][0];
-  double dely1 = x[iH1][1] - x[i][1];
-  double delz1 = x[iH1][2] - x[i][2];
+    for (int ii = 0; ii < 3; ++ii) {
+      xo[ii] = x[i][ii];
+      xh1[ii] = x[iH1][ii];
+      xh2[ii] = x[iH2][ii];
+    }
 
-  double delx2 = x[iH2][0] - x[i][0];
-  double dely2 = x[iH2][1] - x[i][1];
-  double delz2 = x[iH2][2] - x[i][2];
+    if (i < nlocal) domain->lamda2x(x[i],xo);
+    if (iH1 < nlocal) domain->lamda2x(x[iH1],xh1);
+    if (iH2 < nlocal) domain->lamda2x(x[iH2],xh2);
 
-  xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
-  xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
-  xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
+    double delx = xo[0] - xh1[0];
+    double dely = xo[1] - xh1[1];
+    double delz = xo[2] - xh1[2];
+    double rsqmin = delx*delx + dely*dely + delz*delz;
+    double rsq;
+    int closest = iH1;
+
+    // no need to run lamda2x() here -> ghost atoms
+
+    while (sametag[iH1] >= 0) {
+      iH1 = sametag[iH1];
+      delx = xo[0] - x[iH1][0];
+      dely = xo[1] - x[iH1][1];
+      delz = xo[2] - x[iH1][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) {
+        rsqmin = rsq;
+        closest = iH1;
+        xh1[0] = x[iH1][0];
+        xh1[1] = x[iH1][1];
+        xh1[2] = x[iH1][2];
+      }
+    }
+    iH1 = closest;
+
+    closest = iH2;
+    delx = xo[0] - xh2[0];
+    dely = xo[1] - xh2[1];
+    delz = xo[2] - xh2[2];
+    rsqmin = delx*delx + dely*dely + delz*delz;
+
+    while (sametag[iH2] >= 0) {
+      iH2 = sametag[iH2];
+      delx = xo[0] - x[iH2][0];
+      dely = xo[1] - x[iH2][1];
+      delz = xo[2] - x[iH2][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) {
+        rsqmin = rsq;
+        closest = iH2;
+        xh2[0] = x[iH2][0];
+        xh2[1] = x[iH2][1];
+        xh2[2] = x[iH2][2];
+      }
+    }
+    iH2 = closest;
+
+    // finally compute M in real coordinates ...
+
+    double delx1 = xh1[0] - xo[0];
+    double dely1 = xh1[1] - xo[1];
+    double delz1 = xh1[2] - xo[2];
+
+    double delx2 = xh2[0] - xo[0];
+    double dely2 = xh2[1] - xo[1];
+    double delz2 = xh2[2] - xo[2];
+
+    xm[0] = xo[0] + alpha * 0.5 * (delx1 + delx2);
+    xm[1] = xo[1] + alpha * 0.5 * (dely1 + dely2);
+    xm[2] = xo[2] + alpha * 0.5 * (delz1 + delz2);
+
+    // ... and convert M to lamda space for PPPM
+
+    domain->x2lamda(xm,xM);
+
+  } else {
+
+    // set iH1,iH2 to index of closest image to O
+
+    iH1 = domain->closest_image(i,iH1);
+    iH2 = domain->closest_image(i,iH2);
+
+    double delx1 = x[iH1][0] - x[i][0];
+    double dely1 = x[iH1][1] - x[i][1];
+    double delz1 = x[iH1][2] - x[i][2];
+
+    double delx2 = x[iH2][0] - x[i][0];
+    double dely2 = x[iH2][1] - x[i][1];
+    double delz2 = x[iH2][2] - x[i][2];
+
+    xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
+    xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
+    xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
+  }
 }

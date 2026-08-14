@@ -86,6 +86,7 @@ FixNeighHistoryKokkos<DeviceType>::~FixNeighHistoryKokkos()
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
+  // NOTE: if onsided added, should add surface_global logic
   if (onesided)
     error->all(FLERR,"Fix neigh/history/kk does not (yet) support onesided exchange communication");
 
@@ -153,6 +154,7 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPreExchange, const int &ii) const
 {
@@ -241,6 +243,7 @@ void FixNeighHistoryKokkos<DeviceType>::post_neighbor()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbor, const int &ii) const
 {
@@ -368,6 +371,7 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange(int i, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPackExchange, const int &mysend, int &offset, const bool &final) const {
 
@@ -448,6 +452,7 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExchange, const int &i) const
 {

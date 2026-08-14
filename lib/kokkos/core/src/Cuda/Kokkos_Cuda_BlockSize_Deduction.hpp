@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_INTERNAL_HPP
 #define KOKKOS_CUDA_INTERNAL_HPP
@@ -103,24 +90,7 @@ inline int cuda_max_active_blocks_per_sm(cudaDeviceProp const& properties,
                              : max_blocks_regs);
 
   // Limits due to blocks/SM
-#if CUDA_VERSION >= 11000
   int const max_blocks_per_sm = properties.maxBlocksPerMultiProcessor;
-#else
-  int const max_blocks_per_sm = [&properties]() {
-    switch (properties.major) {
-      case 3: return 16;
-      case 5:
-      case 6: return 32;
-      case 7: {
-        int isTuring = properties.minor == 5;
-        return (isTuring) ? 16 : 32;
-      }
-      default:
-        throw_runtime_exception("Unknown device in cuda block size deduction");
-        return 0;
-    }
-  }();
-#endif
 
   // Overall occupancy in blocks
   return std::min({max_blocks_regs, max_blocks_shmem, max_blocks_per_sm});

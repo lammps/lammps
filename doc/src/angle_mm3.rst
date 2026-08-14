@@ -1,7 +1,11 @@
 .. index:: angle_style mm3
+.. index:: angle_style mm3/kk
+.. index:: angle_style mm3/omp
 
 angle_style mm3 command
 =======================
+
+Accelerator Variants: *mm3/kk*, *mm3/omp*
 
 Syntax
 """"""
@@ -44,6 +48,12 @@ or :doc:`read_restart <read_restart>` commands:
 :math:`\theta_0` is specified in degrees, but LAMMPS converts it to
 radians internally; hence :math:`K` is effectively energy per
 radian\^2.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

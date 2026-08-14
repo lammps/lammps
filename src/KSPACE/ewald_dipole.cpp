@@ -432,7 +432,7 @@ void EwaldDipole::compute(int eflag, int vflag)
 
       // taking im of struct_fact x exp(i*k*ri) (for force calc.)
 
-      partial = (mudotk)*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
+      partial = mudotk*(expim*sfacrl_all[k] - exprl*sfacim_all[k]);
       ek[i][0] += partial * eg[k][0];
       ek[i][1] += partial * eg[k][1];
       ek[i][2] += partial * eg[k][2];
@@ -789,8 +789,10 @@ void EwaldDipole::slabcorr()
   }
 
   // compute corrections
+  // the dipole self term is E = (2pi/V) M_z^2 with M_z = sum mu_iz, which is
+  // consistent with the -4pi/V torque/field acting on the dipoles below
 
-  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(dipole_all*dipole_all)/volume;
   const double qscale = qqrd2e * scale;
 
   if (eflag_global) energy += qscale * e_slabcorr;
@@ -798,7 +800,7 @@ void EwaldDipole::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = qscale * MY_2PI/volume/12.0;
+    double efact = qscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++)
       eatom[i] += efact * mu[i][2]*dipole_all;
   }
@@ -840,7 +842,7 @@ void EwaldDipole::musum_musq()
     mu2 = musqsum * force->qqrd2e;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver EwaldDipole on system with no dipoles");
 }
 
@@ -860,10 +862,13 @@ double EwaldDipole::NewtonSolve(double x, double Rc,
   //Begin algorithm
 
   for (int i = 0; i < maxit; i++) {
-    dx = f(x,Rc,natoms,vol,b2) / derivf(x,Rc,natoms,vol,b2);
+    double dfx = derivf(x,Rc,natoms,vol,b2);
+    if (dfx == 0.0 || dfx != dfx) return -1;    // flat/invalid derivative
+    dx = f(x,Rc,natoms,vol,b2) / dfx;
+    while (x - dx <= 0.0) dx *= 0.5;             // damp the step so x stays > 0
     x = x - dx; //Update x
     if (fabs(dx) < tol) return x;
-    if (x < 0 || x != x) // solver failed
+    if (x != x) // solver failed
       return -1;
   }
   return -1;

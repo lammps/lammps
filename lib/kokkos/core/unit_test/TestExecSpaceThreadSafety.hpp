@@ -1,21 +1,17 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <thread>
+
+#ifdef KOKKOS_ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 namespace {
 
@@ -25,9 +21,52 @@ namespace {
 #define THREAD_SAFETY_TEST_UNREACHABLE() static_assert(true)
 #endif
 
+#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
+#define KOKKOS_TEST_SKIP_IF_OPENACC()                                       \
+  GTEST_SKIP()                                                              \
+      << "skipping OpenACC test since unsupported host-side atomics cause " \
+         "race conditions during shared allocation reference counting";     \
+  THREAD_SAFETY_TEST_UNREACHABLE();
+#else
+#define KOKKOS_TEST_SKIP_IF_OPENACC()
+#endif
+
+#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
+#define KOKKOS_TEST_SKIP_IF_SYCL_OUT_OF_ORDER_QUEUES() \
+  GTEST_SKIP()                                         \
+      << "skipping since tests are known to fail with out-of-order queues";
+#else
+#define KOKKOS_TEST_SKIP_IF_SYCL_OUT_OF_ORDER_QUEUES()
+#endif
+
+#ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
+#define KOKKOS_TEST_SKIP_IF_ATOMICS_BYPASS() \
+  GTEST_SKIP() << "since bypassing atomics";
+#else
+#define KOKKOS_TEST_SKIP_IF_ATOMICS_BYPASS()
+#endif
+
+#define KOKKOS_TEST_SKIP_IF_NEEDED()             \
+  KOKKOS_TEST_SKIP_IF_OPENACC()                  \
+  KOKKOS_TEST_SKIP_IF_SYCL_OUT_OF_ORDER_QUEUES() \
+  KOKKOS_TEST_SKIP_IF_ATOMICS_BYPASS()           \
+  static_assert(true, "no-op to require trailing semicolon")
+
 #ifdef KOKKOS_ENABLE_OPENMP
 template <class Lambda1, class Lambda2>
 void run_threaded_test(const Lambda1 l1, const Lambda2 l2) {
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::OpenMP>) {
+#if (!defined(KOKKOS_COMPILER_GNU) || KOKKOS_COMPILER_GNU >= 1110) && \
+    _OPENMP >= 201511
+    bool supports_nested = omp_get_max_active_levels() > 1;
+#else
+    bool supports_nested = static_cast<bool>(omp_get_nested());
+#endif
+    if (!supports_nested)
+      GTEST_SKIP()
+          << "The OpenMP configuration doesn't allow nested parallelism";
+  }
+
   if (omp_get_max_threads() < 2)
     GTEST_SKIP() << "insufficient number of supported concurrent threads";
 
@@ -86,20 +125,7 @@ void run_exec_space_thread_safety_range() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_range) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail for OpenMPTarget";
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
-#endif
+  KOKKOS_TEST_SKIP_IF_NEEDED();
   run_exec_space_thread_safety_range();
 }
 
@@ -133,20 +159,7 @@ void run_exec_space_thread_safety_mdrange() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_mdrange) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping since test is known to fail for OpenMPTarget";
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
-#endif
+  KOKKOS_TEST_SKIP_IF_NEEDED();
   run_exec_space_thread_safety_mdrange();
 }
 
@@ -182,22 +195,7 @@ void run_exec_space_thread_safety_team_policy() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_team_policy) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping for OpenMPTarget since the test is designed to "
-                    "run with vector_length=1";
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
-#endif
+  KOKKOS_TEST_SKIP_IF_NEEDED();
   run_exec_space_thread_safety_team_policy();
 }
 
@@ -231,16 +229,7 @@ void run_exec_space_thread_safety_range_reduce() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_range_reduce) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
-#endif
+  KOKKOS_TEST_SKIP_IF_NEEDED();
   run_exec_space_thread_safety_range_reduce();
 }
 
@@ -275,16 +264,7 @@ void run_exec_space_thread_safety_mdrange_reduce() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_mdrange_reduce) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
-#endif
+  KOKKOS_TEST_SKIP_IF_NEEDED();
   run_exec_space_thread_safety_mdrange_reduce();
 }
 
@@ -320,26 +300,11 @@ void run_exec_space_thread_safety_team_policy_reduce() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_team_policy_reduce) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<TEST_EXECSPACE, Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP() << "skipping for OpenMPTarget since the test is designed to "
-                    "run with vector_length=1";
-#endif
-    // FIXME_SYCL
+  KOKKOS_TEST_SKIP_IF_NEEDED();
+  // FIXME_SYCL
 #if defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_ARCH_NVIDIA_GPU)
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::SYCL>)
     GTEST_SKIP() << "skipping since test is know to fail with SYCL+Cuda";
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
 #endif
   run_exec_space_thread_safety_team_policy_reduce();
 }
@@ -376,17 +341,13 @@ void run_exec_space_thread_safety_range_scan() {
 }
 
 TEST(TEST_CATEGORY, exec_space_thread_safety_range_scan) {
-#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
-  GTEST_SKIP()
-      << "skipping OpenACC test since unsupported host-side atomics cause "
-         "race conditions during shared allocation reference counting";
-  THREAD_SAFETY_TEST_UNREACHABLE();
-#endif
-#ifdef KOKKOS_ENABLE_IMPL_SYCL_OUT_OF_ORDER_QUEUES  // FIXME_SYCL
-  GTEST_SKIP()
-      << "skipping since tests are known to fail with out-of-order queues";
-#endif
+  KOKKOS_TEST_SKIP_IF_NEEDED();
   run_exec_space_thread_safety_range_scan();
 }
+
+#undef KOKKOS_TEST_SKIP_IF_NEEDED
+#undef KOKKOS_TEST_SKIP_IF_ATOMICS_BYPASS
+#undef KOKKOS_TEST_SKIP_IF_SYCL_OUT_OF_ORDER_QUEUES
+#undef KOKKOS_TEST_SKIP_IF_OPENACC
 
 }  // namespace

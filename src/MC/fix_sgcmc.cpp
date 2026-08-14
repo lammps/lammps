@@ -896,8 +896,9 @@ double FixSemiGrandCanonicalMC::computeEnergyChangeGeneric(int flipAtom, int old
  *********************************************************************/
 double FixSemiGrandCanonicalMC::computeTotalEnergy()
 {
-  int eflag = 1;
-  int vflag = 0;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   if (force->pair) force->pair->compute(eflag,vflag);
 

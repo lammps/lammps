@@ -30,10 +30,12 @@ namespace LAMMPS_NS {
 
 struct s_double_3 {
   double d0, d1, d2;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_double_3() {
     d0 = d1 = d2 = 0.0;
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_double_3& operator+=(const s_double_3 &rhs) {
     d0 += rhs.d0;
@@ -60,9 +62,11 @@ class FixSetForceKokkos : public FixSetForce {
   void init() override;
   void post_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixSetForceConstant, const int&, double_3&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixSetForceNonConstant, const int&, double_3&) const;
 

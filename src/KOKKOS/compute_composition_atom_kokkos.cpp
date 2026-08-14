@@ -113,6 +113,7 @@ void ComputeCompositionAtomKokkos<DeviceType>::compute_peratom()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionAtom, const int &ii) const
 {

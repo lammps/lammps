@@ -91,6 +91,7 @@ void FixGravityKokkos<DeviceType>::post_force(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixGravityKokkos<DeviceType>::operator()(TagFixGravityRMass, const int i, double &eg) const
 {
@@ -104,6 +105,7 @@ void FixGravityKokkos<DeviceType>::operator()(TagFixGravityRMass, const int i, d
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixGravityKokkos<DeviceType>::operator()(TagFixGravityMass, const int i, double &eg) const
 {

@@ -16,9 +16,9 @@
 
 #include <cmath>
 
-namespace LAMMPS_NS {
 
-namespace MathSpecial {
+
+namespace LAMMPS_NS::MathSpecial {
 
   /*! Fast tabulated factorial function
    *
@@ -60,11 +60,17 @@ namespace MathSpecial {
 
   extern double fm_exp(double x);
 
+  /*  MDF taper function defined in Mei et al. (Phys. Rev. B 43:4653, 1991). It is used
+   *  to smoothly terminate functions between rmin and rmax. */
+
+  extern void mdftaper(double r, double rmin, double rmax, double &f, double &df);
+
   // support function for scaled error function complement
 
   extern double erfcx_y100(const double y100);
 
-  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+
+ /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
    *
    *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
    *  in coul/long pair styles as a replacement for the polynomial expansion that
@@ -178,7 +184,7 @@ namespace MathSpecial {
 
     return yy;
   }
-}    // namespace MathSpecial
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::MathSpecial
+
 
 #endif

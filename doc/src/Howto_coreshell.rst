@@ -223,7 +223,7 @@ For example if core/shell pairs and other molecules are present:
    compute prop all property/atom i_CSID
    (...)
 
-The additional section in the date file would be formatted like this:
+The additional section in the data file would be formatted like this:
 
 .. parsed-literal::
 

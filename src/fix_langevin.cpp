@@ -48,8 +48,8 @@ static constexpr double EINERTIA = 0.2;    // moment of inertia prefactor for el
 /* ---------------------------------------------------------------------- */
 
 FixLangevin::FixLangevin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr),
-    tstr(nullptr), flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr),
+    Fix(lmp, narg, arg), gfactor1(nullptr), gfactor2(nullptr), ratio(nullptr), tstr(nullptr),
+    avec(nullptr), flangevin(nullptr), tforce(nullptr), franprev(nullptr), lv(nullptr),
     id_temp(nullptr), random(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix langevin", error);
@@ -237,6 +237,11 @@ void FixLangevin::init()
       if (mask[i] & groupbit)
         if (ellipsoid[i] < 0) error->one(FLERR, "Fix langevin angmom requires extended particles");
   }
+
+  // check that superellipsoids are not used
+
+  if (atom->superellipsoid_flag)
+    error->all(FLERR, "Fix langevin does not support superellipsoids");
 
   // set force prefactors
 
@@ -751,8 +756,9 @@ void *FixLangevin::extract(const char *str, int &dim)
 double FixLangevin::memory_usage()
 {
   double bytes = 0.0;
-  if (tallyflag || osflag) bytes += (double) atom->nmax * 3 * sizeof(double);
-  if (tforce) bytes += (double) atom->nmax * sizeof(double);
+  if (flangevin_allocated) bytes += (double) atom->nmax * 3 * sizeof(double);    // flangevin[nmax][3]
+  if (tallyflag || osflag) bytes += (double) atom->nmax * 3 * sizeof(double);    // franprev[nmax][3]
+  if (tforce) bytes += (double) atom->nmax * sizeof(double);                     // tforce[nmax]
   return bytes;
 }
 

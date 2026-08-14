@@ -62,7 +62,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
     fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
     custom(nullptr), custom_flag(nullptr), typenames(nullptr), header_choice(nullptr),
-    pack_choice(nullptr)
+    write_choice(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump {} arguments specified", style);
 
@@ -108,9 +108,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
 
   ioptional = parse_fields(nfield,earg);
 
-  if (ioptional < nfield &&
-      strcmp(style,"image") != 0 && strcmp(style,"movie") != 0)
-    error->all(FLERR,"Invalid attribute {} in dump {} command",earg[ioptional],style);
+  if ((ioptional < nfield) && (strcmp(style,"image") != 0) && (strcmp(style,"movie") != 0))
+    error->all(FLERR, "Invalid attribute {} in dump {} command", earg[ioptional], style);
 
   // noptional = # of optional args
   // reset nfield to subtract off optional args
@@ -165,6 +164,8 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     cols += earg[iarg];
   }
   columns_default = utils::strdup(cols);
+
+  nchoose = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1239,6 +1240,9 @@ int DumpCustom::count()
         double **darray = atom->darray[iwhich];
         ptr = &darray[0][argindex[i]-1];
         nstride = atom->dcols[iwhich];
+
+      } else {
+        error->all(FLERR, "Unknown dump_modify threshold attribute");
       }
 
       // unselect atoms that don't meet threshold criterion
@@ -1455,6 +1459,10 @@ int DumpCustom::parse_fields(int narg, char **arg)
 
   for (int iarg = 0; iarg < narg; iarg++) {
     int errptr = iarg + argoff;
+
+    // only attempt to parse first two fields for dump image/movie
+    if ((iarg == 2) && ((strcmp(style,"image") == 0) || (strcmp(style,"movie") == 0))) return 2;
+
     if (strcmp(arg[iarg],"id") == 0) {
       pack_choice[iarg] = &DumpCustom::pack_id;
       if (sizeof(tagint) == sizeof(smallint)) vtype[iarg] = Dump::INT;
@@ -1899,7 +1907,7 @@ int DumpCustom::modify_param(int narg, char **arg)
   while (input && input->arg[argoff] && (strcmp(input->arg[argoff], arg[0]) != 0)) argoff++;
 
   if (strcmp(arg[0],"region") == 0) {
-    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify", error);
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify region", error);
     if (strcmp(arg[1],"none") == 0) {
       delete[] idregion;
       idregion = nullptr;

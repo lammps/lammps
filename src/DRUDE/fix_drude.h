@@ -42,11 +42,14 @@ class FixDrude : public Fix {
 
   void grow_arrays(int nmax) override;
   void copy_arrays(int i, int j, int delflag) override;
+  double memory_usage() override;
   void set_arrays(int i) override;
   int pack_exchange(int i, double *buf) override;
   int unpack_exchange(int nlocal, double *buf) override;
   int pack_border(int n, int *list, double *buf) override;
   int unpack_border(int n, int first, double *buf) override;
+
+  void rebuild_special() override;
 
  private:
   int rebuildflag;
@@ -55,7 +58,6 @@ class FixDrude : public Fix {
   void build_drudeid();
   static void ring_search_drudeid(int size, char *cbuf, void *ptr);
   static void ring_build_partner(int size, char *cbuf, void *ptr);
-  void rebuild_special() override;
   static void ring_remove_drude(int size, char *cbuf, void *ptr);
   static void ring_add_drude(int size, char *cbuf, void *ptr);
   static void ring_copy_drude(int size, char *cbuf, void *ptr);

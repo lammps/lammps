@@ -51,7 +51,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     if (isdigit(arg[iarg][0])) {
       nsub = utils::inumeric(FLERR, arg[iarg], false, lmp);
       ++iarg;
-      if (nsub <= 0) error->all(FLERR, "Illegal compute pair command");
+      if (nsub <= 0) error->all(FLERR, iarg, "Compute pair nsub must be > 0");
     }
   }
 
@@ -63,7 +63,7 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg], "ecoul") == 0)
       evalue = ECOUL;
     else
-      error->all(FLERR, "Unknown compute pair keyword {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown compute pair keyword {}", arg[iarg]);
     ++iarg;
   }
 
@@ -75,7 +75,8 @@ ComputePair::ComputePair(LAMMPS *lmp, int narg, char **arg) :
     pair = force->pair_match(pstyle, 1, nsub);
   }
 
-  if (!pair) error->all(FLERR, "Unused pair style {} in compute pair command", pstyle);
+  if (!pair)
+    error->all(FLERR, Error::NOPOINTER, "Unused pair style {} in compute pair command", pstyle);
   npair = pair->nextra;
 
   if (npair) {
@@ -104,7 +105,9 @@ void ComputePair::init()
   // recheck for pair style in case it has been deleted
 
   pair = force->pair_match(pstyle, 1, nsub);
-  if (!pair) error->all(FLERR, "Unrecognized pair style {} in compute pair command", pstyle);
+  if (!pair)
+    error->all(FLERR, Error::NOLASTLINE, "Unrecognized pair style {} in compute pair command",
+               pstyle);
 }
 
 /* ---------------------------------------------------------------------- */

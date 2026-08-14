@@ -33,6 +33,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+  double memory_usage() override;
 
   virtual void kernel_force(double R, int itype, int jtype, double &energy, double &fpair);
 

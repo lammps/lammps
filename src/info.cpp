@@ -43,15 +43,15 @@
 #include "region.h"
 #include "update.h"
 #include "variable.h"
-#ifndef FMT_STATIC_THOUSANDS_SEPARATOR
-#include "fmt/chrono.h"
-#endif
 
 #include <cctype>
 #include <cmath>
 #include <cstring>
 #include <ctime>
 #include <map>
+#if __has_include(<version>)
+#include <version>
+#endif
 
 #ifdef _WIN32
 #ifndef WIN32_LEAN_AND_MEAN
@@ -272,16 +272,9 @@ void Info::command(int narg, char **arg)
   if (out == nullptr) return;
 
   fputs("\nInfo-Info-Info-Info-Info-Info-Info-Info-Info-Info-Info\n",out);
-#if defined(FMT_STATIC_THOUSANDS_SEPARATOR)
-  {
-    time_t tv = time(nullptr);
-    struct tm *now = localtime(&tv);
-    utils::print(out, "Printed on {}", asctime(now));
-  }
-#else
-  std::tm now = fmt::localtime(std::time(nullptr));
-  utils::print(out,"Printed on {}", std::asctime(&now));
-#endif
+  time_t tv = time(nullptr);
+  struct tm *now = localtime(&tv);
+  utils::print(out, "Printed on {}", asctime(now));
 
   if (flags & CONFIG) {
     utils::print(out,"\nLAMMPS version: {} / {}\n", lmp->version, lmp->num_ver);
@@ -497,14 +490,15 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & GROUPS) {
-    int ngroup = group->ngroup;
     char **names = group->names;
     int *dynamic = group->dynamic;
     fputs("\nGroup information:\n",out);
-    for (int i=0; i < ngroup; ++i) {
-      if (names[i])
+    for (int i=0; i < Group::MAX_GROUP; ++i) {
+      // skip over deleted groups
+      if (names[i]) {
         utils::print(out,"Group[{:2d}]:     {:16} ({})\n",
-                   i, names[i], dynamic[i] ? "dynamic" : "static");
+                     i, names[i], dynamic[i] ? "dynamic" : "static");
+      }
     }
   }
 
@@ -563,12 +557,10 @@ void Info::command(int narg, char **arg)
   }
 
   if (flags & VARIABLES) {
-    int nvar = input->variable->nvar;
+    int nvar = input->variable->get_nvar();
     fputs("\nVariable information:\n",out);
-    for (int i=0; i < nvar; ++i) {
-      auto vinfo = get_variable_info(i);
+    for (int i=0; i < nvar; ++i)
       utils::print(out, get_variable_info(i));
-    }
   }
 
   if (flags & TIME) {
@@ -1079,6 +1071,7 @@ bool Info::has_package(const std::string &package_name) {
 extern bool lmp_gpu_config(const std::string &, const std::string &);
 extern bool lmp_has_compatible_gpu_device();
 extern std::string lmp_gpu_device_info();
+extern void lmp_gpu_defer_device_clear(int);
 
 // we will only report compatible GPUs, i.e. when a GPU device is
 // available *and* supports the required floating point precision
@@ -1091,6 +1084,13 @@ std::string Info::get_gpu_device_info()
 {
   return lmp_gpu_device_info();
 }
+
+// defer (or restore) the GPU package device teardown. used only by the test
+// harness so the GPU package does not reset a device the KOKKOS package shares.
+void Info::gpu_defer_device_clear(int flag)
+{
+  lmp_gpu_defer_device_clear(flag);
+}
 #else
 bool Info::has_gpu_device()
 {
@@ -1099,6 +1099,25 @@ bool Info::has_gpu_device()
 std::string Info::get_gpu_device_info()
 {
   return "";
+}
+void Info::gpu_defer_device_clear(int)
+{
+}
+#endif
+
+#if defined(LMP_KOKKOS)
+extern bool lmp_has_compatible_kokkos_gpu();
+
+// report whether the KOKKOS package can access a compatible GPU device.
+// returns false for host-only KOKKOS builds or when no GPU is available.
+bool Info::has_kokkos_gpu_device()
+{
+  return lmp_has_compatible_kokkos_gpu();
+}
+#else
+bool Info::has_kokkos_gpu_device()
+{
+  return false;
 }
 #endif
 
@@ -1179,9 +1198,7 @@ bool Info::has_accelerator_feature(const std::string &package,
       else return false;
     }
     if (category == "api") {
-#if defined(LMP_INTEL_OFFLOAD)
-      if (setting == "phi") return true;
-#elif defined(_OPENMP)
+#if defined(_OPENMP)
       if (setting == "openmp") return true;
 #else
       if (setting == "serial") return true;
@@ -1247,7 +1264,6 @@ std::string Info::get_accelerator_info(const std::string &package)
   }
   if ((package.empty() || (package == "INTEL")) && has_package("INTEL")) {
     mesg += "INTEL package API:";
-    if (has_accelerator_feature("INTEL","api","phi"))      mesg += " Phi";
     if (has_accelerator_feature("INTEL","api","openmp"))   mesg += " OpenMP";
     mesg +=  "\nINTEL package precision:";
     if (has_accelerator_feature("INTEL","precision","single")) mesg += " single";
@@ -1293,7 +1309,11 @@ std::string Info::get_fft_info()
 #elif defined(FFT_MKL_GPU)
   fft_info += "FFT library = MKL GPU\n";
 #elif defined(FFT_NVPL)
+#if defined(FFT_FFTW_THREADS)
+  fft_info += "FFT library = NVPL with threads\n";
+#else
   fft_info += "FFT library = NVPL\n";
+#endif
 #elif defined(FFT_FFTW3)
 #if defined(FFT_FFTW_THREADS)
   fft_info += "FFT library = FFTW3 with threads\n";
@@ -1334,6 +1354,7 @@ std::string Info::get_fft_info()
 }
 
 /* ---------------------------------------------------------------------- */
+#if !defined(__cpp_lib_format) || (__cpp_lib_format < 201907L)
 
 static constexpr int fmt_ver_major = FMT_VERSION / 10000;
 static constexpr int fmt_ver_minor = (FMT_VERSION % 10000) / 100;
@@ -1344,6 +1365,12 @@ std::string Info::get_fmt_info()
   return fmt::format("Embedded fmt library version: {}.{}.{}\n",
                      fmt_ver_major, fmt_ver_minor, fmt_ver_patch);
 }
+#else
+std::string Info::get_fmt_info()
+{
+  return "Using fmt library emulation with std::format\n";
+}
+#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -1404,35 +1431,20 @@ void Info::get_memory_info(double *meminfo)
 
 /* ---------------------------------------------------------------------- */
 
-char **Info::get_variable_names(int &num) {
-  num = input->variable->nvar;
-  return input->variable->names;
+std::vector<std::string> Info::get_variable_names(int &num) {
+  num = input->variable->get_nvar();
+  std::vector<std::string> names;
+  for (int i=0; i < num; ++i) {
+    const auto *n =input->variable->get_name(i);
+    names.emplace_back(n ? n : "(unknown)");
+  }
+  return names;
 }
 
 /* ---------------------------------------------------------------------- */
 
 std::string Info::get_variable_info(int num) {
-  int *style = input->variable->style;
-  char **names = input->variable->names;
-  char ***data = input->variable->data;
-  std::string text;
-  int ndata = 1;
-  text = fmt::format("Variable[{:3d}]: {:16}  style = {:16}  def =", num,
-                     std::string(names[num]) + ',', Variable::varstyles[style[num]] + ',');
-  if (style[num] == Variable::INTERNAL) {
-    text += fmt::format("{:.8}\n",input->variable->dvalue[num]);
-    return text;
-  }
-
-  if ((style[num] != Variable::LOOP) && (style[num] != Variable::ULOOP))
-    ndata = input->variable->num[num];
-  else
-    input->variable->retrieve(names[num]);
-
-  for (int j=0; j < ndata; ++j)
-    if (data[num][j]) text += fmt::format(" {}",data[num][j]);
-  text += "\n";
-  return text;
+  return input->variable->get_info(num);
 }
 
 /* ---------------------------------------------------------------------- */

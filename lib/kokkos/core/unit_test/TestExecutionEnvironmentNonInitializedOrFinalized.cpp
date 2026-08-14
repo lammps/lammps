@@ -1,22 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#include <Kokkos_Assert.hpp>
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <cstdlib>
 #include <type_traits>
@@ -107,39 +100,20 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest, views) {
       "Kokkos allocation \"v\" is being deallocated after Kokkos::finalize was "
       "called");
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || \
-    defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENACC)
-  std::string matcher = std::string("Kokkos::") +
-#ifdef KOKKOS_ENABLE_OPENACC
-                        "Experimental::" +
-#endif
-                        Kokkos::DefaultExecutionSpace::name() +
-                        "::" + Kokkos::DefaultExecutionSpace::name() +
-                        " instance constructor : ERROR device not initialized";
-#else
-  std::string matcher =
-      "Constructing View and initializing data with uninitialized execution "
-      "space";
-#endif
-  EXPECT_DEATH({ Kokkos::View<int*> v("v", 0); }, matcher);
+  EXPECT_DEATH(
+      { Kokkos::View<int*> v("v", 0); },
+      "View \\(label=\\\"v\\\"\\) is being constructed before initialize");
   EXPECT_DEATH(
       {
         Kokkos::initialize();
         Kokkos::finalize();
         Kokkos::View<int*> v("v", 0);
       },
-      matcher);
+      "View \\(label=\\\"v\\\"\\) is being constructed after finalize");
 }
 
 TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
        c_style_memory_management) {
-// FIXME_THREADS: Checking for calls to kokkos_malloc, kokkos_realloc,
-// kokkos_free before initialize or after finalize is currently disabled
-// for the Threads backend. Refer issue #7944.
-#ifdef KOKKOS_ENABLE_THREADS
-  GTEST_SKIP()
-      << "skipping since initializing Threads backend calls kokkos_malloc";
-#endif
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
   EXPECT_DEATH(
@@ -194,6 +168,287 @@ TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
       },
       "Kokkos ERROR: attempting to perform C-style memory management via "
       "kokkos_free\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was called");
+}
+
+template <typename Type>
+class EmptyReduceFunctor {
+ public:
+  using size_type = typename Kokkos::DefaultExecutionSpace::size_type;
+  KOKKOS_INLINE_FUNCTION
+  void join(Type&, const Type&) const {}
+  KOKKOS_INLINE_FUNCTION
+  void operator()(size_type, Type&) const {}
+  KOKKOS_INLINE_FUNCTION
+  void final(Type&) const {}
+};
+
+struct ForFunctor {
+  KOKKOS_FUNCTION void operator()(int) const {}
+};
+
+TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest, parallel_for) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::RangePolicy<> policy(0, 0);
+        Kokkos::finalize();
+
+        Kokkos::parallel_for("for_policy", policy, ForFunctor());
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_for\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was called. "
+      "Concerns for_policy with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      { Kokkos::parallel_for("for_workcnt", 0, ForFunctor()); },
+      "Kokkos ERROR: attempting to call "
+      "parallel_for\\(\\) \\*\\*before\\*\\* Kokkos::initialize\\(\\) was "
+      "called. Concerns for_workcnt with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::finalize();
+        Kokkos::parallel_for("for_workcnt", 0, ForFunctor());
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_for\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was called. "
+      "Concerns for_workcnt with exec policy RangePolicy.");
+}
+
+struct ReduceFunctor {
+  KOKKOS_FUNCTION void operator()(int, float&) const {}
+};
+
+TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
+       parallel_reduce) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_DEATH(
+      {
+        using functor_type = EmptyReduceFunctor<float>;
+        Kokkos::initialize();
+        Kokkos::RangePolicy<> policy(0, 0);
+        Kokkos::finalize();
+
+        Kokkos::parallel_reduce("reduce_policy_func_noret", policy,
+                                functor_type{});
+      },
+      "Kokkos ERROR: attempting to call parallel_reduce\\(\\) "
+      "\\*\\*after\\*\\* Kokkos::finalize\\(\\) was called. "
+      "Concerns reduce_policy_func_noret with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        using functor_type = EmptyReduceFunctor<float>;
+        Kokkos::parallel_reduce("reduce_workcnt_func_noret", 0, functor_type{});
+      },
+      "Kokkos ERROR: attempting to call parallel_reduce\\(\\) "
+      "\\*\\*before\\*\\* Kokkos::initialize\\(\\) was called. "
+      "Concerns reduce_workcnt_func_noret with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::finalize();
+        using functor_type = EmptyReduceFunctor<float>;
+        Kokkos::parallel_reduce("reduce_workcnt_func_noret", 0, functor_type{});
+      },
+      "Kokkos ERROR: attempting to call parallel_reduce\\(\\) "
+      "\\*\\*after\\*\\* Kokkos::finalize\\(\\) was called. "
+      "Concerns reduce_workcnt_func_noret with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        float x;
+        Kokkos::initialize();
+        Kokkos::RangePolicy<> policy(0, 0);
+        Kokkos::finalize();
+        Kokkos::parallel_reduce("reduce_policy_ret_float", policy,
+                                ReduceFunctor(), x);
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_reduce\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns reduce_policy_ret_float with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        float x;
+        Kokkos::parallel_reduce("reduce_workcnt_ret_float", 0, ReduceFunctor(),
+                                x);
+      },
+      "Kokkos ERROR: attempting to call parallel_reduce\\(\\) "
+      "\\*\\*before\\*\\* Kokkos::initialize\\(\\) was called. "
+      "Concerns reduce_workcnt_ret_float with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::finalize();
+        float x;
+        Kokkos::parallel_reduce("reduce_workcnt_ret_float", 0, ReduceFunctor(),
+                                x);
+      },
+      "Kokkos ERROR: attempting to call parallel_reduce\\(\\) "
+      "\\*\\*after\\*\\* Kokkos::finalize\\(\\) was called. "
+      "Concerns reduce_workcnt_ret_float with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::View<float> x{"x"};
+        Kokkos::RangePolicy<> policy(0, 0);
+        Kokkos::finalize();
+        Kokkos::parallel_reduce("reduce_policy_ret_view", policy,
+                                ReduceFunctor(), x);
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_reduce\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns reduce_policy_ret_view with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::View<float> x{"x"};
+        Kokkos::finalize();
+        Kokkos::parallel_reduce("reduce_policy_ret_view", 0, ReduceFunctor(),
+                                x);
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_reduce\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns reduce_policy_ret_view with exec policy RangePolicy.");
+}
+
+struct ScanFunctor {
+  KOKKOS_FUNCTION void operator()(int, float&, bool) const {}
+};
+
+TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest, parallel_scan) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::RangePolicy<> policy(0, 0);
+        Kokkos::finalize();
+        Kokkos::parallel_scan("scan_policy_noret", policy, ScanFunctor());
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_scan\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns scan_policy_noret with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      { Kokkos::parallel_scan("scan_workcnt_noret", 0, ScanFunctor()); },
+      "Kokkos ERROR: attempting to call "
+      "parallel_scan\\(\\) \\*\\*before\\*\\* Kokkos::initialize\\(\\) was "
+      "called. Concerns scan_workcnt_noret with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::finalize();
+        Kokkos::parallel_scan("scan_workcnt_noret", 0, ScanFunctor());
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_scan\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns scan_workcnt_noret with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        float x;
+        Kokkos::initialize();
+        Kokkos::RangePolicy<> policy(0, 0);
+        Kokkos::finalize();
+        Kokkos::parallel_scan("scan_policy_ret_float", policy, ScanFunctor(),
+                              x);
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_scan\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns scan_policy_ret_float with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        float x;
+        Kokkos::parallel_scan("scan_workcnt_ret_float", 0, ScanFunctor(), x);
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_scan\\(\\) \\*\\*before\\*\\* Kokkos::initialize\\(\\) was "
+      "called. Concerns scan_workcnt_ret_float with exec policy RangePolicy.");
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::finalize();
+        float x;
+        Kokkos::parallel_scan("scan_workcnt_ret_float", 0, ScanFunctor(), x);
+      },
+      "Kokkos ERROR: attempting to call "
+      "parallel_scan\\(\\) \\*\\*after\\*\\* Kokkos::finalize\\(\\) was "
+      "called. Concerns scan_workcnt_ret_float with exec policy RangePolicy.");
+}
+
+template <class ExecutionSpace>
+void test_execution_space() {
+  EXPECT_DEATH({ ExecutionSpace exec; },
+               "execution space is being constructed before initialize")
+      << ExecutionSpace::name();
+
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        Kokkos::finalize();
+        ExecutionSpace exec;
+      },
+      "execution space is being constructed after finalize")
+      << ExecutionSpace::name();
+
+  EXPECT_DEATH(
+      {
+        Kokkos::initialize();
+        ExecutionSpace exec;
+        Kokkos::finalize();
+      },
+      "execution space is being destructed after finalize")
+      << ExecutionSpace::name();
+}
+
+TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
+       execution_space) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  test_execution_space<Kokkos::DefaultExecutionSpace>();
+  if (!std::is_same_v<Kokkos::DefaultExecutionSpace,
+                      Kokkos::DefaultHostExecutionSpace>) {
+    test_execution_space<Kokkos::DefaultHostExecutionSpace>();
+  }
+}
+
+Kokkos::DefaultExecutionSpace replace_static_execution_space() {
+  static std::optional<Kokkos::DefaultExecutionSpace> exec;
+  [[maybe_unused]] static bool once = [] {
+    exec = Kokkos::DefaultExecutionSpace();
+    Kokkos::push_finalize_hook([] { exec.reset(); });
+    return true;
+  }();
+  KOKKOS_ASSERT(exec.has_value());
+  return *exec;  // NOLINT(bugprone-unchecked-optional-access)
+}
+
+void compute_stuff(Kokkos::DefaultExecutionSpace exec) {
+  int const N = 10;
+  Kokkos::View<int*> v("v", N);
+  Kokkos::parallel_for(
+      Kokkos::RangePolicy(exec, 0, N), KOKKOS_LAMBDA(int i) { v(i) = i + 1; });
+  int sum;
+  Kokkos::parallel_reduce(
+      Kokkos::RangePolicy(exec, 0, N),
+      KOKKOS_LAMBDA(int i, int& partial_sum) { partial_sum += v(i); }, sum);
+  KOKKOS_ASSERT(sum == (N + 1) * N / 2);
+}
+
+TEST_F(ExecutionEnvironmentNonInitializedOrFinalized_DeathTest,
+       static_execution_space) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+
+  EXPECT_EXIT(
+      {
+        Kokkos::initialize();
+        {
+          auto exec = replace_static_execution_space();
+          compute_stuff(exec);
+        }
+        Kokkos::finalize();
+        std::exit(EXIT_SUCCESS);
+      },
+      ::testing::ExitedWithCode(EXIT_SUCCESS), "");
 }
 
 }  // namespace

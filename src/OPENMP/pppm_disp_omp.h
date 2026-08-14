@@ -34,8 +34,8 @@ class PPPMDispOMP : public PPPMDisp, public ThrOMP {
  protected:
   void allocate() override;
 
-  virtual void compute_gf();
-  virtual void compute_gf_6();
+  void compute_gf() override;
+  void compute_gf_6() override;
 
   void particle_map(double, double, double, double, int **, int, int, int, int, int, int, int,
                     int) override;

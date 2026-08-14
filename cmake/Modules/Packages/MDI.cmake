@@ -9,9 +9,9 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
   set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.26.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_MD5 "3124bb85259471e2a53a891f04bf697a" CACHE STRING "MD5 checksum for MDI tarball")
+  set(MDI_SHA256 "8cbd80ae9adf44394b693fe812b8e4e8ca506173b3ca1f31002adbe7eaf61362" CACHE STRING "SHA256 checksum for MDI tarball")
   mark_as_advanced(MDI_URL)
-  mark_as_advanced(MDI_MD5)
+  mark_as_advanced(MDI_SHA256)
   GetFallbackURL(MDI_URL MDI_FALLBACK)
   enable_language(C)
 
@@ -45,7 +45,7 @@ if(DOWNLOAD_MDI)
   include(ExternalProject)
   ExternalProject_Add(mdi_build
     URL     ${MDI_URL} ${MDI_FALLBACK}
-    URL_MD5 ${MDI_MD5}
+    URL_HASH SHA256=${MDI_SHA256}
     PREFIX ${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext
     CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/mdi_build_ext

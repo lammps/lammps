@@ -43,10 +43,12 @@ class ComputeTempCOMKokkos : public ComputeTempCOM {
 
   struct s_CTEMP {
     double t0, t1, t2, t3, t4, t5;
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_CTEMP() {
       t0 = t1 = t2 = t3 = t4 = t5 = 0.0;
     }
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_CTEMP& operator+=(const s_CTEMP &rhs) {
       t0 += rhs.t0;
@@ -72,16 +74,20 @@ class ComputeTempCOMKokkos : public ComputeTempCOM {
   void restore_bias_all() override;
 
   template<int RMASS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempCOMScalar<RMASS>, const int&, CTEMP&) const;
 
   template<int RMASS>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempCOMVector<RMASS>, const int&, CTEMP&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempCOMRemoveBias, const int &i) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeTempCOMRestoreBias, const int &i) const;
 

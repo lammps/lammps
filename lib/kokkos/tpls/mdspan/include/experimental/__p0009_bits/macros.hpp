@@ -21,6 +21,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <type_traits> // std::is_void
+#if defined(MDSPAN_IMPL_HAS_SYCL)
+#include <sycl/sycl.hpp> // sycl::ext::oneapi::experimental::printf
+#endif
 #if defined(MDSPAN_IMPL_HAS_CUDA) || defined(MDSPAN_IMPL_HAS_HIP) || defined(MDSPAN_IMPL_HAS_SYCL)
 #include "assert.h"
 #endif
@@ -112,7 +115,7 @@ namespace detail {
 #if defined(MDSPAN_IMPL_HAS_CUDA) || defined(MDSPAN_IMPL_HAS_HIP)
 MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* cond, const char* file, unsigned line)
 {
-  printf("%s:%u: precondition failure: `%s`\n", file, line, cond);
+  ::printf("%s:%u: precondition failure: `%s`\n", file, line, cond);
   assert(0);
 }
 #elif defined(MDSPAN_IMPL_HAS_SYCL)
@@ -703,3 +706,9 @@ struct fold_bools;
 
 // </editor-fold> end Pre-C++14 constexpr }}}1
 //==============================================================================
+
+#if MDSPAN_IMPL_USE_IF_CONSTEXPR_17
+#  define MDSPAN_IMPL_IF_CONSTEXPR_17 constexpr
+#else
+#  define MDSPAN_IMPL_IF_CONSTEXPR_17
+#endif

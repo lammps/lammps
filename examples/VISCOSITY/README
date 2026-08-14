@@ -1,9 +1,10 @@
 This directory has 6 scripts that compute the viscosity (eta) of fluid
 using 6 different methods. 5 of them are for a Lennard-Jones fluid
-and the last one is for SPC/E water model. See the discussion in
-Section 6.21 of the manual for an overview of the methods and pointers
-to doc pages for the commands which implement them.  Citations for the
-various methods can also be found in the manual.
+and the last one is for SPC/E water model. See the discussion in the
+Howto document on calculating viscosity of the LAMMPS manual for an
+overview of the methods and pointers to doc pages for the commands
+which implement them.  Citations for the various methods can also be
+found in the manual.
 
 These scripts are provided for illustration purposes.  No guarantee is
 made that the systems are fully equilibrated or that the runs are long
@@ -74,7 +75,7 @@ eta = 0.997 = running average output as last log file column
 (4) in.gk.2d
 
 eta is computed directly within the script, by performing a time
-integration of the formula discussed in Section 6.21 of the manual,
+integration of the formula discussed in the manual,
 analogous to the formula for thermal conductivity given on the compute
 heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file
@@ -84,7 +85,7 @@ eta = 1.07
 (5) in.einstein.2d
 
 eta is computed directly within the script, by performing a time
-integration of the formula discussed in Section 6.21 of the manual,
+integration of the formula discussed in the manual,
 analogous to the formula for thermal conductivity given on the compute
 heat/flux doc page - the resulting value prints at the end of the run
 and is in the log file

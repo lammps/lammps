@@ -1,7 +1,7 @@
 .. index:: bond_style mesocnt
 
 bond_style mesocnt command
-===========================
+==========================
 
 Syntax
 """"""

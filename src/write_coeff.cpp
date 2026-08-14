@@ -22,6 +22,7 @@
 #include "force.h"
 #include "improper.h"
 #include "pair.h"
+#include "safe_pointers.h"
 
 #include <cctype>
 #include <cstring>
@@ -50,7 +51,7 @@ void WriteCoeff::command(int narg, char **arg)
 
   if (comm->me == 0) {
     char str[BUF_SIZE], coeff[BUF_SIZE];
-    FILE *one = fopen(file, "wb+");
+    SafeFilePtr one = fopen(file, "wb+");
 
     if (one == nullptr)
       error->one(FLERR, "Cannot open coeff file {}: {}", file, utils::getsyserror());
@@ -82,7 +83,7 @@ void WriteCoeff::command(int narg, char **arg)
     }
     rewind(one);
 
-    FILE *two = fopen(arg[0], "w");
+    SafeFilePtr two = fopen(arg[0], "w");
     if (two == nullptr)
       error->one(FLERR, "Cannot open coeff file {}: {}", arg[0], utils::getsyserror());
 
@@ -163,8 +164,7 @@ void WriteCoeff::command(int narg, char **arg)
       }
       fputc('\n', two);
     }
-    fclose(one);
-    fclose(two);
+    one = nullptr;              // implicitly close file
     platform::unlink(file);
   }
   delete[] file;

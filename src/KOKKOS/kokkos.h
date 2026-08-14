@@ -29,10 +29,12 @@ class KokkosLMP : protected Pointers {
   int neighflag_qeq_set;
   int exchange_comm_legacy;
   int forward_comm_legacy;
+  int reverse_comm_legacy;
   int forward_pair_comm_legacy;
   int reverse_pair_comm_legacy;
   int forward_fix_comm_legacy;
-  int reverse_comm_legacy;
+  int reverse_fix_comm_legacy;
+  int forward_compute_comm_legacy;
   int sort_legacy;
   int atom_map_legacy;
   int exchange_comm_on_host;
@@ -40,10 +42,12 @@ class KokkosLMP : protected Pointers {
   int reverse_comm_on_host;
   int exchange_comm_changed;
   int forward_comm_changed;
+  int reverse_comm_changed;
   int forward_pair_comm_changed;
   int reverse_pair_comm_changed;
   int forward_fix_comm_changed;
-  int reverse_comm_changed;
+  int reverse_fix_comm_changed;
+  int forward_compute_comm_changed;
   int sort_changed;
   int atom_map_changed;
   int nthreads,ngpus;
@@ -62,10 +66,14 @@ class KokkosLMP : protected Pointers {
   int pair_team_size_set;
   int nbin_atoms_per_bin;
   int nbin_atoms_per_bin_set;
-  int nbor_block_size;
-  int nbor_block_size_set;
-  int bond_block_size;
-  int bond_block_size_set;
+  int nbor_chunk_size;
+  int nbor_chunk_size_set;
+  int bond_chunk_size;
+  int bond_chunk_size_set;
+  int autotuning;
+  int perf_nsamples;
+  int perf_mode;
+  double perf_rel_tol;
 
   static int is_finalized;
   static int init_ngpus;

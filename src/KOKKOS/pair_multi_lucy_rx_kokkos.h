@@ -28,6 +28,7 @@ PairStyle(multi/lucy/rx/kk/host,PairMultiLucyRXKokkos<LMPHostType>);
 #include "pair_kokkos.h"
 #include "kokkos_base.h"
 #include "kokkos_type.h"
+#include "fix_rx_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -56,6 +57,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
 
   void compute(int, int) override;
   void settings(int, char **) override;
+  void coeff(int, char **) override;
 
   template<int TABSTYLE>
   void compute_style(int, int);
@@ -70,31 +72,39 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   void unpack_reverse_comm(int, int *, double *) override;
   void computeLocalDensity();
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXPackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXUnpackForwardComm, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXgetMixingWeights, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXZero, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR,ONE_TYPE>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -154,6 +164,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   int update_table;
   void create_kokkos_tables();
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void getMixingWeights(int, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &) const;
 
@@ -166,6 +177,10 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   typename HAT::t_double_1d h_rho;
   typename AT::t_kkfloat_1d uCG, uCGnew;
   typename AT::t_kkfloat_2d dvector;
+
+  FixRxKokkos<DeviceType> * rx_fixKK;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind_old;
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;

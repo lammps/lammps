@@ -22,6 +22,9 @@ FixStyle(mol/swap,FixMolSwap);
 
 #include "fix.h"
 
+#include <unordered_map>
+#include <utility>
+
 namespace LAMMPS_NS {
 
 class FixMolSwap : public Fix {
@@ -36,6 +39,9 @@ class FixMolSwap : public Fix {
   double compute_vector(int) override;
   void write_restart(FILE *) override;
   void restart(char *) override;
+  int modify_param(int, char **) override;
+
+  int image(int *&, double **&) override;
 
  private:
   int nevery, ncycles, seed;
@@ -60,6 +66,14 @@ class FixMolSwap : public Fix {
 
   class RanPark *random;
   class Compute *c_pe;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  // maps atom IDs to number of steps they have been highlighted
+  std::unordered_map<tagint, std::pair<int,int>> vizatoms;
+  int vizsteps;    // number of steps to highlight atoms in reactions
 
   int attempt_swap();
   double energy_full();

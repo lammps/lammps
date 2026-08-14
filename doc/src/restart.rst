@@ -88,6 +88,30 @@ timestep of a run unless it is a multiple of N.  A restart file is
 written on the last timestep of a minimization if N > 0 and the
 minimization converges.
 
+.. admonition:: Enabling or disabling restarts may change the trajectory
+   :class: Hint
+
+   Writing a restart file forces a neighbor list rebuild on that
+   timestep, so that all atoms are correctly assigned to their owning
+   subdomains before the file is written.  This rebuild happens
+   regardless of the :doc:`neigh_modify <neigh_modify>` *every*,
+   *delay*, and *check* settings.  As a result, enabling restart output
+   can change the number of neighbor list builds reported at the end
+   of a run.  And because changing when neighbor lists are rebuilt
+   changes the order in which pairwise interactions are summed, it can
+   also lead to small differences in the trajectory (due to the
+   limitations of floating-point math) compared to an otherwise
+   identical run without restart output.
+
+   To obtain the *same* number of neighbor list builds (and thus an
+   identical trajectory) whether or not restart output is enabled, use
+   :doc:`neigh_modify <neigh_modify>` with *check* set to *no* and
+   *every* set to a value *<num>* that evenly divides the restart
+   frequency N (with the default *delay* of 0).  The neighbor lists are
+   then rebuilt on a fixed schedule that already includes every
+   restart-write step, so the forced rebuild coincides with a rebuild
+   that would have happened anyway and no extra builds are added.
+
 Instead of a numeric value, N can be specified as an :doc:`equal-style
 variable <variable>`, which should be specified as v_name, where name is
 the variable name.  In this case, the variable is evaluated at the

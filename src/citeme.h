@@ -15,6 +15,8 @@
 #define LMP_CITEME_H
 
 #include "pointers.h"
+#include "safe_pointers.h"
+
 #include <set>
 
 namespace LAMMPS_NS {
@@ -53,7 +55,8 @@ that implements a published method or algorithm.
 
 \endverbatim
 
-   * \param reference  String containing the citation in BibTeX format with DOI header */
+ *
+ * \param reference  String containing the citation in BibTeX format with DOI header */
   void add(const std::string &reference);
 
   /** Flush accumulated citation buffers to screen and log file
@@ -75,7 +78,7 @@ or is reset by the :doc:`clear <clear>` command and at the end of a
   };
 
  private:
-  FILE *fp;                 /**< File pointer for optional BibTeX citation file or NULL */
+  SafeFilePtr fp;           /**< Safe file pointer class for optional BibTeX citation file */
   std::string citefile;     /**< Name of the explicit citation file */
   int screen_flag;          /**< Output mode for screen (VERBOSE or TERSE) */
   int logfile_flag;         /**< Output mode for log file (VERBOSE or TERSE) */

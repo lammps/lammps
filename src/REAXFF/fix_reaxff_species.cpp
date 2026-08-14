@@ -294,12 +294,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, iarg + 1, "Incompatible fix reaxff/species position frequency {}",
                    posfreq);
 
+      delete[] filepos;
       filepos = new char[255];
       strcpy(filepos, arg[iarg + 2]);
       if (strchr(filepos, '*')) {
         multipos = 1;
       } else {
         if (comm->me == 0) {
+          if (pos) fclose(pos);
           pos = fopen(filepos, "w");
           if (pos == nullptr)
             error->one(FLERR, iarg + 2, "Cannot open fix reaxff/species position file: {}",
@@ -506,7 +508,7 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
 
   if (comm->me == 0 && ntimestep >= 0) WriteFormulas(Nmole, Nspec);
 
-  if (posflag && ((ntimestep) % posfreq == 0)) {
+  if (posflag && (ntimestep % posfreq == 0)) {
     WritePos(Nmole, Nspec);
     if (comm->me == 0) fflush(pos);
   }

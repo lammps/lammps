@@ -40,6 +40,7 @@ class PairYLZ : public Pair {
   void read_restart_settings(FILE *) override;
   void write_data(FILE *) override;
   void write_data_all(FILE *) override;
+  double single(int, int, int, int, double, double, double, double &) override;
 
  protected:
   double cut_global;
@@ -47,7 +48,7 @@ class PairYLZ : public Pair {
 
   class AtomVecEllipsoid *avec;
 
-  void allocate();
+  virtual void allocate();
   double ylz_analytic(const int i, const int j, double a1[3][3], double a2[3][3], double *r12,
                       const double rsq, double *fforce, double *ttor, double *rtor);
 };

@@ -82,6 +82,7 @@ void MEAMKokkos<DeviceType>::meam_force(
 
 template <class DeviceType>
 template <int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIGHFLAG>,
                                                                const int &ii, EV_FLOAT &ev) const
 {

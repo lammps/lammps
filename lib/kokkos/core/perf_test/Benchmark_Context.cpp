@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include "Benchmark_Context.hpp"
 
@@ -45,7 +32,7 @@ void add_kokkos_configuration(bool verbose) {
   // Iterate over lines returned from kokkos and extract key:value pairs
   std::stringstream ss{msg.str()};
   for (std::string line; std::getline(ss, line, '\n');) {
-    auto found = line.find_first_of(':');
+    auto found = line.find_last_of(':');
     if (found != std::string::npos) {
       auto val = remove_unwanted_characters(line.substr(found + 1));
       // Ignore line without value, for example a category name

@@ -113,6 +113,7 @@ void FixExternalKokkos<DeviceType>::post_force(int vflag)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixExternalKokkos<DeviceType>::operator()(TagFixExternal, const int &i) const {
   if (mask[i] & groupbit) {

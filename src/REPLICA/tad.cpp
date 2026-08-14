@@ -44,7 +44,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TAD::TAD(LAMMPS *lmp) : Command(lmp)
+TAD::TAD(LAMMPS *lmp) :
+    Command(lmp), min_style(nullptr), min_style_neb(nullptr), neb(nullptr), fix_neb(nullptr),
+    compute_event(nullptr), fix_event(nullptr), fix_revert(nullptr), fix_event_list(nullptr),
+    neb_logfilename(nullptr), uscreen_neb(nullptr), ulogfile_neb(nullptr), uscreen_lammps(nullptr),
+    ulogfile_lammps(nullptr), finish(nullptr)
 {
   deltconf = deltstop = deltfirst = 0.0;
 }
@@ -144,9 +148,8 @@ void TAD::command(int narg, char **arg)
   // assign FixEventTAD to event-detection compute
   // necessary so it will know atom coords at last event
 
-  int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all(FLERR,"Could not find compute ID for TAD");
-  compute_event = modify->compute[icompute];
+  compute_event = modify->get_compute_by_id(id_compute);
+  if (!compute_event) error->all(FLERR,"Could not find compute ID for TAD");
   compute_event->reset_extra_compute_fix("tad_event");
 
   // reset reneighboring criteria since will perform minimizations

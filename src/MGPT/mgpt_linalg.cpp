@@ -22,37 +22,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-#define restrict __restrict__
-
-#ifdef IBM_BG_SIMD
-#include <builtins.h>
-
-/* Double precision 440d (double hummer) matrix multiplication */
-#define const
-#include "mgpt_mmul_bg_552.c.h"
-#include "mgpt_mmul_bg_722.c.h"
-#include "mgpt_bgmul_7.c.h"
-
-/* Double precision 440d (double hummer) product trace */
-#define real double
-#include "mgpt_ttr_5123.c.h"
-#include "mgpt_ttr_7123.c.h"
-#undef real
-#undef const
-#endif
-
-
-#ifdef IBM_BGQ_SIMD
-/* Double precision QPX matrix multiplication */
-#include "mgpt_mmul_bgq_n5_lda8_2x8.c.h"
-#include "mgpt_mmul_bgq_n7_lda8_4x8.c.h"
-
-/* Double precision QPX product trace */
-#include "mgpt_ttr_5141.c.h"
-#include "mgpt_ttr_7141.c.h"
-#endif
-
-
 #ifdef x86_SIMD
 /* Double precision SSE2 matrix multiplication */
 #include "mgpt_mmul3d_526.c.h"
@@ -76,9 +45,6 @@
 
 #endif
 
-#if defined(IBM_BG_SIMD) || defined(IBM_BGQ_SIMD)
-#define const
-#endif
 static void transprod_generic(const double * restrict A,
                               const double * restrict B,
                               double * restrict C) {
@@ -130,12 +96,6 @@ static void transtrace3_error(const double * restrict /*A*/,
 }
 
 
-#if defined(IBM_BG_SIMD) || defined(IBM_BGQ_SIMD)
-#undef const
-#endif
-
-#undef restrict
-
 int mgpt_linalg::matrix_size;
 
 mgpt_linalg::mgpt_linalg() {
@@ -155,28 +115,7 @@ mgpt_linalg::mgpt_linalg(int n,int single_precision) {
   single = 0;
   msg = "@@@ Choosing generic (unoptimized) linear algebra routines.\n";
 
-#ifdef IBM_BG_SIMD
-  msg = "@@@ Choosing BG/L optimized linear algebra routines.\n";
-  if (n == 5) {
-    tr_mul = mmul_bg_5_8_5x2v2;
-    tr_trace = ttr_bg_5_8_3_v2r3;
-  } else if (n == 7) {
-    //tr_mul = mmul_bg_7_8_2x2v2;
-    tr_mul = (trmul_fun) bgmul_7;
-    tr_trace = ttr_bg_7_8_3_v2r3;
-  }
-#elif defined(IBM_BGQ_SIMD)
-  msg = "@@@ Choosing BG/Q optimized linear algebra routines.\n";
-  if (1) {
-    if (n == 5) {
-      tr_mul = mmul_bgq_n5_lda8_2x8;
-      tr_trace = ttr_bg_5_8_3_v4r1;
-    } else if (n == 7) {
-      tr_mul = mmul_bgq_n7_lda8_4x8;
-      tr_trace = ttr_bg_7_8_3_v4r1;
-    }
-  }
-#elif defined(x86_SIMD)
+#if defined(x86_SIMD)
   if (single_precision) {
     msg = "@@@ Choosing Intel/AMD single precision linear algebra routines.\n";
     if (n == 5) {

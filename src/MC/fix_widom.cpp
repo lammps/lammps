@@ -57,8 +57,9 @@ enum { EXCHATOM, EXCHMOL };    // exchmode
 /* ---------------------------------------------------------------------- */
 
 FixWidom::FixWidom(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false), molcoords(nullptr),
-    molq(nullptr), molimage(nullptr), random_equal(nullptr), c_pe(nullptr)
+    Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false), sublo(nullptr),
+    subhi(nullptr), cutsq(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
+    pair(nullptr), random_equal(nullptr), model_atom(nullptr), onemol(nullptr), c_pe(nullptr)
 {
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix widom", error);
 
@@ -1055,8 +1056,10 @@ double FixWidom::energy_full()
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build(1);
-  int eflag = 1;
-  int vflag = 0;
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   // clear forces so they don't accumulate over multiple
   // calls within fix widom timestep

@@ -22,6 +22,8 @@ FixStyle(bond/break,FixBondBreak);
 
 #include "fix.h"
 
+#include <unordered_map>
+
 namespace LAMMPS_NS {
 
 class FixBondBreak : public Fix {
@@ -40,7 +42,10 @@ class FixBondBreak : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   double compute_vector(int) override;
+  int modify_param(int, char **) override;
   double memory_usage() override;
+
+  int image(int *&, double **&) override;
 
  private:
   int me, nprocs;
@@ -65,6 +70,14 @@ class FixBondBreak : public Fix {
   int commflag;
   int nbroken;
   int nangles, ndihedrals, nimpropers;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  // maps atom IDs to number of steps they have been highlighted
+  std::unordered_map<tagint, int> vizatoms;
+  int vizsteps;    // number of steps to highlight atoms in reactions
 
   void check_ghosts();
   void update_topology();

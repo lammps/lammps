@@ -85,7 +85,7 @@ void PairDPDTstatKokkos<DeviceType>::init_style()
   typedef Kokkos::Experimental::UniqueToken<
     DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
   unique_token_type unique_token;
-  rand_pool.init(seed + comm->me,unique_token.size());
+  rand_pool = decltype(rand_pool)(seed + comm->me,unique_token.size());
 #endif
 
   neighflag = lmp->kokkos->neighflag;
@@ -220,6 +220,7 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
 
 template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -228,6 +229,7 @@ void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFL
 
 template<class DeviceType>
 template<int NEIGHFLAG, int VFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFLAG>, const int &ii, EV_FLOAT &ev) const {
 
@@ -306,6 +308,7 @@ void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFL
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairDPDTstatKokkos<DeviceType>::v_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -368,6 +371,7 @@ void PairDPDTstatKokkos<DeviceType>::allocate()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairDPDTstatKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;

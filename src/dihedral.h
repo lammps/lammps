@@ -37,8 +37,8 @@ class Dihedral : protected Pointers {
                              // CENTROID_AVAIL = different and implemented
                              // CENTROID_NOTAVAIL = different, not yet implemented
 
-  int reinitflag;            // 0 if not compatible with fix adapt
-                             // extract() method may still need to be added
+  int reinitflag;    // 0 if not compatible with fix adapt
+                     // extract() method may still need to be added
 
   // KOKKOS host/device flag and data masks
 
@@ -72,7 +72,7 @@ class Dihedral : protected Pointers {
   int suffix_flag;    // suffix compatibility flag
 
   int evflag;
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
   int maxeatom, maxvatom, maxcvatom;
 
@@ -81,8 +81,8 @@ class Dihedral : protected Pointers {
     if (eflag || vflag)
       ev_setup(eflag, vflag, alloc);
     else
-      evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom =
-          cvflag_atom = 0;
+      evflag = eflag_either = eflag_global = eflag_atom = eflag_only = vflag_either = vflag_global =
+          vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, int, double, double *, double *, double *, double, double,

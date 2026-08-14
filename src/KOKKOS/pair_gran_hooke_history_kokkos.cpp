@@ -261,6 +261,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int SHEARUPDATE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,SHEARUPDATE>, const int ii, EV_FLOAT &ev) const {
 
@@ -463,6 +464,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int VFLAG, int SHEARUPDATE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryCompute<NEIGHFLAG,NEWTON_PAIR,VFLAG,SHEARUPDATE>, const int ii) const {
   EV_FLOAT ev;
@@ -471,6 +473,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairGranHookeHistoryKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j,
                                                           KK_FLOAT fx, KK_FLOAT fy, KK_FLOAT fz,

@@ -2,7 +2,7 @@
 
 Thank you for considering to contribute to the LAMMPS software project.
 
-The following is a set of guidelines as well as explanations of policies and work flows for contributing to the LAMMPS molecular dynamics software project. These guidelines focus on submitting issues or pull requests on the LAMMPS GitHub project.
+The following is a set of guidelines as well as explanations of policies and workflows for contributing to the LAMMPS molecular dynamics software project. These guidelines focus on submitting issues or pull requests on the LAMMPS GitHub project.
 
 Thus please also have a look at:
 * [The guide for submitting new features in the LAMMPS manual](https://docs.lammps.org/Modify_contribute.html)
@@ -19,7 +19,7 @@ Thus please also have a look at:
 * [Suggesting Enhancements](#suggesting-enhancements)
 * [Contributing Code](#contributing-code)
 
-[GitHub Work flows](#github-workflows)
+[GitHub Workflows](#github-workflows)
 * [Issues](#issues)
 * [Pull Requests](#pull-requests)
 

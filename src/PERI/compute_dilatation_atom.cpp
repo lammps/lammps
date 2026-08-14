@@ -35,7 +35,7 @@ ComputeDilatationAtom::
 ComputeDilatationAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute Dilatation/atom command");
+  if (narg != 3) error->all(FLERR,"Illegal compute dilatation/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;

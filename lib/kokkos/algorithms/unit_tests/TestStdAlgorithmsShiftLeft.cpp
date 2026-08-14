@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -73,32 +60,11 @@ void fill_view(ViewType dest_view, const std::string& name) {
   Kokkos::parallel_for("copy", dest_view.extent(0), F1);
 }
 
-template <class ForwardIterator>
-ForwardIterator my_std_shift_left(
-    ForwardIterator first, ForwardIterator last,
-    typename std::iterator_traits<ForwardIterator>::difference_type n) {
-  // copied from
-  // https://github.com/llvm/llvm-project/blob/main/libcxx/include/__algorithm/shift_left.h
-
-  if (n == 0) {
-    return last;
-  }
-
-  ForwardIterator m = first;
-  for (; n > 0; --n) {
-    if (m == last) {
-      return first;
-    }
-    ++m;
-  }
-  return std::move(m, last, first);
-}
-
 template <class ViewType, class ResultIt, class ViewHostType>
 void verify_data(ResultIt result_it, ViewType view, ViewHostType data_view_host,
                  std::size_t shift_value) {
-  auto std_rit = my_std_shift_left(KE::begin(data_view_host),
-                                   KE::end(data_view_host), shift_value);
+  auto std_rit = std::shift_left(KE::begin(data_view_host),
+                                 KE::end(data_view_host), shift_value);
 
   // make sure results match
   const auto my_diff  = result_it - KE::begin(view);

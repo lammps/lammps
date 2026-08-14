@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -22,50 +9,6 @@ namespace stdalgos {
 namespace Search_n {
 
 namespace KE = Kokkos::Experimental;
-
-// search_n is only available from c++20, so I have to put it here
-template <class ForwardIt, class Size, class T, class BinaryPredicate>
-ForwardIt my_std_search_n(ForwardIt first, ForwardIt last, Size count,
-                          const T& value, BinaryPredicate p) {
-  if (count <= 0) {
-    return first;
-  }
-  for (; first != last; ++first) {
-    if (!p(*first, value)) {
-      continue;
-    }
-
-    ForwardIt candidate = first;
-    Size cur_count      = 0;
-
-    while (true) {
-      ++cur_count;
-      if (cur_count >= count) {
-        // success
-        return candidate;
-      }
-      ++first;
-      if (first == last) {
-        // exhausted the list
-        return last;
-      }
-      if (!p(*first, value)) {
-        // too few in a row
-        break;
-      }
-    }
-  }
-
-  return last;
-}
-
-template <class ForwardIt, class Size, class T>
-ForwardIt my_std_search_n(ForwardIt first, ForwardIt last, Size count,
-                          const T& value) {
-  using iter_value_type = typename ForwardIt::value_type;
-  using p_type          = IsEqualFunctor<iter_value_type, T>;
-  return my_std_search_n(first, last, count, value, p_type());
-}
 
 std::string value_type_to_string(int) { return "int"; }
 std::string value_type_to_string(double) { return "double"; }
@@ -195,8 +138,8 @@ void run_single_scenario(const InfoType& scenario_info, std::size_t count,
 
   // run std
   auto view_h = create_host_space_copy(view);
-  auto stdrit = my_std_search_n(KE::cbegin(view_h), KE::cend(view_h), count,
-                                value, args...);
+  auto stdrit = std::search_n(KE::cbegin(view_h), KE::cend(view_h), count,
+                              value, args...);
   const auto stddiff = stdrit - KE::cbegin(view_h);
 
   {

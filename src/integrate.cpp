@@ -16,6 +16,7 @@
 
 #include "citeme.h"
 #include "compute.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "modify.h"
@@ -30,6 +31,7 @@ using namespace LAMMPS_NS;
 Integrate::Integrate(LAMMPS *lmp, int /*narg*/, char ** /*arg*/) : Pointers(lmp)
 {
   external_force_clear = 0;
+  rk_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -45,6 +47,10 @@ void Integrate::init()
   else pair_compute_flag = 0;
   if (force->kspace && force->kspace->compute_flag) kspace_compute_flag = 1;
   else kspace_compute_flag = 0;
+  if (kspace_compute_flag && force->kspace->rk_flag && !rk_flag)
+    error->all(FLERR,"The Integrate type must support an rk decomposition (e.g., run_style verlet/split/rk) that is compatible with kspace style {}", force->kspace_style);
+  if (kspace_compute_flag && !force->kspace->rk_flag && rk_flag)
+    error->all(FLERR,"This Integrate type requires a kspace style that supports an rk decomposition (such as kspace_style pppm/rk).");
 
   // should add checks:
   // for any acceleration package that has its own integrate/minimize

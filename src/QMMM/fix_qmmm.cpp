@@ -211,7 +211,7 @@ tagint taginthash_insert(taginthash_t *tptr, tagint key, tagint data) {
 
   /* check to see if the entry exists */
   if ((tmp=taginthash_lookup(tptr, key)) != HASH_FAIL)
-    return(tmp);
+    return tmp;
 
   /* expand the table if needed */
   while (tptr->entries>=HASH_LIMIT*tptr->size)

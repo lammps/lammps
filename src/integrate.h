@@ -41,6 +41,7 @@ class Integrate : protected Pointers {
 
   int pair_compute_flag;      // 0 if pair->compute is skipped
   int kspace_compute_flag;    // 0 if kspace->compute is skipped
+  int rk_flag;                // 1 if an rk decomposition is supported
 
   void ev_setup();
   void ev_set(bigint);

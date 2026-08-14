@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_COMBINED_REDUCER_HPP
 #define KOKKOS_COMBINED_REDUCER_HPP
@@ -43,16 +30,6 @@ struct CombinedReducerValueItemImpl {
 
  public:
   KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl() = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl(
-      CombinedReducerValueItemImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl(
-      CombinedReducerValueItemImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl& operator=(
-      CombinedReducerValueItemImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerValueItemImpl& operator=(
-      CombinedReducerValueItemImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  ~CombinedReducerValueItemImpl() = default;
   explicit KOKKOS_FUNCTION CombinedReducerValueItemImpl(value_type arg_value)
       : m_value(std::move(arg_value)) {}
 
@@ -64,28 +41,25 @@ struct CombinedReducerValueItemImpl {
 
 //==============================================================================
 
+// Dummy struct used to align CombinedReducerValueImpl to at least alignof(int).
+// CombinedReducerValueImpl has to be aligned to at least alignof(int) and its
+// sizeof must be a multiple of sizeof(int), as we might access it through an
+// int* in the CUDA and HIP reduction kernels.
+struct alignas(int) AlignmentHelper {};
+
 template <class IdxSeq, class... ValueTypes>
 struct CombinedReducerValueImpl;
 
 template <size_t... Idxs, class... ValueTypes>
 struct CombinedReducerValueImpl<std::integer_sequence<size_t, Idxs...>,
-                                ValueTypes...>
-    : CombinedReducerValueItemImpl<Idxs, ValueTypes>... {
+                                ValueTypes...> :
+#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
+    AlignmentHelper,
+#endif
+    CombinedReducerValueItemImpl<Idxs, ValueTypes>... {
  public:
   KOKKOS_DEFAULTED_FUNCTION
   constexpr CombinedReducerValueImpl() = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReducerValueImpl(CombinedReducerValueImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReducerValueImpl(CombinedReducerValueImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReducerValueImpl& operator=(
-      CombinedReducerValueImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReducerValueImpl& operator=(CombinedReducerValueImpl&&) =
-      default;
-  KOKKOS_DEFAULTED_FUNCTION
-  ~CombinedReducerValueImpl() = default;
 
   KOKKOS_FUNCTION
   explicit CombinedReducerValueImpl(ValueTypes... arg_values)
@@ -178,16 +152,6 @@ struct CombinedReducerImpl<std::integer_sequence<size_t, Idxs...>, Space,
 
  public:
   KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl() = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl(
-      CombinedReducerImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl(
-      CombinedReducerImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl& operator=(
-      CombinedReducerImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION constexpr CombinedReducerImpl& operator=(
-      CombinedReducerImpl&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION ~CombinedReducerImpl() = default;
 
   template <class... ReducersDeduced>
   KOKKOS_FUNCTION constexpr explicit CombinedReducerImpl(
@@ -313,20 +277,6 @@ struct CombinedReductionFunctorWrapperImpl<
 
   KOKKOS_DEFAULTED_FUNCTION
   constexpr CombinedReductionFunctorWrapperImpl() noexcept = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReductionFunctorWrapperImpl(
-      CombinedReductionFunctorWrapperImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReductionFunctorWrapperImpl(
-      CombinedReductionFunctorWrapperImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReductionFunctorWrapperImpl& operator=(
-      CombinedReductionFunctorWrapperImpl const&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  constexpr CombinedReductionFunctorWrapperImpl& operator=(
-      CombinedReductionFunctorWrapperImpl&&) = default;
-  KOKKOS_DEFAULTED_FUNCTION
-  ~CombinedReductionFunctorWrapperImpl() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr explicit CombinedReductionFunctorWrapperImpl(Functor arg_functor)
@@ -363,13 +313,14 @@ struct CombinedReductionFunctorWrapperImpl<
   // TODO: forward final() function to user functor hook, or just ignore it?
 
  private:
+  // NOLINTBEGIN(cppcoreguidelines-rvalue-reference-param-not-moved)
   // variadic forwarding for MDRangePolicy
   // see comment above for why this has to be so gross
   // recursive case
   template <class... IdxOrMemberTypes, class IdxOrMemberType1,
             class... IdxOrMemberTypesThenValueType>
   KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<
-      !std::is_same_v<remove_cvref_t<IdxOrMemberType1>, value_type>>
+      !std::is_same_v<std::remove_cvref_t<IdxOrMemberType1>, value_type>>
   _call_op_impl(IdxOrMemberTypes&&... idxs, IdxOrMemberType1&& idx,
                 IdxOrMemberTypesThenValueType&&... args) const {
     this->template _call_op_impl<IdxOrMemberTypes&&..., IdxOrMemberType1&&>(
@@ -384,6 +335,7 @@ struct CombinedReductionFunctorWrapperImpl<
     m_functor((IdxOrMemberTypes&&)idxs...,
               out.template get<Idxs, typename Reducers::value_type>()...);
   }
+  // NOLINTEND(cppcoreguidelines-rvalue-reference-param-not-moved)
 };
 
 template <class Functor, class Space, class... Reducers>

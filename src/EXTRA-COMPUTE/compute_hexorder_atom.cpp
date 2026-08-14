@@ -47,8 +47,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  distsq(nullptr), nearest(nullptr), qnarray(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), distsq(nullptr), nearest(nullptr), qnarray(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute hexorder/atom command");
 
@@ -237,7 +236,7 @@ void ComputeHexOrderAtom::compute_peratom()
 
 // calculate order parameter using std::complex::pow function
 
-inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
+void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
   double rinv = 1.0/sqrt(delx*delx+dely*dely);
   double x = delx*rinv;
   double y = dely*rinv;
@@ -250,7 +249,7 @@ inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, doubl
 // calculate order parameter using trig functions
 // this is usually slower, but can be used if <complex> not available
 
-inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
+void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
   double ntheta;
   if (fabs(delx) <= MY_EPSILON) {
     if (dely > 0.0) ntheta = ndegree * MY_PI / 2.0;

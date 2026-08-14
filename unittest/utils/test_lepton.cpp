@@ -25,6 +25,7 @@
 #include <string>
 
 using LAMMPS_NS::utils::split_words;
+using ::testing::ContainsRegex;
 using ::testing::StrEq;
 
 bool verbose = false;
@@ -76,7 +77,8 @@ TEST_F(LeptonUtilsTest, substitute)
     try {
         LeptonUtils::substitute("v_none", lmp);
     } catch (std::exception &e) {
-        ASSERT_THAT(e.what(), StrEq("Variable none in expression v_none does not exist"));
+        ASSERT_THAT(e.what(),
+                    ContainsRegex(".*Variable none in expression v_none does not exist.*"));
         caught = true;
     }
     ASSERT_TRUE(caught);
@@ -128,7 +130,7 @@ TEST(LeptonCustomFunction, zbl)
  */
 
 class ExampleFunction : public Lepton::CustomFunction {
-    int getNumArguments() const override { return 2; }
+    [[nodiscard]] int getNumArguments() const override { return 2; }
     double evaluate(const double *arguments) const override
     {
         return 2.0 * arguments[0] * arguments[1];
@@ -144,7 +146,7 @@ class ExampleFunction : public Lepton::CustomFunction {
         if (derivOrder[1] == 1 && derivOrder[0] == 0) return 2.0 * arguments[0];
         return 0.0;
     }
-    Lepton::CustomFunction *clone() const override { return new ExampleFunction(); }
+    [[nodiscard]] Lepton::CustomFunction *clone() const override { return new ExampleFunction(); }
 };
 
 /**

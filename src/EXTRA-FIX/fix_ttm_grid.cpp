@@ -27,6 +27,7 @@
 #include "memory.h"
 #include "neighbor.h"
 #include "random_mars.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 
@@ -47,7 +48,8 @@ static constexpr int OFFSET = 16384;
 /* ---------------------------------------------------------------------- */
 
 FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
-  FixTTM(lmp, narg, arg)
+    FixTTM(lmp, narg, arg), fpout(nullptr), grid(nullptr), grid_previous(nullptr),
+    T_electron_previous(nullptr), grid_buf1(nullptr), grid_buf2(nullptr), T_electron_read(nullptr)
 {
   pergrid_flag = 1;
   pergrid_freq = 1;
@@ -64,7 +66,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTMGrid::~FixTTMGrid()
 {
-  FixTTMGrid::deallocate_grid();
+  if (!deallocate_flag) FixTTMGrid::deallocate_grid();
   deallocate_flag = 1;
 }
 
@@ -275,7 +277,7 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
 
   // proc 0 opens file
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     fp = utils::open_potential(filename, lmp, nullptr);
     if (!fp) error->one(FLERR, "Cannot open grid file: {}: {}", filename, utils::getsyserror());
@@ -285,10 +287,6 @@ void FixTTMGrid::read_electron_temperatures(const std::string &filename)
   // Grid3d::read_file() calls back to unpack_read_grid() with chunks of lines
 
   grid->read_file(Grid3d::FIX,this,fp,CHUNK,MAXLINE);
-
-  // close file
-
-  if (comm->me == 0) fclose(fp);
 
   // check completeness of input data
 

@@ -76,9 +76,50 @@ FixRxKokkos<DeviceType>::FixRxKokkos(LAMMPS *lmp, int narg, char **arg) :
 }
 
 template <typename DeviceType>
+FixRxKokkos<DeviceType>*
+FixRxKokkos<DeviceType>::get_rx_fixKK_from_fix_unsafe(Fix * fix) {
+  return dynamic_cast<FixRxKokkos<DeviceType>*>(fix);
+}
+
+template <typename DeviceType>
+FixRxKokkos<DeviceType>* FixRxKokkos<DeviceType>::get_rx_fixKK_from_fix(LAMMPS *lmp,
+                                                                        Fix * fix) {
+  auto * rx_fix = get_rx_fixKK_from_fix_unsafe(fix);
+
+  if (!rx_fix) {
+    lmp->error->all(FLERR, "No fix/rx/kk instance available.");
+  }
+
+  return rx_fix;
+}
+
+template <typename DeviceType>
+FixRxKokkos<DeviceType>*
+FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix_unsafe(FixRX * rx_fix) {
+  return get_rx_fixKK_from_fix_unsafe(rx_fix);
+}
+
+template <typename DeviceType>
+FixRxKokkos<DeviceType>* FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(LAMMPS *lmp,
+                                                                           FixRX * rx_fix) {
+  return get_rx_fixKK_from_fix(lmp, rx_fix);
+}
+
+template <typename DeviceType>
+FixRxKokkos<DeviceType>* FixRxKokkos<DeviceType>::get_rx_fixKK(LAMMPS * lmp) {
+  return get_rx_fixKK_from_fix(lmp, get_rx_fix_base(lmp));
+}
+
+template <typename DeviceType>
 FixRxKokkos<DeviceType>::~FixRxKokkos()
 {
   if (copymode) return;
+
+  memoryKK->destroy_kokkos(k_species_ind_to_atom_prop_ind,
+                           species_ind_to_atom_prop_ind);
+
+  memoryKK->destroy_kokkos(k_species_ind_to_atom_prop_ind_old,
+                           species_ind_to_atom_prop_ind_old);
 
   if (localTempFlag)
     memoryKK->destroy_kokkos(k_dpdThetaLocal, dpdThetaLocal);
@@ -89,10 +130,42 @@ FixRxKokkos<DeviceType>::~FixRxKokkos()
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
+const DAT::tdual_int_1d & FixRxKokkos<DeviceType>::get_k_species_ind_to_atom_prop_ind() const {
+  return k_species_ind_to_atom_prop_ind;
+}
+
+template <typename DeviceType>
+const DAT::tdual_int_1d & FixRxKokkos<DeviceType>::get_k_species_ind_to_atom_prop_ind_old() const {
+  return k_species_ind_to_atom_prop_ind_old;
+}
+
+template <typename DeviceType>
+void FixRxKokkos<DeviceType>::allocate_species_ind_to_atom_prop_ind_array() {
+  k_species_ind_to_atom_prop_ind.modify_host();
+  k_species_ind_to_atom_prop_ind_old.modify_host();
+
+  memoryKK->create_kokkos(k_species_ind_to_atom_prop_ind,
+                          species_ind_to_atom_prop_ind,
+                          nspecies, "fix:species_ind_to_atom_prop_ind");
+
+  memoryKK->create_kokkos(k_species_ind_to_atom_prop_ind_old,
+                          species_ind_to_atom_prop_ind_old,
+                          nspecies, "fix:species_ind_to_atom_prop_ind_old");
+}
+
+/* ---------------------------------------------------------------------- */
+
+template <typename DeviceType>
 void FixRxKokkos<DeviceType>::post_constructor()
 {
   // Run the parents and then reset one value.
   FixRX::post_constructor();
+
+  k_species_ind_to_atom_prop_ind.modify_host();
+  k_species_ind_to_atom_prop_ind.template sync<DeviceType>();
+
+  k_species_ind_to_atom_prop_ind_old.modify_host();
+  k_species_ind_to_atom_prop_ind_old.template sync<DeviceType>();
 
   // Need a copy of this
   this->my_restartFlag = fix_species->restart_reset;
@@ -190,6 +263,7 @@ void FixRxKokkos<DeviceType>::rk4(const double t_stop, double *y, double *rwork,
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData) const
 {
@@ -250,6 +324,7 @@ void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorTy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, VectorType& y, VectorType& y_out, VectorType& rwk, UserDataType& userData) const
 {
@@ -354,6 +429,7 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const double /*t_stop*/,
                                          const double hmin, const double hmax,
@@ -449,6 +525,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, VectorType& y, VectorType& rwork, UserDataType& userData, CounterType& counter) const
 {
@@ -991,6 +1068,7 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
@@ -1005,6 +1083,7 @@ int FixRxKokkos<DeviceType>::k_rhs(double t, const VectorType& y, VectorType& dy
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
@@ -1042,6 +1121,7 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, Vect
 
 template <typename DeviceType>
   template <typename VectorType, typename UserDataType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, VectorType& dydt, UserDataType& userData) const
 {
@@ -1129,6 +1209,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
 
 /*template <typename DeviceType>
   template <typename SolverType>
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(SolverType, const int &i) const
 {
@@ -1259,12 +1340,15 @@ void FixRxKokkos<DeviceType>::setup_pre_force(int vflag)
 template <typename DeviceType>
 void FixRxKokkos<DeviceType>::pre_force(int vflag)
 {
+  if (skipChemistry) return;
+
   this->solve_reactions( vflag, true );
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroCounterViews, const int& i) const
 {
@@ -1276,6 +1360,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroCounterViews, const
 
 template <typename DeviceType>
   template <bool ZERO_RATES>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES>, const int& i, CounterType& counter) const
 {
@@ -1308,8 +1393,11 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
     // Update ConcOld and initialize the ODE solution vector y[].
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
     {
-      const double tmp = d_dvector(ispecies, i);
-      d_dvector(ispecies+nspecies, i) = tmp;
+      const auto atom_ind = d_species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = d_species_ind_to_atom_prop_ind_old(ispecies);
+
+      const double tmp = d_dvector(atom_ind, i);
+      d_dvector(atom_ind_old, i) = tmp;
       y[ispecies] = tmp;
     }
 
@@ -1341,7 +1429,8 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
       else if (y[ispecies] < MY_EPSILON)
         y[ispecies] = 0.0;
 
-      d_dvector(ispecies,i) = y[ispecies];
+      const auto atom_ind = d_species_ind_to_atom_prop_ind(ispecies);
+      d_dvector(atom_ind,i) = y[ispecies];
     }
 
     // Update the iteration statistics counter. Is this unique for each iteration?
@@ -1425,6 +1514,10 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
   this->d_dpdTheta = atomKK->k_dpdTheta.view<DeviceType>();
   this->d_dvector  = atomKK->k_dvector.view<DeviceType>();
   this->d_mask     = atomKK->k_mask.view<DeviceType>();
+  this->d_species_ind_to_atom_prop_ind =
+    k_species_ind_to_atom_prop_ind.view<DeviceType>();
+  this->d_species_ind_to_atom_prop_ind_old =
+    k_species_ind_to_atom_prop_ind_old.view<DeviceType>();
 
   // Get up-to-date data.
   atomKK->sync( execution_space, MASK_MASK | DVECTOR_MASK | DPDTHETA_MASK );
@@ -1700,6 +1793,7 @@ void FixRxKokkos<DeviceType>::odeDiagnostics()
 /* ---------------------------------------------------------------------- */
 
 template <typename DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroTemperatureViews, const int& i) const
 {
@@ -1711,6 +1805,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_zeroTemperatureViews, c
 
 template <typename DeviceType>
   template <int WT_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FLAG,NEWTON_PAIR,NEIGHFLAG>, const int& ii) const
 {
@@ -1778,6 +1873,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
 
 template <typename DeviceType>
   template <int WT_FLAG, int LOCAL_TEMP_FLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG,LOCAL_TEMP_FLAG>, const int& i) const
 {
@@ -1972,12 +2068,21 @@ int FixRxKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf, in
 {
   HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.view_host();
 
+  const auto & h_species_ind_to_atom_prop_ind =
+    k_species_ind_to_atom_prop_ind.view_host();
+
+  const auto & h_species_ind_to_atom_prop_ind_old =
+    k_species_ind_to_atom_prop_ind_old.view_host();
+
   int m = 0;
   for (int ii = 0; ii < n; ii++) {
     const int jj = list[ii];
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-      buf[m++] = h_dvector(ispecies,jj);
-      buf[m++] = h_dvector(ispecies+nspecies,jj);
+      const auto atom_ind = h_species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = h_species_ind_to_atom_prop_ind_old(ispecies);
+
+      buf[m++] = h_dvector(atom_ind,jj);
+      buf[m++] = h_dvector(atom_ind_old,jj);
     }
   }
   return m;
@@ -1990,12 +2095,21 @@ void FixRxKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *buf)
 {
   HAT::t_double_2d_lr h_dvector = atomKK->k_dvector.view_host();
 
+  const auto & h_species_ind_to_atom_prop_ind =
+    k_species_ind_to_atom_prop_ind.view_host();
+
+  const auto & h_species_ind_to_atom_prop_ind_old =
+    k_species_ind_to_atom_prop_ind_old.view_host();
+
   const int last = first + n ;
   int m = 0;
   for (int ii = first; ii < last; ii++) {
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-      h_dvector(ispecies,ii) = buf[m++];
-      h_dvector(ispecies+nspecies,ii) = buf[m++];
+      const auto atom_ind = h_species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = h_species_ind_to_atom_prop_ind_old(ispecies);
+
+      h_dvector(atom_ind,ii) = buf[m++];
+      h_dvector(atom_ind_old,ii) = buf[m++];
     }
   }
 }

@@ -20,12 +20,17 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
+#include <iterator>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
 using testing::StrEq;
+using testing::StartsWith;
+using testing::EndsWith;
 
 using utils::read_lines_from_file;
 using utils::sfgets;
@@ -233,7 +238,7 @@ TEST_F(FileOperationsTest, read_lines_from_file)
 
 TEST_F(FileOperationsTest, logmesg)
 {
-    char buf[64];
+    char buf[128];
     BEGIN_HIDE_OUTPUT();
     command("echo none");
     END_HIDE_OUTPUT();
@@ -247,12 +252,15 @@ TEST_F(FileOperationsTest, logmesg)
     utils::logmesg(lmp, "six {}\n");
     command("log none");
     std::string out = END_CAPTURE_OUTPUT();
-    memset(buf, 0, 64);
+    memset(buf, 0, 128);
     FILE *fp = fopen("test_logmesg.log", "r");
-    fread(buf, 1, 64, fp);
+    fread(buf, 1, 128, fp);
     fclose(fp);
-    ASSERT_THAT(out, StrEq("one\ntwo\nthree=3\nargument not found\nfive\nsix {}\n"));
-    ASSERT_THAT(buf, StrEq("two\nthree=3\nargument not found\nfive\nsix {}\n"));
+
+    ASSERT_THAT(out,StartsWith("one\ntwo\nthree=3\n"));
+    ASSERT_THAT(out,EndsWith("\nfive\nsix {}\n"));
+    ASSERT_THAT(buf,StartsWith("two\nthree=3\n"));
+    ASSERT_THAT(buf,EndsWith("\nfive\nsix {}\n"));
     remove("test_logmesg.log");
 }
 
@@ -286,13 +294,15 @@ TEST_F(FileOperationsTest, error_all_one)
     TEST_FAILURE(".*ERROR: exit \\(testme.cpp:10\\).*", lmp->error->all("testme.cpp", 10, "exit"););
     TEST_FAILURE(".*ERROR: exit too \\(testme.cpp:10\\).*",
                  lmp->error->all("testme.cpp", 10, "exit {}", "too"););
-    TEST_FAILURE(".*ERROR: argument not found \\(testme.cpp:10\\).*",
+    // NOTE: we can only make a very generic check for an error, since the actual error
+    // message depends on whether we use fmt::format() or std::format() and which compiler we use
+    TEST_FAILURE(".*ERROR:.*\\(testme.cpp:10\\).*",
                  lmp->error->all("testme.cpp", 10, "exit {} {}", "too"););
     TEST_FAILURE(".*ERROR on proc 0: exit \\(testme.cpp:10\\).*",
                  lmp->error->one("testme.cpp", 10, "exit"););
     TEST_FAILURE(".*ERROR on proc 0: exit too \\(testme.cpp:10\\).*",
                  lmp->error->one("testme.cpp", 10, "exit {}", "too"););
-    TEST_FAILURE(".*ERROR on proc 0: argument not found \\(testme.cpp:10\\).*",
+    TEST_FAILURE(".*ERROR on proc 0:.*\\(testme.cpp:10\\).*",
                  lmp->error->one("testme.cpp", 10, "exit {} {}", "too"););
 }
 
@@ -353,6 +363,9 @@ TEST_F(FileOperationsTest, write_restart)
     command("change_box all triclinic");
     command("write_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    // increment restart version if it differs by 1,
+    //  i.e. it was written by a development version
+    if (lmp->num_ver - lmp->restart_ver == 1) lmp->restart_ver++;
     ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
@@ -367,6 +380,9 @@ TEST_F(FileOperationsTest, write_restart)
     BEGIN_HIDE_OUTPUT();
     command("read_restart triclinic.restart");
     END_HIDE_OUTPUT();
+    // increment restart version if it differs by 1,
+    //  i.e. it was written by a development version
+    if (lmp->num_ver - lmp->restart_ver == 1) lmp->restart_ver++;
     ASSERT_EQ(lmp->restart_ver, lmp->num_ver);
     ASSERT_EQ(lmp->atom->natoms, 1);
     ASSERT_EQ(lmp->update->ntimestep, 333);
@@ -383,6 +399,59 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("multi3-base.restart");
     delete_file("multi3-0.restart");
     delete_file("triclinic.restart");
+}
+
+TEST_F(FileOperationsTest, corrupted_restart)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0");
+    command("mass 1 1.0");
+    command("run 0 post no");
+    command("write_restart good.restart");
+    command("clear");
+    END_HIDE_OUTPUT();
+
+    std::ifstream in("good.restart", std::ios::binary);
+    std::vector<char> image((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    ASSERT_GT(image.size(), 0);
+
+    // corrupt the stored length of the group name "all": the length int
+    // precedes the string. must trigger a clean error, not a crash.
+
+    const char pattern[] = {4, 0, 0, 0, 'a', 'l', 'l', '\0'};
+    auto pos = std::search(image.begin(), image.end(), pattern, pattern + sizeof(pattern));
+    if (pos != image.end()) {
+        auto patched  = image;
+        const int bad = -1;
+        memcpy(&patched[pos - image.begin()], &bad, sizeof(int));
+        std::ofstream out("corrupt.restart", std::ios::binary);
+        out.write(patched.data(), patched.size());
+        out.close();
+        TEST_FAILURE(".*ERROR: Invalid group name length in restart file.*",
+                     command("read_restart corrupt.restart"););
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        END_HIDE_OUTPUT();
+        delete_file("corrupt.restart");
+    }
+
+    // truncated restart files must give a clean error, not a crash
+
+    for (auto fraction : {0.25, 0.5, 0.9}) {
+        std::ofstream out("truncated.restart", std::ios::binary);
+        out.write(image.data(), (std::streamsize)(image.size() * fraction));
+        out.close();
+        TEST_FAILURE(".*ERROR.*", command("read_restart truncated.restart"););
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        END_HIDE_OUTPUT();
+    }
+    delete_file("truncated.restart");
+    delete_file("good.restart");
 }
 
 TEST_F(FileOperationsTest, write_data)

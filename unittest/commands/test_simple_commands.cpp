@@ -417,21 +417,23 @@ TEST_F(SimpleCommandsTest, Plugin)
 {
     const char *bindir = getenv("LAMMPS_PLUGIN_DIR");
     if (!bindir) GTEST_SKIP() << "LAMMPS_PLUGIN_DIR not set";
-    std::string loadfmt = "plugin load {}/{}plugin.so";
+    auto loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "hello");
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
+    lmp->input->one(loadcmd);
     auto text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*\n.*Loading plugin: Hello world command.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "xxx"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "xxx");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Open of file .*xxx.* failed.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "nve2"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "nve2");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Loading plugin: NVE2 variant fix style.*"));
@@ -443,7 +445,8 @@ TEST_F(SimpleCommandsTest, Plugin)
     ASSERT_THAT(text, ContainsRegex(".*2: fix style plugin nve2.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "hello");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;
     ASSERT_THAT(text, ContainsRegex(".*Ignoring load of command style hello: "
@@ -474,7 +477,8 @@ TEST_F(SimpleCommandsTest, Plugin)
     ASSERT_THAT(text, ContainsRegex(".*Ignoring unload of fix style nve: not from a plugin.*"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "hello"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "hello");
+    lmp->input->one(loadcmd);
     text = ::testing::internal::GetCapturedStdout();
     ::testing::internal::CaptureStdout();
     lmp->input->one("plugin list");
@@ -491,7 +495,8 @@ TEST_F(SimpleCommandsTest, Plugin)
     ASSERT_THAT(text, ContainsRegex(".*Currently loaded plugins: 0\n$"));
 
     ::testing::internal::CaptureStdout();
-    lmp->input->one(fmt::format(fmt::runtime(loadfmt), bindir, "no"));
+    loadcmd = fmt::format("plugin load {}/{}plugin.so", bindir, "no");
+    lmp->input->one(loadcmd);
     lmp->input->one("plugin list");
     text = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << text;

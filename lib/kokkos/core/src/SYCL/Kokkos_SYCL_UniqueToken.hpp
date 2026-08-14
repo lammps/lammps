@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_UNIQUE_TOKEN_HPP
 #define KOKKOS_SYCL_UNIQUE_TOKEN_HPP
@@ -44,18 +31,6 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
 
   explicit UniqueToken(execution_space const& = execution_space())
       : m_locks(Kokkos::Impl::sycl_global_unique_token_locks()) {}
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(UniqueToken&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(UniqueToken&&) = default;
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
   KOKKOS_INLINE_FUNCTION

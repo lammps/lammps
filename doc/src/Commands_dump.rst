@@ -1,3 +1,5 @@
+.. include:: Commands_html.rst
+
 Dump styles
 ===========
 

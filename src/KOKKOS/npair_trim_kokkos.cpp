@@ -85,6 +85,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const {
   int n = 0;

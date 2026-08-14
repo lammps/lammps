@@ -1,0 +1,5 @@
+# force-field / group setup for the asphere (ellipsoid) fix-timestep tests.
+# in.ellipsoid provides 48 ellipsoid atoms (3 types) with pair_style zero;
+# the integrators/thermostats below act on the "solute" group.
+pair_coeff * *
+group solute id 1:24

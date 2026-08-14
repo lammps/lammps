@@ -23,7 +23,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
-    Region(lmp, narg, arg), idsub(nullptr)
+    Region(lmp, narg, arg), idsub(nullptr), contact_indx(nullptr)
 {
   nregion = 0;
 
@@ -52,6 +52,8 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   for (int ilist = 0; ilist < nregion; ilist++) {
     if (reglist[ilist]->varshape) varshape = 1;
     if (reglist[ilist]->dynamic) dynamic = 1;
+    if (reglist[ilist]->moveflag) moveflag = 1;
+    if (reglist[ilist]->rotateflag) rotateflag = 1;
   }
 
   // extent of intersection of regions
@@ -91,6 +93,7 @@ RegIntersect::RegIntersect(LAMMPS *lmp, int narg, char **arg) :
   cmax = 0;
   for (int ilist = 0; ilist < nregion; ilist++) cmax += reglist[ilist]->cmax;
   contact = new Contact[cmax];
+  contact_indx = new ContactIndx[cmax];
 
   tmax = 0;
   for (int ilist = 0; ilist < nregion; ilist++) {
@@ -109,6 +112,7 @@ RegIntersect::~RegIntersect()
   delete[] idsub;
   delete[] reglist;
   delete[] contact;
+  delete[] contact_indx;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,6 +136,26 @@ void RegIntersect::init()
 }
 
 /* ----------------------------------------------------------------------
+   overwrite parent to call for subregions
+------------------------------------------------------------------------- */
+
+void RegIntersect::prematch()
+{
+  int ilist;
+  for (ilist = 0; ilist < nregion; ilist++) reglist[ilist]->prematch();
+}
+
+/* ----------------------------------------------------------------------
+   overwrite parent to skip dynamic methods (may not be defined for union)
+     will be performed by subregion match calls from inside()
+------------------------------------------------------------------------- */
+
+int RegIntersect::match(double x, double y, double z)
+{
+  return !(inside(x, y, z) ^ interior);
+}
+
+/* ----------------------------------------------------------------------
    inside = 1 if x,y,z is match() with all sub-regions
    else inside = 0
 ------------------------------------------------------------------------- */
@@ -147,25 +171,57 @@ int RegIntersect::inside(double x, double y, double z)
 }
 
 /* ----------------------------------------------------------------------
+   overwrite parent to skip dynamic methods (may not be defined for union)
+     will be performed by surface interior/exterior calls separately
+     for each subregion
+------------------------------------------------------------------------- */
+
+int RegIntersect::surface(double x, double y, double z, double cutoff)
+{
+  int ncontact;
+  double xorig[3] = {x, y, z};
+
+  if (!openflag) {
+    if (interior)
+      ncontact = surface_interior(xorig, cutoff);
+    else
+      ncontact = surface_exterior(xorig, cutoff);
+  } else {
+    // one of surface_int/ext() will return 0
+    // so no need to worry about offset of contact indices
+    ncontact = surface_exterior(xorig, cutoff) + surface_interior(xorig, cutoff);
+  }
+
+  return ncontact;
+}
+
+/* ----------------------------------------------------------------------
    compute contacts with interior of intersection of sub-regions
    (1) compute contacts in each sub-region
    (2) only keep a contact if surface point is match() to all other regions
 ------------------------------------------------------------------------- */
 
-int RegIntersect::surface_interior(double *x, double cutoff)
+int RegIntersect::surface_interior(double *xorig, double cutoff)
 {
   int m, ilist, jlist, ncontacts;
   double xs, ys, zs;
+  double xnear[3];
 
   int n = 0;
   int walloffset = 0;
   for (ilist = 0; ilist < nregion; ilist++) {
     auto *region = reglist[ilist];
-    ncontacts = region->surface(x[0], x[1], x[2], cutoff);
+
+    // copy coordinates b/c values will change
+    xnear[0] = xorig[0];
+    xnear[1] = xorig[1];
+    xnear[2] = xorig[2];
+
+    ncontacts = region->surface(xnear[0], xnear[1], xnear[2], cutoff);
     for (m = 0; m < ncontacts; m++) {
-      xs = x[0] - region->contact[m].delx;
-      ys = x[1] - region->contact[m].dely;
-      zs = x[2] - region->contact[m].delz;
+      xs = xnear[0] - region->contact[m].delx;
+      ys = xnear[1] - region->contact[m].dely;
+      zs = xnear[2] - region->contact[m].delz;
       for (jlist = 0; jlist < nregion; jlist++) {
         if (jlist == ilist) continue;
         if (!reglist[jlist]->match(xs, ys, zs)) break;
@@ -178,9 +234,24 @@ int RegIntersect::surface_interior(double *x, double cutoff)
         contact[n].delz = region->contact[m].delz;
         contact[n].iwall = region->contact[m].iwall + walloffset;
         contact[n].varflag = region->contact[m].varflag;
+        contact_indx[n].ilist = ilist;
+        contact_indx[n].ic = m;
         n++;
       }
     }
+
+    if (region->rotateflag && ncontacts) {
+      for (int i = n - ncontacts; i < n; i++) {
+        xs = xnear[0] - contact[i].delx;
+        ys = xnear[1] - contact[i].dely;
+        zs = xnear[2] - contact[i].delz;
+        region->forward_transform(xs, ys, zs);
+        contact[i].delx = xorig[0] - xs;
+        contact[i].dely = xorig[1] - ys;
+        contact[i].delz = xorig[2] - zs;
+      }
+    }
+
     // increment by cmax instead of tmax to ensure
     // possible wall IDs for sub-regions are non overlapping
     walloffset += region->cmax;
@@ -198,21 +269,28 @@ int RegIntersect::surface_interior(double *x, double cutoff)
    this is effectively same algorithm as surface_interior() for RegUnion
 ------------------------------------------------------------------------- */
 
-int RegIntersect::surface_exterior(double *x, double cutoff)
+int RegIntersect::surface_exterior(double *xorig, double cutoff)
 {
   int m, ilist, jlist, ncontacts;
   double xs, ys, zs;
+  double xnear[3];
 
   int n = 0;
   for (ilist = 0; ilist < nregion; ilist++) reglist[ilist]->interior ^= 1;
 
   for (ilist = 0; ilist < nregion; ilist++) {
     auto *region = reglist[ilist];
-    ncontacts = region->surface(x[0], x[1], x[2], cutoff);
+
+    // copy coordinates b/c values will change
+    xnear[0] = xorig[0];
+    xnear[1] = xorig[1];
+    xnear[2] = xorig[2];
+
+    ncontacts = region->surface(xnear[0], xnear[1], xnear[2], cutoff);
     for (m = 0; m < ncontacts; m++) {
-      xs = x[0] - region->contact[m].delx;
-      ys = x[1] - region->contact[m].dely;
-      zs = x[2] - region->contact[m].delz;
+      xs = xnear[0] - region->contact[m].delx;
+      ys = xnear[1] - region->contact[m].dely;
+      zs = xnear[2] - region->contact[m].delz;
       for (jlist = 0; jlist < nregion; jlist++) {
         if (jlist == ilist) continue;
         if (reglist[jlist]->match(xs, ys, zs)) break;
@@ -225,7 +303,21 @@ int RegIntersect::surface_exterior(double *x, double cutoff)
         contact[n].delz = region->contact[m].delz;
         contact[n].iwall = ilist;
         contact[n].varflag = region->contact[m].varflag;
+        contact_indx[n].ilist = ilist;
+        contact_indx[n].ic = m;
         n++;
+      }
+    }
+
+    if (region->rotateflag && ncontacts) {
+      for (int i = n - ncontacts; i < n; i++) {
+        xs = xnear[0] - contact[i].delx;
+        ys = xnear[1] - contact[i].dely;
+        zs = xnear[2] - contact[i].delz;
+        region->forward_transform(xs, ys, zs);
+        contact[i].delx = xorig[0] - xs;
+        contact[i].dely = xorig[1] - ys;
+        contact[i].delz = xorig[2] - zs;
       }
     }
   }
@@ -260,6 +352,16 @@ void RegIntersect::pretransform()
 void RegIntersect::set_velocity()
 {
   for (int ilist = 0; ilist < nregion; ilist++) reglist[ilist]->set_velocity();
+}
+
+/* ----------------------------------------------------------------------
+   call subregion method to compute velocity of wall for given contact
+------------------------------------------------------------------------- */
+
+void RegIntersect::velocity_contact(double *vwall, double *x, int ic)
+{
+  auto *region = reglist[contact_indx[ic].ilist];
+  region->velocity_contact(vwall, x, contact_indx[ic].ic);
 }
 
 /* ----------------------------------------------------------------------

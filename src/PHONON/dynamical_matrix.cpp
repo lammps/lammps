@@ -46,7 +46,7 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
+DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), groupmap(nullptr), fp(nullptr)
 {
   external_force_clear = 0;
 }
@@ -221,9 +221,10 @@ void DynamicalMatrix::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal dynamical_matrix command");
   }
-  if (file_flag == 1) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it the matrix was silently discarded
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------

@@ -25,7 +25,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSPHStationary::FixSPHStationary(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), step_respa(nullptr), pair(nullptr)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1))
     error->all(FLERR, "Fix sph/stationary requires atom attributes energy and density, e.g. in atom_style sph");

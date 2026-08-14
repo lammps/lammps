@@ -89,7 +89,7 @@ velocity/distance :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

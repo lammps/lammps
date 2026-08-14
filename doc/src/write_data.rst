@@ -42,7 +42,7 @@ Write a data file in text format of the current state of the simulation.
 Data files can be read by the :doc:`read data <read_data>` command to
 begin a simulation.
 
-.. versionadded:: TBD
+.. versionadded:: 11Feb2026
 
 The file may also be a compressed text file (detected by its suffix) if
 LAMMPS has been compiled with support for :ref:`compression commands
@@ -178,6 +178,24 @@ Again, the coefficient values in the data file can be overridden
 in the input script after reading the data file, by specifying
 additional :doc:`pair_coeff <pair_coeff>` commands for any desired I,J
 pairs.
+
+.. note::
+
+   Before the data file is written, LAMMPS migrates atoms to their owning
+   subdomains, which deletes any atoms that lie outside of non-periodic
+   boundaries.  If this changes the total number of atoms, the
+   :doc:`thermo_modify lost <thermo_modify>` setting determines what happens:
+   with the default *error* setting LAMMPS aborts and does not write the
+   file; with *warn* or *ignore* the stored atom count is reset to the actual
+   number of atoms so that a self-consistent data file is written (with a
+   warning printed for *warn*).
+
+.. versionchanged:: 4Jul2026
+
+Previously, with the *warn* or *ignore* lost-atoms setting, the atom count in
+the data file header could disagree with the number of atoms actually written
+(a corrupted data file).  The count is now reset so the written file is always
+self-consistent.
 
 ----------
 

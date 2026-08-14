@@ -41,7 +41,7 @@ class BondNonlinear : public Bond {
  protected:
   double *epsilon, *r0, *lamda;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

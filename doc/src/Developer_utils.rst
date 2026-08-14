@@ -11,6 +11,11 @@ reduces redundant implementations and encourages consistent behavior and
 thus has some overlap with the :doc:`"platform" sub-namespace
 <Developer_platform>`.
 
+.. contents::
+   :local:
+
+----------
+
 I/O with status check and similar functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -109,6 +114,7 @@ strings for compliance without conversion.
 .. doxygenfunction:: logical(const char *file, int line, const char *str, bool do_abort, LAMMPS *lmp)
    :project: progguide
 
+----------
 
 String processing
 ^^^^^^^^^^^^^^^^^
@@ -160,6 +166,9 @@ and parsing files or arguments.
 .. doxygenfunction:: trim_and_count_words
    :project: progguide
 
+.. doxygenfunction:: join
+   :project: progguide
+
 .. doxygenfunction:: join_words
    :project: progguide
 
@@ -190,6 +199,8 @@ and parsing files or arguments.
 .. doxygenfunction:: is_type
    :project: progguide
 
+----------
+
 Potential file functions
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -211,6 +222,8 @@ Potential file functions
 .. doxygenfunction:: open_potential(const std::string &name, LAMMPS *lmp, int *auto_convert)
    :project: progguide
 
+----------
+
 Argument processing
 ^^^^^^^^^^^^^^^^^^^
 
@@ -228,6 +241,8 @@ Argument processing
 
 .. doxygenfunction:: expand_type
    :project: progguide
+
+----------
 
 Convenience functions
 ^^^^^^^^^^^^^^^^^^^^^
@@ -271,6 +286,8 @@ Convenience functions
 .. doxygenfunction:: current_date
    :project: progguide
 
+----------
+
 Customized standard functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -280,7 +297,7 @@ Customized standard functions
 .. doxygenfunction:: merge_sort
    :project: progguide
 
----------------------------
+----------
 
 Special Math functions
 ----------------------
@@ -318,7 +335,7 @@ mathematical functions for a variety of applications.
 .. doxygenfunction:: powsinxx
    :project: progguide
 
----------------------------
+----------
 
 Tokenizer classes
 -----------------
@@ -436,7 +453,7 @@ This code example should produce the following output:
 
 
 Argument parsing classes
----------------------------
+------------------------
 
 The purpose of argument parsing classes it to simplify and unify how
 arguments of commands in LAMMPS are parsed and to make abstractions of
@@ -479,6 +496,23 @@ A typical code segment would look like this:
 
 ----------
 
+.. _safe-pointer-classes:
+
+Safe pointer classes
+--------------------
+
+These are custom classes to support the `Resource Acquisition Is
+Initialization (RAII)
+<https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization>`_
+programming idiom in LAMMPS for certain types of pointers.  Currently
+there is:
+
+.. doxygenclass:: LAMMPS_NS::SafeFilePtr
+   :project: progguide
+   :members:
+
+----------
+
 .. _file-reader-classes:
 
 File reader classes
@@ -498,7 +532,8 @@ run on MPI rank 0 only, will use the
 <LAMMPS_NS::utils::get_potential_file_path>` function to look up and
 open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
 case of failures to read or to convert numbers, so that LAMMPS will be
-aborted.
+aborted.  A third class, :cpp:class:`STLReader <LAMMPS_NS::STLReader>`,
+is specialized on reading triangle mesh data from files in STL format.
 
 .. code-block:: c++
    :caption: Use of PotentialFileReader class in pair style coul/streitz
@@ -553,6 +588,247 @@ A file that would be parsed by the reader code fragment looks like this:
    :members:
 
 .. doxygenclass:: LAMMPS_NS::PotentialFileReader
+   :project: progguide
+   :members:
+
+----------
+
+The :cpp:class:`STLReader <LAMMPS_NS::STLReader>` class reads triangle
+meshes from files in STL format, as used, for example, by the
+:doc:`create_atoms mesh <create_atoms>` command or the :doc:`fix
+surface/global <fix_surface_global>` command.  Files in the plain text
+variant of the format are parsed with the help of the
+:cpp:class:`TextFileReader <LAMMPS_NS::TextFileReader>` and
+:cpp:class:`ValueTokenizer <LAMMPS_NS::ValueTokenizer>` classes, while
+files in the binary variant are read directly.  Unlike the other file
+reader classes, the mesh data is not returned line by line, but the
+entire file is read and its triangles are returned in one call.
+
+.. doxygenclass:: LAMMPS_NS::STLReader
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::STLReaderException
+   :project: progguide
+   :members:
+
+----------
+
+.. _file-writer-classes:
+
+File writer classes
+-------------------
+
+The file writer classes are the counterpart to the file reader classes:
+they collect the recurring work of producing a file in some established
+format in one place, so that the styles using it only have to supply the
+data.
+
+The :cpp:class:`VTKWriter <LAMMPS_NS::VTKWriter>` class writes the subset
+of the file formats of the `VTK visualization toolkit <https://vtk.org>`_
+that LAMMPS needs.  It is used by the :doc:`dump vtk <dump_vtk>`,
+:doc:`dump grid/vtk <dump>`, and :doc:`fix saed/vtk <fix_saed_vtk>`
+styles.  Writing these files directly means that none of them requires
+the VTK library to be installed.
+
+Both the "legacy" and the XML flavor of the format are supported, each
+with text or binary encoding, and binary data in the XML flavor is
+compressed when LAMMPS is built with the zlib library.  The available
+datasets are a list of points, either as polydata or as an unstructured
+grid, a single hexahedron, a rectilinear grid, and a uniform grid.
+Reading VTK files is not supported and not needed.
+
+Using the class always follows the same four steps: create a writer for
+the desired format, select exactly one dataset, attach any number of data
+arrays, and write.  Anything inconsistent, such as an array whose length
+does not match the number of points, or a file that cannot be opened, is
+reported by throwing a :cpp:class:`VTKWriterException
+<LAMMPS_NS::VTKWriterException>`, so callers are expected to catch it and
+turn it into a LAMMPS error.
+
+.. code-block:: c++
+   :caption: Use of the VTKWriter class for writing atom positions
+
+    std::vector<double> coords;      // 3 values per atom
+    std::vector<int> ids;            // 1 value per atom
+
+    for (int i = 0; i < atom->nlocal; ++i) {
+      coords.push_back(atom->x[i][0]);
+      coords.push_back(atom->x[i][1]);
+      coords.push_back(atom->x[i][2]);
+      ids.push_back(atom->tag[i]);
+    }
+
+    try {
+      VTKWriter writer(VTKWriter::XML, false);
+      writer.set_polydata(std::move(coords));
+      writer.add_point_array("id", 1, std::move(ids));
+      writer.write("positions.vtp");
+    } catch (VTKWriterException &e) {
+      error->one(FLERR, e.what());
+    }
+
+Coordinate and data vectors are taken by value, so callers that do not
+need their copy afterwards pass it with ``std::move()``, as in the
+example, and no data is copied.
+
+All floating point data, coordinates and data arrays alike, is stored in
+single precision by default, since that is what visualization programs
+work with.  The constructor takes an optional precision argument, which
+the dump styles expose through their *dump_modify double* keyword.
+Because single precision only keeps about 7 significant digits, it
+becomes noticeable for very large coordinates.  The class therefore
+records the largest coordinate magnitude that it wrote in single
+precision in :cpp:func:`max_single_precision_value
+<LAMMPS_NS::VTKWriter::max_single_precision_value>`, and
+:cpp:func:`single_precision_resolution
+<LAMMPS_NS::VTKWriter::single_precision_resolution>` turns that magnitude
+into the absolute resolution for a warning message, or 0.0 while single
+precision still resolves the coordinates well enough.  Data arrays are
+not tracked, because their values only need the relative resolution that
+single precision always provides.
+
+.. doxygenclass:: LAMMPS_NS::VTKWriter
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::VTKWriterException
+   :project: progguide
+   :members:
+
+----------
+
+Type label support
+------------------
+
+Overview
+^^^^^^^^
+
+The :cpp:class:`LabelMap <LAMMPS_NS::LabelMap>` class provides a two way
+mapping between symbolic type labels in input and output files and
+numeric types as they are used by LAMMPS internally.  Instead of
+changing the numeric types in files to satisfy the requirements from
+LAMMPS for a given application, the symbolic types can remain and only
+the label map needs to be adjusted.  When following the convention that
+the labels for bonded interactions are created by joining the
+constituent atom types with hyphens, this can significantly improve
+readability, maintainability, and re-usability of inputs and reduces the
+chance of errors.
+
+The LabelMap class also provides automatic type inference for bonded
+interactions based on their constituent atom types.  For instance, based
+on the atom type labels, the corresponding bond, angle, dihedral, or
+improper types can be inferred provided the corresponding type labels
+follow the convention that they are composed of the symbolic atom types
+connected by hyphens.
+
+Integration with utils namespace
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Several utility functions in the ``utils`` namespace work with type labels and
+interact with the LabelMap class:
+
+* :cpp:func:`utils::is_type() <LAMMPS_NS::utils::is_type>` - Validates whether
+  a string is a valid type label.
+
+* :cpp:func:`utils::expand_type() <LAMMPS_NS::utils::expand_type>` - Converts
+  a type label string to its numeric equivalent using the LabelMap.
+
+* :cpp:func:`utils::bounds_typelabel() <LAMMPS_NS::utils::bounds_typelabel>` -
+  Extended version of ``utils::bounds()`` that accepts type labels in addition
+  to numeric ranges. Uses ``expand_type()`` internally to convert labels to
+  numeric bounds before processing.
+
+These functions enable seamless integration of type labels throughout LAMMPS,
+allowing commands that accept type specifications to work with both numeric
+indices and symbolic labels. Below are some code examples.
+
+Finding types from labels and vice versa
+""""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: c++
+
+   #include "label_map.h"
+   #include "atom.h"
+
+   // assuming this code is used inside a class that is derived from LAMMPS_NS::Pointers
+   LabelMap *lmap = atom->lmap;
+
+   // Forward lookup: Get numeric type from label
+   int ctype = lmap->find_type("C", Atom::ATOM);    // Returns atom type for "C"
+   int htype = lmap->find_type("H", Atom::ATOM);    // Returns atom type for "H"
+   int missing = lmap->find_type("X", Atom::ATOM);  // Returns -1 (not found)
+
+   // Reverse lookup: Get label from numeric type
+   const std::string &label1 = lmap->find_label(1, Atom::ATOM);  // Returns label for type 1
+   const std::string &label2 = lmap->find_label(2, Atom::BOND);  // Returns bond label for type 2
+
+   // Check if all types have labels
+   bool complete = lmap->is_complete(Atom::ATOM);  // Returns true if all atom types labeled
+
+Inferring bonded types from atom types
+""""""""""""""""""""""""""""""""""""""
+
+.. code-block:: c++
+
+   #include "label_map.h"
+   #include "atom.h"
+
+   LabelMap *lmap = atom->lmap;
+
+   // Assume we have: labelmap atom 1 C 2 H 3 N
+   // And: labelmap bond 1 C-H 2 C-C 3 C-N
+
+   // Infer bond type from numeric atom types
+   int bt1 = lmap->infer_bondtype(1, 2);  // Returns 1 (C-H bond)
+   int bt2 = lmap->infer_bondtype(1, 1);  // Returns 2 (C-C bond)
+   int bt3 = lmap->infer_bondtype(3, 1);  // Returns 3 (C-N bond, symmetric match)
+
+   // Infer bond type from atom type labels (handles symmetry automatically)
+   int bt4 = lmap->infer_bondtype({"C", "H"});  // Returns 1 (C-H)
+   int bt5 = lmap->infer_bondtype({"H", "C"});  // Returns 1 (symmetric match)
+   int bt6 = lmap->infer_bondtype({"C", "N"});  // Returns 3 (C-N)
+
+Validating and expanding type labels
+""""""""""""""""""""""""""""""""""""
+
+.. code-block:: c++
+
+   #include "utils.h"
+   #include "lammps.h"
+
+   using namespace LAMMPS_NS;
+
+   LAMMPS *lmp = /* ... */;
+
+   // Validate type label strings
+   int result1 = utils::is_type("C");     // Returns 1 (valid label)
+   int result2 = utils::is_type("123");   // Returns 0 (numeric type)
+   int result3 = utils::is_type("*");     // Returns -1 (invalid - starts with *)
+   int result4 = utils::is_type("C H");   // Returns -1 (invalid - contains whitespace)
+
+   // Convert type label to numeric string
+   char *numstr = utils::expand_type(FLERR, "C", Atom::ATOM, lmp);
+   if (numstr) {
+       // Use the numeric type string
+       delete[] numstr;  // Must delete after use
+   }
+
+   // Convert type label to integer
+   int type = utils::expand_type_int(FLERR, "C", Atom::ATOM, lmp, true);
+   // The 'true' argument enables range verification
+
+   // Use bounds_typelabel for ranges with label support
+   int lo, hi;
+   utils::bounds_typelabel(FLERR, "C:H", 1, 10, lo, hi, lmp, Atom::ATOM);
+   // Expands "C:H" to numeric range, e.g., "1:2" -> lo=1, hi=2
+
+----------
+
+LabelMap class reference
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. doxygenclass:: LAMMPS_NS::LabelMap
    :project: progguide
    :members:
 
@@ -659,7 +935,7 @@ Tohoku University (under MIT license)
 .. doxygenfunction:: MathEigen::jacobi3(double const mat[3][3], double *eval, double evec[3][3], int sort)
    :project: progguide
 
----------------------------
+----------
 
 .. _communication_buffer_coding_with_ubuf:
 
@@ -677,7 +953,7 @@ union.  It is used in the various "pack" and "unpack" functions in the
 LAMMPS classes to store and retrieve integers that may be 64-bit from
 the communication buffers.
 
----------------------------
+----------
 
 .. doxygenunion:: LAMMPS_NS::ubuf
    :project: progguide

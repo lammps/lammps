@@ -1,7 +1,11 @@
 .. index:: pair_style born/gauss
+.. index:: pair_style born/gauss/kk
+.. index:: pair_style born/gauss/omp
 
 pair_style born/gauss command
 =============================
+
+Accelerator Variants: *born/gauss/kk*, *born/gauss/omp*
 
 Syntax
 """"""
@@ -50,6 +54,10 @@ commands:
 * cutoff (distance units)
 
 The last coefficient is optional.  If not specified, the global cutoff is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

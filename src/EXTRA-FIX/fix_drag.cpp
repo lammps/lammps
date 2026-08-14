@@ -58,6 +58,13 @@ FixDrag::FixDrag(LAMMPS *lmp, int narg, char **arg) :
 
 /* ---------------------------------------------------------------------- */
 
+FixDrag::~FixDrag()
+{
+  if (copymode) return;
+}
+
+/* ---------------------------------------------------------------------- */
+
 int FixDrag::setmask()
 {
   int mask = 0;

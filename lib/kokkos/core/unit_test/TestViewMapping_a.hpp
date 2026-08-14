@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
@@ -20,7 +7,13 @@
 #include <sstream>
 #include <iostream>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -597,52 +590,54 @@ void test_view_mapping() {
     static_assert(std::is_void_v<typename a_const_int_r1::specialize>);
     static_assert(std::is_same_v<typename a_const_int_r1::dimension,
                                  Kokkos::Impl::ViewDimension<0> >);
-
-    static_assert(std::is_same_v<typename a_const_int_r1::type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::data_type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::const_data_type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::non_const_data_type, int*>);
     static_assert(
         std::is_same_v<typename a_const_int_r1::value_type, const int>);
-
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::scalar_array_type, const int*>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::const_type, const int*>);
     static_assert(
         std::is_same_v<typename a_const_int_r1::const_value_type, const int>);
     static_assert(
+        std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::scalar_array_type, const int*>);
+    static_assert(
         std::is_same_v<typename a_const_int_r1::const_scalar_array_type,
                        const int*>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::non_const_type, int*>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
     using a_const_int_r3 = ViewDataAnalysis<const int** [4], void>;
 
     static_assert(std::is_void_v<typename a_const_int_r3::specialize>);
-
     static_assert(std::is_same_v<typename a_const_int_r3::dimension,
                                  Kokkos::Impl::ViewDimension<0, 0, 4> >);
-
     static_assert(
-        std::is_same_v<typename a_const_int_r3::type, const int** [4]>);
+        std::is_same_v<typename a_const_int_r3::data_type, const int** [4]>);
+    static_assert(std::is_same_v<typename a_const_int_r3::const_data_type,
+                                 const int** [4]>);
+    static_assert(std::is_same_v<typename a_const_int_r3::non_const_data_type,
+                                 int** [4]>);
     static_assert(
         std::is_same_v<typename a_const_int_r3::value_type, const int>);
-    static_assert(std::is_same_v<typename a_const_int_r3::scalar_array_type,
-                                 const int** [4]>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::const_type, const int** [4]>);
     static_assert(
         std::is_same_v<typename a_const_int_r3::const_value_type, const int>);
     static_assert(
+        std::is_same_v<typename a_const_int_r3::non_const_value_type, int>);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+    static_assert(std::is_same_v<typename a_const_int_r3::scalar_array_type,
+                                 const int** [4]>);
+    static_assert(
         std::is_same_v<typename a_const_int_r3::const_scalar_array_type,
                        const int** [4]>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::non_const_type, int** [4]>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::non_const_value_type, int>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::non_const_scalar_array_type,
-                       int** [4]>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
   }
 
   //----------------------------------------
@@ -657,11 +652,15 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename T::const_data_type, const int*>);
     static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
     static_assert(
         std::is_same_v<typename T::const_scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename T::non_const_scalar_array_type, int*>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
     static_assert(std::is_same_v<typename T::value_type, int>);
     static_assert(std::is_same_v<typename T::const_value_type, const int>);
@@ -677,12 +676,15 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename C::const_data_type, const int*>);
     static_assert(std::is_same_v<typename C::non_const_data_type, int*>);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename C::scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename C::const_scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename C::non_const_scalar_array_type, int*>);
-
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
     static_assert(std::is_same_v<typename C::value_type, const int>);
     static_assert(std::is_same_v<typename C::const_value_type, const int>);
     static_assert(std::is_same_v<typename C::non_const_value_type, int>);
@@ -741,11 +743,15 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename T::const_data_type, const int*>);
     static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
     static_assert(
         std::is_same_v<typename T::const_scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename T::non_const_scalar_array_type, int*>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
     static_assert(std::is_same_v<typename T::value_type, int>);
     static_assert(std::is_same_v<typename T::const_value_type, const int>);
@@ -850,7 +856,7 @@ void test_view_mapping() {
 
   {
     using V           = Kokkos::View<int**, Space>;
-    using M           = typename V::HostMirror;
+    using M           = typename V::host_mirror_type;
     using layout_type = typename Kokkos::View<int**, Space>::array_layout;
 
     constexpr size_t N0 = 10;
@@ -924,7 +930,7 @@ void test_view_mapping() {
 
   {
     using V = Kokkos::View<int**, Kokkos::LayoutStride, Space>;
-    using M = typename V::HostMirror;
+    using M = typename V::host_mirror_type;
     using layout_type =
         typename Kokkos::View<int**, Kokkos::LayoutStride, Space>::array_layout;
 
@@ -1121,10 +1127,13 @@ struct TestViewMapOperator {
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_t i, int64_t& error_count) const {
-    if (std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft>) {
+    // FIXME_OPENACC: add explicit constexpr keywords to avoid NVHPC compiler
+    // bug.
+    if constexpr (std::is_same_v<typename ViewType::array_layout,
+                                 Kokkos::LayoutLeft>) {
       test_left(i, error_count);
-    } else if (std::is_same_v<typename ViewType::array_layout,
-                              Kokkos::LayoutRight>) {
+    } else if constexpr (std::is_same_v<typename ViewType::array_layout,
+                                        Kokkos::LayoutRight>) {
       test_right(i, error_count);
     }
   }

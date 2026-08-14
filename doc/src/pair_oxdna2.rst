@@ -30,12 +30,13 @@ Syntax
 
    pair_style style1
 
-   pair_coeff * * style2 args
+   pair_coeff * * style2 args [keyword value]
 
 * style1 = *hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh*
-
 * style2 = *oxdna2/excv* or *oxdna2/stk* or *oxdna2/hbond* or *oxdna2/xstk* or *oxdna2/coaxstk* or *oxdna2/dh*
 * args = list of arguments for these particular styles
+* zero or one keyword/value pair may be appended to *oxdna2/dh*
+* keyword = *half_charged_ends*
 
 .. parsed-literal::
 
@@ -47,10 +48,12 @@ Syntax
      *oxdna2/hbond* args = seq eps 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
        seq = seqav (for average sequence base-pairing strength) or seqdep (for sequence-dependent base-pairing strength)
        eps = 1.0678 (LJ units) or 6.36589157849259 (real units), average hydrogen bonding strength between A-T and C-G Watson-Crick base pairs, 0 between all other pairs
-     *oxdna2/dh* args = T rhos qeff
+     *oxdna2/dh* args [keyword value] = T rhos qeff [half_charged_ends no|yes]
        T = temperature (LJ units: 0.1 = 300 K, real units: 300 = 300 K)
        rhos = salt concentration (mole per litre)
        qeff = 0.815 (effective charge in elementary charges)
+       half_charged_ends yes = set half charge at terminal nucleotides
+       half_charged_ends no  = set full charge at terminal nucleotides
 
 Examples
 """"""""
@@ -70,7 +73,7 @@ Examples
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
    pair_coeff * * oxdna2/excv    oxdna2_lj.cgdna
-   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/stk     seqdep 0.1 oxdna2_lj.cgdna
    pair_coeff * * oxdna2/hbond   seqdep oxdna2_lj.cgdna
    pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2_lj.cgdna
    pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2_lj.cgdna
@@ -91,7 +94,7 @@ Examples
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
    pair_coeff * * oxdna2/excv    oxdna2_real.cgdna
-   pair_coeff * * oxdna2/stk     seqdep 300.0 8.06199211612242 0.005309213 oxdna2_real.cgdna
+   pair_coeff * * oxdna2/stk     seqdep 300.0 oxdna2_real.cgdna
    pair_coeff * * oxdna2/hbond   seqdep oxdna2_real.cgdna
    pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2_real.cgdna
    pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2_real.cgdna
@@ -110,6 +113,7 @@ Examples
 
 Description
 """""""""""
+.. versionadded:: 30Mar2026
 
 The *oxdna2* pair styles compute the pairwise-additive parts of the
 oxDNA force field for coarse-grained modelling of DNA. The effective
@@ -120,11 +124,7 @@ cross-stacking *oxdna2/xstk* and coaxial stacking interaction
 well as the hydrogen-bonding interaction *oxdna2/hbond* between
 complementary pairs of nucleotides on opposite strands. Average sequence
 or sequence-dependent stacking and base-pairing strengths are supported
-:ref:`(Sulc) <Sulc2>`. Quasi-unique base-pairing between nucleotides can
-be achieved by using more complementary pairs of atom types like 5-8 and
-6-7, 9-12 and 10-11, 13-16 and 14-15, etc.  This prevents the
-hybridization of in principle complementary bases within Ntypes/4 bases
-up and down along the backbone.
+:ref:`(Sulc) <Sulc2>`.
 
 The exact functional form of the pair styles is rather complex.  The
 individual potentials consist of products of modulation factors, which
@@ -142,13 +142,15 @@ description of the oxDNA2 force field.
    backbone (see also documentation of :doc:`bond_style oxdna2/fene
    <bond_oxdna>`). Most of the coefficients in the above example have to
    be kept fixed and cannot be changed without reparameterizing the
-   entire model.  Exceptions are the first four coefficients after
-   *oxdna2/stk* (seq=seqdep, T=0.1, xi=1.3523 and kappa=2.6717 and
-   corresponding *real unit* equivalents in the above examples).  the
+   entire model.  Exceptions are the first two coefficients after
+   *oxdna2/stk* (seq=seqdep and T=0.1 and
+   corresponding *real unit* equivalents in the above examples), the
    first coefficient after *oxdna2/hbond* (seq=seqdep in the above
-   example) and the three coefficients after *oxdna2/dh* (T=0.1,
-   rhos=0.5, qeff=0.815 in the above example). When using a Langevin
-   thermostat e.g. through :doc:`fix langevin <fix_langevin>` or
+   example) and the two coefficients after *oxdna2/dh* (T=0.1 and
+   rhos=0.5 in the above example).
+   *oxdna2/dh* has the option to set half a charge at terminal nucleotides
+   (half_charged_ends yes) to aid coaxial stacking. When using a
+   Langevin thermostat e.g. through :doc:`fix langevin <fix_langevin>` or
    :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>` the temperature
    coefficients have to be matched to the one used in the fix.
 
@@ -161,9 +163,18 @@ description of the oxDNA2 force field.
    the data file. The first (second) atom in a bond definition is
    understood to point towards the 3'-end (5'-end) of the strand.
 
+.. warning::
+
+   If data files are produced with :doc:`write_data <write_data>`, then
+   the :doc:`newton <newton>` command should be set to *newton on*.
+   Otherwise the data files will not have the same 3'-to-5' polarity
+   as the initial data file. This limitation does not apply to
+   binary restart files produced with :doc:`write_restart <write_restart>`.
+
 Example input and data files for DNA duplexes can be found in
-``examples/PACKAGES/cgdna/examples/oxDNA/`` and ``.../oxDNA2/``.  A
-simple python setup tool which creates single straight or helical DNA
+``examples/PACKAGES/cgdna/examples/lj_units/oxDNA2/`` or in the
+corresponding folder for real units.
+A simple python setup tool which creates single straight or helical DNA
 strands, DNA duplexes or arrays of DNA duplexes can be found in
 ``examples/PACKAGES/cgdna/util/``.
 
@@ -208,7 +219,7 @@ example, the following command:
 
    pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
    pair_coeff * * oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
-   pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 oxdna2_lj.cgdna
+   pair_coeff * * oxdna2/stk     seqdep 0.1 oxdna2_lj.cgdna
    pair_coeff * * oxdna2/hbond   seqdep oxdna2_lj.cgdna
    pair_coeff 1 4 oxdna2/hbond   seqdep oxdna2_lj.cgdna
    pair_coeff 2 3 oxdna2/hbond   seqdep oxdna2_lj.cgdna
@@ -228,6 +239,68 @@ for oxDNA, the python tool *lj2real.py* located in the
 ``examples/PACKAGES/cgdna/util/`` directory can be used. This tool assumes
 similar file structure to the examples found in
 ``examples/PACKAGES/cgdna/examples/``.
+
+----------
+
+Unique base pairing
+""""""""""""""""""""""
+
+Unique base pairing describes the restriction on the specific complementary
+nucleotide with which a particular base can pair. This can be used to prevent
+asymmetric base pairs or to simplify the free energy landscape. With unique
+base pairing enabled base pairs can only form between complementary nucleotides
+with specific atom IDs. This functionality draws on :doc:`fix property/atom <fix_property_atom>`
+and a modified :doc:`read_data <read_data>` command.
+
+To use unique base pairing, the data file of a system with N nucleotides must contain a section like
+
+.. code-block:: LAMMPS
+
+   Basepairs # i_idc
+
+   1 idc1
+   2 idc2
+   3 idc3
+   4 idc4
+   ...
+   N idcN
+
+where idc is the non-negative atom ID of a complementary nucleotide that binds uniquely
+to the preceding atom ID.
+
+Unique base pairing can be combined with normal base pairing by setting a zero or negative value for idc.
+For instance, in a 4-mer with 8 nucleotides consisting of a ssDNA strand 3'-A-A-A-A-5' with atom IDs 3'-1-2-3-4-5'
+and a complementary strand 5'-T-T-T-T-3' with atom IDs 5'-8-7-6-5-3' set up as
+
+.. code-block:: LAMMPS
+
+   Basepairs # i_idc
+
+   1 8
+   2 -1
+   3 -1
+   4 5
+   5 4
+   6 -1
+   7 -1
+   8 1
+
+the A nucleotide with ID 1 can only hybridize with the T nucleotide with ID 8 and
+the A nucleotide with ID 4 can only hybridize with the T nucleotide with ID 5,
+whereas the A nucleotides with ID 2 and 3 can hybridize with either T nucleotide with ID 6 and 7.
+
+The input file requires an instance of the :doc:`fix property/atom <fix_property_atom>` and a
+:doc:`read_data <read_data>` command as follows:
+
+.. code-block:: LAMMPS
+
+   fix Basepairs all property/atom i_idc ghost yes
+   read_data file fix Basepairs NULL Basepairs
+
+where *file* is the name of the data file and the only modifiable argument.
+An example input and data file for a dsDNA ring can be found in
+``examples/PACKAGES/cgdna/examples/lj_units/oxDNA3/unique_bp``
+or in the corresponding folder for real units.
 
 ----------
 

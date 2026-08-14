@@ -41,7 +41,7 @@ class Improper : protected Pointers {
                      // extract() method may still need to be added
 
   int symmatoms[4];    // symmetry atom(s) of improper style
-                       // value of 0: interchangable atoms
+                       // value of 0: interchangeable atoms
                        // value of 1: central atom
                        // values >1: additional atoms of symmetry
 
@@ -77,7 +77,7 @@ class Improper : protected Pointers {
   int suffix_flag;    // suffix compatibility flag
 
   int evflag;
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
   int maxeatom, maxvatom, maxcvatom;
 
@@ -86,8 +86,8 @@ class Improper : protected Pointers {
     if (eflag || vflag)
       ev_setup(eflag, vflag, alloc);
     else
-      evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom =
-          cvflag_atom = 0;
+      evflag = eflag_either = eflag_global = eflag_atom = eflag_only = vflag_either = vflag_global =
+          vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int, int, int, int, int, double, double *, double *, double *, double, double,

@@ -2,6 +2,7 @@
 lammps_version: 24 Aug 2020
 date_generated: Tue Sep 15 09:44:38 202
 epsilon: 7.5e-14
+skip_tests: kokkos_gpu
 prerequisites: ! |
   atom full
   pair coul/long

@@ -50,7 +50,6 @@ class PairTriSurf : public Pair {
   void PointTriangleDistance(const Eigen::Vector3d &P, const Eigen::Vector3d &TRI1,
                              const Eigen::Vector3d &TRI2, const Eigen::Vector3d &TRI3,
                              Eigen::Vector3d &CP, double &dist);
-  double clamp(const double a, const double min, const double max);
   void *extract(const char *, int &) override;
 
  protected:

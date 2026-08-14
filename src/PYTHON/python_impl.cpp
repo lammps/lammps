@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "python_compat.h"
 #include "python_utils.h"
+#include "safe_pointers.h"
 #include "variable.h"
 
 #include <Python.h>    // IWYU pragma: export
@@ -291,7 +292,7 @@ void PythonImpl::command(int narg, char **arg)
   // exist: do nothing, assume code has already been run
 
   if (pyfile) {
-    FILE *fp = fopen(pyfile, "r");
+    SafeFilePtr fp = fopen(pyfile, "r");
 
     if (fp == nullptr) {
       PyUtils::Print_Errors();
@@ -303,7 +304,6 @@ void PythonImpl::command(int narg, char **arg)
       PyUtils::Print_Errors();
       error->all(FLERR, Error::NOLASTLINE, "Could not process Python file: {}", pyfile);
     }
-    fclose(fp);
 
   } else if (herestr) {
     int err = PyRun_SimpleString(herestr);
@@ -685,14 +685,13 @@ int PythonImpl::execute_string(char *cmd)
 
 int PythonImpl::execute_file(char *fname)
 {
-  FILE *fp = fopen(fname, "r");
+  SafeFilePtr fp = fopen(fname, "r");
   if (fp == nullptr) return -1;
 
   PyUtils::GIL lock;
   int err = PyRun_SimpleFile(fp, fname);
   if (err) PyUtils::Print_Errors();
 
-  if (fp) fclose(fp);
   return err;
 }
 

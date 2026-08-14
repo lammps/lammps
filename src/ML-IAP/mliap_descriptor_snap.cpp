@@ -23,6 +23,7 @@
 #include "memory.h"
 #include "mliap_data.h"
 #include "pair_mliap.h"
+#include "safe_pointers.h"
 #include "sna.h"
 #include "tokenizer.h"
 
@@ -373,7 +374,7 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
 
   // open SNAP parameter file on proc 0
 
-  FILE *fpparam;
+  SafeFilePtr fpparam;
   if (comm->me == 0) {
     fpparam = utils::open_potential(paramfilename, lmp, nullptr);
     if (fpparam == nullptr)
@@ -391,7 +392,6 @@ void MLIAPDescriptorSNAP::read_paramfile(char *paramfilename)
       ptr = fgets(line, MAXLINE, fpparam);
       if (ptr == nullptr) {
         eof = 1;
-        fclose(fpparam);
       } else
         n = strlen(line) + 1;
     }

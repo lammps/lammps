@@ -32,7 +32,7 @@ class FixBrownianSphere : public FixBrownianBase {
   void initial_integrate(int) override;
 
  private:
-  template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D, int Tp_2Drot>
+  template <int Tp_ROTGEOM, int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D, int Tp_2Drot>
   void initial_integrate_templated();
   double g3, g4;
 };

@@ -98,7 +98,7 @@ keywords for outputting the various parameters that define the size
 and shape of orthogonal, restricted triclinic, and general triclinic
 simulation boxes.
 
-For orthogonal boxes there 6 thermo keywords (xlo,ylo,zlo) and
+For orthogonal boxes there are 6 thermo keywords (xlo,ylo,zlo) and
 (xhi,yhi,zhi).
 
 For restricted triclinic boxes there are 9 thermo keywords for

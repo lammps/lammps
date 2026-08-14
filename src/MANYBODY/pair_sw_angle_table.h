@@ -29,6 +29,7 @@ class PairSWAngleTable : public PairSW {
   PairSWAngleTable(class LAMMPS *);
   ~PairSWAngleTable() override;
   void compute(int, int) override;
+  void settings(int, char **) override;
 
   static constexpr int NPARAMS_PER_LINE = 18;
 
@@ -69,7 +70,6 @@ class PairSWAngleTable : public PairSW {
   void spline(double *, double *, int, double, double, double *);
   double splint(double *, double *, double *, int, double);
   void uf_lookup(ParamTable *, double, double &, double &);
-  void settings(int, char **) override;
 };
 
 }    // namespace LAMMPS_NS

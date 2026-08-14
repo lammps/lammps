@@ -17,10 +17,10 @@ namespace desul {
 struct alignas(16) Dummy16ByteValue {
   int64_t value1;
   int64_t value2;
-  bool operator!=(Dummy16ByteValue v) const {
+  DESUL_FUNCTION bool operator!=(Dummy16ByteValue v) const {
     return (value1 != v.value1) || (value2 != v.value2);
   }
-  bool operator==(Dummy16ByteValue v) const {
+  DESUL_FUNCTION bool operator==(Dummy16ByteValue v) const {
     return (value1 == v.value1) && (value2 == v.value2);
   }
 };
@@ -90,26 +90,19 @@ struct numeric_limits_max<uint64_t> {
   static constexpr auto value = static_cast<uint64_t>(-1);
 };
 
-constexpr bool atomic_always_lock_free(std::size_t size) {
-  return size == 4 || size == 8
-#if defined(DESUL_HAVE_16BYTE_COMPARE_AND_SWAP)
-         || size == 16
-#endif
-      ;
-}
-
-template <std::size_t Size, std::size_t Align>
-DESUL_INLINE_FUNCTION bool atomic_is_lock_free() noexcept {
-  return Size == 4 || Size == 8
-#if defined(DESUL_HAVE_16BYTE_COMPARE_AND_SWAP)
-         || Size == 16
-#endif
-      ;
-}
-
 //<editor-fold desc="Underlying type for atomic compare exchange">
 template <std::size_t Bytes>
 struct atomic_compare_exchange_helper;
+
+template <>
+struct atomic_compare_exchange_helper<1> {
+  using type = int8_t;
+};
+
+template <>
+struct atomic_compare_exchange_helper<2> {
+  using type = int16_t;
+};
 
 template <>
 struct atomic_compare_exchange_helper<4> {
@@ -130,6 +123,13 @@ template <class T>
 using atomic_compare_exchange_t =
     typename atomic_compare_exchange_helper<sizeof(T)>::type;
 //</editor-fold>
+
+// adding a Dummy to allow a way of specializing independent of T
+template <typename T, typename Dummy = void>
+inline constexpr bool host_atomic_always_lock_free = false;
+
+template <typename T, typename Dummy = void>
+inline constexpr bool device_atomic_always_lock_free = false;
 
 template <class T>
 struct dont_deduce_this_parameter {

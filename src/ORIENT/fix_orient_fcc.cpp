@@ -27,6 +27,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -101,7 +102,7 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
     char *result;
     int count;
 
-    FILE *inpfile = fopen(xifilename,"r");
+    SafeFilePtr inpfile = fopen(xifilename,"r");
     if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
     for (int i = 0; i < half_fcc_nn; i++) {
       result = fgets(line,IMGMAX,inpfile);
@@ -109,7 +110,6 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
       count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
-    fclose(inpfile);
 
     inpfile = fopen(chifilename,"r");
     if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
@@ -119,7 +119,6 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
       count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
       if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
     }
-    fclose(inpfile);
   }
 
   MPI_Bcast(&Rxi[0][0],half_fcc_nn*3,MPI_DOUBLE,0,world);

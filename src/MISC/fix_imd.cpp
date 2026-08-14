@@ -251,7 +251,7 @@ tagint taginthash_insert(taginthash_t *tptr, tagint key, tagint data) {
 
   /* check to see if the entry exists */
   if ((tmp=taginthash_lookup(tptr, key)) != HASH_FAIL)
-    return(tmp);
+    return tmp;
 
   /* expand the table if needed */
   while (tptr->entries>=HASH_LIMIT*tptr->size)
@@ -550,7 +550,12 @@ FixIMD::FixIMD(LAMMPS *lmp, int narg, char **arg) :
   }
 
   bigint n = group->count(igroup);
-  if (n > MAXSMALLINT) error->all(FLERR,"Too many atoms for fix imd");
+
+  // the message buffer holds up to 3 groups of 3 floats per atom plus
+  // headers and its length must fit into a signed 32-bit integer
+
+  if (3*3*4*n + 5*IMDHEADERSIZE + 60 > MAXSMALLINT)
+    error->all(FLERR,"Too many atoms for fix imd");
   num_coords = static_cast<int> (n);
 
   // Define MPI dtype for passing x/v/f data
@@ -809,7 +814,8 @@ void FixIMD::setup_v2() {
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
-  int tmp, ndata;
+  int tmp = 0;
+  int ndata = 0;
   auto *buf = static_cast<struct commdata *>(coord_data);
 
   if (me == 0) {
@@ -911,8 +917,8 @@ void FixIMD::setup_v3()
   taginthash_init(hashtable, num_coords);
   idmap = (void *)hashtable;
 
-  int tmp, ndata;
-
+  int tmp = 0;
+  int ndata = 0;
   struct commdata *buf = nullptr;
   if (imdsinfo->coords) {
     buf = static_cast<struct commdata *>(coord_data);
@@ -1140,6 +1146,8 @@ void FixIMD::handle_step_v2() {
           break;
 
         case IMD_MDCOMM: {
+          if ((length < 0) || (length > num_coords))
+            error->one(FLERR, "Invalid IMD forces message length: {}", length);
           auto *imd_tags = new int32[length];
           auto *imd_fdat = new float[3*length];
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);
@@ -1236,7 +1244,8 @@ void FixIMD::handle_step_v2() {
     coord_data = memory->smalloc(maxbuf,"imd:coord_data");
   }
 
-  int tmp, ndata;
+  int tmp = 0;
+  int ndata = 0;
   buf = static_cast<struct commdata *>(coord_data);
 
   if (me == 0) {
@@ -1465,6 +1474,8 @@ void FixIMD::handle_client_input_v3() {
           break;
 
         case IMD_MDCOMM: {
+          if ((length < 0) || (length > num_coords))
+            error->one(FLERR, "Invalid IMD forces message length: {}", length);
           auto *imd_tags = new int32[length];
           auto *imd_fdat = new float[3*length];
           imd_recv_mdcomm(clientsock, length, imd_tags, imd_fdat);

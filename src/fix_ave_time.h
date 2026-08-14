@@ -21,6 +21,7 @@ FixStyle(ave/time,FixAveTime);
 #define LMP_FIX_AVE_TIME_H
 
 #include "fix.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -56,7 +57,7 @@ class FixAveTime : public Fix {
   int nvalues, nrepeat, nfreq, irepeat;
   bigint nvalid, nvalid_last;
 
-  FILE *fp;
+  SafeFilePtr fp;
   int nrows;
   int any_variable_length;
   int all_variable_length;

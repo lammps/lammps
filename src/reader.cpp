@@ -23,9 +23,7 @@ using namespace LAMMPS_NS;
 
 Reader::Reader(LAMMPS *lmp) : Pointers(lmp)
 {
-  fp = nullptr;
   binary = false;
-  compressed = false;
 }
 
 // avoid resource leak
@@ -41,14 +39,11 @@ Reader::~Reader()
 
 void Reader::open_file(const std::string &file)
 {
-  if (fp != nullptr) close_file();
-
   if (platform::has_compress_extension(file)) {
-    compressed = true;
+    fp.set_pclose();
     fp = platform::compressed_read(file);
     if (!fp) error->one(FLERR, "Cannot open compressed file for reading");
   } else {
-    compressed = false;
     if (utils::strmatch(file, "\\.bin$")) {
       binary = true;
       fp = fopen(file.c_str(), "rb");
@@ -68,11 +63,6 @@ void Reader::open_file(const std::string &file)
 
 void Reader::close_file()
 {
-  if (fp == nullptr) return;
-  if (compressed)
-    platform::pclose(fp);
-  else
-    fclose(fp);
   fp = nullptr;
 }
 

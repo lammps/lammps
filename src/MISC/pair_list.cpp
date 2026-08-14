@@ -33,20 +33,24 @@
 using namespace LAMMPS_NS;
 using MathSpecial::square;
 
+namespace {
+
 enum { NONE = 0, HARM, MORSE, LJ126, QUARTIC };
 
 // clang-format off
-static std::map<std::string, int> stylename = {
+// NOLINTBEGIN
+std::map<std::string, int> stylename = {
     {"none",     NONE},
     {"harmonic", HARM},
     {"morse",    MORSE},
     {"lj126",    LJ126},
     {"quartic",  QUARTIC}
 };
+// NOLINTEND
 // clang-format on
 
 // fast power function for integer exponent > 0
-static double mypow(double x, int n)
+double mypow(double x, int n)
 {
   double yy;
 
@@ -61,6 +65,7 @@ static double mypow(double x, int n)
 using dbl3_t = struct {
   double x, y, z;
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

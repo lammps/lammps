@@ -1,7 +1,10 @@
 .. index:: compute ackland/atom
+.. index:: compute ackland/atom/omp
 
 compute ackland/atom command
 ============================
+
+Accelerator Variants: *ackland/atom/omp*
 
 Syntax
 """"""
@@ -65,6 +68,12 @@ This compute calculates a per-atom vector, which can be accessed by
 any command that uses per-atom values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -57,7 +57,7 @@ class FixTTMGrid : public FixTTM {
   int get_griddata_by_name(int, const std::string &, int &) override;
   void *get_griddata_by_index(int) override;
 
- private:
+ protected:
   int ngridown, ngridout;
   int nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in;
   int nxlo_out, nxhi_out, nylo_out, nyhi_out, nzlo_out, nzhi_out;
@@ -73,7 +73,7 @@ class FixTTMGrid : public FixTTM {
   double *grid_buf1, *grid_buf2;
 
   double ***T_electron_read;
-  int nxlo_out_previous,nylo_out_previous,nzlo_out_previous;
+  int nxlo_out_previous, nylo_out_previous, nzlo_out_previous;
 
   void allocate_grid() override;
   void deallocate_grid() override;

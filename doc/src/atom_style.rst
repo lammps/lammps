@@ -15,6 +15,7 @@ Syntax
   .. parsed-literal::
 
        args = none for any style except the following
+         *apip* arg = *conservative*/*thermostat* (optional) for conservative APIP/lambda thermostat APIP
          *body* args = bstyle bstyle-args
            bstyle = style of body particles
            bstyle-args = additional arguments specific to the bstyle
@@ -27,6 +28,7 @@ Syntax
          *template* arg = template-ID
            template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
          *hybrid* args = list of one or more sub-styles, each with their args
+         *ellipsoid* arg = superellipsoid (optional) for superellipsoids instead of ellipsoids
 
 * accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk* or *spin/kk*
 
@@ -117,10 +119,14 @@ the Additional Information section below.
      - *bond* + "angle data"
      - :ref:`MOLECULE <PKG-MOLECULE>`
      - bead-spring polymers with stiffness
-   * - *apip*
+   * - *apip thermostat*
      - *atomic* + apip_lambda, apip_lambda_required, apip_lambda_input, apip_lambda_const, apip_lambda_input_ta, apip_e_fast, apip_e_precise, apip_f_const_lambda, apip_f_dyn_lambda
      - :ref:`APIP <PKG-APIP>`
-     - adaptive-precision interatomic potentials(APIP), see :doc:`APIP howto <Howto_apip>`
+     - adaptive-precision interatomic potentials(APIP) with a :doc:`lambda thermostat <fix_lambda_thermostat_apip>`, see :doc:`APIP howto <Howto_apip>`
+   * - *apip conservative*
+     - *atomic* + apip_lambda, apip_lambda_required, apip_e_fast, apip_e_precise
+     - :ref:`APIP <PKG-APIP>`
+     - conservative adaptive-precision interatomic potentials(APIP), see :doc:`APIP howto <Howto_apip>`
    * - *atomic*
      - tag, type, x, v, f, image, mask
      -
@@ -273,6 +279,14 @@ with both flavors of mass.
 Additional information about specific atom styles
 """""""""""""""""""""""""""""""""""""""""""""""""
 
+.. versionchanged:: 30Mar2026
+
+For the *apip* style, one can choose between the style for
+conservative potentials and the style for the
+:doc:`lambda thermostat <fix_lambda_thermostat_apip>`.
+The :doc:`Howto apip <Howto_apip>` describes the differences between
+both use cases.
+
 For the *body* style, the particles are arbitrary bodies with internal
 attributes defined by the "style" of the bodies, which is specified by
 the *bstyle* argument.  Body particles can represent complex entities,
@@ -340,6 +354,14 @@ stores a shape vector with the 3 diameters of the ellipsoid and a
 quaternion 4-vector with its orientation.  Each particle stores a flag
 in the ellipsoid vector which indicates whether it is an ellipsoid (1)
 or a point particle (0).
+
+.. versionadded:: 30Mar2026
+
+By adding the flag *superellipsoid* to the *ellipsoid* atom_style
+command, the particles can be superellipsoids, which are a
+generalization of ellipsoids with two additional blockiness parameters
+that control the shape.  Superellipsoids also store the principal
+moments of inertia of the particle.
 
 For the *line* style, particles can be are idealized line segments
 which store a per-particle mass and length and orientation (i.e. the
@@ -485,6 +507,8 @@ Default
 
 The default atom style is *atomic*.  If atom_style *sphere* or
 *bpm/sphere* is used, its default argument is 0.
+If atom_style *apip* is used, its default argument is
+'thermostat'.
 
 ----------
 

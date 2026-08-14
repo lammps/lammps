@@ -1,11 +1,19 @@
 .. index:: pair_style buck6d/coul/gauss/dsf
+.. index:: pair_style buck6d/coul/gauss/dsf/kk
+.. index:: pair_style buck6d/coul/gauss/dsf/omp
 .. index:: pair_style buck6d/coul/gauss/long
+.. index:: pair_style buck6d/coul/gauss/long/kk
+.. index:: pair_style buck6d/coul/gauss/long/omp
 
 pair_style buck6d/coul/gauss/dsf command
 ========================================
 
+Accelerator Variants: *buck6d/coul/gauss/dsf/kk*, *buck6d/coul/gauss/dsf/omp*
+
 pair_style buck6d/coul/gauss/long command
 =========================================
+
+Accelerator Variants: *buck6d/coul/gauss/long/kk*, *buck6d/coul/gauss/long/omp*
 
 Syntax
 """"""
@@ -119,6 +127,10 @@ is used.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -150,8 +162,8 @@ none
 
 .. _Schmid:
 
-.. _Fennell:
-
 **(Schmid)** S. Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013).
+
+.. _Fennell:
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).

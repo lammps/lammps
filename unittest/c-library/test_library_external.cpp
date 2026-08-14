@@ -4,6 +4,7 @@
 #include "library.h"
 
 #include <cinttypes>
+#include <cmath>
 #include <string>
 
 #include "gmock/gmock.h"
@@ -221,6 +222,17 @@ TEST(lammps_external, array)
     if (verbose) std::cout << output;
 }
 
+// compare a computed thermo value to its reference: bit-for-bit with a double
+// precision KOKKOS package, with a relative tolerance for reduced precision
+static void expect_thermo_value(double value, double ref)
+{
+    if (LAMMPS_NS::Info::has_accelerator_feature("KOKKOS", "precision", "double")) {
+        EXPECT_DOUBLE_EQ(value, ref);
+    } else {
+        EXPECT_NEAR(value, ref, fabs(ref) * 1.0e-5);
+    }
+}
+
 TEST(lammps_external, callback_kokkos_omp)
 {
     if (!LAMMPS_NS::Info::has_package("KOKKOS")) GTEST_SKIP();
@@ -239,6 +251,8 @@ TEST(lammps_external, callback_kokkos_omp)
 
     const char *args[] = {"liblammps", "-log", "none", "-nocite", "-k",   "on",
                           "t",         "4",    "-sf",  "kk",      nullptr};
+    // fall back to a single thread if the OpenMP backend is not available
+    if (!LAMMPS_NS::Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[7] = "1";
     char **argv        = (char **)args;
     int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
@@ -285,17 +299,17 @@ TEST(lammps_external, callback_kokkos_omp)
         (double *)lammps_extract_compute(handle, "sum", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
-    EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);
-    EXPECT_DOUBLE_EQ(press, 0.15416666666666667);
+    expect_thermo_value(temp, 1.0 / 30.0);
+    expect_thermo_value(pe, 1.0 / 8.0);
+    expect_thermo_value(press, 0.15416666666666667);
     EXPECT_DOUBLE_EQ(val, 15);
-    EXPECT_DOUBLE_EQ(reduce[0], 2.8);
-    EXPECT_DOUBLE_EQ(reduce[1], -0.7);
-    EXPECT_DOUBLE_EQ(reduce[2], -0.7);
-    EXPECT_DOUBLE_EQ(reduce[3], -0.7);
-    EXPECT_DOUBLE_EQ(reduce[4], 1.4);
-    EXPECT_DOUBLE_EQ(reduce[5], 1.4);
-    EXPECT_DOUBLE_EQ(reduce[6], 1.4);
+    expect_thermo_value(reduce[0], 2.8);
+    expect_thermo_value(reduce[1], -0.7);
+    expect_thermo_value(reduce[2], -0.7);
+    expect_thermo_value(reduce[3], -0.7);
+    expect_thermo_value(reduce[4], 1.4);
+    expect_thermo_value(reduce[5], 1.4);
+    expect_thermo_value(reduce[6], 1.4);
 
     double **fext =
         (double **)lammps_extract_fix(handle, "ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY, 0, 0);
@@ -333,6 +347,8 @@ TEST(lammps_external, array_kokkos_omp)
 
     const char *args[] = {"liblammps", "-log", "none", "-nocite", "-k",   "on",
                           "t",         "4",    "-sf",  "kk",      nullptr};
+    // fall back to a single thread if the OpenMP backend is not available
+    if (!LAMMPS_NS::Info::has_accelerator_feature("KOKKOS", "api", "openmp")) args[7] = "1";
     char **argv        = (char **)args;
     int argc           = (sizeof(args) / sizeof(char *)) - 1;
 
@@ -371,9 +387,9 @@ TEST(lammps_external, array_kokkos_omp)
     double press = lammps_get_thermo(handle, "press");
     output       = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    EXPECT_DOUBLE_EQ(temp, 4.0 / 525.0);
-    EXPECT_DOUBLE_EQ(pe, 1.0 / 16.0);
-    EXPECT_DOUBLE_EQ(press, 0.069166666666666668);
+    expect_thermo_value(temp, 4.0 / 525.0);
+    expect_thermo_value(pe, 1.0 / 16.0);
+    expect_thermo_value(press, 0.069166666666666668);
 
     ::testing::internal::CaptureStdout();
     nlocal = lammps_extract_setting(handle, "nlocal");
@@ -390,9 +406,9 @@ TEST(lammps_external, array_kokkos_omp)
     press  = lammps_get_thermo(handle, "press");
     output = ::testing::internal::GetCapturedStdout();
     if (verbose) std::cout << output;
-    EXPECT_DOUBLE_EQ(temp, 1.0 / 30.0);
-    EXPECT_DOUBLE_EQ(pe, 1.0 / 8.0);
-    EXPECT_DOUBLE_EQ(press, 0.15416666666666667);
+    expect_thermo_value(temp, 1.0 / 30.0);
+    expect_thermo_value(pe, 1.0 / 8.0);
+    expect_thermo_value(press, 0.15416666666666667);
 
     double **fext =
         (double **)lammps_extract_fix(handle, "ext", LMP_STYLE_ATOM, LMP_TYPE_ARRAY, 0, 0);

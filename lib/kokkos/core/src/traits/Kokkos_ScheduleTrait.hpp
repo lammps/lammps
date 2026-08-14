@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_KOKKOS_SCHEDULETRAIT_HPP
 #define KOKKOS_KOKKOS_SCHEDULETRAIT_HPP
@@ -33,6 +20,23 @@ template <class T>
 struct show_extra_schedule_type_erroneously_given_to_execution_policy;
 template <>
 struct show_extra_schedule_type_erroneously_given_to_execution_policy<void> {};
+
+template <class Sched, class AnalyzeNextTrait>
+struct ScheduleMixin : AnalyzeNextTrait {
+  using base_t = AnalyzeNextTrait;
+  using base_t::base_t;
+  using schedule_type = Sched;
+  static constexpr auto show_schedule_type_error_in_compilation_message =
+      show_extra_schedule_type_erroneously_given_to_execution_policy<
+          std::conditional_t<base_t::schedule_type_is_defaulted, void,
+                             typename base_t::schedule_type>>{};
+  static_assert(base_t::schedule_type_is_defaulted,
+                "Kokkos Error: More than one schedule type given. Search "
+                "compiler output for 'show_extra_schedule_type' to see the "
+                "type of the errant tag.");
+  static constexpr bool schedule_type_is_defaulted = false;
+};
+
 struct ScheduleTrait : TraitSpecificationBase<ScheduleTrait> {
   struct base_traits {
     static constexpr auto schedule_type_is_defaulted = true;
@@ -41,20 +45,7 @@ struct ScheduleTrait : TraitSpecificationBase<ScheduleTrait> {
     KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class Sched, class AnalyzeNextTrait>
-  struct mixin_matching_trait : AnalyzeNextTrait {
-    using base_t = AnalyzeNextTrait;
-    using base_t::base_t;
-    using schedule_type = Sched;
-    static constexpr auto show_schedule_type_error_in_compilation_message =
-        show_extra_schedule_type_erroneously_given_to_execution_policy<
-            std::conditional_t<base_t::schedule_type_is_defaulted, void,
-                               typename base_t::schedule_type>>{};
-    static_assert(base_t::schedule_type_is_defaulted,
-                  "Kokkos Error: More than one schedule type given. Search "
-                  "compiler output for 'show_extra_schedule_type' to see the "
-                  "type of the errant tag.");
-    static constexpr bool schedule_type_is_defaulted = false;
-  };
+  using mixin_matching_trait = ScheduleMixin<Sched, AnalyzeNextTrait>;
 };
 
 // </editor-fold> end trait specification }}}1

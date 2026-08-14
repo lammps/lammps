@@ -26,12 +26,16 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmooth::PairLJSmooth(LAMMPS *lmp) : Pair(lmp)
+PairLJSmooth::PairLJSmooth(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), epsilon(nullptr),
+    sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), ljsw0(nullptr),
+    ljsw1(nullptr), ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), offset(nullptr)
 {
   writedata = 1;
 }
@@ -40,6 +44,8 @@ PairLJSmooth::PairLJSmooth(LAMMPS *lmp) : Pair(lmp)
 
 PairLJSmooth::~PairLJSmooth()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -450,4 +456,14 @@ double PairLJSmooth::single(int /*i*/, int /*j*/, int itype, int jtype, double r
       ljsw2[itype][jtype]*tsq/2.0 - ljsw3[itype][jtype]*tsq*t/3.0 -
       ljsw4[itype][jtype]*tsq*tsq/4.0 - offset[itype][jtype];
   return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJSmooth::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
 }

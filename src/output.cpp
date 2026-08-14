@@ -385,7 +385,7 @@ void Output::write(bigint ntimestep)
   //   if wrap when timestep size varies frequently,
   //     then can do many unneeded addstep() --> inefficient
   //   hard to know if timestep varies, since run every could change it
-  //   can't remove an uneeded addstep from a compute, b/c don't know
+  //   can't remove an unneeded addstep from a compute, b/c don't know
   //     what other command may have added it
 
   int mode_dump_any = 0;  // any variable time or clearstep dump
@@ -745,7 +745,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         for (auto myatom : atoms_root) {
           int mytype = myatom.type;
           std::string typestr = std::to_string(mytype);
-          if (atom->labelmapflag) typestr = atom->lmap->find(mytype, Atom::ATOM);
+          if (atom->labelmapflag) typestr = atom->lmap->find_label(mytype, Atom::ATOM);
           utils::print(fp, "{}[{}, \"{}\"]", indent, myatom.tag, typestr);
           if (std::next(it) == atoms_root.end()) fprintf(fp, "\n");
           else fprintf(fp, ",\n");

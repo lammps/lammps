@@ -47,6 +47,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <algorithm>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -71,9 +72,10 @@ enum { NONE, MOVEATOM, MOVEMOL };    // movemode
 FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), full_flag(false),
     groupstrings(nullptr), grouptypestrings(nullptr), grouptypebits(nullptr), grouptypes(nullptr),
-    local_gas_list(nullptr), molcoords(nullptr), molq(nullptr), molimage(nullptr),
-    random_equal(nullptr), random_unequal(nullptr), fixrigid(nullptr), fixshake(nullptr),
-    idrigid(nullptr), idshake(nullptr)
+    sublo(nullptr), subhi(nullptr), local_gas_list(nullptr), cutsq(nullptr), molcoords(nullptr),
+    molq(nullptr), molimage(nullptr), pair(nullptr), random_equal(nullptr),
+    random_unequal(nullptr), model_atom(nullptr), onemols(nullptr), fixrigid(nullptr),
+    fixshake(nullptr), idrigid(nullptr), idshake(nullptr), c_pe(nullptr)
 {
   if (narg < 11) utils::missing_cmd_args(FLERR, "fix gcmc", error);
 
@@ -280,7 +282,7 @@ void FixGCMC::options(int narg, char **arg)
       if (imol == -1)
         error->all(FLERR, iarg + 1, "Molecule template ID {} for fix gcmc does not exist",
                    arg[iarg + 1]);
-      if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+      if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR, "Molecule template for fix gcmc has multiple molecules");
       exchmode = EXCHMOL;
       onemols = atom->molecules;
@@ -545,7 +547,7 @@ void FixGCMC::init()
     }
   }
 
-  if (full_flag) c_pe = modify->compute[modify->find_compute("thermo_pe")];
+  if (full_flag) c_pe = modify->get_compute_by_id("thermo_pe");
 
   int *type = atom->type;
 
@@ -712,8 +714,7 @@ void FixGCMC::init()
   // warning if group id is "all"
 
   if ((comm->me == 0) && (groupbit & 1))
-    error->warning(FLERR, "Fix gcmc is being applied "
-                   "to the default group all");
+    error->warning(FLERR, "Fix gcmc is being applied ""to the default group all");
 
   // construct group bitmask for all new atoms
   // aggregated over all group keywords
@@ -790,9 +791,8 @@ void FixGCMC::pre_exchange()
 
   if (full_flag) {
     energy_stored = energy_full();
-    if (overlap_flag && energy_stored > MAXENERGYTEST)
-        error->warning(FLERR,"Energy of old configuration in "
-                       "fix gcmc is > MAXENERGYTEST.");
+    if (overlap_flag && (energy_stored > MAXENERGYTEST) && (comm->me == 0))
+      error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
 
     for (int i = 0; i < ncycles; i++) {
       int ixm = static_cast<int>(random_equal->uniform()*ncycles) + 1;
@@ -861,8 +861,8 @@ void FixGCMC::attempt_atomic_translation()
   if (i >= 0) {
     double **x = atom->x;
     double energy_before = energy(i,ngcmc_type,-1,x[i]);
-    if (overlap_flag && energy_before > MAXENERGYTEST)
-        error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
+    if (overlap_flag && (energy_before > MAXENERGYTEST) && (comm->me == 0))
+      error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
     double rsq = 1.1;
     double rx,ry,rz;
     rx = ry = rz = 0.0;
@@ -877,6 +877,7 @@ void FixGCMC::attempt_atomic_translation()
     coord[1] = x[i][1] + displace*ry;
     coord[2] = x[i][2] + displace*rz;
     if (region) {
+      int region_attempt = 0;
       while (region->match(coord[0],coord[1],coord[2]) == 0) {
         rsq = 1.1;
         while (rsq > 1.0) {
@@ -888,10 +889,14 @@ void FixGCMC::attempt_atomic_translation()
         coord[0] = x[i][0] + displace*rx;
         coord[1] = x[i][1] + displace*ry;
         coord[2] = x[i][2] + displace*rz;
+        ++region_attempt;
+        if (region_attempt >= max_region_attempts) break;
       }
+      if (!region->match(coord[0],coord[1],coord[2]))
+        error->one(FLERR,"Fix gcmc translation put atom outside region");
     }
     if (!domain->inside_nonperiodic(coord))
-      error->one(FLERR,"Fix gcmc put atom outside box");
+      error->one(FLERR,"Fix gcmc translation put atom outside box");
 
     double energy_after = energy(i,ngcmc_type,-1,coord);
 
@@ -1048,6 +1053,7 @@ void FixGCMC::attempt_atomic_insertion()
       atom->v[m][0] = random_unequal->gaussian()*sigma;
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
+      random_unequal->gaussian(); // this ensures exact restart
       modify->create_attribute(m);
 
       success = 1;
@@ -1085,9 +1091,8 @@ void FixGCMC::attempt_molecule_translation()
   if (translation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(translation_molecule);
-  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
-    error->warning(FLERR,"Energy of old configuration in "
-                   "fix gcmc is > MAXENERGYTEST.");
+  if (overlap_flag && (energy_before_sum > MAXENERGYTEST) && (comm->me == 0))
+    error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
 
   double **x = atom->x;
   double rx,ry,rz;
@@ -1118,6 +1123,7 @@ void FixGCMC::attempt_molecule_translation()
     coord[0] = com[0] + displace*rx;
     coord[1] = com[1] + displace*ry;
     coord[2] = com[2] + displace*rz;
+    int region_attempt = 0;
     while (region->match(coord[0],coord[1],coord[2]) == 0) {
       rsq = 1.1;
       while (rsq > 1.0) {
@@ -1129,10 +1135,14 @@ void FixGCMC::attempt_molecule_translation()
       coord[0] = com[0] + displace*rx;
       coord[1] = com[1] + displace*ry;
       coord[2] = com[2] + displace*rz;
+      ++region_attempt;
+      if (region_attempt >= max_region_attempts) break;
     }
     com_displace[0] = displace*rx;
     com_displace[1] = displace*ry;
     com_displace[2] = displace*rz;
+    if (!region->match(coord[0],coord[1],coord[2]))
+      error->one(FLERR,"Fix gcmc translation put molecule COM outside region");
   }
 
   double energy_after = 0.0;
@@ -1142,7 +1152,7 @@ void FixGCMC::attempt_molecule_translation()
       coord[1] = x[i][1] + com_displace[1];
       coord[2] = x[i][2] + com_displace[2];
       if (!domain->inside_nonperiodic(coord))
-        error->one(FLERR,"Fix gcmc put atom outside box");
+        error->one(FLERR,"Fix gcmc translation put molecule atom outside box");
       energy_after += energy(i,atom->type[i],translation_molecule,coord);
     }
   }
@@ -1184,9 +1194,8 @@ void FixGCMC::attempt_molecule_rotation()
   if (rotation_molecule == -1) return;
 
   double energy_before_sum = molecule_energy(rotation_molecule);
-  if (overlap_flag && energy_before_sum > MAXENERGYTEST)
-    error->warning(FLERR,"Energy of old configuration in "
-                   "fix gcmc is > MAXENERGYTEST.");
+  if (overlap_flag && (energy_before_sum > MAXENERGYTEST) && (comm->me == 0))
+    error->warning(FLERR,"Energy of old configuration in fix gcmc is > MAXENERGYTEST.");
 
   int *mask = atom->mask;
   int nmolcoords = 0;
@@ -1334,8 +1343,7 @@ void FixGCMC::attempt_molecule_insertion()
       (region_yhi-region_ylo);
     com_coord[2] = region_zlo + random_equal->uniform() *
       (region_zhi-region_zlo);
-    while (region->match(com_coord[0],com_coord[1],
-                                           com_coord[2]) == 0) {
+    while (region->match(com_coord[0],com_coord[1],com_coord[2]) == 0) {
       com_coord[0] = region_xlo + random_equal->uniform() *
         (region_xhi-region_xlo);
       com_coord[1] = region_ylo + random_equal->uniform() *
@@ -1453,6 +1461,7 @@ void FixGCMC::attempt_molecule_insertion()
     vnew[0] = random_equal->gaussian()*sigma;
     vnew[1] = random_equal->gaussian()*sigma;
     vnew[2] = random_equal->gaussian()*sigma;
+    random_equal->gaussian(); // this ensures exact restart
 
     for (int i = 0; i < natoms_per_molecule; i++) {
       if (procflag[i]) {
@@ -1546,6 +1555,7 @@ void FixGCMC::attempt_atomic_translation_full()
     coord[1] = x[i][1] + displace*ry;
     coord[2] = x[i][2] + displace*rz;
     if (region) {
+      int region_attempt = 0;
       while (region->match(coord[0],coord[1],coord[2]) == 0) {
         rsq = 1.1;
         while (rsq > 1.0) {
@@ -1557,10 +1567,14 @@ void FixGCMC::attempt_atomic_translation_full()
         coord[0] = x[i][0] + displace*rx;
         coord[1] = x[i][1] + displace*ry;
         coord[2] = x[i][2] + displace*rz;
+        ++region_attempt;
+        if (region_attempt >= max_region_attempts) break;
       }
+      if (!region->match(coord[0],coord[1],coord[2]))
+        error->one(FLERR,"Fix gcmc translation put atom outside region");
     }
     if (!domain->inside_nonperiodic(coord))
-      error->one(FLERR,"Fix gcmc put atom outside box");
+      error->one(FLERR,"Fix gcmc translation put atom outside box");
     xtmp[0] = x[i][0];
     xtmp[1] = x[i][1];
     xtmp[2] = x[i][2];
@@ -1725,6 +1739,7 @@ void FixGCMC::attempt_atomic_insertion_full()
     atom->v[m][0] = random_unequal->gaussian()*sigma;
     atom->v[m][1] = random_unequal->gaussian()*sigma;
     atom->v[m][2] = random_unequal->gaussian()*sigma;
+    random_unequal->gaussian(); // this ensures exact restart
     if (charge_flag) atom->q[m] = charge;
     modify->create_attribute(m);
   }
@@ -1795,6 +1810,7 @@ void FixGCMC::attempt_molecule_translation_full()
         mask[i] &= molecule_group_inversebit;
       }
     }
+    int region_attempt = 0;
     double com[3];
     com[0] = com[1] = com[2] = 0.0;
     group->xcm(molecule_group,gas_mass,com);
@@ -1812,7 +1828,11 @@ void FixGCMC::attempt_molecule_translation_full()
       coord[0] = com[0] + displace*rx;
       coord[1] = com[1] + displace*ry;
       coord[2] = com[2] + displace*rz;
+      ++region_attempt;
+      if (region_attempt >= max_region_attempts) break;
     }
+    if (!region->match(coord[0],coord[1],coord[2]))
+      error->one(FLERR,"Fix gcmc translation put molecule COM outside region");
     com_displace[0] = displace*rx;
     com_displace[1] = displace*ry;
     com_displace[2] = displace*rz;
@@ -1824,7 +1844,7 @@ void FixGCMC::attempt_molecule_translation_full()
       x[i][1] += com_displace[1];
       x[i][2] += com_displace[2];
       if (!domain->inside_nonperiodic(x[i]))
-        error->one(FLERR,"Fix gcmc put atom outside box");
+        error->one(FLERR,"Fix gcmc put molecule atom outside box");
     }
   }
 
@@ -2066,8 +2086,7 @@ void FixGCMC::attempt_molecule_insertion_full()
       (region_yhi-region_ylo);
     com_coord[2] = region_zlo + random_equal->uniform() *
       (region_zhi-region_zlo);
-    while (region->match(com_coord[0],com_coord[1],
-                                           com_coord[2]) == 0) {
+    while (region->match(com_coord[0],com_coord[1],com_coord[2]) == 0) {
       com_coord[0] = region_xlo + random_equal->uniform() *
         (region_xhi-region_xlo);
       com_coord[1] = region_ylo + random_equal->uniform() *
@@ -2120,6 +2139,7 @@ void FixGCMC::attempt_molecule_insertion_full()
   vnew[0] = random_equal->gaussian()*sigma;
   vnew[1] = random_equal->gaussian()*sigma;
   vnew[2] = random_equal->gaussian()*sigma;
+  random_equal->gaussian(); // this ensures exact restart
 
   for (int i = 0; i < natoms_per_molecule; i++) {
     double xtmp[3];
@@ -2315,8 +2335,10 @@ double FixGCMC::energy_full()
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build(1);
-  int eflag = 1;
-  int vflag = 0;
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   // if overlap check requested, if overlap,
   // return signal value for energy
@@ -2389,7 +2411,7 @@ double FixGCMC::energy_full()
 int FixGCMC::pick_random_gas_atom()
 {
   int i = -1;
-  int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
+  int iwhichglobal = static_cast<int>(ngas*random_equal->uniform());
   if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
     int iwhichlocal = iwhichglobal - ngas_before;
@@ -2404,7 +2426,7 @@ int FixGCMC::pick_random_gas_atom()
 
 tagint FixGCMC::pick_random_gas_molecule()
 {
-  int iwhichglobal = static_cast<int> (ngas*random_equal->uniform());
+  int iwhichglobal = static_cast<int>(ngas*random_equal->uniform());
   tagint gas_molecule_id = 0;
   if ((iwhichglobal >= ngas_before) &&
       (iwhichglobal < ngas_before + ngas_local)) {
@@ -2495,8 +2517,7 @@ void FixGCMC::update_gas_atoms_list()
 
       for (int i = 0; i < nlocal; i++) {
         if (mask[i] & groupbit) {
-          if (region->match(comx[molecule[i]],
-             comy[molecule[i]],comz[molecule[i]]) == 1) {
+          if (region->match(comx[molecule[i]],comy[molecule[i]],comz[molecule[i]]) == 1) {
             local_gas_list[ngas_local] = i;
             ngas_local++;
           }
@@ -2524,6 +2545,13 @@ void FixGCMC::update_gas_atoms_list()
       }
     }
   }
+
+  // sort local atoms on tags to ensure exact restart
+
+  tagint *tag = atom->tag;
+  std::sort(local_gas_list, local_gas_list + ngas_local,
+            [&tag](int i, int j) { return tag[i] < tag[j]; }
+            );
 
   MPI_Allreduce(&ngas_local,&ngas,1,MPI_INT,MPI_SUM,world);
   MPI_Scan(&ngas_local,&ngas_before,1,MPI_INT,MPI_SUM,world);
@@ -2563,10 +2591,12 @@ double FixGCMC::memory_usage()
 
 void FixGCMC::write_restart(FILE *fp)
 {
+  int nglobalvals = 12;
+  int nlocalvals = comm->nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[12];
   list[n++] = random_equal->state();
-  list[n++] = random_unequal->state();
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ntranslation_attempts;
   list[n++] = ntranslation_successes;
@@ -2577,11 +2607,15 @@ void FixGCMC::write_restart(FILE *fp)
   list[n++] = ninsertion_attempts;
   list[n++] = ninsertion_successes;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_unequal->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = n * sizeof(double);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(double),n,fp);
+    int size =  ntotalvals * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -2594,11 +2628,8 @@ void FixGCMC::restart(char *buf)
   int n = 0;
   auto *list = (double *) buf;
 
-  seed = static_cast<int> (list[n++]);
+  seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
-
-  seed = static_cast<int> (list[n++]);
-  random_unequal->reset(seed);
 
   next_reneighbor = (bigint) ubuf(list[n++]).i;
 
@@ -2614,6 +2645,14 @@ void FixGCMC::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, use state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == comm->nprocs) n += comm->me;
+  seed = static_cast<int>(list[n]);
+  random_unequal->reset(seed);
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

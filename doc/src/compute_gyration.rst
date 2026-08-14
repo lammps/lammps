@@ -74,7 +74,7 @@ distance\ :math:`^2` :doc:`units <units>`, respectively.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

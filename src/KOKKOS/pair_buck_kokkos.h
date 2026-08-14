@@ -45,8 +45,10 @@ class PairBuckKokkos : public PairBuck {
   double init_one(int, int) override;
 
   struct params_buck{
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_buck() {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_buck(int /*i*/) {cutsq=0;a=0;c=0;rhoinv=0;buck1=0;buck2=0;offset=0;};
     KK_FLOAT cutsq,a,c,rhoinv,buck1,buck2,offset;
@@ -54,14 +56,17 @@ class PairBuckKokkos : public PairBuck {
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_ecoul(const KK_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }

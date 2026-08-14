@@ -1,7 +1,10 @@
 .. index:: compute temp/sphere
+.. index:: compute temp/sphere/kk
 
 compute temp/sphere command
 ===========================
+
+Accelerator Variants: *temp/sphere/kk*
 
 Syntax
 """"""
@@ -140,6 +143,10 @@ vector values are "extensive".
 
 The scalar value is in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

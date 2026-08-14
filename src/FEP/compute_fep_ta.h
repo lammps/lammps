@@ -34,11 +34,11 @@ class ComputeFEPTA : public Compute {
   ~ComputeFEPTA() override;
   void init() override;
   void compute_vector() override;
+  double memory_usage() override;
 
  private:
   int tailflag;
   int fepinitflag;
-  int eflag, vflag;
   double temp_fep;
   double scale_factor;
   int tan_axis1, tan_axis2, norm_axis;

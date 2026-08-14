@@ -39,7 +39,7 @@ class NeighRequest : protected Pointers {
                              // used to track multiple requests from one class
 
   // -----------------------------
-  // flags set by requesting class for attributes of neighor list they need
+  // flags set by requesting class for attributes of neighbor list they need
   // all must be set appropriately, all have defaults
   // -----------------------------
 
@@ -146,8 +146,8 @@ class NeighRequest : protected Pointers {
   void enable_ghost();
   void enable_intel();
 
-  int get_size() const { return size; }
-  void *get_requestor() const { return requestor; }
+  [[nodiscard]] int get_size() const { return size; }
+  [[nodiscard]] void *get_requestor() const { return requestor; }
 };
 
 }    // namespace LAMMPS_NS

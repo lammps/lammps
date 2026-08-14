@@ -15,7 +15,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID style tol iter N constraint values ... keyword value ...
+   fix ID group-ID style tol iter N constraint values ... [keyword args ...]
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * style = shake or rattle = style name of this fix command

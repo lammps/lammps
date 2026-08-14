@@ -50,7 +50,9 @@ static const char cite_momb[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMomb::PairMomb(LAMMPS *lmp) : Pair(lmp)
+PairMomb::PairMomb(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), d0(nullptr), alpha(nullptr), r0(nullptr), c(nullptr), rr(nullptr),
+    morse1(nullptr), offset(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_momb);
 }
@@ -59,6 +61,8 @@ PairMomb::PairMomb(LAMMPS *lmp) : Pair(lmp)
 
 PairMomb::~PairMomb()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

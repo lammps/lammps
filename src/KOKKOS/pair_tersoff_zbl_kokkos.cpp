@@ -305,6 +305,7 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeShortNeigh, const int& ii) const {
     const int i = d_ilist[ii];
@@ -336,6 +337,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeShortN
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLOAT& ev) const {
 
@@ -542,6 +544,7 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
   this->template tersoff_zbl_compute<NEIGHFLAG, EVFLAG>(ii, ev);
@@ -549,6 +552,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -557,6 +561,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int &ii, const int&, EV_FLOAT& ev) const {
   this->template tersoff_zbl_compute<NEIGHFLAG, EVFLAG>(ii, ev);
@@ -564,6 +569,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const int &ii, const int&) const {
   EV_FLOAT ev;
@@ -573,6 +579,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 // TeamPolicy versions
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG> >::member_type &team, EV_FLOAT& ev) const {
 
@@ -584,6 +591,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG>, const typename Kokkos::TeamPolicy<DeviceType, TagPairTersoffZBLCompute<NEIGHFLAG,EVFLAG> >::member_type &team) const {
 
@@ -598,6 +606,7 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLCompute<NEIGH
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_fc_k(const Param& param, const KK_FLOAT &r) const
 {
@@ -612,6 +621,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_fc_k(const Param& param, const K
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dfc(const Param& param, const KK_FLOAT &r) const
 {
@@ -626,6 +636,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dfc(const Param& param, const KK
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::bondorder(const Param& param,
         const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
@@ -649,6 +660,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::bondorder(const Param& param,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::
         ters_gijk(const Param& param, const KK_FLOAT &cos) const
@@ -663,6 +675,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::
         ters_dgijk(const Param& param, const KK_FLOAT &cos) const
@@ -678,6 +691,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_fa_k(const Param& param, const KK_FLOAT &r) const
 {
@@ -689,6 +703,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_fa_k(const Param& param, const K
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dfa(const Param& param, const KK_FLOAT &r) const
 {
@@ -702,6 +717,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dfa(const Param& param, const KK
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_bij_k(const Param& param, const KK_FLOAT &bo) const
 {
@@ -718,6 +734,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_bij_k(const Param& param, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dbij(const Param& param, const KK_FLOAT &bo) const
 {
@@ -741,6 +758,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dbij(const Param& param, const K
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ters_dthb(
         const Param& param, const KK_FLOAT &prefactor,
@@ -815,6 +833,7 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthb(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ters_dthbj(
         const Param& param, const KK_FLOAT &prefactor,
@@ -877,6 +896,7 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbj(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ters_dthbk(
         const Param& param, const KK_FLOAT &prefactor,
@@ -935,6 +955,7 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbk(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::fermi_k(const Param& param, const KK_FLOAT &r) const
 {
@@ -945,6 +966,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::fermi_k(const Param& param, const KK_
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairTersoffZBLKokkos<DeviceType>::fermi_d_k(const Param& param, const KK_FLOAT &r) const
 {
@@ -958,6 +980,7 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::fermi_d_k(const Param& param, const K
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -1016,6 +1039,7 @@ void PairTersoffZBLKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, cons
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev,
         const int &i, const int &j, const int &k,
@@ -1066,6 +1090,7 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3(EV_FLOAT &ev,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairTersoffZBLKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i, const int & /*j*/,
                                                      const int & /*k*/, KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk,
@@ -1098,6 +1123,7 @@ void PairTersoffZBLKokkos<DeviceType>::v_tally3_atom(EV_FLOAT &ev, const int &i,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairTersoffZBLKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;

@@ -206,7 +206,7 @@ The vector or array values are "intensive".
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

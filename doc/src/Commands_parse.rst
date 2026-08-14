@@ -159,11 +159,11 @@ LAMMPS:
 
 .. note::
 
-   If the argument is itself a command that requires a quoted
-   argument (e.g. using a :doc:`print <print>` command as part of an
-   :doc:`if <if>` or :doc:`run every <run>` command), then single, double, or
+   If the argument is itself a command that requires a quoted argument
+   (e.g. using a :doc:`print <print>` command as part of an :doc:`if
+   <if>` or :doc:`run every <run>` command), then single, double, or
    triple quotes can be nested in the usual manner.  See the doc pages
-   for those commands for examples.  Only one of level of nesting is
+   for those commands for examples.  Only one level of nesting is
    allowed, but that should be sufficient for most use cases.
 
 .. admonition:: ASCII versus UTF-8

@@ -355,6 +355,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::com
  Simple team policy functor seeing how many layers deep we can go with the parallelism.
  */
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridComputeNeigh>::member_type& team) const {
 
@@ -491,6 +492,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeCayleyKlein,const int iatom_mod, const int jnbor, const int iatom_div) const {
 
@@ -509,6 +511,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridPreUi, const int& iatom_mod, const int& j, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
@@ -521,6 +524,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridPreUi, const int& iatom, const int& j) const {
   if (iatom >= chunk_size) return;
@@ -532,6 +536,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridPreUi, const int& iatom) const {
   if (iatom >= chunk_size) return;
@@ -544,6 +549,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeUiSmall<chemsnap>,
   const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridComputeUiSmall<chemsnap>>::member_type& team) const {
@@ -571,6 +577,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeUiLarge<chemsnap>,
   const typename Kokkos::TeamPolicy<DeviceType,TagCSNAGridComputeUiLarge<chemsnap>>::member_type& team) const {
@@ -600,6 +607,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridTransformUi, const int& iatom_mod, const int& idxu, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
@@ -609,6 +617,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridTransformUi, const int& iatom, const int& idxu) const {
   if (iatom >= chunk_size) return;
@@ -616,6 +625,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridTransformUi, const int& iatom) const {
   if (iatom >= chunk_size) return;
@@ -629,6 +639,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeZi<chemsnap>, const int& iatom_mod, const int& jjz, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
@@ -638,6 +649,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeZi<chemsnap>, const int& iatom, const int& jjz) const {
   if (iatom >= chunk_size) return;
@@ -645,6 +657,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeZi<chemsnap>, const int& iatom) const {
   if (iatom >= chunk_size) return;
@@ -657,6 +670,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 ------------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeBi<chemsnap>, const int& iatom_mod, const int& jjb, const int& iatom_div) const {
   const int iatom = iatom_mod + iatom_div * vector_length;
@@ -666,6 +680,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeBi<chemsnap>, const int& iatom, const int& jjb) const {
   if (iatom >= chunk_size) return;
@@ -673,6 +688,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeBi<chemsnap>, const int& iatom) const {
   if (iatom >= chunk_size) return;
@@ -681,6 +697,7 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridLocalFill, const int& ii) const {
 

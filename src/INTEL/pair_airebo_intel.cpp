@@ -36,13 +36,7 @@
 #include "intel_preprocess.h"
 #include "intel_intrinsics_airebo.h"
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(push, target(mic))
-#endif
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -51,9 +45,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(push, target(mic))
-#endif
 
 template<typename flt_t, typename acc_t>
 struct LAMMPS_NS::PairAIREBOIntelParam {
@@ -151,9 +142,6 @@ void aut_frebo(KernelArgsAIREBOT<flt_t,acc_t> * ka, int torsion_flag);
 
 }
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -188,9 +176,6 @@ void PairAIREBOIntel::init_style()
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
-  #ifdef _LMP_INTEL_OFFLOAD
-  _cop = fix->coprocessor_number();
-  #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
     pack_force_const(fix->get_mixed_buffers());
@@ -203,10 +188,6 @@ void PairAIREBOIntel::init_style()
     fix->get_single_buffers()->need_tag(1);
   }
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (fix->offload_noghost())
-    error->all(FLERR,"The 'ghost no' option cannot be used with airebo/intel.");
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -296,8 +277,6 @@ void PairAIREBOIntel::compute(
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
-  const int host_start = fix->host_start_pair();
-  const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
 
   if (ago != 0 && fix->separate_buffers() == 0) {
@@ -318,23 +297,6 @@ void PairAIREBOIntel::compute(
   }
 
   if (atom->nmax > maxlocal) {
-    #ifdef LMP_INTEL_OFFLOAD
-    if (maxlocal > 0 && _cop >= 0) {
-      int * const REBO_numneigh = this->REBO_numneigh;
-      int * const REBO_num_skin = this->REBO_num_skin;
-      int * const REBO_cnumneigh = this->REBO_cnumneigh;
-      int * const REBO_list_data = this->REBO_list_data;
-      double * const nC = this->nC;
-      double * const nH = this->nH;
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(REBO_numneigh: alloc_if(0) free_if(1)) \
-        nocopy(REBO_cnumneigh: alloc_if(0) free_if(1)) \
-        nocopy(REBO_num_skin: alloc_if(0) free_if(1)) \
-        nocopy(REBO_list_data: alloc_if(0) free_if(1)) \
-        nocopy(nH: alloc_if(0) free_if(1)) \
-        nocopy(nC: alloc_if(0) free_if(1))
-    }
-    #endif
     maxlocal = atom->nmax;
     memory->destroy(REBO_numneigh);
     memory->destroy(REBO_cnumneigh);
@@ -351,24 +313,6 @@ void PairAIREBOIntel::compute(
                                                "AIREBO:firstneigh");
     memory->create(nC,maxlocal,"AIREBO:nC");
     memory->create(nH,maxlocal,"AIREBO:nH");
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_cop >= 0) {
-      int * const REBO_numneigh = this->REBO_numneigh;
-      int * const REBO_num_skin = this->REBO_num_skin;
-      int * const REBO_cnumneigh = this->REBO_cnumneigh;
-      int * const REBO_list_data = this->REBO_list_data;
-      double * const nC = this->nC;
-      double * const nH = this->nH;
-      const int mnml = max_nbors * maxlocal;
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(REBO_numneigh: length(maxlocal) alloc_if(1) free_if(0)) \
-        nocopy(REBO_cnumneigh:length(maxlocal) alloc_if(1) free_if(0)) \
-        nocopy(REBO_num_skin: length(maxlocal) alloc_if(1) free_if(0)) \
-        nocopy(REBO_list_data:length(mnml) alloc_if(1) free_if(0)) \
-        nocopy(nH: length(maxlocal) alloc_if(1) free_if(0)) \
-        nocopy(nC: length(maxlocal) alloc_if(1) free_if(0))
-    }
-    #endif
   }
 
   if (evflag || vflag_fdotr) {
@@ -376,15 +320,12 @@ void PairAIREBOIntel::compute(
     if (vflag_fdotr) ovflag = 2;
     else if (vflag) ovflag = 1;
     if (eflag) {
-      eval<1,1>(1, ovflag, buffers, 0, offload_end);
-      eval<1,1>(0, ovflag, buffers, host_start, inum);
+      eval<1,1>(ovflag, buffers, 0, inum);
     } else {
-      eval<1,0>(1, ovflag, buffers, 0, offload_end);
-      eval<1,0>(0, ovflag, buffers, host_start, inum);
+      eval<1,0>(ovflag, buffers, 0, inum);
     }
   } else {
-    eval<0,0>(1, 0, buffers, 0, offload_end);
-    eval<0,0>(0, 0, buffers, host_start, inum);
+    eval<0,0>(0, buffers, 0, inum);
   }
 }
 
@@ -392,7 +333,7 @@ void PairAIREBOIntel::compute(
 
 template<int EVFLAG, int EFLAG, class flt_t, class acc_t>
 void PairAIREBOIntel::eval(
-    const int offload, const int vflag,
+    const int vflag,
     IntelBuffers<flt_t,acc_t> * buffers,
     const int astart, const int aend
 ) {
@@ -401,12 +342,11 @@ void PairAIREBOIntel::eval(
     return;
   }
   int nlocal, nall, minlocal;
-  fix->get_buffern(offload, nlocal, nall, minlocal);
+  fix->get_buffern(nlocal, nall, minlocal);
 
   const int ago = neighbor->ago;
-  IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
 
-  ATOM_T * _noalias const x = buffers->get_x(offload);
+  ATOM_T * _noalias const x = buffers->get_x();
   const int * _noalias const numneighhalf = buffers->get_atombin();
   const int * _noalias const numneigh = list->numneigh;
   const int ** _noalias const firstneigh = (const int **)list->firstneigh;  // NOLINT
@@ -415,69 +355,21 @@ void PairAIREBOIntel::eval(
   const int ntypes = atom->ntypes + 1;
   const int eatom = this->eflag_atom;
 
-  int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, 1 /*NEWTON_PAIR*/, EFLAG, vflag,
-                       buffers, offload, fix, separate_flag,
-                       x_size, q_size, ev_size, f_stride);
+  int f_stride;
+  IP_PRE_get_transfern(1 /*NEWTON_PAIR*/, buffers, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
 
   const int nthreads = tc;
   const double skin = neighbor->skin;
   const int max_nbor = buffers->get_max_nbors();
   const PairAIREBOIntelParam<flt_t,acc_t> param = get_param<flt_t,acc_t>();
 
-  // offload here
-  #ifdef _LMP_INTEL_OFFLOAD
-  int *overflow = fix->get_off_overflow_flag();
-  double *timer_compute = fix->off_watch_pair();
-
-  int * const REBO_numneigh = this->REBO_numneigh;
-  int * const REBO_num_skin = this->REBO_num_skin;
-  int * const REBO_cnumneigh = this->REBO_cnumneigh;
-  int * const REBO_list_data = this->REBO_list_data;
-  double * const nC = this->nC;
-  double * const nH = this->nH;
-  const int torflag = this->torflag;
-  const int ljflag = this->ljflag;
-  const int morseflag = this->morseflag;
-  int * const map = this->map;
-
-  if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-
-  #pragma offload target(mic:_cop) if (offload) \
-    in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(numneigh:length(0) alloc_if(0) free_if(0)) \
-    in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
-    in(x:length(x_size) alloc_if(0) free_if(0)) \
-    in(overflow:length(0) alloc_if(0) free_if(0)) \
-    in(astart,nthreads,inum,nall,ntypes,vflag,eatom) \
-    in(f_stride,nlocal,minlocal,separate_flag,offload) \
-    out(f_start:length(f_stride) alloc_if(0) free_if(0)) \
-    out(ev_global:length(ev_size) alloc_if(0) free_if(0)) \
-    out(timer_compute:length(1) alloc_if(0) free_if(0)) \
-    in(param,skin,max_nbor) \
-    in(tag: length(0) alloc_if(0) free_if(0)) \
-    in(torflag, ljflag, morseflag, ago) \
-    in(nC: length(0) alloc_if(0) free_if(0)) \
-    in(nH: length(0) alloc_if(0) free_if(0)) \
-    in(REBO_numneigh: length(0) alloc_if(0) free_if(0)) \
-    in(REBO_cnumneigh: length(0) alloc_if(0) free_if(0)) \
-    in(REBO_num_skin: length(0) alloc_if(0) free_if(0)) \
-    in(REBO_list_data: length(0) alloc_if(0) free_if(0)) \
-    in(map: length(0) alloc_if(0) free_if(0)) \
-    signal(f_start)
-  #endif
   {
-    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
-    *timer_compute = MIC_Wtime();
-    #endif
 
-    IP_PRE_repack_for_offload(1 /*NEWTON_PAIR*/, separate_flag, nlocal, nall,
-                              f_stride, x, 0/*q*/);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EVFLAG)
@@ -543,7 +435,7 @@ void PairAIREBOIntel::eval(
       oevdwl += args.result_eng;
 
       IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start, f_stride, x,
-                              offload, vflag, ov0, ov1, ov2, ov3, ov4, ov5);
+                              vflag, ov0, ov1, ov2, ov3, ov4, ov5);
     } // end of omp parallel region
     IP_PRE_fdotr_reduce(1, nall, nthreads, f_stride, vflag,
                         ov0, ov1, ov2, ov3, ov4, ov5);
@@ -557,20 +449,14 @@ void PairAIREBOIntel::eval(
       ev_global[6] = ov4;
       ev_global[7] = ov5;
     }
-    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
-    *timer_compute = MIC_Wtime() - *timer_compute;
-    #endif
-  } // end of offload region
+  }
 
-  if (offload)
-    fix->stop_watch(TIME_OFFLOAD_LATENCY);
-  else
-    fix->stop_watch(TIME_HOST_PAIR);
+  fix->stop_watch(TIME_HOST_PAIR);
 
   if (EVFLAG)
-    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
+    fix->add_result_array(f_start, ev_global, eatom, vflag);
   else
-    fix->add_result_array(f_start, nullptr, offload);
+    fix->add_result_array(f_start, nullptr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -591,17 +477,6 @@ void PairAIREBOIntel::pack_force_const(IntelBuffers<flt_t,acc_t> * buffers) {
     }
   }
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_cop < 0) return;
-  size_t VL = 512 / 8 / sizeof(flt_t);
-  int ntypes = tp1;
-  int tp1sq = tp1 * tp1;
-  // TODO the lifecycle of "map" is currently not 100% correct
-  // it might not be freed if this method is called more than once
-  int * map = this->map;
-  #pragma offload_transfer target(mic:_cop) \
-    in(map: length(tp1) alloc_if(1) free_if(0))
-  #endif
 
 }
 
@@ -611,9 +486,6 @@ void PairAIREBOIntel::pack_force_const(IntelBuffers<flt_t,acc_t> * buffers) {
 
 namespace {
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(push, target(mic))
-#endif
 
 namespace overloaded {
   double sqrt(double a) { return ::sqrt(a); }
@@ -4864,9 +4736,6 @@ void aut_frebo(KernelArgsAIREBOT<flt_t,acc_t> * ka, int torsion_flag) {
 #endif
 }
 
-#ifdef __INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
 }
 

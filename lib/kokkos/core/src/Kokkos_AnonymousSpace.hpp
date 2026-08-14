@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -41,12 +28,7 @@ class AnonymousSpace {
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
   /**\brief  Default memory space instance */
-  AnonymousSpace()                                  = default;
-  AnonymousSpace(AnonymousSpace &&rhs)              = default;
-  AnonymousSpace(const AnonymousSpace &rhs)         = default;
-  AnonymousSpace &operator=(AnonymousSpace &&)      = default;
-  AnonymousSpace &operator=(const AnonymousSpace &) = default;
-  ~AnonymousSpace()                                 = default;
+  AnonymousSpace() = default;
 
   /**\brief Return Name of the MemorySpace */
   static constexpr const char *name() { return "Anonymous"; }

@@ -1,25 +1,21 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <cstdio>
 #include <sstream>
 #include <iostream>
 #include <thread>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+
+#ifdef KOKKOS_ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 namespace Test {
 namespace {
@@ -49,12 +45,28 @@ void check_distinctive([[maybe_unused]] ExecSpace exec1,
 #endif
 #ifdef KOKKOS_ENABLE_OPENMP
   if constexpr (std::is_same_v<ExecSpace, Kokkos::OpenMP>) {
-    ASSERT_NE(exec1, exec2);
-    // FIXME_OPENMP exec.concurrency() does not return thread pool size outside
-    // of parallel regions
-    ASSERT_EQ(ExecSpace().impl_internal_space_instance()->thread_pool_size(),
-              exec1.impl_internal_space_instance()->thread_pool_size() +
-                  exec2.impl_internal_space_instance()->thread_pool_size());
+#if (!defined(KOKKOS_COMPILER_GNU) || KOKKOS_COMPILER_GNU >= 1110) && \
+    _OPENMP >= 201511
+    bool has_nested = omp_get_max_active_levels() > 1;
+#else
+    bool has_nested      = static_cast<bool>(omp_get_nested());
+#endif
+    if (has_nested) {
+      ASSERT_NE(exec1, exec2);
+      // FIXME_OPENMP exec.concurrency() does not return thread pool size
+      // outside of parallel regions
+      if (ExecSpace().concurrency() >= 2)
+        ASSERT_EQ(
+            ExecSpace().impl_internal_space_instance()->thread_pool_size(),
+            exec1.impl_internal_space_instance()->thread_pool_size() +
+                exec2.impl_internal_space_instance()->thread_pool_size());
+      else {
+        ASSERT_EQ(exec1.impl_internal_space_instance()->thread_pool_size(), 1);
+        ASSERT_EQ(exec2.impl_internal_space_instance()->thread_pool_size(), 1);
+      }
+    } else {
+      ASSERT_EQ(exec1, exec2);
+    }
   }
 #endif
 #ifdef KOKKOS_ENABLE_CUDA
@@ -79,6 +91,11 @@ void check_distinctive([[maybe_unused]] ExecSpace exec1,
 #ifdef KOKKOS_ENABLE_HPX
   if constexpr (std::is_same_v<ExecSpace, Kokkos::Experimental::HPX>) {
     ASSERT_NE(exec1.impl_instance_id(), exec2.impl_instance_id());
+  }
+#endif
+#ifdef KOKKOS_ENABLE_OPENACC
+  if constexpr (std::is_same_v<ExecSpace, Kokkos::Experimental::OpenACC>) {
+    ASSERT_NE(exec1.acc_async_queue(), exec2.acc_async_queue());
   }
 #endif
 }
@@ -118,6 +135,20 @@ void test_partitioning(TEST_EXECSPACE& instance0, TEST_EXECSPACE& instance1) {
   check_distinctive(instance0, instance1);
   check_space_member_for_policies(instance0);
   check_space_member_for_policies(instance1);
+
+#ifdef KOKKOS_ENABLE_OPENMP
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::OpenMP>) {
+#if (!defined(KOKKOS_COMPILER_GNU) || KOKKOS_COMPILER_GNU >= 1110) && \
+    _OPENMP >= 201511
+    bool supports_nested = omp_get_max_active_levels() > 1;
+#else
+    bool supports_nested = static_cast<bool>(omp_get_nested());
+#endif
+    if (!supports_nested)
+      GTEST_SKIP()
+          << "The OpenMP configuration doesn't allow nested parallelism";
+  }
+#endif
 
   int sum1, sum2;
   int N = 3910;

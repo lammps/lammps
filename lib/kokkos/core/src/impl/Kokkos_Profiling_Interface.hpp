@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOSP_INTERFACE_HPP
 #define KOKKOSP_INTERFACE_HPP
@@ -30,7 +17,7 @@ namespace Kokkos {
 namespace Tools {
 namespace Experimental {
 
-constexpr const uint32_t NumReservedDeviceIDs = 1;
+inline constexpr const uint32_t NumReservedDeviceIDs = 1;
 
 enum SpecialSynchronizationCases : int {
   GlobalDeviceSynchronization     = 1,
@@ -42,7 +29,7 @@ enum struct DeviceType {
   OpenMP,
   Cuda,
   HIP,
-  OpenMPTarget,
+  OpenMPTarget,  // removed
   HPX,
   Threads,
   SYCL,
@@ -67,7 +54,7 @@ inline DeviceType devicetype_from_uint32t(const uint32_t in) {
     case 1: return DeviceType::OpenMP;
     case 2: return DeviceType::Cuda;
     case 3: return DeviceType::HIP;
-    case 4: return DeviceType::OpenMPTarget;
+    case 4: return DeviceType::OpenMPTarget;  // removed
     case 5: return DeviceType::HPX;
     case 6: return DeviceType::Threads;
     case 7: return DeviceType::SYCL;

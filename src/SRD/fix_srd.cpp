@@ -358,7 +358,8 @@ void FixSRD::init()
     error->all(FLERR, Error::NOLASTLINE, "Cannot change timestep once fix srd is set up");
   if (comm->style != Comm::BRICK)
     error->all(FLERR, Error::NOLASTLINE, "Fix srd currently only be used with comm_style brick");
-
+  if (atom->superellipsoid_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Fix srd does not currently support superellipsoids");
   // orthogonal vs triclinic simulation box
   // could be static or shearing box
 
@@ -2534,12 +2535,12 @@ void FixSRD::parameterize()
   maxbigdiam = 0.0;
   minbigdiam = BIG;
 
+  // check for bonus data before radius: line and tri particles
+  // also store a bounding-sphere radius for neighboring purposes
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & biggroupbit) {
-      if (radius && radius[i] > 0.0) {
-        maxbigdiam = MAX(maxbigdiam, 2.0 * radius[i]);
-        minbigdiam = MIN(minbigdiam, 2.0 * radius[i]);
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         any_ellipsoids = 1;
         double *shape = ebonus[ellipsoid[i]].shape;
         maxbigdiam = MAX(maxbigdiam, 2.0 * shape[0]);
@@ -2562,6 +2563,9 @@ void FixSRD::parameterize()
         length = MAX(length, length3);
         maxbigdiam = MAX(maxbigdiam, length);
         minbigdiam = MIN(minbigdiam, length);
+      } else if (radius && radius[i] > 0.0) {
+        maxbigdiam = MAX(maxbigdiam, 2.0 * radius[i]);
+        minbigdiam = MIN(minbigdiam, 2.0 * radius[i]);
       } else
         error->one(FLERR, "Big particle in fix srd cannot be point particle");
     }
@@ -2648,10 +2652,7 @@ void FixSRD::parameterize()
   if (dimension == 3) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
-        if (radius && radius[i] > 0.0) {
-          double r = radfactor * radius[i];
-          volbig += 4.0 / 3.0 * MY_PI * r * r * r;
-        } else if (ellipsoid && ellipsoid[i] >= 0) {
+        if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += 4.0 / 3.0 * MY_PI * shape[0] * shape[1] * shape[2] * radfactor * radfactor *
               radfactor;
@@ -2664,20 +2665,23 @@ void FixSRD::parameterize()
           MathExtra::sub3(c3, c1, c3mc1);
           MathExtra::cross3(c2mc1, c3mc1, cross);
           volbig += 0.5 * MathExtra::len3(cross) * WIDTH;
+        } else if (radius && radius[i] > 0.0) {
+          double r = radfactor * radius[i];
+          volbig += 4.0 / 3.0 * MY_PI * r * r * r;
         }
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
-        if (radius && radius[i] > 0.0) {
-          double r = radfactor * radius[i];
-          volbig += MY_PI * r * r;
-        } else if (ellipsoid && ellipsoid[i] >= 0) {
+        if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += MY_PI * shape[0] * shape[1] * radfactor * radfactor;
         } else if (line && line[i] >= 0) {
           double length = lbonus[line[i]].length;
           volbig += length * WIDTH;
+        } else if (radius && radius[i] > 0.0) {
+          double r = radfactor * radius[i];
+          volbig += MY_PI * r * r;
         }
       }
   }
@@ -2863,23 +2867,16 @@ void FixSRD::big_static()
 
   double skinhalf = 0.5 * neighbor->skin;
 
+  // check for bonus data before radius: line and tri particles
+  // also store a bounding-sphere radius for neighboring purposes
+
   for (int k = 0; k < nbig; k++) {
     i = biglist[k].index;
 
-    // sphere
-    // set radius and radsq and cutoff based on radius
+    // ellipsoid
+    // set abc radsqinv and cutoff based on max radius
 
-    if (radius && radius[i] > 0.0) {
-      biglist[k].type = SPHERE;
-      rad = radfactor * radius[i];
-      biglist[k].radius = rad;
-      biglist[k].radsq = rad * rad;
-      biglist[k].cutbinsq = (rad + skinhalf) * (rad + skinhalf);
-
-      // ellipsoid
-      // set abc radsqinv and cutoff based on max radius
-
-    } else if (ellipsoid && ellipsoid[i] >= 0) {
+    if (ellipsoid && ellipsoid[i] >= 0) {
       shape = ebonus[ellipsoid[i]].shape;
       biglist[k].type = ELLIPSOID;
       arad = radfactor * shape[0];
@@ -2919,6 +2916,16 @@ void FixSRD::big_static()
       length3 = MathExtra::len3(c3);
       rad = MAX(length1, length2);
       rad = MAX(rad, length3);
+      biglist[k].cutbinsq = (rad + skinhalf) * (rad + skinhalf);
+
+      // sphere
+      // set radius and radsq and cutoff based on radius
+
+    } else if (radius && radius[i] > 0.0) {
+      biglist[k].type = SPHERE;
+      rad = radfactor * radius[i];
+      biglist[k].radius = rad;
+      biglist[k].radsq = rad * rad;
       biglist[k].cutbinsq = (rad + skinhalf) * (rad + skinhalf);
     }
   }

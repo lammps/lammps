@@ -52,7 +52,7 @@ class PairBuck6dCoulGaussDSF : public Pair {
   double vdwl_smooth;
   double **c0, **c1, **c2, **c3, **c4, **c5, **rsmooth_sq;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

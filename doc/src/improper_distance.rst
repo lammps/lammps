@@ -1,7 +1,11 @@
 .. index:: improper_style distance
+.. index:: improper_style distance/kk
+.. index:: improper_style distance/omp
 
 improper_style distance command
 ===============================
+
+Accelerator Variants: *distance/kk*, *distance/omp*
 
 Syntax
 """"""
@@ -33,7 +37,8 @@ by the other three atoms.  If the 4 atoms in an improper quadruplet
 command) are ordered I,J,K,L then the I-atom is assumed to be the
 central atom.
 
-.. image:: JPG/improper_distance.jpg
+.. image:: JPG/improper_distance.png
+   :width: 50%
    :align: center
 
 Note that defining 4 atoms to interact in this way, does not mean that
@@ -47,6 +52,21 @@ file or restart files read by the read_data or read_restart commands:
 
 * :math:`K_2` (energy/distance\^2)
 * :math:`K_4` (energy/distance\^4)
+
+----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *distance* improper style, the first atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

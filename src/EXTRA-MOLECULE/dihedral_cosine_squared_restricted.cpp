@@ -44,6 +44,7 @@ DihedralCosineSquaredRestricted::DihedralCosineSquaredRestricted(LAMMPS *_lmp) :
 
 DihedralCosineSquaredRestricted::~DihedralCosineSquaredRestricted()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

@@ -88,6 +88,7 @@ double ComputeTempCOMKokkos<DeviceType>::compute_scalar()
 
 template<class DeviceType>
 template<int RMASS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMScalar<RMASS>, const int &i, CTEMP& t_kk) const {
 
@@ -153,6 +154,7 @@ void ComputeTempCOMKokkos<DeviceType>::compute_vector()
 
 template<class DeviceType>
 template<int RMASS>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMVector<RMASS>, const int &i, CTEMP& t_kk) const {
 
@@ -202,6 +204,7 @@ void ComputeTempCOMKokkos<DeviceType>::remove_bias_all_kk()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMRemoveBias, const int &i) const {
   if (mask[i] & groupbit) {
@@ -229,6 +232,7 @@ void ComputeTempCOMKokkos<DeviceType>::restore_bias_all()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMRestoreBias, const int &i) const {
   if (mask[i] & groupbit) {

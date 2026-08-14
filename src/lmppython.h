@@ -50,7 +50,7 @@ class Python : protected Pointers {
   int execute_file(char *);
   bool has_minimum_version(int major, int minor);
 
-  bool is_enabled() const;
+  [[nodiscard]] bool is_enabled() const;
   void init();
   static void finalize();
 

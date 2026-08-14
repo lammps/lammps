@@ -32,7 +32,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondHarmonicShiftCut::BondHarmonicShiftCut(LAMMPS *lmp) : Bond(lmp)
+BondHarmonicShiftCut::BondHarmonicShiftCut(LAMMPS *lmp) :
+    Bond(lmp), k(nullptr), r0(nullptr), r1(nullptr)
 {
   born_matrix_enable = 1;
 }
@@ -41,6 +42,7 @@ BondHarmonicShiftCut::BondHarmonicShiftCut(LAMMPS *lmp) : Bond(lmp)
 
 BondHarmonicShiftCut::~BondHarmonicShiftCut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

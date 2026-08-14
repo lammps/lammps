@@ -22,6 +22,9 @@ FixStyle(atom/swap,FixAtomSwap);
 
 #include "fix.h"
 
+#include <unordered_map>
+#include <utility>
+
 namespace LAMMPS_NS {
 
 class FixAtomSwap : public Fix {
@@ -34,10 +37,13 @@ class FixAtomSwap : public Fix {
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   double compute_vector(int) override;
+  int modify_param(int, char **) override;
   double memory_usage() override;
   void write_restart(FILE *) override;
   void restart(char *) override;
   void *extract(const char *, int &) override;
+
+  int image(int *&, double **&) override;
 
  private:
   int nevery, seed;
@@ -77,6 +83,14 @@ class FixAtomSwap : public Fix {
   class RanPark *random_unequal;
 
   class Compute *c_pe;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  // maps atom IDs to number of steps they have been highlighted
+  std::unordered_map<tagint, std::pair<int,int>> vizatoms;
+  int vizsteps;                    // number of steps to highlight atoms in reactions
 
   void options(int, char **);
   int attempt_semi_grand();

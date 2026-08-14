@@ -45,8 +45,8 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "neighbor.h"
 #include "update.h"
 
-#include <exception>
 #include <cstring>
+#include <exception>
 
 #include "ace-evaluator/ace_c_basis.h"
 #include "ace-evaluator/ace_evaluator.h"
@@ -108,6 +108,7 @@ PairPACEAPIP::PairPACEAPIP(LAMMPS *lmp) : Pair(lmp)
 
   // start of adaptive-precision modifications by DI
   lambda_thermostat = true;
+  lambda_la = true;
 
   n_computations_accumulated = 0;
   time_wall_accumulated = 0;
@@ -190,6 +191,8 @@ void PairPACEAPIP::compute(int eflag, int vflag)
     f_dyn_lambda = atom->apip_f_dyn_lambda;
     e_ref = get_e_ref_ptr();
     lambda_const = atom->apip_lambda_const;
+  } else if (lambda_la) {
+    e_ref = get_e_ref_ptr();
   }
   int n_computations = 0;
   // end of adaptive-precision modifications by DI
@@ -333,7 +336,7 @@ void PairPACEAPIP::compute(int eflag, int vflag)
 
     // tally energy contribution
     // start of adaptive-precision modifications by DI
-    if (eflag_either || lambda_thermostat) {
+    if (eflag_either || e_ref) {
       // The potential energy needs to be stored to apply the
       // energy correction with the local thermostat.
       if (e_ref) e_ref[i] = scale[itype][itype] * aceimpl->ace->e_atom;
@@ -528,6 +531,15 @@ double PairPACEAPIP::init_one(int i, int j)
 // written by DI. This function is required for the adaptive-precision.
 void PairPACEAPIP::setup()
 {
+  if (modify->get_fix_by_style("^lambda/la/csp/apip$").size() == 0) {
+    lambda_la = false;
+  } else {
+    lambda_la = true;
+    if (comm->me == 0)
+      utils::logmesg(lmp,
+                     "  pace/apip     : compute potential energies for local-averaging forces\n");
+  }
+
   if (modify->get_fix_by_style("^lambda_thermostat/apip$").size() == 0) {
     lambda_thermostat = false;
   } else {
@@ -552,6 +564,8 @@ void PairPACEAPIP::setup()
       error->all(FLERR,
                  "Pair style pace/apip requires an atom style with f_const_lambda for a local "
                  "thermostat.");
+    if (comm->me == 0)
+      utils::logmesg(lmp, "  pace/apip     : compute quantities for fix lambda_thermostat/apip\n");
   }
 }
 

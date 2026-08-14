@@ -11,13 +11,19 @@ fetch_potentials() {
         echo "Need 'curl' or 'wget' to fetch external potential files"
         return
     fi
+    type sha256sum > /dev/null 2>&1 && have_sha256=1 || have_sha256=0
+    if [ $have_sha256 -ne 1 ]
+    then \
+        echo "Need 'sha256sum' to check downloaded potential files for integrity"
+        return
+    fi
 
     while [ $# -gt 1 ]
     do \
         file=$1; sum=$2
         shift; shift
 
-        echo ${sum} ${pdir}/${file} | md5sum -c - > /dev/null 2>&1 \
+        echo ${sum} ${pdir}/${file} | sha256sum -c - > /dev/null 2>&1 \
             && need_fetch=0 || need_fetch=1
         if [ ${need_fetch} -eq 1 ]
         then \

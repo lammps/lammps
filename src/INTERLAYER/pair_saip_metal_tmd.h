@@ -28,8 +28,9 @@ class PairSAIPMETALTMD : virtual public PairILPTMD {
  public:
   PairSAIPMETALTMD(class LAMMPS *);
 
- protected:
   void settings(int, char **) override;
+
+ protected:
   void calc_FRep(int, int) override;
 };
 

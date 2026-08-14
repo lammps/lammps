@@ -22,6 +22,7 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "info.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "neigh_list.h"
@@ -74,6 +75,9 @@ double bornclcs_gpu_bytes();
 PairBornCoulLongCSGPU::PairBornCoulLongCSGPU(LAMMPS *lmp) :
     PairBornCoulLongCS(lmp), gpu_mode(GPU_FORCE)
 {
+  if (Info::has_accelerator_feature("GPU","precision","single"))
+    error->all(FLERR,"Pair style born/coul/long/cs/gpu does not support single precision GPU mode");
+
   respa_enable = 0;
   reinitflag = 0;
   cpu_time = 0.0;

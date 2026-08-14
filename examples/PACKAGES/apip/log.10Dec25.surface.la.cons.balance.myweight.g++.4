@@ -1,0 +1,98 @@
+LAMMPS (10 Dec 2025 - Development - b6d2e3d6a9)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 -1.1656272) to (36.15 36.15 362.81506)
+  1 by 1 by 4 MPI processor grid
+  reading atoms ...
+  40200 atoms
+  reading velocities ...
+  40200 velocities
+  read_data CPU = 0.129 seconds
+39199 atoms in group group_descriptor
+ACE version: 2023.11.25
+Recursive evaluator is used by ACE
+Loading ../../../potentials/Cu-PBE-core-rep.ace
+Total number of basis functions
+	Cu: 16 (r=1) 726 (r>1)
+Mapping LAMMPS atom type #1(Cu) -> ACE species type #0
+atomic load lambda:
+	fast potential: extract eam/apip:time_per_atom
+	precise potential: extract pace/apip:time_per_atom
+	lambda_input: const 0
+	lambda: const 0
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 8 8 73
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair eam/fs/apip, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair pace/apip, perpetual, trim from (4)
+      attributes: full, newton on, cut 9.4
+      pair build: trim
+      stencil: none
+      bin: none
+  (3) pair zero, perpetual, half/full from (1)
+      attributes: half, newton on, cut 10
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (4) fix lambda/la/csp/apip, perpetual
+      attributes: full, newton on, cut 10
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Setting up Verlet run ...
+  Unit style    : metal
+  Current step  : 0
+  Time step     : 0.001
+  eam/apip      : compute potential energies for local-averaging forces
+  pace/apip     : compute potential energies for local-averaging forces
+Per MPI rank memory allocation (min/avg/max) = 59.11 | 60 | 60.71 Mbytes
+   Step     f_weight_atom[1] f_weight_atom[2]     S/CPU     
+         0   0              0              0            
+        10   2.2013714e-06  0.00020155159  2.6080048    
+        20   3.223275e-06   0.00028961811  2.8605574    
+        30   3.2840343e-06  0.0002908175   2.8302698    
+        40   3.343088e-06   0.00029438038  2.8224037    
+        50   3.3934804e-06  0.00029625801  2.7982938    
+        60   3.4720269e-06  0.00030490703  2.7268649    
+        70   3.5769193e-06  0.00030517056  2.6737501    
+        80   3.6806971e-06  0.00030875112  2.6683909    
+        90   3.6071468e-06  0.00030038182  2.7012983    
+       100   3.6112812e-06  0.00030106137  2.685669     
+Loop time of 36.5604 on 4 procs for 100 steps with 40200 atoms
+
+Performance: 0.236 ns/day, 101.557 hours/ns, 2.735 timesteps/s, 109.955 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 8.7814     | 9.1819     | 10.266     |  20.7 | 25.11
+Neigh   | 1.9207     | 1.9353     | 1.9539     |   0.9 |  5.29
+Comm    | 0.48979    | 0.98182    | 2.0906     |  65.4 |  2.69
+Output  | 0.00017308 | 0.00041613 | 0.00057683 |   0.0 |  0.00
+Modify  | 23.579     | 24.443     | 25.32      |  16.4 | 66.86
+Other   |            | 0.01764    |            |       |  0.05
+
+Nlocal:          10050 ave       10498 max        9734 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Nghost:          34271 ave       34587 max       33823 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Neighs:    1.77282e+06 ave 1.85258e+06 max  1.7173e+06 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+FullNghs:  3.54563e+06 ave 3.70371e+06 max 3.43319e+06 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+
+Total # of neighbors = 14182536
+Ave neighs/atom = 352.7994
+Neighbor list builds = 10
+Dangerous builds = 0
+Total wall time: 0:00:37

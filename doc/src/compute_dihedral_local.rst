@@ -131,7 +131,7 @@ The output for *phi* will be in degrees.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

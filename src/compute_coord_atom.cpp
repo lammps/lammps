@@ -34,8 +34,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
-    group2(nullptr), id_orientorder(nullptr), normv(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), typelo(nullptr), typehi(nullptr), cvec(nullptr),
+    carray(nullptr), group2(nullptr), c_orientorder(nullptr), id_orientorder(nullptr),
+    normv(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal compute coord/atom command");
 

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SETUP_HIP_HPP_
 #define KOKKOS_SETUP_HIP_HPP_
@@ -48,11 +35,6 @@ static_assert(false,
 #define KOKKOS_IMPL_RELOCATABLE_FUNCTION @"KOKKOS_RELOCATABLE_FUNCTION requires Kokkos_ENABLE_HIP_RELOCATABLE_DEVICE_CODE=ON"
 #endif
 // clang-format on
-
-// The implementation of hipGraph in ROCm 5.2 is bugged, so we cannot use it.
-#if !((HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR == 2))
-#define KOKKOS_IMPL_HIP_NATIVE_GRAPH
-#endif
 
 #ifdef KOKKOS_ARCH_AMD_GFX942_APU
 #define KOKKOS_IMPL_HIP_UNIFIED_MEMORY

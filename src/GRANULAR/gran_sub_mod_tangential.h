@@ -30,17 +30,17 @@ GranSubModStyle(mindlin_rescale/force,GranSubModTangentialMindlinRescaleForce,TA
 
 #include "gran_sub_mod.h"
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
   class GranSubModTangential : public GranSubMod {
    public:
     GranSubModTangential(class GranularModel *, class LAMMPS *);
     virtual void calculate_forces() = 0;
 
-    double get_k() const { return k; }
-    double get_damp() const { return damp; }
-    double get_mu() const { return mu; }
+    [[nodiscard]] double get_k() const { return k; }
+    [[nodiscard]] double get_damp() const { return damp; }
+    [[nodiscard]] double get_mu() const { return mu; }
 
    protected:
     double k, damp, mu;    // Used by Marshall twisting model
@@ -128,8 +128,8 @@ namespace Granular_NS {
     GranSubModTangentialMindlinRescaleForce(class GranularModel *, class LAMMPS *);
   };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif /*GRAN_SUB_MOD_TANGENTIAL_H */
 #endif /*GRAN_SUB_MOD_CLASS_H */

@@ -724,6 +724,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
   memory_sg(nb_t);
   initial_sg(nb_t);
 
+  n_ji = -1;
   for (loop = 0; loop < nlistj; loop++) {
     temp_loop = BOP_index[j] + loop;
     nei_loop = neigh_index[temp_loop];
@@ -733,6 +734,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       break;
     }
   }
+  if (n_ji < 0) error->one(FLERR,"BOP neighbor list is inconsistent");
 
   dis_ij[0] = pl_ij.dis[0];
   dis_ij[1] = pl_ij.dis[1];
@@ -754,7 +756,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
   // FF is the Beta_sigma^2 term
 
   FF = betaS_ij * betaS_ij;
-  if (FF <= 0.000001) return(sigB);
+  if (FF <= 0.000001) return sigB;
 
   // agpdpr1 is derivative of FF w.r.t. r_ij
 
@@ -793,6 +795,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
 
     nfound = 0;
     pass_jk = 0;
+    n_ki = -1;
     for (loop = 0; loop < nlistk; loop++) {
       temp_loop = BOP_index[k] + loop;
       nei_loop = neigh_index[temp_loop];
@@ -809,6 +812,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
         if (nfound == 2) break;
       }
     }
+    if (n_ki < 0) error->one(FLERR,"BOP neighbor list is inconsistent");
 
     nb_ik = nb_t;
     bt_sg[nb_ik].i = i;
@@ -818,6 +822,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
     memory_sg(nb_t);
     initial_sg(nb_t);
     if (pass_jk) {
+      temp_jk = n_jk = -1;
       for (loop = 0; loop < nlistj; loop++) {
         temp_loop = BOP_index[j] + loop;
         nei_loop = neigh_index[temp_loop];
@@ -828,6 +833,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
           break;
         }
       }
+      if ((temp_jk < 0) || (n_jk < 0)) error->one(FLERR,"BOP neighbor list is inconsistent");
       nb_jk = nb_t;
       bt_sg[nb_jk].i = j;
       bt_sg[nb_jk].j = k;
@@ -1166,7 +1172,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
                                -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
     }
   }
-  return(sigB);
+  return sigB;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1246,6 +1252,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
   memory_pi(nb_t);
   initial_pi(nb_t);
 
+  n_ji = -1;
   for (loop = 0; loop < nlistj; loop++) {
     temp_loop = BOP_index[j] + loop;
     nei_loop = neigh_index[temp_loop];
@@ -1255,6 +1262,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
       break;
     }
   }
+  if (n_ji < 0) error->one(FLERR,"BOP neighbor list is inconsistent");
 
   dis_ij[0] = pl_ij.dis[0];
   dis_ij[1] = pl_ij.dis[1];
@@ -1269,8 +1277,6 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
   AA = 0.0;
   BB = 0.0;
-
-  // if (betaP_ij * betaP_ij <= 0.000001) return(piB);
 
   for (ktmp = 0; ktmp < nlisti; ktmp++) {
     if (ktmp == jtmp) continue;
@@ -1847,7 +1853,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
     if (evflag) ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
                              -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
   }
-  return(piB);
+  return piB;
 }
 
 /* ----------------------------------------------------------------------
@@ -2152,7 +2158,7 @@ void PairBOP::read_table(char *filename)
 
 double PairBOP::memory_usage()
 {
-  return(bytes);
+  return bytes;
 }
 
 /* ---------------------------------------------------------------------- */

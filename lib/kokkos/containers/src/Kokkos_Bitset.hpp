@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_BITSET_HPP
 #define KOKKOS_BITSET_HPP
@@ -21,9 +8,14 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_BITSET
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_BitManipulation.hpp>
-#include <Kokkos_Functional.hpp>
 
 #include <impl/Kokkos_Bitset_impl.hpp>
 
@@ -99,21 +91,6 @@ class Bitset {
       m_last_block_mask |= 1u << i;
     }
   }
-
-  KOKKOS_DEFAULTED_FUNCTION
-  Bitset(const Bitset<Device>&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  Bitset& operator=(const Bitset<Device>&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  Bitset(Bitset<Device>&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  Bitset& operator=(Bitset<Device>&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  ~Bitset() = default;
 
   /// number of bits in the set
   /// can be call from the host or the device
@@ -338,19 +315,7 @@ class ConstBitset {
       : m_size(rhs.m_size), m_blocks(rhs.m_blocks) {}
 
   KOKKOS_FUNCTION
-  ConstBitset(ConstBitset<Device> const& rhs)
-      : m_size(rhs.m_size), m_blocks(rhs.m_blocks) {}
-
-  KOKKOS_FUNCTION
   ConstBitset<Device>& operator=(Bitset<Device> const& rhs) {
-    this->m_size   = rhs.m_size;
-    this->m_blocks = rhs.m_blocks;
-
-    return *this;
-  }
-
-  KOKKOS_FUNCTION
-  ConstBitset<Device>& operator=(ConstBitset<Device> const& rhs) {
     this->m_size   = rhs.m_size;
     this->m_blocks = rhs.m_blocks;
 

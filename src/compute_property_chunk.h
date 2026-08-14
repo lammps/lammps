@@ -40,8 +40,6 @@ class ComputePropertyChunk : public ComputeChunk {
   double *buf;
   int *count_one, *count_all;
 
-  void allocate() override;
-
   using FnPtrPack = void (ComputePropertyChunk::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
@@ -50,6 +48,9 @@ class ComputePropertyChunk : public ComputeChunk {
   void pack_coord1(int);
   void pack_coord2(int);
   void pack_coord3(int);
+
+ protected:
+  void allocate() override;
 };
 }    // namespace LAMMPS_NS
 #endif

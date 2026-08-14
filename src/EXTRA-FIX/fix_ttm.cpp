@@ -29,6 +29,7 @@
 #include "potential_file_reader.h"
 #include "random_mars.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -103,7 +104,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
     // error check
 
-    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix ttm command");
+    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix {} command", style);
     if (electronic_specific_heat <= 0.0)
       error->all(FLERR, 4, "Fix {} electronic_specific_heat must be > 0.0", style);
     if (electronic_density <= 0.0)
@@ -518,7 +519,7 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me) return;
 
-  FILE *fp = fopen(filename.c_str(),"w");
+  SafeFilePtr fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm could not open output file {}: {}",
                       filename,utils::getsyserror());
   utils::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature on "
@@ -532,7 +533,6 @@ void FixTTM::write_electron_temperatures(const std::string &filename)
       for (ix = 0; ix < nxgrid; ix++)
         fprintf(fp,"%d %d %d %20.16g\n",ix+1,iy+1,iz+1,T_electron[iz][iy][ix]);
 
-  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

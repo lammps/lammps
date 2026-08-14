@@ -31,7 +31,7 @@ class FixQEqShielded : public FixQEq {
   void init() override;
   void pre_force(int) override;
 
- private:
+ protected:
   void extract_reax();
   void init_shielding();
   void init_matvec();

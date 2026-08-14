@@ -56,9 +56,9 @@ inordinate amount of wall time to complete. An N of 100 for most problems
 seems reasonable. Once an optimal parameter set is found, that set is
 used for the remainder of the run.
 
-This fix uses heuristics to guide it's selection of parameter sets to test,
-but the actual timed results will be used to decide which set to use in the
-simulation.
+This fix uses heuristics to guide its selection of parameter sets to
+test, but the actual timed results will be used to decide which set to
+use in the simulation.
 
 It is not necessary to discard trajectories produced using sub-optimal
 parameter sets, or a mix of various parameter sets, since the user-prescribed

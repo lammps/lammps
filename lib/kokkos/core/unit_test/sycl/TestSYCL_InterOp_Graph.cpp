@@ -1,32 +1,20 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestSYCL_Category.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_Graph.hpp>
 
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
 #include <regex>
-
-#if !(defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE < 9) && \
-    !(defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 110000)
-#include <filesystem>
-#endif
 
 namespace {
 
@@ -72,7 +60,8 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 
   view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  Kokkos::Experimental::Graph graph{exec};
+  Kokkos::Experimental::Graph graph{
+      Kokkos::Experimental::get_device_handle(exec)};
 
   graph.root_node().then_parallel_for(1, Increment<view_t>{data});
 
@@ -80,15 +69,6 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 
   ASSERT_EQ(graph.native_graph().get_nodes().size(), 2u);
 
-#if defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE < 9
-  GTEST_SKIP()
-      << "The GNU C++ Library (libstdc++) versions less than 9.1 "
-         "require linking with `-lstdc++fs` when using std::filesystem";
-#elif defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 110000
-  GTEST_SKIP()
-      << "The LLVM C++ Standard Library (libc++) versions less than "
-         "11 require linking with `-lc++fs` when using std::filesystem";
-#else
   const auto dot = std::filesystem::temp_directory_path() / "sycl_graph.dot";
 
   graph.native_graph().print_graph(dot, true);
@@ -108,7 +88,6 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
   ASSERT_TRUE(std::regex_search(buffer.str(), std::regex(expected)))
       << "Could not find expected signature regex " << std::quoted(expected)
       << " in " << dot;
-#endif
 }
 
 // Build a Kokkos::Graph from an existing SYCL command graph.
@@ -123,7 +102,8 @@ TEST(TEST_CATEGORY, graph_construct_from_native) {
   native_graph_t native_graph(exec.sycl_queue().get_context(),
                               exec.sycl_queue().get_device());
 
-  Kokkos::Experimental::Graph graph_from_native(exec, std::move(native_graph));
+  Kokkos::Experimental::Graph graph_from_native(
+      Kokkos::Experimental::get_device_handle(exec), std::move(native_graph));
 
   const view_t data(Kokkos::view_alloc(exec, "witness"));
 

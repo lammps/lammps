@@ -352,31 +352,6 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxFFOMP::write_reax_atoms()
-{
-  int *num_bonds = fix_reaxff->num_bonds;
-  int *num_hbonds = fix_reaxff->num_hbonds;
-
-  if (api->system->N > api->system->total_cap)
-    error->all(FLERR, Error::NOLASTLINE, "Too many ghost atoms in pair style reaxff/omp");
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static) default(shared)
-#endif
-  for (int i = 0; i < api->system->N; ++i) {
-    api->system->my_atoms[i].orig_id = atom->tag[i];
-    api->system->my_atoms[i].type = map[atom->type[i]];
-    api->system->my_atoms[i].x[0] = atom->x[i][0];
-    api->system->my_atoms[i].x[1] = atom->x[i][1];
-    api->system->my_atoms[i].x[2] = atom->x[i][2];
-    api->system->my_atoms[i].q = atom->q[i];
-    api->system->my_atoms[i].num_bonds = num_bonds[i];
-    api->system->my_atoms[i].num_hbonds = num_hbonds[i];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 int PairReaxFFOMP::estimate_reax_lists()
 {
   int i;

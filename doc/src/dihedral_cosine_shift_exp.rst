@@ -1,10 +1,11 @@
 .. index:: dihedral_style cosine/shift/exp
+.. index:: dihedral_style cosine/shift/exp/kk
 .. index:: dihedral_style cosine/shift/exp/omp
 
 dihedral_style cosine/shift/exp command
 =======================================
 
-Accelerator Variants: *cosine/shift/exp/omp*
+Accelerator Variants: *cosine/shift/exp/kk*, *cosine/shift/exp/omp*
 
 Syntax
 """"""

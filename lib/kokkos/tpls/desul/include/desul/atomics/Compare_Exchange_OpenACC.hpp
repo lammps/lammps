@@ -18,6 +18,10 @@ SPDX-License-Identifier: (BSD-3-Clause)
 namespace desul {
 namespace Impl {
 
+template <class T>
+inline constexpr bool device_atomic_always_lock_free<T, void> = (sizeof(T) == 4) ||
+                                                                (sizeof(T) == 8);
+
 #ifdef __NVCOMPILER
 
 #pragma acc routine seq

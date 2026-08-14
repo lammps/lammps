@@ -117,7 +117,7 @@ protected:
 TEST_F(VariableTest, CreateDelete)
 {
     file_vars();
-    ASSERT_EQ(variable->nvar, 1);
+    ASSERT_EQ(variable->get_nvar(), 1);
     BEGIN_HIDE_OUTPUT();
     command("shell putenv TEST_VARIABLE=simpletest2");
     command("shell putenv TEST_VARIABLE2=simpletest OTHER_VARIABLE=2");
@@ -147,11 +147,26 @@ TEST_F(VariableTest, CreateDelete)
     command("variable iswin  equal     is_os(^Windows)");
     command("variable islin  equal     is_os(^Linux)");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 22);
+    ASSERT_EQ(variable->get_nvar(), 22);
+    int idummy = variable->find("dummy");
+    ASSERT_EQ(idummy, 18);
     BEGIN_HIDE_OUTPUT();
     command("variable dummy  delete");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 21);
+    // deleted variables are not removed from the list
+    ASSERT_EQ(variable->get_nvar(), 22);
+    ASSERT_EQ(variable->find("dummy"), -1);
+    BEGIN_HIDE_OUTPUT();
+    command("variable newdummy  index 0");
+    command("variable seconddummy  index 0");
+    END_HIDE_OUTPUT();
+    ASSERT_EQ(variable->get_nvar(), 23);
+    idummy = variable->find("newdummy");
+    // id of deleted variable get recycled
+    ASSERT_EQ(idummy, 18);
+    idummy = variable->find("seconddummy");
+    ASSERT_EQ(idummy, 22);
+
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     variable->set_string("three", "four");
     ASSERT_THAT(variable->retrieve("three"), StrEq("four"));
@@ -188,9 +203,11 @@ TEST_F(VariableTest, CreateDelete)
     command("variable seven delete");
     command("variable seven getenv TEST_VARIABLE");
     command("variable eight getenv OTHER_VARIABLE");
+    command("variable three string \"${three} four\"");
     END_HIDE_OUTPUT();
     ASSERT_THAT(variable->retrieve("seven"), StrEq("simpletest2"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq("2"));
+    ASSERT_THAT(variable->retrieve("three"), StrEq("four four"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
@@ -207,13 +224,13 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable dummy loop -1"););
     TEST_FAILURE(".*ERROR: Illegal variable loop command.*", command("variable dummy loop 10 1"););
     TEST_FAILURE(".*ERROR: Unknown variable style: xxx.*", command("variable dummy xxxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable two with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine equal style variable two as string style.*",
                  command("variable two string xxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable two with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine equal style variable two as getenv style.*",
                  command("variable two getenv xxx"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine index style variable one as equal style.*",
                  command("variable one equal 2"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine index style variable one as internal style.*",
                  command("variable one internal 2"););
     TEST_FAILURE(".*ERROR: Cannot use atomfile-style variable unless an atom map exists.*",
                  command("variable eleven    atomfile  test_variable.atomfile"););
@@ -221,16 +238,32 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable nine1  file      test_variable.xxx"););
     TEST_FAILURE(".*ERROR: World variable count 2 doesn't match # of partitions.*",
                  command("variable ten10 world xxx xxx"););
-    TEST_FAILURE(".*ERROR: All universe/uloop variables must have same # of values.*",
+    TEST_FAILURE(".*ERROR: All universe and uloop style variables must have same # of values.*",
                  command("variable ten6   uloop     2"););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
                  command("variable ten11  format    two \"%08x\""););
+    TEST_FAILURE(".*ERROR.*Substitution for illegal variable xxx.*",
+                 command("variable three  string \"${xxx} five\""););
     TEST_FAILURE(".*ERROR: Variable name 'ten@12' must have only letters, numbers, or undersc.*",
                  command("variable ten@12  index    one two three"););
     TEST_FAILURE(".*ERROR: Variable evaluation before simulation box is defined.*",
                  variable->compute_equal("c_thermo_press"););
     TEST_FAILURE(".*ERROR: Invalid variable reference v_unknown in variable formula.*",
                  variable->compute_equal("v_unknown"););
+
+    // listing the same variable twice would increment a dangling reference
+    // when the first increment exhausts and removes it
+
+    BEGIN_HIDE_OUTPUT();
+    command("variable  dup  loop 3");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Duplicate variable 'dup' in next command.*", command("next dup dup"););
+
+    // a py_ function reference without a matching python-style variable
+    // must give an error instead of an out-of-bounds read
+
+    TEST_FAILURE(".*ERROR: Invalid python function variable name.*",
+                 variable->compute_equal("py_nosuchvariable(1.0)"););
 }
 
 TEST_F(VariableTest, AtomicSystem)
@@ -291,9 +324,9 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
 
-    TEST_FAILURE(".*ERROR: Cannot redefine variable one with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine index style variable one as atom style.*",
                  command("variable one atom x"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable id with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine atom style variable id as vector style.*",
                  command("variable id vector f_press"););
     TEST_FAILURE(".*ERROR on proc 0: Cannot open atomfile variable ten1 file test_variable.xxx.*",
                  command("variable ten1   atomfile  test_variable.xxx"););
@@ -480,7 +513,7 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if 1>2 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if 1>2 then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
@@ -490,27 +523,27 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if 2<1 then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if 2<1 then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (1<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (1<=0) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (0<=0) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (0<=0) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (0>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (0>=1) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*nope\?.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (1>=1) then 'print \"bingo!\"' else 'print \"nope?\"'");
+    command(R"(if (1>=1) then 'print "bingo!"' else 'print "nope?"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
@@ -525,17 +558,17 @@ TEST_F(VariableTest, IfCommand)
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if !((${one}!=1.0)||(2|^1)) then 'print \"missed\"' else 'print \"bingo!\"'");
+    command(R"(if !((${one}!=1.0)||(2|^1)) then 'print "missed"' else 'print "bingo!"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if (1>=2)&&(0&&1) then 'print \"missed\"' else 'print \"bingo!\"'");
+    command(R"(if (1>=2)&&(0&&1) then 'print "missed"' else 'print "bingo!"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
     BEGIN_CAPTURE_OUTPUT();
-    command("if !1 then 'print \"missed\"' else 'print \"bingo!\"'");
+    command(R"(if !1 then 'print "missed"' else 'print "bingo!"')");
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
@@ -680,7 +713,7 @@ TEST_F(VariableTest, LabelMapMolecular)
     command("labelmap atom 1 C1");
     command("labelmap atom 2 \"N2'\"");
     command("labelmap bond 1 C1-N2 2 [C1][C1] 3 N2=N2");
-    command("labelmap angle 1 C1-N2-C1 2 \"\"\" N2'-C1\"-N2' \"\"\"");
+    command(R"(labelmap angle 1 C1-N2-C1 2 """ N2'-C1"-N2' """)");
     command("labelmap dihedral 1 'C1-N2-C1-N2'");
     command("labelmap improper 1 \"C1-N2-C1-N2\"");
     command("variable t1 equal label2type(atom,C1)");
@@ -799,7 +832,7 @@ TEST_F(VariableTest, Format)
                  command("variable f1idx format yyy %8.4f"););
     TEST_FAILURE(".*ERROR: Variable f1three: format variable three does not exist.*",
                  variable->retrieve("f1three"););
-    TEST_FAILURE(".*ERROR: Cannot redefine variable f2one with a different style.*",
+    TEST_FAILURE(".*ERROR: Cannot redefine format style variable f2one as equal style.*",
                  command("variable f2one equal 0.5"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable xxx format \"xxx\""););
     TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
@@ -822,7 +855,7 @@ TEST_F(VariableTest, Set)
     command("variable three  string    three");
     command("variable ten    internal  10.0");
     END_HIDE_OUTPUT();
-    ASSERT_EQ(variable->nvar, 3);
+    ASSERT_EQ(variable->get_nvar(), 3);
     ASSERT_THAT(variable->retrieve("three"), StrEq("three"));
     ASSERT_THAT(variable->retrieve("ten"), StrEq("10"));
 

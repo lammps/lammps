@@ -65,6 +65,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   nz = nz_caller;
   order = order_caller;
   which = which_caller;
+  time_fft = 0.0;
 
   flag3d = 1;
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;

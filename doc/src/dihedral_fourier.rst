@@ -6,7 +6,7 @@
 dihedral_style fourier command
 ==============================
 
-Accelerator Variants: *fourier/intel*, *fourier/omp*
+Accelerator Variants: *fourier/intel*, *fourier/kk*, *fourier/omp*
 
 Syntax
 """"""

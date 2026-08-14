@@ -1,0 +1,40 @@
+##### NVT sampling of LJ fluid with the BAOAB Langevin integrator #####
+#
+# Demonstrates fix baoab as a standalone time integrator (no fix nve needed).
+# The system is a simple LJ fluid at reduced units T=1.0, rho=0.8.
+
+units           lj
+atom_style      atomic
+dimension       3
+newton on
+
+lattice         fcc 0.8442
+region          box block 0 4 0 4 0 4
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+
+velocity        all create 1.0 54321 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+# BAOAB integrator: T=1.0, damp=1.0 (10x the timestep)
+# zero yes removes net random momentum to prevent drift
+fix             1 all baoab 1.0 1.0 1.0 12345 zero yes
+
+thermo_style    custom step temp pe ke etotal press
+thermo          100
+
+timestep        0.005
+
+# short equilibration
+run             1000
+
+reset_timestep  0
+
+thermo          100
+run             2000

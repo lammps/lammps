@@ -1684,15 +1684,117 @@ void Domain::remap(double *x)
    for triclinic, point is converted to lamda coords (0-1) within remap()
    image = 10 bits for each dimension
    increment/decrement in wrap-around fashion
+   account for velocity remapping from fix deform if needed
 ------------------------------------------------------------------------- */
 
 void Domain::remap_all()
 {
   double **x = atom->x;
+  double **v = atom->v;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) remap(x[i],image[i]);
+  double *lo,*hi,*period,*coord;
+  double lamda[3];
+  imageint idim,otherdims;
+  int *mask = atom->mask;
+  int delta;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (triclinic == 0) {
+      lo = boxlo;
+      hi = boxhi;
+      period = prd;
+      coord = x[i];
+    } else {
+      lo = boxlo_lamda;
+      hi = boxhi_lamda;
+      period = prd_lamda;
+      x2lamda(x[i],lamda);
+      coord = lamda;
+    }
+
+    if (xperiodic) {
+      delta = 0;
+      while (coord[0] < lo[0]) {
+        delta++;
+        coord[0] += period[0];
+        idim = image[i] & IMGMASK;
+        otherdims = image[i] ^ idim;
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | idim;
+      }
+      while (coord[0] >= hi[0]) {
+        coord[0] -= period[0];
+        delta--;
+        idim = image[i] & IMGMASK;
+        otherdims = image[i] ^ idim;
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | idim;
+      }
+      coord[0] = MAX(coord[0],lo[0]);
+      if (deform_vremap && mask[i] & deform_groupbit) v[i][0] += delta * h_rate[0];
+    }
+
+    if (yperiodic) {
+      delta = 0;
+      while (coord[1] < lo[1]) {
+        coord[1] += period[1];
+        delta++;
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
+      }
+      while (coord[1] >= hi[1]) {
+        coord[1] -= period[1];
+        delta--;
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
+      }
+      coord[1] = MAX(coord[1],lo[1]);
+      if (deform_vremap && mask[i] & deform_groupbit) {
+        v[i][0] += delta * h_rate[5];
+        v[i][1] += delta * h_rate[1];
+      }
+    }
+
+    if (zperiodic) {
+      delta = 0;
+      while (coord[2] < lo[2]) {
+        coord[2] += period[2];
+        delta++;
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
+      }
+      while (coord[2] >= hi[2]) {
+        coord[2] -= period[2];
+        delta--;
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
+      }
+      coord[2] = MAX(coord[2],lo[2]);
+      if (deform_vremap && mask[i] & deform_groupbit) {
+        v[i][0] += delta * h_rate[4];
+        v[i][1] += delta * h_rate[3];
+        v[i][2] += delta * h_rate[2];
+      }
+    }
+
+    if (triclinic) lamda2x(coord,x[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1835,6 +1937,39 @@ void Domain::unmap(const double *x, imageint image, double *y)
     y[0] = x[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
     y[1] = x[1] + h[1]*ybox + h[3]*zbox;
     y[2] = x[2] + h[2]*zbox;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   unmap the point via image flags, accounting for velocity change due
+    to deformation if needed based on mask
+   result returned in y, don't reset image flag
+   for triclinic, use h[] to add in tilt factors in other dims as needed
+------------------------------------------------------------------------- */
+
+void Domain::unmap(const double *x, const double *v, imageint image, int mask, double *y, double *u)
+{
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
+
+  if (triclinic == 0) {
+    y[0] = x[0] + xbox*xprd;
+    y[1] = x[1] + ybox*yprd;
+    y[2] = x[2] + zbox*zprd;
+  } else {
+    y[0] = x[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+    y[1] = x[1] + h[1]*ybox + h[3]*zbox;
+    y[2] = x[2] + h[2]*zbox;
+  }
+
+  u[0] = v[0];
+  u[1] = v[1];
+  u[2] = v[2];
+  if (deform_vremap && mask & deform_groupbit) {
+    u[0] += h_rate[0] * xbox + h_rate[5] * ybox + h_rate[4] * zbox;
+    u[1] += h_rate[1] * ybox + h_rate[3] * zbox;
+    u[2] += h_rate[2] * zbox;
   }
 }
 

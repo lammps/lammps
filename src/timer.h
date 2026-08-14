@@ -59,20 +59,20 @@ class Timer : protected Pointers {
 
   // accessor methods for supported level of detail
 
-  bool has_loop() const { return (_level >= LOOP); }
-  bool has_normal() const { return (_level >= NORMAL); }
-  bool has_full() const { return (_level >= FULL); }
-  bool has_sync() const { return (_sync != OFF); }
-  bool has_timeout() const { return (_timeout >= 0.0); }
+  [[nodiscard]] bool has_loop() const { return (_level >= LOOP); }
+  [[nodiscard]] bool has_normal() const { return (_level >= NORMAL); }
+  [[nodiscard]] bool has_full() const { return (_level >= FULL); }
+  [[nodiscard]] bool has_sync() const { return (_sync != OFF); }
+  [[nodiscard]] bool has_timeout() const { return (_timeout >= 0.0); }
 
   // flag if wallclock time is expired
-  bool is_timeout() const { return (_timeout == 0.0); }
+  [[nodiscard]] bool is_timeout() const { return (_timeout == 0.0); }
 
-  double elapsed(enum ttype);
-  double cpu(enum ttype);
+  [[nodiscard]] double elapsed(enum ttype) const;
+  [[nodiscard]] double cpu(enum ttype) const;
 
-  double get_cpu(enum ttype which) const { return cpu_array[which]; };
-  double get_wall(enum ttype which) const { return wall_array[which]; };
+  [[nodiscard]] double get_cpu(enum ttype which) const { return cpu_array[which]; };
+  [[nodiscard]] double get_wall(enum ttype which) const { return wall_array[which]; };
 
   void set_wall(enum ttype, double);
 
@@ -93,7 +93,7 @@ class Timer : protected Pointers {
 
   // check for timeout. inline wrapper around internal
   // function to reduce overhead in case there is no check.
-  bool check_timeout(int step)
+  [[nodiscard]] bool check_timeout(int step)
   {
     if (_timeout == 0.0) return true;
     if (_nextcheck != step)

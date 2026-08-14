@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
@@ -61,10 +48,9 @@ struct localsum {
   // double**.
   Kokkos::View<idx_type::const_data_type, idx_type::array_layout, memory_space>
       idx;
-  // "scalar_array_type" is an alias in ViewTraits (and DualView) which is the
+  // "data_type" is an alias in ViewTraits (and DualView) which is the
   // array version of the value(s) stored in the View.
-  Kokkos::View<view_type::scalar_array_type, view_type::array_layout,
-               memory_space>
+  Kokkos::View<view_type::data_type, view_type::array_layout, memory_space>
       dest;
   Kokkos::View<view_type::const_data_type, view_type::array_layout,
                memory_space, Kokkos::MemoryRandomAccess>

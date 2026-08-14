@@ -208,6 +208,7 @@ int NeighborKokkos::check_distance_kokkos()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int &i, int &flag) const {
   const double delx = x.view<DeviceType>()(i,0) - xhold.view<DeviceType>()(i,0);
@@ -316,6 +317,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborXhold<DeviceType>, const int &i) const {
   xhold.view<DeviceType>()(i,0) = x.view<DeviceType>()(i,0);

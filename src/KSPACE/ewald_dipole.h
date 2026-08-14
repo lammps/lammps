@@ -40,7 +40,7 @@ class EwaldDipole : public Ewald {
   void musum_musq();
   double rms_dipole(int, double, bigint);
   void eik_dot_r() override;
-  void slabcorr();
+  void slabcorr() override;
   double NewtonSolve(double, double, bigint, double, double);
   double f(double, double, bigint, double, double);
   double derivf(double, double, bigint, double, double);

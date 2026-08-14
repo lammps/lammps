@@ -350,8 +350,10 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   double *em = atom->em;
   double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
-  int eflag = 1;
-  int vflag = 0;
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   // compute the right hand side (vector b) of Eq. (40) according to Eq. (42)
   // keep the scaled real charges intact here to compute efield for the right hand side (b)

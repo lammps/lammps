@@ -68,6 +68,7 @@ class LAMMPSLexer(RegexLexer):
             include('conditionals'),
             include('keywords'),
             (r'#.*?\n', Comment),
+            (r' &\n', Literal.String.Char),
             (r'"', String, 'string'),
             (r'\'', String, 'single_quote_string'),
             (r'[0-9]+:[0-9]+(:[0-9]+)?', Number),

@@ -1,7 +1,11 @@
 .. index:: pair_style ylz
+.. index:: pair_style ylz/omp
+.. index:: pair_style ylz/kk
 
 pair_style ylz command
-===========================
+======================
+
+Accelerator Variants: *ylz/omp*, *ylz/kk*
 
 Syntax
 """"""
@@ -63,7 +67,7 @@ is the length unit.
 
 This pair style is suited for solvent-free coarse-grained simulations of
 biological systems involving lipid bilayer membranes, such as vesicle
-shape transformations :ref:`(Yuan2010b) <Yuan>`, nanoparticle
+shape transformations :ref:`(Yuan2010b) <Yuan2>`, nanoparticle
 endocytosis :ref:`(Huang) <Huang>`, modeling of red blood cell membranes
 :ref:`(Fu) <Fu>`, :ref:`(Appshaw) <Appshaw>`, and modeling of cell
 elasticity :ref:`(Becton) <Becton>`.
@@ -89,6 +93,10 @@ mixing as described below:
 
 The last coefficient is optional.  If not specified, the global
 cutoff specified in the pair_style command is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
@@ -158,6 +166,8 @@ none
 .. _Yuan:
 
 **(Yuan2010a)** Yuan, Huang, Li, Lykotrafitis, Zhang, Phys. Rev. E, 82, 011905(2010).
+
+.. _Yuan2:
 
 **(Yuan2010b)** Yuan, Huang, Zhang, Soft. Matter, 6, 4571(2010).
 

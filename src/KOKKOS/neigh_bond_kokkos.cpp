@@ -285,6 +285,7 @@ void NeighBondKokkos<DeviceType>::bond_all()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
@@ -364,6 +365,7 @@ void NeighBondKokkos<DeviceType>::bond_partial()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
@@ -405,6 +407,7 @@ void NeighBondKokkos<DeviceType>::bond_check()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondCheck, const int &m, int &flag) const {
   const int i = v_bondlist(m,0);
@@ -469,6 +472,7 @@ void NeighBondKokkos<DeviceType>::angle_all()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
@@ -555,6 +559,7 @@ void NeighBondKokkos<DeviceType>::angle_partial()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAnglePartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
@@ -604,6 +609,7 @@ void NeighBondKokkos<DeviceType>::angle_check()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleCheck, const int &m, int &flag) const {
   const int i = v_anglelist(m,0);
@@ -680,6 +686,7 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
@@ -771,6 +778,7 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
@@ -826,6 +834,7 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralCheck, const int &m, int &flag) const {
   const int i = list(m,0);
@@ -918,6 +927,7 @@ void NeighBondKokkos<DeviceType>::improper_all()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
@@ -1009,6 +1019,7 @@ void NeighBondKokkos<DeviceType>::improper_partial()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
@@ -1044,6 +1055,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int NeighBondKokkos<DeviceType>::closest_image(const int i, int j) const
 {
@@ -1081,6 +1093,7 @@ int NeighBondKokkos<DeviceType>::closest_image(const int i, int j) const
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::minimum_image(double &dx, double &dy, double &dz) const
 {

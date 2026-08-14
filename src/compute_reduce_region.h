@@ -28,7 +28,7 @@ class ComputeReduceRegion : public ComputeReduce {
  public:
   ComputeReduceRegion(class LAMMPS *, int, char **);
 
- private:
+ protected:
   double compute_one(int, int) override;
   bigint count(int) override;
 };

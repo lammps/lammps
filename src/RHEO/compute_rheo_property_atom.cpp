@@ -45,8 +45,9 @@ using namespace RHEO_NS;
 ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), avec_index(nullptr), col_index(nullptr), col_t_index(nullptr),
     buf(nullptr), pack_choice(nullptr), fix_rheo(nullptr), fix_pressure(nullptr),
-    fix_thermal(nullptr), compute_interface(nullptr), compute_kernel(nullptr),
-    compute_surface(nullptr), compute_vshift(nullptr), compute_grad(nullptr)
+    fix_thermal(nullptr), fix_oxidation(nullptr), compute_interface(nullptr),
+    compute_kernel(nullptr), compute_surface(nullptr), compute_vshift(nullptr),
+    compute_grad(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute property/atom", error);
 
@@ -124,8 +125,10 @@ ComputeRHEOPropertyAtom::ComputeRHEOPropertyAtom(LAMMPS *lmp, int narg, char **a
     } else if (utils::strmatch(arg[iarg], "^grad/v/")) {
       i += add_tensor_component(arg[iarg], i, &ComputeRHEOPropertyAtom::pack_gradv) - 1;
     } else if (utils::strmatch(arg[iarg], "^stress/v/")) {
+      pressure_flag = 1;
       i += add_tensor_component(arg[iarg], i, &ComputeRHEOPropertyAtom::pack_viscous_stress) - 1;
     } else if (utils::strmatch(arg[iarg], "^stress/t/")) {
+      pressure_flag = 1;
       i += add_tensor_component(arg[iarg], i, &ComputeRHEOPropertyAtom::pack_total_stress) - 1;
     } else if (strcmp(arg[iarg], "energy") == 0) {
       avec_index[i] = atom->avec->property_atom("esph");
@@ -202,16 +205,22 @@ void ComputeRHEOPropertyAtom::setup()
 {
   if (thermal_flag) {
     auto fixes = modify->get_fix_by_style("rheo/thermal");
+    if (fixes.empty())
+      error->all(FLERR, "Cannot request thermal property without fix rheo/thermal");
     fix_thermal = dynamic_cast<FixRHEOThermal *>(fixes[0]);
   }
 
   if (pressure_flag) {
     auto fixes = modify->get_fix_by_style("rheo/pressure");
+    if (fixes.empty())
+      error->all(FLERR, "Cannot request pressure property without fix rheo/pressure");
     fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
   }
 
   if (shell_flag) {
     auto fixes = modify->get_fix_by_style("rheo/oxidation");
+    if (fixes.empty())
+      error->all(FLERR, "Cannot request nbond/shell without fix rheo/oxidation");
     fix_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
   }
 }

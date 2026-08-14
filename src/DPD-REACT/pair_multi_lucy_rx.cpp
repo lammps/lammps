@@ -35,16 +35,21 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
+#include "fix_rx.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
+
+#ifdef DBL_EPSILON
+  #define MY_EPSILON (10.0*DBL_EPSILON)
+#else
+  #define MY_EPSILON (10.0*2.220446049250313e-16)
+#endif
 using MathConst::MY_PI;
 
 enum{ NONE, RLINEAR, RSQ };
-
-static constexpr int MAXLINE = 1024;
 
 #define oneFluidParameter (-1)
 #define isOneFluid(_site) ( (_site) == oneFluidParameter )
@@ -62,20 +67,20 @@ static const char cite_pair_multi_lucy_rx[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) : Pair(lmp),
-  ntables(0), tables(nullptr), tabindex(nullptr), site1(nullptr), site2(nullptr)
+PairMultiLucyRX::PairMultiLucyRX(LAMMPS *lmp) :
+  Pair(lmp), rx_fix(nullptr),
+  ntables(0), tables(nullptr), tabindex(nullptr),
+  site1(nullptr), site2(nullptr), nmax(0),
+  mixWtSite1old(nullptr), mixWtSite2old(nullptr),
+  mixWtSite1(nullptr), mixWtSite2(nullptr),
+  fractionalWeighting(true)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_multi_lucy_rx);
 
   if (atom->rho_flag != 1) error->all(FLERR,"Pair multi/lucy/rx command requires atom_style with density (e.g. dpd, meso)");
 
-  ntables = 0;
-  tables = nullptr;
-
   comm_forward = 1;
   comm_reverse = 1;
-
-  fractionalWeighting = true;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,6 +97,11 @@ PairMultiLucyRX::~PairMultiLucyRX()
     memory->destroy(cutsq);
     memory->destroy(tabindex);
   }
+
+  memory->destroy(mixWtSite1old);
+  memory->destroy(mixWtSite2old);
+  memory->destroy(mixWtSite1);
+  memory->destroy(mixWtSite2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,18 +138,16 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   int jtable;
   double *rho = atom->rho;
 
-  double *mixWtSite1old = nullptr;
-  double *mixWtSite2old = nullptr;
-  double *mixWtSite1 = nullptr;
-  double *mixWtSite2 = nullptr;
+  if (atom->nmax > nmax) {
+    memory->grow(mixWtSite1old, atom->nmax, "PairMultiLucyRX::mixWtSite1old");
+    memory->grow(mixWtSite2old, atom->nmax, "PairMultiLucyRX::mixWtSite2old");
+    memory->grow(mixWtSite1, atom->nmax, "PairMultiLucyRX::mixWtSite1");
+    memory->grow(mixWtSite2, atom->nmax, "PairMultiLucyRX::mixWtSite2");
+    nmax = atom->nmax;
+  }
 
   {
     const int ntotal = nlocal + nghost;
-    memory->create(mixWtSite1old, ntotal, "PairMultiLucyRX::mixWtSite1old");
-    memory->create(mixWtSite2old, ntotal, "PairMultiLucyRX::mixWtSite2old");
-    memory->create(mixWtSite1, ntotal, "PairMultiLucyRX::mixWtSite1");
-    memory->create(mixWtSite2, ntotal, "PairMultiLucyRX::mixWtSite2");
-
     for (int i = 0; i < ntotal; ++i)
        getMixingWeights(i, mixWtSite1old[i], mixWtSite2old[i], mixWtSite1[i], mixWtSite2[i]);
   }
@@ -284,11 +292,6 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
-
-  memory->destroy(mixWtSite1old);
-  memory->destroy(mixWtSite2old);
-  memory->destroy(mixWtSite1);
-  memory->destroy(mixWtSite2);
 }
 
 /* ----------------------------------------------------------------------
@@ -360,10 +363,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 {
   if (narg != 6 && narg != 7) error->all(FLERR,"Illegal pair_coeff command");
 
-  bool rx_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^rx")) rx_flag = true;
-  if (!rx_flag) error->all(FLERR,"PairMultiLucyRX requires a fix rx command.");
+  rx_fix = FixRX::get_rx_fix(lmp);
 
   if (!allocated) allocate();
 
@@ -380,7 +380,7 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   if (me == 0) read_table(tb,arg[2],arg[3]);
   bcast_table(tb);
 
-  nspecies = atom->nspecies_dpd;
+  nspecies = rx_fix->get_nspecies();
 
   site1 = utils::strdup(arg[4]);
   site2 = utils::strdup(arg[5]);
@@ -429,29 +429,23 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
   if (strcmp(site1, "1fluid") == 0)
      isite1 = oneFluidParameter;
   else {
-     isite1 = nspecies;
-     for (int ispecies = 0; ispecies < nspecies; ++ispecies)
-        if (strcmp(site1, atom->dvname[ispecies]) == 0) {
-           isite1 = ispecies;
-           break;
-        }
-
-     if (isite1 == nspecies)
-        error->all(FLERR,"Pair_multi_lucy_rx site1 is invalid.");
+    try {
+      isite1 = rx_fix->get_species_str_to_species_ind().at(site1);
+    }
+    catch (const std::out_of_range &) {
+      error->all(FLERR,"Pair_multi_lucy_rx site1 is invalid.");
+    }
   }
 
   if (strcmp(site2, "1fluid") == 0)
      isite2 = oneFluidParameter;
   else {
-     isite2 = nspecies;
-     for (int ispecies = 0; ispecies < nspecies; ++ispecies)
-        if (strcmp(site2, atom->dvname[ispecies]) == 0) {
-           isite2 = ispecies;
-           break;
-        }
-
-     if (isite2 == nspecies)
-        error->all(FLERR,"Pair_multi_lucy_rx site2 is invalid.");
+    try {
+      isite2 = rx_fix->get_species_str_to_species_ind().at(site2);
+    }
+    catch (const std::out_of_range &) {
+      error->all(FLERR,"Pair_multi_lucy_rx site2 is invalid.");
+    }
   }
 
 }
@@ -480,34 +474,9 @@ double PairMultiLucyRX::init_one(int i, int j)
 
 void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
 {
-  char line[MAXLINE] = {'\0'};
+  RxTableFileReader reader(lmp, keyword, file, "multi/lucy/rx");
 
-  // open file
-
-  FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr)
-    error->one(FLERR, "Cannot open file {}: {}",file,utils::getsyserror());
-
-  // loop until section found with matching keyword
-
-  while (true) {
-    if (fgets(line,MAXLINE,fp) == nullptr)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;  // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
-    param_extract(tb,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,line);
+  param_extract(reader, tb);
   memory->create(tb->rfile,tb->ninput,"pair:rfile");
   memory->create(tb->efile,tb->ninput,"pair:efile");
   memory->create(tb->ffile,tb->ninput,"pair:ffile");
@@ -516,28 +485,25 @@ void PairMultiLucyRX::read_table(Table *tb, char *file, char *keyword)
   // if rflag set, compute r
   // if rflag not set, use r from file
 
-  int itmp;
-  double rtmp;
+  reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
+                                ValueTokenizer & values) {
 
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  for (int i = 0; i < tb->ninput; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    sscanf(line,"%d %lg %lg %lg",&itmp,&rtmp,&tb->efile[i],&tb->ffile[i]);
+                              values.next_int(); // ignore index
+                              double rtmp = values.next_double();
+                              tb->efile[i] = values.next_double();
+                              tb->ffile[i] = values.next_double();
 
-    if (tb->rflag == RLINEAR)
-      rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
-    else if (tb->rflag == RSQ) {
-      rtmp = tb->rlo*tb->rlo +
-        (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
-      rtmp = sqrt(rtmp);
-    }
+                              if (tb->rflag == RLINEAR)
+                                rtmp = tb->rlo + (tb->rhi - tb->rlo)*i/(tb->ninput-1);
+                              else if (tb->rflag == RSQ) {
+                                rtmp = tb->rlo*tb->rlo +
+                                  (tb->rhi*tb->rhi - tb->rlo*tb->rlo)*i/(tb->ninput-1);
+                                rtmp = sqrt(rtmp);
+                              }
 
-    tb->rfile[i] = rtmp;
-  }
+                              tb->rfile[i] = rtmp;
+                            });
 
-  // close file
-
-  fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -605,38 +571,38 @@ void PairMultiLucyRX::spline_table(Table *tb)
    N is required, other params are optional
 ------------------------------------------------------------------------- */
 
-void PairMultiLucyRX::param_extract(Table *tb, char *line)
+void PairMultiLucyRX::param_extract(RxTableFileReader & reader, Table *tb)
 {
-  tb->ninput = 0;
+  tb->ninput = reader.get_num_table_entries();
   tb->rflag = NONE;
   tb->fpflag = 0;
 
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = std::stoi(word);
-    } else if (strcmp(word,"R") == 0 || strcmp(word,"RSQ") == 0) {
-      if (strcmp(word,"R") == 0) tb->rflag = RLINEAR;
-      else if (strcmp(word,"RSQ") == 0) tb->rflag = RSQ;
-      word = strtok(nullptr," \t\n\r\f");
-      tb->rlo = std::stod(word);
-      word = strtok(nullptr," \t\n\r\f");
-      tb->rhi = std::stod(word);
-    } else if (strcmp(word,"FP") == 0) {
-      tb->fpflag = 1;
-      word = strtok(nullptr," \t\n\r\f");
-      tb->fplo = std::stod(word);
-      word = strtok(nullptr," \t\n\r\f");
-      tb->fphi = std::stod(word);
-    } else {
-      printf("WORD: %s\n",word);
-      error->one(FLERR,"Invalid keyword in pair table parameters");
-    }
-    word = strtok(nullptr," \t\n\r\f");
-  }
+  while (reader.has_next_param_token()) {
+    auto param_name = reader.next_param_token_as_string();
 
-  if (tb->ninput == 0) error->one(FLERR,"Pair table parameters did not set N");
+    if (param_name[0] == 'R') {
+      if (param_name == "R") {
+        tb->rflag = RLINEAR;
+      } else if (param_name == "RSQ") {
+        tb->rflag = RSQ;
+      } else {
+        error->one(FLERR,
+                   "Invalid keyword in pair table parameters: {}",
+                   param_name);
+      }
+
+      tb->rlo = reader.next_param_token_as_double();
+      tb->rhi = reader.next_param_token_as_double();
+    } else if (param_name == "FP") {
+      tb->fpflag = 1;
+      tb->fplo = reader.next_param_token_as_double();
+      tb->fphi = reader.next_param_token_as_double();
+    } else {
+      error->one(FLERR,
+                 "Invalid keyword in pair table parameters: {}",
+                 param_name);
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -944,22 +910,39 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
   double nMoleculesOld2, nMolecules2;
   double nTotal, nTotalOld;
 
+  const auto & species_ind_to_atom_prop_ind =
+    rx_fix->get_species_ind_to_atom_prop_ind();
+
+  const auto & species_ind_to_atom_prop_ind_old =
+    rx_fix->get_species_ind_to_atom_prop_ind_old();
+
   nTotal = 0.0;
   nTotalOld = 0.0;
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    nTotal += atom->dvector[ispecies][id];
-    nTotalOld += atom->dvector[ispecies+nspecies][id];
+    const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old[ispecies];
+
+    nTotal += atom->dvector[atom_ind][id];
+    nTotalOld += atom->dvector[atom_ind_old][id];
   }
+  if (nTotal < MY_EPSILON || nTotalOld < MY_EPSILON)
+    error->all(FLERR,"The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
-    nMoleculesOld1 = atom->dvector[isite1+nspecies][id];
-    nMolecules1 = atom->dvector[isite1][id];
+    const auto atom_site1_ind = species_ind_to_atom_prop_ind[isite1];
+    const auto atom_site1_ind_old = species_ind_to_atom_prop_ind_old[isite1];
+
+    nMoleculesOld1 = atom->dvector[atom_site1_ind_old][id];
+    nMolecules1 = atom->dvector[atom_site1_ind][id];
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false) {
-    nMoleculesOld2 = atom->dvector[isite2+nspecies][id];
-    nMolecules2 = atom->dvector[isite2][id];
+    const auto atom_site2_ind = species_ind_to_atom_prop_ind[isite2];
+    const auto atom_site2_ind_old = species_ind_to_atom_prop_ind_old[isite2];
+
+    nMoleculesOld2 = atom->dvector[atom_site2_ind_old][id];
+    nMolecules2 = atom->dvector[atom_site2_ind][id];
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
@@ -972,10 +955,14 @@ void PairMultiLucyRX::getMixingWeights(int id, double &mixWtSite1old, double &mi
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      nMoleculesOFAold += atom->dvector[ispecies+nspecies][id];
-      nMoleculesOFA += atom->dvector[ispecies][id];
-      fractionOFAold += atom->dvector[ispecies+nspecies][id] / nTotalOld;
-      fractionOFA += atom->dvector[ispecies][id] / nTotal;
+
+      const auto atom_ind = species_ind_to_atom_prop_ind[ispecies];
+      const auto atom_ind_old = species_ind_to_atom_prop_ind_old[ispecies];
+
+      nMoleculesOFAold += atom->dvector[atom_ind_old][id];
+      nMoleculesOFA += atom->dvector[atom_ind][id];
+      fractionOFAold += atom->dvector[atom_ind_old][id] / nTotalOld;
+      fractionOFA += atom->dvector[atom_ind][id] / nTotal;
     }
     if (isOneFluid(isite1)) {
       nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
@@ -1056,4 +1043,13 @@ void PairMultiLucyRX::unpack_reverse_comm(int n, int *list, double *buf)
     j = list[i];
     rho[j] += buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairMultiLucyRX::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (mixWtSite1old) bytes += (double) nmax * 4 * sizeof(double);    // 4 mixWtSite arrays
+  return bytes;
 }

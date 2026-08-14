@@ -178,6 +178,7 @@ void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &/*final*/) const
 {
@@ -246,6 +247,7 @@ int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange, const int &i) const
 {

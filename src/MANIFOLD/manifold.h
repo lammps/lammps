@@ -40,8 +40,8 @@
 #include "pointers.h"
 #include <cmath>
 
-namespace LAMMPS_NS {
-namespace user_manifold {
+
+namespace LAMMPS_NS::user_manifold {
 
   // Abstract base class.
   class manifold : protected Pointers {
@@ -88,8 +88,8 @@ namespace user_manifold {
     return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
   }
 
-}    // namespace user_manifold
+} // namespace LAMMPS_NS::user_manifold
 
-}    // namespace LAMMPS_NS
+
 
 #endif    // LMP_MANIFOLD_H

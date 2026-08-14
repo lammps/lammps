@@ -29,6 +29,7 @@
 #include "error.h"
 #include "force.h"
 #include "memory.h"
+#include "platform.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -38,47 +39,6 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
-// #define TIMING_ON
-
-#ifdef TIMING_ON
-#include <sys/time.h>
-#include <time.h>
-//#include "rdtsc.h"
-#ifdef __bgq__
-#include <hwi/include/bqc/A2_inlines.h>
-#endif
-
-static double gettime() {
-  if (1) {
-      struct timeval tv;
-      gettimeofday(&tv,nullptr);
-      return tv.tv_sec + 1e-6 * tv.tv_usec;
-    /*
-      const double x = 1.0 / CLOCKS_PER_SEC;
-      return clock() * x;
-    */
-
-    //const double invfreq = 1.0 / 2394.108e6;
-    /*
-    const double invfreq = 1.0 / 700e6;
-      unsigned long long int x = rdtsc();
-      return x*invfreq;
-    */
-
-    /*
-    const double invfreq = 1.0 / 1.6e9;
-    unsigned long long int x = GetTimeBase();
-    return x*invfreq;
-    */
-
-  } else
-    return 0.0;
-}
-#else
-static double gettime() { return 0.0; }
-#endif
-
 
 /* ---------------------------------------------------------------------- */
 
@@ -99,7 +59,6 @@ PairMGPT::~PairMGPT()
 }
 
 /* ---------------------------------------------------------------------- */
-
 
 static double t_make_b2 = 0.0,n_make_b2 = 0.0;
 
@@ -139,7 +98,7 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
     }
 
   if (rij <= rcrit*rcrit) {
-    t0 = gettime();
+    t0 = platform::walltime();
     if (lang == 3) {
       hamltn_5_raw(rrij[0],rrij[1],rrij[2],
                    bptr->H.m ,bptr->Hx.m,
@@ -150,7 +109,7 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
                    bptr->Hy.m,bptr->Hz.m,&bptr->fl_deriv_sum);
     }
 
-    t1 = gettime();
+    t1 = platform::walltime();
     t_make_b2 += t1-t0;
     n_make_b2++;
   } else {
@@ -166,27 +125,6 @@ void PairMGPT::make_bond(const double xx[][3],int i,int j,bond_data *bptr) {
 }
 
 static double t_trace = 0.0,n_trace = 0.0;
-/*
-static inline double mtrace(int n,double A[8][8],double B[8][8]) {
-  double t0,t1;
-  double s;
-
-  t0 = gettime();
-  if (n == 5) s = mtrace_5(A,B);
-  else if (n == 7) s = mtrace_7(A,B);
-  else {
-    s = 0.0;
-    for (int i = 1; i<=n; i++)
-      for (int j = 1; j<=n; j++)
-        s = s + A[i][j]*B[i][j];
-  }
-  t1 = gettime();
-  t_trace += t1-t0;
-  n_trace++;
-
-  return s;
-}
-*/
 
 void PairMGPT::make_triplet(bond_data *ij_bond,bond_data *ik_bond,
                              triplet_data *triptr) {
@@ -224,7 +162,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
   bond_data *bij = nullptr,*bik = nullptr;
   triplet_data *tptr = nullptr;
 
-  t0 = gettime();
+  t0 = platform::walltime();
   if (recompute == 0) {
     bij = bhash->Lookup(Doublet(i,j));
     bik = bhash->Lookup(Doublet(i,k));
@@ -251,10 +189,10 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
     else
       make_bond(xx,k,i,bik);
   }
-  t1 = gettime();
+  t1 = platform::walltime();
   t_make_b += t1-t0;
 
-  t0 = gettime();
+  t0 = platform::walltime();
   if (bij != nullptr && bik != nullptr) {
     tptr = twork;
     make_triplet(bij,bik,tptr);
@@ -264,7 +202,7 @@ PairMGPT::triplet_data *PairMGPT::get_triplet(const double xx[][3],int i,int j,i
     *dvir_ij_p = 0.0;
     *dvir_ik_p = 0.0;
   }
-  t1 = gettime();
+  t1 = platform::walltime();
   t_make_t += t1-t0;
   n_make++;
   return tptr;
@@ -470,17 +408,6 @@ void PairMGPT::force_debug_4(double xx[][3],
   }
 }
 
-
-
-/*
-#define trd_update_4(T12,T45,coord)                   \
-  do {                                                \
-    trd1 = transtrace(T12->H1##coord##H2,T45->H1H2 ); \
-    trd2 = transtrace(T12->H1H2##coord,T45->H1H2   ); \
-    trd3 = transtrace(T12->H1H2 ,T45->H1##coord##H2); \
-    trd4 = transtrace(T12->H1H2 ,T45->H1H2##coord  ); \
-  } while (0)
-*/
 #define trd_update_4(T12,T45) \
   do {                                         \
     tr_trace3(&(T45->H1H2.m[1][0]),            \
@@ -562,29 +489,6 @@ void PairMGPT::force_debug_4(double xx[][3],
     fmz = fmz + dfmz*(w);    \
   } while (0)
 
-
-
-#define restrict __restrict__
-#ifdef __bg__
-#define const
-#endif
-#ifdef TIMING_ON
-static int ntr_calls = 0;
-static trtrace3_fun tr_internal;
-static void tr_count(const double * restrict A,
-                     const double * restrict B1,double * restrict t1,
-                     const double * restrict B2,double * restrict t2,
-                     const double * restrict B3,double * restrict t3) {
-  tr_internal(A,B1,t1,B2,t2,B3,t3);
-  ntr_calls++;
-}
-#endif
-#ifdef __bg__
-#undef const
-#endif
-#undef restrict
-
-
 int PairMGPT::Matrix::sz;
 void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
                           double *e_s,double *e_p,double *e_t,double *e_q,
@@ -602,7 +506,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   *e_q = -99.0;
 
 #ifdef TIMING_ON
-  double t0 = gettime();
+  double t0 = platform::walltime();
 #endif
   e_single = e_pair = e_triplet = e_triplet_c = e_quad = 0.0;
   volvir2 = 0.0;
@@ -671,7 +575,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   double trd1z,trd2z,trd3z,trd4z;
 
 #ifdef TIMING_ON
-  double tx0 = gettime();
+  double tx0 = platform::walltime();
 #endif
 
   double rhoinv;
@@ -753,7 +657,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   nlist_short = (int *) memory->smalloc(sizeof(int) * nneitot,"mgpt: nlist_short");
 
 #ifdef TIMING_ON
-  double tx1 = gettime();
+  double tx1 = platform::walltime();
   tmem += tx1-tx0;
   ntmem++;
 #endif
@@ -792,7 +696,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     const int c1 = c1_outside(ss[i],triclinic,alpha);
 
 #ifdef TIMING_ON
-    tx0 = gettime();
+    tx0 = platform::walltime();
 #endif
     for (jx = 0; jx<nnei[i]; jx++) {
       fjx = fjy = fjz = 0.0;
@@ -894,7 +798,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
     ff[i][2] += fiz * e_scale;
 
 #ifdef TIMING_ON
-    tx1 = gettime();
+    tx1 = platform::walltime();
     tpair += tx1-tx0;
     ntpair += nnei[i];
 #endif
@@ -961,7 +865,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
           }
 
 #ifdef TIMING_ON
-          tx0 = gettime();
+          tx0 = platform::walltime();
 #endif
 
           w3 = get_weight(triclinic,ss[i],ss[j],ss[k]);
@@ -1264,7 +1168,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
             }
 
 #ifdef TIMING_ON
-            tx1 = gettime();
+            tx1 = platform::walltime();
             ttriplet += tx1 - tx0;
             nttriplet++;
 #endif
@@ -1275,7 +1179,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
           if (four_body_energies || four_body_forces)
             if (j < i) { /* Search for quadruplet */
 #ifdef TIMING_ON
-              tx0 = gettime();
+              tx0 = platform::walltime();
 #endif
 
               mj = first[j];
@@ -1506,7 +1410,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
 
               }
 #ifdef TIMING_ON
-              tx1 = gettime();
+              tx1 = platform::walltime();
               tquad += tx1 - tx0;
               ntquad++;
               ntquaditer++;
@@ -1546,7 +1450,7 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   }
 
 #ifdef TIMING_ON
-  tx0 = gettime();
+  tx0 = platform::walltime();
 #endif
   for (i = 0; i<ntot; i++)
     for (p = 0; p<3; p++)
@@ -1558,11 +1462,11 @@ void PairMGPT::compute_x(const int *nnei,const int * const *nlist,
   memory->sfree(ff);
   memory->sfree(xx);
 #ifdef TIMING_ON
-  tx1 = gettime();
+  tx1 = platform::walltime();
   tmem += tx1-tx0;
   ntmem++;
 
-  double t1 = gettime();
+  double t1 = platform::walltime();
 
   if (comm->me == 0) {
     double tsum = (tmem+tsort+tpair+tlookup+ttriplet+tquad);

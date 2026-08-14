@@ -27,13 +27,17 @@
 #include "error.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairColloid::PairColloid(LAMMPS *lmp) : Pair(lmp)
+PairColloid::PairColloid(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), a12(nullptr), d1(nullptr), d2(nullptr), diameter(nullptr),
+    a1(nullptr), a2(nullptr), offset(nullptr), sigma(nullptr), sigma3(nullptr), sigma6(nullptr),
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), form(nullptr)
 {
   writedata = 1;
 }
@@ -42,6 +46,8 @@ PairColloid::PairColloid(LAMMPS *lmp) : Pair(lmp)
 
 PairColloid::~PairColloid()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -184,6 +190,9 @@ void PairColloid::compute(int eflag, int vflag)
         if (r <= K[1])
           error->one(FLERR,"Overlapping large/large in pair colloid");
         break;
+
+      default:
+        error->one(FLERR,"Unknown colloid interaction form");
       }
 
       if (eflag) evdwl *= factor_lj;
@@ -541,4 +550,17 @@ double PairColloid::single(int /*i*/, int /*j*/, int itype, int jtype, double rs
   }
 
   return factor_lj*phi;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairColloid::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "a12") == 0) return (void *) a12;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  if (strcmp(str, "d1") == 0) return (void *) d1;
+  if (strcmp(str, "d2") == 0) return (void *) d2;
+  if (strcmp(str, "diameter") == 0) return (void *) diameter;
+  return nullptr;
 }

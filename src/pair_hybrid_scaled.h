@@ -41,9 +41,6 @@ class PairHybridScaled : public PairHybrid {
   double single(int, int, int, int, double, double, double, double &) override;
   void born_matrix(int, int, int, int, double, double, double, double &, double &) override;
 
-  void init_svector() override;
-  void copy_svector(int, int) override;
-
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
 
@@ -55,6 +52,9 @@ class PairHybridScaled : public PairHybrid {
   int nmaxfsum;
   int *atomvar;         // indices of atom-style variables
   double *atomscale;    // vector of atom-style variable values
+
+  void init_svector() override;
+  void copy_svector(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

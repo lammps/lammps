@@ -46,6 +46,8 @@ class FixPIMDLangevin : public Fix {
   void initial_integrate(int) override;
   void final_integrate() override;
   void end_of_step() override;
+  void write_restart(FILE *fp) override;
+  void restart(char *buf) override;
 
   double compute_vector(int) override;
 
@@ -90,21 +92,22 @@ class FixPIMDLangevin : public Fix {
 
   int cmode;
   int sizeplan;
+  int maxsend;
   int *plansend, *planrecv;
 
   tagint *tagsend, *tagrecv;
-  double **bufsend, **bufrecv, **bufbeads;
+  double *bufsend, *bufrecv, **bufbeads;
   double **bufsorted, **bufsortedall;
-  double **outsorted, **buftransall;
-
-  tagint *tagsendall, *tagrecvall;
-  double **bufsendall, **bufrecvall;
 
   int *counts, *displacements;
 
   void comm_init();
   virtual void prepare_coordinates();
   void inter_replica_comm(double **ptr);
+  void ring_collect(const std::vector<tagint> &miss_tag,
+                                            double **ptr,
+                                            std::vector<tagint> &rep_tag,
+                                            std::vector<double> &rep_val);
   void virtual spring_force();
 
   /* normal-mode operations */
@@ -190,10 +193,8 @@ class FixPIMDLangevin : public Fix {
   void compute_cvir();
   void compute_totenthalpy();
 
-  void write_restart(FILE *fp) override;
   int size_restart_global();
   int pack_restart_data(double *list);
-  void restart(char *buf) override;
 };
 }    // namespace LAMMPS_NS
 #endif

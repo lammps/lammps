@@ -104,7 +104,7 @@ are printed to the screen and log file.  See the :doc:`Run output <Run_output>` 
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

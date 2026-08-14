@@ -28,21 +28,35 @@ fix		1 all nvt temp  275.0 275.0 100.0 tchain 1
 shell "rm -f out*.colvars.*"
 fix		2 all colvars peptide.colvars
 fix		2a ref setforce 0.0 0.0 0.0
-
 fix		4 all shake 0.0001 10 100 b 4 6 8 10 12 14 18 a 31
 
 #dump		1 colvar custom 1 dump.colvar.lammpstrj id xu yu zu fx fy fz
 #dump_modify 1 sort id
 
-thermo_style	custom step temp etotal pe ke epair ebond f_2
-thermo		10
+fix_modify 2 config """
+  colvar {
+    name three
+    distanceVec {
+      group1 { atomNumbers 80 82 83 84 }
+      group2 { atomNumbers $(atoms) }
+    }
+  }
+  colvar {
+    name four
+    cartesian {
+      atoms { atomNumbers 80 82 }
+    }
+  }
+"""
 
+thermo_style    custom step temp etotal pe ke epair ebond &
+                f_2 f_2[1][1] f_2[2][1] &
+                f_2[3][1] f_2[3][2] f_2[3][3] &
+                f_2[4][1] f_2[4][2] f_2[4][3] f_2[4][4] f_2[4][5] f_2[4][6]
+thermo		      10
+run		          100
+run             100
 
-run		100
-
-run     100
-
-fix 2 all colvars peptide.colvars input out.colvars.state output out2
-
-run     100
-
+fix 2           all colvars peptide.colvars input out.colvars.state output out2
+thermo_style    custom step temp etotal pe ke epair ebond f_2 f_2[1][1] f_2[2][1]
+run             100

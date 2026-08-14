@@ -39,7 +39,7 @@ class DihedralHelix : public Dihedral {
  protected:
   double *aphi, *bphi, *cphi;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

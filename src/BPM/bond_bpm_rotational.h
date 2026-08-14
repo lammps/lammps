@@ -39,19 +39,24 @@ class BondBPMRotational : public BondBPM {
   double single(int, double, int, int, double &) override;
 
  protected:
-  double *Kr, *Ks, *Kt, *Kb, *gnorm, *gslide, *groll, *gtwist;
+  double *Kr, *Ks, *Kt, *Kb, *gr, *gs, *gt, *gb;
   double *Fcr, *Fcs, *Tct, *Tcb;
   int smooth_flag, normalize_flag;
+  int frame_style, damping_style;
 
-  double elastic_forces(int, int, int, double, double, double, double *, double *, double *,
-                        double *, double *, double *);
-  void damping_forces(int, int, int, double *, double *, double *, double *, double *);
+  double average_frame_forces(int, int, int, double *, double *, double *, double *,
+                              double *, double &, double *);
+  double particle_frame_forces(int, int, int, double *, double *, double *, double *,
+                               double *, double &, double *);
+  void dem_damping_forces(int, int, int, double *, double *, double *, double *);
 
   void allocate();
   void store_data() override;
+  double store_bond(int, int, int);
 };
 
 }    // namespace LAMMPS_NS
+
 
 #endif
 #endif

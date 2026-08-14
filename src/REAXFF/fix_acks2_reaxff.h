@@ -33,8 +33,21 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   void init() override;
   void init_storage() override;
   void pre_force(int) override;
+  double memory_usage() override;
 
   double *get_s() { return s; }
+
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
 
  protected:
   int NN, last_rows_rank, last_rows_flag;
@@ -64,17 +77,8 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   int BiCGStab(double *, double *);
   void sparse_matvec_acks2(sparse_matrix *, sparse_matrix *, double *, double *);
 
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
-  int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
   void more_forward_comm(double *);
   void more_reverse_comm(double *);
-  double memory_usage() override;
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
 
   double parallel_norm(double *, int) override;
   double parallel_dot(double *, double *, int) override;

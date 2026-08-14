@@ -80,5 +80,3 @@ cd build/miniFE
 make KOKKOS_ARCH=${KOKKOS_ARCH} KOKKOS_DEVICES=${KOKKOS_DEVICES} CXX=${CXX} KOKKOS_PATH=${KOKKOS_PATH} \
      CXXFLAGS=${OPT_FLAG} -f ${MINIFE_PATH}/src/Makefile -j 16
 cd ../../
-
-

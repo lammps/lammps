@@ -28,6 +28,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -36,7 +37,9 @@ static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralFourier::DihedralFourier(LAMMPS *lmp) : Dihedral(lmp)
+DihedralFourier::DihedralFourier(LAMMPS *lmp) :
+    Dihedral(lmp), k(nullptr), cos_shift(nullptr), sin_shift(nullptr), shift(nullptr),
+    multiplicity(nullptr), nterms(nullptr)
 {
   writedata = 1;
   nterms_max = 0;
@@ -53,17 +56,17 @@ DihedralFourier::~DihedralFourier()
     memory->destroy(nterms);
 
     for (int i=1; i<= atom->ndihedraltypes; i++) {
-      delete [] k[i];
-      delete [] multiplicity[i];
-      delete [] shift[i];
-      delete [] cos_shift[i];
-      delete [] sin_shift[i];
+      delete[] k[i];
+      delete[] multiplicity[i];
+      delete[] shift[i];
+      delete[] cos_shift[i];
+      delete[] sin_shift[i];
     }
-    delete [] k;
-    delete [] multiplicity;
-    delete [] shift;
-    delete [] cos_shift;
-    delete [] sin_shift;
+    delete[] k;
+    delete[] multiplicity;
+    delete[] shift;
+    delete[] cos_shift;
+    delete[] sin_shift;
   }
 }
 
@@ -256,11 +259,13 @@ void DihedralFourier::allocate()
   int n = atom->ndihedraltypes;
 
   memory->create(nterms,n+1,"dihedral:nterms");
-  k = new double * [n+1];
-  multiplicity = new int * [n+1];
-  shift = new double * [n+1];
-  cos_shift = new double * [n+1];
-  sin_shift = new double * [n+1];
+  memset(nterms,0,sizeof(int)*(n+1));
+
+  k = new double *[n+1];
+  multiplicity = new int *[n+1];
+  shift = new double *[n+1];
+  cos_shift = new double *[n+1];
+  sin_shift = new double *[n+1];
   for (int i = 1; i <= n; i++) {
     k[i] = shift[i] = cos_shift[i] = sin_shift[i] = nullptr;
     multiplicity[i] = nullptr;
@@ -290,6 +295,7 @@ void DihedralFourier::coeff(int narg, char **arg)
   int multiplicity_one;
   double shift_one;
   int nterms_one = utils::inumeric(FLERR,arg[1],false,lmp);
+  nterms_max = MAX(nterms_max,nterms_one);
 
   if (nterms_one < 1)
     error->all(FLERR,"Incorrect number of terms arg for dihedral coefficients");
@@ -300,7 +306,6 @@ void DihedralFourier::coeff(int narg, char **arg)
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     nterms[i] = nterms_one;
-    nterms_max = MAX(nterms_max,nterms_one);
     delete[] k[i];
     delete[] multiplicity[i];
     delete[] shift[i];
@@ -335,13 +340,16 @@ void DihedralFourier::coeff(int narg, char **arg)
 
 void DihedralFourier::write_restart(FILE *fp)
 {
+  // must store nterms_max in restart file in addition to the nterms array
+  // the KOKKOS version requires it to store the coefficients in a 2d view
+  fwrite(&nterms_max,sizeof(int),1,fp);
   fwrite(&nterms[1],sizeof(int),atom->ndihedraltypes,fp);
+
   for (int i = 1; i <= atom->ndihedraltypes; i++) {
     fwrite(k[i],sizeof(double),nterms[i],fp);
     fwrite(multiplicity[i],sizeof(int),nterms[i],fp);
     fwrite(shift[i],sizeof(double),nterms[i],fp);
   }
-
 }
 
 /* ----------------------------------------------------------------------
@@ -352,18 +360,26 @@ void DihedralFourier::read_restart(FILE *fp)
 {
   allocate();
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
+    utils::sfread(FLERR,&nterms_max,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&nterms[1],sizeof(int),atom->ndihedraltypes,fp,nullptr,error);
-
+  }
+  MPI_Bcast(&nterms_max,1,MPI_INT,0,world);
   MPI_Bcast(&nterms[1],atom->ndihedraltypes,MPI_INT,0,world);
 
+  if ((nterms_max < 0) || (nterms_max > 4096))
+    error->all(FLERR,"Invalid number of terms in restart file");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    if ((nterms[i] < 0) || (nterms[i] > 4096))
+      error->all(FLERR,"Invalid number of terms in restart file");
+
   // allocate
-  for (int i=1; i<=atom->ndihedraltypes; i++) {
-    k[i] = new double [nterms[i]];
-    multiplicity[i] = new int [nterms[i]];
-    shift[i] = new double [nterms[i]];
-    cos_shift[i] = new double [nterms[i]];
-    sin_shift[i] = new double [nterms[i]];
+  for (int i = 1; i <= atom->ndihedraltypes; i++) {
+    k[i] = new double[nterms[i]];
+    multiplicity[i] = new int[nterms[i]];
+    shift[i] = new double[nterms[i]];
+    cos_shift[i] = new double[nterms[i]];
+    sin_shift[i] = new double[nterms[i]];
   }
 
   if (comm->me == 0) {

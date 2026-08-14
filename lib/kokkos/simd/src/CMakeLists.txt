@@ -14,17 +14,41 @@ install(
   PATTERN "*.hpp"
 )
 
+set(SIMD_MODULES Kokkos_SIMD.cppm Kokkos_SIMD_Impl.cppm)
+
 #-----------------------------------------------------------------------------
 
 # We have to pass the sources in here for Tribits
 # These will get ignored for standalone CMake and a true interface library made
-kokkos_add_library(kokkossimd SOURCES ${SIMD_SOURCES} HEADERS ${SIMD_HEADERS})
+kokkos_add_library(
+  kokkossimd
+  STATIC # MSVC can't deal with empty shared libraries
+  SOURCES
+  ${SIMD_SOURCES}
+  HEADERS
+  ${SIMD_HEADERS}
+  MODULE_INTERFACE
+  ${SIMD_MODULES}
+)
+
+if(KOKKOS_CXX_COMPILER_ID STREQUAL IntelLLVM)
+  find_library(INTEL_SVML NAMES svml)
+  if(INTEL_SVML)
+    message(STATUS "Found INTEL_SVML")
+    target_link_libraries(kokkossimd PUBLIC ${INTEL_SVML})
+    target_compile_definitions(kokkossimd PUBLIC KOKKOS_HAVE_INTEL_SVML)
+  endif()
+endif()
+
 kokkos_lib_include_directories(
   kokkossimd ${KOKKOS_TOP_BUILD_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+kokkos_link_internal_library(kokkossimd kokkoscore)
+
 # If ARM-SVE, check and warn for available arm_neon_sve_bridge.h
 if(KOKKOS_ARCH_ARM_SVE)
+  include(CheckIncludeFileCXX)
   check_include_file_cxx(arm_neon_sve_bridge.h KOKKOS_COMPILER_SUPPORTS_ARM_NEON_SVE_BRIDGE)
   if(NOT KOKKOS_COMPILER_SUPPORTS_ARM_NEON_SVE_BRIDGE)
     message(

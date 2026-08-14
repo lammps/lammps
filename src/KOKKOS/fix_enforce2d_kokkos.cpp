@@ -123,6 +123,7 @@ void FixEnforce2DKokkos<DeviceType>::post_force(int /*vflag*/)
 
 template <class DeviceType>
 template <int OMEGA_FLAG, int ANGMOM_FLAG, int TORQUE_FLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixEnforce2DKokkos<DeviceType>::post_force_item( int i ) const
 {

@@ -83,6 +83,7 @@ void FixViscousKokkos<DeviceType>::post_force(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixViscousKokkos<DeviceType>::operator()(TagFixViscous, const int &i) const {
   if (mask[i] & groupbit) {

@@ -1,0 +1,249 @@
+# Depositing TIP3P water into MOF with QeQ charges obtained with Ongari scheme
+
+processors * * * map xyz
+
+units           real
+atom_style      full
+boundary        p p p
+
+read_data initial.data
+
+group           mof type 1 2 3 4 5 6 7 8 9 10 11
+group           h2o type 12 13
+
+## Bonded styles ##
+bond_style      harmonic
+angle_style     harmonic
+dihedral_style  harmonic
+improper_style  cvff
+
+## MOF ##
+bond_coeff      1      215.077009      1.79813919 # Cr1 oc
+bond_coeff      2     171.3605365      1.91925239 # Cr1 o
+bond_coeff      3      30.0025985      1.70066041 # Cr2 oc
+bond_coeff      4     113.3849035      1.80031867 # Cr2 o
+bond_coeff      5       79.013065      2.25449382 # Cr2 Cl
+bond_coeff      6           345.9      1.49100000 # c ca
+bond_coeff      7           637.5      1.21800000 # c o
+bond_coeff      8           461.1      1.39800000 # ca ca
+bond_coeff      9           345.8      1.08600000 # ca ha
+bond_coeff     10           450.2      1.40600000 # ca cp
+bond_coeff     11           351.4      1.48500000 # cp cp
+bond_coeff     12           321.0      1.51600000 # c3 ca
+bond_coeff     13           330.6      1.09700000 # c3 hc
+angle_coeff    1     57.4090405     129.511222 # Cr1-oc-Cr1
+angle_coeff    2      54.896879     115.919290 # Cr1-oc-Cr2
+angle_coeff    3     10.4928115     115.127987 # Cr1-o-c
+angle_coeff    4      22.587082      94.926514 # oc-Cr1-o
+angle_coeff    5     10.1522065     157.100593 # o-Cr1-o
+angle_coeff    6       8.591407     133.558820 # Cr2-o-c
+angle_coeff    7      27.362034      88.698347 # oc-Cr2-o
+angle_coeff    8      16.499101     183.006723 # oc-Cr2-Cl
+angle_coeff    9     15.7281545     182.046844 # o-Cr2-o
+angle_coeff   10     18.6572345      96.972033 # o-Cr2-Cl
+angle_coeff   11           64.3     120.300000 # c-ca-ca
+angle_coeff   12           68.7     122.600000 # ca-c-o
+angle_coeff   13           66.6     120.000000 # ca-ca-ca
+angle_coeff   14           48.2     119.900000 # ca-ca-ha
+angle_coeff   15           66.3     120.700000 # ca-ca-cp
+angle_coeff   16           66.7     118.400000 # ca-cp-ca
+angle_coeff   17           64.0     121.100000 # ca-cp-cp
+angle_coeff   18           48.0     119.900000 # cp-ca-ha
+angle_coeff   19           72.4     90.0000000 # cp-cp-cp
+angle_coeff   20           63.5     120.800000 # c3-ca-ca
+angle_coeff   21           63.6     112.200000 # ca-c3-ca
+angle_coeff   22           46.8     110.500000 # ca-c3-hc
+angle_coeff   23           77.9     130.200000 # o-c-o
+dihedral_coeff    1          5.0040              -1               2 # Cr1-o-c-ca
+dihedral_coeff    2          3.2376               1               2 # Cr1-o-c-o
+dihedral_coeff    3          0.6374               1               2 # oc-Cr1-o-c
+dihedral_coeff    4          4.6518              -1               2 # Cr2-o-c-ca
+dihedral_coeff    5          2.6899               1               2 # Cr2-o-c-o
+dihedral_coeff    6          2.1991               1               2 # oc-Cr2-o-c
+dihedral_coeff    7          2.1450              -1               2 # Cl-Cr2-o-c
+dihedral_coeff    8          0.0000              -1               2 # Cr1-oc-Cr1-o
+dihedral_coeff    9          0.0000              -1               2 # Cr1-oc-Cr2-o
+dihedral_coeff   10          0.0000               1               2 # Cr1-oc-Cr2-Cl
+dihedral_coeff   11          0.0000              -1               2 # o-Cr1-o-c
+dihedral_coeff   12          0.0000              -1               2 # o-Cr1-oc-Cr2
+dihedral_coeff   13          0.0000              -1               2 # o-Cr2-o-c
+dihedral_coeff   14          3.6250              -1               2 # c-ca-ca-ca
+dihedral_coeff   15          3.6250              -1               2 # c-ca-ca-ha
+dihedral_coeff   16          3.6250              -1               2 # ca-ca-ca-cp
+dihedral_coeff   17          3.6250              -1               2 # ca-ca-ca-ha
+dihedral_coeff   18          3.6250              -1               2 # ca-ca-ca-ca
+dihedral_coeff   19          3.6250              -1               2 # ca-ca-cp-ca
+dihedral_coeff   20          3.6250              -1               2 # ca-ca-cp-cp
+dihedral_coeff   21          1.0000              -1               2 # ca-cp-cp-cp
+dihedral_coeff   22          1.0000              -1               2 # ca-cp-cp-ca
+dihedral_coeff   23          1.0000              -1               2 # cp-cp-cp-cp
+dihedral_coeff   24          3.6250              -1               2 # ha-ca-cp-cp
+dihedral_coeff   25          3.6250              -1               2 # c3-ca-ca-cp
+dihedral_coeff   26          3.6250              -1               2 # c3-ca-ca-ca
+dihedral_coeff   27          0.0000               1               2 # ca-c3-ca-ca
+dihedral_coeff   28          0.0000               1               2 # hc-c3-ca-ca
+dihedral_coeff   29          3.6250              -1               2 # c3-ca-ca-c3
+dihedral_coeff   30          3.6250              -1               2 # cp-ca-ca-ha
+dihedral_coeff   31          3.6250              -1               2 # ha-ca-ca-ha
+dihedral_coeff   32          3.6250              -1               2 # ha-ca-cp-ca
+dihedral_coeff   33          3.6250              -1               2 # c3-ca-ca-ha
+dihedral_coeff   34          1.0000              -1               2 # o-c-ca-ca
+improper_coeff    1          1.1000              -1               2 # c-ca-o-o
+improper_coeff    2          1.1000              -1               2 # ca-c-ca-ca
+improper_coeff    3          1.1000              -1               2 # ca-ca-ca-ha
+improper_coeff    4          1.1000              -1               2 # ca-ca-cp-ha
+improper_coeff    5          1.1000              -1               2 # cp-ca-ca-cp
+improper_coeff    6          1.1000              -1               2 # cp-ca-cp-cp
+improper_coeff    7          1.1000              -1               2 # ca-c3-ca-ca
+
+## H2O ##
+#set             type 3 charge -1.1128
+#set             type 4 charge  0.5564
+bond_coeff       14 0.0 0.0
+angle_coeff      24 0.0 0.0
+
+## LJ ##
+pair_style      hybrid/overlay mbx 9.0 lj/cut 9.0 coul/exclude 9.0 buck 9.0
+pair_modify     tail yes
+
+
+## MOF pair coefficients ##
+pair_coeff      3      3        lj/cut      0.086000      3.399670
+pair_coeff      3      4        lj/cut      0.086000      3.399670
+pair_coeff      3      5        lj/cut      0.086000      3.399670
+pair_coeff      3      6        lj/cut      0.096997      3.399670
+pair_coeff      3     11        lj/cut      0.035917      2.999656
+pair_coeff      3     10        lj/cut      0.036745      3.024601
+pair_coeff      3      7        lj/cut      0.134387      3.179618
+pair_coeff      3      8        lj/cut      0.134387      3.179618
+pair_coeff      3      9        lj/cut      0.139721      3.458023
+pair_coeff      4      4        lj/cut      0.086000      3.399670
+pair_coeff      4      5        lj/cut      0.086000      3.399670
+pair_coeff      4      6        lj/cut      0.096997      3.399670
+pair_coeff      4     11        lj/cut      0.035917      2.999656
+pair_coeff      4     10        lj/cut      0.036745      3.024601
+pair_coeff      4      7        lj/cut      0.134387      3.179618
+pair_coeff      4      8        lj/cut      0.134387      3.179618
+pair_coeff      4      9        lj/cut      0.139721      3.458023
+pair_coeff      5      5        lj/cut      0.086000      3.399670
+pair_coeff      5      6        lj/cut      0.096997      3.399670
+pair_coeff      5     11        lj/cut      0.035917      2.999656
+pair_coeff      5     10        lj/cut      0.036745      3.024601
+pair_coeff      5      7        lj/cut      0.134387      3.179618
+pair_coeff      5      8        lj/cut      0.134387      3.179618
+pair_coeff      5      9        lj/cut      0.139721      3.458023
+pair_coeff      6      6        lj/cut      0.109400      3.399670
+pair_coeff      6     11        lj/cut      0.040509      2.999656
+pair_coeff      6     10        lj/cut      0.041444      3.024601
+pair_coeff      6      7        lj/cut      0.151572      3.179618
+pair_coeff      6      8        lj/cut      0.151572      3.179618
+pair_coeff      6      9        lj/cut      0.157587      3.458023
+pair_coeff     11     11        lj/cut      0.015000      2.599642
+pair_coeff     10     11        lj/cut      0.015346      2.624588
+pair_coeff     10     10        lj/cut      0.015700      2.649533
+pair_coeff      7     11        lj/cut      0.056125      2.779604
+pair_coeff      7     10        lj/cut      0.057420      2.804549
+pair_coeff      7      7        lj/cut      0.210000      2.959566
+pair_coeff      7      8        lj/cut      0.210000      2.959566
+pair_coeff      7      9        lj/cut      0.218335      3.237971
+pair_coeff      8     11        lj/cut      0.056125      2.779604
+pair_coeff      8     10        lj/cut      0.057420      2.804549
+pair_coeff      8      8        lj/cut      0.210000      2.959566
+pair_coeff      8      9        lj/cut      0.218335      3.237971
+pair_coeff      9     11        lj/cut      0.058352      3.058010
+pair_coeff      9     10        lj/cut      0.059698      3.082955
+pair_coeff      9      9        lj/cut      0.227000      3.516377
+pair_coeff      1      3        lj/cut      0.035917      3.046428
+pair_coeff      1      4        lj/cut      0.035917      3.046428
+pair_coeff      1      5        lj/cut      0.035917      3.046428
+pair_coeff      1      6        lj/cut      0.040509      3.046428
+pair_coeff      1     11        lj/cut      0.015000      2.646415
+pair_coeff      1     10        lj/cut      0.015346      2.671360
+pair_coeff      1      7        lj/cut      0.056125      2.826376
+pair_coeff      1      8        lj/cut      0.056125      2.826376
+pair_coeff      1      9        lj/cut      0.058352      3.104782
+pair_coeff      1      1        lj/cut      0.015000      2.693187
+pair_coeff      1      2        lj/cut      0.015000      2.693187
+pair_coeff      2      3        lj/cut      0.035917      3.046428
+pair_coeff      2      4        lj/cut      0.035917      3.046428
+pair_coeff      2      5        lj/cut      0.035917      3.046428
+pair_coeff      2      6        lj/cut      0.040509      3.046428
+pair_coeff      2     11        lj/cut      0.015000      2.646415
+pair_coeff      2     10        lj/cut      0.015346      2.671360
+pair_coeff      2      7        lj/cut      0.056125      2.826376
+pair_coeff      2      8        lj/cut      0.056125      2.826376
+pair_coeff      2      9        lj/cut      0.058352      3.104782
+pair_coeff      2      2        lj/cut      0.015000      2.693187
+
+
+## Mixed ##
+pair_coeff       1      12    buck      168233.0    0.22     1470.0    
+pair_coeff       1      13    lj/cut    0.000000    0.000000
+pair_coeff       2      12    lj/cut    0.052705    2.926043 
+pair_coeff       2      13    lj/cut    0.000000    0.000000
+pair_coeff       3      12    lj/cut    0.126199    3.279285 
+pair_coeff       3      13    lj/cut    0.000000    0.000000
+pair_coeff       4      12    lj/cut    0.126199    3.279285 
+pair_coeff       4      13    lj/cut    0.000000    0.000000
+pair_coeff       5      12    lj/cut    0.126199    3.279285
+pair_coeff       5      13    lj/cut    0.000000    0.000000
+pair_coeff       6      12    lj/cut    0.142337    3.279285 
+pair_coeff       6      13    lj/cut    0.000000    0.000000
+pair_coeff       7      12    lj/cut    0.197205    3.059233
+pair_coeff       7      13    buck      11292.0     0.296    597.0 
+pair_coeff       8      12    lj/cut    0.197205    3.059233
+pair_coeff       8      13    lj/cut    0.000000    0.000000
+pair_coeff       9      12    lj/cut    0.205032    3.337639
+pair_coeff       9      13    lj/cut    0.000000    0.000000
+pair_coeff      10      12    lj/cut    0.053921    2.904216
+pair_coeff      10      13    lj/cut    0.000000    0.000000
+pair_coeff      11      12    lj/cut    0.052705    2.879271 
+pair_coeff      11      13    lj/cut    0.000000    0.000000
+
+#MBX-water
+pair_coeff      * * mbx  2 dp1 1*11 h2o 12 13 13 json mbx.json
+
+#coul exclude
+pair_coeff      1*11 1*11 coul/exclude
+
+## Non-bonded k-space ##
+#special_bonds   amber
+
+
+neighbor        2.0 bin
+neigh_modify	every 1 delay 1 check yes
+
+timestep        0.2
+compute         mbx all pair mbx
+variable        e1bpip    equal c_mbx[1]
+variable        e2bpip    equal c_mbx[2]
+variable        e3bpip    equal c_mbx[3]
+variable        e4bpip    equal c_mbx[4]
+variable        edisp     equal c_mbx[5]
+variable        ebuck     equal c_mbx[6]
+variable        eele      equal c_mbx[7]
+variable        etot      equal c_mbx[8]
+variable        eperm     equal c_mbx[9]
+variable        eind      equal c_mbx[10]
+
+thermo_style    custom step time temp evdwl ecoul epair ebond eangle edihed eimp emol elong etail v_e1bpip v_e2bpip v_e3bpip v_e4bpip v_edisp v_ebuck v_eele v_etot pe etotal
+thermo          1
+thermo_modify   flush yes
+
+#fix             wshake water shake 1e-5 50 0 b 14 a 24 mol h2o
+fix              mynvt all nvt temp 298.15 298.15 $(100.0*dt)
+
+
+velocity        all create 298.15 428879 rot yes dist gaussian
+#velocity        all zero linear
+#velocity        all zero angular
+
+# dump            1 all custom 10 dump.lammpstrj id type x y z fx fy fz vx vy vz
+# dump_modify     1 sort id
+
+# restart         5 restart.inter.1 restart.inter.2
+
+run             100
+
+# write_data      final.data nocoeff
+# write_restart   restart.inter

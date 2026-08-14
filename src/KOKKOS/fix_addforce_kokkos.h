@@ -45,9 +45,11 @@ class FixAddForceKokkos : public FixAddForce {
   void init() override;
   void post_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixAddForceConstant, const int&, value_type) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixAddForceNonConstant, const int&, value_type) const;
 
@@ -68,6 +70,7 @@ class FixAddForceKokkos : public FixAddForce {
   DAT::ttransform_kkacc_1d_6 k_vatom;
   typename AT::t_kkacc_1d_6 d_vatom;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void v_tally(value_type, int, KK_FLOAT*) const;
 };

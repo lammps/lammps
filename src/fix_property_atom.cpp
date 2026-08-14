@@ -556,23 +556,23 @@ double FixPropertyAtom::memory_usage()
   double bytes = 0.0;
   for (int m = 0; m < nvalue; m++) {
     if (styles[m] == MOLECULE)
-      bytes = atom->nmax * sizeof(tagint);
+      bytes += atom->nmax * sizeof(tagint);
     else if (styles[m] == CHARGE)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == RMASS)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == TEMPERATURE)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == HEATFLOW)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == IVEC)
-      bytes = atom->nmax * sizeof(int);
+      bytes += atom->nmax * sizeof(int);
     else if (styles[m] == DVEC)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == IARRAY)
-      bytes = (size_t) atom->nmax * cols[m] * sizeof(int);
+      bytes += (size_t) atom->nmax * cols[m] * sizeof(int);
     else if (styles[m] == DARRAY)
-      bytes = (size_t) atom->nmax * cols[m] * sizeof(double);
+      bytes += (size_t) atom->nmax * cols[m] * sizeof(double);
   }
   return bytes;
 }

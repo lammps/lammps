@@ -321,3 +321,10 @@ int FixWallFlow::unpack_exchange(int i, double *buf)
   current_segment[i] = static_cast<int>(buf[0]);
   return 1;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixWallFlow::memory_usage()
+{
+  return (double) atom->nmax * sizeof(int);    // current_segment[nmax]
+}

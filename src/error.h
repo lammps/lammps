@@ -84,14 +84,15 @@ class Error : protected Pointers {
 
   [[noreturn]] void done(int = 0);    // 1 would be fully backwards compatible
 
-  int get_numwarn() const { return numwarn; }
-  int get_maxwarn() const { return maxwarn; }
+  [[nodiscard]] int get_numwarn() const { return numwarn; }
+  [[nodiscard]] int get_maxwarn() const { return maxwarn; }
   void set_numwarn(int val) { numwarn = val; }
   void set_maxwarn(int val) { maxwarn = val; }
   void set_allwarn(int val) { allwarn = val; }
+  void reset_warn();
 
-  std::string get_last_error() const;
-  ErrorType get_last_error_type() const;
+  [[nodiscard]] std::string get_last_error() const;
+  [[nodiscard]] ErrorType get_last_error_type() const;
   void set_last_error(const std::string &msg, ErrorType type = ERROR_NORMAL);
   int set_show_error(const int flag);
 
@@ -104,7 +105,6 @@ class Error : protected Pointers {
   [[noreturn]] void _all(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   [[noreturn]] void _one(const std::string &, int, int, fmt::string_view, fmt::format_args args);
   void _warning(const std::string &, int, fmt::string_view, fmt::format_args args);
-  void _message(const std::string &, int, fmt::string_view, fmt::format_args args);
 };
 
 }    // namespace LAMMPS_NS

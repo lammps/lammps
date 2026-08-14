@@ -1,0 +1,59 @@
+units           si
+atom_style      ellipsoid superellipsoid
+dimension       3
+boundary p p p
+comm_modify vel yes
+newton off
+
+region          box block 0 10 0 10 0 10
+create_box      2 box
+
+# Pins
+create_atoms 1 single 5 5 5
+
+create_atoms 1 single 4 6 5
+create_atoms 1 single 6 6 5
+
+create_atoms 1 single 3 7 5
+create_atoms 1 single 5 7 5
+create_atoms 1 single 7 7 5
+
+create_atoms 1 single 2 8 5
+create_atoms 1 single 4 8 5
+create_atoms 1 single 6 8 5
+create_atoms 1 single 8 8 5
+
+set             type 1 shape 1.0 1.0 4.0
+set             type 1 block 8.0 2.0
+set             type 1 mass 1.0
+
+# Bowling ellipsoids
+create_atoms 2 single 5.5 1.5 6
+set             type 2 shape 2.0 2.0 1.0
+set             type 2 block 2.0 2.0
+set             type 2 mass 10.0
+group ball type 2
+
+pair_style      granular/superellipsoid
+pair_coeff      * * hooke 1000.0 0.0 tangential linear_history 285 0.0 0.5 damping mass_velocity
+
+compute diameter all property/atom shapex shapey shapez
+compute orient all property/atom quatw quati quatj quatk
+compute block all property/atom block1 block2
+# Ovito uses the reciprocal exponents for the blockiness
+# https://docs.ovito.org/advanced_topics/aspherical_particles.html#howto-aspherical-particles-superquadrics
+# Define atom variables from block
+variable phi atom "2/c_block[2]"
+variable theta atom "2/c_block[1]"
+
+# dump mydump all custom 1 shapes.lammpstrj id type x y z fx fy fz tqx tqy tqz c_diameter[*] c_orient[*] v_phi v_theta
+# # Ovito maps c_orient[*] on its XYZW axes, which is not correct. Map components explicitly
+# dump_modify mydump colname c_orient[1] quatw colname c_orient[2] quati colname c_orient[3] quatj colname c_orient[4] quatk
+
+set group ball angmom 1.0 0.0 0.5 vy 7.0
+
+fix 3 all nve/asphere
+
+thermo 10
+timestep 0.01
+run             100

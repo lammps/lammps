@@ -48,7 +48,7 @@ class PairCoulShield : public Pair {
   double **sigmae, **offset;
   int tap_flag;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

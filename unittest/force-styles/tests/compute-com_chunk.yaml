@@ -1,0 +1,26 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:21:42 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute chunk/atom
+  compute com/chunk
+pre_commands: ""
+post_commands: |
+  compute molchunk all chunk/atom molecule
+  compute test all com/chunk molchunk
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_array: |
+  -1.9363296578536698e-01  1.1274413564961154e+00 -1.0929287060052479e+00
+   2.2806910638244244e+00 -1.2190776329207138e+00 -5.7865614358203643e-01
+   2.1428483249679235e+00  3.0634298217924796e+00 -3.7065616016876328e+00
+   4.9525287315886324e+00 -4.0164411624999463e+00 -3.8034464914166839e+00
+   2.0270914827060502e+00  3.3136852096010379e+00  3.0589707016431404e+00
+  -1.9844296598524487e+00 -4.1733346310604533e+00  2.0496391302207781e+00
+...

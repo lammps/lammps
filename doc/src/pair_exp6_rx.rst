@@ -102,7 +102,7 @@ parenthesized comments):
 
    # exponential-6 parameters for various species      (one or more comment or blank lines)
 
-   h2o  exp6  11.00 0.02 3.50                          (species, exp6, alpha, Rm, epsilon)
+   h2o  exp6  11.00 0.02 3.50                        # (species, exp6, alpha, Rm, epsilon)
    no2  exp6  13.60 0.01 3.70
    ...
    co2  exp6  13.00 0.03 3.20

@@ -214,6 +214,7 @@ accelerated styles exist.
 * :doc:`ave/time <fix_ave_time>` - compute/output global time-averaged quantities
 * :doc:`aveforce <fix_aveforce>` - add an averaged force to each atom
 * :doc:`balance <fix_balance>` - perform dynamic load-balancing
+* :doc:`baoab <fix_baoab>` -  BAOAB Langevin dynamics integrator
 * :doc:`brownian <fix_brownian>` - overdamped translational brownian motion
 * :doc:`brownian/asphere <fix_brownian>` - overdamped translational and rotational brownian motion for ellipsoids
 * :doc:`brownian/sphere <fix_brownian>` - overdamped translational and rotational brownian motion for spheres
@@ -258,10 +259,19 @@ accelerated styles exist.
 * :doc:`filter/corotate <fix_filter_corotate>` - implement corotation filter to allow larger timesteps with r-RESPA
 * :doc:`flow/gauss <fix_flow_gauss>` - Gaussian dynamics for constant mass flux
 * :doc:`freeze <fix_freeze>` - freeze atoms in a granular simulation
-* :doc:`gcmc <fix_gcmc>` - grand canonical insertions/deletions
+* :doc:`gcmc <fix_gcmc>` - grand canonical Monte Carlo insertions/deletions/translations/rotations
+* :doc:`gemc <fix_gemc>` - Gibbs ensemble Monte Carlo exchanges/volumes/translations/rotations
 * :doc:`gjf <fix_gjf>` - statistically correct Langevin temperature control using the GJ methods
 * :doc:`gld <fix_gld>` - generalized Langevin dynamics integrator
 * :doc:`gle <fix_gle>` - generalized Langevin equation thermostat
+* :doc:`graphics/arrows <fix_graphics_arrows>` - add arrow graphics objects to :doc:`dump image <dump_image>` output
+* :doc:`graphics/chunk <fix_graphics_chunk>` - add convex hull graphics for :doc:`chunks <compute_chunk_atom>` to :doc:`dump image <dump_image>` output
+* :doc:`graphics/isosurface <fix_graphics_isosurface>` - add an isosurface for a group of atoms to :doc:`dump image <dump_image>` output
+* :doc:`graphics/labels <fix_graphics_labels>` - add images or text as graphics objects to :doc:`dump image <dump_image>` output
+* :doc:`graphics/lines <fix_graphics_lines>` - add a trace of atom positions to :doc:`dump image <dump_image>` output
+* :doc:`graphics/objects <fix_graphics_objects>` - add graphics objects to :doc:`dump image <dump_image>` output
+* :doc:`graphics/periodic <fix_graphics_periodic>` - add selected periodic images of atoms and bonds to :doc:`dump image <dump_image>` output
+* :doc:`graphics/replica <fix_graphics_replica>` - add atoms from other replica to :doc:`dump image <dump_image>` output
 * :doc:`gravity <fix_gravity>` - add gravity to atoms in a granular simulation
 * :doc:`grem <fix_grem>` - implements the generalized replica exchange method
 * :doc:`halt <fix_halt>` - terminate a dynamics run or minimization
@@ -270,10 +280,12 @@ accelerated styles exist.
 * :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
+* :doc:`ilves <fix_ilves>` - ILVES constraints on bonds and/or angles
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations
 * :doc:`lambda/apip <fix_lambda_apip>` - compute switching parameter, that controls the precision of an :doc:`APIP potential <Howto_apip>`
+* :doc:`lambda/la/csp/apip <fix_lambda_la_csp_apip>` - compute a conservative switching parameter, that controls the precision of an :doc:`APIP potential <Howto_apip>`
 * :doc:`langevin <fix_langevin>` - Langevin temperature control
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model
@@ -424,6 +436,8 @@ accelerated styles exist.
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
+* :doc:`surface/global <fix_surface_global>` - global granular surface model, each proc has copy
+* :doc:`surface/local <fix_surface_local>` - local granular surface model, distributed across procs
 * :doc:`tdpd/source <fix_dpd_source>` - add external concentration source
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by Berendsen thermostat
 * :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics
@@ -437,6 +451,7 @@ accelerated styles exist.
 * :doc:`ti/spring <fix_ti_spring>` - perform thermodynamic integration between a solid and an Einstein crystal
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration
 * :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling (replicated grid)
+* :doc:`ttm/cascade <fix_ttm>` - a two-temperature model for radiation damage cascades
 * :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`ttm/thermal <fix_ttm>` - a two-temperature model for thermal transport
@@ -444,6 +459,7 @@ accelerated styles exist.
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations
+* :doc:`viscous/nonlinear <fix_viscous_nonlinear>` - nonlinear (Schiller-Naumann) viscous drag for granular simulations
 * :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` - time integration for body particles of style :doc:`rounded/polygon <Howto_body>`
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`

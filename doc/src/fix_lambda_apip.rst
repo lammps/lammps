@@ -198,7 +198,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 The saved history of the switching parameter :math:`\lambda_i`
 and the saved history of
 :math:`\lambda_i^\text{input}` are written to
-:doc:`binary restart files <restart>` allow a smooth restart of a simulation.
+:doc:`binary restart files <restart>` to allow a smooth restart of a simulation.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
 
 If the *store_atomic_stats* argument is used, basic statistics is provided as

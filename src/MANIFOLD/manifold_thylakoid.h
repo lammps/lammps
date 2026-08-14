@@ -17,9 +17,9 @@
 #include "manifold.h"
 #include <vector>
 
-namespace LAMMPS_NS {
 
-namespace user_manifold {
+
+namespace LAMMPS_NS::user_manifold {
   struct thyla_part;
 
   class manifold_thylakoid : public manifold {
@@ -66,8 +66,8 @@ namespace user_manifold {
     double Lx, Ly, Lz;
   };
 
-}    // namespace user_manifold
+} // namespace LAMMPS_NS::user_manifold
 
-}    // namespace LAMMPS_NS
+
 
 #endif    // LMP_MANIFOLD_THYLAKOID_H

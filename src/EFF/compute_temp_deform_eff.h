@@ -28,6 +28,7 @@ class ComputeTempDeformEff : public Compute {
  public:
   ComputeTempDeformEff(class LAMMPS *, int, char **);
   ~ComputeTempDeformEff() override;
+  void post_constructor() override;
   void init() override;
   void setup() override;
   double compute_scalar() override;
@@ -37,13 +38,23 @@ class ComputeTempDeformEff : public Compute {
   void remove_bias_all() override;
   void restore_bias(int, double *) override;
   void restore_bias_all() override;
+  void remove_deform_bias(int, double *);
+  void remove_deform_bias_all();
+  void restore_deform_bias(int, double *);
+  void restore_deform_bias_all();
+  void apply_deform_bias(double *, double *, double *, double *, double, double);
+  void apply_deform_bias_all(double dtv = 0.0);
   double memory_usage() override;
+  int modify_param(int, char **) override;
+
+  class Compute* temperature; // internal temperature compute
+  int which;                  // whether internal temp compute has a bias
 
  protected:
+  char *id_temp;
+  int tcomputeflag; // 1 = internal temp compute created by this compute
+  int tcompute_eff; // 1 = internal temp compute handles eff part
   double tfactor;
-  double vbias[3];      // stored velocity bias for one atom
-  double **vbiasall;    // stored velocity bias for all atoms
-  int maxbias;          // size of vbiasall array
 
   virtual void dof_compute();
 };

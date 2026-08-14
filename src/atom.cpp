@@ -160,7 +160,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // PERI package
 
-  vfrac = s0 = nullptr;
+  vfrac = s0 = smin = nullptr;
   x0 = nullptr;
 
   // SPIN package
@@ -174,7 +174,9 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // CG-DNA package
 
+  id3p = nullptr;
   id5p = nullptr;
+  qeff = nullptr;
 
   // DPD-REACT package
 
@@ -323,8 +325,7 @@ Atom::~Atom()
   }
   for (int i = 0; i < ndvector; i++) {
     delete[] dvname[i];
-    if (dvector) // (needed for Kokkos)
-      memory->destroy(dvector[i]);
+    memory->destroy(dvector[i]);
   }
   for (int i = 0; i < niarray; i++) {
     delete[] ianame[i];
@@ -493,6 +494,7 @@ void Atom::peratom_create()
 
   add_peratom("vfrac",&vfrac,DOUBLE,0);
   add_peratom("s0",&s0,DOUBLE,0);
+  add_peratom("smin",&smin,DOUBLE,0);
   add_peratom("x0",&x0,DOUBLE,3);
 
   // SPIN package
@@ -510,7 +512,9 @@ void Atom::peratom_create()
 
   // CG-DNA package
 
+  add_peratom("id3p",&id3p,tagintsize,0);
   add_peratom("id5p",&id5p,tagintsize,0);
+  add_peratom("qeff",&qeff,DOUBLE,0);
 
   // DPD-REACT package
 
@@ -645,7 +649,7 @@ void Atom::set_atomflag_defaults()
   // identical list as 2nd customization in atom.h
 
   labelmapflag = 0;
-  ellipsoid_flag = line_flag = tri_flag = body_flag = 0;
+  ellipsoid_flag = line_flag = tri_flag = body_flag = superellipsoid_flag = 0;
   quat_flag = 0;
   peri_flag = electron_flag = sph_flag = 0;
   molecule_flag = molindex_flag = molatom_flag = 0;
@@ -809,18 +813,25 @@ std::string Atom::get_style()
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to AtomVec class if matches style or to matching hybrid sub-class
-   return nullptr if no match
+   return ptr to AtomVec class if it matches the style argument w/o suffix
+     or ptr to the matching hybrid sub-class without regard of the suffix
+   return nullptr if no match.
 ------------------------------------------------------------------------- */
 
-AtomVec *Atom::style_match(const char *style)
+AtomVec *Atom::style_match(const std::string &style)
 {
-  if (strcmp(atom_style,style) == 0) return avec;
-  else if (strcmp(atom_style,"hybrid") == 0) {
+  std::string pattern = style;
+  pattern.insert(0,1,'^');
+
+  if (utils::strmatch(atom_style, pattern)) return avec;
+  else if (utils::strmatch(atom_style,"^hybrid")) {
     auto *avec_hybrid = dynamic_cast<AtomVecHybrid *>(avec);
-    for (int i = 0; i < avec_hybrid->nstyles; i++)
-      if (strcmp(avec_hybrid->keywords[i],style) == 0)
-        return avec_hybrid->styles[i];
+    if (avec_hybrid) {
+      for (int i = 0; i < avec_hybrid->nstyles; i++) {
+        if (utils::strmatch(avec_hybrid->keywords[i], pattern))
+          return avec_hybrid->styles[i];
+      }
+    }
   }
   return nullptr;
 }
@@ -1267,7 +1278,7 @@ void Atom::data_atoms(int n, char *buf, tagint id_offset, tagint mol_offset,
           case 1: {    // type label
             if (!labelmapflag)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
-            type[nlocal - 1] = lmap->find(typestr, Atom::ATOM);
+            type[nlocal - 1] = lmap->find_type(typestr, Atom::ATOM);
             if (type[nlocal - 1] == -1)
               error->one(FLERR, "Invalid line in {}: {}", location, utils::trim(buf));
             break;
@@ -1374,7 +1385,7 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::BOND);
+          itype = lmap->find_type(typestr, Atom::BOND);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1469,7 +1480,7 @@ void Atom::data_angles(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::ANGLE);
+          itype = lmap->find_type(typestr, Atom::ANGLE);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1581,7 +1592,7 @@ void Atom::data_dihedrals(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::DIHEDRAL);
+          itype = lmap->find_type(typestr, Atom::DIHEDRAL);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1709,7 +1720,7 @@ void Atom::data_impropers(int n, char *buf, int *count, tagint id_offset,
         }
         case 1: {    // type label
           if (!atom->labelmapflag) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
-          itype = lmap->find(typestr, Atom::IMPROPER);
+          itype = lmap->find_type(typestr, Atom::IMPROPER);
           if (itype == -1) error->all(FLERR, "Invalid {}: {}", location, utils::trim(buf));
           break;
         }
@@ -1968,7 +1979,7 @@ void Atom::set_mass(const char *file, int line, const char *str, int type_offset
     case 1: {    // type label
       if (!atom->labelmapflag)
         error->all(file, line, "Invalid atom type in {}: {}", location, utils::trim(str));
-      itype = lmap->find(typestr, Atom::ATOM);
+      itype = lmap->find_type(typestr, Atom::ATOM);
       if (itype == -1)
         error->all(file, line, "Unknown atom type {} in {}: {}", typestr, location,
                    utils::trim(str));
@@ -3549,7 +3560,9 @@ int Atom::extract_size(const char *name, int type)
 
     // CG-DNA package
 
+    if (strcmp(name,"id3p") == 0) return nall;
     if (strcmp(name,"id5p") == 0) return nall;
+    if (strcmp(name,"qeff") == 0) return nall;
 
     // RHEO package
 

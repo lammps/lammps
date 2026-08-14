@@ -40,7 +40,7 @@ class BondQuartic : public Bond {
  protected:
   double *k, *b1, *b2, *rc, *u0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

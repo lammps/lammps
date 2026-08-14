@@ -39,10 +39,12 @@ class NeighborKokkos : public Neighbor {
   void build_topology() override;
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborXhold<DeviceType>, const int&) const;
 

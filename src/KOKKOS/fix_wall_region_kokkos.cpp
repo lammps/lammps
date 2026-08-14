@@ -42,7 +42,7 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | MASK_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 }
 
@@ -51,6 +51,21 @@ FixWallRegionKokkos<DeviceType>::~FixWallRegionKokkos()
 {
   if (copymode) return;
   memoryKK->destroy_kokkos(k_vatom,vatom);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallRegionKokkos<DeviceType>::init()
+{
+  FixWallRegion::init();
+
+  // without this check a region w/o KOKKOS support was silently ignored:
+  // no wall forces and undefined energy/virial contributions
+
+  if (!dynamic_cast<RegBlockKokkos<DeviceType>*>(region) &&
+      !dynamic_cast<RegSphereKokkos<DeviceType>*>(region))
+    error->all(FLERR,"Fix wall/region/kk requires region style block/kk or sphere/kk");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -135,6 +150,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
 template<class DeviceType>
 template<class T>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
@@ -202,6 +218,7 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::lj93(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
@@ -219,6 +236,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::lj93(KK_FLOAT r, KK_FLOAT& fwallKK) co
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::lj126(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
@@ -235,6 +253,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::lj126(KK_FLOAT r, KK_FLOAT& fwallKK) c
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::lj1043(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
@@ -252,6 +271,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::lj1043(KK_FLOAT r, KK_FLOAT& fwallKK) 
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::morse(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
@@ -267,6 +287,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::morse(KK_FLOAT r, KK_FLOAT& fwallKK) c
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::colloid(KK_FLOAT r, KK_FLOAT rad, KK_FLOAT& fwallKK) const
 {
@@ -307,6 +328,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::colloid(KK_FLOAT r, KK_FLOAT rad, KK_F
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT FixWallRegionKokkos<DeviceType>::harmonic(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
@@ -327,6 +349,7 @@ KK_FLOAT FixWallRegionKokkos<DeviceType>::harmonic(KK_FLOAT r, KK_FLOAT& fwallKK
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {

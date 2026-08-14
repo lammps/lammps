@@ -299,3 +299,11 @@ void FixTFMC::initial_integrate(int /*vflag*/)
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixTFMC::memory_usage()
+{
+  if (rotflag) return (double) nmax * 3 * sizeof(double);    // xd[nmax][3]
+  return 0.0;
+}

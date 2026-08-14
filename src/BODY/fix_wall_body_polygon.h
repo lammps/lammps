@@ -33,6 +33,9 @@ class FixWallBodyPolygon : public Fix {
   void setup(int) override;
   void post_force(int) override;
   void reset_dt() override;
+  double memory_usage() override;
+
+  int image(int *&, double **&) override;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -72,6 +75,12 @@ class FixWallBodyPolygon : public Fix {
 
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
+
+  // for dump image support
+
+  int numwalls;
+  int *imgobjs;
+  double **imgparms;
 
   void body2space(int);
 

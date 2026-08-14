@@ -46,7 +46,6 @@ class PairTersoffIntel : public PairTersoff {
 
  private:
   FixIntel *fix;
-  int _cop;
 
  public:    // wo needs secrets?
   // ----------------------------------------------------------------------
@@ -84,12 +83,12 @@ class PairTersoffIntel : public PairTersoff {
     c_outer_t **c_outer;
     c_inner_t ***c_inner;
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr); }
 
-    void set_ntypes(const int ntypes, Memory *memory, const int cop);
+    void set_ntypes(const int ntypes, Memory *memory);
 
    private:
-    int _ntypes, _cop;
+    int _ntypes;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;
@@ -99,7 +98,7 @@ class PairTersoffIntel : public PairTersoff {
   void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EFLAG, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>

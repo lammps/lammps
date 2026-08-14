@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
+PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -609,6 +609,13 @@ void PairComb3::read_file(char *file)
           params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
           )
         error->one(FLERR,"Illegal COMB3 parameter");
+
+      // element group indices from the potential file must be 1, 2, or 3
+
+      if ((params[nparams].ielementgp < 1) || (params[nparams].ielementgp > 3) ||
+          (params[nparams].jelementgp < 1) || (params[nparams].jelementgp > 3) ||
+          (params[nparams].kelementgp < 1) || (params[nparams].kelementgp > 3))
+        error->one(FLERR,"Invalid element group index in COMB3 potential file");
 
       nparams++;
     }
@@ -1603,7 +1610,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   double r,att_eng,att_force,bij;  // att_eng is -cbj
   double boij, dbij1, dbij2, dbij3, dbij4, dbij5;
   double boji, dbji1, dbji2, dbji3, dbji4, dbji5;
-  double pradx, prady;
+  double pradx = 0.0, prady = 0.0;
   r = sqrt(rsq);
 
   if (r > parami->bigr + parami->bigd) return;
@@ -3533,7 +3540,7 @@ void PairComb3::dipole_init(Param *parami, Param *paramj, double fac11,
 
   r = sqrt(rsq);
   r3 = r * rsq;
-  rcd = 1.0/(r3);
+  rcd = 1.0/r3;
   rct = 3.0*rcd/rsq;
   alfdpi = 0.4/MY_PIS;
   esucon = force->qqr2e;

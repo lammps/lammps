@@ -25,6 +25,10 @@ SPDX-License-Identifier: (BSD-3-Clause)
 namespace desul {
 namespace Impl {
 
+template <class T>
+inline constexpr bool device_atomic_always_lock_free<T, void> = (sizeof(T) == 4) ||
+                                                                (sizeof(T) == 8);
+
 template <class T, class MemoryOrder, class MemoryScope>
 std::enable_if_t<sizeof(T) == 4, T> device_atomic_compare_exchange(
     T* const dest, T compare, T value, MemoryOrder, MemoryScope) {
@@ -77,8 +81,7 @@ std::enable_if_t<sizeof(T) == 8, T> device_atomic_exchange(T* const dest,
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<(sizeof(T) != 8) && (sizeof(T) != 4), T>
-device_atomic_compare_exchange(
+std::enable_if_t<!device_atomic_always_lock_free<T>, T> device_atomic_compare_exchange(
     T* const dest, T compare, T value, MemoryOrder, MemoryScope scope) {
   // This is a way to avoid deadlock in a subgroup
   T return_val;
@@ -113,7 +116,7 @@ device_atomic_compare_exchange(
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<(sizeof(T) != 8) && (sizeof(T) != 4), T> device_atomic_exchange(
+std::enable_if_t<!device_atomic_always_lock_free<T>, T> device_atomic_exchange(
     T* const dest, T value, MemoryOrder, MemoryScope scope) {
   // This is a way to avoid deadlock in a subgroup
   T return_val;

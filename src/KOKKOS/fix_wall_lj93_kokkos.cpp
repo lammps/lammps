@@ -37,7 +37,7 @@ FixWallLJ93Kokkos<DeviceType>::FixWallLJ93Kokkos(LAMMPS *lmp, int narg, char **a
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | MASK_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 
   memoryKK->create_kokkos(k_cutoff,6,"wall_lj93:cutoff");
@@ -168,6 +168,7 @@ void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double co
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) const {
   if (d_mask(i) & groupbit) {
@@ -210,6 +211,7 @@ void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) 
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, KK_FLOAT vn) const
 {

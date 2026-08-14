@@ -15,6 +15,8 @@
  Contributing authors: Andres Jaramillo-Botero, Hai Xiao, Julius Su (Caltech)
 ------------------------------------------------------------------------- */
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 
 #define PAULI_RE 0.9

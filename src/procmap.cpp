@@ -23,6 +23,7 @@
 #include "error.h"
 #include "math_extra.h"
 #include "memory.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "universe.h"
 
@@ -37,7 +38,8 @@ static constexpr int MAXLINE = 128;
 
 /* ---------------------------------------------------------------------- */
 
-ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
+ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp), cmap(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    create a one-level 3d grid of procs
@@ -267,11 +269,12 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
   MPI_Comm_rank(world,&me);
 
   char line[MAXLINE] = {'\0'};
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
 
   if (me == 0) {
     fp = fopen(cfile,"r");
-    if (fp == nullptr) error->one(FLERR,"Cannot open custom file");
+    if (fp == nullptr)
+      error->one(FLERR,"Cannot open custom grid file {}: {}", cfile, utils::getsyserror());
 
     // skip header = blank and comment lines
 
@@ -293,8 +296,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
     procgrid[1] = procs.next_int();
     procgrid[2] = procs.next_int();
   } catch (TokenizerException &e) {
-    error->all(FLERR,"Processors custom grid file "
-                                 "is inconsistent: {}", e.what());
+    error->all(FLERR,"Processors custom grid file {} is inconsistent: {}", cfile, e.what());
   }
 
   int flag = 0;
@@ -302,7 +304,7 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
   if (user_procgrid[0] && procgrid[0] != user_procgrid[0]) flag = 1;
   if (user_procgrid[1] && procgrid[1] != user_procgrid[1]) flag = 1;
   if (user_procgrid[2] && procgrid[2] != user_procgrid[2]) flag = 1;
-  if (flag) error->all(FLERR,"Processors custom grid file is inconsistent");
+  if (flag) error->all(FLERR,"Processors custom grid file {} is inconsistent", cfile);
 
   // cmap = map of procs to grid
   // store for use in custom_map()
@@ -326,7 +328,6 @@ void ProcMap::custom_grid(char *cfile, int nprocs,
                                      "inconsistent: {}", e.what());
       }
     }
-    fclose(fp);
   }
 
   MPI_Bcast(&cmap[0][0],nprocs*4,MPI_INT,0,world);
@@ -656,7 +657,7 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  FILE *fp;
+  SafeFilePtr fp;
   if (me == 0) {
     fp = fopen(file,"w");
     if (fp == nullptr) error->one(FLERR,"Cannot open processors output file");
@@ -667,8 +668,10 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
   }
 
   // find me in the grid
+  // grid2proc is a bijection, so the scan always finds a match;
+  // initialize anyway so the values are always defined
 
-  int ime,jme,kme;
+  int ime = 0, jme = 0, kme = 0;
   for (int i = 0; i < procgrid[0]; i++)
     for (int j = 0; j < procgrid[1]; j++)
       for (int k = 0; k < procgrid[2]; k++)
@@ -678,7 +681,7 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
 
   // polled comm of grid mapping info from each proc to proc 0
 
-  int tmp;
+  int tmp = 0;
   int vec[6];
   char procname[MPI_MAX_PROCESSOR_NAME+1];
 
@@ -711,10 +714,6 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
     MPI_Send(vec,6,MPI_INT,0,0,world);
     MPI_Send(procname,strlen(procname)+1,MPI_CHAR,0,0,world);
   }
-
-  // close output file
-
-  if (me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------

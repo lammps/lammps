@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENACC_PARALLEL_SCAN_RANGE_HPP
 #define KOKKOS_OPENACC_PARALLEL_SCAN_RANGE_HPP
@@ -117,11 +104,11 @@ KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang vector_length(chunk_size) KOKKOS_IMPL_
       IndexType temp;
 #pragma acc loop vector
       for (IndexType thread_id = 0; thread_id < chunk_size; ++thread_id) {
-        const IndexType local_offset = team_id * chunk_size;
+        const IndexType local_offset = team_id * chunk_size + begin;
         const IndexType idx          = local_offset + thread_id;
         ValueType update;
         final_reducer.init(&update);
-        if ((idx > 0) && (idx < N)) functor(idx - 1, update, false);
+        if ((idx > begin) && (idx < end)) functor(idx - 1, update, false);
         KOKKOS_IMPL_ACC_ACCESS_ELEMENTS(thread_id) = update;
       }
       for (IndexType step_size = 1; step_size < chunk_size; step_size *= 2) {
@@ -172,14 +159,14 @@ KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang vector_length(chunk_size) KOKKOS_IMPL_
       IndexType temp;
 #pragma acc loop vector
       for (IndexType thread_id = 0; thread_id < chunk_size; ++thread_id) {
-        const IndexType local_offset = team_id * chunk_size;
+        const IndexType local_offset = team_id * chunk_size + begin;
         const IndexType idx          = local_offset + thread_id;
         ValueType update;
         final_reducer.init(&update);
         if (thread_id == 0) {
           final_reducer.join(&update, &offset_values(team_id));
         }
-        if ((idx > 0) && (idx < N)) functor(idx - 1, update, false);
+        if ((idx > begin) && (idx < end)) functor(idx - 1, update, false);
         KOKKOS_IMPL_ACC_ACCESS_ELEMENTS(thread_id) = update;
       }
       for (IndexType step_size = 1; step_size < chunk_size; step_size *= 2) {
@@ -206,12 +193,12 @@ KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang vector_length(chunk_size) KOKKOS_IMPL_
       }
 #pragma acc loop vector
       for (IndexType thread_id = 0; thread_id < chunk_size; ++thread_id) {
-        const IndexType local_offset = team_id * chunk_size;
+        const IndexType local_offset = team_id * chunk_size + begin;
         const IndexType idx          = local_offset + thread_id;
         ValueType update             = KOKKOS_IMPL_ACC_ACCESS_ELEMENTS(
             current_step * chunk_size + thread_id);
-        if (idx < N) functor(idx, update, true);
-        if (idx == N - 1) {
+        if (idx < end) functor(idx, update, true);
+        if (idx == end - 1) {
           if (m_result_ptr_device_accessible) {
             *m_result_ptr = update;
           } else {

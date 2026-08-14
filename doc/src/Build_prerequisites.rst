@@ -34,7 +34,7 @@ Compiler and OS compatibility
 
 The LAMMPS developers aim to keep LAMMPS very portable and usable -
 at least in parts - on most operating systems commonly used for
-running MD simulations.  Please see the :doc:`section on portablility
+running MD simulations.  Please see the :doc:`section on portability
 <Intro_portability>` for more details.
 
 .. admonition:: Warning: LLVM based Intel Compilers
@@ -52,10 +52,10 @@ running MD simulations.  Please see the :doc:`section on portablility
 
    Unfortunately there is no simple way to detect whether a binary is
    working correctly outside of running the unit and regression tests,
-   but those do not cover all of LAMMPS and and would be reliable only
-   for no or moderate optimization anyway.  For most of LAMMPS there is
-   not much of a benefit (if any) to use the Intel compilers over the
-   GCC or Clang compilers, except for the INTEL package (which *can* be
+   but those do not cover all of LAMMPS and would be reliable only for
+   no or moderate optimization anyway.  For most of LAMMPS there is not
+   much of a benefit (if any) to use the Intel compilers over the GCC or
+   Clang compilers, except for the INTEL package (which *can* be
    compiled with other compilers, but most vectorization directives are
    inactive for those) or KOKKOS with SYCL.
 

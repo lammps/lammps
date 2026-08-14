@@ -36,6 +36,7 @@
 #endif
 
 using namespace LAMMPS_NS;
+using namespace EwaldConst;
 using namespace MathConst;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
@@ -46,7 +47,10 @@ static constexpr int OFFSET = 16384;
 
 PPPMDispOMP::PPPMDispOMP(LAMMPS *lmp) : PPPMDisp(lmp), ThrOMP(lmp, THR_KSPACE)
 {
-  triclinic_support = 0;
+  // triclinic reciprocal-space setup and Poisson solve are inherited from the
+  // base class (ik differentiation); the threaded make_rho/fieldforce already
+  // operate in lamda coordinates, so the omp variant supports triclinic too
+  triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
 }
 
@@ -63,11 +67,11 @@ PPPMDispOMP::~PPPMDispOMP()
 #else
     const int tid = 0;
 #endif
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm(-order,memory);
     }
-    if (function[1] + function[2]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm_disp(-order_6,memory);
     }
@@ -92,11 +96,11 @@ void PPPMDispOMP::allocate()
     const int tid = 0;
 #endif
 
-    if (function[0]) {
+    if (termflag[TERM_COUL]) {
       ThrData *thr = fix->get_thr(tid);
       thr->init_pppm(order,memory);
     }
-    if (function[1] + function[2]) {
+    if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH]) {
       ThrData * thr = fix->get_thr(tid);
       thr->init_pppm_disp(order_6,memory);
     }
@@ -234,7 +238,7 @@ void PPPMDispOMP::compute_gf_6()
     double rtpi = sqrt(MY_PI);
     int nnfrom, nnto, tid;
 
-    numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/(3.0);
+    numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/3.0;
 
     const int nnx = nxhi_fft_6-nxlo_fft_6+1;
     const int nny = nyhi_fft_6-nylo_fft_6+1;

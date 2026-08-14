@@ -36,6 +36,7 @@ class FixNumDiffVirial : public Fix {
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
   double memory_usage() override;
+  double compute_vector(int) override;      // access function for virial
 
  private:
   static constexpr int NDIR_VIRIAL = 6;    // dimension of virial and strain vectors
@@ -55,7 +56,6 @@ class FixNumDiffVirial : public Fix {
   double fixedpoint[3];           // define displacement field origin
   int dirlist[NDIR_VIRIAL][2];    // strain cartesian indices (Voigt order)
 
-  double compute_vector(int) override;      // access function for virial
   void calculate_virial();                  // virial calculation
   void displace_atoms(int, int, double);    // apply displacement field
   void restore_atoms(int, int);             // restore original positions

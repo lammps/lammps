@@ -1,10 +1,11 @@
 .. index:: bond_style harmonic/shift
+.. index:: bond_style harmonic/shift/kk
 .. index:: bond_style harmonic/shift/omp
 
 bond_style harmonic/shift command
 =================================
 
-Accelerator Variants: *harmonic/shift/omp*
+Accelerator Variants: *harmonic/shift/kk*, *harmonic/shift/omp*
 
 Syntax
 """"""

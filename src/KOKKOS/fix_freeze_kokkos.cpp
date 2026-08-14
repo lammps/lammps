@@ -60,6 +60,7 @@ void FixFreezeKokkos<DeviceType>::post_force(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixFreezeKokkos<DeviceType>::operator()(const int i, OriginalForce &original) const {
   if (mask[i] & groupbit) {

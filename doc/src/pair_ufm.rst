@@ -1,12 +1,13 @@
 .. index:: pair_style ufm
 .. index:: pair_style ufm/gpu
+.. index:: pair_style ufm/kk
 .. index:: pair_style ufm/omp
 .. index:: pair_style ufm/opt
 
 pair_style ufm command
 ======================
 
-Accelerator Variants: *ufm/gpu*, *ufm/omp*, *ufm/opt*
+Accelerator Variants: *ufm/gpu*, *ufm/kk*, *ufm/omp*, *ufm/opt*
 
 Syntax
 """"""

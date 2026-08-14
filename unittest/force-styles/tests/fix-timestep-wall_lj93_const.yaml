@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solute wall/lj93 xlo EDGE 10 1 9 xhi EDGE 20 2 8 ylo EDGE 30 3 7 yhi EDGE 40 4 6 zlo EDGE 50 9 1 zhi EDGE 60 8 2
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |-
   -2.0397146716028331e+01 -2.2856621254611628e+02  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

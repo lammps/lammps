@@ -1,10 +1,11 @@
 .. index:: dihedral_style quadratic
+.. index:: dihedral_style quadratic/kk
 .. index:: dihedral_style quadratic/omp
 
 dihedral_style quadratic command
 ================================
 
-Accelerator Variants: *quadratic/omp*
+Accelerator Variants: *quadratic/kk*, *quadratic/omp*
 
 Syntax
 """"""

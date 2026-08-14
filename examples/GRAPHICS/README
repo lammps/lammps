@@ -1,0 +1,54 @@
+Examples for advanced visualizations with dump image in LAMMPS
+
+This folder contains complete input examples for creating visualizations
+with the dump image command and various fixes in the GRAPHICS package.
+For exploring different options and settings, it is recommended to run
+these examples from LAMMPS-GUI and (temporarily) disable FSAA and SSAO.
+The simulation can then be conveniently started with CTRL-Enter and
+stopped with CTRL-\ and the slideshow viewer will display the images
+automatically as they are created.
+
+Here is a list of the inputs and which graphics features they demonstrate
+
+- in.cubes-and-pyramids:    visualization of body particles, uses progress bar
+                            https://www.youtube.com/shorts/OYn_VVodnIg
+
+- in.breakable:             using autobond, color-by-property, adding objects and text
+                            https://www.youtube.com/watch?v=f4hfPs7aCmI
+
+- in.bpm-fracture:          brittle disk (bonded particle model) shattered by a
+                            projectile, coloring each bond by the per-bond force
+                            with "dump image ... bond c_ID" and a "bmap" color map
+
+- in.water-arrows:          box of water molecules, uses many kinds of arrows
+                            https://www.youtube.com/shorts/4Cm5p0SfgNU
+
+- in.peptide-depth          peptide showing only parts of the water in the
+                            box, but with periodic replication in +x,
+                            +y, and -y, depth cueing, defocus, SSAO for
+                            enhanced 3d perception.
+                            https://youtube.com/shorts/h5Fy3-Q5Iro
+
+- in.peptide-hbonds:        peptide with surrounding water molecules
+                            visualize donated and accepted hydrogen bonds
+                            overlay graphics from image without background
+                            https://youtube.com/shorts/Q6KBE08AG8c
+
+- in.peptide-pimd:          peptide with surrounding water molecules
+                            visualize atoms from replica of a PIMD simulation
+                            https://youtube.com/shorts/BoIUo0psKB4
+
+- in.rhodo-delauney:        transmembrane protein where most atoms are
+                            not shown but rather a triangulated surface
+                            is shown. Also, the surface is truncated
+                            for parts of the system to a region that
+                            includes only part of the simulation cell.
+                            https://youtube.com/shorts/qywdSfw7z_Q
+
+- in.obstacle-lines         trajectory lines with obstacle flow example
+                            https://youtu.be/9HEsGaOsdik
+
+- in.mixer-drum             visualization of "tris" style particles to represent
+                            an STL object for a DEM simulation.  Uses a dynamic
+                            group based on an atom style variable to "cut open"
+                            the mixer drum for a look inside

@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 PairPeri::PairPeri(LAMMPS *_lmp) :
     Pair(_lmp), fix_peri_neigh(nullptr), bulkmodulus(nullptr), shearmodulus(nullptr),
     m_lambdai(nullptr), m_taubi(nullptr), m_yieldstress(nullptr), s00(nullptr), alpha(nullptr),
-    cut(nullptr), kspring(nullptr), s0_new(nullptr), theta(nullptr), elastic_energy(nullptr)
+    cut(nullptr), kspring(nullptr), s0_new(nullptr), smin_new(nullptr), theta(nullptr)
 {
   for (int i = 0; i < 6; i++) virial[i] = 0.0;
   no_virial_fdotr_compute = 1;
@@ -59,8 +59,8 @@ PairPeri::~PairPeri()
     memory->destroy(kspring);
 
     memory->destroy(s0_new);
+    memory->destroy(smin_new);
     memory->destroy(theta);
-    memory->destroy(elastic_energy);
   }
 }
 
@@ -257,6 +257,5 @@ void *PairPeri::extract(const char *name, int &dim)
 {
   dim = 1;
   if (strcmp(name, "theta") == 0) return (void *) theta;
-  if (strcmp(name, "elastic_energy") == 0) return (void *) elastic_energy;
   return nullptr;
 }

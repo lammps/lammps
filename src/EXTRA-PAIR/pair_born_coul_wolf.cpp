@@ -36,7 +36,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulWolf::PairBornCoulWolf(LAMMPS *lmp) : Pair(lmp)
+PairBornCoulWolf::PairBornCoulWolf(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), a(nullptr), rho(nullptr), sigma(nullptr),
+    c(nullptr), d(nullptr), rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr),
+    offset(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -46,6 +49,8 @@ PairBornCoulWolf::PairBornCoulWolf(LAMMPS *lmp) : Pair(lmp)
 
 PairBornCoulWolf::~PairBornCoulWolf()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

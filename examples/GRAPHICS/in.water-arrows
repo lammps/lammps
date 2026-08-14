@@ -1,0 +1,71 @@
+units real
+atom_style full
+region box block -5 5 -5 5 -5 5
+create_box 2 box bond/types 1 angle/types 1 &
+            extra/bond/per/atom 2 extra/angle/per/atom 1 extra/special/per/atom 2
+
+mass 1 15.9994
+mass 2 1.008
+
+pair_style lj/cut/coul/cut 8.0
+pair_coeff 1 1 0.1553 3.166
+pair_coeff 2 2 0.0    1.0
+
+bond_style zero
+bond_coeff 1 1.0
+
+angle_style zero
+angle_coeff 1 109.47
+
+# load SPC/E water and fill box
+molecule water h2o.mol
+create_atoms 0 random 50 34564 NULL mol water 25367 overlap 1.33
+
+fix rigid all shake 0.001 10 10000 b 1 a 1
+minimize 0.0 0.0 1000 10000
+
+reset_timestep 0
+timestep 1.0
+velocity all create 300.0 5463576
+unfix rigid
+fix integrate all nvt temp 300 300 100.0
+fix rigid all shake 0.001 10 10000 b 1 a 1
+
+# add yellow arrows showing the molecular dipole moment at the COM of the water molecules
+compute molchunk all chunk/atom molecule
+compute cpos all com/chunk molchunk wrap yes
+compute cdip all dipole/chunk molchunk
+fix vec all graphics/arrows 10 chunk molchunk cpos cdip 3 0.1
+
+# add light blue and transparent arrows to atoms showing the atomic velocity
+fix vel all graphics/arrows 10 velocity 50.0 0.066 autoscale 0.5
+
+# add purple arrows to 8 spatial bins in 3d showing the dipole per bin
+compute binchunk all chunk/atom bin/3d x lower 5.0 y lower 5.0 z lower 5.0
+compute bpos all property/chunk binchunk coord1 coord2 coord3
+compute bdip all dipole/chunk binchunk
+fix bin all graphics/arrows 10 chunk binchunk bpos bdip 3 0.2 autoscale 2.0
+
+# add green arrow to the center of the box showing the total dipole moment of the system
+compute dip all dipole
+variable scale equal 0.66
+# convert dipole vector component to bottom and tip coordinates of arrow
+variable dip1x equal -v_scale*c_dip[1]
+variable dip1y equal -v_scale*c_dip[2]
+variable dip1z equal -v_scale*c_dip[3]
+variable dip2x equal v_scale*c_dip[1]
+variable dip2y equal v_scale*c_dip[2]
+variable dip2z equal v_scale*c_dip[3]
+fix dipole all graphics/objects 1 arrow 1  v_dip1x v_dip1y v_dip1z v_dip2x v_dip2y v_dip2z 0.3 0.2
+
+dump viz all image 10 water-arrows-*.ppm element type size 600 600 zoom 1.3 shiny 0.2 bond atom 0.2 &
+                                     view 70 20 box yes 0.025 fsaa yes ssao yes 315465 0.8 &
+                                     fix dipole const 0 0  fix vec const 0 0  fix vel const 0 0 fix bin const 0 0
+#                                    all arrows from fixes use the "const" style so we set the color with dump_modify below
+dump_modify viz pad 9  boxcolor silver backcolor gray backcolor2 darkgray element O H adiam 1 0.5 adiam 2 0.3 bdiam 1 0.2 &
+                              fcolor dipole forestgreen fcolor vec goldenrod fcolor vel cyan ftrans vel 0.5 fcolor bin orchid
+
+thermo_style custom step temp press etotal pe
+
+thermo 100
+run 1000

@@ -37,6 +37,7 @@ class ComputeAngmomChunk : public ComputeChunk {
   double **com, **comall;
   double **angmom, **angmomall;
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

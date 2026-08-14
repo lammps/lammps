@@ -395,6 +395,51 @@ TEST_F(ComputeChunkTest, ChunkReduce)
     for (int i = 0; i < nchunks; ++i)
         EXPECT_EQ(cprp[i], cred[i]);
 }
+
+TEST_F(ComputeChunkTest, ChunkMoleculeWarning)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    END_HIDE_OUTPUT();
+
+    // compute chunk/atom molecule with a group that excludes *entire*
+    // molecules must NOT warn that chunks do not contain all atoms of a
+    // molecule, even when an excluded molecule ID is within the range of
+    // valid chunk IDs (regression test for issue #5003).  Here molecule 2
+    // is excluded entirely, while molecules 1 and 3-6 (max ID = nchunk = 6)
+    // are kept intact.  msd/chunk triggers the one-time check at setup.
+    // verify both the default (no compress) and the compress code path.
+    BEGIN_HIDE_OUTPUT();
+    command("group keep molecule 1 3:6");
+    command("compute ce1 keep chunk/atom molecule");
+    command("compute msd1 all msd/chunk ce1");
+    command("compute ce2 keep chunk/atom molecule compress yes");
+    command("compute msd2 all msd/chunk ce2");
+    END_HIDE_OUTPUT();
+
+    auto output = CAPTURE_OUTPUT([&] { command("run 0 post no"); });
+    EXPECT_THAT(output, testing::Not(testing::HasSubstr("do not contain all atoms in molecule")));
+
+    // a molecule that is genuinely *split* between its chunk and the excluded
+    // atoms MUST still warn.  excluding atom type 4 keeps most atoms of
+    // molecules 1, 2, and 3 but drops their single type-4 atom from the chunk.
+    // verify both the default (no compress) and the compress code path.
+    BEGIN_HIDE_OUTPUT();
+    command("group notype4 type 1 2 3 5");
+    command("compute ce3 notype4 chunk/atom molecule");
+    command("compute msd3 all msd/chunk ce3");
+    command("compute ce4 notype4 chunk/atom molecule compress yes");
+    command("compute msd4 all msd/chunk ce4");
+    END_HIDE_OUTPUT();
+
+    output = CAPTURE_OUTPUT([&] { command("run 0 post no"); });
+    EXPECT_THAT(output, testing::HasSubstr("do not contain all atoms in molecule"));
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

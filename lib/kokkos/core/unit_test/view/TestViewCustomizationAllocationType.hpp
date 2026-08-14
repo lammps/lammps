@@ -1,20 +1,13 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <gtest/gtest.h>
 
@@ -307,3 +300,125 @@ void test_deep_copy() {
 }
 
 TEST(TEST_CATEGORY, view_customization_deep_copy) { test_deep_copy(); }
+
+void test_deep_copy_single_element_view() {
+  size_t size = 5;
+
+  using view_t = Kokkos::View<Foo::Bar, TEST_EXECSPACE>;
+
+  view_t a(Kokkos::view_alloc("A", Kokkos::Impl::AccessorArg_t{size}));
+
+  auto host_a = Kokkos::create_mirror_view(a);
+
+  for (size_t k = 0; k < size; ++k) host_a()[k] = 0.1 * k;
+
+  // Contiguous deep_copy, potentially host to device
+  Kokkos::deep_copy(a, host_a);
+
+  Kokkos::RangePolicy<TEST_EXECSPACE> policy{0, 1};
+
+  // Verify that all "size" subelements in the single view
+  // are correctly copied. This verifies that views with
+  // custom allocated size (e.g. Sacado derivatives embedded in the view)
+  // work with single views.
+  int num_errors = 0;
+  Kokkos::parallel_reduce(
+      "view_customization_deep_copy_a", policy,
+      KOKKOS_LAMBDA(int, int& error) {
+        for (size_t k = 0; k < size; ++k) {
+          if (Kokkos::abs(a()[k] - 0.1 * k) >
+              Kokkos::Experimental::epsilon_v<float>)
+            ++error;
+          a()[k] = k;
+        }
+      },
+      num_errors);
+  ASSERT_EQ(num_errors, 0);
+
+  // Contiguous deep_copy, potentially device to host
+  Kokkos::deep_copy(host_a, a);
+  for (size_t k = 0; k < size; k++) ASSERT_FLOAT_EQ(host_a()[k], k);
+  auto b = Kokkos::create_mirror(TEST_EXECSPACE::memory_space(), a);
+
+  num_errors = 0;
+  Kokkos::parallel_reduce(
+      "view_customization_check_pre_deep_copy_b", policy,
+      KOKKOS_LAMBDA(int, int& error) {
+        for (size_t k = 0; k < size; ++k) {
+          // Note b is value initalized for the scalar value type for the
+          // allocation
+          if (b()[k] != 0) {
+            ++error;
+          }
+        }
+      },
+      num_errors);
+  ASSERT_EQ(num_errors, 0);
+
+  // Contiguous deep_copy, same execspace
+  Kokkos::deep_copy(b, a);
+
+  num_errors = 0;
+  Kokkos::parallel_reduce(
+      "view_customization_check_pre_deep_copy_b", policy,
+      KOKKOS_LAMBDA(int, int& error) {
+        for (size_t k = 0; k < size; ++k) {
+          if (Kokkos::abs(b()[k] - k) > Kokkos::Experimental::epsilon_v<float>)
+            ++error;
+        }
+      },
+      num_errors);
+  ASSERT_EQ(num_errors, 0);
+}
+
+TEST(TEST_CATEGORY, view_customization_deep_copy_single_element_view) {
+  test_deep_copy_single_element_view();
+}
+
+template <class ViewT, std::integral... Sizes>
+void test_required_span_size_single_rank(size_t expected_size,
+                                         std::string label, Sizes... sizes) {
+  ViewT view(label, sizes...);
+  // Lets get the required size two ways: based on mapping + accessor and using
+  // the required_allocation_size
+  size_t extra_dim = view.accessor().size;
+  size_t span_size = view.mapping().required_span_size();
+  size_t span_size_based_bytes =
+      span_size * sizeof(std::remove_pointer_t<decltype(view.data())>) *
+      extra_dim;
+  size_t req_allocation_size = ViewT::required_allocation_size(sizes...);
+  ASSERT_EQ(span_size_based_bytes, expected_size);
+  ASSERT_EQ(req_allocation_size, expected_size);
+}
+
+template <class Layout>
+void test_required_span_size_layout() {
+  // 5 is the number of underlying elements per Foo::Bar
+  static_assert(std::extent_v<decltype(Foo::Bar::vals)> == 5);
+  // 8 is the size of the raw value types we store.
+  // While Foo::Bar uses float, the accessor and reference type associated
+  // with Foo::Bar actually make the allocation store double!
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar, Layout, TEST_EXECSPACE>>(5 * 8, "A", 5);
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar*, Layout, TEST_EXECSPACE>>(5 * 7 * 8, "A", 7, 5);
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar[7], Layout, TEST_EXECSPACE>>(5 * 7 * 8, "A", 7, 5);
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar**, Layout, TEST_EXECSPACE>>(5 * 7 * 11 * 8, "A", 7,
+                                                        11, 5);
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar* [11], Layout, TEST_EXECSPACE>>(5 * 7 * 11 * 8, "A",
+                                                            7, 11, 5);
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar*******, Layout, TEST_EXECSPACE>>(
+      5 * 7 * 11 * 13 * 17 * 19 * 2 * 3 * 8, "A", 7, 11, 13, 17, 19, 2, 3, 5);
+  test_required_span_size_single_rank<
+      Kokkos::View<Foo::Bar***** [2][3], Layout, TEST_EXECSPACE>>(
+      5 * 7 * 11 * 13 * 17 * 19 * 2 * 3 * 8, "A", 7, 11, 13, 17, 19, 2, 3, 5);
+}
+
+TEST(TEST_CATEGORY, view_customization_required_span_size) {
+  test_required_span_size_layout<Kokkos::LayoutLeft>();
+  test_required_span_size_layout<Kokkos::LayoutRight>();
+}

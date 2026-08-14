@@ -44,6 +44,7 @@ class ComputeDipoleTIP4PChunk : public ComputeChunk {
   double alpha;
   void find_M(int i, double *xM);
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

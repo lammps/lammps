@@ -105,7 +105,7 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
     zmax = 0.;
     d__ = 0.;
     e = 0.;
-    i__1 = *n - 1 << 1;
+    i__1 = (*n - 1) << 1;
     for (k = 1; k <= i__1; k += 2) {
         if (z__[k] < 0.) {
             *info = -(k + 200);

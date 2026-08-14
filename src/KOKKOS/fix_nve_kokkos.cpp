@@ -76,6 +76,7 @@ void FixNVEKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
 {
@@ -91,6 +92,7 @@ void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
 {
@@ -135,6 +137,7 @@ void FixNVEKokkos<DeviceType>::final_integrate()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::final_integrate_item(int i) const
 {
@@ -147,6 +150,7 @@ void FixNVEKokkos<DeviceType>::final_integrate_item(int i) const
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
 {
@@ -189,6 +193,7 @@ void FixNVEKokkos<DeviceType>::fused_integrate(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
 {
@@ -204,6 +209,7 @@ void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNVEKokkos<DeviceType>::fused_integrate_rmass_item(int i) const
 {

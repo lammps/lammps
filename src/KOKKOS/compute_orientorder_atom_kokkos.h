@@ -76,15 +76,19 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   template<class TagStyle>
   void check_team_size_for(int, int&, int);
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeOrientOrderAtomNeigh, const typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomNeigh>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeOrientOrderAtomSelect3, const int& ii) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeOrientOrderAtomBOOP1, const typename Kokkos::TeamPolicy<DeviceType, TagComputeOrientOrderAtomBOOP1>::member_type& team) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagComputeOrientOrderAtomBOOP2, const int& ii) const;
 
@@ -113,18 +117,23 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
 
   t_sna_3c d_qnm;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void select3(int, int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void calc_boop1(int, int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void calc_boop2(int, int) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT polar_prefactor(int, int, KK_FLOAT) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT associated_legendre(int, int, KK_FLOAT) const;
 

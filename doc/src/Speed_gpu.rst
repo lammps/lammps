@@ -163,9 +163,11 @@ in OpenCL mode on CPUs (which uses vectorization and multithreading) is
 usually resulting in inferior performance compared to using LAMMPS' native
 threading and vectorization support in the OPENMP and INTEL packages.
 
-See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS website for performance of the GPU package on various
-hardware, including the Titan HPC platform at ORNL.
+..
+   FIXME:
+   See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
+   LAMMPS website for performance of the GPU package on various
+   hardware, including the Titan HPC platform at ORNL.
 
 You should also experiment with how many MPI tasks per GPU to use to
 give the best performance for your problem and machine.  This is also
@@ -185,7 +187,7 @@ Guidelines for best performance
 """""""""""""""""""""""""""""""
 
 * Using multiple MPI tasks (2-10) per GPU will often give the best
-  performance, as allowed my most multicore CPU/GPU configurations.
+  performance, as allowed by most multicore CPU/GPU configurations.
   Using too many MPI tasks will result in worse performance due to
   growing overhead with the growing number of MPI tasks.
 * If the number of particles per MPI task is small (e.g. 100s of

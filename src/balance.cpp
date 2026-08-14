@@ -54,7 +54,9 @@ enum { X, Y, Z };
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Command(lmp)
+Balance::Balance(LAMMPS *lmp) :
+    Command(lmp), bdim(nullptr), onecost(nullptr), allcost(nullptr), sum(nullptr), target(nullptr),
+    lo(nullptr), hi(nullptr), losum(nullptr), hisum(nullptr), weight(nullptr)
 {
   user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
@@ -66,7 +68,6 @@ Balance::Balance(LAMMPS *lmp) : Command(lmp)
   imbalances = nullptr;
   fixstore = nullptr;
 
-  fp = nullptr;
   firststep = 1;
 }
 
@@ -102,8 +103,6 @@ Balance::~Balance()
 
   if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
   fixstore = nullptr;
-
-  if (fp) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -436,7 +435,6 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
   sortflag = sortflag_default;
   outflag = 0;
   int outarg = 0;
-  fp = nullptr;
   oldrcb = 0;
 
   while (iarg < narg) {

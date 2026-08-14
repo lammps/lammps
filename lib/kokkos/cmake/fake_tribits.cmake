@@ -84,9 +84,7 @@ function(KOKKOS_ADD_TEST)
   endif()
   if(TEST_TOOL)
     add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
-    set_property(
-      TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>"
-    )
+    set_property(TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_TOOLS_LIBS=$<TARGET_FILE:${TEST_TOOL}>")
   endif()
   verify_empty(KOKKOS_ADD_TEST ${TEST_UNPARSED_ARGUMENTS})
 endfunction()

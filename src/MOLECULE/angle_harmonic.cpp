@@ -33,11 +33,9 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHarmonic::AngleHarmonic(LAMMPS *_lmp) : Angle(_lmp)
+AngleHarmonic::AngleHarmonic(LAMMPS *_lmp) : Angle(_lmp), k(nullptr), theta0(nullptr)
 {
   born_matrix_enable = 1;
-  k = nullptr;
-  theta0 = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

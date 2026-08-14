@@ -41,6 +41,7 @@ class AngleGaussian : public Angle {
   int *nterms;
   double *angle_temperature;
   double **alpha, **width, **theta0;
+  int nterms_max;
 
   virtual void allocate();
 };

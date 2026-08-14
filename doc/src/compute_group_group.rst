@@ -173,4 +173,4 @@ molecule = off.
 
 .. _Bogusz:
 
-Bogusz et al, J Chem Phys, 108, 7070 (1998)
+**(Bogusz)** Bogusz et al, J Chem Phys, 108, 7070 (1998)

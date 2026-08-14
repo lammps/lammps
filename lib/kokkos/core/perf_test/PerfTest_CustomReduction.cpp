@@ -1,29 +1,17 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.random;
+#else
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Random.hpp>
+#endif
 #include <benchmark/benchmark.h>
 #include "Benchmark_Context.hpp"
 #include "PerfTest_Category.hpp"
-#include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
-import kokkos.random;
-#else
-#include <Kokkos_Random.hpp>
-#endif
 #include <utility>
 
 namespace Test {
@@ -35,65 +23,44 @@ std::pair<double, Scalar> custom_reduction_test(int N, int R) {
 
   Scalar max;
 
+  auto reduction_lambda = KOKKOS_LAMBDA(
+      const Kokkos::TeamPolicy<>::member_type& team, Scalar& lmax) {
+    Scalar team_max = Scalar(0);
+    for (int rr = 0; rr < R; rr++) {
+      int i = team.league_rank();
+      Kokkos::parallel_reduce(
+          Kokkos::TeamThreadRange(team, 32),
+          [&](const int& j, Scalar& thread_max) {
+            Scalar t_max = Scalar(0);
+            Kokkos::parallel_reduce(
+                Kokkos::ThreadVectorRange(team, 32),
+                [&](const int& k, Scalar& max_) {
+                  const Scalar val = a((i * 32 + j) * 32 + k);
+                  if (val > max_) max_ = val;
+                  if ((k == 11) && (j == 17) && (i == 2)) max_ = 11.5;
+                },
+                Kokkos::Max<Scalar>(t_max));
+            if (t_max > thread_max) thread_max = t_max;
+          },
+          Kokkos::Max<Scalar>(team_max));
+    }
+    if (team_max > lmax) lmax = team_max;
+  };
+
   int team_size = 32;
-  if (team_size > Kokkos::DefaultExecutionSpace().concurrency())
-    team_size = Kokkos::DefaultExecutionSpace().concurrency();
+  Kokkos::Max<Scalar> reducer(max);
+  // FIXME Use reducer
+  int const max_team_size = Kokkos::TeamPolicy<>(1, 1).team_size_max(
+      reduction_lambda, Kokkos::ParallelReduceTag{});
+  if (team_size > max_team_size) team_size = max_team_size;
   // Warm up
-  Kokkos::parallel_reduce(
-      Kokkos::TeamPolicy<>(N / 1024, team_size),
-      KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team,
-                    Scalar& lmax) {
-        Scalar team_max = Scalar(0);
-        for (int rr = 0; rr < R; rr++) {
-          int i = team.league_rank();
-          Kokkos::parallel_reduce(
-              Kokkos::TeamThreadRange(team, 32),
-              [&](const int& j, Scalar& thread_max) {
-                Scalar t_max = Scalar(0);
-                Kokkos::parallel_reduce(
-                    Kokkos::ThreadVectorRange(team, 32),
-                    [&](const int& k, Scalar& max_) {
-                      const Scalar val = a((i * 32 + j) * 32 + k);
-                      if (val > max_) max_ = val;
-                      if ((k == 11) && (j == 17) && (i == 2)) max_ = 11.5;
-                    },
-                    Kokkos::Max<Scalar>(t_max));
-                if (t_max > thread_max) thread_max = t_max;
-              },
-              Kokkos::Max<Scalar>(team_max));
-        }
-        if (team_max > lmax) lmax = team_max;
-      },
-      Kokkos::Max<Scalar>(max));
+  Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N / 1024, team_size),
+                          reduction_lambda, reducer);
 
   // Timing
   Kokkos::Timer timer;
-  Kokkos::parallel_reduce(
-      Kokkos::TeamPolicy<>(N / 1024, team_size),
-      KOKKOS_LAMBDA(const Kokkos::TeamPolicy<>::member_type& team,
-                    Scalar& lmax) {
-        Scalar team_max = Scalar(0);
-        for (int rr = 0; rr < R; rr++) {
-          int i = team.league_rank();
-          Kokkos::parallel_reduce(
-              Kokkos::TeamThreadRange(team, 32),
-              [&](const int& j, Scalar& thread_max) {
-                Scalar t_max = Scalar(0);
-                Kokkos::parallel_reduce(
-                    Kokkos::ThreadVectorRange(team, 32),
-                    [&](const int& k, Scalar& max_) {
-                      const Scalar val = a((i * 32 + j) * 32 + k);
-                      if (val > max_) max_ = val;
-                      if ((k == 11) && (j == 17) && (i == 2)) max_ = 11.5;
-                    },
-                    Kokkos::Max<Scalar>(t_max));
-                if (t_max > thread_max) thread_max = t_max;
-              },
-              Kokkos::Max<Scalar>(team_max));
-        }
-        if (team_max > lmax) lmax = team_max;
-      },
-      Kokkos::Max<Scalar>(max));
+  Kokkos::parallel_reduce(Kokkos::TeamPolicy<>(N / 1024, team_size),
+                          reduction_lambda, reducer);
 
   return std::make_pair(timer.seconds(), max);
 }

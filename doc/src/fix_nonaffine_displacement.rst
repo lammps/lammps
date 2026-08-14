@@ -38,6 +38,8 @@ Syntax
 
        *z/min* values = zmin
          zmin = minimum coordination number to calculate D2min
+       *intensive/d2min* values = *yes* or *no*
+         specifies whether output uses an intensive or extensive value of d2min
 
 Examples
 """"""""
@@ -46,7 +48,7 @@ Examples
 
    fix 1 all nonaffine/displacement 100 integrated update 100
    fix 1 all nonaffine/displacement 1000 d2min type fixed 0
-   fix 1 all nonaffine/displacement 1000 d2min custom 2.0 offset 100
+   fix 1 all nonaffine/displacement 1000 d2min custom 2.0 offset 100 intensive/d2min no
 
 Description
 """""""""""
@@ -76,12 +78,17 @@ displacement. A deformation gradient tensor is then calculated as
 
 .. math::
 
-    D^2_\mathrm{min} = \sum_{\mathrm{neighbors}} \left| \vec{r} - F \vec{r}_0 \right|^2
+    D^2_\mathrm{min} = \frac{1}{N_n} \sum_{\mathrm{neighbors}} \left| \vec{r} - F \vec{r}_0 \right|^2
 
 and a strain tensor is calculated :math:`E = F F^{T} - I` where :math:`I`
-is the identity tensor. This calculation is only performed on timesteps that
-are a multiple of *nevery* (including timestep zero). Data accessed before
-this occurs will simply be zeroed.
+is the identity tensor and :math:`N_n` is the number of neighbors. This calculation is
+only performed on timesteps that are a multiple of *nevery* (including timestep zero).
+Data accessed before this occurs will simply be zeroed.
+
+This formulation of D2min is intensive in the sense that it is normalized by the number
+of neighbors that contribute to it. Alternatively, this factor can be removed using
+the *intensive/d2min* option to calculate a quantity extensive in the number of
+neighbors.
 
 For particles with low coordination numbers, calculations of :math:`D^2_\mathrm{min}`
 may not be accurate. An optional minimum coordination number can be defined using
@@ -112,14 +119,16 @@ The reference state is saved to :doc:`binary restart files <restart>`.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
-This fix computes a peratom array with 3 columns, which can be accessed
-by indices 1-3 using any command that uses per-atom values from a fix
-as input.
+This fix computes a peratom array with either 3 or 9 columns, which can
+be accessed by indices 1-9 using any command that uses per-atom values
+from a fix as input.
 
 For the *integrated* style, the three columns are the nonaffine
 displacements in the x, y, and z directions. For the *d2min* style,
-the three columns are the calculated :math:`\sqrt{D^2_\mathrm{min}}`, the
-volumetric strain, and the deviatoric strain.
+the first three columns are the calculated :math:`\sqrt{D^2_\mathrm{min}}`,
+the volumetric strain, and the deviatoric strain. The following 6
+columns are the xx, yy, zz, xy, xz, and yz components of the calculated
+strain tensor.
 
 Restrictions
 """"""""""""
@@ -142,7 +151,7 @@ none
 Default
 """""""
 
-none
+intensive/d2min = yes
 
 ----------
 

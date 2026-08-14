@@ -68,8 +68,6 @@
 #include "pair_kim.h"
 #include "variable.h"
 
-#include "fmt/ranges.h"
-
 #include <cstdlib>
 #include <cstring>
 #include <vector>
@@ -371,7 +369,7 @@ void KimParam::command(int narg, char **arg)
     // Set the parameters
     } else {
       auto setcmd = fmt::format("pair_coeff * * {} {}", atom_type_list,
-                                fmt::join(arg + 1, arg + narg, " "));
+                                utils::join(std::vector(arg + 1, arg + narg), " "));
       input->one(setcmd);
     }
   } else

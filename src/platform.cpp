@@ -18,14 +18,18 @@
 #include "platform.h"
 
 #include "fmt/format.h"
+#include "safe_pointers.h"
 #include "text_file_reader.h"
 #include "utils.h"
 
 #include <cerrno>
+#include <chrono>
+#include <cstring>
 #include <deque>
 #include <exception>
 #include <filesystem>
 #include <mpi.h>
+#include <thread>
 #include <utility>
 
 ////////////////////////////////////////////////////////////////////////
@@ -74,10 +78,6 @@
 
 ////////////////////////////////////////////////////////////////////////
 
-#include <chrono>
-#include <cstring>
-#include <thread>
-
 /* ------------------------------------------------------------------ */
 namespace {
 /// Struct for listing on-the-fly compression/decompression commands
@@ -124,6 +124,9 @@ const compress_info &find_compress_type(const std::string &file)
 // set reference time stamp during executable/library init.
 // should provide better resolution than using epoch, if the system clock supports it.
 auto initial_time = std::chrono::steady_clock::now();
+
+// same for file time stamps where we use the current working directory as reference
+auto initial_file_time = std::filesystem::last_write_time(".");
 }    // namespace
 using namespace LAMMPS_NS;
 
@@ -262,6 +265,8 @@ std::string platform::os_info()
     buf = "Windows 11 25H2";
   } else if (build == "28000") {
     buf = "Windows 11 26H1";
+  } else if (build == "26300") {
+    buf = "Windows 11 26H2";
   } else {
     buf = "Windows Build " + build;
   }
@@ -934,7 +939,8 @@ std::string platform::path_dirname(const std::string &path)
 #else
   if (dir == "") return {"."};
 #endif
-  else return dir;
+  else
+    return dir;
 }
 
 /* ----------------------------------------------------------------------
@@ -970,11 +976,8 @@ std::string platform::path_join(const std::string &a, const std::string &b)
 
 bool platform::file_is_readable(const std::string &path)
 {
-  FILE *fp = fopen(path.c_str(), "r");
-  if (fp) {
-    fclose(fp);
-    return true;
-  }
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) return true;
   return false;
 }
 
@@ -986,21 +989,49 @@ bool platform::file_is_writable(const std::string &path)
 {
   // if the file exists, try to append and don't delete
 
+  SafeFilePtr fp;
   if (file_is_readable(path)) {
-    FILE *fp = fopen(path.c_str(), "a");
-    if (fp) {
-      fclose(fp);
-      return true;
-    }
+    fp = fopen(path.c_str(), "a");
+    if (fp) return true;
   } else {
-    FILE *fp = fopen(path.c_str(), "w");
+    fp = fopen(path.c_str(), "w");
     if (fp) {
-      fclose(fp);
+      fp = nullptr;
       unlink(path);
       return true;
     }
   }
   return false;
+}
+
+/* ----------------------------------------------------------------------
+   read first line of file to see if it is a redirect file of a git checkout
+   on a file system without symlinks
+------------------------------------------------------------------------- */
+
+std::string platform::file_redirect(const std::string &path)
+{
+#if defined(_WIN32)
+  // read the first (and only) line and see if it is a valid path
+  SafeFilePtr fp = fopen(path.c_str(), "r");
+  if (fp) {
+    char buffer[1024];
+    if (fgets(buffer, 1024, fp)) {
+      auto target = utils::trim(buffer);
+      if (platform::file_is_readable(target)) return target;
+    }
+  }
+#endif
+  return path;
+}
+
+/* ----------------------------------------------------------------------
+   get file modification time since initial time stamp
+------------------------------------------------------------------------- */
+double platform::file_write_time(const std::string &path)
+{
+  auto timediff = std::filesystem::last_write_time(path) - initial_file_time;
+  return std::chrono::duration<double>(timediff).count();
 }
 
 /* ----------------------------------------------------------------------

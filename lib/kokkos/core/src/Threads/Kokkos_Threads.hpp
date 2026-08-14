@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -33,8 +20,9 @@ static_assert(false,
 #include <Kokkos_ScratchSpace.hpp>
 #include <Kokkos_Layout.hpp>
 #include <Kokkos_MemoryTraits.hpp>
-#include <impl/Kokkos_Profiling_Interface.hpp>
+#include <impl/Kokkos_CheckUsage.hpp>
 #include <impl/Kokkos_InitializationSettings.hpp>
+#include <impl/Kokkos_Profiling_Interface.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -62,12 +50,6 @@ class Threads {
   //! \name Static functions that all Kokkos devices must implement.
   //@{
 
-  /// \brief True if and only if this method is being called in a
-  ///   thread-parallel function.
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED static int in_parallel();
-#endif
-
   /// \brief Print configuration information to the given output stream.
   void print_configuration(std::ostream& os, bool verbose = false) const;
 
@@ -83,11 +65,7 @@ class Threads {
                  "Kokkos::Threads::fence: Unnamed Instance Fence") const;
 
   /** \brief  Return the maximum amount of concurrency.  */
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static int concurrency();
-#else
   int concurrency() const;
-#endif
 
   /// \brief Free any resources being consumed by the device.
   ///
@@ -101,10 +79,6 @@ class Threads {
   //@{
 
   static void impl_initialize(InitializationSettings const&);
-
-  static int impl_is_initialized();
-
-  static Threads& impl_instance(int = 0);
 
   //----------------------------------------
 
@@ -126,6 +100,18 @@ class Threads {
   }
 
   uint32_t impl_instance_id() const noexcept { return 1; }
+
+  KOKKOS_DEFAULTED_FUNCTION Threads(const Threads&) = default;
+  KOKKOS_FUNCTION Threads(Threads&& other) noexcept
+      : Threads(static_cast<const Threads&>(other)) {}
+  KOKKOS_DEFAULTED_FUNCTION Threads& operator=(const Threads&) = default;
+  KOKKOS_FUNCTION Threads& operator=(Threads&& other) noexcept {
+    return *this = static_cast<const Threads&>(other);
+  }
+
+  ~Threads() { Impl::check_execution_space_destructor_precondition(name()); }
+
+  Threads() { Impl::check_execution_space_constructor_precondition(name()); }
 
   static const char* name();
   //@}

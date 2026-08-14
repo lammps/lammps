@@ -27,7 +27,6 @@ pair_style hbond/dreiding/morse/angleoffset command
 
 Accelerator Variants: *hbond/dreiding/morse/angleoffset/omp*
 
-
 Syntax
 """"""
 
@@ -90,8 +89,8 @@ Here, *r* is the radial distance between the donor (D) and acceptor
 (A) atoms and :math:`\theta` is the bond angle between the acceptor, the
 hydrogen (H) and the donor atoms:
 
-.. image:: JPG/dreiding_hbond.jpg
-   :align: center
+.. image:: JPG/dreiding_hbond.png
+   :width: 66%
 
 These 3-body interactions can be defined for pairs of acceptor and donor
 atoms, based on atom types.  For each donor/acceptor atom pair, the
@@ -107,7 +106,7 @@ Donor-Acceptor interactions. To match the results in the original paper,
 use n = 4.
 
 Style *hbond/dreiding/morse* is an improved version using a Morse
-potential for the Donor-Acceptor interactions. :ref:`(Liu) <Liu>` showed
+potential for the Donor-Acceptor interactions. :ref:`(Liu3) <Liu>` showed
 that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
@@ -307,5 +306,5 @@ none
 
 .. _Liu:
 
-**(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
+**(Liu3)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)

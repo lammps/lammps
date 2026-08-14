@@ -121,6 +121,12 @@ describing packages must also be updated as well as a package specific
 description added.  Likewise, if necessary, some package specific
 build instructions should be included.
 
+A detailed, step-by-step guide for what a documentation page must
+contain, how to register a new style in the command tables and overview
+lists, how to document accelerated variants, and which consistency
+checks to run is given on the :doc:`Writing or updating documentation
+<Developer_write_docs>` page.
+
 As appropriate, the text files with the documentation can include
 inline mathematical expressions or figures (see ``doc/JPG`` for
 examples).  Additional PDF files with further details may also be
@@ -313,10 +319,15 @@ so that one could look up the cause by reading the source code.
 
 The new policy encourages more specific error messages that ideally
 indicate the cause directly, and requiring no further lookup. This is
-aided by the `{fmt} library <https://fmt.dev>`_ enabling Error class
-methods that take a variable number of arguments and an error text that
-will be treated like a {fmt} syntax format string.  Error messages should
-still preferably be kept to a single line or two lines at most.
+aided by either the `{fmt} library <https://fmt.dev>`_ or the `C++
+format library
+<https://cppreference.com/cpp/utility/format>`_ (for C++20
+and later) enabling :cpp:class:`LAMMPS_NS::Error` class methods that
+take a variable number of arguments and an error text that will be
+treated like a `C++ format string
+<https://cppreference.com/cpp/utility/format/spec>`_. Error
+messages should still preferably be kept to a single line or two lines
+at most.
 
 For more complex explanations or errors that have multiple possible
 reasons, a paragraph should be added to the `Error_details` page with an

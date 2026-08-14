@@ -39,7 +39,7 @@ class DihedralCosineSquaredRestricted : public Dihedral {
  protected:
   double *k, *phi0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

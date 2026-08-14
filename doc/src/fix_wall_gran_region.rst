@@ -67,14 +67,14 @@ non-granular particles and simpler wall geometries, respectively.
 
 Here are snapshots of example models using this command.  Corresponding
 input scripts can be found in examples/granregion.  Movies of these
-simulations are `here on the Movies page <https://www.lammps.org/movies.html#granregion>`_
-of the LAMMPS website.
+simulations are `here on the Movies page
+<https://www.lammps.org/examples/granregion/>`_ of the LAMMPS website.
 
-.. |wallgran1| image:: img/gran_funnel.png
-   :width: 48%
+.. |wallgran1| image:: img/gran_funnel.jpg
+   :width: 33%
 
-.. |wallgran2| image:: img/gran_mixer.png
-   :width: 48%
+.. |wallgran2| image:: img/gran_mixer.jpg
+   :width: 33%
 
 |wallgran1|  |wallgran2|
 
@@ -281,6 +281,14 @@ None of the :doc:`fix_modify <fix_modify>` options are relevant to this fix.
 No parameter of this fix can be used with the *start/stop* keywords of the
 :doc:`run <run>` command. This fix is not invoked during :doc:`energy
 minimization <minimize>`.
+
+Dump image info
+"""""""""""""""
+
+This fix does **not** support the *fix* keyword of the :doc:`dump image
+<dump_image>` command.  Instead the region used by the fix can be
+visualized using the *region* keyword of *dump image*.
+
 
 Restrictions
 """"""""""""

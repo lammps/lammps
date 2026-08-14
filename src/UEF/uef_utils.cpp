@@ -26,8 +26,8 @@
 #include <cmath>
 #include "uef_utils.h"
 
-namespace LAMMPS_NS {
-  namespace UEF_utils{
+
+  namespace LAMMPS_NS::UEF_utils{
 
 UEFBox::UEFBox()
 {
@@ -447,4 +447,4 @@ void make_unique(double b[3][3], int r[3][3], int ri[3][3])
     neg_col(ri,2);
   }
 }
-}}
+}

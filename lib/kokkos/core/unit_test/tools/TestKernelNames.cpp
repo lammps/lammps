@@ -1,20 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_TypeInfo.hpp>
 
 #include <gtest/gtest.h>
 
@@ -71,10 +65,8 @@ void test_kernel_name_parallel_for() {
 
     Kokkos::parallel_for(Kokkos::RangePolicy<ExecutionSpace>(0, 1), my_lambda);
     ASSERT_EQ(last_parallel_for, typeid_name(my_lambda));
-#ifndef KOKKOS_ENABLE_CXX17
     ASSERT_FALSE(last_parallel_for.starts_with("const "))
         << last_parallel_for << " is const-qualified";
-#endif
 
     auto const my_lambda_with_tag = KOKKOS_LAMBDA(WorkTag, int){};
     Kokkos::parallel_for(my_label,
@@ -86,10 +78,8 @@ void test_kernel_name_parallel_for() {
                          my_lambda_with_tag);
     ASSERT_EQ(last_parallel_for,
               typeid_name(my_lambda_with_tag) + "/" + typeid_name(WorkTag{}));
-#ifndef KOKKOS_ENABLE_CXX17
     ASSERT_FALSE(last_parallel_for.starts_with("const "))
         << last_parallel_for << " is const-qualified";
-#endif
   }
 
   Kokkos::Tools::Experimental::set_begin_parallel_for_callback(nullptr);
@@ -121,10 +111,8 @@ void test_kernel_name_parallel_reduce() {
                             // but the name should still include the lambda as
                             // template parameter
 #endif
-#ifndef KOKKOS_ENABLE_CXX17
     ASSERT_FALSE(last_parallel_reduce.starts_with("const "))
         << last_parallel_reduce << " is const-qualified";
-#endif
 
     auto const my_lambda_with_tag = KOKKOS_LAMBDA(WorkTag, int, float&){};
     Kokkos::parallel_reduce(my_label,
@@ -137,10 +125,8 @@ void test_kernel_name_parallel_reduce() {
     auto const suffix = std::string("/") + typeid_name(WorkTag{});
     ASSERT_EQ(last_parallel_reduce.find(suffix),
               last_parallel_reduce.length() - suffix.length());
-#ifndef KOKKOS_ENABLE_CXX17
     ASSERT_FALSE(last_parallel_reduce.starts_with("const "))
         << last_parallel_reduce << " is const-qualified";
-#endif
   }
 
   Kokkos::Tools::Experimental::set_begin_parallel_reduce_callback(nullptr);
@@ -162,10 +148,8 @@ void test_kernel_name_parallel_scan() {
 
     Kokkos::parallel_scan(Kokkos::RangePolicy<ExecutionSpace>(0, 1), my_lambda);
     ASSERT_EQ(last_parallel_scan, typeid_name(my_lambda));
-#ifndef KOKKOS_ENABLE_CXX17
     ASSERT_FALSE(last_parallel_scan.starts_with("const "))
         << last_parallel_scan << " is const-qualified";
-#endif
 
     auto const my_lambda_with_tag = KOKKOS_LAMBDA(WorkTag, int, float&, bool){};
     Kokkos::parallel_scan(my_label,
@@ -177,10 +161,8 @@ void test_kernel_name_parallel_scan() {
                           my_lambda_with_tag);
     ASSERT_EQ(last_parallel_scan,
               typeid_name(my_lambda_with_tag) + "/" + typeid_name(WorkTag{}));
-#ifndef KOKKOS_ENABLE_CXX17
     ASSERT_FALSE(last_parallel_scan.starts_with("const "))
         << last_parallel_scan << " is const-qualified";
-#endif
   }
 
   Kokkos::Tools::Experimental::set_begin_parallel_scan_callback(nullptr);

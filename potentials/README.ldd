@@ -1,0 +1,30 @@
+The files *.ldd are force-field pair ldd example input scripts,
+supplied here for unit-testing / maintaining the pair_style ldd.
+
+These unit tests use commands like "pair_coeff * * X-Y.ldd A B", where X-Y.ldd is a
+potential file defining the local density indicator and LD/SG force functions for each
+ordered pair of central and surrounding species, and the trailing names (A B ...) map the
+LAMMPS atom types to the species used in the file.  Each line of the file has the form
+
+    Si Sj indicator <wtype> r0 rc self <yes/no> potential <ptype> <args> [gradient <gtype> <args>] [ignore]
+
+for the two species Si (central) and Sj (surrounding).  See the pair_style ldd documentation
+for the full format.
+
+Thus the files *.ldd are for the most part example inputs with unit test reference data available.
+
+The ldd code employed to generate unit test reference data was verified with 2 particle analytic distribution recovery and many particle force recoveries in the publication:
+M. C. Lesniewski, M. R. DeLyser, and W. G. Noid
+"Progress toward a better BOCS: systematic coarse-graining with local density potentials"
+Manuscript in Preparation (2026).
+
+*.ldd Files included:
+=====================
+-LDINDSET1.ldd, LDINDSET2.ldd - Verify all types of indicators implemented in pair_ldd
+
+-X-Y.ldd - Battery of tests for verifying force functions, given an indicator choice.
+
+ >where X is one of LD or SG or LDSG, indicating input where the local density (LD) potential is used, the square gradient potential (SG) or both (LDSG) are used.
+ >where Y is the LD potential or SG coefficient style employed within the force-field input. e.g. noforce, constant, linear, quadratic, mdpd, table/spline (table/gradspline for SG), table/lin (table/gradlin for SG)
+
+-LD_SG_table.ldd - This is a tabulated potential input, called by the tabulated LD potential / SG coefficient styles.

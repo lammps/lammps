@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 
 #include <algorithm>
 #include <cmath>
@@ -185,24 +186,31 @@ void PairPOD::compute(int eflag, int vflag)
 
   int blockMode = 0;
   if (blockMode==0) {
+
+  // determine the maximum number of neighbor list candidates for all local atoms
+  // and allocate temporary memory accordingly.  a minimum of one guarantees that
+  // the buffers always exist, even if no atom has any neighbors at all.
+
+  int jnummax = 1;
+  for (int ii = 0; ii < inum; ii++) jnummax = MAX(jnummax, numneigh[ilist[ii]]);
+
+  if (nijmax < jnummax) {
+    nijmax = jnummax;
+    fastpodptr->free_temp_memory();
+    fastpodptr->allocate_temp_memory(nijmax);
+  }
+
+  double *rij1 = &fastpodptr->tmpmem[0];
+  double *fij1 = &fastpodptr->tmpmem[3*nijmax];
+  double *tmp = &fastpodptr->tmpmem[6*nijmax];
+  int *ai1 = &fastpodptr->tmpint[0];
+  int *aj1 = &fastpodptr->tmpint[nijmax];
+  int *ti1 = &fastpodptr->tmpint[2*nijmax];
+  int *tj1 = &fastpodptr->tmpint[3*nijmax];
+
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
-    int jnum = numneigh[i];
 
-    // allocate temporary memory
-    if (nijmax < jnum) {
-      nijmax = MAX(nijmax, jnum);
-      fastpodptr->free_temp_memory();
-      fastpodptr->allocate_temp_memory(nijmax);
-    }
-
-    double *rij1 = &fastpodptr->tmpmem[0];
-    double *fij1 = &fastpodptr->tmpmem[3*nijmax];
-    double *tmp = &fastpodptr->tmpmem[6*nijmax];
-    int *ai1 = &fastpodptr->tmpint[0];
-    int *aj1 = &fastpodptr->tmpint[nijmax];
-    int *ti1 = &fastpodptr->tmpint[2*nijmax];
-    int *tj1 = &fastpodptr->tmpint[3*nijmax];
     lammpsNeighborList(rij1, ai1, aj1, ti1, tj1, x, firstneigh, type, map, numneigh, rcutsq, i);
 
     evdwl = fastpodptr->peratomenergyforce2(fij1, rij1, tmp, ti1, tj1, nij);
@@ -304,8 +312,11 @@ void PairPOD::coeff(int narg, char **arg)
   copy_data_from_pod_class();
   rcut = fastpodptr->rcut;
 
-  memory->destroy(fastpodptr->tmpmem);
-  memory->destroy(fastpodptr->tmpint);
+  // release the temporary memory allocated by the EAPOD constructor and reset
+  // nijmax, so PairPOD::compute() re-allocates based on actual neighbor counts
+
+  fastpodptr->free_temp_memory();
+  nijmax = 0;
 
   for (int ii = 0; ii < np1; ii++)
     for (int jj = 0; jj < np1; jj++) cutsq[ii][jj] = fastpodptr->rcut * fastpodptr->rcut;
@@ -364,6 +375,8 @@ void PairPOD::lammpsNeighborList(double *rij1, int *ai1, int *aj1, int *ti1, int
 {
   nij = 0;
   int itype = map[atomtypes[gi]] + 1;
+  // always store the type of the central atom, so that the one-body energy
+  // can be computed even when the atom has no neighbors within the cutoff
   ti1[nij] = itype;
   int m = numneigh[gi];
   for (int l = 0; l < m; l++) {           // loop over each atom around atom i
@@ -745,7 +758,7 @@ void PairPOD::radialbasis(double *rbft, double *rbftx, double *rbfty, double *rb
     double fcut = y6/exp(-1.0);
 
     // Calculate the derivative of the final cutoff function
-    double dfcut = ((3.0/(rmax*exp(-1.0)))*(y2)*y6*(y*y2 - 1.0))/y7;
+    double dfcut = ((3.0/(rmax*exp(-1.0)))*y2*y6*(y*y2 - 1.0))/y7;
 
     // Calculate fcut/r, fcut/r^2, and dfcut/r
     double f1 = fcut/r;
@@ -2112,24 +2125,22 @@ void PairPOD::blockatomenergyforce(double *ei, double *fij, int Ni, int Nij)
 
 void PairPOD::savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols)
 {
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   double sz[2];
   sz[0] = (double) nrows;
   sz[1] = (double) ncols;
-  fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * (2), 1, fp);
+  fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * 2, 1, fp);
   fwrite( reinterpret_cast<char*>( A ), sizeof(double) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 void PairPOD::saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols)
 {
-  FILE *fp = fopen(filename.c_str(), "wb");
+  SafeFilePtr fp = fopen(filename.c_str(), "wb");
   int sz[2];
   sz[0] = nrows;
   sz[1] = ncols;
-  fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * (2), 1, fp);
+  fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * 2, 1, fp);
   fwrite( reinterpret_cast<char*>( A ), sizeof(int) * (nrows*ncols), 1, fp);
-  fclose(fp);
 }
 
 void PairPOD::savedatafordebugging()

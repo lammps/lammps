@@ -1,10 +1,11 @@
 .. index:: compute coord/atom
 .. index:: compute coord/atom/kk
+.. index:: compute coord/atom/omp
 
 compute coord/atom command
 ==========================
 
-Accelerator Variants: *coord/atom/kk*
+Accelerator Variants: *coord/atom/kk*, *coord/atom/omp*
 
 Syntax
 """"""
@@ -140,7 +141,7 @@ explained above.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

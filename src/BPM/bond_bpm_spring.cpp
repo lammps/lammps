@@ -428,17 +428,18 @@ void BondBPMSpring::settings(int narg, char **arg)
   for (std::size_t i = 0; i < leftover_iarg.size(); i++) {
     iarg = leftover_iarg[i];
     if (strcmp(arg[iarg], "smooth") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for smooth");
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "bond_style bpm/spring smooth", error);
       smooth_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else if (strcmp(arg[iarg], "normalize") == 0) {
-      if (iarg + 1 > narg)
-        error->all(FLERR, "Illegal bond bpm command, missing option for normalize");
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "bond_style bpm/spring normalize", error);
       normalize_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       i += 1;
     } else if (strcmp(arg[iarg], "volume/factor") == 0) {
-      if (iarg + 1 > narg)
-        error->all(FLERR, "Illegal bond bpm command, missing option for volume/factor");
+      if (iarg + 1 >= narg)
+        utils::missing_cmd_args(FLERR, "bond_style bpm/spring volume/factor", error);
       volume_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
 
       if (volume_flag) {
@@ -534,10 +535,17 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
 {
   if (type <= 0) return 0.0;
 
-  double r0;
+  double r0 = 0.0;
+  int found = 0;
   for (int n = 0; n < atom->num_bond[i]; n++) {
-    if (atom->bond_atom[i][n] == atom->tag[j]) r0 = fix_bond_history->get_atom_value(i, n, 0);
+    if (atom->bond_atom[i][n] == atom->tag[j]) {
+      r0 = fix_bond_history->get_atom_value(i, n, 0);
+      found = 1;
+    }
   }
+  if (!found)
+    error->one(FLERR, "Bond between atoms {} and {} not found in bond history",
+               atom->tag[i], atom->tag[j]);
 
   double r = sqrt(rsq);
   double rinv = 1.0 / r;
@@ -653,4 +661,13 @@ void BondBPMSpring::unpack_forward_comm(int n, int first, double *buf)
       vol0[i] = buf[m++];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double BondBPMSpring::memory_usage()
+{
+  double bytes = BondBPM::memory_usage();
+  bytes += (double) nmax * sizeof(double);    // dvol0[nmax]
+  return bytes;
 }

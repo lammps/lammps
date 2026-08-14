@@ -18,19 +18,24 @@
 
 #include "pair_lj_smooth_linear.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
-#include "force.h"
-#include "neigh_list.h"
-#include "memory.h"
 #include "error.h"
+#include "force.h"
+#include "memory.h"
+#include "neigh_list.h"
+
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
+PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), ljcut(nullptr), dljcut(nullptr),
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr)
+{
   single_hessian_enable = 1;
 }
 
@@ -370,4 +375,14 @@ double PairLJSmoothLinear::single_hessian(int /*i*/, int /*j*/, int itype, int j
   double d2r = factor_lj * r6inv * (13.0*lj1[itype][jtype]*r6inv - 7.0*lj2[itype][jtype])/rsq;
   hessian_twobody(fforce, -(fforce + d2r) / rsq, delr, d2u);
   return factor_lj*philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJSmoothLinear::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
 }

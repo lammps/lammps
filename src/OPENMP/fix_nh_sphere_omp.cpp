@@ -26,11 +26,14 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NOBIAS,BIAS};
+namespace {
+enum {NOBIAS, BIAS};
+constexpr double INERTIA = 0.4;          // moment of inertia prefactor for sphere
 
-static constexpr double INERTIA = 0.4;          // moment of inertia prefactor for sphere
-
-using dbl3_t = struct { double x,y,z; };
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ---------------------------------------------------------------------- */
 

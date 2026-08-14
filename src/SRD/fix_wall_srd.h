@@ -37,6 +37,8 @@ class FixWallSRD : public Fix {
   void init() override;
   double compute_array(int, int) override;
 
+  int image(int *&, double **&) override;
+
   void wall_params(int);
 
  private:
@@ -51,9 +53,10 @@ class FixWallSRD : public Fix {
 
   double **fwall_all;
   int force_flag;
+
+  int *imgobjs;
+  double **imgparms;
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

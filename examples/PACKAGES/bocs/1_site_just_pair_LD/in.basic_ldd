@@ -1,0 +1,65 @@
+units           real
+dimension       3
+boundary        p p p
+atom_style      atomic
+newton          on
+timestep        1.0
+
+region my_box block  0.000000 53.2587274361 0.000000 53.2587274361 0.000000 480
+create_box 1 my_box
+
+create_atoms 1 random 968 13427890 my_box overlap 2
+
+mass 1 32.042
+
+velocity        all create 270 22345 dist gaussian loop geom
+
+pair_style     hybrid/overlay ldd lj/cut 14.0
+#pair_style     hybrid/overlay ldd table spline N
+
+pair_coeff      1 1 lj/cut 1 1
+# map atom type 1 to local-density species A (defined in the potential file)
+pair_coeff      * * ldd basic.ldd A
+
+neigh_modify    delay 5 every 1 check yes
+neighbor        2.0 bin
+thermo          1000
+
+# The per-atom local-density data computed by pair style ldd is made available
+# to the rest of LAMMPS through "fix pair".  The fields are local_density,
+# grad_density, energy, grad_energy (one column per species), and total_energy.
+# Here we pull the density and total LD energy of species A into a per-atom array
+# f_lddout (column 1 = local_density of A, column 2 = total_energy).
+# fix lddout all pair 1 ldd local_density 0 total_energy 0
+
+
+# Converting lammps real units to gmx/bocs units
+# Uncomment if want to use the print statements below
+# variable STEP equal step
+# variable TEMP equal temp
+# variable VOL equal vol/1000.0
+# variable PRESS equal press*1.01325
+
+## Set various fixes
+fix             1  all      nvt        temp       270  270 100.0 #iso 0.986 0.986 1000.0
+
+run_style       verlet
+
+# Printing various stats in gmx/bocs units
+# fix             print_temp all print 500 "${STEP} ${TEMP}" file temp.dat screen no
+# fix             print_vol all print 500 "${STEP} ${VOL}" file vol.dat screen no
+# fix             print_press all print 500 "${STEP} ${PRESS}" file press.dat screen no
+# fix           print_pv  all print 500 "${VOL} ${PRESS}" file PV.dat screen no
+
+## Dump the per-atom local-density quantities (needs the "fix lddout" above).
+# dump           2 all custom 1000 bocs_traj.lmp id x y z vx vy vz fx fy fz f_lddout[1] f_lddout[2]
+# dump_modify   2 sort id
+# dump_modify   2 colname f_lddout[1] lddens1
+# dump_modify   2 colname f_lddout[2] lddttlnrg
+
+
+# Write restart files to continue simulations
+# restart 100000 state1.restart state2.restart
+
+## Run for this many steps
+run 10000

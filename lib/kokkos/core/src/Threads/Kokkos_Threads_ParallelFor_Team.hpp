@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_THREADS_PARALLEL_FOR_TEAM_HPP
 #define KOKKOS_THREADS_PARALLEL_FOR_TEAM_HPP
@@ -113,7 +100,30 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
         m_policy(fix_policy(arg_policy)),
         m_shared(m_policy.scratch_size(0) + m_policy.scratch_size(1) +
                  FunctorTeamShmemSize<FunctorType>::value(
-                     arg_functor, m_policy.team_size())) {}
+                     m_functor, m_policy.team_size())) {
+    if ((m_policy.scratch_size(0, m_policy.team_size()) +
+         FunctorTeamShmemSize<FunctorType>::value(m_functor,
+                                                  m_policy.team_size())) >
+        static_cast<size_t>(m_policy.scratch_size_max(0))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Threads>: Requested too much scratch "
+               "memory on level 0. Requested: "
+            << m_policy.scratch_size(0, m_policy.team_size()) +
+                   FunctorTeamShmemSize<FunctorType>::value(
+                       m_functor, m_policy.team_size())
+            << ", Maximum: " << m_policy.scratch_size_max(0);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+    if (m_policy.scratch_size(1, m_policy.team_size()) >
+        static_cast<size_t>(m_policy.scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<Threads>: Requested too much scratch "
+               "memory on level 1. Requested: "
+            << m_policy.scratch_size(1, m_policy.team_size())
+            << ", Maximum: " << m_policy.scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+  }
 };
 
 }  // namespace Impl

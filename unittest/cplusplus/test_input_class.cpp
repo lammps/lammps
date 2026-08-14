@@ -11,7 +11,7 @@
 #include "gtest/gtest.h"
 
 const char *demo_input[] = {"region       box block 0 $x 0 2 0 2", "create_box 1 box",
-                            "create_atoms 1 single 1.0 1.0 ${zpos}"};
+                            "create_atoms 1 single 1.0 1.0 ${zpos}", "print \\${zpos}"};
 const char *cont_input[] = {"create_atoms 1 single &", "0.2 0.1 0.1"};
 
 namespace LAMMPS_NS {
@@ -102,6 +102,11 @@ TEST_F(Input_commands, substitute)
     strcpy(string, demo_input[2]);
     lmp->input->substitute(string, scratch, nstring, nscratch, 0);
     EXPECT_STREQ(string, "create_atoms 1 single 1.0 1.0 1.5");
+
+    strcpy(string, demo_input[3]);
+    lmp->input->substitute(string, scratch, nstring, nscratch, 0);
+    EXPECT_STREQ(string, "print ${zpos}");
+
     lmp->memory->destroy(string);
     lmp->memory->destroy(scratch);
 };

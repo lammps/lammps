@@ -44,6 +44,7 @@ class ComputeCoordAtomKokkos : public ComputeCoordAtom {
   enum {NONE,CUTOFF,ORIENT};
 
   template<int CSTYLE, int NCOL>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagComputeCoordAtom<CSTYLE,NCOL>, const int&) const;
 

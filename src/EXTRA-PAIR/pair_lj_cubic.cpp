@@ -34,12 +34,18 @@ using namespace PairLJCubicConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCubic::PairLJCubic(LAMMPS *_lmp) : Pair(_lmp) {}
+PairLJCubic::PairLJCubic(LAMMPS *_lmp) :
+    Pair(_lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), epsilon(nullptr),
+    sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 
 PairLJCubic::~PairLJCubic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

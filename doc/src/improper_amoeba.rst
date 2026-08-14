@@ -41,7 +41,7 @@ information about the implementation of AMOEBA and HIPPO in LAMMPS.
 If the 4 atoms in an improper quadruplet (listed in the data file read
 by the :doc:`read_data <read_data>` command are ordered I,J,K,L then
 atoms I,K,L are considered to lie in a plane and atom J is
-out-of-place.  The angle :math:`\chi_0` is computed as the Allinger
+out-of-plane.  The angle :math:`\chi_0` is computed as the Allinger
 angle which is defined as the angle between the plane of I,K,L, and
 the vector from atom I to atom J.
 
@@ -57,6 +57,15 @@ Note that the angle :math:`\chi` is computed in radians; hence
 :math:`K` is effectively energy per radian\^2.
 
 ----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *amoeba* improper style, the second atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
 
 Restrictions
 """"""""""""

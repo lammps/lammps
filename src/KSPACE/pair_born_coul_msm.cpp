@@ -151,7 +151,7 @@ void PairBornCoulMSM::compute(int eflag, int vflag)
         } else {
           // separate Born and Coulombic forces
 
-          fpair = (factor_lj*forceborn) * r2inv;
+          fpair = factor_lj * forceborn * r2inv;
 
           f[i][0] += delx*fpair;
           f[i][1] += dely*fpair;
@@ -162,7 +162,7 @@ void PairBornCoulMSM::compute(int eflag, int vflag)
             f[j][2] -= delz*fpair;
           }
 
-          fcoul = (forcecoul) * r2inv;
+          fcoul = forcecoul * r2inv;
 
           ftmp[i][0] += delx*fcoul;
           ftmp[i][1] += dely*fcoul;

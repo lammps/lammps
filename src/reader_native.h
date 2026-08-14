@@ -65,7 +65,7 @@ class ReaderNative : public Reader {
   void read_double_chunk(size_t);
   void skip_buf(size_t);
   void skip_reading_magic_str();
-  bool is_known_magic_str() const;
+  [[nodiscard]] bool is_known_magic_str() const;
   std::string read_binary_str(size_t);
 };
 

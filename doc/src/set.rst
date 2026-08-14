@@ -23,16 +23,16 @@ Syntax
 
 * one or more keyword/value pairs may be appended
 
-* keyword = *angle* or *angmom* or *apip/lambda* or *bond* or *cc* or *charge*
+* keyword = *angle* or *angmom* or *apip/lambda* or *block* or *bond* or *cc* or *charge*
   or *density* or *density/disc* or *diameter* or *dihedral* or *dipole*
   or *dipole/random* or *dpd/theta* or *edpd/cv* or *edpd/temp* or
   *epsilon* or *image* or *improper* or *length* or *mass* or *mol* or
-  *omega* or *quat* or *quat/random* or *radius/electron* or *shape* or
-  *smd/contact/radius* or *smd/mass/density* or *sph/cv* or *sph/e* or
-  *sph/rho* or *spin/atom* or *spin/atom/random* or *spin/electron* or
-  *temperature* or *theta* or *theta/random* or *tri* or *type* or
-  *type/fraction* or *type/ratio* or *type/subset* or *volume* or *vx*
-  or *vy* or *vz* or *x* or *y* or *z* or *i_name* or *d_name* or
+  *omega* or *quat* or *quat/random* or *radius/electron* or *rheo/rho* or
+  *rheo/status* or *shape* or *smd/contact/radius* or *smd/mass/density* or
+  *sph/cv* or *sph/e* or *sph/rho* or *spin/atom* or *spin/atom/random* or
+  *spin/electron* or *temperature* or *theta* or *theta/random* or *tri* or
+  *type* or *type/fraction* or *type/ratio* or *type/subset* or *volume* or
+  *vx* or *vy* or *vz* or *x* or *y* or *z* or *i_name* or *d_name* or
   *i2_name* or *d2_name*
 
   .. parsed-literal::
@@ -45,6 +45,8 @@ Syntax
          fast = switching parameter of fast potential (1)
          precise = switching parameter of fast potential (0)
          float = constant float or atom-style variable (between 0 and 1)
+       *block* value = block1, block2
+         block1,block2 = 2 blockiness parameters for superellipsoids
        *bond* value = numeric bond type or bond type label, for all bonds between selected atoms
        *cc* values = index cc
          index = index of a chemical species (1 to Nspecies)
@@ -96,6 +98,10 @@ Syntax
          seed = random # seed (positive integer) for quaternion orientations
        *radius/electron* value = eradius
          eradius = electron radius (or fixed-core radius) (distance units)
+         value can be an atom-style variable (see below)
+       *rheo/rho* value = density of RHEO particles (mass/distance\^3)
+         value can be an atom-style variable (see below)
+       *rheo/status* value = status or phase of RHEO particles (unitless)
          value can be an atom-style variable (see below)
        *shape* values = Sx Sy Sz
          Sx,Sy,Sz = 3 diameters of ellipsoid (distance units)
@@ -178,6 +184,7 @@ Examples
    set atom * charge v_atomfile
    set atom 100*200 x 0.5 y 1.0
    set atom 100 vx 0.0 vy 0.0 vz -1.0
+   set atom 200 shape 1.5 2.0 4.0 block 2.0 4.0
    set atom 1492 type 3
    set atom 1492 type H
    set atom * i_myVal 5
@@ -512,6 +519,10 @@ use of an atom-style variable.
 Keyword *radius/electron* uses the specified value to set the radius
 of electrons or fixed cores.
 
+Keywords *rheo/rho* and *rheo/status* set the density and the status of
+rheo particles. In particular, one can only set the phase in the status
+as described by the :doc:`RHEO howto page <Howto_rheo>`.
+
 Keyword *shape* sets the size and shape of the selected atoms.  The
 particles must be ellipsoids as defined by the :doc:`atom_style
 ellipsoid <atom_style>` command.  The *Sx*, *Sy*, *Sz* settings are
@@ -529,6 +540,25 @@ prevent different individual physical bodies from penetrating each
 other. Note that the SPH smoothing kernel diameter used for computing
 long range, nonlocal interactions, is set using the *diameter*
 keyword.
+
+.. versionadded:: 30Mar2026
+
+Keyword *block* sets the blockiness of the selected atoms.  The
+particles must be ellipsoids as defined by the :doc:`atom_style
+ellipsoid <atom_style>` command.  This command is used to define
+superellipsoid particle shapes for use in granular simulations.  The
+*block1*, *block2* settings are the 2 exponents of the superellipsoid in
+the vertical and horizontal directions.  Vertical sections through the
+center are superellipses with squareness *block1* and horizontal
+sections are superellipses with squareness *block2*.  If both parameters
+are set to a value of 2 (the default), the atom is a regular ellipsoid.
+The keyword *block* should be used together with the keyword *shape* to
+give the particle the desired shape.  If the keyword *block* is given
+alone, and the *shape* has not been defined, e.g., in a previous *set*
+command, the 3 diameters would be set to a value of 1 internally.  Note
+that this command does not adjust the particle mass, even if it was
+defined with a density, e.g. via the :doc:`read_data <read_data>`
+command.
 
 Keyword *smd/mass/density* sets the mass of all selected particles,
 but it is only applicable to the Smooth Mach Dynamics package MACHDYN.

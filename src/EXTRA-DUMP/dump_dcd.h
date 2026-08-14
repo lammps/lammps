@@ -29,7 +29,9 @@ class DumpDCD : public Dump {
   DumpDCD(LAMMPS *, int, char **);
   ~DumpDCD() override;
 
- private:
+  double memory_usage() override;
+
+ protected:
   int natoms, ntotal;
   int headerflag, nevery_save, nframes;
 
@@ -42,7 +44,6 @@ class DumpDCD : public Dump {
   void pack(tagint *) override;
   void write_data(int, double *) override;
   int modify_param(int, char **) override;
-  double memory_usage() override;
 
   void write_frame();
   void write_dcd_header(const char *);

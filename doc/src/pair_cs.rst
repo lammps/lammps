@@ -1,44 +1,62 @@
 .. index:: pair_style born/coul/dsf/cs
+.. index:: pair_style born/coul/dsf/cs/omp
 .. index:: pair_style born/coul/long/cs
 .. index:: pair_style born/coul/long/cs/gpu
+.. index:: pair_style born/coul/long/cs/omp
 .. index:: pair_style born/coul/wolf/cs
 .. index:: pair_style born/coul/wolf/cs/gpu
+.. index:: pair_style born/coul/wolf/cs/omp
 .. index:: pair_style buck/coul/long/cs
+.. index:: pair_style buck/coul/long/cs/omp
 .. index:: pair_style coul/long/cs
 .. index:: pair_style coul/long/cs/gpu
+.. index:: pair_style coul/long/cs/omp
 .. index:: pair_style coul/wolf/cs
+.. index:: pair_style coul/wolf/cs/omp
 .. index:: pair_style lj/cut/coul/long/cs
+.. index:: pair_style lj/cut/coul/long/cs/omp
 .. index:: pair_style lj/class2/coul/long/cs
+.. index:: pair_style lj/class2/coul/long/cs/omp
 
 pair_style born/coul/dsf/cs command
 ===================================
 
+Accelerator Variants: *born/coul/dsf/cs/omp*
+
 pair_style born/coul/long/cs command
 ====================================
 
-Accelerator Variants: *born/coul/long/cs/gpu*
+Accelerator Variants: *born/coul/long/cs/gpu*, *born/coul/long/cs/omp*
 
 pair_style born/coul/wolf/cs command
 ====================================
 
-Accelerator Variants: *born/coul/wolf/cs/gpu*
+Accelerator Variants: *born/coul/wolf/cs/gpu*, *born/coul/wolf/cs/omp*
 
 pair_style buck/coul/long/cs command
 ====================================
 
+Accelerator Variants: *buck/coul/long/cs/omp*
+
 pair_style coul/long/cs command
 ===============================
 
-Accelerator Variants: *coul/long/cs/gpu*
+Accelerator Variants: *coul/long/cs/gpu*, *coul/long/cs/omp*
 
 pair_style coul/wolf/cs command
 ===============================
 
+Accelerator Variants: *coul/wolf/cs/omp*
+
 pair_style lj/cut/coul/long/cs command
 ======================================
 
+Accelerator Variants: *lj/cut/coul/long/cs/omp*
+
 pair_style lj/class2/coul/long/cs command
 =========================================
+
+Accelerator Variants: *lj/class2/coul/long/cs/omp*
 
 Syntax
 """"""

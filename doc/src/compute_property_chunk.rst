@@ -118,7 +118,7 @@ unitless or in the units discussed above.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

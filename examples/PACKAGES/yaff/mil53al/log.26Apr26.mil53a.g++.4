@@ -1,0 +1,190 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-319-g2df6e20a9a-modified)
+  using 1 OpenMP thread(s) per MPI task
+#########################################
+#General settings
+#########################################
+units           real
+atom_style      full
+boundary        p p p
+dielectric      1
+
+#########################################
+#Force field and system specification
+#########################################
+special_bonds   lj 0.000000 0.000000 1.000000 coul 1.000000 1.000000 1.000000
+pair_style      mm3/switch3/coulgauss/long  12.0000  4.0000
+pair_modify     table 16 # Accuracy of the table used for real space electrostatics
+pair_modify     mix arithmetic
+pair_modify     tail no
+bond_style      harmonic
+angle_style     hybrid cosine/periodic cross harmonic cosine/squared
+dihedral_style  fourier
+improper_style  distharm
+box tilt large
+
+The 'box' command has been removed and will be ignored
+
+
+read_data       lammps.data       # Data file location
+Reading data file ...
+  triclinic box = (0 0 0) to (13.325995 17.076901 12.545165) with tilt (0.24065196 -0.0003290865 5.97692e-05)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  152 atoms
+  scanning bonds ...
+  6 = max bonds/atom
+  scanning angles ...
+  30 = max angles/atom
+  scanning dihedrals ...
+  8 = max dihedrals/atom
+  scanning impropers ...
+  3 = max impropers/atom
+  triclinic box = (0 0 0) to (13.325995 17.076901 12.545165) with tilt (0.24065196 -0.0003290865 5.97692e-05)
+  2 by 2 by 1 MPI processor grid
+  reading bonds ...
+  184 bonds
+  reading angles ...
+  736 angles
+  reading dihedrals ...
+  288 dihedrals
+  reading impropers ...
+  64 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        1       
+  special bond factors coul:  1        1        1       
+     6 = max # of 1-2 neighbors
+    10 = max # of 1-3 neighbors
+    14 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.008 seconds
+kspace_style    pppm 0.0000001      # Ewald accuracy
+neighbor        2.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+#########################################
+#Output settings
+#########################################
+thermo 100       # Provide output every n steps
+thermo_style    custom step etotal ke temp pe emol evdwl ecoul elong etail vol press
+thermo_modify   line multi format float %20.12f
+
+#########################################
+#Sampling options
+#########################################
+timestep 0.5 # in femtosecond
+velocity all create 0.0 5 # initial temperature in Kelvin and random seed
+fix 1 all npt temp 300.0 300.0 100.0 tri 2000.0 2000.0 1000.0 tchain 3 mtk yes nreset 1000
+#fix_modify 1 energy yes # Add thermo/barostat contributions to energy
+run 1000
+PPPM initialization ...
+  using 16-bit tables for long-range coulomb
+  G vector (1/distance) = 0.31129745
+  grid = 30 36 27
+  stencil order = 5
+  estimated absolute RMS force accuracy = 2.75536e-05
+  estimated relative force accuracy = 8.2976849e-08
+  using double precision FFTW3
+  3d grid and FFT values/proc = 23328 7560
+Generated 0 of 28 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 2 steps, delay = 4 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 2 3 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair mm3/switch3/coulgauss/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton/tri
+      stencil: half/bin/3d/tri
+      bin: standard
+WARNING: Inconsistent image flags
+For more information see https://docs.lammps.org/err0027 (src/domain.cpp:1052)
+WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:1174)
+Per MPI rank memory allocation (min/avg/max) = 20.73 | 20.74 | 20.76 Mbytes
+------------ Step              0 ----- CPU =            0 (sec) -------------
+Step     =              0 TotEng   =   -7861.845519016581 KinEng   =       0.000000000000 
+Temp     =       0.000000000000 PotEng   =   -7861.845519016581 E_mol    =      26.013884709151 
+E_vdwl   =      12.839058097223 E_coul   =   -3277.528853822125 E_long   =   -4623.169608000830 
+E_tail   =       0.000000000000 Volume   =    2854.861797466604 Press    =    8463.643185925232
+------------ Step            100 ----- CPU =     0.169388 (sec) -------------
+Step     =            100 TotEng   =   -7861.802215585461 KinEng   =       6.902420059797 
+Temp     =      15.335224438232 PotEng   =   -7868.704635645258 E_mol    =      28.478495551609 
+E_vdwl   =       2.457582440177 E_coul   =   -3274.590710055527 E_long   =   -4625.050003581517 
+E_tail   =       0.000000000000 Volume   =    2866.350504740016 Press    =    1798.290510183370
+------------ Step            200 ----- CPU =    0.3388356 (sec) -------------
+Step     =            200 TotEng   =   -7861.072165176338 KinEng   =       4.567551696989 
+Temp     =      10.147807551517 PotEng   =   -7865.639716873327 E_mol    =      30.042287982229 
+E_vdwl   =       1.418961225240 E_coul   =   -3272.417559187841 E_long   =   -4624.683406892956 
+E_tail   =       0.000000000000 Volume   =    2886.297097867534 Press    =    -542.278945982762
+------------ Step            300 ----- CPU =    0.5026915 (sec) -------------
+Step     =            300 TotEng   =   -7859.678004838759 KinEng   =       5.815070493885 
+Temp     =      12.919441351775 PotEng   =   -7865.493075332644 E_mol    =      31.325911963155 
+E_vdwl   =      -2.299602341009 E_coul   =   -3268.977886504913 E_long   =   -4625.541498449878 
+E_tail   =       0.000000000000 Volume   =    2894.779254695733 Press    =    1785.114228286005
+------------ Step            400 ----- CPU =    0.6757383 (sec) -------------
+Step     =            400 TotEng   =   -7857.201142977914 KinEng   =       6.934639470894 
+Temp     =      15.406806853696 PotEng   =   -7864.135782448808 E_mol    =      29.956169199696 
+E_vdwl   =       2.272047032643 E_coul   =   -3271.549916651948 E_long   =   -4624.814082029197 
+E_tail   =       0.000000000000 Volume   =    2879.426094376665 Press    =   -2029.026590459883
+------------ Step            500 ----- CPU =    0.8486835 (sec) -------------
+Step     =            500 TotEng   =   -7853.645072125247 KinEng   =       7.631114757555 
+Temp     =      16.954177883581 PotEng   =   -7861.276186882801 E_mol    =      27.101232587422 
+E_vdwl   =       9.919090414019 E_coul   =   -3273.748716770913 E_long   =   -4624.547793113329 
+E_tail   =       0.000000000000 Volume   =    2851.698166645823 Press    =    2968.376292233416
+------------ Step            600 ----- CPU =     1.014585 (sec) -------------
+Step     =            600 TotEng   =   -7849.955244692305 KinEng   =       7.706133270029 
+Temp     =      17.120847792954 PotEng   =   -7857.661377962335 E_mol    =      35.238555355570 
+E_vdwl   =       8.555414654855 E_coul   =   -3276.159227050429 E_long   =   -4625.296120922330 
+E_tail   =       0.000000000000 Volume   =    2841.067143796940 Press    =    8518.211788179271
+------------ Step            700 ----- CPU =     1.185857 (sec) -------------
+Step     =            700 TotEng   =   -7847.115932652021 KinEng   =      17.039492407417 
+Temp     =      37.856931064400 PotEng   =   -7864.155425059438 E_mol    =      32.914150359568 
+E_vdwl   =      -0.005650635986 E_coul   =   -3271.792551963860 E_long   =   -4625.271372819160 
+E_tail   =       0.000000000000 Volume   =    2857.105917596422 Press    =    1715.776763241809
+------------ Step            800 ----- CPU =     1.354324 (sec) -------------
+Step     =            800 TotEng   =   -7841.050213310419 KinEng   =      10.300336382831 
+Temp     =      22.884433119336 PotEng   =   -7851.350549693250 E_mol    =      41.394483206954 
+E_vdwl   =      -1.376169183383 E_coul   =   -3267.830661409058 E_long   =   -4623.538202307764 
+E_tail   =       0.000000000000 Volume   =    2873.680517176885 Press    =   -2307.524245026696
+------------ Step            900 ----- CPU =     1.530145 (sec) -------------
+Step     =            900 TotEng   =   -7835.040851494614 KinEng   =      16.796387181681 
+Temp     =      37.316820035736 PotEng   =   -7851.837238676295 E_mol    =      42.964416932356 
+E_vdwl   =      -5.306180582210 E_coul   =   -3263.338378762635 E_long   =   -4626.157096263806 
+E_tail   =       0.000000000000 Volume   =    2856.817965225129 Press    =    2285.542873820272
+------------ Step           1000 ----- CPU =     1.698591 (sec) -------------
+Step     =           1000 TotEng   =   -7825.720839100135 KinEng   =      22.498673342637 
+Temp     =      49.985686510353 PotEng   =   -7848.219512442773 E_mol    =      38.888441753862 
+E_vdwl   =      11.364536275180 E_coul   =   -3274.037234100015 E_long   =   -4624.435256371799 
+E_tail   =       0.000000000000 Volume   =    2807.135881403983 Press    =    -972.341913374025
+WARNING: Bond/angle/dihedral extent > half of periodic box length (src/domain.cpp:1174)
+Loop time of 1.69862 on 4 procs for 1000 steps with 152 atoms
+
+Performance: 25.432 ns/day, 0.944 hours/ns, 588.712 timesteps/s, 89.484 katom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.57092    | 0.57413    | 0.57721    |   0.3 | 33.80
+Bond    | 0.015153   | 0.015335   | 0.015577   |   0.1 |  0.90
+Kspace  | 0.59839    | 0.60128    | 0.60492    |   0.3 | 35.40
+Neigh   | 0.00039937 | 0.00039961 | 0.00040004 |   0.0 |  0.02
+Comm    | 0.0235     | 0.034276   | 0.044039   |   5.2 |  2.02
+Output  | 0.00022461 | 0.00025098 | 0.00032489 |   0.0 |  0.01
+Modify  | 0.43854    | 0.45915    | 0.48133    |   2.9 | 27.03
+Other   |            | 0.0138     |            |       |  0.81
+
+Nlocal:             38 ave          38 max          38 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           2691 ave        2691 max        2691 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:          11771 ave       11813 max       11729 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+
+Total # of neighbors = 47084
+Ave neighs/atom = 309.76316
+Ave special neighs/atom = 7.2631579
+Neighbor list builds = 1
+Dangerous builds = 0
+Total wall time: 0:00:01

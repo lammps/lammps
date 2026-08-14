@@ -71,9 +71,6 @@
 /// string buffer for error messages of global errors
 static std::string lammps_last_global_errormessage;
 
-/// maximum number of groups
-static constexpr int LMP_MAX_GROUP = 32;
-
 using namespace LAMMPS_NS;
 
 // for printing the non-null pointer argument warning only once
@@ -165,7 +162,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -240,7 +237,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -803,9 +800,9 @@ void lammps_commands_string(void *handle, const char *str)
       else
         cmd = line;
 
-      if (utils::strmatch(line, "\"\"\".*\"\"\"")) {
+      if (utils::strmatch(line, R"(""".*""")")) {
         triple = false;
-      } else if (utils::strmatch(line, "\"\"\"")) {
+      } else if (utils::strmatch(line, R"(""")")) {
         triple = !triple;
       }
       if (triple) cmd += '\n';
@@ -1338,6 +1335,9 @@ be called without a valid LAMMPS object handle (it is ignored).
    * - imageint
      - size of the ``imageint`` integer type, 4 or 8 bytes.
        Set at :ref:`compile time <size>`.
+   * - MAX_GROUP
+     - size of the bitmask for groups in bits, should be 32.
+       Currently hard coded.
 
 .. _extract_image_masks:
 
@@ -1512,8 +1512,14 @@ internally by the :doc:`Fortran interface <Fortran>` and are not likely to be us
      - 1 if the atom style includes per-atom masses, 0 if there are per-type masses. See :doc:`atom_style`.
    * - radius_flag
      - 1 if the atom style includes a per-atom radius. See :doc:`atom_style`.
+   * - body_flag
+     - 1 if the atom style describes body particles. See :doc:`atom_style`.
    * - ellipsoid_flag
      - 1 if the atom style describes extended particles that may be ellipsoidal. See :doc:`atom_style`.
+   * - line_flag
+     - 1 if the atom style describes line particles. See :doc:`atom_style`.
+   * - tri_flag
+     - 1 if the atom style describes tri particles. See :doc:`atom_style`.
    * - omega_flag
      - 1 if the atom style can store per-atom rotational velocities. See :doc:`atom_style`.
    * - torque_flag
@@ -1551,6 +1557,8 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"bigint") == 0) return sizeof(bigint);
   if (strcmp(keyword,"tagint") == 0) return sizeof(tagint);
   if (strcmp(keyword,"imageint") == 0) return sizeof(imageint);
+
+  if (strcmp(keyword,"MAX_GROUP") == 0) return Group::MAX_GROUP;
 
   if (strcmp(keyword,"IMGMASK") == 0) return IMGMASK;
   if (strcmp(keyword,"IMGBITS") == 0) return IMGBITS;
@@ -1617,7 +1625,11 @@ int lammps_extract_setting(void *handle, const char *keyword)
   if (strcmp(keyword,"rmass_flag") == 0) return lmp->atom->rmass_flag;
   if (strcmp(keyword,"radius_flag") == 0) return lmp->atom->radius_flag;
 
+  if (strcmp(keyword,"body_flag") == 0) return lmp->atom->body_flag;
   if (strcmp(keyword,"ellipsoid_flag") == 0) return lmp->atom->ellipsoid_flag;
+  if (strcmp(keyword,"line_flag") == 0) return lmp->atom->line_flag;
+  if (strcmp(keyword,"tri_flag") == 0) return lmp->atom->tri_flag;
+
   if (strcmp(keyword,"omega_flag") == 0) return lmp->atom->omega_flag;
   if (strcmp(keyword,"torque_flag") == 0) return lmp->atom->torque_flag;
   if (strcmp(keyword,"angmom_flag") == 0) return lmp->atom->angmom_flag;
@@ -2573,6 +2585,22 @@ A table with supported keywords is included in the documentation of the
    since per-atom data may be re-distributed, re-allocated, and
    re-ordered at every re-neighboring operation.
 
+.. note::
+
+   When running with the KOKKOS package and per-atom data residing on an
+   accelerator device (e.g. a GPU), the requested data is synchronized from
+   the device to the host before the pointer is returned, so that the host
+   data accessed through it is current even when this function is called
+   between output steps (for example from the LAMMPS GUI or a Python script
+   while a run is in progress).
+
+.. versionchanged:: 4Jul2026
+
+When using the KOKKOS package with a device back end, per-atom data is now
+synchronized from the device to the host before the pointer is returned.
+Previously the host copy could be out-of-date for calls not aligned with an
+output or end-of-run step.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -3236,7 +3264,7 @@ static int set_variable_deprecated_flag = 1;
 /** Set the value of a string-style variable.
 \verbatim embed:rst
 
-.. deprecated:: 7Feb2024
+.. versionremoved:: 7Feb2024
 
 This function assigns a new value from the string str to the
 string-style variable *name*.  This is a way to directly change the
@@ -3393,7 +3421,7 @@ int lammps_variable_info(void *handle, int idx, char *buffer, int buf_size) {
   }
   Info info(lmp);
 
-  if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
+  if ((idx >= 0) && (idx < lmp->input->variable->get_nvar())) {
     auto varinfo = info.get_variable_info(idx);
     strncpy(buffer, varinfo.c_str(), buf_size);
     return 1;
@@ -6435,18 +6463,19 @@ int lammps_find_compute_neighlist(void *handle, const char *id, int reqid) {
 
 // helper Command class for a single neighbor list build
 
-namespace LAMMPS_NS {
-  class NeighProxy : protected Command
-  {
+namespace {
+// NOLINTBEGIN
+class NeighProxy : protected Command {
  public:
   NeighProxy(class LAMMPS *lmp) : Command(lmp), neigh_idx(-1) {};
 
   void command(int, char **) override;
-  int get_index() const { return neigh_idx; }
+  [[nodiscard]] int get_index() const { return neigh_idx; }
+
  protected:
   int neigh_idx;
 };
-}
+// NOLINTEND
 
 void NeighProxy::command(int narg, char **arg)
 {
@@ -6486,6 +6515,7 @@ void NeighProxy::command(int narg, char **arg)
     }
   }
 }
+}    // namespace
 
 /** Build a single neighbor list in between runs and return its index
  *
@@ -6800,7 +6830,7 @@ int lammps_config_has_curl_support() {
  *
 \verbatim embed:rst
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
    LAMMPS has now exceptions always enabled, so this function
    will now always return 1 and can be removed from applications
@@ -7158,7 +7188,7 @@ int lammps_id_count(void *handle, const char *category) {
   } else if (strcmp(category,"region") == 0) {
     return lmp->domain->get_region_list().size();
   } else if (strcmp(category,"variable") == 0) {
-    return lmp->input->variable->nvar;
+    return lmp->input->variable->get_nvar();
   }
   return 0;
 }
@@ -7217,7 +7247,7 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
     }
   } else if (strcmp(category,"group") == 0) {
     // the list of groups may have "holes". So the available range is always 0 to 32
-    if ((idx >= 0) && (idx < LMP_MAX_GROUP)) {
+    if ((idx >= 0) && (idx < Group::MAX_GROUP)) {
       if (lmp->group->names[idx]) {
         strncpy(buffer, lmp->group->names[idx], buf_size);
         return 1;
@@ -7238,8 +7268,9 @@ int lammps_id_name(void *handle, const char *category, int idx, char *buffer, in
       return 1;
     }
   } else if (strcmp(category,"variable") == 0) {
-    if ((idx >= 0) && (idx < lmp->input->variable->nvar)) {
-      strncpy(buffer, lmp->input->variable->names[idx], buf_size);
+    if ((idx >= 0) && (idx < lmp->input->variable->get_nvar()) &&
+        lmp->input->variable->get_name(idx)) {
+      strncpy(buffer, lmp->input->variable->get_name(idx), buf_size);
       return 1;
     }
   }

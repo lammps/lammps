@@ -28,6 +28,7 @@ namespace LAMMPS_NS {
 class DumpLocalGZ : public DumpLocal {
  public:
   DumpLocalGZ(class LAMMPS *, int, char **);
+  void write() override;
 
  protected:
   GzFileWriter writer;
@@ -35,7 +36,6 @@ class DumpLocalGZ : public DumpLocal {
   void openfile() override;
   void write_header(bigint) override;
   void write_data(int, double *) override;
-  void write() override;
 
   int modify_param(int, char **) override;
 };

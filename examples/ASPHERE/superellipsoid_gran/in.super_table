@@ -1,0 +1,69 @@
+units           si
+atom_style      ellipsoid superellipsoid
+dimension       3
+boundary p p p
+comm_modify vel yes
+newton off
+
+# create display of superellipsoidal particle shapes
+
+region          box block 0 10 0 10 0 1
+create_box      25 box
+create_atoms 1 single 1 1 0.5
+create_atoms 2 single 3 1 0.5
+create_atoms 3 single 5 1 0.5
+create_atoms 4 single 7 1 0.5
+create_atoms 5 single 9 1 0.5
+create_atoms 6 single 1 3 0.5
+create_atoms 7 single 3 3 0.5
+create_atoms 8 single 5 3 0.5
+create_atoms 9 single 7 3 0.5
+create_atoms 10 single 9 3 0.5
+create_atoms 11 single 1 5 0.5
+create_atoms 12 single 3 5 0.5
+create_atoms 13 single 5 5 0.5
+create_atoms 14 single 7 5 0.5
+create_atoms 15 single 9 5 0.5
+create_atoms 16 single 1 7 0.5
+create_atoms 17 single 3 7 0.5
+create_atoms 18 single 5 7 0.5
+create_atoms 19 single 7 7 0.5
+create_atoms 20 single 9 7 0.5
+create_atoms 21 single 1 9 0.5
+create_atoms 22 single 3 9 0.5
+create_atoms 23 single 5 9 0.5
+create_atoms 24 single 7 9 0.5
+create_atoms 25 single 9 9 0.5
+
+set type * mass 1.0
+set type * shape 1.0 1.2 1.5
+set type 1 block 2.0 2.0
+set type 2 block 3.0 2.0
+set type 3 block 5.0 2.0
+set type 4 block 8.0 2.0
+set type 5 block 16.0 2.0
+set type 6 block 2.0 3.0
+set type 7 block 3.0 3.0
+set type 8 block 5.0 3.0
+set type 9 block 8.0 3.0
+set type 10 block 16.0 3.0
+set type 11 block 2.0 5.0
+set type 12 block 3.0 5.0
+set type 13 block 5.0 5.0
+set type 14 block 8.0 5.0
+set type 15 block 16.0 5.0
+set type 16 block 2.0 8.0
+set type 17 block 3.0 8.0
+set type 18 block 5.0 8.0
+set type 19 block 8.0 8.0
+set type 20 block 16.0 16.0
+set type 21 block 2.0 16.0
+set type 22 block 3.0 16.0
+set type 23 block 5.0 16.0
+set type 24 block 8.0 16.0
+set type 25 block 16.0 16.0
+
+run 0
+write_dump all image super-table.ppm type type ellipsoid atom 1 6 0.2 size 600 600 &
+       zoom 1.94872 shiny 0.6 fsaa yes view 30 0 box no 0.0 &
+       modify boxcolor yellow backcolor black backcolor2 white

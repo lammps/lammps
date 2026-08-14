@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_RANDOM_ACCESS_ITERATOR_IMPL_HPP
 #define KOKKOS_RANDOM_ACCESS_ITERATOR_IMPL_HPP
@@ -28,27 +15,6 @@ namespace Impl {
 
 template <class T>
 class RandomAccessIterator;
-
-namespace {
-
-template <typename ViewType>
-struct is_always_strided {
-  static_assert(is_view_v<ViewType>);
-
-  constexpr static bool value =
-#ifdef KOKKOS_ENABLE_IMPL_MDSPAN
-      decltype(std::declval<ViewType>().to_mdspan())::is_always_strided();
-#else
-      (std::is_same_v<typename ViewType::traits::array_layout,
-                      Kokkos::LayoutLeft> ||
-       std::is_same_v<typename ViewType::traits::array_layout,
-                      Kokkos::LayoutRight> ||
-       std::is_same_v<typename ViewType::traits::array_layout,
-                      Kokkos::LayoutStride>);
-#endif
-};
-
-}  // namespace
 
 template <class DataType, class... Args>
 class RandomAccessIterator<::Kokkos::View<DataType, Args...>> {
@@ -69,41 +35,36 @@ class RandomAccessIterator<::Kokkos::View<DataType, Args...>> {
   using is_passed_directly = std::true_type;
 #endif
 
-  static_assert(view_type::rank == 1 &&
-                is_always_strided<::Kokkos::View<DataType, Args...>>::value);
+ private:
+  static constexpr bool view_is_always_strided =
+#ifdef KOKKOS_ENABLE_IMPL_MDSPAN
+      decltype(std::declval<view_type>().to_mdspan())::is_always_strided();
+#else
+      (std::is_same_v<typename view_type::traits::array_layout,
+                      Kokkos::LayoutLeft> ||
+       std::is_same_v<typename view_type::traits::array_layout,
+                      Kokkos::LayoutRight> ||
+       std::is_same_v<typename view_type::traits::array_layout,
+                      Kokkos::LayoutStride>);
+#endif
 
+  static_assert(view_type::rank == 1 && view_is_always_strided);
+
+ public:
   KOKKOS_DEFAULTED_FUNCTION RandomAccessIterator() = default;
 
   explicit KOKKOS_FUNCTION RandomAccessIterator(const view_type view)
-      : m_data(view.data()), m_stride(view.stride_0()) {}
+      : m_data(view.data()), m_stride(view.stride(0)) {}
   explicit KOKKOS_FUNCTION RandomAccessIterator(const view_type view,
                                                 ptrdiff_t current_index)
-      : m_data(view.data() + current_index * view.stride_0()),
-        m_stride(view.stride_0()) {}
+      : m_data(view.data() + current_index * view.stride(0)),
+        m_stride(view.stride(0)) {}
 
-#ifndef KOKKOS_ENABLE_CXX17  // C++20 and beyond
   template <class OtherViewType>
     requires(std::is_constructible_v<view_type, OtherViewType>)
   KOKKOS_FUNCTION explicit(!std::is_convertible_v<OtherViewType, view_type>)
       RandomAccessIterator(const RandomAccessIterator<OtherViewType>& other)
       : m_data(other.m_data), m_stride(other.m_stride) {}
-#else
-  template <
-      class OtherViewType,
-      std::enable_if_t<std::is_constructible_v<view_type, OtherViewType> &&
-                           !std::is_convertible_v<OtherViewType, view_type>,
-                       int> = 0>
-  KOKKOS_FUNCTION explicit RandomAccessIterator(
-      const RandomAccessIterator<OtherViewType>& other)
-      : m_data(other.m_data), m_stride(other.m_stride) {}
-
-  template <class OtherViewType,
-            std::enable_if_t<std::is_convertible_v<OtherViewType, view_type>,
-                             int> = 0>
-  KOKKOS_FUNCTION RandomAccessIterator(
-      const RandomAccessIterator<OtherViewType>& other)
-      : m_data(other.m_data), m_stride(other.m_stride) {}
-#endif
 
   KOKKOS_FUNCTION
   iterator_type& operator++() {

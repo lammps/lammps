@@ -60,7 +60,8 @@ static constexpr int DELAYSTEP = 5;
 /* ---------------------------------------------------------------------- */
 
 MinSpinLBFGS::MinSpinLBFGS(LAMMPS *lmp) :
-  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
+    Min(lmp), spvec(nullptr), fmvec(nullptr), g_old(nullptr), g_cur(nullptr), p_s(nullptr),
+    rho(nullptr), ds(nullptr), dy(nullptr), sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_lbfgs);
   nlocal_max = 0;
@@ -72,7 +73,7 @@ MinSpinLBFGS::MinSpinLBFGS(LAMMPS *lmp) :
   ireplica = universe->iworld;
   use_line_search = 0;  // no line search as default option for LBFGS
 
-  maxepsrot = MY_2PI / (100.0);
+  maxepsrot = MY_2PI / 100.0;
 
 }
 
@@ -110,8 +111,7 @@ void MinSpinLBFGS::init()
 
   if (linestyle == SPIN_CUBIC && nreplica == 1) {
     use_line_search = 1;
-  }
-  else{
+  } else {
     use_line_search = 0;
   }
 
@@ -243,9 +243,7 @@ int MinSpinLBFGS::iterate(int maxiter)
       eprevious = ecurrent;
       der_e_pr = der_e_cur;
       calc_and_make_step(0.0, 1.0, 0);
-    }
-    else{
-
+    } else {
       // here we don't do line search
       // but use cutoff rotation angle
       // if gneb calc., nreplica > 1
@@ -366,7 +364,7 @@ void MinSpinLBFGS::calc_search_direction()
       factor = 0.0;
     }
     else factor = 1.0;
-  }else{
+  } else {
     factor = 1.0;
   }
 
@@ -467,7 +465,7 @@ void MinSpinLBFGS::calc_search_direction()
       for (int i = 0; i < 3 * nlocal; i++) {
         p_s[i] = factor * q[i] / devis;
       }
-    }else{
+    } else {
       for (int i = 0; i < 3 * nlocal; i++) {
         p_s[i] = factor * q[i] * 1.0e60;
       }
@@ -556,9 +554,9 @@ void MinSpinLBFGS::rodrigues_rotation(const double *upp_tr, double *out)
     // if upp_tr is zero, return unity matrix
     for (int k = 0; k < 3; k++) {
       for (int m = 0; m < 3; m++) {
-    if (m == k) out[3 * k + m] = 1.0;
-    else out[3 * k + m] = 0.0;
-        }
+        if (m == k) out[3 * k + m] = 1.0;
+        else out[3 * k + m] = 0.0;
+      }
     }
     return;
   }
@@ -679,8 +677,7 @@ int MinSpinLBFGS::calc_and_make_step(double a, double b, int index)
       p_s[i] = b * p_s[i];
     }
     return 1;
-  }
-  else{
+  } else {
     double r,f0,f1,df0,df1;
     r = b - a;
     f0 = eprevious;
@@ -689,7 +686,7 @@ int MinSpinLBFGS::calc_and_make_step(double a, double b, int index)
     df1 = der_e_cur;
 
     c1 = -2.0*(f1-f0)/(r*r*r)+(df1+df0)/(r*r);
-    c2 = 3.0*(f1-f0)/(r*r)-(df1+2.0*df0)/(r);
+    c2 = 3.0*(f1-f0)/(r*r)-(df1+2.0*df0)/r;
     c3 = df0;
 
     // f(x) = c1 x^3 + c2 x^2 + c3 x^1 + c4
@@ -722,6 +719,17 @@ int MinSpinLBFGS::adescent(double phi_0, double phi_j) {
   else
     return 0;
 }
+
+double MinSpinLBFGS::memory_usage()
+{
+  double bytes = (double) 3 * nlocal_max * 3 * sizeof(double);     // g_old + g_cur + p_s [3*nlocal_max]
+  bytes += (double) num_mem * 2 * 3 * nlocal_max * sizeof(double); // ds + dy [num_mem][3*nlocal_max]
+  bytes += (double) num_mem * sizeof(double);                       // rho[num_mem]
+  if (sp_copy) bytes += (double) nlocal_max * 3 * sizeof(double);  // sp_copy[nlocal_max][3]
+  return bytes;
+}
+
+/* ---------------------------------------------------------------------- */
 
 double MinSpinLBFGS::maximum_rotation(double *p)
 {

@@ -25,6 +25,7 @@
 #include "group.h"
 #include "input.h"
 #include "memory.h"
+#include "label_map.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"
@@ -322,6 +323,10 @@ void Modify::setup(int vflag)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
+
+  // runtime check for type label self-consistency
+
+  if (atom->labelmapflag && atom->lmap->checkflag) atom->lmap->check_labels();
 }
 
 /* ----------------------------------------------------------------------
@@ -1538,6 +1543,8 @@ int Modify::read_restart(FILE *fp)
   int me = comm->me;
   if (me == 0) utils::sfread(FLERR, &nfix_restart_global, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&nfix_restart_global, 1, MPI_INT, 0, world);
+  if ((nfix_restart_global < 0) || (nfix_restart_global > 4096))
+    error->all(FLERR, "Invalid number of fix entries in restart file");
 
   // allocate space for each entry
 
@@ -1555,18 +1562,21 @@ int Modify::read_restart(FILE *fp)
   for (int i = 0; i < nfix_restart_global; i++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     id_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, id_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(id_restart_global[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     style_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, style_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(style_restart_global[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 0) || (n > (1 << 30))) error->all(FLERR, "Invalid fix data size in restart file");
     state_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, state_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(state_restart_global[i], n, MPI_CHAR, 0, world);
@@ -1576,10 +1586,12 @@ int Modify::read_restart(FILE *fp)
 
   // nfix_restart_peratom = # of restart entries with peratom info
 
-  int maxsize = 0;
+  bigint maxsize = 0;
 
   if (me == 0) utils::sfread(FLERR, &nfix_restart_peratom, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&nfix_restart_peratom, 1, MPI_INT, 0, world);
+  if ((nfix_restart_peratom < 0) || (nfix_restart_peratom > 4096))
+    error->all(FLERR, "Invalid number of fix entries in restart file");
 
   // allocate space for each entry
 
@@ -1597,12 +1609,14 @@ int Modify::read_restart(FILE *fp)
   for (int i = 0; i < nfix_restart_peratom; i++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     id_restart_peratom[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, id_restart_peratom[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(id_restart_peratom[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     style_restart_peratom[i] = new char[n];
     if (me == 0)
       utils::sfread(FLERR, style_restart_peratom[i], sizeof(char), n, fp, nullptr, error);
@@ -1610,13 +1624,16 @@ int Modify::read_restart(FILE *fp)
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if (n < 0) error->all(FLERR, "Invalid per-atom data size in restart file");
     maxsize += n;
 
     index_restart_peratom[i] = i;
     used_restart_peratom[i] = 0;
   }
 
-  return maxsize;
+  if (maxsize > MAXSMALLINT) error->all(FLERR, "Per-atom fix data in restart file is too large");
+
+  return (int) maxsize;
 }
 
 /* ----------------------------------------------------------------------

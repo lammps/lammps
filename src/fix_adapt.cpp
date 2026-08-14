@@ -816,14 +816,28 @@ void FixAdapt::change_settings()
       // for scaleflag, previous_diam_scale is the scale factor on previous step
 
       if (ad->atomparam == DIAMETER) {
-        double scale;
+        double scale = 1.0;
         double *radius = atom->radius;
         double *rmass = atom->rmass;
         int *mask = atom->mask;
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (scaleflag) scale = value / previous_diam_scale;
+        // a scale factor of 0.0 would zero all diameters permanently and cannot
+        // be undone on later steps, so it must be rejected before the division
+
+        if (scaleflag) {
+          if ((value == 0.0) || (previous_diam_scale == 0.0))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Fix adapt diameter scale factor of 0.0 is not supported");
+          scale = value / previous_diam_scale;
+        }
+
+        // mass must not become zero and radius must not be negative
+        if (massflag && ((scale == 0.0) || (value == 0.0)))
+          error->all(FLERR, Error::NOLASTLINE, "Fix adapt particle mass has become 0.0");
+        if (!massflag && ((scale < 0.0) || (value < 0.0)))
+          error->all(FLERR, Error::NOLASTLINE, "Fix adapt particle diameter has become negative");
 
         for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {
@@ -849,7 +863,15 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (scaleflag) scale = value / previous_chg_scale;
+        // a scale factor of 0.0 would zero all charges permanently and cannot
+        // be undone on later steps, so it must be rejected before the division
+
+        if (scaleflag) {
+          if ((value == 0.0) || (previous_chg_scale == 0.0))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Fix adapt charge scale factor of 0.0 is not supported");
+          scale = value / previous_chg_scale;
+        }
 
         for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {

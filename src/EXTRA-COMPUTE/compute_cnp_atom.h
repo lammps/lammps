@@ -33,7 +33,7 @@ class ComputeCNPAtom : public Compute {
   void compute_peratom() override;
   double memory_usage() override;
 
- private:
+ protected:
   //revise
   int nmax;
   double cutsq;

@@ -3,6 +3,7 @@
 .. index:: pair_style coul/cut/kk
 .. index:: pair_style coul/cut/omp
 .. index:: pair_style coul/cut/global
+.. index:: pair_style coul/cut/global/kk
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/ctip
 .. index:: pair_style coul/debye
@@ -13,7 +14,9 @@
 .. index:: pair_style coul/dsf/gpu
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
+.. index:: pair_style coul/esp
 .. index:: pair_style coul/exclude
+.. index:: pair_style coul/exclude/omp
 .. index:: pair_style coul/long
 .. index:: pair_style coul/long/omp
 .. index:: pair_style coul/long/kk
@@ -21,6 +24,7 @@
 .. index:: pair_style coul/msm
 .. index:: pair_style coul/msm/omp
 .. index:: pair_style coul/streitz
+.. index:: pair_style coul/streitz/omp
 .. index:: pair_style coul/wolf
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
@@ -37,7 +41,7 @@ Accelerator Variants: *coul/cut/gpu*, *coul/cut/kk*, *coul/cut/omp*
 pair_style coul/cut/global command
 ==================================
 
-Accelerator Variants: *coul/cut/omp*
+Accelerator Variants: *coul/cut/global/kk*, *coul/cut/global/omp*
 
 pair_style coul/ctip command
 ============================
@@ -55,6 +59,8 @@ Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
 pair_style coul/exclude command
 ===============================
 
+Accelerator Variants: *coul/exclude/omp*
+
 pair_style coul/long command
 ============================
 
@@ -67,6 +73,8 @@ Accelerator Variants: *coul/msm/omp*
 
 pair_style coul/streitz command
 ===============================
+
+Accelerator Variants: *coul/streitz/omp*
 
 pair_style coul/wolf command
 ============================
@@ -93,6 +101,7 @@ Syntax
    pair_style coul/ctip alpha cutoff
    pair_style coul/debye kappa cutoff
    pair_style coul/dsf alpha cutoff
+   pair_style coul/esp cutoff
    pair_style coul/exclude cutoff
    pair_style coul/long cutoff
    pair_style coul/wolf alpha cutoff
@@ -130,6 +139,9 @@ Examples
    pair_style coul/dsf 0.05 10.0
    pair_coeff * *
 
+   pair_style coul/esp 10.0
+   pair_coeff * *
+
    pair_style hybrid/overlay coul/exclude 10.0 ...
    pair_coeff * * coul/exclude
 
@@ -145,6 +157,12 @@ Examples
    pair_style coul/streitz 12.0 ewald
    pair_style coul/streitz 12.0 wolf 0.30
    pair_coeff * * AlO.streitz Al O
+
+   pair_style coul/streitz 12.0 wolf 0.3         # default taper width is zero
+   pair_style coul/streitz 12.0 wolf 0.3 2.0
+   pair_style coul/streitz 12.0 dsf 0.3          # default taper width is zero
+   pair_style coul/streitz 12.0 dsf 0.3 2.0
+   pair_coeff * * GaN.streitz Ga N
 
    pair_style tip4p/cut 1 2 7 8 0.15 12.0
    pair_coeff * *
@@ -292,7 +310,7 @@ be computed via an Ewald summation.  For example:
 
 Keyword *ewald* does not need a damping parameter, but a
 :doc:`kspace_style <kspace_style>` must be defined, which can be style
-*ewald* or *pppm*\ .  The Ewald method was used in Streitz and
+*ewald*, *esp* or *pppm*\ .  The Ewald method was used in Streitz and
 Mintmire's original paper, but a Wolf summation offers a speed-up in
 some cases.
 
@@ -302,16 +320,48 @@ command doc page.  Alternatively *qfile* can be replaced by
 "coul/streitz", in which case the fix will extract QEq parameters from
 the coul/streitz pair style itself.
 
-See the examples/strietz directory for an example input script that
+See the ``examples/streitz`` directory for an example input script that
 uses the Streitz-Mintmire potential.  The potentials directory has the
-AlO.eam.alloy and AlO.streitz potential files used by the example.
+``AlO.eam.alloy`` and ``AlO.streitz`` potential files used by the example.
 
-Note that the Streiz-Mintmire potential is generally used for oxides,
+Note that the Streitz-Mintmire potential is generally used for oxides,
 but there is no conceptual problem with extending it to nitrides and
-carbides (such as SiC, TiN).  Pair coul/strietz used by itself or with
+carbides (such as SiC, TiN).  Pair coul/streitz used by itself or with
 any other pair style such as EAM, MEAM, Tersoff, or LJ in
 hybrid/overlay mode.  To do this, you would need to provide a
 Streitz-Mintmire parameterization for the material being modeled.
+
+.. versionchanged:: 11Feb2026
+
+In previous versions of LAMMPS, the real-space summations of Coulomb
+interactions were done by replacing *1/r* using a damped potential
+*erfc(alpha*r)/r* with the parameter *alpha* controlling the rate of
+decay. However, any finite value of *alpha* leads to a jump at the
+cutoff, which interferes with equilibration if atoms move across the
+cutoff. The charge-neutralized potential of :ref:`(Wolf et al.) <Wolf1>`
+(*wolf*) and its extension by :ref:`(Fennell and Gezelter) <Fennell1>`
+(*dsf*) solve this problem. An extension was implemented to specify the
+width of taper (see :ref:`(Mei et al.) <Mei1>`) to smoothly terminate
+the Coulomb integrals at the cutoff. This is done by specifying the
+optional arguments *wolf* and *dsf* with the value representing the
+width of taper that smoothly terminates the Coulomb integrals. For
+example, if the cutoff is 8 A and the taper width is 2 A, the Coulomb
+integrals are smoothly rescaled from their actual value at r=6 A to zero
+at r=8 A. For backward compatibility, the default taper width is zero.
+
+An implementation of the Streitz-Mintmire potential for GaN due to
+:ref:`(Groger and Fikar) <Groger1>` can be found in the examples/streitz
+directory. The electrostatic parameters of Ga and N are stored in file
+GaN.streitz and the short-range tersoff/mod potential in the file
+GaN.streitz+tersoff.mod. The total potential must be specified as:
+
+.. code-block:: LAMMPS
+
+   pair_style hybrid/overlay tersoff/mod coul/streitz 12.0 dsf 0.3 2.0
+   pair_coeff * * tersoff/mod GaN.streitz+tersoff.mod Ga N
+   pair_coeff * * coul/streitz GaN.streitz Ga N
+
+where the last three parameters specify the method of calculation of Coulomb interactions (*ewald*, *wolf* or *dsf*), the value of *alpha*, and the width of taper to smoothly terminate the Coulomb integrals.
 
 ----------
 
@@ -324,14 +374,14 @@ molecular systems with :doc:`kspace style scafacos <kspace_style>`,
 which always computes the *full* Coulomb interactions without exclusions.
 Pair style *coul/exclude* will then *subtract* the excluded interactions
 accordingly. So to achieve the same forces as with ``pair_style lj/cut/coul/long 12.0``
-with ``kspace_style pppm 1.0e-6``, one would use
-``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0`` with
-``kspace_style scafacos p3m 1.0e-6``.
+with ``kspace_style pppm 1.0e-6``, one would use ``pair_style lj/cut/coul/esp 12.0``
+with ``kspace_style esp 1.0e-6`` or ``pair_style hybrid/overlay lj/cut 12.0 coul/exclude 12.0``
+with ``kspace_style scafacos p3m 1.0e-6``.
 
-Styles *coul/long* and *coul/msm* compute the same Coulombic
+Styles *coul/esp*, *coul/long* and *coul/msm* compute the same Coulombic
 interactions as style *coul/cut* except that an additional damping
 factor is applied so it can be used in conjunction with the
-:doc:`kspace_style <kspace_style>` command and its *ewald* or *pppm*
+:doc:`kspace_style <kspace_style>` command and its *ewald*, *esp* or *pppm*
 option.  The Coulombic cutoff specified for this style means that
 pairwise interactions within this distance are computed directly;
 interactions outside that distance are computed in reciprocal space.
@@ -344,7 +394,7 @@ hydrogen atoms, the bond and angle types for OH and HOH interactions,
 and the distance to the massless charge site are specified as
 pair_style arguments.  Style *tip4p/cut* uses a global cutoff for
 Coulomb interactions; style *tip4p/long* is for use with a long-range
-Coulombic solver (Ewald or PPPM).
+Coulombic solver (Ewald, ESP or PPPM).
 
 .. note::
 
@@ -477,3 +527,11 @@ J Chemical Physics, 162, 054709 (2025).
 
 **(Jorgensen)** Jorgensen, Chandrasekhar, Madura, Impey, Klein, J Chem
 Phys, 79, 926 (1983).
+
+.. _Mei1:
+
+**(Mei)** J. Mei, J. W. Davenport, G. W. Fernando, Phys. Rev. B 43, 4653 (1991).
+
+.. _Groger1:
+
+**(Groger)** R. Groger, J. Fikar, Acta Mater. (2026) in review.

@@ -24,8 +24,8 @@ GranSubModStyle(area,GranSubModHeatArea,HEAT);
 
 #include "gran_sub_mod.h"
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
   class GranSubModHeat : public GranSubMod {
    public:
@@ -65,8 +65,8 @@ namespace Granular_NS {
     double heat_transfer_coeff;
   };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif /*GRAN_SUB_MOD_HEAT_H */
 #endif /*GRAN_SUB_MOD_CLASS_H */

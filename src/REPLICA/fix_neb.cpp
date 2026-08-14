@@ -764,7 +764,7 @@ void FixNEB::inter_replica_comm()
   if (ireplica > 0) {
     if (me == 0) MPI_Waitall(2, requests, statuses);
 
-    MPI_Bcast(tagrecvall, nebatoms, MPI_INT, 0, world);
+    MPI_Bcast(tagrecvall, nebatoms, MPI_LMP_TAGINT, 0, world);
     MPI_Bcast(xrecvall[0], 3 * nebatoms, MPI_DOUBLE, 0, world);
 
     for (i = 0; i < nebatoms; i++) {
@@ -790,7 +790,7 @@ void FixNEB::inter_replica_comm()
   if (ireplica < nreplica - 1) {
     if (me == 0) MPI_Waitall(2, requests, statuses);
 
-    MPI_Bcast(tagrecvall, nebatoms, MPI_INT, 0, world);
+    MPI_Bcast(tagrecvall, nebatoms, MPI_LMP_TAGINT, 0, world);
     MPI_Bcast(xrecvall[0], 3 * nebatoms, MPI_DOUBLE, 0, world);
     MPI_Bcast(frecvall[0], 3 * nebatoms, MPI_DOUBLE, 0, world);
 

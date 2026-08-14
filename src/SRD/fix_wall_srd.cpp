@@ -17,6 +17,8 @@
 #include "domain.h"
 #include "error.h"
 #include "fix.h"
+#include "fix_wall.h"
+#include "graphics.h"
 #include "input.h"
 #include "lattice.h"
 #include "memory.h"
@@ -34,9 +36,10 @@ enum { NONE, EDGE, CONSTANT, VARIABLE };
 /* ---------------------------------------------------------------------- */
 
 FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nwall(0), fwall(nullptr), fwall_all(nullptr)
+    Fix(lmp, narg, arg), nwall(0), fwall(nullptr), fwall_all(nullptr),
+    imgobjs(nullptr), imgparms(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal fix wall/srd command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix wall/srd", error);
 
   // parse args
 
@@ -48,7 +51,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
     const std::string thisarg(arg[iarg]);
     if ((thisarg == "xlo") || (thisarg == "ylo") || (thisarg == "zlo")
         || (thisarg == "xhi") || (thisarg == "yhi") || (thisarg == "zhi")) {
-      if (iarg+2 > narg) error->all(FLERR, "Illegal fix wall/srd command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix wall/srd " + thisarg, error);
 
       int newwall;
       if (thisarg == "xlo") newwall = XLO;
@@ -60,7 +63,7 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 
       for (int m = 0; (m < nwall) && (m < 6); m++)
         if (newwall == wallwhich[m])
-          error->all(FLERR, "Wall defined twice in fix wall/srd command");
+          error->all(FLERR, iarg, "Wall {} defined twice in fix wall/srd command", thisarg);
 
       wallwhich[nwall] = newwall;
       if (strcmp(arg[iarg+1], "EDGE") == 0) {
@@ -83,16 +86,16 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
 
     } else if (thisarg == "units") {
-      if (iarg+2 > narg) error->all(FLERR, "Illegal wall/srd command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix wall/srd units", error);
       if (strcmp(arg[iarg+1], "box") == 0)
         scaleflag = 0;
       else if (strcmp(arg[iarg+1], "lattice") == 0)
         scaleflag = 1;
       else
-        error->all(FLERR, "Illegal fix wall/srd command");
+        error->all(FLERR, iarg+1, "Unknown fix wall/srd units setting {}", arg[iarg+1]);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal fix wall/srd command");
+      error->all(FLERR, iarg, "Unknown fix wall/srd keyword {}", arg[iarg]);
   }
 
   // error check
@@ -101,11 +104,11 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
 
   for (int m = 0; m < nwall; m++) {
     if ((wallwhich[m] == XLO || wallwhich[m] == XHI) && domain->xperiodic)
-      error->all(FLERR, "Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR, "Cannot use fix wall/srd xlo or xhi with periodic x dimension");
     if ((wallwhich[m] == YLO || wallwhich[m] == YHI) && domain->yperiodic)
-      error->all(FLERR, "Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR, "Cannot use fix wall/srd ylo or yhi with periodic y dimension");
     if ((wallwhich[m] == ZLO || wallwhich[m] == ZHI) && domain->zperiodic)
-      error->all(FLERR, "Cannot use fix wall/srd in periodic dimension");
+      error->all(FLERR, "Cannot use fix wall/srd zlo or zhi with periodic z dimension");
   }
 
   for (int m = 0; m < nwall; m++)
@@ -166,6 +169,27 @@ FixWallSRD::FixWallSRD(LAMMPS *lmp, int narg, char **arg) :
   for (int m = 0; m < nwall; m++)
     if (wallstyle[m] == VARIABLE) varflag = 1;
   laststep = -1;
+
+  // for rendering walls with dump image.
+  if (domain->dimension == 2) {
+    // one cylinder object per wall to draw in 2d
+    memory->create(imgobjs, nwall, "fix_wall:imgobjs");
+    memory->create(imgparms, nwall, 8, "fix_wall:imgparms");
+    for (int m = 0; m < nwall; ++m) {
+      imgobjs[m] = Graphics::CYLINDER;
+      imgparms[m][0] = 1;    // use color of first atom type by default
+    }
+  } else {
+    // two triangle objects per wall to draw in 3d
+    memory->create(imgobjs, 2 * nwall, "fix_wall:imgobjs");
+    memory->create(imgparms, 2 * nwall, 10, "fix_wall:imgparms");
+    for (int m = 0; m < nwall; ++m) {
+      imgobjs[2 * m] = Graphics::TRIANGLE;
+      imgobjs[2 * m + 1] = Graphics::TRIANGLE;
+      imgparms[2 * m][0] = 1;        // use color of first atom type by default
+      imgparms[2 * m + 1][0] = 1;    // use color of first atom type by default
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -176,6 +200,9 @@ FixWallSRD::~FixWallSRD()
     if (wallstyle[m] == VARIABLE) delete[] varstr[m];
   memory->destroy(fwall);
   memory->destroy(fwall_all);
+
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -190,17 +217,18 @@ int FixWallSRD::setmask()
 
 void FixWallSRD::init()
 {
-  int flag = 0;
-  for (int m = 0; m < modify->nfix; m++)
-    if (utils::strmatch(modify->fix[m]->style, "^srd")) flag = 1;
-  if (!flag) error->all(FLERR, "Cannot use fix wall/srd without fix srd");
+  if (modify->get_fix_by_style("^srd").size() == 0)
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix wall/srd without fix srd");
 
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] != VARIABLE) continue;
     varindex[m] = input->variable->find(varstr[m]);
-    if (varindex[m] < 0) error->all(FLERR, "Variable name for fix wall/srd does not exist");
+    if (varindex[m] < 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Variable {} for fix wall/srd does not exist", varstr[m]);
     if (!input->variable->equalstyle(varindex[m]))
-      error->all(FLERR, "Variable for fix wall/srd is invalid style");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Variable {} for fix wall/srd is invalid style", varstr[m]);
   }
 
   dt = update->dt;
@@ -251,6 +279,8 @@ void FixWallSRD::wall_params(int flag)
     }
 
     fwall[m][0] = fwall[m][1] = fwall[m][2] = 0.0;
+
+    FixWall::update_image_plane(m, wallwhich[m], xnew, imgparms, domain);
   }
 
   laststep = ntimestep;
@@ -261,4 +291,20 @@ void FixWallSRD::wall_params(int flag)
     for (int m = 0; m < nwall; m++) xwallhold[m] = xwall[m];
 
   force_flag = 0;
+}
+
+/* ----------------------------------------------------------------------
+   provide graphics information to dump image to render wall as plane
+   data has been copied to dedicated storage during fix indent execution
+------------------------------------------------------------------------- */
+
+int FixWallSRD::image(int *&objs, double **&parms)
+{
+  objs = imgobjs;
+  parms = imgparms;
+  if (domain->dimension == 2) {
+    return nwall;
+  } else {
+    return 2 * nwall;
+  }
 }

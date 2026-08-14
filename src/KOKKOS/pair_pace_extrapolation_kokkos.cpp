@@ -547,6 +547,7 @@ struct FindMaxNumNeighs {
   FindMaxNumNeighs(NeighListKokkos<DeviceType>* nl): k_list(*nl) {}
   ~FindMaxNumNeighs() {k_list.copymode = 1;}
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& ii, int& maxneigh) const {
     const int i = k_list.d_ilist[ii];
@@ -811,6 +812,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeigh,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeNeigh>::member_type& team) const
 {
@@ -915,6 +917,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeNeig
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRadial, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial>::member_type& team) const
 {
@@ -939,6 +942,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRadi
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeAi, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const
 {
@@ -1090,6 +1094,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeAi, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEConjugateAi, const int& ii) const
 {
@@ -1131,6 +1136,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEConjugateAi
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho, const int& iter) const
 {
@@ -1206,6 +1212,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeRho,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, const int& ii) const
 {
@@ -1259,6 +1266,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeFS, 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeGamma, const int& ii) const
 {
@@ -1287,6 +1295,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeGamm
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeWeights, const int& iter) const
 {
@@ -1348,6 +1357,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeWeig
 
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDerivative, const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeDerivative>::member_type& team) const
 {
@@ -1644,6 +1654,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>, const int& ii, EV_FLOAT& ev) const
 {
@@ -1701,6 +1712,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeForc
 
 template<class DeviceType>
 template<int NEIGHFLAG, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii) const {
   EV_FLOAT ev;
@@ -1711,6 +1723,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeForc
 
 template<class DeviceType>
 template<int NEIGHFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &fx, const KK_FLOAT &fy, const KK_FLOAT &fz,
@@ -1807,6 +1820,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::pre_compute_harmonics(int lmax)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::cutoff_func_poly(const KK_FLOAT r, const KK_FLOAT r_in, const KK_FLOAT delta_in, KK_FLOAT &fc, KK_FLOAT &dfc) const
 {
@@ -1826,6 +1840,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::cutoff_func_poly(const KK_FLOAT r,
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::Fexp(const KK_FLOAT x, const KK_FLOAT m, KK_FLOAT &F, KK_FLOAT &DF) const
 {
@@ -1857,6 +1872,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::Fexp(const KK_FLOAT x, const KK_FL
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::FexpShiftedScaled(const KK_FLOAT rho, const KK_FLOAT mexp, KK_FLOAT &F, KK_FLOAT &DF) const
 {
@@ -1880,6 +1896,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::FexpShiftedScaled(const KK_FLOAT r
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::inner_cutoff(const KK_FLOAT rho_core, const KK_FLOAT rho_cut, const KK_FLOAT drho_cut,
                                      KK_FLOAT &fcut, KK_FLOAT &dfcut) const
@@ -1899,6 +1916,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::inner_cutoff(const KK_FLOAT rho_co
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::FS_values_and_derivatives(const int ii, KK_FLOAT &evdwl, const int mu_i) const
 {
@@ -1922,6 +1940,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::FS_values_and_derivatives(const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, KK_FLOAT r,
                                                   int /*nradbase_c*/, int /*nradial_c*/,
@@ -1968,6 +1987,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos::operator
 }
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos::calcSplines(const int ii, const int jj, const KK_FLOAT r, const t_ace_3d &d_values, const t_ace_3d &d_derivatives) const
 {

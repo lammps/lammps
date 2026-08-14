@@ -127,6 +127,7 @@ void NBinKokkos<DeviceType>::bin_atoms()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 {

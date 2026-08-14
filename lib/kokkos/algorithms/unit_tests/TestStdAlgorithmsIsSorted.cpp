@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -151,7 +138,6 @@ void run_single_scenario(const InfoType& scenario_info) {
                                 [=](bool v) { return v == gold; });
   EXPECT_TRUE(allA) << name << ", " << view_tag_to_string(Tag{});
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
   std::vector<bool> resultsB(4);
   resultsB[0] =
@@ -163,7 +149,6 @@ void run_single_scenario(const InfoType& scenario_info) {
   const auto allB = std::all_of(resultsB.cbegin(), resultsB.cend(),
                                 [=](bool v) { return v == gold; });
   EXPECT_TRUE(allB) << name << ", " << view_tag_to_string(Tag{});
-#endif
 
   Kokkos::fence();
 }

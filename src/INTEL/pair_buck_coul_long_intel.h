@@ -43,7 +43,7 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
 
  private:
   FixIntel *fix;
-  int _cop, _lrt, _ccache_stride;
+  int _lrt, _ccache_stride;
 
   template <class flt_t> class ForceConst;
 
@@ -52,7 +52,7 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
                const ForceConst<flt_t> &fc);
 
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
@@ -79,12 +79,12 @@ class PairBuckCoulLongIntel : public PairBuckCoulLong {
     flt_t *etable, *detable, *ctable, *dctable;
 
     ForceConst() : _ntypes(0), _ntable(0) {}
-    ~ForceConst() noexcept(false) { set_ntypes(0, 0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, 0, nullptr); }
 
-    void set_ntypes(const int ntypes, const int ntable, Memory *memory, const int cop);
+    void set_ntypes(const int ntypes, const int ntable, Memory *memory);
 
    private:
-    int _ntypes, _ntable, _cop;
+    int _ntypes, _ntable;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;

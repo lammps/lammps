@@ -49,37 +49,37 @@ class Fix : protected Pointers {
   };
   // clang-format on
 
-  bigint next_reneighbor;      // next timestep to force a reneighboring
-  int nevery;                  // how often to call an end_of_step fix
-  int thermo_energy;           // 1 if fix_modify energy enabled, 0 if not
-  int thermo_virial;           // 1 if fix_modify virial enabled, 0 if not
-  int thermo_modify_colname;   // 1 if fix has custom column names for output
-  int energy_global_flag;      // 1 if contributes to global eng
-  int energy_peratom_flag;     // 1 if contributes to peratom eng
-  int virial_global_flag;      // 1 if contributes to global virial
-  int virial_peratom_flag;     // 1 if contributes to peratom virial
-  int ecouple_flag;            // 1 if thermostat fix outputs cumulative
-                               //      reservoir energy via compute_scalar()
-  int time_integrate;          // 1 if performs time integration, 0 if no
-  int rigid_flag;              // 1 if integrates rigid bodies, 0 if not
-  int no_change_box;           // 1 if cannot swap ortho <-> triclinic
-  int time_depend;             // 1 if requires continuous timestepping
-  int create_attribute;        // 1 if fix stores attributes that need
-                               //      setting when a new atom is created
-  int restart_pbc;             // 1 if fix moves atoms (except integrate)
-                               //      so write_restart must remap to PBC
-  int wd_header;               // # of header values fix writes to data file
-  int wd_section;              // # of sections fix writes to data file
-  int dynamic_group_allow;     // 1 if can be used with dynamic group, else 0
-  int dof_flag;                // 1 if has dof() method (not min_dof())
-  int special_alter_flag;      // 1 if has special_alter() meth for spec lists
-  int respa_level_support;     // 1 if fix supports fix_modify respa
-  int respa_level;             // which respa level to apply fix (1-Nrespa)
-  int maxexchange;             // max # of per-atom values for Comm::exchange()
-  int maxexchange_dynamic;     // 1 if fix sets maxexchange dynamically
-  int pre_exchange_migrate;    // 1 if fix migrates atoms in pre_exchange()
-  int stores_ids;              // 1 if fix stores atom IDs
-  int diam_flag;               // 1 if fix may change partical diameter
+  bigint next_reneighbor;       // next timestep to force a reneighboring
+  int nevery;                   // how often to call an end_of_step fix
+  int thermo_energy;            // 1 if fix_modify energy enabled, 0 if not
+  int thermo_virial;            // 1 if fix_modify virial enabled, 0 if not
+  int thermo_modify_colname;    // 1 if fix has custom column names for output
+  int energy_global_flag;       // 1 if contributes to global eng
+  int energy_peratom_flag;      // 1 if contributes to peratom eng
+  int virial_global_flag;       // 1 if contributes to global virial
+  int virial_peratom_flag;      // 1 if contributes to peratom virial
+  int ecouple_flag;             // 1 if thermostat fix outputs cumulative
+                                //      reservoir energy via compute_scalar()
+  int time_integrate;           // 1 if performs time integration, 0 if no
+  int rigid_flag;               // 1 if integrates rigid bodies, 0 if not
+  int no_change_box;            // 1 if cannot swap ortho <-> triclinic
+  int time_depend;              // 1 if requires continuous timestepping
+  int create_attribute;         // 1 if fix stores attributes that need
+                                //      setting when a new atom is created
+  int restart_pbc;              // 1 if fix moves atoms (except integrate)
+                                //      so write_restart must remap to PBC
+  int wd_header;                // # of header values fix writes to data file
+  int wd_section;               // # of sections fix writes to data file
+  int dynamic_group_allow;      // 1 if can be used with dynamic group, else 0
+  int dof_flag;                 // 1 if has dof() method (not min_dof())
+  int special_alter_flag;       // 1 if has special_alter() meth for spec lists
+  int respa_level_support;      // 1 if fix supports fix_modify respa
+  int respa_level;              // which respa level to apply fix (1-Nrespa)
+  int maxexchange;              // max # of per-atom values for Comm::exchange()
+  int maxexchange_dynamic;      // 1 if fix sets maxexchange dynamically
+  int pre_exchange_migrate;     // 1 if fix migrates atoms in pre_exchange()
+  int stores_ids;               // 1 if fix stores atom IDs
+  int diam_flag;                // 1 if fix may change particle diameter
 
   int scalar_flag;                 // 0/1 if compute_scalar() function exists
   int vector_flag;                 // 0/1 if compute_vector() function exists
@@ -132,6 +132,7 @@ class Fix : protected Pointers {
 
   int kokkosable;              // 1 if Kokkos fix
   int forward_comm_device;     // 1 if forward comm on Device
+  int reverse_comm_device;     // 1 if reverse comm on Device
   int exchange_comm_device;    // 1 if exchange comm on Device
   int fuse_integrate_flag;     // 1 if can fuse initial integrate with final integrate
   int sort_device;             // 1 if sort on Device
@@ -237,7 +238,7 @@ class Fix : protected Pointers {
   virtual double compute_scalar() { return 0.0; }
   virtual double compute_vector(int) { return 0.0; }
   virtual double compute_array(int, int) { return 0.0; }
-  virtual std::string get_thermo_colname(int) { return {};  }
+  virtual std::string get_thermo_colname(int) { return {}; }
 
   virtual bigint dof(int) { return 0; }
   virtual void deform(int) {}
@@ -272,7 +273,7 @@ class Fix : protected Pointers {
   int instance_me;    // which Fix class instantiation I am
 
   int evflag;
-  int eflag_either, eflag_global, eflag_atom;
+  int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom, cvflag_atom;
   int maxeatom, maxvatom, maxcvatom;
 
@@ -286,8 +287,8 @@ class Fix : protected Pointers {
     if ((eflag && thermo_energy) || (vflag && thermo_virial))
       ev_setup(eflag, vflag);
     else
-      evflag = eflag_either = eflag_global = eflag_atom = vflag_either = vflag_global = vflag_atom =
-          cvflag_atom = 0;
+      evflag = eflag_either = eflag_global = eflag_atom = eflag_only = vflag_either = vflag_global =
+          vflag_atom = cvflag_atom = 0;
   }
   void ev_setup(int, int);
   void ev_tally(int, int *, double, double, double *);

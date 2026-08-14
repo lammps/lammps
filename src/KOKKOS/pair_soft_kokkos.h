@@ -45,8 +45,10 @@ class PairSoftKokkos : public PairSoft {
   double init_one(int, int) override;
 
   struct params_soft{
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_soft() {cutsq=0,cut=0,prefactor=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_soft(int /*i*/) {cutsq=0,cut=0,prefactor=0;};
     KK_FLOAT cutsq,cut,prefactor;
@@ -54,14 +56,17 @@ class PairSoftKokkos : public PairSoft {
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_ecoul(const KK_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }

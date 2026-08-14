@@ -87,13 +87,13 @@ int ReaderNative::read_time(bigint &ntimestep)
 
     // skip over unit and time information, if present.
 
-    if (utils::strmatch(line,"^\\s*ITEM: UNITS\\s*$"))
+    if (utils::strmatch(line, R"(^\s*ITEM: UNITS\s*$)"))
       read_lines(2);
 
-    if (utils::strmatch(line,"^\\s*ITEM: TIME\\s*$"))
+    if (utils::strmatch(line, R"(^\s*ITEM: TIME\s*$)"))
       read_lines(2);
 
-    if (!utils::strmatch(line,"^\\s*ITEM: TIMESTEP\\s*$"))
+    if (!utils::strmatch(line, R"(^\s*ITEM: TIMESTEP\s*$)"))
       error->one(FLERR,"Dump file is incorrectly formatted");
 
     read_lines(1);
@@ -129,6 +129,7 @@ void ReaderNative::skip()
     int n;
     for (int i = 0; i < nchunk; i++) {
       read_buf(&n, sizeof(int), 1);
+      if (n < 0) error->one(FLERR,"Dump file is invalid or corrupted");
       skip_buf(n*sizeof(double));
     }
 
@@ -237,6 +238,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       }
 
       read_buf(&len, sizeof(int), 1);
+      if (len < 0) error->one(FLERR,"Dump file is invalid or corrupted");
       labelline = read_binary_str(len);
     } else {
       error->one(FLERR, "Unsupported old binary dump format");
@@ -254,11 +256,11 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
     triclinic = 0;
     box[0][2] = box[1][2] = box[2][2] = 0.0;
     read_lines(1);
-    if (utils::strmatch(line,"ITEM: BOX BOUNDS.*abc\\s+origin")) {
+    if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*abc\s+origin)")) {
       error->one(FLERR, Error::NOLASTLINE,
                  "Dump files in general triclinic format are not (yet) supported");
     }
-    if (utils::strmatch(line,"ITEM: BOX BOUNDS.*xy\\s+xz\\s+yz")) triclinic = 1;
+    if (utils::strmatch(line, R"(ITEM: BOX BOUNDS.*xy\s+xz\s+yz)")) triclinic = 1;
 
     try {
       read_lines(1);
@@ -461,6 +463,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       // if the last chunk has finished
       if (iatom_chunk == 0) {
           read_buf(&natom_chunk, sizeof(int), 1);
+          if (natom_chunk < 0) error->one(FLERR,"Dump file is invalid or corrupted");
           read_double_chunk(natom_chunk);
           natom_chunk /= size_one;
           m = 0;

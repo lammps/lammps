@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_DUALVIEW_HPP
 #define KOKKOS_TEST_DUALVIEW_HPP
@@ -21,8 +8,15 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
-#include <Kokkos_Timer.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.dual_view;
+#else
+#include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
+#endif
+#include <Kokkos_Timer.hpp>
 
 namespace Test {
 
@@ -775,6 +769,24 @@ TEST(TEST_CATEGORY, dualview_default_constructed) {
   ASSERT_FALSE(dv.need_sync_device());
   dv.sync_device();
 }
+
+TEST(TEST_CATEGORY, dualview_resize_single_device) {
+  using dv_t = Kokkos::DualView<double*, TEST_EXECSPACE>;
+  dv_t dv("DV", 10);
+  bool is_same_device = std::is_same_v<typename dv_t::t_host::device_type,
+                                       typename dv_t::t_dev::device_type>;
+
+  dv.resize(20);
+  ASSERT_EQ(!is_same_device, dv.need_sync_host());
+  ASSERT_FALSE(dv.need_sync_device());
+
+  dv.sync_host();
+  dv.modify_host();
+  dv.resize(30);
+  ASSERT_FALSE(dv.need_sync_host());
+  ASSERT_EQ(!is_same_device, dv.need_sync_device());
+}
+
 }  // anonymous namespace
 }  // namespace Test
 

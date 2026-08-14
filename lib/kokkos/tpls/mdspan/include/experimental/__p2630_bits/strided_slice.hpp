@@ -21,7 +21,7 @@
 
 namespace MDSPAN_IMPL_STANDARD_NAMESPACE {
 
-namespace {
+namespace detail {
   template<class T>
   struct mdspan_is_integral_constant: std::false_type {};
 
@@ -40,9 +40,9 @@ struct strided_slice {
   MDSPAN_IMPL_NO_UNIQUE_ADDRESS ExtentType extent{};
   MDSPAN_IMPL_NO_UNIQUE_ADDRESS StrideType stride{};
 
-  static_assert(std::is_integral_v<OffsetType> || mdspan_is_integral_constant<OffsetType>::value);
-  static_assert(std::is_integral_v<ExtentType> || mdspan_is_integral_constant<ExtentType>::value);
-  static_assert(std::is_integral_v<StrideType> || mdspan_is_integral_constant<StrideType>::value);
+  static_assert(std::is_integral_v<OffsetType> || detail::mdspan_is_integral_constant<OffsetType>::value);
+  static_assert(std::is_integral_v<ExtentType> || detail::mdspan_is_integral_constant<ExtentType>::value);
+  static_assert(std::is_integral_v<StrideType> || detail::mdspan_is_integral_constant<StrideType>::value);
 };
 
 } // MDSPAN_IMPL_STANDARD_NAMESPACE

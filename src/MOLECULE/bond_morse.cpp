@@ -30,7 +30,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondMorse::BondMorse(LAMMPS *_lmp) : Bond(_lmp)
+BondMorse::BondMorse(LAMMPS *_lmp) : Bond(_lmp), d0(nullptr), alpha(nullptr), r0(nullptr)
 {
   born_matrix_enable = 1;
 }
@@ -39,6 +39,7 @@ BondMorse::BondMorse(LAMMPS *_lmp) : Bond(_lmp)
 
 BondMorse::~BondMorse()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(d0);

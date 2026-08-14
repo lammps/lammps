@@ -13,7 +13,7 @@ VENV           = $(BUILDDIR)/docenv
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-MATHJAXTAG     = 3.2.2
+MATHJAXTAG     = 4.1.3
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
@@ -52,7 +52,7 @@ SPHINXEXTRA = -j $(shell $(PYTHON) -c 'import multiprocessing;print(multiprocess
 # we only want to use explicitly listed files.
 DOXYFILES      = $(shell sed -n -e 's/\#.*$$//' -e '/^ *INPUT \+=/,/^[A-Z_]\+ \+=/p' doxygen/Doxyfile.in | sed -e 's/@LAMMPS_SOURCE_DIR@/..\/src/g' -e 's/\\//g' -e 's/ \+/ /' -e 's/[A-Z_]\+ \+= *\(YES\|NO\|\)//') 
 
-.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check link_check role_check xmlgen fasthtml fasthtml-init
+.PHONY: help clean-all clean clean-spelling epub mobi html pdf spelling anchor_check style_check char_check link_check role_check xmlgen fasthtml fasthtml-init check
 
 FASTHTMLFILES = $(patsubst $(RSTDIR)/%.rst,fasthtml/%.html,$(wildcard $(RSTDIR)/*rst))
 # ------------------------------------------
@@ -69,12 +69,14 @@ help:
 	@echo "  upgrade       upgrade sphinx, extensions, and dependencies to latest supported versions"
 	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
+	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', and 'role_check'"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
 	@echo "  char_check    check for non-ASCII characters"
 	@echo "  role_check    check for misformatted role keywords"
 	@echo "  link_check    check external links in the manual"
+	@echo "  extract_check check extract() function consistency with tables in the manual"
 	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
@@ -83,7 +85,7 @@ clean-all: clean
 	rm -rf $(BUILDDIR)/docenv $(MATHJAX) $(BUILDDIR)/LAMMPS.mobi $(BUILDDIR)/LAMMPS.epub $(BUILDDIR)/Manual.pdf
 
 clean: clean-spelling clean-linkcheck
-	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
+	rm -rf $(BUILDDIR)/html $(BUILDDIR)/epub $(BUILDDIR)/latex $(BUILDDIR)/doctrees $(BUILDDIR)/doctrees-spelling $(BUILDDIR)/doxygen/xml $(BUILDDIR)/doxygen-warn.log $(BUILDDIR)/doxygen/Doxyfile $(SPHINXCONFIG)/conf.py $(BUILDDIR)/fasthtml $(BUILDDIR)/spelling
 
 clean-spelling:
 	rm -rf $(BUILDDIR)/spelling
@@ -154,12 +156,17 @@ fasthtml/%.html: $(RSTDIR)/%.rst
 	@pandoc -s --mathml --css="pandoc.css" --template=$(BUILDDIR)/utils/pandoc.html --metadata title="$@" -o $@ fasthtml/$*.temp.rst
 	@rm -f fasthtml/$*.temp.rst
 
+# use a dedicated doctree cache: the html/epub/pdf builds use -E (which would
+# discard it) and produce different doctrees (e.g. from the sphinx-tabs hack
+# for non-html builders), so sharing $(BUILDDIR)/doctrees would re-read all
+# sources on every run instead of only changed files.
 spelling: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
+	@rm -rf $(BUILDDIR)/spelling
 	@(\
 		. $(VENV)/bin/activate ; \
 		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/;  env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		sphinx-build -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) spelling ;\
+		sphinx-build $(SPHINXEXTRA) -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees-spelling $(RSTDIR) spelling ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
 	)
@@ -236,6 +243,8 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 	@rm -rf latex/PDF/.[sg]*
 	@echo "Build finished. Manual.pdf is in this directory."
 
+check : anchor_check style_check package_check char_check role_check
+
 anchor_check : $(ANCHORCHECK)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
@@ -267,6 +276,13 @@ role_check :
 	@( env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst && exit 1 || : )
 	@( env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                         $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} && exit 1 || : )
+
+extract_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		$(PYTHON) utils/check-fix-adapt-tables.py --root .. ;\
+		deactivate ;\
+	)
 
 upgrade: $(VENV)
 	@(\
@@ -301,6 +317,7 @@ $(VENV):
 
 $(MATHJAX):
 	@git clone -b $(MATHJAXTAG) -c advice.detachedHead=0 --depth 1 https://github.com/mathjax/MathJax.git $@
+	@test -e es5 || ln -sf . es5
 
 $(ANCHORCHECK): $(VENV)
 	@( \

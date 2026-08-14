@@ -20,6 +20,8 @@
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neighbor_kokkos.h"
+#include "timer.h"
+#include "tune_kokkos.h"
 
 #include <cstring>
 #include <cctype>
@@ -40,6 +42,15 @@
 #endif
 #endif
 
+// vendor runtime headers for the GPU device probe below
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <cuda_runtime.h>
+#elif defined(KOKKOS_ENABLE_HIP)
+#include <hip/hip_runtime.h>
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include <sycl/sycl.hpp>
+#endif
+
 using namespace LAMMPS_NS;
 
 static const char cite_kokkos_package[] =
@@ -56,6 +67,40 @@ static const char cite_kokkos_package[] =
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
 
+/* ----------------------------------------------------------------------
+   probe at runtime whether a compatible GPU device is present and usable
+   without initializing the KOKKOS package (which would abort for a GPU
+   backend when no device is available).  The vendor runtime device-count
+   queries return an error code instead of aborting, so this is safe to
+   call before deciding to enable the KOKKOS package, e.g. for skipping
+   tests gracefully.  Returns false for host-only KOKKOS builds.
+   This mirrors lmp_has_compatible_gpu_device() of the GPU package and is
+   wrapped by Info::has_kokkos_gpu_device().
+------------------------------------------------------------------------- */
+
+bool lmp_has_compatible_kokkos_gpu()
+{
+#if defined(KOKKOS_ENABLE_CUDA)
+  int ndev = 0;
+  if (cudaGetDeviceCount(&ndev) != cudaSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_HIP)
+  int ndev = 0;
+  if (hipGetDeviceCount(&ndev) != hipSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  try {
+    return !sycl::device::get_devices(sycl::info::device_type::gpu).empty();
+  } catch (...) {
+    return false;
+  }
+#else
+  // host-only KOKKOS build (Serial/OpenMP/Pthreads) or a GPU backend
+  // without a runtime device probe (e.g. OpenMPTarget)
+  return false;
+#endif
+}
+
 /* ---------------------------------------------------------------------- */
 
 KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
@@ -65,10 +110,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   exchange_comm_changed = 0;
   forward_comm_changed = 0;
+  reverse_comm_changed = 0;
   forward_pair_comm_changed = 0;
   reverse_pair_comm_changed = 0;
   forward_fix_comm_changed = 0;
-  reverse_comm_changed = 0;
+  reverse_fix_comm_changed = 0;
+  forward_compute_comm_changed = 0;
   sort_changed = atom_map_changed = 0;
 
   delete memory;
@@ -129,10 +176,14 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   pair_team_size_set = 0;
   nbin_atoms_per_bin_set = 0;
   nbin_atoms_per_bin = 16;
-  nbor_block_size = 128;
-  nbor_block_size_set = 0;
-  bond_block_size = 128;
-  bond_block_size_set = 0;
+  nbor_chunk_size = 128;
+  nbor_chunk_size_set = 0;
+  bond_chunk_size = 128;
+  bond_chunk_size_set = 0;
+  autotuning = 0;
+  perf_nsamples = 5;
+  perf_mode = 0;
+  perf_rel_tol = 0.2;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -287,7 +338,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     newtonflag = 0;
 
     exchange_comm_legacy = forward_comm_legacy = reverse_comm_legacy = 0;
-    forward_pair_comm_legacy = reverse_pair_comm_legacy = forward_fix_comm_legacy = 0;
+    forward_pair_comm_legacy = reverse_pair_comm_legacy =
+      forward_fix_comm_legacy = reverse_fix_comm_legacy =
+      forward_compute_comm_legacy = 0;
     sort_legacy = 0;
     atom_map_legacy = 0;
 
@@ -303,7 +356,9 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
     newtonflag = 1;
 
     exchange_comm_legacy = forward_comm_legacy = reverse_comm_legacy = 1;
-    forward_pair_comm_legacy = reverse_pair_comm_legacy = forward_fix_comm_legacy = 1;
+    forward_pair_comm_legacy = reverse_pair_comm_legacy =
+      forward_fix_comm_legacy = reverse_fix_comm_legacy =
+      forward_compute_comm_legacy = 0;
     sort_legacy = 1;
     atom_map_legacy = 1;
 
@@ -452,6 +507,15 @@ void KokkosLMP::accelerator(int narg, char **arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_kokkos_package);
 
+  // unless set with the neigh/thread option, neigh_thread may have been
+  // enabled by the small-system heuristic in pair_compute_neighlist(), which
+  // is only valid for the run it was made for.  discard that state here so it
+  // cannot conflict with the settings of this package command (e.g. after a
+  // clear command re-applies the package defaults and command line options,
+  // "newton on" would be rejected because of the stale neigh_thread setting)
+
+  if (!neigh_thread_set) neigh_thread = 0;
+
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"neigh") == 0) {
@@ -488,17 +552,23 @@ void KokkosLMP::accelerator(int narg, char **arg)
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
       if (strcmp(arg[iarg+1],"no") == 0) {
         exchange_comm_legacy = forward_comm_legacy = reverse_comm_legacy = 1;
-        forward_pair_comm_legacy = reverse_pair_comm_legacy = forward_fix_comm_legacy = 1;
+        forward_pair_comm_legacy = reverse_pair_comm_legacy =
+          forward_fix_comm_legacy = reverse_fix_comm_legacy =
+          forward_compute_comm_legacy = 0;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else if (strcmp(arg[iarg+1],"host") == 0) {
         exchange_comm_legacy = forward_comm_legacy = reverse_comm_legacy = 0;
-        forward_pair_comm_legacy = reverse_pair_comm_legacy = forward_fix_comm_legacy = 1;
+        forward_pair_comm_legacy = reverse_pair_comm_legacy =
+          forward_fix_comm_legacy = reverse_fix_comm_legacy =
+          forward_compute_comm_legacy = 0;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 1;
       } else if (strcmp(arg[iarg+1],"device") == 0) {
         exchange_comm_legacy = forward_comm_legacy = reverse_comm_legacy = 0;
-        forward_pair_comm_legacy = reverse_pair_comm_legacy = forward_fix_comm_legacy = 0;
+        forward_pair_comm_legacy = reverse_pair_comm_legacy =
+          forward_fix_comm_legacy = reverse_fix_comm_legacy =
+          forward_compute_comm_legacy = 0;
 
         exchange_comm_on_host = forward_comm_on_host = reverse_comm_on_host = 0;
       } else error->all(FLERR,"Illegal package kokkos command");
@@ -550,6 +620,22 @@ void KokkosLMP::accelerator(int narg, char **arg)
       else if (strcmp(arg[iarg+1],"device") == 0) forward_fix_comm_legacy = 0;
       else error->all(FLERR,"Illegal package kokkos command");
       forward_fix_comm_changed = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/fix/reverse") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) reverse_fix_comm_legacy = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) reverse_fix_comm_legacy = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) reverse_fix_comm_legacy = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      reverse_fix_comm_changed = 0;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"comm/compute/forward") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
+      if (strcmp(arg[iarg+1],"no") == 0) forward_compute_comm_legacy = 1;
+      else if (strcmp(arg[iarg+1],"host") == 0) forward_compute_comm_legacy = 1;
+      else if (strcmp(arg[iarg+1],"device") == 0) forward_compute_comm_legacy = 0;
+      else error->all(FLERR,"Illegal package kokkos command");
+      forward_compute_comm_changed = 0;
       iarg += 2;
     } else if (strcmp(arg[iarg],"comm/reverse") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
@@ -612,16 +698,26 @@ void KokkosLMP::accelerator(int narg, char **arg)
       nbin_atoms_per_bin = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
       nbin_atoms_per_bin_set = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"nbor/block/size") == 0) {
+    } else if (strcmp(arg[iarg],"nbor/chunk/size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      nbor_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-      nbor_block_size_set = 1;
+      nbor_chunk_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      nbor_chunk_size_set = 1;
       iarg += 2;
-    } else if (strcmp(arg[iarg],"bond/block/size") == 0) {
+    } else if (strcmp(arg[iarg],"bond/chunk/size") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package kokkos command");
-      bond_block_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
-      bond_block_size_set = 1;
+      bond_chunk_size = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      bond_chunk_size_set = 1;
       iarg += 2;
+    } else if (strcmp(arg[iarg],"auto/tuning") == 0) {
+      if (iarg+5 > narg) error->all(FLERR,"Illegal package kokkos command for auto/tuning");
+      autotuning = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
+      perf_nsamples = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
+      if (strcmp(arg[iarg+3], "max") == 0) perf_mode = 0;
+      else if (strcmp(arg[iarg+3], "ave") == 0) perf_mode = 1;
+      else if (strcmp(arg[iarg+3], "median") == 0) perf_mode = 2;
+      else error->all(FLERR,"Illegal package kokkos command for auto/tuning: must be 'max', 'ave', or 'median'");
+      perf_rel_tol = utils::numeric(FLERR, arg[iarg+4], false, lmp);
+      iarg += 5;
     } else error->all(FLERR,"Illegal package kokkos command");
   }
 
@@ -652,6 +748,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
     if (forward_fix_comm_legacy == 0) {
       forward_fix_comm_legacy = 1;
       forward_fix_comm_changed = 1;
+    }
+    if (reverse_fix_comm_legacy == 0) {
+      reverse_fix_comm_legacy = 1;
+      reverse_fix_comm_changed = 1;
+    }
+    if (forward_compute_comm_legacy == 0) {
+      forward_compute_comm_legacy = 1;
+      forward_compute_comm_changed = 1;
     }
     if (reverse_comm_legacy == 0 && reverse_comm_on_host == 0) {
       reverse_comm_legacy = 1;
@@ -693,6 +797,14 @@ void KokkosLMP::accelerator(int narg, char **arg)
       forward_fix_comm_legacy = 0;
       forward_fix_comm_changed = 0;
     }
+    if (reverse_fix_comm_changed) {
+      reverse_fix_comm_legacy = 0;
+      reverse_fix_comm_changed = 0;
+    }
+    if (forward_compute_comm_changed) {
+      forward_compute_comm_legacy = 0;
+      forward_compute_comm_changed = 0;
+    }
     if (reverse_comm_changed) {
       reverse_comm_legacy = 0;
       reverse_comm_changed = 0;
@@ -710,6 +822,13 @@ void KokkosLMP::accelerator(int narg, char **arg)
     }
   }
 
+  if (autotuning) {
+    utils::logmesg(lmp,"  autotuning is enabled: nevery = {} samples = {} mode = {}\n",
+      autotuning, perf_nsamples, (perf_mode == 0) ? "max" : (perf_mode == 1) ? "ave" : "median");
+  }
+
+#else  // LMP_KOKKOS_GPU not defined
+  if (autotuning) autotuning = 0;
 #endif
 
   // set newton flags
@@ -738,12 +857,6 @@ void KokkosLMP::newton_check()
       error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'threads/per/atom'");
     if (pair_team_size_set)
       error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'pair/team/size'");
-    if (nbin_atoms_per_bin_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbin/atoms/per/bin'");
-    if (nbor_block_size_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'nbor/block/size'");
-    if (bond_block_size_set)
-      error->all(FLERR,"Must use KOKKOS package option 'neigh/thread on' with 'bond/block/size'");
   }
 }
 

@@ -3,6 +3,7 @@
 APP_NAME=lammps-gui
 VERSION="$1"
 LAMMPS_GUI_APP="$2"
+BUILD_DIR="${PWD}"
 rm -rv ${APP_NAME}.app
 mv -v ${LAMMPS_GUI_APP} .
 
@@ -29,11 +30,9 @@ mv ${APP_NAME}.app/Contents/Resources/LAMMPS_DMG_Background.png .background/back
 mv ${APP_NAME}.app LAMMPS_GUI.app
 cd LAMMPS_GUI.app/Contents
 
-echo "Update rpath for LAMMPS and LAMMPS-GUI to link to liblammps.0.dylib"
-LIB_DIR=/Applications/LAMMPS_GUI.app/Contents/Frameworks
-LIB_NAME=liblammps.0.dylib
-install_name_tool -change @rpath/${LIB_NAME} ${LIB_DIR}/${LIB_NAME} bin/lmp
-install_name_tool -change @rpath/${LIB_NAME} ${LIB_DIR}/${LIB_NAME} MacOS/lammps-gui
+echo "Update rpath for LAMMPS to link to bundled liblammps.0.dylib"
+install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
+install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
 
 echo "Attach icons to LAMMPS console and GUI executables"
 echo "read 'icns' (-16455) \"Resources/lammps.icns\";" > icon.rsrc

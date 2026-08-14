@@ -5,7 +5,8 @@ and fixing real issues. When using CMake, these are automatically included
 when running "ctest -T memcheck". To manually add them to do a memory check
 on running LAMMPS, use a command line like following:
 
-valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
+valgrind --leak-check=full --track-origins=yes \
+   --show-leak-kinds=definite,indirect,possible \
    --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \
    --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp \
@@ -21,7 +22,7 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
 Or you can create a file $HOME/.valgrindrc with one option per line:
 
 --leak-check=full
---show-leak-kinds=all
+--show-leak-kinds=definite,indirect,possible
 --track-origins=yes
 --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp
 --suppressions=/path/to/lammps/tools/valgrind/GTest.supp
@@ -37,4 +38,4 @@ Or you can create a file $HOME/.valgrindrc with one option per line:
 These options will be automatically added to the valgrind
 command line, so it becomes: valgrind lmp -in in.melt
 
-Last update: 2025-04-06
+Last update: 2026-07-26

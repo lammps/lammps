@@ -65,6 +65,7 @@ void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_i
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void RegSphereKokkos<DeviceType>::operator()(TagRegSphereMatchAll, const int &i) const {
   if (d_mask[i] & groupbit) {

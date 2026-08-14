@@ -8,6 +8,7 @@ code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
 .. contents:: Available notes
+   :local:
 
 ----
 
@@ -289,8 +290,10 @@ all three signatures, the single string "Error message" may be replaced
 with a format string using '{}' placeholders and followed by a variable
 number of arguments, one for each placeholder. This format string and
 the arguments are then handed for formatting to the `{fmt} library
-<https://fmt.dev>`_ (which is bundled with LAMMPS) and thus allow
-processing similar to the "format()" functionality in Python.
+<https://fmt.dev>`_ (which is bundled with LAMMPS) or the `C++ format
+library <https://cppreference.com/cpp/utility/format>`_ (for
+C++20 and later) and thus allow processing similar to the "format()"
+functionality in Python.
 
 .. note::
 

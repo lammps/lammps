@@ -417,7 +417,7 @@ approach.
 
 The *rigid/nvt* and *rigid/nvt/small* styles performs constant NVT
 integration using a Nose/Hoover thermostat with chains as described
-originally in :ref:`(Hoover) <Hoover>` and :ref:`(Martyna)
+originally in :ref:`(Hoover) <Hoover>` and :ref:`(Martyna3)
 <Martyna2>`, which thermostats both the translational and rotational
 degrees of freedom of the rigid bodies.  They are referred to below as
 the 2 NVT rigid styles.  The rigid-body algorithm used by *rigid/nvt*
@@ -949,7 +949,7 @@ torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.
 
 .. _Martyna2:
 
-**(Martyna)** Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
+**(Martyna3)** Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
 Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
 
 .. _Miller3:
@@ -959,4 +959,4 @@ J Chem Phys, 116, 8649 (2002).
 
 .. _Zhang1:
 
-**(Zhang)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).
+**(Zhang2)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).

@@ -29,7 +29,7 @@ calculate improper statistics, but compute no improper interactions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

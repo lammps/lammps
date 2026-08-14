@@ -483,6 +483,7 @@ int PairADPKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
@@ -509,6 +510,7 @@ void PairADPKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, 
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPUnpackForwardComm, const int &i) const {
   d_fp(i + first) = v_buf[10 * i];
@@ -644,6 +646,7 @@ void PairADPKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *bu
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPInitialize, const int &i) const {
   d_rho[i] = 0.0;
@@ -663,6 +666,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPInitialize, const int &i) c
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelA<NEIGHFLAG,NEWTON_PAIR>, const int &ii) const {
 
@@ -771,6 +775,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelA<NEIGHFLAG,NEWTON_PA
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelB<EFLAG>, const int &ii, EV_FLOAT& ev) const {
   // fp = derivative of embedding energy at each atom
@@ -803,6 +808,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelB<EFLAG>, const int &
 
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelB<EFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -814,6 +820,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelB<EFLAG>, const int &
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelAB<EFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -914,6 +921,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelAB<EFLAG>, const int 
 
 template<class DeviceType>
 template<int EFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelAB<EFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -925,6 +933,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelAB<EFLAG>, const int 
 ////Specialisation for Neighborlist types Half, HalfThread, Full
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -1068,6 +1077,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PA
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -1078,6 +1088,7 @@ void PairADPKokkos<DeviceType>::operator()(TagPairADPKernelC<NEIGHFLAG,NEWTON_PA
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairADPKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fx, const KK_FLOAT &fy, const KK_FLOAT &fz, const KK_FLOAT &delx,

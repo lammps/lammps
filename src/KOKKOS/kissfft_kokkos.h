@@ -154,6 +154,7 @@ class KissFFTKokkos {
   typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly2(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
@@ -180,6 +181,7 @@ class KissFFTKokkos {
       } while(--m);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly4(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, const size_t m, int Fout_count)
@@ -238,6 +240,7 @@ class KissFFTKokkos {
       } while(--k);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly3(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, size_t m, int Fout_count)
@@ -290,6 +293,7 @@ class KissFFTKokkos {
       } while(--k);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly5(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                        const kiss_fft_state_kokkos<DeviceType> &st, int m, int Fout_count)
@@ -370,6 +374,7 @@ class KissFFTKokkos {
 
   /* perform the butterfly for one stage of a mixed radix FFT */
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_bfly_generic(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const size_t fstride,
                               const kiss_fft_state_kokkos<DeviceType> &st, int m, int p, int Fout_count)
@@ -409,6 +414,7 @@ class KissFFTKokkos {
       }
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kf_work(typename FFT_AT::t_FFT_DATA_1d_um &d_Fout, const typename FFT_AT::t_FFT_DATA_1d_um &d_f,
                       const size_t fstride, int in_stride,
@@ -525,6 +531,7 @@ class KissFFTKokkos {
       return st;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_stride(const kiss_fft_state_kokkos<DeviceType> &st, const typename FFT_AT::t_FFT_DATA_1d_um &d_fin, typename FFT_AT::t_FFT_DATA_1d_um &d_fout, int in_stride, int offset)
   {
@@ -539,6 +546,7 @@ class KissFFTKokkos {
       //}
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static void kiss_fft_kokkos(const kiss_fft_state_kokkos<DeviceType> &cfg, const typename FFT_AT::t_FFT_DATA_1d_um d_fin, typename FFT_AT::t_FFT_DATA_1d_um d_fout, int offset)
   {

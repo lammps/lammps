@@ -38,15 +38,13 @@ Syntax
 
        For *granular*, *fstyle_params* are set using the same syntax as for the *pair_coeff* command of :doc:`pair_style granular <pair_granular>`
 
-* wallstyle = *xplane* or *yplane* or *zplane* or *zcylinder*
+* wallstyle = *xplane* or *yplane* or *zplane*
 * args = list of arguments for a particular style
 
   .. parsed-literal::
 
        *xplane* or *yplane* or *zplane* args = lo hi
-         lo,hi = position of lower and upper plane (distance units), either can be NULL)
-       *zcylinder* args = radius
-         radius = cylinder radius (distance units)
+         lo,hi = position of lower and upper plane (distance units), each can be NULL or an equal-style variable as v_name (see below)
 
 * zero or more keyword/value pairs may be appended to args
 * keyword = *wiggle* or *shear* or *contacts* or *temperature*
@@ -73,11 +71,13 @@ Examples
 
    fix 1 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0
    fix 1 all wall/gran hooke/history 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 NULL
-   fix 2 all wall/gran hooke 100000.0 20000.0 50.0 30.0 0.5 1 zcylinder 15.0 wiggle z 3.0 2.0
    fix 3 all wall/gran granular hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping velocity region myBox
    fix 4 all wall/gran granular jkr 1e5 1500.0 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall region myCone
    fix 5 all wall/gran granular dmt 1e5 0.2 0.3 10.0 tangential mindlin NULL 1.0 0.5 rolling sds 500.0 200.0 0.5 twisting marshall damping tsuji heat 10 region myCone temperature 1.0
    fix 6 all wall/gran hooke  200000.0 NULL 50.0 NULL 0.5 0 xplane -10.0 10.0 contacts
+
+   variable zhi equal ramp(20.0,15.0)
+   fix 7 all wall/gran hooke 200000.0 NULL 50.0 NULL 0.5 0 zplane 0.0 v_zhi
 
 Description
 """""""""""
@@ -110,12 +110,21 @@ NULL is used for *Kt*, then a default value is used where *Kt* = 2/7
 *Kn*\ .  If a NULL is used for *gamma_t*, then a default value is used
 where *gamma_t* = 1/2 *gamma_n*.
 
+.. versionchanged:: 4Jul2026
+
+.. note::
+
+   In versions of LAMMPS between 28Mar23 and Jun26, the gran/hooke tangential
+   friction calculation accidentally included an extra factor of the contact
+   radius. The granular models or KOKKOS versions were not affected.
+
 All the model choices for cohesion, tangential friction, rolling
 friction and twisting friction supported by the :doc:`pair_style granular <pair_granular>` through its *pair_coeff* command are also
 supported for walls. These are discussed in greater detail on the doc
 page for :doc:`pair_style granular <pair_granular>`.
 
 .. note::
+
    When *fstyle* *granular* is specified, the associated *fstyle_params* are taken as
    those for a wall/particle interaction. For example, for the *hertz/material* normal
    contact model with :math:`E = 960` and :math:`\nu = 0.2`, the effective Young's
@@ -147,29 +156,56 @@ material.
    system with particles of diameter 1, Kn, Kt, gamma_n, and gamma_s
    should be set sqrt(2.0) larger than they were previously.
 
-The effective mass *m_eff* in the formulas listed on the :doc:`pair_style granular <pair_gran>` page is the mass of the particle for
-particle/wall interactions (mass of wall is infinite).  If the
+The effective mass *m_eff* in the formulas listed on the
+:doc:`pair_style granular <pair_gran>` page is the mass of the particle
+for particle/wall interactions (mass of wall is infinite).  If the
 particle is part of a rigid body, its mass is replaced by the mass of
-the rigid body in those formulas.  This is determined by searching for
-a :doc:`fix rigid <fix_rigid>` command (or its variants).
+the rigid body in those formulas.  This is determined by searching for a
+:doc:`fix rigid <fix_rigid>` command (or its variants).
 
-The *wallstyle* can be planar or cylindrical.  The 3 planar options
-specify a pair of walls in a dimension.  Wall positions are given by
-*lo* and *hi*\ .  Either of the values can be specified as NULL if a
-single wall is desired.  For a *zcylinder* wallstyle, the cylinder's
-axis is at x = y = 0.0, and the radius of the cylinder is specified.
+The *wallstyle* must one of the three planar options. They specify a
+pair of walls in a dimension.  Wall positions are given by *lo* and
+*hi*\ .  Either of the values can be specified as NULL if a single wall
+is desired.
+
+.. versionremoved:: 11Feb2026
+
+The *zcylinder* wallstyle has been removed.  Please use :doc:`fix
+wall/gran/region <fix_wall_gran_region>` instead.
+
+.. versionadded:: TBD
+
+The *lo* and *hi* wall positions can also be set by an equal-style
+:doc:`variable <variable>`, specified as v_name, where "name" is the
+variable name.  The variable is evaluated at every timestep, so the wall
+position can change during a run, for example to model a piston
+compressing a bed of granular particles.  Since the damping and friction
+forces of granular models depend on the relative velocity between
+particle and wall, the velocity of such a wall is inferred from the
+change of the wall position between consecutive timesteps, in the same
+manner as for moving regions with :doc:`fix wall/gran/region
+<fix_wall_gran_region>`: there is no analytic formula for the velocity
+of a wall position defined by a variable.  The wall position should
+therefore be a continuous function of the elapsed time; see the
+discussion of the *move* keyword of the :doc:`region <region>` command
+for examples, including how to make the motion span consecutive runs in
+a continuous fashion.  The wall velocity is zero when the variable is
+evaluated for the first time.  LAMMPS stops with an error if the *lo*
+wall position does not remain below the *hi* wall position during a run.
+A wall position set by a variable cannot be combined with the *wiggle*
+or *shear* keyword.
 
 Optionally, the wall can be moving, if the *wiggle* or *shear*
 keywords are appended.  Both keywords cannot be used together.
 
 For the *wiggle* keyword, the wall oscillates sinusoidally, similar to
-the oscillations of particles which can be specified by the :doc:`fix move <fix_move>` command.  This is useful in packing simulations of
+the oscillations of particles which can be specified by the :doc:`fix
+move <fix_move>` command.  This is useful in packing simulations of
 granular particles.  The arguments to the *wiggle* keyword specify a
-dimension for the motion, as well as it's *amplitude* and *period*\ .
+dimension for the motion, as well as its *amplitude* and *period*\ .
 Note that if the dimension is in the plane of the wall, this is
-effectively a shearing motion.  If the dimension is perpendicular to
-the wall, it is more of a shaking motion.  A *zcylinder* wall can only
-be wiggled in the z dimension.
+effectively a shearing motion.  If the dimension is perpendicular to the
+wall, it is more of a shaking motion.
 
 Each timestep, the position of a wiggled wall in the appropriate *dim*
 is set according to this equation:
@@ -186,12 +222,11 @@ to the derivative of this expression.
 For the *shear* keyword, the wall moves continuously in the specified
 dimension with velocity *vshear*\ .  The dimension must be tangential to
 walls with a planar *wallstyle*, e.g. in the *y* or *z* directions for
-an *xplane* wall.  For *zcylinder* walls, a dimension of *z* means the
-cylinder is moving in the z-direction along it's axis.  A dimension of
-*x* or *y* means the cylinder is spinning around the z-axis, either in
-the clockwise direction for *vshear* > 0 or counter-clockwise for
-*vshear* < 0.  In this case, *vshear* is the tangential velocity of
-the wall at whatever *radius* has been defined.
+an *xplane* wall.  A dimension of *x* or *y* means the cylinder is
+spinning around the z-axis, either in the clockwise direction for
+*vshear* > 0 or counter-clockwise for *vshear* < 0.  In this case,
+*vshear* is the tangential velocity of the wall at whatever *radius* has
+been defined.
 
 The *temperature* keyword is used to assign a temperature to the wall.
 The following value can either be a numeric value or an equal-style
@@ -261,6 +296,36 @@ No parameter of this fix can be used with the *start/stop* keywords of the
 :doc:`run <run>` command. This fix is not invoked during :doc:`energy
 minimization <minimize>`.
 
+-----------------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: 11Feb2026
+
+This fix supports the *fix* keyword of :doc:`dump image <dump_image>`.
+The fix will pass geometry information about *xplane*\, *yplane*\, and
+*zplane* style walls to *dump image* so that the walls will be included
+in the rendered image.  Please note, that for :doc:`2d systems
+<dimension>`, a wall rendered as a plane would be invisible and it is
+thus rendered as a cylinder.
+
+The color of the wall is by default that of the first atom type when
+using color styles "type" or "element".  With color style "const" the
+default value of "white" can be changed using :doc:`dump_modify fcolor
+<dump_image>`.  The transparency is by default fully opaque and can be
+changed globally with *dump\_modify ftrans*\ .
+
+For 2d systems, the *fflag1* setting determines whether the cylinder
+representing the wall is capped with a sphere at the ends: 0 means no caps, 1
+means the lower end is capped, 2 means the upper end is capped, and 3
+means both ends are capped.  The *fflag2* setting allows to set the
+radius of the rendered cylinders.
+
+For 3d systems, both *fflag1* and *fflag2* are ignored.
+
+-----------------
+
 Restrictions
 """"""""""""
 
@@ -268,6 +333,9 @@ This fix is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Any dimension (xyz) that has a granular wall must be non-periodic.
+
+The *wall/gran/kk* style does not support wall positions set by an
+equal-style variable.
 
 Related commands
 """"""""""""""""

@@ -3,8 +3,7 @@ Comparison of various accelerator packages
 
 The next section compares and contrasts the various accelerator
 options, since there are multiple ways to perform OpenMP threading,
-run on GPUs, optimize for vector units on CPUs and run on Intel
-Xeon Phi (co-)processors.
+run on GPUs, and optimize for vector units on CPUs.
 
 All of these packages can accelerate a LAMMPS calculation taking
 advantage of hardware features, but they do it in different ways
@@ -54,7 +53,7 @@ section below for examples where this has been done.
   (desktop) GPUs. Using lower performance GPUs (e.g. on laptops) may
   result in a slowdown instead.
 * For the GPU package, specifically when running in parallel with MPI,
-  if it often more efficient to exclude the PPPM kspace style from GPU
+  it is often more efficient to exclude the PPPM kspace style from GPU
   acceleration and instead run it - concurrently with a GPU accelerated
   pair style - on the CPU. This can often be easily achieved with placing
   a *suffix off* command before and a *suffix on* command after the

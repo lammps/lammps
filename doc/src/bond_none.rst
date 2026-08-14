@@ -29,7 +29,7 @@ calculate bond statistics, but compute no bond interactions.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

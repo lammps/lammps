@@ -47,16 +47,19 @@ struct WignerWrapper {
   const int offset; // my offset into the vector (0, ..., vector_length - 1)
   real_type* buffer; // buffer of real numbers, contiguous real then imaginary
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   WignerWrapper(complex* buffer_, const int offset_)
    : offset(offset_), buffer(reinterpret_cast<real_type*>(buffer_))
   { ; }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   complex get(const int& ma) const {
     return complex(buffer[offset + 2 * vector_length * ma], buffer[offset + vector_length + 2 * vector_length * ma]);
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void set(const int& ma, const complex& store) const {
     buffer[offset + 2 * vector_length * ma] = store.re;
@@ -79,11 +82,13 @@ struct MultiWignerWrapper {
   const int offset; // my offset into the vector (0, ..., vector_length - 1)
   real_type* buffer; // buffer of real numbers
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   MultiWignerWrapper(complex* buffer_, const int offset_)
    : offset(offset_), buffer(reinterpret_cast<real_type*>(buffer_))
   { ; }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   complex_array get(const int& ma) const {
     complex_array store;
@@ -94,6 +99,7 @@ struct MultiWignerWrapper {
     return store;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void set(const int& ma, const complex_array& store) const {
     #pragma unroll num_elems
@@ -104,6 +110,7 @@ struct MultiWignerWrapper {
   }
 
   // special function to initialize all elements to the same value
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void set_all(const int& ma, const complex& store) const {
     #pragma unroll num_elems
@@ -129,6 +136,7 @@ struct alignas(16) idxz_struct {
 
   idxz_struct() = default;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   idxz_struct(int j1, int j2, int j, int ma1min, int ma2max, int mb1min, int mb2max, int na, int nb, int jju_half, int idxcg)
     : j1_j2_j_jjuhalf{j1, j2, j, jju_half},
@@ -136,6 +144,7 @@ struct alignas(16) idxz_struct {
       nanb_idxcg{na, nb, idxcg, 0}
   { }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void get_zi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int &idxcg) {
     reax_int4 pack1 = this->j1_j2_j_jjuhalf;
@@ -153,6 +162,7 @@ struct alignas(16) idxz_struct {
     idxcg = pack3.i2;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void get_yi(int &j1, int &j2, int &j, int &ma1min, int &ma2max, int &mb1min, int &mb2max, int &na, int &nb, int& jju_half, int& idxcg) {
     reax_int4 pack1 = this->j1_j2_j_jjuhalf;
@@ -171,6 +181,7 @@ struct alignas(16) idxz_struct {
     idxcg = pack3.i2;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void get_yi_with_zlist(int &j1, int &j2, int &j, int &jju_half) {
     reax_int4 pack1 = this->j1_j2_j_jjuhalf;
@@ -231,6 +242,7 @@ class SNAKokkos {
   inline
   SNAKokkos() {};
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   SNAKokkos(const SNAKokkos<DeviceType, real_type, accum_type, vector_length>& sna, const typename Kokkos::TeamPolicy<DeviceType>::member_type& team);
 
@@ -238,6 +250,7 @@ class SNAKokkos {
   inline
   SNAKokkos(const CopyClass&);
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   ~SNAKokkos();
 
@@ -252,48 +265,62 @@ class SNAKokkos {
   int ncoeff;
 
   // functions for bispectrum coefficients, GPU only
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_cayley_klein(const int&, const int&) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void pre_ui(const int&, const int&, const int&) const; // ForceSNAP
 
   // version of the code with parallelism over j_bend
+// NOLINTNEXTLINE
   template <bool chemsnap, int ui_batch = 1> KOKKOS_INLINE_FUNCTION
   void compute_ui_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int, const int) const; // ForceSNAP
   // version of the code without parallelism over j_bend
+// NOLINTNEXTLINE
   template <bool chemsnap, int ui_batch = 1> KOKKOS_INLINE_FUNCTION
   void compute_ui_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int) const; // ForceSNAP
 
   // desymmetrize ulisttot
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void transform_ui(const int&, const int&) const;
 
+// NOLINTNEXTLINE
   template <bool chemsnap, int yi_batch = 1> KOKKOS_INLINE_FUNCTION
   void compute_zi(const int&, const int&) const;    // ForceSNAP
+// NOLINTNEXTLINE
   template <bool chemsnap, bool need_atomics, int yi_batch = 1> KOKKOS_INLINE_FUNCTION
   void compute_yi(const int&, const int&) const; // ForceSNAP
+// NOLINTNEXTLINE
   template <bool chemsnap, bool need_atomics, int yi_batch = 1> KOKKOS_INLINE_FUNCTION
   void compute_yi_with_zlist(const int&, const int&) const; // ForceSNAP
+// NOLINTNEXTLINE
   template <bool chemsnap, int yi_batch = 1> KOKKOS_INLINE_FUNCTION
   void compute_bi(const int&, const int&) const;    // ForceSNAP
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_beta_linear(const int&, const int&, const int&) const;
+// NOLINTNEXTLINE
   template <bool need_atomics> KOKKOS_INLINE_FUNCTION
   void compute_beta_quadratic(const int&, const int&, const int&) const;
 
   // functions for derivatives, GPU only
 
   // version of the code with parallelism over j_bend
+// NOLINTNEXTLINE
   template<int start, int num_dims> KOKKOS_INLINE_FUNCTION
   void compute_fused_deidrj_small(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int, const int) const; //ForceSNAP
 
   // version of the code without parallelism over j_bend
+// NOLINTNEXTLINE
   template<int start, int num_dims> KOKKOS_INLINE_FUNCTION
   void compute_fused_deidrj_large(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team, const int, const int, const int) const; //ForceSNAP
 
   // core "evaluation" functions that get plugged into "compute" functions
   // plugged into compute_ui_small, compute_ui_large
   template<bool chemsnap, int ui_batch>
+// NOLINTNEXTLINE
   KOKKOS_FORCEINLINE_FUNCTION
   void evaluate_ui_jbend(const MultiWignerWrapper<real_type, vector_length, ui_batch>&,
     const Kokkos::Array<complex, ui_batch>& a,
@@ -303,42 +330,53 @@ class SNAKokkos {
     const int&, const int&) const;
 
   // plugged into compute_zi, compute_yi; returns complex
+// NOLINTNEXTLINE
   template <int yi_batch> KOKKOS_FORCEINLINE_FUNCTION
   auto evaluate_zi(const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&, const int&,
                         const int&, const int&, const int&, const real_type*) const;
   // plugged into compute_bi
+// NOLINTNEXTLINE
   template <int yi_batch> KOKKOS_FORCEINLINE_FUNCTION
   auto evaluate_bi(const int&, const int&, const int&, const int&,
                           const int&, const int&, const int&) const;
   // plugged into compute_yi, compute_yi_with_zlist; returns real_type
+// NOLINTNEXTLINE
   template <bool chemsnap, int yi_batch> KOKKOS_FORCEINLINE_FUNCTION
   auto evaluate_beta_scaled(const int&, const int&, const int&, const int&, const int&, const int&, const int&) const;
   // plugged into compute_fused_deidrj_small, compute_fused_deidrj_large; returns real_type
+// NOLINTNEXTLINE
   template<int num_dims> KOKKOS_FORCEINLINE_FUNCTION
   auto evaluate_duidrj_jbend(const WignerWrapper<real_type, vector_length>&, const complex&, const complex&, const real_type&,
     const MultiWignerWrapper<real_type, vector_length, num_dims>&, const Kokkos::Array<complex, num_dims>&, const Kokkos::Array<complex, num_dims>&,
     const Kokkos::Array<real_type, num_dims>&, const int&, const int&, const int&) const;
 
   // functions for bispectrum coefficients, CPU only
+// NOLINTNEXTLINE
   template <bool need_atomics> KOKKOS_INLINE_FUNCTION
   void compute_ui_cpu(const int&, const int&) const; // ForceSNAP
 
   // functions for derivatives, CPU only
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_duidrj_cpu(const int&, const int&) const; //ForceSNAP
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_deidrj_cpu(const int&, const int&) const; // ForceSNAP
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   real_type compute_sfac(real_type, real_type, real_type, real_type) const; // add_uarraytot, compute_duarray
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   real_type compute_dsfac(real_type, real_type, real_type, real_type) const; // compute_duarray
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_s_dsfac(const real_type, const real_type, const real_type, const real_type, real_type&, real_type&) const; // compute_cayley_klein
 
   // special function that just does a "vectorized" loop
+// NOLINTNEXTLINE
   template<int batch, typename Functor> KOKKOS_FORCEINLINE_FUNCTION
   void register_loop(Functor&& f) const {
     #pragma unroll batch
@@ -440,8 +478,10 @@ class SNAKokkos {
   inline
   double factorial(int);
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void create_team_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); // SNAKokkos()
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void create_thread_scratch_arrays(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team); // SNAKokkos()
 

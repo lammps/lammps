@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -104,17 +91,6 @@ void fill_view(ViewType dest_view, const std::string& name) {
   Kokkos::parallel_for("copy", dest_view.extent(0), F1);
 }
 
-// my own because std::replace_if is ONLY found with std=c++20
-template <class ForwardIt, class UnaryPredicate, class T>
-void my_host_replace_if(ForwardIt first, ForwardIt last, UnaryPredicate p,
-                        const T& new_value) {
-  for (; first != last; ++first) {
-    if (p(*first)) {
-      *first = new_value;
-    }
-  }
-}
-
 template <class ViewType1, class ViewType2, class ValueType,
           class PredicateType>
 void verify_data(ViewType1 data_view,  // contains data
@@ -125,8 +101,8 @@ void verify_data(ViewType1 data_view,  // contains data
   auto data_view_dc = create_deep_copyable_compatible_clone(data_view);
   auto data_view_h =
       create_mirror_view_and_copy(Kokkos::HostSpace(), data_view_dc);
-  my_host_replace_if(KE::begin(data_view_h), KE::end(data_view_h), pred,
-                     new_value);
+  std::replace_if(KE::begin(data_view_h), KE::end(data_view_h), pred,
+                  new_value);
 
   auto test_view_dc = create_deep_copyable_compatible_clone(test_view);
   auto test_view_h =

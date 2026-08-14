@@ -428,3 +428,12 @@ void *PairPACE::extract_peratom(const char *str, int &ncol)
 
   return nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairPACE::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (flag_corerep_factor) bytes += (double) nmax_corerep * sizeof(double);    // corerep_factor[nmax_corerep]
+  return bytes;
+}

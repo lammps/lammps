@@ -87,7 +87,7 @@ int zstedc_(char *compz, integer *n, doublereal *d__, doublereal *e, doublecompl
         } else if (*n <= smlsiz) {
             lwmin = 1;
             liwmin = 1;
-            lrwmin = *n - 1 << 1;
+            lrwmin = (*n - 1) << 1;
         } else if (icompz == 1) {
             lgn = (integer)(log((doublereal)(*n)) / log(2.));
             if (pow_lmp_ii(&c__2, &lgn) < *n) {

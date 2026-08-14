@@ -244,6 +244,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`gyration/chunk <compute_gyration_chunk>` - radius of gyration for each chunk
 * :doc:`gyration/shape <compute_gyration_shape>` - shape parameters from gyration tensor
 * :doc:`gyration/shape/chunk <compute_gyration_shape_chunk>` - shape parameters from gyration tensor for each chunk
+* :doc:`hbond/local <compute_hbond_local>` - identify hydrogen bonds
 * :doc:`heat/flux <compute_heat_flux>` - heat flux through a group of atoms
 * :doc:`heat/flux/tally <compute_tally>` - heat flux through a group of atoms via the tally callback mechanism
 * :doc:`heat/flux/virial/tally <compute_tally>` - virial heat flux between two groups via the tally callback mechanism

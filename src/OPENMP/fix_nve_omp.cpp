@@ -19,7 +19,11 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-using dbl3_t = struct { double x,y,z; };
+namespace {
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ---------------------------------------------------------------------- */
 

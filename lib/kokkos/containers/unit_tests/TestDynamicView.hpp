@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_DYNAMICVIEW_HPP
 #define KOKKOS_TEST_DYNAMICVIEW_HPP
@@ -21,9 +8,14 @@
 #include <iostream>
 #include <cstdlib>
 #include <cstdio>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.dynamic_view;
+#else
 #include <Kokkos_Core.hpp>
-
 #include <Kokkos_DynamicView.hpp>
+#endif
 #include <Kokkos_Timer.hpp>
 
 namespace Test {
@@ -220,7 +212,8 @@ struct TestDynamicView {
     //   Case 4:
     {
       using device_view_type = Kokkos::View<Scalar*, Space>;
-      using host_view_type = typename Kokkos::View<Scalar*, Space>::HostMirror;
+      using host_view_type =
+          typename Kokkos::View<Scalar*, Space>::host_mirror_type;
 
       view_type device_dynamic_view("on-device DynamicView", 1024,
                                     arg_total_size);

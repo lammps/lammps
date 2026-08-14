@@ -62,13 +62,10 @@ ComputeGyrationShape::~ComputeGyrationShape()
 void ComputeGyrationShape::init()
 {
   // check that the compute gyration command exist
-  int icompute = modify->find_compute(id_gyration);
-  if (icompute < 0)
+  c_gyration = modify->get_compute_by_id(id_gyration);
+  if (!c_gyration)
     error->all(FLERR,"Compute gyration ID does not exist for "
                "compute gyration/shape");
-
-  // check the id_gyration corresponds really to a compute gyration command
-  c_gyration = (Compute *) modify->compute[icompute];
   if (strcmp(c_gyration->style,"gyration") != 0)
     error->all(FLERR,"Compute gyration compute ID does not point to "
                "gyration compute for compute gyration/shape");

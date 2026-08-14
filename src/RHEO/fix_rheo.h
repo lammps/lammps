@@ -57,7 +57,7 @@ class FixRHEO : public Fix {
   int rhosum_self_mass_flag;
   int *shift_type;
   int shift_cross_type_flag;
-  double shift_scale, shift_wmin, shift_cmin;
+  double shift_scale, shift_rmin, shift_cmin;
 
   // Accessory fixes/computes
   int viscosity_fix_defined;

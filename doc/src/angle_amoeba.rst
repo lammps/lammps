@@ -3,7 +3,6 @@
 angle_style amoeba command
 ==========================
 
-
 Syntax
 """"""
 

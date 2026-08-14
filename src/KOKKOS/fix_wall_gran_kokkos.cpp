@@ -127,6 +127,7 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
 
 template<class DeviceType>
 template<int WallStyle>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallStyle>, const int &i) const
 {
@@ -353,6 +354,7 @@ int FixWallGranKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranPackExchange, const int &mysend) const
 {
@@ -402,6 +404,7 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, const int &i) const
 {

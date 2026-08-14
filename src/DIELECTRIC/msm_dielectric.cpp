@@ -346,3 +346,12 @@ void MSMDielectric::fieldforce()
     f[i][2] += qfactor*ekz;
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double MSMDielectric::memory_usage()
+{
+  double bytes = MSM::memory_usage();
+  bytes += (double) nmax * 3 * sizeof(double);    // efield[nmax][3]
+  return bytes;
+}

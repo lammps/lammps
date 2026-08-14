@@ -50,6 +50,23 @@ static constexpr double SMALL = 0.00001;
 static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
+static inline double auto_slab_volfactor(double accuracy, double two_charge_force,
+                                         double alpha, double xprd, double yprd, double zprd,
+                                         Error *error)
+{
+  if (alpha <= 0.0) error->all(FLERR, "kspace_modify slab auto requires a positive gewald");
+
+  const double force_tolerance = accuracy / two_charge_force;
+  if (!(force_tolerance > 0.0 && force_tolerance < 1.0))
+    error->all(FLERR,
+               "kspace_modify slab auto requires a normalized force tolerance between 0 and 1");
+
+  const double logeps = log(1.0 / force_tolerance);
+  const double lateral = MAX(xprd, yprd) * logeps / MY_2PI;
+  const double reciprocal = sqrt(logeps) / alpha;
+  return MAX((zprd + MAX(lateral, reciprocal)) / zprd, 1.0);
+}
+
 /* ---------------------------------------------------------------------- */
 
 PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
@@ -70,6 +87,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   pppmflag = 1;
   group_group_enable = 1;
   triclinic = domain->triclinic;
+  g_ewald_ready = 0;
 
   nfactors = 3;
   factors = new int[nfactors];
@@ -80,7 +98,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nfft_both = 0;
+  ngrid = nfft_both = 0;
   nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
@@ -167,7 +185,7 @@ PPPM::~PPPM()
 {
   if (copymode) return;
 
-  delete [] factors;
+  delete[] factors;
   PPPM::deallocate();
   if (peratom_allocate_flag) PPPM::deallocate_peratom();
   if (group_allocate_flag) PPPM::deallocate_groups();
@@ -181,7 +199,10 @@ PPPM::~PPPM()
 
 void PPPM::init()
 {
-  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  // don't print initialization message twice when we get called by PPPM_RK::init()
+  if (!rk_flag) {
+    if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  }
 
   // error check
 
@@ -192,8 +213,12 @@ void PPPM::init()
 
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad");
-  if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
+  if (domain->triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
+  if (domain->triclinic && slabflag == 1 && (domain->yz != 0.0 || domain->xz != 0.0))
+    error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+               "(the slab normal must be the z axis); xy tilt is allowed");
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPM with 2d simulation");
 
@@ -279,6 +304,29 @@ void PPPM::init()
   if (peratom_allocate_flag) deallocate_peratom();
   if (group_allocate_flag) deallocate_groups();
 
+  const double xprd = domain->xprd;
+  const double yprd = domain->yprd;
+  const double zprd = domain->zprd;
+  bigint natoms = atom->natoms;
+  if (natoms == 0) natoms = 1;
+
+  g_ewald_ready = 0;
+  if (!gewaldflag) {
+    if (accuracy <= 0.0)
+      error->all(FLERR,"KSpace accuracy must be > 0");
+    if (q2 == 0.0)
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
+    g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
+    if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
+    else g_ewald = sqrt(-log(g_ewald)) / cutoff;
+    g_ewald_ready = 1;
+  }
+
+  const bool slab_auto_enabled = (slabflag == 1 && slab_auto);
+  if (slab_auto_enabled)
+    slab_volfactor = auto_slab_volfactor(accuracy, two_charge_force, g_ewald, xprd, yprd, zprd,
+                                         error);
+
   // setup FFT grid resolution and g_ewald
   // normally one iteration thru while loop is all that is required
   // if grid stencil does not extend beyond neighbor proc
@@ -286,48 +334,70 @@ void PPPM::init()
   // else reduce order and try again
 
   gc = nullptr;
-  int iteration = 0;
+  const int requested_order = order;
+  int slab_iterations = 0;
 
-  while (order >= minorder) {
-    if (iteration && me == 0)
-      error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
-                     "beyond nearest neighbor processor");
+  while (true) {
+    int iteration = 0;
+    order = requested_order;
 
-    if (stagger_flag && !differentiation_flag) compute_gf_denom();
-    set_grid_global();
-    set_grid_local();
-    if (overlap_allowed) break;
+    while (order >= minorder) {
+      if (iteration && me == 0)
+        error->warning(FLERR,"Reducing PPPM order b/c stencil extends "
+                       "beyond nearest neighbor processor");
 
-    gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
-    gc->set_distance(0.5*neighbor->skin + qdist);
-    gc->set_stencil_atom(-nlower,nupper);
-    gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
-    gc->set_zfactor(slab_volfactor);
+      if (stagger_flag && !differentiation_flag) compute_gf_denom();
+      set_grid_global();
+      set_grid_local();
+      if (overlap_allowed) break;
 
-    gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
+      gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
+      gc->set_distance(0.5*neighbor->skin + qdist);
+      gc->set_stencil_atom(-nlower,nupper);
+      gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
+      gc->set_zfactor(slab_volfactor);
 
-    int tmp1,tmp2;
-    gc->setup_comm(tmp1,tmp2);
-    if (gc->ghost_adjacent()) break;
-    delete gc;
+      gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
+                     nxlo_out,nxhi_out,nylo_out,nyhi_out,nzlo_out,nzhi_out);
 
-    order--;
-    iteration++;
+      int tmp1,tmp2;
+      gc->setup_comm(tmp1,tmp2);
+      if (gc->ghost_adjacent()) break;
+      delete gc;
+      gc = nullptr;
+
+      order--;
+      iteration++;
+    }
+
+    if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
+    if (!overlap_allowed && !gc->ghost_adjacent())
+      error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
+    if (gc) {
+      delete gc;
+      gc = nullptr;
+    }
+
+    // adjust g_ewald
+
+    if (!gewaldflag) adjust_gewald();
+    if (!slab_auto_enabled) break;
+
+    const double old_slab_volfactor = slab_volfactor;
+    const double new_slab_volfactor = auto_slab_volfactor(accuracy, two_charge_force, g_ewald,
+                                                          xprd, yprd, zprd, error);
+    if (fabs(new_slab_volfactor - old_slab_volfactor) <= SMALL * new_slab_volfactor) break;
+    slab_volfactor = new_slab_volfactor;
+
+    slab_iterations++;
+    if (slab_iterations > 5)
+      error->all(FLERR, "Could not converge kspace_modify slab auto");
   }
-
-  if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
-  if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
-
-  // adjust g_ewald
-
-  if (!gewaldflag) adjust_gewald();
 
   // calculate the final accuracy
 
   double estimated_accuracy = final_accuracy();
+  g_ewald_ready = 0;
 
   // allocate K-space dependent memory
   // don't invoke allocate peratom() or group(), will be allocated when needed
@@ -351,6 +421,10 @@ void PPPM::init()
     std::string mesg = fmt::format("  G vector (1/distance) = {:.8g}\n",g_ewald);
     mesg += fmt::format("  grid = {} {} {}\n",nx_pppm,ny_pppm,nz_pppm);
     mesg += fmt::format("  stencil order = {}\n",order);
+    if (slabflag == 1 && slab_auto) {
+      mesg += fmt::format("  auto slab volfactor = {:.8g}\n", slab_volfactor);
+      mesg += fmt::format("  auto slab extended z = {:.8g}\n", zprd * slab_volfactor);
+    }
     mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
@@ -485,11 +559,16 @@ void PPPM::setup_triclinic()
   volume = xprd * yprd * zprd_slab;
 
   // use lamda (0-1) coordinates
+  // for the EW3DC slab correction the lamda z grid is extended by
+  // slab_volfactor (vacuum insertion), matching Grid3d::set_zfactor() used in
+  // the grid decomposition.  delzinv maps lamda z in [0,1] onto grid indices
+  // [0,nz_pppm/slab_volfactor]; delvolinv uses the full nz_pppm so the grid
+  // cell volume stays volume/(nx*ny*nz).  slab_volfactor == 1.0 for non-slab.
 
   delxinv = nx_pppm;
   delyinv = ny_pppm;
-  delzinv = nz_pppm;
-  delvolinv = delxinv*delyinv*delzinv/volume;
+  delzinv = nz_pppm/slab_volfactor;
+  delvolinv = delxinv*delyinv*nz_pppm/volume;
 
   // fkx,fky,fkz for my FFT grid pts
 
@@ -722,13 +801,14 @@ void PPPM::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+  // must precede slabcorr(), which needs Cartesian z-coordinates
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag == 1) slabcorr();
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -984,12 +1064,13 @@ void PPPM::set_grid_global()
 
   double h;
   bigint natoms = atom->natoms;
+  if (natoms == 0) natoms = 1;
 
-  if (!gewaldflag) {
+  if (!gewaldflag && !g_ewald_ready) {
     if (accuracy <= 0.0)
       error->all(FLERR,"KSpace accuracy must be > 0");
     if (q2 == 0.0)
-      error->all(FLERR,"Must use kspace_modify gewald for uncharged system");
+      error->all(FLERR,"Must use 'kspace_modify gewald' for uncharged system");
     g_ewald = accuracy*sqrt(natoms*cutoff*xprd*yprd*zprd) / (2.0*q2);
     if (g_ewald >= 1.0) g_ewald = (1.35 - 0.15*log(accuracy))/cutoff;
     else g_ewald = sqrt(-log(g_ewald)) / cutoff;
@@ -1265,7 +1346,10 @@ void PPPM::adjust_gewald()
   double dx;
 
   for (int i = 0; i < LARGE; i++) {
-    dx = newton_raphson_f() / derivf();
+    double dfx = derivf();
+    if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
+    dx = newton_raphson_f() / dfx;
+    while (g_ewald - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald stays > 0
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }
@@ -1526,6 +1610,11 @@ void PPPM::compute_gf_ik_triclinic()
   tmp[1] = (g_ewald/(MY_PI*ny_pppm)) * pow(-log(EPS_HOC),0.25);
   tmp[2] = (g_ewald/(MY_PI*nz_pppm)) * pow(-log(EPS_HOC),0.25);
   lamda2xT(&tmp[0],&tmp[0]);
+  // EW3DC slab correction: the z grid is extended by slab_volfactor, so the
+  // alias-sum bound in z must use the extended length (lamda2xT only supplies
+  // zprd).  z is non-periodic for slab geometries (xz == yz == 0), so the z
+  // bound decouples.  slab_volfactor == 1.0 for non-slab calculations.
+  if (slabflag == 1) tmp[2] *= slab_volfactor;
   const int nbx = static_cast<int> (tmp[0]);
   const int nby = static_cast<int> (tmp[1]);
   const int nbz = static_cast<int> (tmp[2]);
@@ -1724,21 +1813,21 @@ void PPPM::compute_sf_precoeff()
 
           qx0 = MY_2PI*(kper+nx_pppm*(i-2));
           qx1 = MY_2PI*(kper+nx_pppm*(i-1));
-          qx2 = MY_2PI*(kper+nx_pppm*(i  ));
+          qx2 = MY_2PI*(kper+nx_pppm*i);
           wx0[i] = powsinxx(0.5*qx0/nx_pppm,order);
           wx1[i] = powsinxx(0.5*qx1/nx_pppm,order);
           wx2[i] = powsinxx(0.5*qx2/nx_pppm,order);
 
           qy0 = MY_2PI*(lper+ny_pppm*(i-2));
           qy1 = MY_2PI*(lper+ny_pppm*(i-1));
-          qy2 = MY_2PI*(lper+ny_pppm*(i  ));
+          qy2 = MY_2PI*(lper+ny_pppm*i);
           wy0[i] = powsinxx(0.5*qy0/ny_pppm,order);
           wy1[i] = powsinxx(0.5*qy1/ny_pppm,order);
           wy2[i] = powsinxx(0.5*qy2/ny_pppm,order);
 
           qz0 = MY_2PI*(mper+nz_pppm*(i-2));
           qz1 = MY_2PI*(mper+nz_pppm*(i-1));
-          qz2 = MY_2PI*(mper+nz_pppm*(i  ));
+          qz2 = MY_2PI*(mper+nz_pppm*i);
 
           wz0[i] = powsinxx(0.5*qz0/nz_pppm,order);
           wz1[i] = powsinxx(0.5*qz1/nz_pppm,order);
@@ -3011,9 +3100,9 @@ double PPPM::memory_usage()
 
 void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 {
-  if (slabflag && triclinic)
-    error->all(FLERR,"Cannot (yet) use K-space slab "
-               "correction with compute group/group for triclinic systems");
+  if (triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
 
   if (differentiation_flag)
     error->all(FLERR,"Cannot (yet) use kspace_modify "

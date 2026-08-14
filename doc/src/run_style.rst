@@ -10,12 +10,13 @@ Syntax
 
    run_style style args
 
-* style = *verlet* or *verlet/split* or *respa* or *respa/omp*
+* style = *verlet* or *verlet/split* or *verlet/split/rk* or *respa* or *respa/omp*
 
   .. parsed-literal::
 
        *verlet* args = none
        *verlet/split* args = none
+       *verlet/split/rk* args = none
        *respa* args = N n1 n2 ... keyword values ...
          N = # of levels of rRESPA
          n1, n2, ... = loop factors between rRESPA levels (N-1 values)
@@ -57,6 +58,8 @@ Examples
 .. code-block:: LAMMPS
 
    run_style verlet
+   run_style verlet/split
+   run_style verlet/split/rk
    run_style respa 4 2 2 2 bond 1 dihedral 2 pair 3 kspace 4
    run_style respa 4 2 2 2 bond 1 dihedral 2 inner 3 5.0 6.0 outer 4 kspace 4
    run_style respa 3 4 2 bond 1 hybrid 2 2 1 kspace 3
@@ -151,8 +154,49 @@ options to support this, and strategies are discussed in :doc:`Section
 
 ----------
 
+.. versionadded:: 4Jul2026
+
+The requirements for the run style *verlet/split/rk* are similar to that
+of *verlet/split*, and much of what was written above about the latter
+applies to the former, including the partition requirements.  Note that
+the use of run style *verlet/split/rk* must be paired with the use of
+kspace style :doc:`pppm/rk <kspace_style>`.
+
+The main difference is that for *verlet/split/rk*, the work of the K
+space processes is restricted to the solution of the Poisson equations
+for computing the long-range forces via pppm.  By contrast, the R space
+processes carry out the other long-range force computations that the K
+space processes would have done for *verlet/split*. There are two
+rationales for considering the use of *verlet/split/rk*.
+
+- *Rationale 1*: One of the most significant bottlenecks to parallel
+  scalability is due to the communication overhead for the 3d FFTs in
+  solving the Poisson equation.  The other steps (such as accumulating
+  the charge densities and interpolating the long-range forces) have
+  better parallel scaling, and so their reallocation to the R space
+  processes may result in improved parallel speedup at large enough node
+  counts where the speedup for solving the Poisson equation lags behind
+  the speedup of the other computations (thus the Poisson equation
+  solution is a bottleneck in parallel execution).
+
+- *Rationale 2*: The approach *verlet/split/rk* avoids having to
+  communicate atom-specific information between the R space and K space
+  processes.  Thus, re-neighboring, for example, stays confined to the R
+  space processes and does not require inter-R/K communication, and so
+  the communication overhead is reduced.
+
+The implementation of *verlet/split/rk* requires the parallel
+partitioning to occur in the computation of the long-range
+forces. Consequently, the use of *verlet/split/rk* requires the use of
+an */rk* type kspace style like :doc:`pppm/rk <kspace_style>`.
+
+This approach is based on the enhanced baseline decomposition of
+:ref:`(Dandurand) <runstyleDandurand2025>` and works cited within.
+
+----------
+
 The *respa* style implements the rRESPA multi-timescale integrator
-:ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level
+:ref:`(Tuckerman4) <Tuckerman3>` with N hierarchical levels, where level
 1 is the innermost loop (shortest timestep) and level N is the outermost
 loop (largest timestep).  The loop factor arguments specify what the
 looping factor is between levels.  N1 specifies the number of iterations
@@ -364,7 +408,12 @@ to rRESPA levels is as follows:
 
 ----------
 
+.. _runstyleDandurand2025:
+
+**(Dandurand)** Dandurand, Vandierendonck, de Supinski, 39th IEEE IPDPS,
+June 3-7, (2025).
+
 .. _Tuckerman3:
 
-**(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
+**(Tuckerman4)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).

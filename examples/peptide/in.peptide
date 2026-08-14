@@ -9,6 +9,7 @@ angle_style     charmm
 dihedral_style  charmm
 improper_style  harmonic
 kspace_style    pppm 0.0001
+#kspace_style    esp 0.0001
 
 read_data       data.peptide
 

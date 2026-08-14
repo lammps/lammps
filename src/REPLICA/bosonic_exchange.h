@@ -27,8 +27,8 @@ class BosonicExchange : protected Pointers {
   void prepare_with_coordinates(const double *x, const double *x_prev, const double *x_next,
                                 double beta, double spring_constant);
 
-  double get_potential() const;
-  double get_bead_spring_energy() const;
+  [[nodiscard]] double get_potential() const;
+  [[nodiscard]] double get_bead_spring_energy() const;
 
   void spring_force(double **f) const;
 
@@ -37,9 +37,9 @@ class BosonicExchange : protected Pointers {
  private:
   void evaluate_cycle_energies();
   void diff_two_beads(const double *x1, int l1, const double *x2, int l2, double diff[3]) const;
-  double get_interior_bead_spring_energy() const;
+  [[nodiscard]] double get_interior_bead_spring_energy() const;
   double distance_squared_two_beads(const double *x1, int l1, const double *x2, int l2) const;
-  double get_Enk(int m, int k) const;
+  [[nodiscard]] double get_Enk(int m, int k) const;
   void set_Enk(int m, int k, double val);
   void evaluate_connection_probabilities();
   void spring_force_last_bead(double **f) const;

@@ -1,20 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <gtest/gtest.h>
 
@@ -53,12 +45,6 @@ TEST(TEST_CATEGORY, view_bad_alloc) {
                     "preventing our checks to run";
   }
 #endif
-#endif
-#if ((HIP_VERSION_MAJOR == 5) && (HIP_VERSION_MINOR < 7))
-  if (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
-    GTEST_SKIP() << "ROCm 5.6 and earlier segfaults when trying to allocate "
-                    "too much memory";
-  }
 #endif
 #if defined(KOKKOS_ENABLE_OPENACC)  // FIXME_OPENACC
   if (std::is_same_v<ExecutionSpace, Kokkos::Experimental::OpenACC>) {

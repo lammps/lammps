@@ -12,8 +12,10 @@
 /Manual.pdf
 /Developer.pdf
 /doctrees
+/doctrees-spelling
 /docenv
 /doxygen-warn.log
+/es5
 /utils/sphinx-config/conf.py
 /doxygen/Doxyfile
 *.el

@@ -32,7 +32,7 @@ Description
 
 Transform the coordinates of Drude oscillators from real to reduced
 and back for thermalizing the Drude oscillators as described in
-:ref:`(Lamoureux) <Lamoureux1>` using a Nose-Hoover thermostat.  This fix is
+:ref:`(Lamoureux and Roux) <Lamoureux1>` using a Nose-Hoover thermostat.  This fix is
 designed to be used with the :doc:`thermalized Drude oscillator model <Howto_drude>`.  Polarizable models in LAMMPS are described
 on the :doc:`Howto polarizable <Howto_polarizable>` doc page.
 
@@ -192,7 +192,7 @@ No information about this fix is written to :doc:`binary restart files <restart>
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""
@@ -211,4 +211,4 @@ none
 
 .. _Lamoureux1:
 
-**(Lamoureux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).
+**(Lamoureux and Roux)** Lamoureux and Roux, J Chem Phys, 119, 3025-3039 (2003).

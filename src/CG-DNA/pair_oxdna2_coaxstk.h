@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(oxdna2/coaxstk,PairOxdna2Coaxstk);
+PairStyle(oxdna3/coaxstk,PairOxdna2Coaxstk);
 // clang-format on
 #else
 
@@ -28,21 +29,23 @@ class PairOxdna2Coaxstk : public Pair {
  public:
   PairOxdna2Coaxstk(class LAMMPS *);
   ~PairOxdna2Coaxstk() override;
+  virtual void compute_backbone_site(double *, double *, double *, double *) const;
+  virtual void compute_stacking_site(double *, double *, double *, double *) const;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
+  void init_style() override;
   void init_list(int, class NeighList *) override;
   double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
-  void write_data(FILE *) override;
-  void write_data_all(FILE *) override;
   void *extract(const char *, int &) override;
 
  protected:
   // coaxial stacking interaction
+  double eta_cxst[4][4];
   double **k_cxst, **cut_cxst_0, **cut_cxst_c, **cut_cxst_lo, **cut_cxst_hi;
   double **cut_cxst_lc, **cut_cxst_hc, **b_cxst_lo, **b_cxst_hi;
   double **cutsq_cxst_hc;
@@ -55,9 +58,11 @@ class PairOxdna2Coaxstk : public Pair {
   double **a_cxst6, **theta_cxst6_0, **dtheta_cxst6_ast;
   double **b_cxst6, **dtheta_cxst6_c;
   double **AA_cxst1, **BB_cxst1;
-  double **nx_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
+  double **nxyz_xtrct;    // per-atom arrays for local unit vectors
 
   virtual void allocate();
+
+  class FixOxdnaLRF *fix_lrf;    // ptr to oxdna/lrf fix
 };
 
 }    // namespace LAMMPS_NS

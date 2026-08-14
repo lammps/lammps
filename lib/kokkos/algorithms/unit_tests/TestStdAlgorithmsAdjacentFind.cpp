@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <std_algorithms/Kokkos_BeginEnd.hpp>
@@ -24,33 +11,6 @@ namespace stdalgos {
 namespace AdjacentFind {
 
 namespace KE = Kokkos::Experimental;
-
-// impl is here for std because it is only avail from c++>=17
-template <class InputIterator, class OutputIterator, class BinaryPredicate>
-auto my_unique_copy(InputIterator first, InputIterator last,
-                    OutputIterator result, BinaryPredicate pred) {
-  if (first != last) {
-    typename OutputIterator::value_type t(*first);
-    *result = t;
-    ++result;
-    while (++first != last) {
-      if (!pred(t, *first)) {
-        t       = *first;
-        *result = t;
-        ++result;
-      }
-    }
-  }
-  return result;
-}
-
-template <class InputIterator, class OutputIterator>
-auto my_unique_copy(InputIterator first, InputIterator last,
-                    OutputIterator result) {
-  using value_type = typename OutputIterator::value_type;
-  using func_t     = IsEqualFunctor<value_type>;
-  return my_unique_copy(first, last, result, func_t());
-}
 
 template <class ValueType>
 struct UnifDist;
@@ -181,28 +141,6 @@ void fill_view(ViewType dest_view, const std::string& name) {
   Kokkos::parallel_for("copy", dest_view.extent(0), F1);
 }
 
-template <class IteratorType, class BinaryPredicate>
-IteratorType my_std_adjacent_find(IteratorType first, IteratorType last,
-                                  BinaryPredicate p) {
-  if (first == last) {
-    return last;
-  }
-  IteratorType next = first;
-  ++next;
-  for (; next != last; ++next, ++first) {
-    if (p(*first, *next)) {
-      return first;
-    }
-  }
-  return last;
-}
-
-template <class IteratorType>
-IteratorType my_std_adjacent_find(IteratorType first, IteratorType last) {
-  using value_type = typename IteratorType::value_type;
-  return my_std_adjacent_find(first, last, IsEqualFunctor<value_type>());
-}
-
 std::string value_type_to_string(int) { return "int"; }
 std::string value_type_to_string(double) { return "double"; }
 
@@ -226,7 +164,7 @@ void verify(DiffType my_diff, ViewType view, Args... args) {
   auto view_dc = create_deep_copyable_compatible_clone(view);
   auto view_h  = create_mirror_view_and_copy(Kokkos::HostSpace(), view_dc);
   auto std_r =
-      my_std_adjacent_find(KE::cbegin(view_h), KE::cend(view_h), args...);
+      std::adjacent_find(KE::cbegin(view_h), KE::cend(view_h), args...);
   const auto std_diff = std_r - KE::cbegin(view_h);
 
   ASSERT_EQ(my_diff, std_diff);

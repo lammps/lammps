@@ -43,6 +43,8 @@ class PairZBLKokkos : public PairZBL {
   void init_style() override;
   double init_one(int, int) override;
 
+  class TuneKokkos* tuner;
+
  private:
   DAT::tdual_kkfloat_1d k_z;
   DAT::tdual_kkfloat_2d_dl k_d1a,k_d2a,k_d3a,k_d4a,k_zze,k_sw1,k_sw2,k_sw3,k_sw4,k_sw5;
@@ -70,22 +72,28 @@ class PairZBLKokkos : public PairZBL {
   KK_FLOAT cut_inner_kk;
   KK_FLOAT cut_innersq_kk;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT e_zbl(KK_FLOAT, int, int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT dzbldr(KK_FLOAT, int, int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT d2zbldr2(KK_FLOAT, int, int) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_fpair(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_evdwl(const KK_FLOAT& rsq, const int& i, const int&j, const int& itype, const int& jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_ecoul(const KK_FLOAT& /*rsq*/, const int& /*i*/, const int& /*j*/,
                         const int& /*itype*/, const int& /*jtype*/) const { return 0; }

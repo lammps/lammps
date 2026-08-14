@@ -1,0 +1,73 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  bond_factor     index  0.0
+variable  angle_factor    index  0.0
+variable  dihedral_factor index  0.0
+variable  units           index  real
+variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.fourmol
+variable  pair_style      index 'ldd'
+variable  bond_style      index harmonic
+variable  angle_style     index zero
+variable  dihedral_style  index zero
+variable  improper_style  index zero
+variable  t_target        index 100.0
+
+atom_style       full
+neigh_modify     delay 2 every 2 check no
+units            ${units}
+timestep         0.1
+newton           on #${newton_pair} ${newton_bond}
+
+bond_style       ${bond_style}
+angle_style      ${angle_style}
+dihedral_style   ${dihedral_style}
+improper_style   ${improper_style}
+
+region my_box block 0 9 0 9 0 9
+create_box 2 my_box bond/types 1 extra/bond/per/atom 3
+
+mass * 59.0448
+
+
+create_atoms 1 single 1       0.1     0.75 #1
+create_atoms 2 single 1       0.1     0.65 #2
+create_atoms 1 single 1       0.1     0.1  #3
+create_atoms 2 single 1       0.54    0.65 #4
+create_atoms 2 single 1       8.9     0.65 #5
+create_atoms 2 single 1       1.04     0.75 #6
+create_atoms 2 single 1       2.04     0.75 #7
+create_atoms 2 single 1       3.04     0.75 #8
+create_atoms 2 single 1       4.04     0.75 #9
+create_atoms 2 single 1       5.04     0.75 #10
+create_atoms 2 single 1       6.04     0.75 #11
+create_atoms 2 single 1       7.04     0.75 #12
+create_atoms 2 single 1       8.04     0.75 #13
+
+
+
+
+pair_style       ${pair_style}
+bond_style	 ${bond_style}
+
+bond_coeff 1 3 0.75
+
+create_bonds single/bond 1 1 2
+create_bonds single/bond 1 2 3
+create_bonds single/bond 1 2 4
+create_bonds single/bond 1 4 6
+create_bonds single/bond 1 6 7
+create_bonds single/bond 1 7 8
+create_bonds single/bond 1 8 9
+create_bonds single/bond 1 10 11
+create_bonds single/bond 1 12 13
+create_bonds single/bond 1 13 5
+
+
+
+
+
+
+
+
+

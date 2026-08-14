@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CLOCKTIC_HPP
 #define KOKKOS_CLOCKTIC_HPP
@@ -20,9 +7,6 @@
 #include <Kokkos_Macros.hpp>
 #include <stdint.h>
 #include <chrono>
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-#include <omp.h>
-#endif
 
 // To use OpenCL(TM) built-in intrinsics inside kernels, we have to
 // forward-declare their prototype, also see
@@ -62,10 +46,6 @@ KOKKOS_IMPL_DEVICE_FUNCTION inline uint64_t clock_tic_device() noexcept {
     defined(KOKKOS_ARCH_INTEL_GPU) && defined(__SYCL_DEVICE_ONLY__)
 
   return intel_get_cycle_counter();
-
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-
-  return omp_get_wtime() * 1.e9;
 
 #else
 

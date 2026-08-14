@@ -157,7 +157,7 @@ energy/area/time :doc:`units <units>`
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

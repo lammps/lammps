@@ -31,6 +31,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -568,7 +569,7 @@ int FixBocs::read_F_table(char *filename, int p_basis_type)
   double **data;
   bool badInput = false;
   int numEntries = 0;
-  FILE *fpi = fopen(filename,"r");
+  SafeFilePtr fpi = fopen(filename,"r");
   if (fpi) {
     // Old code read the input file twice. Now we simply
     // read all the lines from the input file into a string vector,
@@ -585,7 +586,6 @@ int FixBocs::read_F_table(char *filename, int p_basis_type)
     char line[MAX_F_TABLE_LINE_LENGTH] = {'\0'};
     std::vector<std::string> inputLines;
     while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) inputLines.emplace_back(line);
-    fclose(fpi);
 
     numEntries = inputLines.size();
     if (comm->me == 0) utils::logmesg(lmp, "INFO: Read {} lines from file\n", numEntries);

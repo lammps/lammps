@@ -1,7 +1,10 @@
 .. index:: pair_style lcbop
+.. index:: pair_style lcbop/omp
 
 pair_style lcbop command
 ========================
+
+Accelerator Variants: *lcbop/omp*
 
 Syntax
 """"""
@@ -71,6 +74,12 @@ script that reads a restart file.
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
 *inner*, *middle*, *outer* keywords.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

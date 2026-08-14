@@ -27,16 +27,28 @@ endif()
 option(DOWNLOAD_KIM "Download KIM-API from OpenKIM instead of using an already installed one" ${DOWNLOAD_KIM_DEFAULT})
 if(DOWNLOAD_KIM)
   message(STATUS "KIM-API download requested - we will build our own")
+  if(NOT KIM-API_FOUND)
+      message(WARNING "KIM-API was not found, and DOWNLOAD_KIM is on, "
+              "so we will download and build our own. "
+              "If you intend to use LAMMPS with a pre-installed KIM-API, "
+              "you may need to set PKG_CONFIG_PATH, or run the command "
+              "'source kim-api-activate', then re-run CMake.")
+  else()
+      message(WARNING "KIM-API was was found, but DOWNLOAD_KIM is on, "
+              "so we will download and build our own. If you intend "
+              "to use LAMMPS with your pre-installed KIM-API, you "
+              "should disable DOWNLOAD_KIM and re-run CMake.")
+  endif()
   include(ExternalProject)
   enable_language(C)
   enable_language(Fortran)
-  set(KIM_URL "https://s3.openkim.org/kim-api/kim-api-2.2.1.txz" CACHE STRING "URL for KIM tarball")
-  set(KIM_MD5 "ae1ddda2ef7017ea07934e519d023dca" CACHE STRING "MD5 checksum of KIM tarball")
+  set(KIM_URL "https://s3.openkim.org/kim-api/kim-api-2.4.2.txz" CACHE STRING "URL for KIM tarball")
+  set(KIM_SHA256 "1710bd6ceaea093062e000d2308719c51cc0a2d2def1bdcb0a03df8ed867b11f" CACHE STRING "SHA256 checksum of KIM tarball")
   mark_as_advanced(KIM_URL)
-  mark_as_advanced(KIM_MD5)
+  mark_as_advanced(KIM_SHA256)
   ExternalProject_Add(kim_build
     URL     ${KIM_URL}
-    URL_MD5 ${KIM_MD5}
+    URL_HASH SHA256=${KIM_SHA256}
     BINARY_DIR build
     CMAKE_ARGS ${CMAKE_REQUEST_PIC}
                -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}

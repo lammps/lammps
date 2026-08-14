@@ -1,0 +1,27 @@
+LAMMPS data file for bondval/vec unit test (5-atom BaTiO3-like unit cell, asymmetric)
+
+5 atoms
+0 bonds
+0 angles
+0 dihedrals
+0 impropers
+3 atom types
+
+0.0 4.0356 xlo xhi
+0.0 4.0356 ylo yhi
+0.0 4.0356 zlo zhi
+
+Masses
+
+1 137.327
+2  47.867
+3  15.999
+
+Atoms # atomic
+
+1 1 0.100000 0.050000 0.080000
+2 2 2.017800 2.117800 2.217800
+3 3 2.217800 2.017800 0.180000
+4 3 2.017800 0.210000 2.117800
+5 3 0.210000 2.317800 2.417800
+

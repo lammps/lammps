@@ -57,34 +57,11 @@ jobs:
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/basic.cmake \
               -C cmake/presets/kokkos-openmp.cmake \
+              -C cmake/presets/kokkos-packages.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
-              -D PKG_AMOEBA=on \
-              -D PKG_ASPHERE=on \
-              -D PKG_BROWNIAN=on \
-              -D PKG_CLASS2=on \
-              -D PKG_COLLOID=on \
-              -D PKG_CORESHELL=on \
-              -D PKG_DIPOLE=on \
-              -D PKG_DPD-BASIC=on \
-              -D PKG_EXTRA-COMPUTE=on \
-              -D PKG_EXTRA-FIX=on \
-              -D PKG_EXTRA-MOLECULE=on \
-              -D PKG_EXTRA-PAIR=on \
-              -D PKG_GRANULAR=on \
-              -D PKG_LEPTON=on \
-              -D PKG_MC=on \
-              -D PKG_MEAM=on \
-              -D PKG_POEMS=on \
-              -D PKG_PYTHON=on \
-              -D PKG_QEQ=on \
-              -D PKG_REAXFF=on \
-              -D PKG_REPLICA=on \
-              -D PKG_SRD=on \
-              -D PKG_SPH=on \
-              -D PKG_VORONOI=on \
               -G Ninja
         cmake --build build
         ccache -s

@@ -1,318 +1,174 @@
-# LAMMPS Copilot Instructions
+# LAMMPS Instructions for AI Coding Agents
+
+This file is the compact, always-loaded core read by GitHub Copilot (coding/cloud agent,
+code review, chat) and, via an import from `.claude/CLAUDE.md`, by Claude Code.  Detailed,
+task-specific guides live in `.github/instructions/` (auto-attached by path patterns) and
+`.github/dev-docs/` (read on demand); see the index at the end of this file.
 
 ## Repository Overview
 
-**LAMMPS** (Large-scale Atomic/Molecular Massively Parallel Simulator) is a classical molecular dynamics simulation code designed for parallel computers. This is a large, mature C++ codebase (~600MB, ~4,000 C++ files in src/) maintained by an international team of developers lead by staff at Sandia National Laboratories as open-source software under GPL v2.
+**LAMMPS** (Large-scale Atomic/Molecular Massively Parallel Simulator) is a classical
+molecular dynamics simulation code for parallel computers: a large, mature C++ code base
+(~600MB, ~4,000 C++ files in `src/`) maintained by an international team of developers led by
+staff at Sandia National Laboratories, open-source under GPL v2.
 
-**Primary Languages:** C++17 (core), C, Fortran, Python (interfaces)
-**Build Systems:** CMake (primary, modern), Make (traditional, still supported)
-**Key Frameworks:** MPI (parallel execution), OpenMP (threading), Kokkos (performance portability)
+**Primary languages:** C++17 (core), C, Fortran, Python (interfaces)
+**Build systems:** CMake (primary), traditional Make (legacy, subset of packages)
+**Key frameworks:** MPI (parallelization), OpenMP (threading), Kokkos (GPU/many-core)
 
-## Build System & Workflow
+## Build System
 
-### CMake Build (Recommended)
+**Always use CMake for new builds; always build out-of-source.**  The `CMakeLists.txt`
+is in `cmake/`, NOT the repository root.
 
-**ALWAYS use CMake for new builds.** The traditional Make system is maintained and only supports a subset of packages. Thus CMake is the primary build system.
-
-**Basic build sequence:**
 ```bash
-# 1. Create build directory (REQUIRED - out-of-source builds only)
-mkdir build
-
-# 2. Configure with CMake
-cmake -S cmake -B build -C cmake/presets/basic.cmake
-
-# 3. Build
+cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake \
+      -D ENABLE_TESTING=on -D DOWNLOAD_POTENTIALS=off -G Ninja
 cmake --build build -j 4
-
-# 4. The executable will be: build/lmp
+# Executable: build/lmp
 ```
 
-**Important CMake details:**
-- CMake configuration files are in `cmake/` directory (NOT at repo root)
-- Use `-S cmake` to specify the source directory (this is NOT standard - most projects use `-S .`)
-- Presets are in `cmake/presets/` - use `-C` to load them
-- Common presets: `basic.cmake`, `gcc.cmake`, `most.cmake`
-- Combine presets: `-C cmake/presets/gcc.cmake -C cmake/presets/most.cmake`
-- Standard CMake options work: `-D BUILD_SHARED_LIBS=on`, `-D ENABLE_TESTING=on`
+- Use `-S cmake` (NOT `-S .`); never run cmake or make in the repository root or `src/`.
+- Presets are in `cmake/presets/` (`basic.cmake`, `gcc.cmake`, `most.cmake`, ...); they
+  can be combined with repeated `-C` options.
+- Enable packages with `-D PKG_<NAME>=on` (e.g. `-D PKG_MOLECULE=on`); LAMMPS has 80+
+  optional packages in `src/<PACKAGE-NAME>/` directories.
+- Use `-D DOWNLOAD_POTENTIALS=off` to avoid network dependence in CI or restricted
+  environments.
+- If MPI is not found, install your distribution's MPI development package or set
+  `-D MPI_CXX_COMPILER=mpicxx` explicitly.  LAMMPS uses its bundled KISS FFT by
+  default; FFTW3 is optional, not required.
+- Build times: basic preset ~3-5 minutes; most packages ~10-15 minutes.
 
-**Typical CI build configuration (from workflows):**
-```bash
-cmake -S cmake -B build \
-      -C cmake/presets/gcc.cmake \
-      -C cmake/presets/most.cmake \
-      -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
-      -D CMAKE_C_COMPILER_LAUNCHER=ccache \
-      -D BUILD_SHARED_LIBS=off \
-      -D DOWNLOAD_POTENTIALS=off \
-      -D ENABLE_TESTING=on \
-      -G Ninja
-cmake --build build
-```
+**Traditional Make (legacy):** `cd src && make serial` (or `make mpi`); the executables
+are `lmp_serial` / `lmp_mpi`.  Enable/disable packages first with `make yes-<package>` /
+`make no-<package>` or preset bundles like `make yes-basic` (MANYBODY, MOLECULE, KSPACE,
+RIGID); `make pi` shows package status.  Packages needing external libraries or
+downloads are CMake-only.
 
-**IMPORTANT:** Use `-D DOWNLOAD_POTENTIALS=off` by default to avoid network dependency issues in CI/restricted environments. Only omit this flag if you specifically need LAMMPS to download potential files during the build.
-
-**Build time:** Basic build: ~3-5 minutes, Full build with most packages: ~10-15 minutes
-
-### Traditional Make Build (Legacy, Still Supported)
-
-```bash
-cd src
-make serial     # Serial build (no MPI)
-make mpi        # MPI parallel build
-# Executable will be: lmp_serial or lmp_mpi
-```
-
-**Available Make targets in src/:**
-- `make serial` or `make mpi` - basic builds
-- Machine-specific makefiles in `src/MAKE/MACHINES/`
-- Options in `src/MAKE/OPTIONS/` for different compiler/feature combinations
-
-### Package Management
-
-LAMMPS has 80+ optional packages. Packages are in `src/[PACKAGE-NAME]/` directories.
-
-**With CMake:** Use `-D PKG_[NAME]=on` (e.g., `-D PKG_MOLECULE=on`, `-D PKG_PYTHON=on`)
-
-**With Make:** Use `make yes-[package]` or `make no-[package]` before building; also
-some presets exist: `make yes-basic` or `make-yes-most`; packages requiring extra libraries
-or downloads are only supported by CMake.
-```bash
-cd src
-make yes-basic      # Enable MANYBODY, MOLECULE, KSPACE, and RIGID packages
-make yes-openmp     # Enable OPENMP package
-make yes-misc       # Enable MISC
-make serial         # Then build
-```
-
-**View package status:** `cd src && make pi` (shows which packages are installed)
+**Switching build systems:** Make -> CMake requires `make -C src purge` first;
+CMake -> Make requires `make -C src clean-all` first.  CMake errors out if it detects
+make-generated header files in `src/`.
 
 ## Testing & Validation
 
-### Unit Tests (via CMake + CTest)
-
+**Style checks (run before every commit/PR):**
 ```bash
-# Configure with testing enabled
-cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake -D ENABLE_TESTING=on -G Ninja
-
-# Build
-cmake --build build
-
-# Run all tests
-cd build && ctest -V
-
-# Note: Tests require the executable to be built first
+cd src && make check            # all checks
+cd src && make check-whitespace # most common CI failure
+cd src && make fix-whitespace   # auto-fix whitespace
+cd src && make fix-permissions  # auto-fix file permissions
 ```
+Further named targets: `make check-homepage` (verifies https://www.lammps.org URLs),
+`make check-errordocs`, `make check-fmtlib`.
 
-**Test organization** (in `unittest/`):
-- `c-library/` - C library interface tests
-- `commands/` - Input command tests
-- `force-styles/` - Pair, bond, angle, kspace style tests
-- `formats/` - File format tests
-- `fortran/` - Fortran module tests
-- `python/` - Python module tests
-- `utils/` - Utility function tests
-
-### Regression Tests
-
+**Unit tests (CTest; requires `-D ENABLE_TESTING=on` and a completed build):**
 ```bash
-# Setup Python environment (REQUIRED)
-python3 -m venv testenv
-source testenv/bin/activate
+cd build && ctest -V                # all tests
+cd build && ctest -V -R <pattern>   # subset by regex
+```
+Tests live in `unittest/` by category: `c-library/`, `commands/`, `force-styles/`,
+`formats/`, `fortran/`, `python/`, `utils/`, `granular/`.
+
+**Regression tests** (CI runs them after code review; local runs rarely needed):
+```bash
+python3 -m venv testenv && source testenv/bin/activate
 pip install numpy pyyaml junit_xml
-
-# Run regression tests
-python3 tools/regression-tests/run_tests.py \
-    --lmp-bin=build/lmp \
-    --config-file=tools/regression-tests/config_quick.yaml \
-    --examples-top-level=examples
+python3 tools/regression-tests/run_tests.py --lmp-bin=build/lmp \
+    --config-file=tools/regression-tests/config_quick.yaml --examples-top-level=examples
 ```
 
-### Style/Coding Standard Checks
+**Documentation build:** `cd doc && make html` must complete without new warnings;
+`make spelling` must not report issues (see the documentation guide in the index below).
 
-**ALWAYS run these before submitting PRs:**
-```bash
-cd src
-make check-whitespace    # Check whitespace/formatting issues
-make check-permissions   # Check file permissions
-make check-homepage      # Verify homepage URLs
-make check-errordocs     # Check error documentation
-make check-fmtlib        # Check fmtlib formatting library
-```
+## Continuous Integration
 
-**To auto-fix issues:**
-```bash
-make fix-whitespace
-make fix-permissions
-```
+GitHub Actions workflows in `.github/workflows/`.  On every PR to `develop`:
+`style-check.yml` (coding standards), `unittest-linux.yml` (CTest), and
+`quick-regression.yml` (regression subset); see that directory for the further
+platform, style, and regression workflows.
 
-**All style checks:**
-```bash
-cd src && make check
-```
+**Debugging CI failures:** style-check -> run the matching `make check-*` target in
+`src/` and the corresponding `make fix-*`; build failures -> check for `-S cmake`,
+package dependencies, and VLA usage; unit tests -> rerun the single test with
+`ctest -V -R <name>`; regression tests -> verify the Python environment and whether
+example inputs were modified.
 
-## GitHub Workflows / CI
+## Repository Structure
 
-The repository uses GitHub Actions for CI with multiple workflows:
+The top-level `LAMMPS` class (`src/lammps.h`) owns pointers to all subsystems (`atom`,
+`force`, `neighbor`, `comm`, `domain`, `modify`, `update`, `output`, `error`, `memory`).
+Almost all physics is implemented as named "styles" inheriting from abstract base
+classes (`Pair`, `Fix`, `Compute`, `Bond`, `Angle`, `Dihedral`, `Improper`, `Command`),
+mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style headers.
 
-**Pull Request Checks (run on all PRs to develop branch):**
-1. **style-check.yml** - Runs coding standard checks (`make check-*` targets in src/)
-2. **quick-regression.yml** - Builds with most packages, runs regression tests on modified code
-3. **unittest-linux.yml** - Builds with LAMMPS_BIGBIG, runs unit tests via CTest
+## Coding Standards
 
-**Additional Checks:**
-- **codeql-analysis.yml** - Security scanning
-- **check-vla.yml** - Checks for variable-length arrays (not allowed)
-- **check-cpp23.yml** - C++23 compatibility check
-- **compile-msvc.yml** - Windows MSVC compilation
-- **full-regression.yml** - Complete regression suite (on push to develop)
+- **C++17**; follow `.clang-format` in `src/`; keep code ASCII-only.
+- **7-bit US-ASCII everywhere** (sources, docs, scripts); Unicode is forbidden
+  (security policy) and fails CI.
+- **No variable-length arrays** (checked by CI); use `memory->create()` or
+  `std::vector`.
+- **No alternative logical-operator tokens:** use `&&`, `||`, `!`, `^` -- never `and`,
+  `or`, `not`, `xor` (breaks MSVC).
+- **Parenthesize each operand of chained `&&`/`||` conditionals** for readability.
+- **No two-trip loops for trivial initialization:** assign pairs directly
+  (`xstyle[0] = xstyle[1] = NONE;`) instead of a `for` loop with only two trivial
+  trips; keep the loop when the body is substantial (unrolling would duplicate code).
+- **String formatting with fmtlib** (`fmt::format()`), not `sprintf`.
+- **Error handling:** `error->all()` when all MPI ranks hit the error, `error->one()`
+  for a single rank; `error->warning()` prints on every rank, so guard with
+  `comm->me == 0` where a single message is wanted.
+- **User-facing text** (error messages, docs) must avoid computer-science jargon;
+  the audience is researchers, not software engineers.
+- **RAII for C resources:** prefer `SafeFilePtr` (`src/safe_pointers.h`) over raw
+  `FILE *`/`fopen` when touching such code.
+- **`delete[]` before `utils::strdup()`:** when storing a copied name (variable,
+  region, group ID, ...) in a class member, always `delete[]` the member immediately
+  before re-assigning it with `utils::strdup()` -- even when it is provably still
+  `nullptr`.  Static analysis (Coverity) flags the bare assignment as a leak, and the
+  idiom is defensive against keywords being parsed twice.
+- **MPI stubs:** if a serial build misses an MPI symbol, add it to `src/STUBS/mpi.h`
+  instead of special-casing the caller.
+- **Block comments:** inside `/* ... */`, an embedded `*/` (e.g. in a glob like
+  `gb_*/ga_*`) silently terminates the comment; reword or use `//` comments.
+- **File permissions:** `.cpp`/`.h` must NOT be executable; `.sh`/`.py` scripts SHOULD
+  be (checked by `make check-permissions`).
+- Root `README` has no extension; subdirectories may use `.md`.
 
-**Workflow dependencies:**
-- Ubuntu latest with `ccache`, `ninja-build`, `libeigen3-dev`, `libcurl4-openssl-dev`, `python3-dev`, `mpi-default-bin`, `mpi-default-dev`
-- Python packages: `numpy`, `pyyaml`, `junit_xml`
-- Build typically uses Ninja generator for speed
+## Adding New Styles
 
-## Key Repository Structure
-
-```
-lammps/
-├── .github/          # GitHub workflows, templates, CodeQL config
-│   ├── workflows/    # CI/CD workflow files (12 workflows)
-│   ├── CONTRIBUTING.md
-│   └── CODEOWNERS
-├── cmake/            # CMake build system (USE -S cmake for CMake!)
-│   ├── CMakeLists.txt          # Main CMake file
-│   ├── presets/                # CMake preset files
-│   ├── Modules/                # CMake modules
-│   └── packaging/              # Packaging scripts
-├── src/              # Source code (~3,777 C++/H files)
-│   ├── main.cpp              # Main entry point
-│   ├── lammps.cpp/h          # Main LAMMPS class
-│   ├── Makefile              # Traditional make system
-│   ├── MAKE/                 # Make configurations
-│   │   ├── Makefile.serial   # Serial build
-│   │   ├── Makefile.mpi      # MPI build
-│   │   ├── OPTIONS/          # Compiler/feature options
-│   │   └── MACHINES/         # Machine-specific configs
-│   ├── [PACKAGE]/            # 80+ optional package directories
-│   │   ├── MOLECULE/         # Molecular systems
-│   │   ├── KSPACE/           # Long-range electrostatics
-│   │   ├── RIGID/            # Rigid body dynamics
-│   │   ├── KOKKOS/           # Kokkos acceleration
-│   │   └── ...
-│   ├── Package.sh            # Package management script
-│   └── .clang-format         # Code formatting rules
-├── unittest/         # Unit test suite (CTest-based)
-├── examples/         # Example input files
-├── bench/            # Benchmark inputs
-├── tools/            # Pre/post-processing tools
-│   ├── coding_standard/      # Style checking scripts
-│   ├── regression-tests/     # Regression test framework
-│   └── ...
-├── doc/              # Documentation source
-├── lib/              # External libraries (colvars, kokkos, etc.)
-├── python/           # Python interface
-├── potentials/       # Potential files
-└── README            # Main readme (not .md!)
-```
-
-## Common Pitfalls & Important Notes
-
-### Build Issues
-
-1. **CMake source directory:** Use `-S cmake` NOT `-S .` (CMakeLists.txt is in cmake/, not root)
-
-2. **Out-of-source builds only:** ALWAYS create a separate build directory. Never build in source tree.
-
-3. **Switching between Make and CMake:** If you previously used `make` to build, you MUST run `make -C src purge` before using CMake. CMake will error if it detects make-generated header files. Similarly, run `make clean-all` in src/ before switching from CMake to Make.
-
-4. **Package dependencies:** Some packages require others. CMake will warn you; check console output.
-
-5. **MPI detection:** If MPI is not found, install `mpi-default-dev` or set `MPI_CXX_COMPILER=mpicxx` explicitly.
-
-6. **FFTW not required:** LAMMPS uses KISS FFT by default. FFTW3 is optional.
-
-### Code Style
-
-1. **All source must be ASCII:** Unicode characters are not allowed (security policy).
-
-2. **Whitespace matters:** Run `make check-whitespace` and `make fix-whitespace` before committing.
-
-3. **Use .clang-format:** Code should follow .clang-format rules in src/.
-
-4. **No VLAs:** Variable-length arrays are not allowed (checked by CI).
-
-5. **Documentation:** All new commands or features must be documented. Put `.. versionadded:: TBD` or
-   `.. versionchanged:: TBD` in front of paragraphs documenting the new or changed functionality.
-   The `TBD` will be manually replaced with the release version string during the release preparation.
-
-### Testing
-
-1. **Build before test:** CTest requires the executable to be built first. If tests fail to find executable, run `cmake --build build` first.
-
-2. **Python environment:** Regression tests require a virtual environment with numpy, pyyaml, junit_xml.
-
-3. **Test selection:** Unit tests are optional packages. Use `-D ENABLE_TESTING=on` with CMake.
-
-### File Permissions & Naming
-
-1. **Source files:** `.cpp` and `.h` files, no executable permission
-2. **Scripts:** `.sh` and `.py` files should have executable permission
-3. **README vs README.md:** Root README has no extension; subdirs may use .md
+1. Place `style_name.cpp`/`.h` in `src/` or the appropriate package directory; use a
+   similar existing style as template (see https://docs.lammps.org/Modify_style.html).
+2. Add new package files to `src/.gitignore`; add renamed/removed file names to
+   `src/Purge.list`.
+3. Create/update the matching `doc/src/*.rst` file; new publicly visible commands and
+   keywords need `.. versionadded:: TBD` (see the documentation guide).
+4. Internal styles (upper-case style names) need no documentation.
 
 ## Development Workflow
 
-1. **Branch:** Work on feature branches, submit PRs to `develop` (NOT `master` or `release`)
-
-2. **Style check first:** Run `cd src && make check` before committing
-
-3. **Build locally:** Test with CMake using gcc.cmake + most.cmake presets to match CI
-
-4. **Test changes:** Run relevant unit tests if touching core code, regression tests if modifying examples
-
-5. **Watch CI:** All PR checks must pass. Review CI logs if failures occur.
-
-6. **Continuous release model:** The `develop` branch is always functional. All changes go through PRs with mandatory CI checks.
-
-## Quick Reference Commands
-
-```bash
-# Standard development build and test cycle
-mkdir build
-cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake -D ENABLE_TESTING=on -D DOWNLOAD_POTENTIALS=off
-cmake --build build -j 4
-cd src && make check  # Style checks
-cd ../build && ctest -V  # Unit tests
-
-# Minimal build for quick testing
-cmake -S cmake -B build -C cmake/presets/basic.cmake
-cmake --build build -j 4
-
-# Add a package
-cmake -S cmake -B build -C cmake/presets/basic.cmake -D PKG_MOLECULE=on
-cmake --build build -j 4
-
-# Traditional make (if needed)
-cd src
-make serial  # or 'make mpi'
-./lmp_serial -in input_file
-
-# Clean everything
-rm -rf build
-cd src && make clean-all
-
-# Switch from Make to CMake (purge make-generated files)
-cd src && make purge
-cd .. && mkdir build && cmake -S cmake -B build -C cmake/presets/basic.cmake
-```
+- Feature branches; PRs target `develop` (NOT `master` or `release`).  The `develop`
+  branch is always kept functional (continuous release model).
+- Run `cd src && make check` before committing; watch CI on the PR.
+- A bug found in any style is rarely alone: styles and their accelerator variants are
+  created by copy-adapt, so defects propagate in both directions.  After root-causing
+  a bug, check the base style, all suffix variants (`/omp`, `/kk`, `/gpu`, `/opt`,
+  `/intel`), and sibling styles cloned from the same template for the same code shape,
+  and fix all occurrences together.
+- The PR template contains a mandatory **AI Tools Usage** section whose default text
+  states no AI was used; when AI tools generated code, edit that section to disclose it
+  honestly.  This section is the ONLY place for AI attribution: do NOT add
+  `Co-Authored-By:`, `Claude-Session:`, `Generated with ...`, or similar AI-attribution
+  trailer lines to commit messages or PR descriptions.  This applies to Claude Code,
+  GitHub Copilot, and any other coding agent alike.
 
 ## Code Review
 
-When performing a code review, apply the general instructions for contributions
-to LAMMPS in https://docs.lammps.org/Modify_requirements.html
-
-When performing a code review, apply the programming style instructions
-for LAMMPS in https://docs.lammps.org/Modify_style.html
+When performing a code review, apply the general instructions for
+contributions to LAMMPS in
+https://docs.lammps.org/Modify_requirements.html and the programming
+style instructions in https://docs.lammps.org/Modify_style.html
 
 When performing a code review, check any changes to the documentation
 (in the `doc/src/` folder) to be written in American English and with
@@ -320,141 +176,85 @@ plain ASCII characters.
 
 When performing a code review, ensure that the documentation for any new
 commands or added keywords to existing commands contains a
-`.. versionadded:: TBD` directive.  For any modified commands or
-keywords a `.. versionchanged:: TBD` directive should be included in the
-documentation. Check if any examples use the new or modified commands
-and check if they need updating.
+`.. versionadded:: TBD` directive.  For completely new commands, the
+`.. versionadded:: TBD` statement should be added after the
+"Description" header.  For new keywords to an existing command, the
+statement should be added before the paragraph introducing the new
+keyword.  For any modified commands or keywords a `.. versionchanged::
+TBD` directive should be included in the documentation.  This does not
+apply to internal commands (style names written in upper case) or when
+the change only adds an accelerated variant of an existing style (then
+add the code letter to the respective `Commands_*.rst` file instead).
+Check if any examples use the new or modified commands and whether they
+need updating.
 
 When reviewing C++ code, ensure that no alternative tokens are used for
-logical operators.  That is, use `&&` instead of `and`, `||` instead of
-`or`, `!` instead of 'not', `^` instead of `xor` and so on.  These
-alternative tokens are only required for ASCII text in some non
-US-English characters sets, but the LAMMPS sources code are *supposed*
-be in US-English 7-bit ASCII.  Using alternative tokens causes
-compilation failures with some compilers by default, most prominently
-Microsoft Visual C++.
+logical operators (`&&` not `and`, `||` not `or`, `!` not `not`, `^` not
+`xor`); alternative tokens cause compilation failures with some
+compilers, most prominently Microsoft Visual C++.
 
-When new files are added to package directories in `src`, make sure
-they are added to the `src/.gitignore` file, so that the copies in
-`src` make by the traditional make build system are not accidentally
-added to the git repository.
+There should not be any printf() statements or fprintf(screen,...) /
+fprintf(logfile,...)  in new code. Those should be either removed or
+replaced by utils::logmesg().  C++ iostreams (std::cout, std::cerr)
+should be replaced by using C-style stdio, if needed using
+utils::print() or use utils::logmesg(); both of which support
+std::format style formatting.  Any output statements that were added
+for the obvious purpose of aiding in debugging should be removed
+entirely.
 
-Whe files are renamed or removed from package directories in `src`,
-make sure the old file names are added the `src/Purge.list` file so
-their copies from the traditional make build system are properly
-removed with "make purge".
+There should not be any new error messages of the error->all(FLERR,
+"Illegal XXX command") kind, instead utils::missing_cmd_args() should be
+used or more specific error messages with the error pointer argument to
+highlight the location of the error as described in
+https://docs.lammps.org/Developer_notes.html#errors-warnings-and-informational-messages
+If needed compare with similar code that has already been fully
+converted to this new style of error messages.  Also note the use of
+utils::errorurl() to directing users to more detailed explanations on
+the https://docs.lammps.org/Errors_details.html page.
 
-## Documentation Changes
+When parsing text files, there should be no use of strtok(), sscanf(),
+atoi(), atof() and similar, but the Tokenizer or ValueTokenizer classes
+be used and - where possible - also on of the file reader classes. For
+converting arguments to numbers, there are also the utils::numeric(),
+utils::inumeric(), utils::bnumeric(), and utils::tnumeric() classes.
+Same as with error messages, there are likely code block that have been
+modernized and are sufficiently similar to serve as an instructive
+example.
 
-When modifying documentation files in `doc/src/`:
+Commented out code that was apparently added for debugging purposes or
+represents disabled features or unused alternative implementations
+should be removed entirely, unless a pull request explicitly explains
+that those are placeholders for future added features.
 
-**Build and validate documentation:**
-```bash
-cd doc
-make html          # Build HTML, check for warnings
-make pdf           # Build PDF (requires pdflatex)
-make spelling      # Check spelling
-make anchor_check  # Check for duplicate anchors
-make style_check   # Verify style lists are complete
-```
+When new files are added to package directories in `src`, make sure they
+are added to the `src/.gitignore` file, so that copies made in `src` by
+the traditional make build are not accidentally committed.  When files
+are renamed or removed in package directories, make sure the old names
+are added to `src/Purge.list` so stale copies are removed by `make
+purge`.
 
-Ensure that building the documentation with "make html" and "make pdf"
-can complete and does *NOT* produce any errors or warnings about sphinx
-or docutils syntax issues or incorrect references.
 
-Also make certain that "make spelling" does not report in any spelling
-issues; those need to be either remedied or exceptions (e.g. for code
-examples or author names of cited references) should be added to the
-file "doc/utils/sphinx-config/false-positives.txt".
+## Task-Specific Guides
 
-**Documentation conventions:**
-- Use reStructuredText format (`.rst` files)
-- Use American English spelling
-- Use ASCII characters only
-- Wrap code examples in `.. code-block::` with appropriate language (LAMMPS, bash, c++, python)
-- Use `.. note::` for important remarks and `.. warning::` for critical warnings
-- New commands require `.. versionadded:: TBD`
-- Modified commands require `.. versionchanged:: TBD`
+Path-scoped instructions in `.github/instructions/` are attached automatically when
+matching files are touched.  The deep dives in `.github/dev-docs/` are NOT loaded
+automatically: read them before starting the corresponding kind of work.
 
-## Debugging CI Failures
-
-When a CI check fails, diagnose using these steps:
-
-**1. Style check failures (`style-check.yml`):**
-```bash
-cd src
-make check-whitespace    # Most common - fix with: make fix-whitespace
-make check-permissions   # Fix with: make fix-permissions
-make check-homepage      # Verify https://www.lammps.org URLs
-make check-errordocs     # Check error documentation
-make check-fmtlib        # Verify fmtlib formatting
-```
-
-**2. Build failures:**
-- Check CMake output for missing dependencies
-- Ensure `-S cmake` (not `-S .`) is used
-- Verify package dependencies are met
-- Check for VLA (variable-length array) usage - not allowed
-
-**3. Unit test failures:**
-- Run specific failing test: `cd build && ctest -V -R <test_name>`
-- Check if test requires specific packages to be enabled
-- Verify the executable was built before running tests
-
-**4. Regression test failures:**
-- Ensure Python environment has numpy, pyyaml, junit_xml
-- Check if example inputs were modified correctly
-
-## Short-Circuit Instructions
-
-**STOP and check these common mistakes:**
-
-1. **Wrong CMake source directory:**
-   - WRONG: `cmake -S . -B build`
-   - CORRECT: `cmake -S cmake -B build`
-
-2. **Building in source tree:**
-   - NEVER run cmake or make in the repository root
-   - ALWAYS create a separate `build/` directory
-
-3. **Mixed build systems:**
-   - If switching from Make to CMake: run `make -C src purge` first
-   - If switching from CMake to Make: run `make -C src clean-all` first
-
-4. **Unicode in source files:**
-   - All source code must be ASCII only
-   - Unicode characters will cause CI to fail
-
-5. **Missing whitespace fixes:**
-   - Always run `cd src && make fix-whitespace` before committing
-
-6. **Incorrect file permissions:**
-   - `.cpp` and `.h` files must NOT be executable
-   - `.sh` and `.py` scripts SHOULD be executable
-
-## Sample Prompts
-
-**Adding a new pair style:**
-> "Create a new pair style called `pair_example` that implements [description]. Follow the pattern in `src/pair_lj_cut.cpp` and add documentation in `doc/src/pair_example.rst`."
-
-**Fixing a bug in a compute:**
-> "Fix bug in `compute_temp.cpp` where [description]. Add a unit test in `unittest/` to prevent regression."
-
-**Adding a new package:**
-> "Create a new package called MYPACKAGE with [features]. Include CMakeLists.txt entries, documentation, and example inputs."
-
-**Updating documentation:**
-> "Update the documentation for `fix_nve.rst` to include the new `keyword` option. Use `.. versionchanged:: TBD` directive."
-
-**Debugging build failure:**
-> "The CI build is failing with [error]. Diagnose and fix the issue."
+| Working on ... | Read |
+|---|---|
+| `src/KOKKOS/` styles (rules, policies) | `.github/instructions/kokkos.instructions.md` (auto) |
+| porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `kokkos-porting-backlog.md` |
+| granular/DEM code or tests | `.github/instructions/granular-tests.instructions.md` (auto) |
+| documentation (`doc/`) | `.github/instructions/documentation.instructions.md` (auto) |
+| force-style YAML tests (`unittest/`) | `.github/instructions/force-style-tests.instructions.md` (auto) |
+| rRESPA support in a fix | `.github/dev-docs/respa-integration.md` |
+| finite-size particles, inertia/angmom | `.github/dev-docs/finite-size-particles.md` |
+| new/changed styles: MPI, restart, buffers | `.github/dev-docs/style-implementation-notes.md` |
+| refactor validation, benchmarks, debugging | `.github/dev-docs/testing-and-verification.md` |
 
 ## Trust These Instructions
 
-These instructions are tested and validated. Only search for additional information if:
-- A specific command fails with an error
-- You need details about a specific package's requirements
-- Instructions appear outdated based on error messages
-- Working with advanced features not covered here (GPU, Kokkos backends, etc.)
-
-For package-specific documentation, build options, and advanced features, refer to https://docs.lammps.org
+These instructions are tested and validated.  Only search for additional information
+if a specific command fails, a package has special requirements, or the instructions
+appear outdated based on error messages.  For package-specific documentation, build
+options, and advanced features, refer to https://docs.lammps.org

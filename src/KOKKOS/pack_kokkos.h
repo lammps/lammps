@@ -67,6 +67,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -121,6 +122,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -176,6 +178,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -229,6 +232,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -286,6 +290,7 @@ public:
       nqty          = plan->nqty         ;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -340,6 +345,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -393,6 +399,7 @@ public:
       nstride_plane = plan->nstride_plane;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);
@@ -448,6 +455,7 @@ public:
       nqty          = plan->nqty         ;
     }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &index) const {
     const int fast = index / (nslow * nmid);

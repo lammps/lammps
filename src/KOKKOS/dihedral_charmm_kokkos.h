@@ -34,6 +34,7 @@ struct s_EVM_FLOAT {
   KK_ACC_FLOAT emol;
   KK_ACC_FLOAT v[6];
   KK_ACC_FLOAT vp[6];
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_EVM_FLOAT() {
           evdwl = 0;
@@ -45,6 +46,7 @@ struct s_EVM_FLOAT {
           vp[3] = 0; vp[4] = 0; vp[5] = 0;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator+=(const s_EVM_FLOAT &rhs) {
     evdwl += rhs.evdwl;
@@ -84,14 +86,17 @@ class DihedralCharmmKokkos : public DihedralCharmm {
   void read_restart(FILE *) override;
 
   template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDihedralCharmmCompute<NEWTON_BOND,EVFLAG>, const int&, EVM_FLOAT&) const;
 
   template<int NEWTON_BOND, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagDihedralCharmmCompute<NEWTON_BOND,EVFLAG>, const int&) const;
 
   //template<int NEWTON_BOND>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EVM_FLOAT &evm, const int i1, const int i2, const int i3, const int i4,
                           KK_FLOAT &edihedral, KK_FLOAT *f1, KK_FLOAT *f3, KK_FLOAT *f4,
@@ -99,6 +104,7 @@ class DihedralCharmmKokkos : public DihedralCharmm {
                           const KK_FLOAT &vb2x, const KK_FLOAT &vb2y, const KK_FLOAT &vb2z,
                           const KK_FLOAT &vb3x, const KK_FLOAT &vb3y, const KK_FLOAT &vb3z) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EVM_FLOAT &evm, const int i, const int j,
         const KK_FLOAT &evdwl, const KK_FLOAT &ecoul, const KK_FLOAT &fpair, const KK_FLOAT &delx,

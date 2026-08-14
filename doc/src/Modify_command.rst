@@ -13,6 +13,9 @@ The command method can perform whatever operations it wishes on LAMMPS
 data structures.  After the command method returns the class instance
 is deleted.
 
+There is a detailed discussion of :doc:`how to write new command styles
+<Developer_write_command>` in LAMMPS.
+
 The method that your new Command class *must* define is as follows:
 
 +---------+-----------------------------------------+

@@ -43,6 +43,7 @@ BondQuartic::BondQuartic(LAMMPS *_lmp) :
 
 BondQuartic::~BondQuartic()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

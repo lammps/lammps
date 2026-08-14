@@ -69,23 +69,6 @@ if(KOKKOS_ENABLE_OPENACC)
     -Wno-unknown-cuda-version
     -Wno-pass-failed
   )
-  compiler_specific_defs(Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG)
-endif()
-
-kokkos_device_option(OPENMPTARGET OFF DEVICE "Whether to build the OpenMP target backend")
-if(KOKKOS_ENABLE_OPENMPTARGET)
-  set(ClangOpenMPFlag -fopenmp=libomp)
-
-  compiler_specific_flags(
-    Clang
-    ${ClangOpenMPFlag}
-    -Wno-openmp-mapping
-    -Wno-unknown-cuda-version
-    -Wno-pass-failed
-    DEFAULT
-    -fopenmp
-  )
-  compiler_specific_defs(Clang KOKKOS_WORKAROUND_OPENMPTARGET_CLANG)
 endif()
 
 if(Trilinos_ENABLE_Kokkos AND TPL_ENABLE_CUDA)
@@ -112,8 +95,5 @@ kokkos_device_option(SYCL OFF DEVICE "Whether to build SYCL backend")
 
 ## SYCL has extra setup requirements, turn on Kokkos_Setup_SYCL.hpp in macros
 if(KOKKOS_ENABLE_SYCL)
-  if(KOKKOS_CXX_STANDARD LESS 17)
-    message(FATAL_ERROR "SYCL backend requires C++17 or newer!")
-  endif()
   list(APPEND DEVICE_SETUP_LIST SYCL)
 endif()

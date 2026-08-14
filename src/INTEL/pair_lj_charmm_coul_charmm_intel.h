@@ -44,14 +44,14 @@ class PairLJCharmmCoulCharmmIntel : public PairLJCharmmCoulCharmm {
 
  private:
   FixIntel *fix;
-  int _cop, _ccache_stride;
+  int _ccache_stride;
 
   template <class flt_t> class ForceConst;
   template <class flt_t, class acc_t>
   void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers,
                const ForceConst<flt_t> &fc);
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
@@ -68,12 +68,12 @@ class PairLJCharmmCoulCharmmIntel : public PairLJCharmmCoulCharmm {
     typename IntelBuffers<flt_t, flt_t>::vec4_t **lj;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr); }
 
-    void set_ntypes(const int ntypes, Memory *memory, const int cop);
+    void set_ntypes(const int ntypes, Memory *memory);
 
    private:
-    int _ntypes, _cop;
+    int _ntypes;
     Memory *_memory;
   };
   ForceConst<float> force_const_single;

@@ -53,6 +53,14 @@ const char *device=0;
 #include "device_cubin.h"
 #endif
 
+// When set, defer the GPU device teardown: clear_device() skips deleting the
+// UCL_Device (which would reset the whole GPU device). This is used only by the
+// unit test harness so the GPU package does not reset a device that the KOKKOS
+// package is also using -- that reset invalidates the KOKKOS device context and
+// crashes at Kokkos::finalize(). The device is reclaimed at process exit.
+// Toggled through lmp_gpu_defer_device_clear().
+static bool lal_defer_device_clear = false;
+
 namespace LAMMPS_AL {
 #define DeviceT Device<numtyp, acctyp>
 
@@ -1048,7 +1056,7 @@ void DeviceT::clear_device() {
     delete dev_program;
     _compiled=false;
   }
-  if (_device_init) {
+  if (_device_init && !lal_defer_device_clear) {
     delete gpu;
     _device_init=false;
   }
@@ -1189,11 +1197,19 @@ bool lmp_gpu_requires_host_neighbor()
 {
   UCL_Device gpu;
 
-#if USE_OPENCL
+#if defined(USE_OPENCL)
+  // AMD GPUs with shared (unified) host/device memory cannot reliably build
+  // neighbor lists on the device with the OpenCL API.
   if (gpu.num_platforms() > 0) {
     auto name = gpu.platform_name();
-    if (name.find("AMD") && gpu.shared_memory(0)) return true;
+    if ((name.find("AMD") != std::string::npos) && gpu.shared_memory(0)) return true;
   }
+#elif defined(USE_HIP)
+  // Integrated AMD GPUs (APUs sharing host memory) cannot reliably build neighbor
+  // lists on the device with the HIP API either: device neighbor builds trigger a
+  // memory access fault (e.g. lj/cut/dipole/cut) or hit the ellipsoid/sphere-mix
+  // restriction (e.g. gayberne). Force host-side neighbor lists, matching OpenCL.
+  if (gpu.num_devices() > 0 && gpu.integrated(0)) return true;
 #endif
 
   return false;
@@ -1222,6 +1238,12 @@ int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
 
 void lmp_clear_device() {
   global_device.clear_device();
+}
+
+// defer (flag != 0) or restore (flag == 0) the GPU device teardown.
+// see the comment on lal_defer_device_clear above. test-harness use only.
+void lmp_gpu_defer_device_clear(int flag) {
+  lal_defer_device_clear = (flag != 0);
 }
 
 double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,

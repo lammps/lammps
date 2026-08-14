@@ -26,6 +26,7 @@
 #include "memory_kokkos.h"
 #include "error.h"
 #include "fix.h"
+#include "safe_pointers.h"
 #include "atom_masks.h"
 #include "neigh_request.h"
 #include "atom_kokkos.h"
@@ -42,9 +43,6 @@
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
 
-static constexpr int MAXLINE = 1024;
-static constexpr int DELTA = 4;
-
 #ifdef DBL_EPSILON
   #define MY_EPSILON (10.0*DBL_EPSILON)
 #else
@@ -53,9 +51,6 @@ static constexpr int DELTA = 4;
 
 #define oneFluidApproxParameter (-1)
 #define isOneFluidApprox(_site) ( (_site) == oneFluidApproxParameter )
-
-#define exp6PotentialType (1)
-#define isExp6PotentialType(_type) ( (_type) == exp6PotentialType )
 
 /* ---------------------------------------------------------------------- */
 
@@ -69,6 +64,8 @@ PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
   datamask_modify = EMPTY_MASK;
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
+
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,10 +80,6 @@ PairExp6rxKokkos<DeviceType>::~PairExp6rxKokkos()
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
 
-  for (int i=0; i < nparams; ++i) {
-    delete[] params[i].name;
-    delete[] params[i].potential;
-  }
   memoryKK->destroy_kokkos(k_params,params);
 
   memoryKK->destroy_kokkos(k_mol2param,mol2param);
@@ -141,6 +134,12 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   uCG = atomKK->k_uCG.view<DeviceType>();
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
+
+  species_ind_to_atom_prop_ind =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind().template view<DeviceType>();
+  species_ind_to_atom_prop_ind_old =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().template view<DeviceType>();
+
   nlocal = atom->nlocal;
   special_lj[0] = force->special_lj[0];
   special_lj[1] = force->special_lj[1];
@@ -348,6 +347,7 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroMixingWeights, const int &i) const {
   PairExp6ParamData.epsilon1[i] = 0.0;
@@ -369,6 +369,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroMixingWeights, co
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxgetMixingWeights, const int &i) const {
   getMixingWeights (i, PairExp6ParamData.epsilon1[i],
@@ -391,6 +392,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxgetMixingWeights, con
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -752,6 +754,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -762,6 +765,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
 
@@ -1132,6 +1136,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 // temporary local short vector arrays for the inner j-loop to increase vectorization.
 
 template<int n>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
 KK_FLOAT __powint(const KK_FLOAT& x, const int)
 {
@@ -1147,6 +1152,7 @@ KK_FLOAT __powint(const KK_FLOAT& x, const int)
 
 template<class DeviceType>
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics, bool OneType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& ev) const
 {
@@ -1598,6 +1604,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
   EV_FLOAT ev;
@@ -1605,6 +1612,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, const int &i) const {
   for (int n = 0; n < nthreads; n++) {
@@ -1617,6 +1625,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, con
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxZeroDupViews, const int &i) const {
   for (int n = 0; n < nthreads; n++) {
@@ -1661,6 +1670,9 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairExp6rx::coeff(narg,arg);
 
+  // rx_fix is initialized by PairExp6rx::coeff().
+  rx_fixKK = FixRxKokkos<DeviceType>::get_rx_fixKK_from_rx_fix(lmp, rx_fix);
+
   if (scalingFlag == POLYNOMIAL)
     for (int i = 0; i < 6; i++) {
       s_coeffAlpha[i] = coeffAlpha[i];
@@ -1676,114 +1688,16 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairExp6rxKokkos<DeviceType>::read_file(char *file)
-{
-  int params_per_line = 5;
-  char **words = new char*[params_per_line+1];
-
-  memoryKK->destroy_kokkos(k_params,params);
+void PairExp6rxKokkos<DeviceType>::initialize_exp6_params_array() {
+  memoryKK->destroy_kokkos(k_params, params);
   params = nullptr;
-  nparams = maxparam = 0;
+}
 
-  // open file on proc 0
-
-  FILE *fp;
-  fp = nullptr;
-  if (comm->me == 0) {
-    fp = utils::open_potential(file,lmp,nullptr);
-    if (fp == nullptr) {
-      char str[128];
-      snprintf(str,128,"Cannot open exp6/rx potential file %s",file);
-      error->one(FLERR,str);
-    }
-  }
-
-  // read each set of params from potential file
-  // one set of params can span multiple lines
-
-  int n,nwords,ispecies;
-  char line[MAXLINE] = {'\0'};
-  char *ptr;
-  int eof = 0;
-
-  while (true) {
-    if (comm->me == 0) {
-      ptr = fgets(line,MAXLINE,fp);
-      if (ptr == nullptr) {
-        eof = 1;
-        fclose(fp);
-      } else n = strlen(line) + 1;
-    }
-    MPI_Bcast(&eof,1,MPI_INT,0,world);
-    if (eof) break;
-    MPI_Bcast(&n,1,MPI_INT,0,world);
-    MPI_Bcast(line,n,MPI_CHAR,0,world);
-
-    // strip comment, skip line if blank
-
-    if ((ptr = strchr(line,'#'))) *ptr = '\0';
-    nwords = utils::count_words(line);
-    if (nwords == 0) continue;
-
-    // concatenate additional lines until have params_per_line words
-
-    while (nwords < params_per_line) {
-      n = strlen(line);
-      if (comm->me == 0) {
-        ptr = fgets(&line[n],MAXLINE-n,fp);
-        if (ptr == nullptr) {
-          eof = 1;
-          fclose(fp);
-        } else n = strlen(line) + 1;
-      }
-      MPI_Bcast(&eof,1,MPI_INT,0,world);
-      if (eof) break;
-      MPI_Bcast(&n,1,MPI_INT,0,world);
-      MPI_Bcast(line,n,MPI_CHAR,0,world);
-      if ((ptr = strchr(line,'#'))) *ptr = '\0';
-      nwords = utils::count_words(line);
-    }
-
-    if (nwords != params_per_line)
-      error->all(FLERR,"Incorrect format in exp6/rx potential file");
-
-    // words = ptrs to all words in line
-
-    nwords = 0;
-    words[nwords++] = strtok(line," \t\n\r\f");
-    while ((words[nwords++] = strtok(nullptr," \t\n\r\f"))) continue;
-
-    for (ispecies = 0; ispecies < nspecies; ispecies++)
-      if (strcmp(words[0],&atom->dvname[ispecies][0]) == 0) break;
-    if (ispecies == nspecies) continue;
-
-    // load up parameter settings and error check their values
-
-    if (nparams == maxparam) {
-      k_params.modify_host();
-      maxparam += DELTA;
-      memoryKK->grow_kokkos(k_params,params,maxparam,
-                          "pair:params");
-    }
-
-    params[nparams].ispecies = ispecies;
-    params[nparams].name = utils::strdup(&atom->dvname[ispecies][0]);
-    params[nparams].potential = utils::strdup(words[1]);
-
-    if (strcmp(params[nparams].potential,"exp6") == 0) {
-      params[nparams].alpha = std::stod(words[2]);
-      params[nparams].epsilon = std::stod(words[3]);
-      params[nparams].rm = std::stod(words[4]);
-      if (params[nparams].epsilon <= 0.0 || params[nparams].rm <= 0.0 ||
-          params[nparams].alpha < 0.0)
-        error->all(FLERR,"Illegal exp6/rx parameters.  Rm and Epsilon must be greater than zero.  Alpha cannot be negative.");
-    } else {
-      error->all(FLERR,"Illegal exp6/rx parameters.  Interaction potential does not exist.");
-    }
-    nparams++;
-  }
-
-  delete [] words;
+template<class DeviceType>
+void PairExp6rxKokkos<DeviceType>::grow_exp6_params_array(int old_size,
+                                                          int new_size) {
+  k_params.modify_host();
+  memoryKK->grow_kokkos(k_params, params, new_size, "pair:params");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1820,6 +1734,7 @@ void PairExp6rxKokkos<DeviceType>::setup()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK_FLOAT &alpha1,KK_FLOAT &rm1, KK_FLOAT &mixWtSite1,KK_FLOAT &epsilon2,KK_FLOAT &alpha2,KK_FLOAT &rm2,KK_FLOAT &mixWtSite2,KK_FLOAT &epsilon1_old,KK_FLOAT &alpha1_old,KK_FLOAT &rm1_old, KK_FLOAT &mixWtSite1old,KK_FLOAT &epsilon2_old,KK_FLOAT &alpha2_old,KK_FLOAT &rm2_old,KK_FLOAT &mixWtSite2old) const
 {
@@ -1854,16 +1769,19 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    nTotal += dvector(ispecies,id);
-    nTotalold += dvector(ispecies+nspecies,id);
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+    nTotal += dvector(atom_ind,id);
+    nTotalold += dvector(atom_ind_old,id);
 
     iparam = d_mol2param[ispecies];
 
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
-      nMoleculesOFAold += dvector(ispecies+nspecies,id);
-      nMoleculesOFA += dvector(ispecies,id);
+      nMoleculesOFAold += dvector(atom_ind_old,id);
+      nMoleculesOFA += dvector(atom_ind,id);
     }
   }
   if (nTotal < MY_EPSILON || nTotalold < MY_EPSILON)
@@ -1874,8 +1792,11 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
   fractionOFA = nMoleculesOFA / nTotal;
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
     iparam = d_mol2param[ispecies];
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == d_params[iparam].ispecies) {
@@ -1887,8 +1808,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       alpha1 = d_params[iparam].alpha;
 
       // Compute the mole fraction of Site1
-      nMoleculesOld1 = dvector(ispecies+nspecies,id);
-      nMolecules1 = dvector(ispecies,id);
+      nMoleculesOld1 = dvector(atom_ind_old,id);
+      nMolecules1 = dvector(atom_ind,id);
       fractionOld1 = nMoleculesOld1/nTotalold;
       fraction1 = nMolecules1/nTotal;
     }
@@ -1903,9 +1824,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       alpha2 = d_params[iparam].alpha;
 
       // Compute the mole fraction of Site2
-      nMoleculesOld2 = dvector(ispecies+nspecies,id);
-      nMolecules2 = dvector(ispecies,id);
-      fractionOld2 = dvector(ispecies+nspecies,id)/nTotalold;
+      nMoleculesOld2 = dvector(atom_ind_old,id);
+      nMolecules2 = dvector(atom_ind,id);
+      fractionOld2 = dvector(atom_ind_old,id)/nTotalold;
       fraction2 = nMolecules2/nTotal;
     }
 
@@ -1916,21 +1837,24 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       epsiloni = d_params[iparam].epsilon;
       alphai = d_params[iparam].alpha;
       if (nMoleculesOFA<MY_EPSILON) xMolei = 0.0;
-      else xMolei = dvector(ispecies,id)/nMoleculesOFA;
+      else xMolei = dvector(atom_ind,id)/nMoleculesOFA;
       if (nMoleculesOFAold<MY_EPSILON) xMolei_old = 0.0;
-      else xMolei_old = dvector(ispecies+nspecies,id)/nMoleculesOFAold;
+      else xMolei_old = dvector(atom_ind_old,id)/nMoleculesOFAold;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
+        const auto atom_ind_inner = species_ind_to_atom_prop_ind(jspecies);
+        const auto atom_ind_old_inner = species_ind_to_atom_prop_ind_old(jspecies);
+
         jparam = d_mol2param[jspecies];
-        if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
+        if (jparam < 0 || d_params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
         rmj = d_params[jparam].rm;
         epsilonj = d_params[jparam].epsilon;
         alphaj = d_params[jparam].alpha;
         if (nMoleculesOFA<MY_EPSILON) xMolej = 0.0;
-        else xMolej = dvector(jspecies,id)/nMoleculesOFA;
+        else xMolej = dvector(atom_ind_inner,id)/nMoleculesOFA;
         if (nMoleculesOFAold<MY_EPSILON) xMolej_old = 0.0;
-        else xMolej_old = dvector(jspecies+nspecies,id)/nMoleculesOFAold;
+        else xMolej_old = dvector(atom_ind_old_inner,id)/nMoleculesOFAold;
 
         rmij = (rmi+rmj)/2.0;
         rm3ij = rmij*rmij*rmij;
@@ -2095,7 +2019,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 #ifndef LMP_KOKKOS_GPU
 template<class DeviceType>
   template<class ArrayT>
-void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,
+void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int &errorFlag,
                           ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
 {
   ArrayT epsilon          = PairExp6ParamDataVect.epsilon         ;
@@ -2158,18 +2082,21 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++)
   {
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
     #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
     #pragma ivdep
     #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
-      nTotal[id] += dvector(ispecies,id);
-      nTotalold[id] += dvector(ispecies+nspecies,id);
+      nTotal[id] += dvector(atom_ind,id);
+      nTotalold[id] += dvector(atom_ind_old,id);
     }
 
     const int iparam = d_mol2param[ispecies];
 
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
 
@@ -2178,8 +2105,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
-        nMoleculesOFAold[id] += dvector(ispecies+nspecies,id);
-        nMoleculesOFA[id] += dvector(ispecies,id);
+        nMoleculesOFAold[id] += dvector(atom_ind_old,id);
+        nMoleculesOFA[id] += dvector(atom_ind,id);
       }
     }
   }
@@ -2199,8 +2126,11 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   }
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
     const int iparam = d_mol2param[ispecies];
-    if (iparam < 0 || d_params[iparam].potentialType != exp6PotentialType ) continue;
+    if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == d_params[iparam].ispecies)
@@ -2218,8 +2148,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         alpha1[id] = d_params[iparam].alpha;
 
         // Compute the mole fraction of Site1
-        nMoleculesOld1[id] = dvector(ispecies+nspecies,id);
-        nMolecules1[id] = dvector(ispecies,id);
+        nMoleculesOld1[id] = dvector(atom_ind_old,id);
+        nMolecules1[id] = dvector(atom_ind,id);
         fractionOld1[id] = nMoleculesOld1[id]/nTotalold[id];
         fraction1[id] = nMolecules1[id]/nTotal[id];
       }
@@ -2241,8 +2171,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         alpha2[id] = d_params[iparam].alpha;
 
         // Compute the mole fraction of Site2
-        nMoleculesOld2[id] = dvector(ispecies+nspecies,id);
-        nMolecules2[id] = dvector(ispecies,id);
+        nMoleculesOld2[id] = dvector(atom_ind_old,id);
+        nMolecules2[id] = dvector(atom_ind,id);
         fractionOld2[id] = nMoleculesOld2[id]/nTotalold[id];
         fraction2[id] = nMolecules2[id]/nTotal[id];
       }
@@ -2262,14 +2192,17 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       for (int id = idx_begin; id < idx_end; ++id)
       {
         if (nMoleculesOFA[id]<MY_EPSILON) xMolei[id] = 0.0;
-        else xMolei[id] = dvector(ispecies,id)/nMoleculesOFA[id];
+        else xMolei[id] = dvector(atom_ind,id)/nMoleculesOFA[id];
         if (nMoleculesOFAold[id]<MY_EPSILON) xMolei_old[id] = 0.0;
-        else xMolei_old[id] = dvector(ispecies+nspecies,id)/nMoleculesOFAold[id];
+        else xMolei_old[id] = dvector(atom_ind_old,id)/nMoleculesOFAold[id];
       }
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
+        const auto atom_ind_inner = species_ind_to_atom_prop_ind(jspecies);
+        const auto atom_ind_old_inner = species_ind_to_atom_prop_ind_old(jspecies);
+
         const int jparam = d_mol2param[jspecies];
-        if (jparam < 0 || d_params[jparam].potentialType != exp6PotentialType ) continue;
+        if (jparam < 0 || d_params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
 
         const KK_FLOAT rmj = d_params[jparam].rm;
@@ -2288,9 +2221,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         {
           KK_FLOAT xMolej, xMolej_old;
           if (nMoleculesOFA[id]<MY_EPSILON) xMolej = 0.0;
-          else xMolej = dvector(jspecies,id)/nMoleculesOFA[id];
+          else xMolej = dvector(atom_ind_inner,id)/nMoleculesOFA[id];
           if (nMoleculesOFAold[id]<MY_EPSILON) xMolej_old = 0.0;
-          else xMolej_old = dvector(jspecies+nspecies,id)/nMoleculesOFAold[id];
+          else xMolej_old = dvector(atom_ind_old_inner,id)/nMoleculesOFAold[id];
 
           if (fractionOFAold[id] > 0.0) {
             rm3_old[id] += xMolei_old[id]*xMolej_old*rm3ij;
@@ -2476,6 +2409,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::exponentScaling(KK_FLOAT phi, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
@@ -2501,6 +2435,7 @@ void PairExp6rxKokkos<DeviceType>::exponentScaling(KK_FLOAT phi, KK_FLOAT &epsil
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::polynomialScaling(KK_FLOAT phi, KK_FLOAT &alpha, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
@@ -2517,6 +2452,7 @@ void PairExp6rxKokkos<DeviceType>::polynomialScaling(KK_FLOAT phi, KK_FLOAT &alp
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairExp6rxKokkos<DeviceType>::func_rin(const KK_FLOAT &alpha) const
 {
@@ -2534,6 +2470,7 @@ KK_FLOAT PairExp6rxKokkos<DeviceType>::func_rin(const KK_FLOAT &alpha) const
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairExp6rxKokkos<DeviceType>::expValue(KK_FLOAT value) const
 {
@@ -2548,6 +2485,7 @@ KK_FLOAT PairExp6rxKokkos<DeviceType>::expValue(KK_FLOAT value) const
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
@@ -2641,6 +2579,7 @@ void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int PairExp6rxKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;

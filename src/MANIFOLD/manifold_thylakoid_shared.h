@@ -17,9 +17,9 @@
 #include "lmptype.h"
 #include <vector>
 
-namespace LAMMPS_NS {
 
-namespace user_manifold {
+
+namespace LAMMPS_NS::user_manifold {
 
   // The thylakoid is composed of many parts
   struct thyla_part {
@@ -61,8 +61,8 @@ namespace user_manifold {
 
   };    // struct thyla_part_geom
 
-}    // namespace user_manifold
+} // namespace LAMMPS_NS::user_manifold
 
-}    // namespace LAMMPS_NS
+
 
 #endif    // MANIFOLD_THYLAKOID_SHARED_H

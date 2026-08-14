@@ -1,0 +1,44 @@
+# 5 Bead Chain molecule File
+
+#header section:
+4 atoms
+3 bonds
+2 angles
+1 dihedrals
+
+#body section:
+Coords
+
+  1 1.1 1.1 1.1
+  2 1.1 1.1 4.1
+  3 1.1 4.1 4.1
+  4 1.1 4.1 7.1
+
+Types 
+
+1  1
+2  2
+3  3
+4  4
+
+Charges
+
+1  0
+2  0
+3  0
+4  0
+
+Bonds
+
+  1 1 1 2
+  2 1 2 3
+  3 1 3 4
+
+Angles
+
+  1 1 1 2 3
+  2 1 2 3 4
+
+Dihedrals
+
+  1 1 1 2 3 4

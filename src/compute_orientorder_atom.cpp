@@ -53,9 +53,9 @@ static constexpr double QEPSILON = 1.0e-6;
 /* ---------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), qlist(nullptr), qnormfac(nullptr), qnormfac2(nullptr), distsq(nullptr),
-    nearest(nullptr), rlist(nullptr), qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr),
-    w3jlist(nullptr)
+    Compute(lmp, narg, arg), qlist(nullptr), qnormfac(nullptr), qnormfac2(nullptr), list(nullptr),
+    distsq(nullptr), nearest(nullptr), rlist(nullptr), qnarray(nullptr), qnm_r(nullptr),
+    qnm_i(nullptr), w3jlist(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute orientorder/atom command");
 
@@ -307,7 +307,7 @@ void ComputeOrientOrderAtom::compute_peratom()
         ncount = nnn;
       }
 
-      calc_boop(rlist, ncount, qn, qlist, nqlist);
+      calc_boop(rlist, ncount, qn, qlist, nqlist, qnm_r, qnm_i);
     }
   }
 }
@@ -417,7 +417,7 @@ void ComputeOrientOrderAtom::select3(int k, int n, double *arr, int *iarr, doubl
 ------------------------------------------------------------------------- */
 
 void ComputeOrientOrderAtom::calc_boop(double **rlist, int ncount, double qn[], int qlist[],
-                                       int nqlist)
+                                       int nqlist, double **qnm_r, double **qnm_i)
 {
 
   for (int il = 0; il < nqlist; il++) {

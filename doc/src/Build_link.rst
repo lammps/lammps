@@ -128,7 +128,7 @@ POEMS package installed becomes:
 
       .. code-block:: bash
 
-         gcc -c -O -I${HOME}/lammps/src -caller.c
+         gcc -c -O -I${HOME}/lammps/src caller.c
          g++ -o caller caller.o -L${HOME}/lammps/src -llammps_serial
 
 Locating liblammps.so at runtime
@@ -156,7 +156,7 @@ would add something like this to your ``${HOME}/.profile`` file:
 
 .. code-block:: bash
 
-   LD_LIBRARY_PATH ${LD_LIBRARY_PATH-/usr/lib64}:${HOME}/lammps/src
+   LD_LIBRARY_PATH=${LD_LIBRARY_PATH-/usr/lib64}:${HOME}/lammps/src
    export LD_LIBRARY_PATH
 
 For the csh or tcsh shells, you would equivalently add something like this

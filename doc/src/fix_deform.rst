@@ -44,7 +44,7 @@ Syntax
              v_name2 = variable with name2 for change rate as function of time
 
        *xy*, *xz*, *yz* args = style value
-         style = *final* or *delta* or *vel* or *erate* or *trate* or *wiggle* or *variable*
+         style = *final* or *delta* or *vel* or *erate* or *erate/rescale* or *trate* or *wiggle* or *variable*
            *final* value = tilt
              tilt = tilt factor at end of run (distance units)
            *delta* value = dtilt
@@ -53,6 +53,8 @@ Syntax
              V = change tilt factor at this velocity (distance/time units),
                  effectively an engineering shear strain rate
            *erate* value = R
+             R = engineering shear strain rate (1/time units)
+           *erate/rescale* value = R
              R = engineering shear strain rate (1/time units)
            *trate* value = R
              R = true shear strain rate (1/time units)
@@ -130,6 +132,13 @@ commands <fix_nh_uef>`.
    1\,048\,575`
 
 ----------
+
+For N > 0, the box is updated at the end of the time step every N
+steps. For N = 0, the box is updated immediately after position updates
+on every time step. The latter is required for accurate NEMD simulations
+with :doc:`fix nvt/sllod <fix_nvt_sllod>`, but is not compatible with the
+*variable* style.  Note, if using N = 0 with :doc:`run_style <run_style>`
+"respa" the box will be updated in the inner loop.
 
 For the *x*, *y*, *z* parameters, the associated dimension cannot be
 shrink-wrapped.  For the *xy*, *yz*, *xz* parameters, the associated
@@ -382,6 +391,57 @@ original y box length.  R = 1 or 2 means the tilt factor will increase
 by 1 or 2 every picosecond.  R = -0.01 means a decrease in shear
 strain by 0.01 every picosecond.
 
+.. versionchanged:: 11Feb2026
+
+The *erate/rescale* style operates similarly to the *erate* style with
+a specified strain rate in units of 1/time. The difference is that
+the change in the tilt factor will depend on the current length of
+the box perpendicular to the shear direction, *L*, instead of the
+original length, *L0*.  It will also account for the effects of elongation
+and shearing in other directions, with evolution as follows.
+The xy and yz tilt factors, :math:`T_{\alpha \beta}`, will evolve according to
+
+.. math::
+
+   \frac{d T_{\alpha\beta}(t)}{dt} = L_{\beta} \cdot \mathrm{erate} + \frac{1}{L_{\alpha}} \cdot \frac{d L_{\alpha}(t)}{dt} \cdot T_{\alpha\beta}(t)
+
+where :math:`\alpha` and :math:`\beta` denote the two directions
+(e.g. x and y, or y and z).
+The xz tilt factor has an additional term which accounts for xy shear
+with yz tilt, and evolves as
+
+.. math::
+
+   \frac{d T_{xz}(t)}{dt} = L_z \cdot \mathrm{erate} + \frac{1}{L_x} \cdot \frac{d L_x(t)}{dt} \cdot T_{xz}(t) + \frac{1}{L_y} \cdot \frac{d T_{xy}(t)}{dt} \cdot T_{yz}(t)
+
+If xy is also *erate/rescale*, then :math:`\frac{d T_{xy}(t)}{dt}`
+is calculated as the first term on the RHS of the previous equation
+so that it is equal to :math:`\mathrm{erate}_{xy}`.
+With x/y/z = *trate* and xy/xz/yz = *erate/rescale*, this is equivalent
+to evolving the lattice vectors, :math:`\mathbf{v} \in \{\mathbf{a}, \mathbf{b}, \mathbf{c}\}`,
+according to
+
+.. math::
+
+   \frac{d \mathbf{v}(t)}{dt} = \mathbf{v}(t) \cdot \nabla \mathbf{u}
+
+where :math:`\nabla\mathbf{u}` is the flow tensor which remains constant
+and is given by
+
+.. math::
+
+   \nabla\mathbf{u} = \left[\begin{array}{ccc}\mathrm{trate}_x & 0 & 0 \\ \mathrm{erate}_{xy} & \mathrm{trate}_y & 0 \\ \mathrm{erate}_{xz} & \mathrm{erate}_{yz} & \mathrm{trate}_z\end{array}\right]
+
+The tilt factors are integrated in two half-steps before and
+after any changes to the x, y and z lengths, with the first half-step
+taking the order xz, yz, xy and the second half-step taking the
+reverse order so that the full step is reversible.  This option may be
+useful in scenarios where *L* changes in time.  It is required by
+:doc:`fix nvt/sllod <fix_nvt_sllod>` in such cases for calculating
+viscosity of mixed flows.  Note, under mixed xy and yz shear, the xz
+component can be set to use the *erate/rescale* style with a value
+of zero in order to maintain a constant :math:`\nabla\mathbf{u}`.
+
 The *trate* style changes a tilt factor at a "constant true shear
 strain rate".  Note that this is not an "engineering shear strain
 rate", as the other styles are.  Rather, for a "true" rate, the rate
@@ -533,13 +593,15 @@ box without explicit remapping of their coordinates.
 
    When non-equilibrium MD (NEMD) simulations are performed using
    this fix, the option "remap v" should normally be used.  This is
-   because :doc:`fix nvt/sllod <fix_nvt_sllod>` adjusts the atom positions
-   and velocities to induce a velocity profile that matches the changing
-   box size/shape.  Thus atom coordinates should NOT be remapped by fix
-   deform, but velocities SHOULD be when atoms cross periodic boundaries,
-   since that is consistent with maintaining the velocity profile already
-   created by fix nvt/sllod.  LAMMPS will warn you if the *remap* setting
-   is not consistent with fix nvt/sllod.
+   because :doc:`fix nvt/sllod <fix_nvt_sllod>` with the "peculiar no"
+   option (the default) adjusts the atom positions and velocities to
+   induce a velocity profile that matches the changing box size/shape.
+   Thus atom coordinates should NOT be remapped by fix deform, but
+   velocities SHOULD be when atoms cross periodic boundaries, since
+   that is consistent with maintaining the velocity profile already
+   created by fix nvt/sllod.  If fix nvt/sllod uses "peculiar yes"
+   then fix deform should use "remap none".  LAMMPS will warn you
+   if the *remap* setting is not consistent with fix nvt/sllod.
 
 .. note::
 
@@ -563,7 +625,15 @@ box without explicit remapping of their coordinates.
    initial velocity profile, via the :doc:`velocity ramp <velocity>`
    command, that matches the box deformation rate.  This also
    typically helps the system come to equilibrium more quickly, even
-   if a thermostat is used.
+   if a thermostat is used.  In some cases, a convenient way to induce
+   the correct streaming velocity is with the *kick* = yes option of
+   :doc:`fix nvt/sllod <fix_nvt_sllod>`, which superimposes the initial
+   velocity profile such that the velocity added to a particle at the
+   corner of the box will be the same as the velocity of that corner.
+   This ensures the flow is consistent with the box deformation and
+   crossing of periodic boundaries is minimized, but is not compatible
+   with all deformation styles. See :doc:`fix nvt/sllod <fix_nvt_sllod>`
+   for details.
 
 .. note::
 

@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <sstream>
 #include <iostream>
 
@@ -36,6 +28,11 @@ struct NestedView {
     if (member.extent(0)) Kokkos::atomic_add(&member(0), 1);
     return *this;
   }
+
+  KOKKOS_DEFAULTED_FUNCTION NestedView(const NestedView &)            = default;
+  KOKKOS_DEFAULTED_FUNCTION NestedView(NestedView &&)                 = default;
+  KOKKOS_DEFAULTED_FUNCTION NestedView &operator=(const NestedView &) = default;
+  KOKKOS_DEFAULTED_FUNCTION NestedView &operator=(NestedView &&)      = default;
 
   KOKKOS_INLINE_FUNCTION
   ~NestedView() {
@@ -62,7 +59,7 @@ template <class Space>
 void view_nested_view() {
   Kokkos::View<int *, Space> tracking("tracking", 1);
 
-  typename Kokkos::View<int *, Space>::HostMirror host_tracking =
+  typename Kokkos::View<int *, Space>::host_mirror_type host_tracking =
       Kokkos::create_mirror(tracking);
 
   {

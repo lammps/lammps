@@ -736,11 +736,6 @@ This command is part of the PYTHON package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-Building LAMMPS with the PYTHON package will link LAMMPS with the Python
-library on your system.  Settings to enable this are in the
-lib/python/Makefile.lammps file.  See the lib/python/README file for
-information on those settings.
-
 If you use Python code which calls back to LAMMPS, via the SELF input
 argument explained above, there is an extra step required when building
 LAMMPS.  LAMMPS must also be built as a shared library and your Python

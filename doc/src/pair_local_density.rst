@@ -1,7 +1,10 @@
 .. index:: pair_style local/density
+.. index:: pair_style local/density/omp
 
 pair_style local/density command
 ================================
+
+Accelerator Variants: *local/density/omp*
 
 Syntax
 """"""
@@ -198,6 +201,10 @@ and potential.  In general, blank lines anywhere are ignored.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 This pair style does not support automatic mixing. For atom type pairs
@@ -240,9 +247,9 @@ none
 
 .. _Sanyal1:
 
-.. _Sanyal2:
-
 **(Sanyal1)** Sanyal and Shell, Journal of Chemical Physics, 2016, 145 (3), 034109.
+
+.. _Sanyal2:
 
 **(Sanyal2)** Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 

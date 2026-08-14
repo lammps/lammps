@@ -114,7 +114,7 @@ class Atom : protected Pointers {
 
   // PERI package
 
-  double *vfrac, *s0;
+  double *vfrac, *s0, *smin;
   double **x0;
 
   // SPIN package
@@ -128,14 +128,14 @@ class Atom : protected Pointers {
 
   // CG-DNA package
 
-  tagint *id5p;
+  tagint *id3p, *id5p;
+  double *qeff;
 
   // DPD-REACT package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
   double *duChem;
   double *dpdTheta;
-  int nspecies_dpd;
 
   // MESO package
 
@@ -191,7 +191,7 @@ class Atom : protected Pointers {
   // 1 if variable is used, 0 if not
 
   int labelmapflag, types_style;
-  int ellipsoid_flag, line_flag, tri_flag, body_flag;
+  int ellipsoid_flag, line_flag, tri_flag, body_flag, superellipsoid_flag;
   int peri_flag, electron_flag, sph_flag;
 
   int molecule_flag, molindex_flag, molatom_flag;
@@ -331,7 +331,7 @@ class Atom : protected Pointers {
   void setup();
 
   std::string get_style();
-  AtomVec *style_match(const char *);
+  AtomVec *style_match(const std::string &);
   void modify_params(int, char **);
   void tag_check();
   void tag_extend();
@@ -383,7 +383,7 @@ class Atom : protected Pointers {
   virtual int add_custom(const char *, int, int, int ghost = 0);
   virtual void remove_custom(int, int, int);
 
-  void *extract(const char *);
+  virtual void *extract(const char *);
   int extract_datatype(const char *);
   int extract_size(const char *, int);
 

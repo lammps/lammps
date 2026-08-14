@@ -40,6 +40,7 @@ class ComputeOmegaChunk : public ComputeChunk {
   double **angmom, **angmomall;
   double **omega;
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

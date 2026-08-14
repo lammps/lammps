@@ -44,6 +44,7 @@ class ComputeMSDChunk : public ComputeChunk {
   double **com, **comall;
   double **msd;
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

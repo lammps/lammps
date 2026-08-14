@@ -59,7 +59,9 @@ gives those details.
    * :ref:`EXTRA-PAIR <PKG-EXTRA-PAIR>`
    * :ref:`FEP <PKG-FEP>`
    * :ref:`GPU <PKG-GPU>`
+   * :ref:`GRAPHICS <PKG-GRAPHICS>`
    * :ref:`GRANULAR <PKG-GRANULAR>`
+   * :ref:`GRANSURF <PKG-GRANSURF>`
    * :ref:`H5MD <PKG-H5MD>`
    * :ref:`INTEL <PKG-INTEL>`
    * :ref:`INTERLAYER <PKG-INTERLAYER>`
@@ -71,6 +73,7 @@ gives those details.
    * :ref:`MACHDYN <PKG-MACHDYN>`
    * :ref:`MANIFOLD <PKG-MANIFOLD>`
    * :ref:`MANYBODY <PKG-MANYBODY>`
+   * :ref:`MBX <PKG-MBX>`
    * :ref:`MC <PKG-MC>`
    * :ref:`MDI <PKG-MDI>`
    * :ref:`MEAM <PKG-MEAM>`
@@ -82,7 +85,7 @@ gives those details.
    * :ref:`ML-PACE <PKG-ML-PACE>`
    * :ref:`ML-POD <PKG-ML-POD>`
    * :ref:`ML-QUIP <PKG-ML-QUIP>`
-   * :ref:`ML-RANN <PKG-ML-RANN>`
+   * :ref:`ML-RUNNER <PKG-ML-RUNNER>`
    * :ref:`ML-SNAP <PKG-ML-SNAP>`
    * :ref:`ML-UF3 <PKG-ML-UF3>`
    * :ref:`MOFFF <PKG-MOFFF>`
@@ -115,7 +118,6 @@ gives those details.
    * :ref:`TALLY <PKG-TALLY>`
    * :ref:`UEF <PKG-UEF>`
    * :ref:`VORONOI <PKG-VORONOI>`
-   * :ref:`VTK <PKG-VTK>`
    * :ref:`YAFF <PKG-YAFF>`
 
 ----------
@@ -198,6 +200,10 @@ D. Immel, R. Drautz and G. Sutmann, "Adaptive-precision potentials for
 large-scale atomistic simulations", J. Chem. Phys. 162, 114119 (2025)
 `link <immel2025_doi_>`_
 
+D. Immel, R. Drautz and G. Sutmann, "Conservative adaptive-precision
+interatomic potentials", arXiv:2512.07693
+`link <immel2026_doi_>`_
+
 Adaptive-precision means, that a fast interatomic potential, such as EAM,
 is coupled to a precise interatomic potential, such as ACE.
 This package provides the required pair_styles and fixes to run an efficient,
@@ -207,6 +213,7 @@ In the context of this package, precision refers to the accuracy of an interatom
 potential.
 
 .. _immel2025_doi: https://doi.org/10.1063/5.0245877
+.. _immel2026_doi: https://doi.org/10.48550/arXiv.2512.07693
 
 **Authors:**
 
@@ -230,6 +237,7 @@ The APIP package requires also the installation of ML-PACE, which has
 * ``examples/PACKAGES/apip``
 * :doc:`fix atom_weight/apip <fix_atom_weight_apip>`
 * :doc:`fix lambda/apip <fix_lambda_apip>`
+* :doc:`fix lambda/la/csp/apip <fix_lambda_la_csp_apip>`
 * :doc:`fix lambda_thermostat/apip <fix_lambda_thermostat_apip>`
 * :doc:`pair_style eam/apip <pair_eam_apip>`
 * :doc:`pair_style lambda/zone/apip <pair_lambda_zone_apip>`
@@ -245,8 +253,8 @@ ASPHERE package
 
 **Contents:**
 
-Computes, time-integration fixes, and pair styles for aspherical
-particle models including ellipsoids, 2d lines, and 3d triangles.
+Computes, time-integration fixes, and pair styles for aspherical particle models
+including ellipsoids, granular superellipsoids, 2d lines, and 3d triangles.
 
 **Supporting info:**
 
@@ -255,12 +263,15 @@ particle models including ellipsoids, 2d lines, and 3d triangles.
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
 * :doc:`pair_style ylz <pair_ylz>`
+* :doc:`pair_style line/lj <pair_line_lj>`
+* :doc:`pair_style tri/lj <pair_tri_lj>`
+* :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
 * `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
 * `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * ``examples/ASPHERE``
 * ``examples/ellipse``
-* https://www.lammps.org/movies.html#line
-* https://www.lammps.org/movies.html#tri
+* https://www.lammps.org/examples/line/
+* https://www.lammps.org/examples/tri/
 
 ----------
 
@@ -279,12 +290,46 @@ N. J. H. Dunn and W. G. Noid, "Bottom-up coarse-grained models that
 accurately describe the structure, pressure, and compressibility of
 molecular liquids", J. Chem. Phys. 143, 243148 (2015).
 
-**Authors:** Nicholas J. H. Dunn and Michael R. DeLyser (The
-Pennsylvania State University)
+The package also includes a pair_style that flexibly defines interactions
+as a function of the local density and/or gradient of the local density
+around a central particle.  Its per-atom local-density data can be written
+out with :doc:`fix pair <fix_pair>` in a form that is compatible with the
+Bottom-up Open-source Coarse-graining Software (BOCS), an external
+coarse-graining package that can be used to parameterize such potentials
+from atomistic simulation data (see link below).
+
+The package is compatible with molecular topologies, allows the user to
+specify the length-scale and weighting functions for multiple types of
+local densities, and distinguishes asymmetric local density potentials.
+(e.g. distinct potentials can govern 1.) solute density around solvent
+molecules and 2.) solvent density around solute molecules)
+
+The local density potentials implemented define "local density" flexibly
+with different choices of indicator weighting functions and asymmetry in
+interactions as generically described in: Michael R. DeLyser
+and W. G. Noid (2019). "Analysis of local density potentials" The
+Journal of Chemical Physics 151, : 224106 DOI: 10.1063/1.5128665
+
+The square gradient potential implementation is described in:
+Michael R. DeLyser and W. G. Noid (2021) "Coarse-grained models for
+local density gradients" The Journal of Chemical Physics, 156, 034106
+DOI: 10.1063/5.0075291
+
+
+**Authors:**
+- Nicholas J. H. Dunn and Michael R. DeLyser (The Pennsylvania State University) for :doc:`fix bocs <fix_bocs>`
+-  Michael R. DeLyser, Maria Lesniewski and Will Noid (The Pennsylvania State University) for :doc:`pair_style ldd <pair_ldd>`
 
 **Supporting info:**
 
-The BOCS package for LAMMPS is part of the BOCS software package:
+* ``src/BOCS``: filenames -> commands
+* ``src/BOCS/README``
+* ``examples/PACKAGES/bocs``
+*  :doc:`fix bocs <fix_bocs>`
+* :doc:`Howto_ldd <Howto_ldd>`
+* :doc:`pair_style ldd <pair_ldd>`
+
+The BOCS package in LAMMPS is part of the BOCS software package:
 `https://github.com/noid-group/BOCS <https://github.com/noid-group/BOCS>`_
 
 See the following reference for information about the entire package:
@@ -345,7 +390,7 @@ models for mesoscale simulations of solids and fracture.  See the
 * :doc:`compute nbond/atom <compute_nbond_atom>`
 * :doc:`fix nve/bpm/sphere <fix_nve_bpm_sphere>`
 * :doc:`pair_style bpm/spring <pair_bpm_spring>`
-* https://www.lammps.org/movies.html#bpmpackage
+* https://www.lammps.org/gallery/bpmpackage/
 * ``examples/bpm``
 
 ----------
@@ -357,14 +402,15 @@ BROWNIAN package
 
 **Contents:**
 
-This package provides :doc:`fix brownian, fix brownian/sphere, and
-fix brownian/asphere <fix_brownian>` as well as
-:doc:`fix propel/self <fix_propel_self>` which allow to do Brownian
-Dynamics time integration of point, spherical and aspherical particles
-and also support self-propelled particles.
+This package provides :doc:`fix brownian, fix brownian/sphere, and fix
+brownian/asphere <fix_brownian>` as well as :doc:`fix propel/self
+<fix_propel_self>` which allow performing Brownian Dynamics time
+integration of point, spherical and aspherical particles and also
+support self-propelled particles.
 
-**Authors:** Sam Cameron (University of Bristol),
-Stefan Paquay (while at Brandeis University) (initial version of fix propel/self)
+**Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse
+Institute Berlin), Stefan Paquay (while at Brandeis University) (initial
+version of fix propel/self)
 
 .. versionadded:: 14May2021
 
@@ -397,9 +443,11 @@ and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
 * ``src/CG-DNA/README``
 * :doc:`pair_style oxdna/\* <pair_oxdna>`
 * :doc:`pair_style oxdna2/\* <pair_oxdna2>`
+* :doc:`pair_style oxdna3/\* <pair_oxdna3>`
 * :doc:`pair_style oxrna2/\* <pair_oxrna2>`
 * :doc:`bond_style oxdna/\* <bond_oxdna>`
 * :doc:`bond_style oxdna2/\* <bond_oxdna>`
+* :doc:`bond_style oxdna3/\* <bond_oxdna>`
 * :doc:`bond_style oxrna2/\* <bond_oxdna>`
 * :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 * ``examples/PACKAGES/cgdna``
@@ -428,7 +476,7 @@ simulation of biological or soft material systems.
 * :doc:`pair_style lj/spica/\* <pair_spica>`
 * :doc:`angle_style spica <angle_spica>`
 * ``examples/PACKAGES/cgspica``
-* https://www.lammps.org/pictures.html#cg
+* https://www.lammps.org/gallery/cg/
 * https://www.spica-ff.org/
 
 ----------
@@ -510,6 +558,7 @@ the :doc:`Build extras <Build_extras>` page.
 **Supporting info:**
 
 * ``src/COLVARS``: filenames -> commands
+* https://colvars.github.io/master/colvars-refman-lammps.html
 * `doc/PDF/colvars-refman-lammps.pdf <PDF/colvars-refman-lammps.pdf>`_
 * ``src/COLVARS/README``
 * ``lib/colvars/README``
@@ -858,7 +907,7 @@ tools/eff; see its README file.
 * ``examples/PACKAGES/eff``
 * tools/eff/README
 * tools/eff
-* https://www.lammps.org/movies.html#eff
+* https://www.lammps.org/gallery/eff/
 
 -------------------
 
@@ -930,12 +979,29 @@ EXTRA-DUMP package
 
 **Contents:**
 
-Additional dump styles that are less commonly used.
+Additional dump styles that are less commonly used.  This includes the
+:doc:`dump vtk <dump_vtk>` command, which outputs snapshot info in the
+`VTK format <vtk_>`_ for visualization by `ParaView <paraview_>`_ or
+other tools that read it.
+
+.. versionchanged:: TBD
+
+The *vtk* dump style used to be a package of its own and required the
+VTK library to be installed.  It now writes the files itself and does
+not depend on any external library.
+
+.. _vtk: https://vtk.org
+
+.. _paraview: https://www.paraview.org
+
+**Authors:** the *vtk* dump style was written by Richard Berger (JKU)
+and Daniel Queteschiner (DCS Computing).
 
 **Supporting info:**
 
 * ``src/EXTRA-DUMP``: filenames -> commands
 * :doc:`dump <dump>`
+* :doc:`dump vtk <dump_vtk>`
 
 ----------
 
@@ -1014,6 +1080,8 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
+* :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1054,12 +1122,44 @@ This package has :ref:`specific installation instructions <gpu>` on the
 * ``lib/gpu/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`GPU package <Speed_gpu>`
-* :doc:`Section 2.6 -sf gpu <Run_options>`
-* :doc:`Section 2.6 -pk gpu <Run_options>`
+* :doc:`Section 4.2 -sf gpu <Run_options>`
+* :doc:`Section 4.2 -pk gpu <Run_options>`
 * :doc:`package gpu <package>`
 * :doc:`Commands <Commands_all>` pages (:doc:`pair <Commands_pair>`, :doc:`kspace <Commands_kspace>`)
   for styles followed by (g)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
+
+----------
+
+.. _PKG-GRAPHICS:
+
+GRAPHICS package
+----------------
+
+**Contents:**
+
+Dump styles :doc:`image and movie <dump_image>`, supporting classes for
+rendering images and fonts, several fixes for adding graphics objects to
+visualizations, and the region2vmd command for exporting visualizations
+of regions as scripted graphics in VMD.
+
+**Supporting info:**
+
+* ``src/GRAPHICS``: filenames -> commands
+* :doc:`Howto_viz`
+* :doc:`dump image <dump_image>`
+* :doc:`dump movie <dump_image>`
+* :doc:`fix graphics/arrows <fix_graphics_arrows>`
+* :doc:`fix graphics/isosurface <fix_graphics_isosurface>`
+* :doc:`fix graphics/labels <fix_graphics_labels>`,
+* :doc:`fix graphics/lines <fix_graphics_lines>`,
+* :doc:`fix graphics/objects <fix_graphics_objects>`,
+* :doc:`fix graphics/periodic <fix_graphics_periodic>`,
+* :doc:`region2vmd <region2vmd>`
+* https://www.youtube.com/watch?v=9HEsGaOsdik
+* https://www.youtube.com/watch?v=f4hfPs7aCmI
+* https://www.youtube.com/shorts/1QEjIITapwQ
+* https://www.youtube.com/shorts/OYn_VVodnIg
+* https://www.youtube.com/shorts/4Cm5p0SfgNU
 
 ----------
 
@@ -1085,11 +1185,37 @@ potentials.
 * ``examples/granregion``
 * ``examples/pour``
 * bench/in.chute
-* https://www.lammps.org/pictures.html#jamming
-* https://www.lammps.org/movies.html#hopper
-* https://www.lammps.org/movies.html#dem
-* https://www.lammps.org/movies.html#brazil
-* https://www.lammps.org/movies.html#granregion
+* https://www.lammps.org/gallery/jamming/
+* https://www.lammps.org/gallery/hopper/
+* https://www.lammps.org/gallery/dem/
+* https://www.lammps.org/gallery/brazil/
+* https://www.lammps.org/gallery/granregion/
+
+----------
+
+.. _PKG-GRANSURF:
+
+GRANSURF package
+----------------
+
+**Contents:**
+
+Granular surfaces consisting of triangles (3d) or line segments (2d).
+These interact with finite-size granular particles as static or moving
+boundary conditions and support the same kind of interaction models as
+granular pair styles do for particle/particle interactions.  The
+collection of triangles or lines can be "global" with each processor
+storing all of them.  Or it can be "local" where the triangles/lines
+are distributed across processors.
+
+**Supporting info:**
+
+* src/GRANSURF: filenames -> commands
+* :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+* :doc:`fix surface/global <fix_surface_global>`
+* :doc:`fix surface/local <fix_surface_local>`
+* :doc:`pair_style surf/granular <pair_surf_granular>`
+* examples/gransurf
 
 ----------
 
@@ -1135,7 +1261,7 @@ INTEL package
 **Contents:**
 
 Dozens of pair, fix, bond, angle, dihedral, improper, and kspace styles
-which are optimized for Intel CPUs and KNLs (Knights Landing).  All of
+which are optimized for Intel CPUs.  All of
 them have an "intel" in their style name.  The :doc:`INTEL package
 <Speed_intel>` page gives details of what hardware and compilers are
 required on your system, and how to build and use this package.  Its
@@ -1165,13 +1291,12 @@ This package has :ref:`specific installation instructions <intel>` on the :doc:`
 * ``src/INTEL/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`INTEL package <Speed_intel>`
-* :doc:`Section 2.6 -sf intel <Run_options>`
-* :doc:`Section 2.6 -pk intel <Run_options>`
+* :doc:`Section 4.2 -sf intel <Run_options>`
+* :doc:`Section 4.2 -pk intel <Run_options>`
 * :doc:`package intel <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`, :doc:`kspace <Commands_kspace>`) for styles followed by (i)
 * ``src/INTEL/TEST``
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1277,12 +1402,12 @@ Also see the :ref:`GPU <PKG-GPU>`, :ref:`OPT <PKG-OPT>`, :ref:`INTEL
 <PKG-INTEL>`, and :ref:`OPENMP <PKG-OPENMP>` packages, which have styles
 optimized for CPUs, KNLs, and GPUs.
 
-You must have a C++17 compatible compiler to use this package.
-KOKKOS makes extensive use of advanced C++ features, which can
-expose compiler bugs, especially when compiling for maximum
-performance at high optimization levels. Please see the file
-``lib/kokkos/README`` for a list of compilers and their respective
-platforms, that are known to work.
+You must have a C++20 compatible compiler to use this package.  KOKKOS
+makes extensive use of advanced C++ features, which can expose compiler
+bugs, especially when compiling for maximum performance at high
+optimization levels.  Please see the file ``lib/kokkos/README`` for a
+list of compilers and their respective platforms, that are known to
+work.
 
 **Authors:** The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.
@@ -1302,14 +1427,13 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 * ``lib/kokkos/README``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`KOKKOS package <Speed_kokkos>`
-* :doc:`Section 2.6 -k on ... <Run_options>`
-* :doc:`Section 2.6 -sf kk <Run_options>`
-* :doc:`Section 2.6 -pk kokkos <Run_options>`
+* :doc:`Section 4.2 -k on ... <Run_options>`
+* :doc:`Section 4.2 -sf kk <Run_options>`
+* :doc:`Section 4.2 -pk kokkos <Run_options>`
 * :doc:`package kokkos <package>`
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (k)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -1364,7 +1488,8 @@ Ontario).
 
 **Install:**
 
-The LATBOLTZ package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+The LATBOLTZ package requires that LAMMPS is built in :ref:`MPI parallel
+mode <serial>`.
 
 **Supporting info:**
 
@@ -1481,7 +1606,7 @@ Waltham, MA, USA)
 * :doc:`fix nve/manifold/rattle <fix_nve_manifold_rattle>`
 * :doc:`fix nvt/manifold/rattle <fix_nvt_manifold_rattle>`
 * ``examples/PACKAGES/manifold``
-* https://www.lammps.org/movies.html#manifold
+* https://www.lammps.org/gallery/manifold/
 
 ----------
 
@@ -1509,6 +1634,39 @@ A variety of many-body and bond-order potentials.  These include
 
 ----------
 
+.. _PKG-MBX:
+
+MBX Package
+-----------
+
+**Contents**
+
+The pair_style mbx command implements the MBX library for MB-pol and
+MB-nrg data-driven many-body potential energy functions. MBX is called
+using :doc:`pair_style mbx <pair_mbx>` command, which allows for MB-nrg
+potentials such as MB-pol to be used in LAMMPS.  For more information on
+MBX, see the `MBX library <https://mbxsimulations.com>`_ website.
+
+**Authors:** The `MBX library <https://mbxsimulations.com>`_ is
+developed by the Paesani group at the University of California, San
+Diego. Major contributors include: Marc Riera, Christopher Knight, Ethan
+Bull-Vulpe, and Henry Agnew.
+
+.. versionadded:: 11Feb2026
+
+**Install:**
+
+This package has :ref:`specific installation instructions <mbx>` on the
+:doc:`Build extras <Build_extras>` page.
+
+**Supporting info:**
+
+* ``src/MBX``: filenames -> commands
+* :doc:`pair_style mbx <pair_mbx>`
+* https://mbxsimulations.com/
+
+----------
+
 .. _PKG-MC:
 
 MC package
@@ -1519,8 +1677,8 @@ MC package
 Several fixes and a pair style that have Monte Carlo (MC) or MC-like
 attributes.  These include fixes for creating, breaking, and swapping
 bonds, for performing atomic swaps, and performing grand canonical
-MC (GCMC), semi-grand canonical MC (SGCMC), or similar processes in
-conjunction with molecular dynamics (MD).
+MC (GCMC), semi-grand canonical MC (SGCMC), Gibbs ensemble MC (GEMC)
+or similar processes in conjunction with molecular dynamics (MD).
 
 **Supporting info:**
 
@@ -1532,11 +1690,15 @@ conjunction with molecular dynamics (MD).
 * :doc:`fix bond/swap <fix_bond_swap>`
 * :doc:`fix charge/regulation <fix_charge_regulation>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix gemc <fix_gemc>`
+* :doc:`fix hmc <fix_hmc>`
+* :doc:`fix mol/swap <fix_mol_swap>`
+* :doc:`fix neighbor/swap <fix_neighbor_swap>`
 * :doc:`fix sgcmc <fix_sgcmc>`
 * :doc:`fix tfmc <fix_tfmc>`
 * :doc:`fix widom <fix_widom>`
 * :doc:`pair_style dsmc <pair_dsmc>`
-* https://www.lammps.org/movies.html#gcmc
+* https://www.lammps.org/gallery/gcmc/
 
 ----------
 
@@ -1635,7 +1797,7 @@ server when the package is installed for the first time.
 Maxim V. Shugaev (University of Virginia), Alexey N. Volkov (University
 of Alabama), Leonid V. Zhigilei (University of Virginia)
 
-.. deprecated:: 8Feb2023
+.. versionremoved:: 8Feb2023
 
 **Author of the C++ styles:**
 Philipp Kloza (U Cambridge)
@@ -1704,7 +1866,6 @@ listing, ``ls src/MISC``, to see the list of commands.
 * :doc:`fix accelerate/cos <fix_accelerate_cos>`
 * :doc:`fix imd <fix_imd>`
 * :doc:`fix ipi <fix_ipi>`
-* :doc:`pair_style agni <pair_agni>`
 * :doc:`pair_style list <pair_list>`
 * :doc:`pair_style srp <pair_srp>`
 * :doc:`pair_style tracker <pair_tracker>`
@@ -1718,10 +1879,10 @@ ML-HDNNP package
 
 **Contents:**
 
-A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows to use
-high-dimensional neural network potentials (HDNNPs), a form of machine learning
-potentials. HDNNPs must be carefully trained prior to their application in a
-molecular dynamics simulation.
+A :doc:`pair_style hdnnp <pair_hdnnp>` command which allows the use of
+high-dimensional neural network potentials (HDNNPs), a form of machine
+learning potentials.  HDNNPs must be carefully trained prior to their
+application in a molecular dynamics simulation.
 
 .. _n2p2: https://github.com/CompPhysVienna/n2p2
 
@@ -1894,30 +2055,35 @@ This package has :ref:`specific installation instructions <ml-quip>` on the
 
 ----------
 
-.. _PKG-ML-RANN:
+.. _PKG-ML-RUNNER:
 
-ML-RANN package
------------------
-
+ML-RUNNER package
+------------------
 **Contents:**
+A :doc:`pair_style runner <pair_runner>` command for the efficient evaluation of
+second-, third-, and fourth-generation high-dimensional neural network
+potentials (HDNNPs).
 
-A pair style for using rapid atomistic neural network (RANN) potentials.
-These neural network potentials work by first generating a series of symmetry
-functions from the neighbor list and then using these values as the input layer
-of a neural network.
+.. _runner: https://www.theochem2.ruhr-uni-bochum.de/tc/software/runner.html.en
 
-**Authors:**
+To use this package you must have the `RuNNer <runner_>`_ library compiled on
+your system.
 
-This package was written by Christopher Barrett
-with contributions by Doyl Dickel, Mississippi State University.
+**Authors:** K. Nikolas Lausch, Alexander L. M. Knoll, Moritz R. Schaefer,
+             Gunnar Schmitz, Joerg Behler (Ruhr-University Bochum)
 
-.. versionadded:: 27May2021
+**Install:**
+
+This package has :ref:`specific installation instructions <ml-runner>` on the
+:doc:`Build extras <Build_extras>` page.
+
+.. versionadded:: 4Jul2026
 
 **Supporting info:**
 
-* ``src/ML-RANN``: filenames -> commands
-* :doc:`pair_style rann <pair_rann>`
-* ``examples/PACKAGES/rann``
+* ``src/ML-RUNNER``: filenames -> commands
+* :doc:`pair_style runner <pair_runner>`
+* ``examples/PACKAGES/ml-runner`` (see README.txt)
 
 ----------
 
@@ -2171,7 +2337,6 @@ the :doc:`Build extras <Build_extras>` page.
 * Search the :doc:`commands <Commands_all>` pages (:doc:`fix <Commands_fix>`, :doc:`compute <Commands_compute>`,
   :doc:`pair <Commands_pair>`, :doc:`bond, angle, dihedral, improper <Commands_bond>`,
   :doc:`kspace <Commands_kspace>`) for styles followed by (o)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 ----------
 
@@ -2203,9 +2368,8 @@ This package has :ref:`specific installation instructions <opt>` on the :doc:`Bu
 * ``src/OPT``: filenames -> commands
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`OPT package <Speed_opt>`
-* :doc:`Section 2.6 -sf opt <Run_options>`
+* :doc:`Section 4.2 -sf opt <Run_options>`
 * Search the :doc:`pair style <Commands_pair>` page for styles followed by (t)
-* `Benchmarks page <https://www.lammps.org/bench.html>`_ of website
 
 .. _PKG-ORIENT:
 
@@ -2254,7 +2418,7 @@ Foster (UTSA).
 * :doc:`compute damage/atom <compute_damage_atom>`
 * :doc:`compute plasticity/atom <compute_plasticity_atom>`
 * ``examples/peri``
-* https://www.lammps.org/movies.html#impact
+* https://www.lammps.org/gallery/impact/
 
 ----------
 
@@ -2627,7 +2791,7 @@ Thomas C. O'Connor (Carnegie Mellon University)
 * :doc:`fix rheo/viscosity <fix_rheo_viscosity>`
 * :doc:`pair_style rheo <pair_rheo>`
 * :doc:`pair_style rheo/solid <pair_rheo_solid>`
-* https://www.lammps.org/movies.html#rheopackage
+* https://www.lammps.org/gallery/rheopackage/
 * ``examples/rheo``
 
 ----------
@@ -2654,8 +2818,8 @@ Also several computes which calculate properties of rigid bodies.
 * ``examples/ASPHERE``
 * ``examples/rigid``
 * bench/in.rhodo
-* https://www.lammps.org/movies.html#box
-* https://www.lammps.org/movies.html#star
+* https://www.lammps.org/examples/box/
+* https://www.lammps.org/examples/star/
 
 ----------
 
@@ -2666,24 +2830,26 @@ SCAFACOS package
 
 **Contents:**
 
-A KSpace style which wraps the `ScaFaCoS Coulomb solver library <http://www.scafacos.de/>`_ to compute long-range Coulombic
+A KSpace style which wraps the `ScaFaCoS Coulomb solver library
+<http://www.scafacos.de/>`_ to compute long-range Coulombic
 interactions.
 
-To use this package you must have the ScaFaCoS library available on
-your system.
+To use this package you must have the ScaFaCoS library available on your
+system.
 
 **Author:** Rene Halver (JSC) wrote the scafacos LAMMPS command.
 
 ScaFaCoS itself was developed by a consortium of German research
-facilities with a BMBF (German Ministry of Science and Education)
-funded project in 2009-2012. Participants of the consortium were the
-Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as
-the Forschungszentrum Juelich.
+facilities with a BMBF (German Ministry of Science and Education) funded
+project in 2009-2012. Participants of the consortium were the
+Universities of Bonn, Chemnitz, Stuttgart, and Wuppertal as well as the
+Forschungszentrum Juelich.
 
 **Install:**
 
-This package has :ref:`specific installation instructions <scafacos>` on the :doc:`Build extras <Build_extras>` page.
-The SCAFACOS package requires that LAMMPS is build in :ref:`MPI parallel mode <serial>`.
+This package has :ref:`specific installation instructions <scafacos>` on
+the :doc:`Build extras <Build_extras>` page.  The SCAFACOS package
+requires that LAMMPS is built in :ref:`MPI parallel mode <serial>`.
 
 **Supporting info:**
 
@@ -2773,7 +2939,7 @@ Dynamics, Ernst Mach Institute, Germany).
 * ``src/SPH/README``
 * `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
 * ``examples/PACKAGES/sph``
-* https://www.lammps.org/movies.html#sph
+* https://www.lammps.org/gallery/sph/
 
 .. note::
 
@@ -2838,9 +3004,9 @@ colloidal particles.
 * :doc:`fix wall/srd <fix_wall_srd>`
 * ``examples/srd``
 * ``examples/ASPHERE``
-* https://www.lammps.org/movies.html#tri
-* https://www.lammps.org/movies.html#line
-* https://www.lammps.org/movies.html#poly
+* https://www.lammps.org/examples/tri/
+* https://www.lammps.org/examples/line/
+* https://www.lammps.org/gallery/poly/
 
 ----------
 
@@ -2902,7 +3068,7 @@ VORONOI package
 A compute command which calculates the Voronoi tesselation of a
 collection of atoms by wrapping the `Voro++ library
 <https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
-local volume or each atoms or its near neighbors.
+local volume of atoms or their near neighbors.
 
 To use this package you must have the Voro++ library available on your
 system.
@@ -2922,39 +3088,6 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 * ``lib/voronoi/README``
 * :doc:`compute voronoi/atom <compute_voronoi_atom>`
 * ``examples/voronoi``
-
-----------
-
-.. _PKG-VTK:
-
-VTK package
-----------------
-
-**Contents:**
-
-A :doc:`dump vtk <dump_vtk>` command which outputs snapshot info in the
-`VTK format <vtk_>`_, enabling visualization by `Paraview <paraview_>`_ or
-other visualization packages.
-
-.. _vtk: https://vtk.org
-
-.. _paraview: https://www.paraview.org
-
-To use this package you must have VTK library available on your
-system.
-
-**Authors:** Richard Berger (JKU) and Daniel Queteschiner (DCS Computing).
-
-**Install:**
-
-This package has :ref:`specific installation instructions <vtk>` on the :doc:`Build extras <Build_extras>` page.
-
-**Supporting info:**
-
-* ``src/VTK``: filenames -> commands
-* ``src/VTK/README``
-* ``lib/vtk/README``
-* :doc:`dump vtk <dump_vtk>`
 
 ----------
 

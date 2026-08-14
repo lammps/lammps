@@ -775,10 +775,8 @@ void BondBPM::post_compute()
 void BondBPM::restore_data()
 {
   int i, j, n, m, type;
-  double delx, dely, delz, hvar;
-  int iatom, jatom, tagi, tagj, itag, jtag;
-  double **x = atom->x;
-  double dt = update->dt;
+  double hvar;
+  int tagi, tagj, itag, jtag;
   int **bond_type = atom->bond_type;
   long int natoms = atom->natoms;
   long int key, searchkey;
@@ -786,11 +784,8 @@ void BondBPM::restore_data()
   double **bondstore = fix_bond_history->bondstore;
 
   // error checks
-  if ((nbonddata-2) != nhistory) error->one(FLERR,"Incorrect number of history variables for {} expected {}",force->bond_style,nhistory);
-  if ((nentries != atom->nbonds)) error->one(FLERR,"Incorrect number of bond entries in reference file {} expected {}",ref_filename,atom->nbonds);
-
-  int atomfile[nentries][2];
-  double histfile[nentries][nbonddata-2];
+  if ((nbonddata - 2) != nhistory) error->one(FLERR, "Incorrect number of history variables for {} expected {}",force->bond_style, nhistory);
+  if (nentries != atom->nbonds) error->one(FLERR, "Incorrect number of bond entries in reference file {} expected {}",ref_filename, atom->nbonds);
 
   // Need to store location of bond data in hash table for fast retrieval when restoring
   std::map<long int,long int> hashmap;
@@ -798,13 +793,6 @@ void BondBPM::restore_data()
   for (int t = 0; t < nentries; t++) {
     itag = bListdata[2*t];
     jtag = bListdata[2*t + 1];
-
-    atomfile[t][0] = itag;
-    atomfile[t][1] = jtag;
-
-    for (int d = 0; d < nbonddata - 2; d++) {
-      histfile[t][d] = bHistdata[t*(nbonddata-2) + d];
-    }
 
     // Skip storing a key if atoms not owned
     if (atom->map(itag) == -1 && atom->map(jtag) == -1) {
@@ -820,7 +808,7 @@ void BondBPM::restore_data()
     for (m = 0; m < atom->num_bond[i]; m++) {
       type = bond_type[i][m];
 
-      //Skip if bond was turned off
+      // Skip if bond was turned off
       if (type < 0) continue;
 
       // map to find index n
@@ -835,11 +823,10 @@ void BondBPM::restore_data()
 
       // restore history
       for (int h = 0; h < (nbonddata - 2); h++) {
-        hvar = histfile[n][h];
+        hvar = bHistdata[n*(nbonddata-2) + h];
         fix_bond_history->update_atom_value(i, m, h, hvar);
         bondstore[m][h] = hvar;
       }
-
     }
   }
 

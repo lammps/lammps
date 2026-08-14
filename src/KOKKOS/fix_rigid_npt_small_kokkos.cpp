@@ -68,8 +68,14 @@ FixRigidNPTSmallKokkos<DeviceType>::FixRigidNPTSmallKokkos(LAMMPS *lmp, int narg
 
   // create a new compute temp style (group all)
 
+  // create the temperature compute as temp/kk: Modify::add_compute only applies
+  // the /kk suffix when -sf kk is active, so requesting this style with an
+  // explicit suffix would otherwise get a host compute and force a full x/v
+  // host<->device transfer every step (see the KOKKOS package instructions,
+  // "Internal helper computes/fixes must be KOKKOS too").  compute pressure has
+  // no /kk variant, so only the temperature is promoted.
   this->id_temp = utils::strdup(std::string(this->id)+"_temp");
-  this->modify->add_compute(fmt::format("{} all temp",this->id_temp));
+  this->modify->add_compute(fmt::format("{} all temp/kk",this->id_temp));
   this->tcomputeflag = 1;
 
   // create a new compute pressure style (group all), pass id_temp as 4th arg

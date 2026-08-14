@@ -256,7 +256,18 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
   // setup_bodies_static() rebuilds the bodies from the unwrapped atom
   // positions, so it also reads atom->image and atom->mask (and rmass for
   // finite-size particles), which are not in this fix's per-step datamask.
-  atomKK->sync(Host, datamask_read | IMAGE_MASK | MASK_MASK | RMASS_MASK);
+  atomKK->sync(Host, datamask_read | IMAGE_MASK | MASK_MASK | RMASS_MASK | extended_datamask);
+
+  // On the 2nd and later runs the host rebuild below (setup_bodies_static/
+  // _dynamic) also re-derives the extended-particle state from the per-atom
+  // orientation data -- omega/angmom/mu, covered by extended_datamask above, and
+  // for ellipsoids the bonus quaternion.  set_xv_kokkos() wrote all of it on the
+  // device, so pull the bonus array back too; the atom-style arrays are handled
+  // by the sync above.
+  if (setupflag && extended && atom->ellipsoid_flag) {
+    auto *avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
+    if (avecEllipKK) avecEllipKK->k_bonus.sync_host();
+  }
 
   // Re-assert the exchange/sort pairing chosen in init() (see the reasoning
   // there).  This only catches a side that changed after init() -- e.g.
@@ -346,6 +357,11 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
     if (k_body.view_device().extent_int(0) < nbody_all) {
       k_body.sync_host();
       k_body.resize(nbody_all > nmax_body ? nbody_all : nmax_body);
+      // DualView::resize() takes its resize_on_device branch here (both modify
+      // flags are 0 after the sync) and marks the device side modified; clear that
+      // before claiming the host copy, or modify_host() sees both flags set and
+      // Kokkos::abort()s on a build where the two memory spaces differ.
+      k_body.clear_sync_state();
       k_body.modify_host();
     }
     copy_body_device();
@@ -527,6 +543,7 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   if (langflag) {
     k_langextra.sync_host();
     k_langextra.resize(nmax_body, 6);
+    k_langextra.clear_sync_state();   // resize marked the device side (see grow_body)
     k_langextra.modify_host();
     d_langextra = k_langextra.template view<DeviceType>();
   }
@@ -640,6 +657,20 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     // per-atom DualViews and d_body on the device.  Do NOT push stale host
     // data to the device — just mark the device side as authoritative and
     // refresh the d_* view aliases.
+    //
+    // Clear any outstanding host claim first.  comm->borders() runs between the
+    // exchange and here and can grow the per-atom arrays, and grow_arrays() ends
+    // by marking these host-modified; marking the device on top of that leaves
+    // both flags set and Kokkos::abort()s on a build where the two memory spaces
+    // differ.  Dropping the host claim is correct on this path: the device
+    // copies are the ones the exchange just wrote.
+    k_body.clear_sync_state();
+    k_bodytag.clear_sync_state();
+    k_bodyown.clear_sync_state();
+    k_atom2body.clear_sync_state();
+    k_xcmimage.clear_sync_state();
+    k_displace.clear_sync_state();
+    k_vatom.clear_sync_state();
     k_body.modify_device();
     k_bodytag.template modify<DeviceType>();
     k_bodyown.template modify<DeviceType>();
@@ -648,9 +679,10 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     k_displace.template modify<DeviceType>();
     k_vatom.template modify<DeviceType>();
     if (extended) {
+      k_eflags.clear_sync_state();
       k_eflags.template modify<DeviceType>();
-      if (orientflag) k_orient.template modify<DeviceType>();
-      if (dorientflag) k_dorient.template modify<DeviceType>();
+      if (orientflag) { k_orient.clear_sync_state(); k_orient.template modify<DeviceType>(); }
+      if (dorientflag) { k_dorient.clear_sync_state(); k_dorient.template modify<DeviceType>(); }
     }
     refresh_atom_views();
     // d_body is already the correct device view; no copy needed
@@ -690,14 +722,18 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
       } else {
         coord = DomainKokkos::x2lamda(boxlo, h_inv, x);
       }
-      // TODO: check
-      DomainKokkos::remap(lo, hi, period, xperiodic, yperiodic, zperiodic, coord, b.image);
-      //coord = DomainKokkos::remap(lo, hi, period, xperiodic, yperiodic, zperiodic, coord, b.image);
+      // remap the center of mass back into the box and step the body image
+      // flags accordingly.  Both results have to be stored: remap() returns the
+      // remapped coordinate and updates image through its reference argument.
+      // Dropping either lets xcm integrate unbounded, so xcmimage grows until
+      // the IMGMASK field overflows and set_xv() loses precision to two large
+      // cancelling terms.
+      coord = DomainKokkos::remap(lo, hi, period, xperiodic, yperiodic, zperiodic, coord, b.image);
       if (triclinic) {
         x = DomainKokkos::lamda2x(boxlo, h, coord);
-        for(int i = 0; i < 3; i++) {
-          b.xcm[i] = x[i];
-        }
+        for (int i = 0; i < 3; i++) b.xcm[i] = x[i];
+      } else {
+        for (int i = 0; i < 3; i++) b.xcm[i] = coord[i];
       }
     }
   );
@@ -711,32 +747,6 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
   commflag = FULL_BODY;
   commKK->forward_comm_device<DeviceType>(this, bodysize);
   reset_atom2body();
-  //check(4);
-
-  int computed_nlocal_body = 0;
-  int nlocal = atom->nlocal;
-  auto d_bodyown = this->d_bodyown;
-  int nlocal_body = this->nlocal_body;
-  Kokkos::parallel_reduce(
-    "fix rigid/small/kk pre_neighbor sanity check",
-    Range1D(0, nlocal),
-    KOKKOS_LAMBDA(const int i, int &count) {
-      if (d_bodyown(i) >= 0) count++;
-#ifndef LMP_KOKKOS_GPU
-      if (d_bodyown(i) >= 0 && nlocal_body==0) {
-        error->one(FLERR, "atom {} has bodyown {} but no bodies", i, d_bodyown(i));
-      }
-      if(d_bodyown(i) >= nlocal_body){
-        error->warning(FLERR, "rank {} atom {} has bodyown {} but only {} local bodies",
-            comm->me, i, d_bodyown(i), nlocal_body);
-      }
-#endif
-    },
-    computed_nlocal_body
-  );
-  if (nlocal_body != computed_nlocal_body) {
-    error->one(FLERR, "rank {} nlocal_body: {} vs {}\n", comm->me, nlocal_body, computed_nlocal_body);
-  }
 
   image_shift();
   Kokkos::Profiling::popRegion();
@@ -1151,18 +1161,42 @@ bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
    flag = 0/1 means map from box to lamda coords or vice versa
 ------------------------------------------------------------------------- */
 
-// TODO: deviceify
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::deform(int flag)
 {
-  copy_body_host();
-  if (flag == 0)
-    for (int ibody = 0; ibody < nlocal_body; ibody++)
-      domain->x2lamda(body[ibody].xcm,body[ibody].xcm);
-  else
-    for (int ibody = 0; ibody < nlocal_body; ibody++)
-      domain->lamda2x(body[ibody].xcm,body[ibody].xcm);
-  copy_body_device();
+  // Barostatted runs call remap() twice per step and each remap() calls this
+  // once with flag=0 and once with flag=1, so a host round-trip here would move
+  // the whole body array off and back onto the device eight times per timestep
+  // to apply a pure affine transform.  Do it in place on the device.
+  if (!setupflag) {
+    copy_body_host();
+    if (flag == 0)
+      for (int ibody = 0; ibody < nlocal_body; ibody++)
+        domain->x2lamda(body[ibody].xcm,body[ibody].xcm);
+    else
+      for (int ibody = 0; ibody < nlocal_body; ibody++)
+        domain->lamda2x(body[ibody].xcm,body[ibody].xcm);
+    copy_body_device();
+    return;
+  }
+
+  Few<double,3> boxlo;
+  boxlo[0] = domain->boxlo[0]; boxlo[1] = domain->boxlo[1]; boxlo[2] = domain->boxlo[2];
+  Few<double,6> h, h_inv;
+  for (int i = 0; i < 6; i++) { h[i] = domain->h[i]; h_inv[i] = domain->h_inv[i]; }
+
+  auto d_body = this->d_body;
+  Kokkos::parallel_for(
+    "fix rigid/small deform",
+    Range1D(0, nlocal_body),
+    KOKKOS_LAMBDA(const int ibody) {
+      Body &b = d_body(ibody);
+      Few<double,3> x(b.xcm);
+      Few<double,3> out = (flag == 0) ? DomainKokkos::x2lamda(boxlo, h_inv, x)
+                                      : DomainKokkos::lamda2x(boxlo, h, x);
+      for (int i = 0; i < 3; i++) b.xcm[i] = out[i];
+    }
+  );
 }
 
 /* ----------------------------------------------------------------------
@@ -1239,7 +1273,11 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   if (!atom->rmass) atomKK->k_mass.template sync<DeviceType>();
 
   EV_FLOAT ev;
-  if(vflag_atom){
+  // The constraint virial is tallied in two halves per timestep: set_xv() from
+  // initial_integrate() and set_v() from final_integrate().  Only zero the
+  // accumulator at the start of the step (setxflag, i.e. the set_xv call), or
+  // the set_v pass would discard the first half.
+  if (vflag_atom && setxflag) {
     Kokkos::deep_copy(d_vatom, 0.0);
     k_vatom.modify_device();
   }
@@ -1263,7 +1301,6 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
       k_vatom.sync_host();
     }
   }
-  // TODO: Specialize
   atomKK->modified(execution_space, datamask_modify);
   if (extended) {
     atomKK->modified(execution_space, extended_datamask);
@@ -1338,7 +1375,7 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
   // 1/2 factor b/c final_integrate contributes other half
   // assume per-atom contribution is due to constraint force on that atom
 
-  if (evflag) { // TODO: Figure out
+  if (evflag) {
     double massone;
     if (d_rmass.data()) massone = d_rmass(i);
     else massone = d_mass(d_type(i));
@@ -1742,12 +1779,6 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
           d_bodytag(i) = d_bodytag(j);
           d_xcmimage(i) = d_xcmimage(j);
           d_bodyown(i) = d_bodyown(j);
-#ifndef LMP_KOKKOS_GPU
-          if (d_bodyown(i) >= nlocal_body) {
-            error->one(FLERR, "rank {} atom {} has bodyown {} but nlocal body {}",
-                comm->me, i, d_bodyown(i), nlocal_body);
-          }
-#endif
           for (int k = 0; k < 3; k++) d_displace(i,k) = d_displace(j,k);
           for (int k = 0; k < 6; k++) d_vatom(i,k) = d_vatom(j,k);
           if (ext) {
@@ -1757,7 +1788,7 @@ int FixRigidSmallKokkos<DeviceType>::pack_exchange_kokkos (
           }
           if (d_bodyown(i) >= 0) d_body(d_bodyown(i)).ilocal = i;
           d_bodyown(j) = -1;
-          d_bodytag(j) = -1;
+          d_bodytag(j) = 0;   // 0 == "not in a body"; -1 is not a valid sentinel
           d_atom2body(j) = -1;
         }
       }
@@ -2235,9 +2266,9 @@ void FixRigidSmallKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int firs
       },
       n_incoming_bodies
     );
-    if (n_body_recv.count(first)) {
-      error->one(FLERR, "first={} should not already be key, receiving {} atoms {} bodies", first, n, n_incoming_bodies);
-    }
+    if (n_body_recv.count(first))
+      error->one(FLERR, "Internal error in fix rigid/small/kk: receive buffer offset {} "
+                 "is already registered", first);
     n_body_recv[first] = n_incoming_bodies;
     while (n_curr_bodies+n_incoming_bodies > nmax_body) {
       grow_body();
@@ -2337,13 +2368,20 @@ void FixRigidSmallKokkos<DeviceType>::grow_body()
   if (nmax_body == k_body.view_device().extent_int(0) || k_body.view_device().extent_int(0) == 0) {
     FixRigidSmall::grow_body();
   }
+  // DualView::resize() takes its resize_on_device branch here -- both modify flags
+  // are 0 after the sync, so it picks the device side -- and marks the device
+  // modified.  Clear that before claiming the host copy: otherwise modify_host()
+  // sees both flags set and Kokkos::abort()s ("Concurrent modification of host and
+  // device views") on any build where host and device memory spaces differ.
   k_body.sync_host();
   k_body.resize(nmax_body);
+  k_body.clear_sync_state();
   k_body.modify_host();
   d_body = k_body.view_device();
   if (langflag) {
     k_langextra.sync_host();
     k_langextra.resize(nmax_body,6);
+    k_langextra.clear_sync_state();
     k_langextra.modify_host();
     d_langextra = k_langextra.template view<DeviceType>();
   }

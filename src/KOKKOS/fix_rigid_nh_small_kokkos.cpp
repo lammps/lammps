@@ -287,7 +287,23 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 {
   // host setup populates body[] and the per-atom arrays
   atomKK->sync(Host, datamask_read);
+
+  // FixRigidSmall::setup() is host code throughout: compute_forces_and_torques()
+  // does a FORCE_TORQUE reverse comm and then reads the host body[], and a FINAL
+  // forward comm updates the ghost bodies that set_v() reads.  On the 2nd and
+  // later runs the device comm flags are still set from run 1, which would route
+  // both to the device packers while the host body[] stayed stale.  Clear them
+  // for the duration, as FixRigidSmallKokkos::setup() and dof() do.
+  const int saved_forward_comm_device = this->forward_comm_device;
+  const int saved_reverse_comm_device = this->reverse_comm_device;
+  this->forward_comm_device = 0;
+  this->reverse_comm_device = 0;
+
   FixRigidSmall::setup(vflag);
+
+  this->forward_comm_device = saved_forward_comm_device;
+  this->reverse_comm_device = saved_reverse_comm_device;
+
   atomKK->modified(Host, datamask_modify);
   // reconcile the host atom:x/v writes into the fix's execution_space before the
   // later ModifyKokkos host/device modify, or the DualView/TransformView
@@ -937,8 +953,11 @@ double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
 
   double *vcm,*quat;
 
-  // body data lives on the device during a run; flush to host
-  copy_body_host();
+  // body data lives on the device during a run; flush to host.  Before setup
+  // k_body has not been sized yet (setup_device_push() does that) even though
+  // create_bodies() already ran in the base constructor, so copy_body_host()
+  // would index a zero-extent view -- guard as the other accessors do.
+  if (setupflag) copy_body_host();
 
   ke_t = 0.0;
   ke_q = 0.0;

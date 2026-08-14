@@ -480,7 +480,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
 FixRigidSmall::~FixRigidSmall()
 {
-  if(copymode) return;
+  if (copymode) return;
 
   // unregister callbacks to this fix from Atom class
 
@@ -648,19 +648,15 @@ void FixRigidSmall::setup(int vflag)
     memory->destroy(langextra);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    // memory->create() does not zero: post_force() only fills the rows of bodies
+    // it thermostats, but setup() and compute_forces_and_torques() fold every
+    // row into the body forces, so the untouched rows have to start at zero.
+    memset(&langextra[0][0],0,(size_t)maxlang*6*sizeof(double));
   }
 
-  // langextra holds the Langevin force/torque that compute_forces_and_torques()
-  // adds to every body, but apply_langevin_thermostat() does not run until the
-  // first post_force().  memory->create() does not zero, so without this the
-  // setup folds an uninitialised langextra into the body forces -- an
-  // uninitialised read that is benign only by heap luck (fresh mmap'd pages read
-  // as zero) and turns fatal under Kokkos+MPI, where the smaller, reused
-  // allocation carries large garbage that sends the first quaternion step to NaN.
-
-  if (langflag && langextra)
-    for (int ib = 0; ib < maxlang; ib++)
-      for (int k = 0; k < 6; k++) langextra[ib][k] = 0.0;
+  // note langextra is zeroed where it is allocated: it holds the Langevin
+  // force/torque that compute_forces_and_torques() adds to every body, but
+  // apply_langevin_thermostat() does not run until the first post_force().
 
   compute_forces_and_torques();
 
@@ -910,6 +906,10 @@ void FixRigidSmall::apply_langevin_thermostat()
     memory->destroy(langextra);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    // memory->create() does not zero: post_force() only fills the rows of bodies
+    // it thermostats, but setup() and compute_forces_and_torques() fold every
+    // row into the body forces, so the untouched rows have to start at zero.
+    memset(&langextra[0][0],0,(size_t)maxlang*6*sizeof(double));
   }
 
   double delta = update->ntimestep - update->beginstep;

@@ -949,9 +949,13 @@ same side (both on the host or both on the device), because the device
 sort reorders the rigid-body owner atoms that the device exchange
 produced.  This is satisfied by the defaults (host on CPU/OpenMP builds,
 device on GPU builds) and by passing matching settings such as ``-pk
-kokkos comm device sort device``.  An inconsistent override (for example
-``-pk kokkos comm device`` while sorting stays on the host) is rejected
-with an error.
+kokkos comm device sort device``.  If the two would not match -- either
+because of an inconsistent override such as ``-pk kokkos comm device``
+while sorting stays on the host, or because another setting forces one of
+them onto the host (bonus data such as *ellipsoid* particles, an
+:doc:`atom_style hybrid <atom_style>`, or a coexisting fix that grows
+per-atom arrays without device support, e.g. :doc:`fix property/atom
+<fix_property_atom>`) -- the fix moves both to the host for the whole run.
 
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have

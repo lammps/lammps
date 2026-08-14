@@ -430,7 +430,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // set max comm sizes needed by this fix
 
-  comm_forward = 1 + bodysize;
+  comm_forward = MAX(1 + bodysize, INITIAL_BUFSZ);
   comm_reverse = 6;
 
   // atom style pointers to particles that store extra info
@@ -667,7 +667,7 @@ void FixRigidSmall::setup(int vflag)
   }
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity/rotation of atoms in rigid bodues
 
@@ -730,7 +730,7 @@ void FixRigidSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm(this,29);
+  comm->forward_comm(this, INITIAL_BUFSZ);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
@@ -820,7 +820,7 @@ void FixRigidSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
@@ -1108,7 +1108,7 @@ bigint FixRigidSmall::dof(int tgroup)
     j = atom2body[i];
     counts[j][2]++;
     if (mask[i] & tgroupbit) {
-      if (extended && (eflags[i] & ~(POINT | DIPOLE))) counts[j][1]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE | TORQUE))) counts[j][1]++;
       else counts[j][0]++;
     }
   }
@@ -1846,9 +1846,13 @@ void FixRigidSmall::setup_bodies_static()
       } else eflags[i] |= POINT;
 
       // set DIPOLE if atom->mu and mu[3] > 0.0
+      // point dipoles also need TORQUE so the torque
+      // from dipole interactions acts on the body
 
-      if (atom->mu_flag && mu[i][3] > 0.0)
+      if (atom->mu_flag && mu[i][3] > 0.0) {
         eflags[i] |= DIPOLE;
+        if (atom->torque_flag) eflags[i] |= TORQUE;
+      }
     }
   }
 
@@ -2156,7 +2160,7 @@ void FixRigidSmall::setup_bodies_static()
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm(this,29);
+  comm->forward_comm(this, INITIAL_BUFSZ);
 
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
@@ -2754,7 +2758,7 @@ void FixRigidSmall::resample_momenta(int groupbit, int mom_flag, class RanPark *
   // forward communicate vcm and omega to ghost bodies
 
   commflag = FINAL;
-  comm->forward_comm(this, 10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // compute angular momenta of rigid bodies
 
@@ -3481,7 +3485,7 @@ void FixRigidSmall::zero_momentum()
   // forward communicate of vcm to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity of atoms in rigid bodues
 
@@ -3507,7 +3511,7 @@ void FixRigidSmall::zero_rotation()
   // forward communicate of omega to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity of atoms in rigid bodues
 

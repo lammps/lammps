@@ -103,6 +103,7 @@ gives those details.
    * :ref:`PYTHON <PKG-PYTHON>`
    * :ref:`QEQ <PKG-QEQ>`
    * :ref:`QMMM <PKG-QMMM>`
+   * :ref:`QMMM-XTB <PKG-QMMM-XTB>`
    * :ref:`QTB <PKG-QTB>`
    * :ref:`RHEO <PKG-RHEO>`
    * :ref:`REACTION <PKG-REACTION>`
@@ -2633,6 +2634,37 @@ on the :doc:`Build extras <Build_extras>` page.
 * :doc:`fix phonon <fix_phonon>`
 * ``lib/qmmm/example-ec/README``
 * ``lib/qmmm/example-mc/README``
+
+----------
+
+.. _PKG-QMMM-XTB:
+
+QMMM-XTB package
+----------------
+
+**Contents:**
+
+The :doc:`fix qmmm/xtb <fix_qmmm_xtb>` command implements
+electrostatically embedded GFN1-xTB and GFN2-xTB QM/MM.  The package's
+:doc:`pppm/xtb and pppm/tip4p/xtb <kspace_style>` styles provide the periodic
+MM potential and converged periodic forces, while a small direct-Ewald
+response updates the QM-image potential during each xTB SCC iteration.  Both
+ordinary point-charge PPPM and implicit TIP4P virtual charge sites are
+supported.
+
+**Install:**
+
+This package requires libxtb 6.7 or newer, its installed Fortran module files,
+mctc-lib, and BLAS.  It supports only the CMake build.  See
+:ref:`QMMM-XTB build instructions <qmmm-xtb>` for details.
+
+**Supporting info:**
+
+* ``src/QMMM-XTB``: filenames -> commands
+* ``src/QMMM-XTB/README``
+* :doc:`fix qmmm/xtb <fix_qmmm_xtb>`
+* :doc:`kspace styles pppm/xtb and pppm/tip4p/xtb <kspace_style>`
+* ``examples/PACKAGES/qmmm-xtb``
 
 ----------
 

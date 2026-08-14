@@ -519,6 +519,7 @@ Cerda
 ceriotti
 Ceriotti
 Cerutti
+cetab
 cfg
 CFG
 cfile
@@ -693,6 +694,7 @@ Crespi
 Creton
 Creuze
 Critchley
+Crocombette
 crossterm
 Crowson
 Crozier
@@ -1093,6 +1095,7 @@ electronegativities
 electronegativity
 electroneutral
 electroneutrality
+electrostatically
 Eleftheriou
 ElementN
 elementset
@@ -1458,6 +1461,7 @@ Gezelter
 gfile
 gflag
 Gflop
+GFN
 gfortran
 ghostneigh
 ghostwhite
@@ -1920,6 +1924,7 @@ Jiahao
 Jiao
 jik
 JIK
+jkr
 jku
 jN
 Joanes
@@ -1998,6 +2003,7 @@ Kemppainen
 Kemper
 kepler
 Kemppainen
+ketab
 keV
 Keyes
 keyfile
@@ -2197,6 +2203,7 @@ libqmmm
 librar
 libreax
 libs
+libxtb
 Lifshitz
 ligand
 lightblue
@@ -2351,6 +2358,7 @@ Marrink
 Marroquin
 Marsaglia
 Marseille
+marshall
 Martyna
 Maruyama
 mary
@@ -2410,6 +2418,7 @@ mc
 mcmoves
 McLachlan
 mcmoves
+mctc
 md
 mdf
 mdi
@@ -3639,6 +3648,7 @@ Rohart
 Roncaratti
 Ronchetti
 Ronevich
+Rojano
 Rosati
 Rosato
 Rosenberger
@@ -3749,6 +3759,7 @@ screenshots
 Scripps
 Scripta
 sd
+sds
 sdk
 sdpd
 SDPD
@@ -4614,6 +4625,8 @@ xs
 xsc
 xstk
 xsu
+xtb
+xTB
 xtc
 xu
 Xu

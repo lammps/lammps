@@ -34,6 +34,7 @@ Some benefits include:
     + keeping track of the testing progress to resume the testing from the last checkpoint (skipping completed runs)
     + distributing the input list across multiple processes by
       splitting the list of input scripts into separate runs (there are ~800 input scripts under the top-level examples)
+      taking the cost of the individual runs into account (see "Distributing the tests over multiple workers" below)
 
 Input arguments:
 
@@ -47,14 +48,21 @@ Output:
 
     + failure.yaml : a dictionary of the failed runs and reasons (a subset of progress.yaml)
     + progress.yaml: full testing results of the tested input scripts with the status (completed, failed or skipped)
-                     with error messages (for failed runs), and walltime (in seconds)
+                     with error messages (for failed runs), the walltime reported by LAMMPS and the
+                     measured wall-clock time of the run (both in seconds)
     + output.xml   :    testing results in the JUnit XML format
     + run.log      :       screen output and error of individual runs
 
 Both YAML files are written incrementally (one line per tested input) and parse as a
 single YAML mapping keyed by the input script name.
 
-The JUnit XML file records one test case per input script with the walltime and one of
+Each entry has two times: "walltime" is the total wall time as reported by LAMMPS, which
+is only available for completed runs and has a resolution of one second, and "elapsed" is
+the measured wall-clock time of the whole run, which is also recorded for runs that crash
+or time out. The latter is the actual cost of a test and is what the JUnit XML file
+records.
+
+The JUnit XML file records one test case per input script with the elapsed time and one of
 four outcomes: passed (all numerical checks passed), failure (the run completed but
 numerical checks failed), error (the run crashed, timed out, or produced no log file),
 or skipped (the input was not run, or it ran but nothing could be checked, e.g. when
@@ -62,19 +70,141 @@ the reference log file is missing). The test case classname is the example folde
 relative to the examples top-level folder, so results from distributed runs can be
 merged and compared across machines.
 
+Where a run starts to deviate from the reference
+------------------------------------------------
+
+All rows of thermo output are compared against the reference log file, not only the
+last one of each run, since where a deviation starts says a lot about what causes it:
+
+    + a run that does not agree with the reference log file from its first thermo
+      output cannot have diverged yet, so it is a difference in the model or in the
+      setup until proven otherwise
+    + a run that agrees at first and drifts apart towards the end is what chaotic
+      amplification of rounding differences looks like: shortening the run or widening
+      the tolerance is usually the right answer, and tightening the tolerance of the
+      early steps keeps the test meaningful
+    + a deviation that appears at one specific step is worth a closer look: a neighbor
+      list rebuild, a fix that starts to act, or reading or writing a file
+
+For every quantity that leaves its tolerance somewhere in the run, the run log and the
+test report record the first deviating step, the largest deviation and the step where
+it occurs, and the deviation at the end of the run. The progress file and the JUnit XML
+file record how many quantities deviate ("diverged") and the earliest deviation as a
+fraction of the run ("diverged_from"/"diverged-from"): a value near zero means that the
+run differs from the start, a value near one that only its end diverges. The Markdown
+summary of merge_results.py groups the failed runs by those two cases.
+
+The verdict of a test is still decided by the last row of thermo output of each run, so
+this does not by itself turn passing tests into failing ones. A test that passes but
+deviates in between says so in its status.
+
+Inputs that are not tested, and inputs that need to be fixed
+------------------------------------------------------------
+
+The example inputs were not written to be tests, so a number of them cannot be compared
+against a reference log file at all, and some need to be corrected before their result
+means anything. Those cases are recognized and reported rather than counted as failures:
+
+    + input scripts that need a multi-partition run (neb, prd, tad, temper, fix pimd,
+      universe style variables, ...) are skipped: they write one log file per partition
+      and need their own test configuration with "-partition NxM" and a matching number
+      of MPI processes
+    + input scripts without a reference log file cannot be checked against anything, so
+      they are run with their run commands shortened to "smoke_steps" steps, which only
+      tests that they do not crash. If the shortened run fails, which happens when a
+      variable refers to a fix that only produces output after more steps, the input is
+      run unchanged instead and flagged as needing manual attention.
+    + input scripts whose initial velocities depend on the number of MPI processes
+      (a "velocity create" command without "loop geom" on a system built with
+      create_atoms) cannot match a reference log file that was written with a different
+      number of processes; they are flagged for a fix in the repository. The number of
+      MPI processes of a reference log file is read from the log file itself, since the
+      number in its name counts the OpenMP threads as well
+    + input scripts that need a good part of the timeout are production sized runs that
+      should be shortened in the repository; they are flagged as well
+    + input scripts that name a style which exists in no package at all, which is a typo
+      or an outdated name rather than a package that is not installed
+    + reference log files that belong to no input script in their folder, which is
+      usually a typo in one of the two names and silently leaves the input unchecked
+
+The last two are reported in an "attention" field of the progress file and as an
+attribute of the JUnit test case, independently of whether the test passed or failed.
+
+REPORTING.md in this folder documents all of that information and how a dashboard can
+turn it into a work list.
+
 The JUnit XML files from multiple (distributed) runs can be merged and summarized
 with the merge_results.py script in this folder (which only needs the Python
 standard library):
 
     python3 merge_results.py --title "Full Regression Test" \
             --output-xml regression.xml --json run.json --summary summary.md \
-            output-*.xml
+            --cost-file costs.json output-*.xml
 
 This produces a merged JUnit XML file, a JSON file with all results and metadata
 for archiving, and a Markdown summary (use "--summary -" to print it to the screen)
 suitable for $GITHUB_STEP_SUMMARY. With --compare previous-run.json, the summary
 also reports the changes relative to an earlier run: new failures, fixed tests,
-new tests, and removed tests.
+new tests, and removed tests. With --cost-file, the measured run times are recorded
+for the next test run as described in the next section.
+
+The detailed report of each failed test is always kept in the merged JUnit XML file.
+It is left out of the JSON file, which is meant to be archived, unless a maximum
+length is requested with --max-details.
+
+Distributing the tests over multiple workers
+--------------------------------------------
+
+The cost of the individual runs spans several orders of magnitude, so splitting the
+list of input scripts into equally long chunks leaves most workers idle while a few
+of them are still running the expensive inputs. Instead, run_tests.py --analyze
+estimates the cost of each input script and hands the most expensive one to the
+worker with the least work assigned so far ("longest processing time first", the same
+heuristic that CTest uses for tests with a COST property). Each worker's list is
+ordered by decreasing cost as well, so the long runs are started first.
+
+The cost estimates come from three sources, in this order:
+
+    + the measured run times of a previous test run, passed in with --cost-file
+      (this is by far the most reliable source; the file is written by
+      merge_results.py --cost-file after that run)
+    + the loop times in the reference log files of the input script, scaled from the
+      number of procs of the log file to the number of procs used for the test and
+      capped at the timeout (only a hint: those log files were generated on many
+      different machines over the years)
+    + for input scripts with neither, a pessimistic guess derived from the other
+      input scripts, since a long run that is scheduled last delays the whole test run
+
+Since the cost of a test depends on how it is run, each test configuration (serial,
+4 MPI tasks, ...) needs its own cost file. A typical sequence for a full test run is:
+
+    python3 run_tests.py --lmp-bin=build/lmp --config-file=config_serial.yaml \
+            --examples-top-level=examples --analyze --num-workers=32 --cost-file=serial-costs.json
+
+    for n in $(seq 0 31)
+    do
+        python3 run_tests.py --lmp-bin=build/lmp --config-file=config_serial.yaml \
+                --list-input=input-list-$n.txt --output-file=output-$n.xml \
+                --progress-file=progress-$n.yaml --failure-file=failure-$n.yaml \
+                --log-file=run-$n.log --walltime-ref=$(cat walltime-ref.txt) &
+    done
+    wait
+
+    python3 merge_results.py --title "Full Regression Test / Serial" \
+            --json serial.json --cost-file=serial-costs.json output-*.xml
+
+The cost file is updated in place, so the same command line works for the first run,
+where the file does not exist yet, and for all later ones. Tests that did not run keep
+their previously measured time.
+
+Passing --walltime-ref avoids that all workers benchmark the LAMMPS binary against
+each other at the same time. The --analyze run measures the reference walltime once
+and writes it to walltime-ref.txt for this purpose.
+
+Input scripts in the same folder are run by different workers unless their folder is
+listed in the "keep_together" section of the test configuration file. That section is
+for folders where one input script reads a file written by another one, or where two
+input scripts write the same output file.
 
 Limitations:
 
@@ -120,12 +250,14 @@ Example uses (aka, tests for this script):
     6) Analyze the LAMMPS binary and whole top-level /examples folder in a LAMMPS source tree
        and generate separate input lists for 8 workers:
            python3 run_tests.py --lmp-bin=/path/to/lmp_binary --examples-top-level=/path/to/lammps/examples \
-                --analyze --num-workers=8
+                --analyze --num-workers=8 --cost-file=costs.json
 
        The output of this run is 8 files folder-list-[0-7].txt that lists the subfolders
        and 8 files input-list-[0-7].txt that lists the input scripts under the top-level example folders.
        With these lists, one can launch multiple instances of run_tests.py simultaneously
        each with a list of example subfolders (Case 3), or with a list of input scripts (Case 4).
+       Both are split such that all workers are expected to take the same time; the
+       optional --cost-file is the measured run times from a previous test run.
 
 An example of the test configuration `config.yaml` is given as below.
 
@@ -160,10 +292,14 @@ An example of the test configuration `config.yaml` is given as below.
           abs: 1e-2
           rel: 1e-4
     skip:
-      [ 
+      [
         in.displ,
         in.displ2,
         in.*_imd*,
+      ]
+    keep_together:
+      [
+        PACKAGES/rhok,
       ]
 
     nugget: 1.0

@@ -158,6 +158,11 @@ Grid2d::Grid2d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int ixlo, int ixhi
 
   ghostxlo = ghostxhi = ghostylo = ghostyhi = 0;
 
+  // neighbor procs are only assigned in extract_comm_info(), which may not
+  // be invoked; zero them so the instance never carries indeterminate values
+
+  procxlo = procxhi = procylo = procyhi = 0;
+
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid2d instance is created
 

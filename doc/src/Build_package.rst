@@ -62,6 +62,7 @@ packages:
    * :ref:`PLUMED <plumed>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`QMMM-XTB <qmmm-xtb>`
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`

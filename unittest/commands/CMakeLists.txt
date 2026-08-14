@@ -58,6 +58,17 @@ target_compile_definitions(test_kspace_group_group_slab PRIVATE -DTEST_INPUT_FOL
 target_link_libraries(test_kspace_group_group_slab PRIVATE lammps GTest::GMock)
 add_test(NAME KSpaceGroupGroupSlab COMMAND test_kspace_group_group_slab)
 
+if(PKG_QMMM-XTB)
+  add_executable(test_kspace_group_potential test_kspace_group_potential.cpp)
+  target_include_directories(test_kspace_group_potential PRIVATE ${LAMMPS_SOURCE_DIR}/KSPACE
+                                                                  ${LAMMPS_SOURCE_DIR}/QMMM-XTB)
+  target_link_libraries(test_kspace_group_potential PRIVATE lammps GTest::GMock)
+  if(FFT_SINGLE)
+    target_compile_definitions(test_kspace_group_potential PRIVATE -DFFT_SINGLE)
+  endif()
+  add_test(NAME KSpaceGroupPotential COMMAND test_kspace_group_potential)
+endif()
+
 add_executable(test_groups test_groups.cpp)
 target_link_libraries(test_groups PRIVATE lammps GTest::GMock)
 add_test(NAME Groups COMMAND test_groups)
@@ -117,7 +128,6 @@ endif()
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
-target_compile_definitions(test_mpi_load_balancing PRIVATE ${TEST_CONFIG_DEFS})
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)
 
 add_executable(test_restart_settings test_restart_settings.cpp)

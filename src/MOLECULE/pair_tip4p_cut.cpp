@@ -54,6 +54,8 @@ PairTIP4PCut::PairTIP4PCut(LAMMPS *lmp) : Pair(lmp)
 
 PairTIP4PCut::~PairTIP4PCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

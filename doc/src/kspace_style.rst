@@ -25,7 +25,10 @@
 .. index:: kspace_style pppm/cg/omp
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
+.. index:: kspace_style pppm/tip4p/kk
 .. index:: kspace_style pppm/tip4p/omp
+.. index:: kspace_style pppm/xtb
+.. index:: kspace_style pppm/tip4p/xtb
 .. index:: kspace_style pppm/electrode
 .. index:: kspace_style pppm/electrode/intel
 .. index:: kspace_style pppm/rk
@@ -47,7 +50,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
+* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/xtb* or *pppm/tip4p/xtb* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/kk or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
@@ -83,6 +86,10 @@ Syntax
        *pppm/disp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/xtb* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/tip4p/xtb* value = accuracy
          accuracy = desired relative error in forces
        *pppm/disp/tip4p* value = accuracy
          accuracy = desired relative error in forces
@@ -277,6 +284,15 @@ The *pppm/tip4p* style is identical to the *pppm* style except that it
 adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
+
+.. versionadded:: TBD
+
+The *pppm/xtb* and *pppm/tip4p/xtb* styles provide the corresponding
+PPPM electrostatics together with the source-to-sensor potential projection
+required by :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.  They are part of the
+QMMM-XTB package and are intended for use with that fix.  Other calculations
+performed by these styles are inherited from *pppm* and *pppm/tip4p*,
+respectively.
 
 The *pppm/stagger* style performs calculations using two different
 meshes, one shifted slightly with respect to the other.  This can
@@ -561,6 +577,15 @@ relative RMS error.
   :doc:`Build settings <Build_settings>` doc page for how to select a
   3rd-party FFT library.
 
+  The *pppm/tip4p/kk* style performs the same on-device work for TIP4P
+  systems: the off-atom M (massless charge) site is located, the charge
+  is mapped to the grid from that site, and the resulting force and
+  per-atom energy/virial are redistributed back onto the O atom and its
+  two H atoms, all in device kernels. Like *pppm/kk* it requires
+  *newton on* and does not (yet) support *kspace_modify diff ad* or
+  triclinic (non-orthogonal) boxes; use the non-accelerated
+  *pppm/tip4p* style for those cases.
+
 ----------
 
 Restrictions
@@ -574,6 +599,9 @@ The *ewald/disp*, *ewald*, *esp*, *pppm*, *pppm/disp*, and *msm* styles
 support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
+
+The *pppm/xtb* and *pppm/tip4p/xtb* styles currently require an orthorhombic
+simulation box, as does :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.
 
 .. versionchanged:: 4Jul2026
 

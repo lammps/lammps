@@ -31,8 +31,9 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pppm/rk <kspace_style>`
    * :doc:`pppm/stagger <kspace_style>`
    * :doc:`pppm/tip4p (ko) <kspace_style>`
+   * :doc:`pppm/tip4p/xtb <kspace_style>`
+   * :doc:`pppm/xtb <kspace_style>`
    * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`pppm/electrode (i) <kspace_style>`
    * :doc:`scafacos <kspace_style>`
    * :doc:`zero <kspace_style>`
-

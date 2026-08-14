@@ -58,6 +58,13 @@ if(PKG_PERI)
   add_test(NAME PairPeri COMMAND test_pair_peri)
 endif()
 
+if(PKG_QMMM-XTB)
+  add_executable(test_qmmm_xtb_ewald test_qmmm_xtb_ewald.cpp)
+  target_include_directories(test_qmmm_xtb_ewald PRIVATE ${LAMMPS_SOURCE_DIR}/QMMM-XTB)
+  target_link_libraries(test_qmmm_xtb_ewald PRIVATE lammps GTest::GMockMain)
+  add_test(NAME QMMMXTBEwald COMMAND test_qmmm_xtb_ewald)
+endif()
+
 # prepare environment for testers
 if(WIN32)
   set(FORCE_TEST_ENVIRONMENT PYTHONPATH=${TEST_INPUT_FOLDER})
@@ -347,4 +354,3 @@ endif()
 add_executable(test_pair_list test_pair_list.cpp)
 target_link_libraries(test_pair_list PRIVATE lammps GTest::GMockMain)
 add_test(NAME TestPairList COMMAND test_pair_list)
-

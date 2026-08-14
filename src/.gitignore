@@ -218,6 +218,15 @@
 /fix_qeq*.cpp
 /fix_qeq*.h
 
+/fix_qmmm_xtb.cpp
+/fix_qmmm_xtb.h
+/pppm_tip4p_xtb.h
+/pppm_xtb.h
+/qmmm_xtb_adapter.h
+/qmmm_xtb_ewald.cpp
+/qmmm_xtb_ewald.h
+/qmmm_xtb_pppm.cpp
+
 /fix_*cauchy.cpp
 /fix_*cauchy.h
 
@@ -1995,4 +2004,3 @@
 /pair_bondval.h
 /pair_bondval_vec.cpp
 /pair_bondval_vec.h
-

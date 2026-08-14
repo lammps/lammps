@@ -448,6 +448,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix qmmm <fix_qmmm>`
      - ``PACKAGES/qmmm``
      - ext
+   * - :ref:`QMMM-XTB <PKG-QMMM-XTB>`
+     - GFN1/GFN2-xTB QM/MM coupling with PPPM
+     - :doc:`fix qmmm/xtb <fix_qmmm_xtb>`
+     - ``PACKAGES/qmmm-xtb``
+     - ext
    * - :ref:`QTB <PKG-QTB>`
      - quantum nuclear effects
      - :doc:`fix qtb <fix_qtb>` :doc:`fix qbmsst <fix_qbmsst>`

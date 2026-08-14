@@ -387,6 +387,7 @@ accelerated styles exist.
 * :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
+* :doc:`qmmm/xtb <fix_qmmm_xtb>` - self-consistent GFN-xTB QM/MM with periodic PPPM electrostatics
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
 * :doc:`qtpie/reaxff <fix_qtpie_reaxff>` - apply QTPIE charge equilibration
 * :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles

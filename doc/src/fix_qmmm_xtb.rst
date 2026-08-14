@@ -134,7 +134,7 @@ represented by ordinary real O/H atoms without the implicit TIP4P virtual-site
 mapping.
 
 The user is responsible for removing classical bonded, angle,
-dihedral, improper, and short-range nonbonded terms that are replaced by
+dihedral, improper, and short-range non-bonded terms that are replaced by
 the QM Hamiltonian.  The initial implementation assumes no covalent
 QM/MM boundary and has no link atoms.  QM/MM pairs must not have
 ``special_bonds`` Coulomb scaling, since xTB's explicit external-charge
@@ -145,7 +145,7 @@ Restart, fix_modify, output, run start/stop, minimize info
 
 No information is written to binary restart files.  Reissue the fix
 command after :doc:`read_restart <read_restart>`; xTB starts a new SCC
-wavefunction and then reuses it between subsequent force evaluations.
+wave function and then reuses it between subsequent force evaluations.
 
 The :doc:`fix_modify <fix_modify>` *energy* option is supported by the
 standard fix energy mechanism.  No fix-specific *fix_modify* keywords

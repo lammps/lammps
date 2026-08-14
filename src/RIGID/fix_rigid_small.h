@@ -31,17 +31,17 @@ class FixRigidSmall : public Fix {
   FixRigidSmall(class LAMMPS *, int, char **);
   ~FixRigidSmall() override;
   int setmask() override;
-  virtual void init() override;
-  virtual void setup(int) override;
-  virtual void initial_integrate(int) override;
-  virtual void post_force(int) override;
-  virtual void final_integrate() override;
-  virtual void initial_integrate_respa(int, int, int) override;
-  virtual void final_integrate_respa(int, int) override;
-  virtual void write_restart_file(const char *) override;
+  void init() override;
+  void setup(int) override;
+  void initial_integrate(int) override;
+  void post_force(int) override;
+  void final_integrate() override;
+  void initial_integrate_respa(int, int, int) override;
+  void final_integrate_respa(int, int) override;
+  void write_restart_file(const char *) override;
 
-  virtual void grow_arrays(int) override;
-  virtual void copy_arrays(int, int, int) override;
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
   void set_arrays(int) override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
   void resample_momenta(int, int, class RanPark *, double);
@@ -53,8 +53,8 @@ class FixRigidSmall : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
-  virtual void setup_pre_neighbor() override;
-  virtual void pre_neighbor() override;
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
   bigint dof(int) override;
   void deform(int) override;
   void reset_dt() override;
@@ -62,8 +62,8 @@ class FixRigidSmall : public Fix {
   void zero_rotation() override;
   int modify_param(int, char **) override;
   void *extract(const char *, int &) override;
-  double extract_ke();
-  double extract_erotational();
+  virtual double extract_ke();
+  virtual double extract_erotational();
   double compute_scalar() override;
   double memory_usage() override;
 

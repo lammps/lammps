@@ -106,8 +106,8 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void zero_momentum() override;
   void zero_rotation() override;
   void *extract(const char *, int &) override;
-  double extract_ke();
-  double extract_erotational();
+  double extract_ke() override;
+  double extract_erotational() override;
   double compute_scalar() override;
   void reset_atom2body() override;
   void image_shift() override;

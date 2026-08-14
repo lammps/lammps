@@ -85,7 +85,7 @@ class DomainKokkos : public Domain {
       Few<double,3> x);
   static KOKKOS_INLINE_FUNCTION
   Few<double,3> remap(Few<double,3> lo, Few<double,3> hi, Few<double,3> period, int xperiodic, int yperiodic, int zperiodic,
-      Few<double,3> coord, imageint image);
+      Few<double,3> coord, imageint &image);
 
  private:
   int groupbit;
@@ -149,7 +149,7 @@ Few<double,3> DomainKokkos::unmap(Few<double,3> prd, Few<double,6> h,
  */
 KOKKOS_INLINE_FUNCTION
 Few<double,3> DomainKokkos::remap(Few<double,3> lo, Few<double,3> hi, Few<double,3> period, int xperiodic, int yperiodic, int zperiodic,
-    Few<double,3> xorlamda, imageint image)
+    Few<double,3> xorlamda, imageint &image)
 {
   Few<double,3> coord(xorlamda);
 

@@ -283,9 +283,11 @@ the *2Theta* range, increase the *c* values, or lower *oversample*.
 
 The mesh depends only on the settings of the compute, not on how many
 processors are used, so results are reproducible to round-off across processor
-counts.  The mesh is divided into slabs along :math:`z`; if there are more
-processors than slabs, the extra processors still contribute their own atoms
-but take no part in the transform.
+counts.  The mesh is divided into slabs along :math:`z` when there are no more
+processors than it has planes, and into bricks over all three dimensions when
+there are more, so that no processor has to collect the contributions of all
+the others.  A processor that ends up with no part of the mesh still
+contributes its own atoms but takes no part in the transform.
 
 Cost for large systems
 """"""""""""""""""""""
@@ -293,10 +295,19 @@ Cost for large systems
 The work of spreading the atoms onto the mesh is divided over the processors,
 so the atoms themselves are not what limits the size of a calculation.  What
 limits it is the mesh, whose size is set by the volume of the simulation cell
-and by the resolution requested in reciprocal space, and which is currently
-built on every processor before being summed and divided among them.  Its
-memory therefore does not shrink as processors are added, and a warning is
-printed when it exceeds 512 Mbytes per processor.
+and by the resolution requested in reciprocal space.
+
+Each processor stores only the part of the mesh that its own atoms reach.  How
+large that part is depends on how the mesh compares with the simulation cell.
+The mesh spans the diffraction cell, which is the simulation cell divided by
+*c*, so as the atoms of one processor are followed across the simulation cell
+they wrap the mesh *c* times in each direction.  A processor therefore holds
+roughly :math:`c^3/P` of the mesh with :math:`P` processors, which is the whole
+mesh once :math:`c^3` exceeds :math:`P`, and falls with :math:`P` beyond that.
+Only the parts of the mesh a processor holds are communicated when the
+contributions are summed, so the same applies to the volume of communication.
+A warning is printed when the mesh would need more than 512 Mbytes on one
+processor, which is the amount needed in the worst case above.
 
 The *c* values are the control for this.  They set the spacing of the
 reciprocal lattice nodes in units of the inverse cell dimensions, so the number

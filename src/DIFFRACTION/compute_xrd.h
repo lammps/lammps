@@ -55,7 +55,6 @@ class ComputeXRD : public Compute {
   // for an orthogonal box only the diagonal is nonzero and equals dK.
 
   double rlv[3][3];
-  double rlv_orig[3][3];    // the rlv that fixed the set of nodes explored
 
   // reciprocal space position of a node, K = i*rlv[0] + j*rlv[1] + k*rlv[2].
   // rlv is upper triangular, exactly as the LAMMPS box matrix is.

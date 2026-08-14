@@ -183,12 +183,8 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
   // which reciprocal lattice nodes are explored is fixed here and never
   // changes, because the number of rows of the output array cannot change.
-  // rlv_orig is the reciprocal lattice that defines that set; rlv follows the
-  // box.
+  // rlv itself follows the box from here on.
 
-  for (int i=0; i<3; i++) {
-    for (int j=0; j<3; j++) rlv_orig[i][j] = rlv[i][j];
-  }
   for (int i=0; i<6; i++) h_last[i] = domain->h[i];
   warned_range = 0;
 
@@ -246,6 +242,36 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
   memory->create(array,size_array_rows,size_array_cols,"xrd:array");
   memory->create(store_tmp,3*size_array_rows,"xrd:store_tmp");
+
+  // record which nodes those are.  the set never changes, because the number
+  // of rows of the output array cannot, so this scan of the search box is done
+  // once here rather than again at the start of every run: for a large cell it
+  // costs more than the diffraction calculation itself.
+
+  bigint nfill = 0;
+  double convf = 360 / MY_PI;
+  if (radflag == 1) convf = 2;
+
+  for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
+    for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
+      for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
+        kvector(rlv,i,j,k,K);
+        dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
+        if  (4 >= dinv2 * lambda * lambda) {
+          ang = asin(lambda * sqrt(dinv2) * 0.5);
+          if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
+            store_tmp[3*nfill] = k;
+            store_tmp[3*nfill+1] = j;
+            store_tmp[3*nfill+2] = i;
+            array[nfill][0] = ang * convf;
+            nfill++;
+          }
+        }
+      }
+    }
+  }
+
+  if (nfill != nRows) error->all(FLERR,"Compute XRD rows mismatch");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,43 +287,9 @@ ComputeXRD::~ComputeXRD()
 
 void ComputeXRD::init()
 {
-  // the rectilinear search box can hold more nodes than fit in an int even when
-  // the number of nodes actually selected does not, so index it with a bigint
-
-  bigint nk1 = 2*(bigint)Knmax[1]+1;
-  bigint nk2 = 2*(bigint)Knmax[2]+1;
-  bigint mmax = (2*(bigint)Knmax[0]+1)*nk1*nk2;
-  double K[3];
-  double dinv2 = 0.0;
-  double ang = 0.0;
-
-  double convf = 360 / MY_PI;
-  if (radflag == 1) convf = 2;
-
-  int n = 0;
-  for (bigint m = 0; m < mmax; m++) {
-    int k = (int) (m % nk2);
-    int j = (int) ((m % (nk2*nk1) - k)/nk2);
-    int i = (int) ((m - j*nk2 - k)/(nk2*nk1)) - Knmax[0];
-    j = j-Knmax[1];
-    k = k-Knmax[2];
-    kvector(rlv_orig,i,j,k,K);
-    dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
-    if  (4 >= dinv2 * lambda * lambda) {
-       ang = asin(lambda * sqrt(dinv2) * 0.5);
-       if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
-          store_tmp[3*n] = k;
-          store_tmp[3*n+1] = j;
-          store_tmp[3*n+2] = i;
-          array[n][0] = ang * convf;
-          n++;
-       }
-    }
-  }
- if (n != size_array_rows)
-     error->all(FLERR,"Compute XRD compute_array() rows mismatch");
-
-  // pick up any box change that happened before this run started
+  // the set of reciprocal lattice nodes was fixed when the compute was defined
+  // and cannot change, so all that is needed here is to pick up a box change
+  // that happened before this run started and refresh the angles from it
 
   set_spacing();
   for (int i = 0; i < 6; i++) h_last[i] = domain->h[i];

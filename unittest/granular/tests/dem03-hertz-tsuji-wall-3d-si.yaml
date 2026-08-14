@@ -1,0 +1,61 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular unvetted
+date_generated: Wed Jul 29 22:18:33 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units si
+  dimension 3
+  boundary f f f
+  atom_style sphere
+  region box block -0.05 0.012 -0.012 0.012 -0.012 0.012 units box
+  create_box 1 box
+  create_atoms 1 single -${x0} 0.0 0.0 units box
+  set group all diameter ${diam} density ${dens}
+  velocity all set ${vx_in} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: |
+  fix integr all nve/sphere
+  fix xwall all wall/gran granular hertz/material ${emod} ${en} ${poisson} damping tsuji tangential mindlin NULL 0.5 ${xmu} xplane NULL 0.0
+input_file:
+natoms: 1
+variables: |
+  diam 0.005
+  dens 2700.0
+  emod 7.0e10
+  poisson 0.33
+  en 0.5
+  xmu 0.4
+  x0 0.0026
+  vx_in 2.0
+  radius 0.0025
+  dt 1.0e-8
+pair_style: granular
+pair_coeff: |
+  * * hertz/material ${emod} ${en} ${poisson} damping tsuji tangential mindlin NULL 0.5 ${xmu}
+run_segments: |-
+  5500 1500
+analytic_enable: yes
+analytic_model: wall_restitution
+analytic_tol: 0.005
+analytic_segment: 1
+run_pos: |2
+    0   1 -2.4926116685070137e-03  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1 -2.5034880148754384e-03  0.0000000000000000e+00  0.0000000000000000e+00
+run_vel: |2
+    0   1  7.1068571385515955e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1 -9.9974392334184659e-01  0.0000000000000000e+00  0.0000000000000000e+00
+run_torque: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_omega: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+...

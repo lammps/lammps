@@ -206,11 +206,11 @@ return mapping that is stable under sustained plastic flow.
 Performance expectations
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-The based BPM implementation is found to be consistently faster than
-the legacy PERI pair styles by a significant margin.  On a periodic
-16x16x16 simple-cubic block (4096 nodes, 122 bonds per node) the
-per-step force cost is roughly 3.6x (pmb), 5.4x (lps), 4.4x (ves) and
-5.9x (eps) lower than the corresponding ``peri/*`` pair style on a
+The BPM based peridynamics implementation is found to be consistently
+faster than the legacy PERI package pair styles by a significant margin.
+On a periodic 16x16x16 simple-cubic block (4096 nodes, 122 bonds per node)
+the per-step force cost is roughly 3.6x (pmb), 5.4x (lps), 4.4x (ves)
+and 5.9x (eps) lower than the corresponding ``peri/*`` pair style on a
 single MPI rank, and about 4x lower on four ranks.  The legacy styles
 walk a double-counted partner list (each bond visited from both
 endpoints) and combine bond and contact in one pass, whereas the BPM

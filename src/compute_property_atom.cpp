@@ -60,11 +60,8 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
   avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
 
-  int i;
   int iarg = 3;
   while (iarg < narg) {
-    i = iarg-3;
-
     value_t val;
     val.index = 0;
     val.colindex = 0;
@@ -74,7 +71,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &ComputePropertyAtom::pack_id;
     } else if (strcmp(arg[iarg],"mol") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_molecule;
     } else if (strcmp(arg[iarg],"proc") == 0) {
       val.pack_choice = &ComputePropertyAtom::pack_proc;
@@ -135,228 +132,228 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
     } else if (strcmp(arg[iarg],"q") == 0) {
       if (!atom->q_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_q;
     } else if (strcmp(arg[iarg],"mux") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_mux;
     } else if (strcmp(arg[iarg],"muy") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR," iarg, Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_muy;
     } else if (strcmp(arg[iarg],"muz") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_muz;
     } else if (strcmp(arg[iarg],"mu") == 0) {
       if (!atom->mu_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_mu;
 
     // pack magnetic variables
 
     } else if (strcmp(arg[iarg],"spx") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_spx;
     } else if (strcmp(arg[iarg],"spy") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_spy;
     } else if (strcmp(arg[iarg],"spz") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_spz;
     } else if (strcmp(arg[iarg],"sp") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_sp;
     } else if (strcmp(arg[iarg],"fmx") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_fmx;
     } else if (strcmp(arg[iarg],"fmy") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_fmy;
     } else if (strcmp(arg[iarg],"fmz") == 0) {
       if (!atom->sp_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_fmz;
 
     // bond count
 
     } else if (strcmp(arg[iarg],"nbonds") == 0) {
       if (!atom->molecule_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_nbonds;
 
     // finite-size particles
 
     } else if (strcmp(arg[iarg],"radius") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_radius;
     } else if (strcmp(arg[iarg],"diameter") == 0) {
       if (!atom->radius_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_diameter;
     } else if (strcmp(arg[iarg],"omegax") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_omegax;
     } else if (strcmp(arg[iarg],"omegay") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_omegay;
     } else if (strcmp(arg[iarg],"omegaz") == 0) {
       if (!atom->omega_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_omegaz;
     } else if (strcmp(arg[iarg],"temperature") == 0) {
       if (!atom->temperature_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_temperature;
     } else if (strcmp(arg[iarg],"heatflow") == 0) {
       if (!atom->heatflow_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_heatflow;
     } else if (strcmp(arg[iarg],"angmomx") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_angmomx;
     } else if (strcmp(arg[iarg],"angmomy") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_angmomy;
     } else if (strcmp(arg[iarg],"angmomz") == 0) {
       if (!atom->angmom_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_angmomz;
 
     } else if (strcmp(arg[iarg],"shapex") == 0) {
       if (!avec_ellipsoid)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_shapex;
     } else if (strcmp(arg[iarg],"shapey") == 0) {
       if (!avec_ellipsoid)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_shapey;
     } else if (strcmp(arg[iarg],"shapez") == 0) {
       if (!avec_ellipsoid)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_shapez;
 
     } else if (strcmp(arg[iarg],"block1") == 0) {
       if (!avec_ellipsoid || !atom->superellipsoid_flag)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_block1;
     } else if (strcmp(arg[iarg],"block2") == 0) {
       if (!avec_ellipsoid || !atom->superellipsoid_flag)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_block2;
     } else if (strcmp(arg[iarg],"quatw") == 0) {
       if (!avec_ellipsoid && !avec_body && !atom->quat_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_quatw;
     } else if (strcmp(arg[iarg],"quati") == 0) {
       if (!avec_ellipsoid && !avec_body && !atom->quat_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_quati;
     } else if (strcmp(arg[iarg],"quatj") == 0) {
       if (!avec_ellipsoid && !avec_body && !atom->quat_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_quatj;
     } else if (strcmp(arg[iarg],"quatk") == 0) {
       if (!avec_ellipsoid && !avec_body && !atom->quat_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_quatk;
     } else if (strcmp(arg[iarg],"inertiax") == 0) {
       if (!avec_ellipsoid || !atom->superellipsoid_flag)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_inertiax;
     } else if (strcmp(arg[iarg],"inertiay") == 0) {
       if (!avec_ellipsoid || !atom->superellipsoid_flag)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_inertiay;
     } else if (strcmp(arg[iarg],"inertiaz") == 0) {
       if (!avec_ellipsoid || !atom->superellipsoid_flag)
-        error->all(FLERR,"Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style ellipsoid with super flag", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_inertiaz;
     } else if (strcmp(arg[iarg],"tqx") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_tqx;
     } else if (strcmp(arg[iarg],"tqy") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_tqy;
     } else if (strcmp(arg[iarg],"tqz") == 0) {
       if (!atom->torque_flag)
-        error->all(FLERR,"Compute property/atom {} is not available", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} is not available", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_tqz;
 
     } else if (strcmp(arg[iarg],"end1x") == 0) {
       if (!avec_line)
-        error->all(FLERR,"Compute property/atom {} requires atom style line", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style line", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_end1x;
     } else if (strcmp(arg[iarg],"end1y") == 0) {
       if (!avec_line)
-        error->all(FLERR,"Compute property/atom {} requires atom style line", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style line", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_end1y;
     } else if (strcmp(arg[iarg],"end1z") == 0) {
       if (!avec_line)
-        error->all(FLERR,"Compute property/atom {} requires atom style line", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style line", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_end1z;
     } else if (strcmp(arg[iarg],"end2x") == 0) {
       if (!avec_line)
-        error->all(FLERR,"Compute property/atom {} requires atom style line", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style line", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_end2x;
     } else if (strcmp(arg[iarg],"end2y") == 0) {
       if (!avec_line)
-        error->all(FLERR,"Compute property/atom {} requires atom style line", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style line", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_end2y;
     } else if (strcmp(arg[iarg],"end2z") == 0) {
       if (!avec_line)
-        error->all(FLERR,"Compute property/atom {} requires atom style line", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style line", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_end2z;
 
     } else if (strcmp(arg[iarg],"corner1x") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner1x;
     } else if (strcmp(arg[iarg],"corner1y") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner1y;
     } else if (strcmp(arg[iarg],"corner1z") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner1z;
     } else if (strcmp(arg[iarg],"corner2x") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner2x;
     } else if (strcmp(arg[iarg],"corner2y") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner2y;
     } else if (strcmp(arg[iarg],"corner2z") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner2z;
     } else if (strcmp(arg[iarg],"corner3x") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner3x;
     } else if (strcmp(arg[iarg],"corner3y") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner3y;
     } else if (strcmp(arg[iarg],"corner3z") == 0) {
       if (!avec_tri)
-        error->all(FLERR,"Compute property/atom {} requires atom style tri", arg[iarg]);
+        error->all(FLERR, iarg, "Compute property/atom {} requires atom style tri", arg[iarg]);
       val.pack_choice = &ComputePropertyAtom::pack_corner3z;
 
     // custom per-atom vector or array
@@ -368,7 +365,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
       val.index = atom->find_custom(pname,flag,cols);
       if (val.index < 0)
-        error->all(FLERR,"Compute property/atom property {} does not exist", pname);
+        error->all(FLERR, iarg, "Compute property/atom property {} does not exist", pname);
 
       // custom vectors
 
@@ -380,12 +377,12 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
           if (argi.get_type() == ArgInfo::INAME)
             val.pack_choice = &ComputePropertyAtom::pack_iname;
           else
-            error->all(FLERR,"Compute property/atom integer vector {} does not exist",pname);
+            error->all(FLERR, iarg, "Compute property/atom integer vector {} does not exist",pname);
         } else if (arg[iarg][0] == 'd') {
           if (argi.get_type() == ArgInfo::DNAME)
             val.pack_choice = &ComputePropertyAtom::pack_dname;
           else
-            error->all(FLERR,"Compute property/atom floating-point vector {} does not exist",pname);
+            error->all(FLERR, iarg, "Compute property/atom floating-point vector {} does not exist",pname);
         }
       }
 
@@ -393,21 +390,21 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
       else if ((cols > 0) && (arg[iarg][1] == '2')) {
         if (argi.get_dim() != 1)
-          error->all(FLERR,"Compute property/atom custom array {} is not indexed",pname);
+          error->all(FLERR, iarg, "Compute property/atom custom array {} is not indexed",pname);
         val.colindex = argi.get_index1();
 
         if (arg[iarg][0] == 'i') {
           if (argi.get_type() == ArgInfo::INAME)
             val.pack_choice = &ComputePropertyAtom::pack_i2name;
           else
-            error->all(FLERR,"Compute property/atom integer array {} does not exist",pname);
+            error->all(FLERR, iarg, "Compute property/atom integer array {} does not exist",pname);
         } else if (arg[iarg][0] == 'd') {
           if (argi.get_type() == ArgInfo::DNAME)
             val.pack_choice = &ComputePropertyAtom::pack_d2name;
           else
-            error->all(FLERR,"Compute property/atom floating-point array {} does not exist",pname);
+            error->all(FLERR, iarg, "Compute property/atom floating-point array {} does not exist",pname);
         }
-      } else error->all(FLERR,"Inconsistent request for custom property {}", pname);
+      } else error->all(FLERR, iarg, "Inconsistent request for custom property {}", pname);
 
     // history[i][j] values from fix store/state
     // values[i].index = I index of history[I][J] for history frame (1 to Nrepeat)
@@ -431,7 +428,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
                                         "frame {} from fix store/state", style, val.index);
         }
         val.colindex = utils::inumeric(FLERR,bracket2,false,lmp);   // J
-      } else error->all(FLERR,"Inconsistent request for history keyword");
+      } else error->all(FLERR, iarg, "Inconsistent request for history keyword");
 
     // any other attribute could be recognized by atom style
     // otherwise break for processing optional args
@@ -442,7 +439,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
       val.pack_choice = &ComputePropertyAtom::pack_atom_style;
     }
 
-    values.push_back(std::move(val));
+    values.push_back(val);
     iarg++;
   }
 
@@ -452,8 +449,10 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
   while (iarg < narg) {
     if (strcmp(arg[iarg],"history") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "history fixID", error);
-      if (historyflag == 0) error->all(FLERR,"Compute property/atom history option cannot be used without history attribute", style);
-      if (historyflag == 2) error->all(FLERR,"Compute property/atom history option can only be used once");
+      if (historyflag == 0)
+        error->all(FLERR, iarg, "Compute property/atom history option cannot be used without history attribute", style);
+      if (historyflag == 2)
+        error->all(FLERR, iarg, "Compute property/atom history option can only be used once");
       historyflag = 2;
       int n = strlen(arg[iarg+1]) + 1;
       fixID = new char[n];
@@ -464,7 +463,7 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
           style, arg[iarg+1]);
       iarg += 2;
     } else {
-      error->all(FLERR,"Invalid keyword {} for atom style {} in compute property/atom command", arg[iarg], atom->get_style());
+      error->all(FLERR, iarg, "Invalid keyword {} for atom style {} in compute property/atom command", arg[iarg], atom->get_style());
     }
   }
 
@@ -544,7 +543,7 @@ void ComputePropertyAtom::setup_history()
   //   values[i].index    = history frame, 1 to Nrepeat (or still zero here if asterisk was used)
   //   values[i].colindex = fix store/state attribute, 1 to Nattribute
 
-  for (int i = 0; i < values.size(); i++) {
+  for (int i = 0; i < (int)values.size(); i++) {
     if (values[i].pack_choice == &ComputePropertyAtom::pack_history) {
       if (values[i].index > nrepeat_history)
         error->all(FLERR,
@@ -559,7 +558,7 @@ void ComputePropertyAtom::setup_history()
 
   // values[i].index is zero if wildcard was used. expand 'values' here
 
-  for (int i = 0; i < values.size(); i++) {
+  for (int i = 0; i < (int)values.size(); i++) {
     if (values[i].pack_choice == &ComputePropertyAtom::pack_history) {
       if (values[i].index == 0) {
         value_t val;

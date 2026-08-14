@@ -1005,12 +1005,6 @@ void DumpVTK::setFileCurrent() {
 
 void DumpVTK::buf2arrays(int n, double *mybuf)
 {
-  points.reserve(points.size() + (std::size_t) 3*n);
-  for (auto &array : myarrays) {
-    if (array.type == Dump::STRING) array.strings.reserve(array.strings.size() + n);
-    else array.values.reserve(array.values.size() + (std::size_t) n*array.ncomp);
-  }
-
   for (int iatom=0; iatom < n; ++iatom) {
     const double *atom = &mybuf[iatom*size_one];
 

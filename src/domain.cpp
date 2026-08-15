@@ -2213,7 +2213,7 @@ std::vector<Region *> Domain::get_region_by_style(const std::string &name)
 
 std::vector<Region *> Domain::get_region_list()
 {
-  return std::vector<Region *>(regions.begin(), regions.end());
+  return {regions.begin(), regions.end()};
 }
 
 /* ----------------------------------------------------------------------

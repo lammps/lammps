@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<!-- SVG re-creation of the LAMMPS icon (lammps.ico): sphere lattice
+     geometry extracted from the 256x256 original. -->
+ <title>LAMMPS icon</title>
+ <defs>
+  <radialGradient id="sb" cx="0.5" cy="0.5" r="0.5" fx="0.45" fy="0.325">
+    <stop offset="0" stop-color="#96b2ff"/>
+    <stop offset="0.08" stop-color="#7898ff"/>
+    <stop offset="0.2" stop-color="#5578fa"/>
+    <stop offset="0.35" stop-color="#3a5feb"/>
+    <stop offset="0.5" stop-color="#2c4ed7"/>
+    <stop offset="0.65" stop-color="#243eb9"/>
+    <stop offset="0.78" stop-color="#1c2d8c"/>
+    <stop offset="0.88" stop-color="#0e1650"/>
+    <stop offset="0.96" stop-color="#03061e"/>
+    <stop offset="1" stop-color="#00000c"/>
+  </radialGradient>
+  <radialGradient id="sy" cx="0.5" cy="0.5" r="0.5" fx="0.45" fy="0.325">
+    <stop offset="0" stop-color="#fffd5a"/>
+    <stop offset="0.1" stop-color="#fdf81e"/>
+    <stop offset="0.3" stop-color="#f8f20a"/>
+    <stop offset="0.5" stop-color="#e8e106"/>
+    <stop offset="0.65" stop-color="#d2cb05"/>
+    <stop offset="0.78" stop-color="#b2ac05"/>
+    <stop offset="0.88" stop-color="#878205"/>
+    <stop offset="0.96" stop-color="#504c03"/>
+    <stop offset="1" stop-color="#282500"/>
+  </radialGradient>
+ </defs>
+ <rect width="256" height="256" fill="#000000"/>
+  <circle cx="39.78" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="104.25" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="136.49" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="168.73" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="23.33" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="88.13" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="120.37" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="152.61" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="39.45" r="11.2" fill="url(#sb)"/>
+  <circle cx="39.78" cy="55.58" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="55.58" r="11.2" fill="url(#sb)"/>
+  <circle cx="136.49" cy="55.58" r="11.2" fill="url(#sb)"/>
+  <circle cx="168.73" cy="55.58" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="55.58" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="55.58" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="71.70" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="71.70" r="11.2" fill="url(#sb)"/>
+  <circle cx="120.37" cy="71.70" r="11.2" fill="url(#sb)"/>
+  <circle cx="152.61" cy="71.70" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="71.70" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="71.70" r="11.2" fill="url(#sb)"/>
+  <circle cx="39.78" cy="87.82" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="87.82" r="11.2" fill="url(#sb)"/>
+  <circle cx="136.49" cy="87.82" r="11.2" fill="url(#sb)"/>
+  <circle cx="168.73" cy="87.82" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="87.82" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="87.82" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="103.94" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="103.94" r="11.2" fill="url(#sb)"/>
+  <circle cx="120.37" cy="103.94" r="11.2" fill="url(#sb)"/>
+  <circle cx="152.61" cy="103.94" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="103.94" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="103.94" r="11.2" fill="url(#sb)"/>
+  <circle cx="39.78" cy="120.06" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="120.06" r="11.2" fill="url(#sb)"/>
+  <circle cx="136.49" cy="120.06" r="11.2" fill="url(#sb)"/>
+  <circle cx="168.73" cy="120.06" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="120.06" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="120.06" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="136.18" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="136.18" r="11.2" fill="url(#sb)"/>
+  <circle cx="120.37" cy="136.18" r="11.2" fill="url(#sb)"/>
+  <circle cx="152.61" cy="136.18" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="136.18" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="136.18" r="11.2" fill="url(#sb)"/>
+  <circle cx="39.78" cy="152.31" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="152.31" r="11.2" fill="url(#sb)"/>
+  <circle cx="136.49" cy="152.31" r="11.2" fill="url(#sb)"/>
+  <circle cx="168.73" cy="152.31" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="152.31" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="152.31" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="168.43" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="168.43" r="11.2" fill="url(#sb)"/>
+  <circle cx="120.37" cy="168.43" r="11.2" fill="url(#sb)"/>
+  <circle cx="152.61" cy="168.43" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="168.43" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="168.43" r="11.2" fill="url(#sb)"/>
+  <circle cx="39.78" cy="184.55" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="184.55" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="184.55" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="184.55" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="200.67" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="200.67" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="200.67" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="200.67" r="11.2" fill="url(#sb)"/>
+  <circle cx="39.78" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="72.01" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="104.25" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="136.49" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="168.73" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="200.97" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="233.21" cy="216.79" r="11.2" fill="url(#sb)"/>
+  <circle cx="23.66" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="55.89" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="88.13" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="120.37" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="152.61" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="184.85" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="217.09" cy="232.91" r="11.2" fill="url(#sb)"/>
+  <circle cx="104.25" cy="55.58" r="12.4" fill="url(#sy)"/>
+  <circle cx="88.13" cy="71.70" r="12.4" fill="url(#sy)"/>
+  <circle cx="104.25" cy="87.82" r="12.4" fill="url(#sy)"/>
+  <circle cx="88.13" cy="103.94" r="12.4" fill="url(#sy)"/>
+  <circle cx="104.25" cy="120.06" r="12.4" fill="url(#sy)"/>
+  <circle cx="88.13" cy="136.18" r="12.4" fill="url(#sy)"/>
+  <circle cx="104.25" cy="152.31" r="12.4" fill="url(#sy)"/>
+  <circle cx="88.13" cy="168.43" r="12.4" fill="url(#sy)"/>
+  <circle cx="104.25" cy="184.55" r="12.4" fill="url(#sy)"/>
+  <circle cx="136.49" cy="184.55" r="12.4" fill="url(#sy)"/>
+  <circle cx="168.73" cy="184.55" r="12.4" fill="url(#sy)"/>
+  <circle cx="88.13" cy="200.67" r="12.4" fill="url(#sy)"/>
+  <circle cx="120.37" cy="200.67" r="12.4" fill="url(#sy)"/>
+  <circle cx="152.61" cy="200.67" r="12.4" fill="url(#sy)"/>
+</svg>

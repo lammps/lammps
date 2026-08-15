@@ -164,6 +164,17 @@ namespace LAMMPS_NS::MathSpecial {
     return (n > 0) ? yy : 1.0 / yy;
   }
 
+  static inline double powauto(const double x, const double n)
+  {
+    if (n == 0.0) return 1.0;
+    if (x == 0.0) return 0.0;  // Use MathSpecial powint convention (different from std::pow convention)
+    const double rounded = std::round(n);
+    if (n == rounded) {
+      return powint(x, static_cast<int>(rounded)); 
+    }
+    return std::pow(x, n);
+  }
+
   /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
    *
    * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.

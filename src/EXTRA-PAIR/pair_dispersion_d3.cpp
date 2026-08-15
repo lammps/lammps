@@ -27,15 +27,16 @@
 #include "error.h"
 #include "force.h"
 #include "info.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "update.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cmath>
 #include <cstring>
-#include <cctype>
 #include <unordered_map>
 #include <utility>
 
@@ -58,8 +59,8 @@ static constexpr int NUM_ELEMENTS = 94;      // maximum element number
 static constexpr int N_PARS_COLS = 5;        // number of columns in C6 table
 static constexpr int N_PARS_ROWS = 32385;    // number of rows in C6 table
 
-static constexpr double autoang = 0.52917725;    // atomic units (Bohr) to Angstrom
-static constexpr double autoev = 27.21140795;    // atomic units (Hartree) to eV
+static constexpr double AUTOANG = 0.52917725;    // atomic units (Bohr) to Angstrom
+static constexpr double AUTOEV = 27.21140795;    // atomic units (Hartree) to eV
 
 #include "d3_parameters.h"
 
@@ -82,6 +83,7 @@ PairDispersionD3::PairDispersionD3(LAMMPS *lmp) :
 
   dampingCode = 0;
   s6 = s8 = s18 = rs6 = rs8 = rs18 = a1 = a2 = alpha = alpha6 = alpha8 = 0.0;
+  max_mxci = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -90,6 +92,8 @@ PairDispersionD3::PairDispersionD3(LAMMPS *lmp) :
 
 PairDispersionD3::~PairDispersionD3()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -250,8 +254,8 @@ void PairDispersionD3::read_c6ab(int *atomic_numbers, int ntypes)
   for (int i = 0; i < N_PARS_ROWS; i++) {
     const double ref_c6 = c6ab_table[i][0];
 
-    int atom_number_1 = (int)std::round(c6ab_table[i][1]);
-    int atom_number_2 = (int)std::round(c6ab_table[i][2]);
+    int atom_number_1 = (int) std::round(c6ab_table[i][1]);
+    int atom_number_2 = (int) std::round(c6ab_table[i][2]);
 
     set_limit_in_pars_array(atom_number_1, atom_number_2, grid_i, grid_j);
 
@@ -319,8 +323,18 @@ void PairDispersionD3::coeff(int narg, char **arg)
   // set r0ab
   read_r0ab(atomic_numbers, ntypes);
 
-  // read c6ab
+  // read c6ab and determine max grid size
   read_c6ab(atomic_numbers, ntypes);
+  max_mxci = 0;
+  for (int i = 1; i <= ntypes; i++) {
+    if (mxci[i] > max_mxci) max_mxci = mxci[i];
+  }
+  if (max_mxci < 4) max_mxci = 4;
+  if (max_mxci > 4) {
+    memory->destroy(c6ab);
+    memory->create(c6ab, ntypes + 1, ntypes + 1, max_mxci + 1, max_mxci + 1, 3, "pair:c6ab");
+    read_c6ab(atomic_numbers, ntypes);
+  }
 
   free(atomic_numbers);
 }
@@ -377,7 +391,7 @@ void PairDispersionD3::calc_coordination_number()
       if (rsq > cn_thr) continue;
 
       double rr = sqrt(rsq);
-      double rcov_ij = (rcov[itype] + rcov[jtype]) * autoang;
+      double rcov_ij = (rcov[itype] + rcov[jtype]) * AUTOANG;
       double cn_ij = 1.0 / (1.0 + exp(-K1 * ((rcov_ij / rr) - 1.0)));
 
       // update coordination number
@@ -417,7 +431,9 @@ double *PairDispersionD3::get_dC6(int iat, int jat, double cni, double cnj)
     for (int cj = 0; cj <= mxci[jat]; cj++) {
 
       c6_ref = c6ab[iat][jat][ci][cj][0];
-      c6_ref *= autoev * pow(autoang, 6);
+      double autoang6 = AUTOANG * AUTOANG * AUTOANG;
+      autoang6 = MathSpecial::square(autoang6);
+      c6_ref *= AUTOEV * autoang6;
 
       if (c6_ref > 0) {
         cni_ref = c6ab[iat][jat][ci][cj][1];
@@ -510,7 +526,6 @@ void PairDispersionD3::compute(int eflag, int vflag)
 
       if (rsq < cutsq[type[i]][type[j]]) {
 
-        double r = sqrt(rsq);
         double r2inv = 1.0 / rsq;
         double r6inv = r2inv * r2inv * r2inv;
         double r8inv = r2inv * r2inv * r2inv * r2inv;
@@ -519,7 +534,7 @@ void PairDispersionD3::compute(int eflag, int vflag)
         double *c6_res = get_dC6(type[i], type[j], cn[i], cn[j]);
 
         double C6 = c6_res[0];
-        double C8 = 3.0 * C6 * r2r4[type[i]] * r2r4[type[j]] * autoang * autoang;
+        double C8 = 3.0 * C6 * r2r4[type[i]] * r2r4[type[j]] * AUTOANG * AUTOANG;
 
         double alpha6 = alpha;
         double alpha8 = alpha + 2;
@@ -530,13 +545,18 @@ void PairDispersionD3::compute(int eflag, int vflag)
 
         switch (dampingCode) {
 
-          case 1: {    // original
+          // Written to avoid using sqrt and pow()
+          case 1: /* Original damping */
+          {
+            double ip6 = rs6 * r0ab[type[i]][type[j]];
+            double ip8 = rs8 * r0ab[type[i]][type[j]];
 
-            double r0 = r / r0ab[type[i]][type[j]];
+            double half_alpha6 = 0.5 * alpha6;
+            double half_alpha8 = 0.5 * alpha8;
 
-            t6 = pow(rs6 / r0, alpha6);
+            t6 = MathSpecial::powauto(ip6, alpha6) * MathSpecial::powauto(rsq, -half_alpha6);
             damp6 = 1.0 / (1.0 + 6.0 * t6);
-            t8 = pow(rs8 / r0, alpha8);
+            t8 = MathSpecial::powauto(ip8, alpha8) * MathSpecial::powauto(rsq, -half_alpha8);
             damp8 = 1.0 / (1.0 + 6.0 * t8);
 
             e6 = C6 * damp6 * r6inv;
@@ -551,14 +571,15 @@ void PairDispersionD3::compute(int eflag, int vflag)
             fpair = fpair1 + fpair2;
             fpair *= factor_lj;
           } break;
-
+          // Written to avoid pow
           case 2: {    // zerom
 
+            double r = sqrt(rsq);
             double r0 = r0ab[type[i]][type[j]];
 
-            t6 = pow((r / (rs6 * r0)) + rs8 * r0, -alpha6);
+            t6 = MathSpecial::powauto((r / (rs6 * r0)) + rs8 * r0, -alpha6);
             damp6 = 1.0 / (1.0 + 6.0 * t6);
-            t8 = pow((r / r0) + rs8 * r0, -alpha8);
+            t8 = MathSpecial::powauto((r / r0) + rs8 * r0, -alpha8);
             damp8 = 1.0 / (1.0 + 6.0 * t8);
 
             e6 = C6 * damp6 * r6inv;
@@ -586,8 +607,12 @@ void PairDispersionD3::compute(int eflag, int vflag)
             double r6 = rsq * rsq * rsq;
             double r8 = rsq * rsq * rsq * rsq;
 
-            t6 = r6 + pow((a1 * r0 + a2), 6);
-            t8 = r8 + pow((a1 * r0 + a2), 8);
+            double d = a1 * r0 + a2;
+            double d2 = d * d;
+            double d4 = d2 * d2;
+
+            t6 = r6 + MathSpecial::cube(d2);
+            t8 = r8 + MathSpecial::square(d4);
 
             e6 = C6 / t6;
             e8 = C8 / t8;
@@ -607,8 +632,12 @@ void PairDispersionD3::compute(int eflag, int vflag)
             double r6 = rsq * rsq * rsq;
             double r8 = rsq * rsq * rsq * rsq;
 
-            t6 = r6 + pow((a1 * r0 + a2), 6);
-            t8 = r8 + pow((a1 * r0 + a2), 8);
+            double d = a1 * r0 + a2;
+            double d2 = d * d;
+            double d4 = d2 * d2;
+
+            t6 = r6 + MathSpecial::cube(d2);
+            t8 = r8 + MathSpecial::square(d4);
 
             e6 = C6 / t6;
             e8 = C8 / t8;
@@ -685,7 +714,7 @@ void PairDispersionD3::compute(int eflag, int vflag)
 
         // here we calculate dcn = dCNi/dr = dCNj/dr
         if (rsq < cn_thr) {
-          double rcovij = (rcov[type[i]] + rcov[type[j]]) * autoang;
+          double rcovij = (rcov[type[i]] + rcov[type[j]]) * AUTOANG;
           double expterm = exp(-K1 * (rcovij / r - 1.0));
           dcn = -K1 * rcovij * expterm / (rsq * (expterm + 1.0) * (expterm + 1.0));
         } else {
@@ -1039,7 +1068,7 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           break;
       }
 
-      rs8 = rs8 / autoang;
+      rs8 = rs8 / AUTOANG;
     } break;
 
     case 3: {    // bj
@@ -1356,7 +1385,7 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           break;
       }
 
-      a2 = a2 * autoang;
+      a2 = a2 * AUTOANG;
     } break;
 
     case 4: {    // bjm
@@ -1417,8 +1446,7 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           break;
       }
 
-      a2 = a2 * autoang;
-
+      a2 = a2 * AUTOANG;
     } break;
     default:
       // this should not happen with the error check in the init_style function
@@ -1532,7 +1560,7 @@ double PairDispersionD3::memory_usage()
   double bytes = Pair::memory_usage();
   int n = atom->ntypes;
   // c6ab[n+1][n+1][5][5][3] coefficient table
-  bytes += (double)(n+1)*(n+1)*5*5*3 * sizeof(double);
+  bytes += (double) (n + 1) * (n + 1) * 5 * 5 * 3 * sizeof(double);
   // per-atom coordination number and C6 derivative arrays
   bytes += (double) nmax * 2 * sizeof(double);    // cn[nmax] + dc6[nmax]
   return bytes;

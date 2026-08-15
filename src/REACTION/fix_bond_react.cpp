@@ -1387,6 +1387,7 @@ void FixBondReact::superimpose_algorithm()
 
   if (!rxnflag) return;
 
+  // NOLINTBEGIN
   // C++11 and later compatible version of Park pRNG
   std::minstd_rand park_rng;
   if (shuffle_seed == 0) {
@@ -1395,6 +1396,7 @@ void FixBondReact::superimpose_algorithm()
   } else {
     park_rng.seed(shuffle_seed);
   }
+  // NOLINTEND
 
   std::vector<int> oversteps(rxns.size(), 0);
   if (comm->me == 0) {

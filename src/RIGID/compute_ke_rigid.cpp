@@ -50,11 +50,11 @@ ComputeKERigid::~ComputeKERigid()
 
 void ComputeKERigid::init()
 {
-  irfix = modify->find_fix(rfix);
-  if (irfix < 0) error->all(FLERR,"Fix ID for compute ke/rigid does not exist");
+  auto *irfix = modify->get_fix_by_id(rfix);
+  if (!irfix) error->all(FLERR,"Fix ID {} for compute ke/rigid does not exist", rfix);
 
-  if (strncmp(modify->fix[irfix]->style,"rigid",5))
-    error->all(FLERR,"Compute ke/rigid with non-rigid fix-ID");
+  if (!utils::strmatch(irfix->style,"^rigid"))
+    error->all(FLERR,"Compute ke/rigid with non-rigid fix {}", rfix);
 }
 
 /* ---------------------------------------------------------------------- */

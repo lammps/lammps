@@ -2721,7 +2721,7 @@ void PairSMTBQ::Charge()
 
       if (fichierpot) fichierpot<< setprecision(9) <<i <<" "<<itype<<" "<<x[i][0]<<" "<<x[i][1]
                                 <<" "<<x[i][2]<<" "<<q[i]<<" "<<potself[i] + potmad[i]<<" "<<potcov[i]
-                                <<" "<<sbcov[i]<<" "<<TransfAll[gp]<<endl;
+                                <<" "<<sbcov[i]<<" "<<TransfAll[gp]<<"\n";
 
     }
     if (fichierpot) fichierpot.close() ;

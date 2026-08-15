@@ -32,7 +32,7 @@ class AtomVecKokkos : virtual public AtomVec {
   using KeyViewType = DAT::t_kkfloat_1d_3_lr;
   using BinOp = BinOp3DLAMMPS<KeyViewType>;
   virtual void
-    sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) = 0;
+    sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter);
 
   virtual void sync(ExecutionSpace space, uint64_t mask) = 0;
   virtual void modified(ExecutionSpace space, uint64_t mask) = 0;
@@ -245,6 +245,9 @@ class AtomVecKokkos : virtual public AtomVec {
   void* buffer;
 
   DAT::tdual_int_1d k_count;
+
+  // scratch buffer for fused device atom sort (see sort_kokkos)
+  DAT::tdual_double_2d_lr k_buf_sort;
 
   uint64_t field2mask(std::string);
   int field2size(std::string);

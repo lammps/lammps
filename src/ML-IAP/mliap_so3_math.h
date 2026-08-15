@@ -20,7 +20,7 @@ void LUPSolve(int n, double *A, double *B, int *P);
 
 }    // namespace SO3Math
 
-// NOLINT
+// NOLINTNEXTLINE
 using namespace MathEigen;
 
 using Jacobi_v2 = Jacobi<double, double *, double **, double const *const *>;

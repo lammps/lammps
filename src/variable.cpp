@@ -4888,8 +4888,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     }
 
     if ((method == SORT) || (method == RSORT)) {
-      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<double>());
-      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<double>());
+      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<>());
+      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<>());
 
       if (tree) {
         double *newvec;

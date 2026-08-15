@@ -61,6 +61,7 @@ OPT.
    * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
+   * :doc:`frenkel <compute_frenkel>`
    * :doc:`gaussian/grid/local (k) <compute_gaussian_grid_local>`
    * :doc:`global/atom <compute_global_atom>`
    * :doc:`group/group <compute_group_group>`

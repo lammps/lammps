@@ -1375,6 +1375,7 @@ Fraunhofer
 frcmod
 fread
 freefall
+frenkel
 Freitas
 Frenkel
 frictionless
@@ -3770,6 +3771,7 @@ Seeliger
 segmental
 Seibold
 Seifert
+Seitz
 Seleson
 selfalign
 sellerio

@@ -1974,7 +1974,7 @@ NeighRequest *Neighbor::find_request(void *classptr, const int id) const
    return vector with neighbor list requests from pair styles
 ------------------------------------------------------------------------- */
 
-const std::vector<NeighRequest *> Neighbor::get_pair_requests() const
+std::vector<NeighRequest *> Neighbor::get_pair_requests() const
 {
   std::vector<NeighRequest *> matches;
   for (int i=0; i < nrequest; ++i)

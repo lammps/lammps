@@ -213,7 +213,7 @@ void Thermo::init()
   // add YAML list item prefix for lineflag = YAMLLINE
 
   ValueTokenizer *format_line = nullptr;
-  if (format_line_user.size()) format_line = new ValueTokenizer(format_line_user);
+  if (!format_line_user.empty()) format_line = new ValueTokenizer(format_line_user);
 
   lock_cache();
   // only reset cached thermo data if it is the first run or the thermo style has changed
@@ -242,12 +242,12 @@ void Thermo::init()
     if ((lineflag == YAMLLINE) && (i == 0)) format[i] += "  - [";
     if (format_line) format_line_user_def = format_line->next_string();
 
-    if (format_column_user[i].size())
+    if (!format_column_user[i].empty())
       format_this = format_column_user[i];
     else if (vtype[i] == FLOAT) {
-      if (format_float_user.size())
+      if (!format_float_user.empty())
         format_this = format_float_user;
-      else if (format_line_user_def.size())
+      else if (!format_line_user_def.empty())
         format_this = format_line_user_def;
       else if (lineflag == ONELINE)
         format_this = FORMAT_FLOAT_ONE_DEFAULT;
@@ -256,12 +256,12 @@ void Thermo::init()
       else if (lineflag == YAMLLINE)
         format_this = FORMAT_FLOAT_YAML_DEFAULT;
     } else if ((vtype[i] == INT) || (vtype[i] == BIGINT)) {
-      if (format_int_user.size()) {
+      if (!format_int_user.empty()) {
         if (vtype[i] == INT)
           format_this = format_int_user;
         else
           format_this = format_bigint_user;
-      } else if (format_line_user_def.size()) {
+      } else if (!format_line_user_def.empty()) {
         format_this = format_line_user_def;
       } else {
         if (lineflag == ONELINE)
@@ -284,7 +284,7 @@ void Thermo::init()
     else if (lineflag == YAMLLINE)
       format[i] += format_this + ", ";
     else {
-      if (keyword_user[i].size())
+      if (!keyword_user[i].empty())
         format[i] += fmt::format("{:<8} = {} ", keyword_user[i], format_this);
       else
         format[i] += fmt::format("{:<8} = {} ", keyword[i], format_this);
@@ -369,7 +369,7 @@ void Thermo::header()
   if (lineflag == YAMLLINE) hdr = "---\nkeywords: [";
   for (int i = 0; i < nfield; i++) {
     auto head = keyword[i];
-    if (keyword_user[i].size()) head = keyword_user[i];
+    if (!keyword_user[i].empty()) head = keyword_user[i];
     if (lineflag == ONELINE) {
       if (vtype[i] == FLOAT)
         hdr += fmt::format("{:^14} ", head);

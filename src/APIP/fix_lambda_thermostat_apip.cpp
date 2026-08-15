@@ -110,7 +110,7 @@ FixLambdaThermostatAPIP::FixLambdaThermostatAPIP(LAMMPS *lmp, int narg, char **a
     error->all(FLERR, "fix lambda_thermostat/apip: rescaling_N_neighbours <= 1");
 
   // rng for shuffle
-  random_mt = std::mt19937(seed);
+  random_mt = std::mt19937(seed); // NOLINT
 
   // init output values
   energy_change_kin = energy_change_pot = 0;

@@ -50,7 +50,7 @@ Temper::Temper(LAMMPS *lmp) :
 Temper::~Temper()
 {
   MPI_Comm_free(&roots);
-  if (ranswap) delete ranswap;
+  delete ranswap;
   delete ranboltz;
   delete[] set_temp;
   delete[] temp2world;

@@ -91,7 +91,7 @@ EAPOD::EAPOD(LAMMPS *_lmp, const std::string &pod_file, const std::string &coeff
   // read pod input file to podstruct
   read_pod_file(pod_file);
 
-  if (coeff_file != "") {
+  if (!coeff_file.empty()) {
     read_model_coeff_file(coeff_file);
   }
 }
@@ -170,7 +170,7 @@ void EAPOD::read_pod_file(const std::string &pod_file)
       // ignore
     }
 
-    if (words.size() == 0) continue;
+    if (words.empty()) continue;
 
     const auto &keywd = words[0];
 

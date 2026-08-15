@@ -151,7 +151,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != nullptr) delete[] kim_modelname;
+  delete[] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)

@@ -766,7 +766,6 @@ KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
   KK_FLOAT tmp[3];
   if (mask[i] & groupbit) {
-    const KK_FLOAT dtfm = ftm2v * 0.5 * dt / mass[type[i]];
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
@@ -788,7 +787,6 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
 {
   KK_FLOAT tmp[3];
   if (mask[i] & groupbit) {
-    const KK_FLOAT dtfm = ftm2v * 0.5 * dt / rmass[i];
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);

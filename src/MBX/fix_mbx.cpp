@@ -706,7 +706,7 @@ void FixMBX::post_neighbor()
 
   // tear down existing MBX objects
 
-  if (mbx_impl->ptr_mbx) delete mbx_impl->ptr_mbx;
+  delete mbx_impl->ptr_mbx;
 
   if (mbx_impl->ptr_mbx_local) {
     // accumulate timing info from pme electrostatics

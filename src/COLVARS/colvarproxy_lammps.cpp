@@ -69,14 +69,14 @@ void colvarproxy_lammps::init()
 
 colvarproxy_lammps::~colvarproxy_lammps()
 {
-  if (_random) delete _random;
+  delete _random;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void colvarproxy_lammps::set_random_seed(int seed)
 {
-  if (_random) delete _random;
+  delete _random;
 
   _random = new LAMMPS_NS::RanPark(_lmp, seed);
 }

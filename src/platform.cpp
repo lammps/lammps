@@ -522,7 +522,7 @@ std::string platform::compress_info()
   bool none_found = true;
   for (const auto &cmpi : compress_styles) {
     if (cmpi.style == ::compress_info::NONE) continue;
-    if (find_exe_path(cmpi.command).size()) {
+    if (!find_exe_path(cmpi.command).empty()) {
       none_found = false;
       buf += fmt::format("Extension: .{:6} Command: {}\n", cmpi.extension, cmpi.command);
     }
@@ -536,7 +536,7 @@ std::string platform::compress_info()
 
 int platform::putenv(const std::string &vardef)
 {
-  if (vardef.size() == 0) return -1;
+  if (vardef.empty()) return -1;
 
   auto found = vardef.find_first_of('=');
 #ifdef _WIN32
@@ -560,7 +560,7 @@ int platform::putenv(const std::string &vardef)
 
 int platform::unsetenv(const std::string &variable)
 {
-  if (variable.size() == 0) return -1;
+  if (variable.empty()) return -1;
 #ifdef _WIN32
   // emulate POSIX semantics by returning -1 on trying to unset non-existing variable
   const char *ptr = getenv(variable.c_str());
@@ -603,7 +603,7 @@ std::vector<std::string> platform::list_pathenv(const std::string &var)
 
 std::string platform::find_exe_path(const std::string &cmd)
 {
-  if (cmd.size() == 0) return "";
+  if (cmd.empty()) return "";
   auto pathdirs = list_pathenv("PATH");
 #ifdef _WIN32
   // windows always looks in "." and does it first
@@ -937,7 +937,7 @@ std::string platform::path_dirname(const std::string &path)
 #if defined(WIN32)
   if ((dir == "") || utils::strmatch(dir, "^[a-zA-Z]:$")) return {"."};
 #else
-  if (dir == "") return {"."};
+  if (dir.empty()) return {"."};
 #endif
   else
     return dir;
@@ -1046,7 +1046,7 @@ double platform::disk_free(const std::string &path)
     defined(__OpenBSD__) || defined(__NetBSD__)
   struct statvfs fs;
 
-  if (path.size()) {
+  if (!path.empty()) {
     int rv = statvfs(path.c_str(), &fs);
     if (rv == 0) {
 #if defined(__linux__)
@@ -1098,7 +1098,7 @@ FILE *platform::compressed_read(const std::string &file)
     return nullptr;
   }
 
-  if (find_exe_path(compress.command).size())
+  if (!find_exe_path(compress.command).empty())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
 #endif
@@ -1118,7 +1118,7 @@ FILE *platform::compressed_write(const std::string &file)
   if (compress.style == ::compress_info::NONE) return nullptr;
   if (!file_is_writable(file)) return nullptr;
 
-  if (find_exe_path(compress.command).size()) {
+  if (!find_exe_path(compress.command).empty()) {
     // explicitly delete existing files for compatibility with commands that cannot write to stdout
     // and thus we don't use redirection to a file, but provide the file name as argument directly.
     // this can result in failure or inclusion of the same filename multiple times with out deleting

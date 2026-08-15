@@ -54,16 +54,16 @@ BaseEllipsoidT::~BaseEllipsoid() {
   k_sphere_ellipsoid.clear();
   k_lj_fast.clear();
   k_lj.clear();
-  if (nbor_program) delete nbor_program;
-  if (ellipsoid_program) delete ellipsoid_program;
-  if (lj_program) delete lj_program;
+  delete nbor_program;
+  delete ellipsoid_program;
+  delete lj_program;
   #if defined(LAL_OCL_EV_JIT)
   k_ellipsoid_noev.clear();
   k_ellipsoid_sphere_noev.clear();
   k_sphere_ellipsoid_noev.clear();
   k_lj_fast.clear();
-  if (ellipsoid_program_noev) delete ellipsoid_program_noev;
-  if (lj_program_noev) delete lj_program_noev;
+  delete ellipsoid_program_noev;
+  delete lj_program_noev;
   #endif
 }
 
@@ -505,14 +505,14 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 
   std::string oclstring = device->compile_string()+" -DEVFLAG=1";
 
-  if (nbor_program) delete nbor_program;
+  delete nbor_program;
   nbor_program=new UCL_Program(dev);
   nbor_program->load_string(ellipsoid_nbor,oclstring.c_str(),nullptr,screen);
   k_nbor_fast.set_function(*nbor_program,"kernel_nbor_fast");
   k_nbor.set_function(*nbor_program,"kernel_nbor");
   neigh_tex.get_texture(*nbor_program,"pos_tex");
 
-  if (ellipsoid_program) delete ellipsoid_program;
+  delete ellipsoid_program;
   ellipsoid_program=new UCL_Program(dev);
   ellipsoid_program->load_string(ellipsoid_string,oclstring.c_str(),
                                  nullptr,screen);
@@ -520,7 +520,7 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
   pos_tex.get_texture(*ellipsoid_program,"pos_tex");
   quat_tex.get_texture(*ellipsoid_program,"quat_tex");
 
-  if (lj_program) delete lj_program;
+  delete lj_program;
   lj_program=new UCL_Program(dev);
   lj_program->load_string(lj_string,oclstring.c_str(),nullptr,screen);
   k_sphere_ellipsoid.set_function(*lj_program,s_sphere_ellipsoid.c_str());
@@ -533,13 +533,13 @@ void BaseEllipsoidT::compile_kernels(UCL_Device &dev,
 
   #if defined(LAL_OCL_EV_JIT)
   oclstring = device->compile_string()+" -DEVFLAG=0";
-  if (ellipsoid_program_noev) delete ellipsoid_program_noev;
+  delete ellipsoid_program_noev;
   ellipsoid_program_noev=new UCL_Program(dev);
   ellipsoid_program_noev->load_string(ellipsoid_string,oclstring.c_str(),
                                       nullptr,screen);
   k_ellipsoid_noev.set_function(*ellipsoid_program_noev,kname);
 
-  if (lj_program_noev) delete lj_program_noev;
+  delete lj_program_noev;
   lj_program_noev=new UCL_Program(dev);
   lj_program_noev->load_string(lj_string,oclstring.c_str(),nullptr,screen);
   k_sphere_ellipsoid_noev.set_function(*lj_program_noev,

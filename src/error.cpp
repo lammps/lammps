@@ -69,7 +69,7 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
     if (universe->ulogfile) fputs(mesg.c_str(),universe->ulogfile);
   }
 
-  if (output) delete output;
+  delete output;
   if (universe->nworlds > 1) {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
@@ -256,7 +256,7 @@ void Error::done(int status)
   utils::flush_buffers(lmp);
   MPI_Barrier(world);
 
-  if (output) delete output;
+  delete output;
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 

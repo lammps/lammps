@@ -192,7 +192,7 @@ void PPPMDipoleSpin::init()
   if (order < minorder) error->all(FLERR,"PPPMDipoleSpin order < minimum allowed order");
   if (!overlap_allowed && !gc_dipole->ghost_adjacent())
     error->all(FLERR,"PPPMDipoleSpin grid stencil extends beyond nearest neighbor processor");
-  if (gc_dipole) delete gc_dipole;
+  delete gc_dipole;
 
   // adjust g_ewald
 

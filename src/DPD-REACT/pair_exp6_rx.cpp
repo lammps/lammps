@@ -772,9 +772,7 @@ void PairExp6rx::read_file(char *file) {
 
   const int DELTA = 4;
 
-  if (comm->me == 0) {
-    reader.emplace(lmp, file, "exp6/rx");
-  }
+  if (comm->me == 0) reader.emplace(lmp, file, "exp6/rx");
 
   nparams = 0;
 
@@ -790,7 +788,7 @@ void PairExp6rx::read_file(char *file) {
       rx_fix->get_species_str_to_species_ind();
 
   while (true) {
-    if (comm->me == 0) {
+    if (reader) {
       const int params_per_line = 5;
       char *ptr = reader.value().next_line(params_per_line);
       if (ptr) {

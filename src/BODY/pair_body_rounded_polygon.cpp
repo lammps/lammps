@@ -463,11 +463,11 @@ void PairBodyRoundedPolygon::init_style()
 
   Fix *fixpour = nullptr;
   auto pours = modify->get_fix_by_style("^pour");
-  if (pours.size() > 0) fixpour = pours[0];
+  if (!pours.empty()) fixpour = pours[0];
 
   Fix *fixdep = nullptr;
   auto deps = modify->get_fix_by_style("^deposit");
-  if (deps.size() > 0) fixdep = deps[0];
+  if (!deps.empty()) fixdep = deps[0];
 
 
   for (i = 1; i <= ntypes; i++) {

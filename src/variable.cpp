@@ -120,7 +120,6 @@ enum{DONE, ADD, SUBTRACT, MULTIPLY, DIVIDE, CARAT, MODULO, UNARY,
 enum { SUM, XMIN, XMAX, AVE, TRAP, SLOPE, SORT, RSORT, NOVECTOR };
 
 }    // namespace
-// NOLINTEND
 
 // clang-format on
 
@@ -3729,7 +3728,7 @@ void Variable::free_tree(Tree *tree)
     for (int i = 0; i < tree->nextra; i++) free_tree(tree->extra[i]);
     delete[] tree->extra;
   }
-  if (tree->argvars) delete[] tree->argvars;
+  delete[] tree->argvars;
 
   if (tree->selfalloc) memory->destroy(tree->array);
   delete tree;
@@ -3855,18 +3854,18 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") && strcmp(word,"ln") != 0 &&
-      strcmp(word,"log") != 0 &&  strcmp(word,"abs") != 0 && strcmp(word,"sin") != 0 &&
-      strcmp(word,"cos") != 0 &&  strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
-      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 && strcmp(word,"atan2") != 0 &&
-      strcmp(word,"random") != 0 && strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
-      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 && strcmp(word,"ternary") != 0 &&
-      strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
-      strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
-      strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
-      strcmp(word,"stride2") != 0 && strcmp(word,"vdisplace") != 0 &&
-      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0 && strcmp(word,"sign") != 0 &&
-      strstr(word,"py_") != word)
+  if ((strcmp(word,"sqrt") != 0) && (strcmp(word,"exp") != 0) && (strcmp(word,"ln") != 0) &&
+      (strcmp(word,"log") != 0) &&  (strcmp(word,"abs") != 0) && (strcmp(word,"sin") != 0) &&
+      (strcmp(word,"cos") != 0) &&  (strcmp(word,"tan") != 0) && (strcmp(word,"asin") != 0) &&
+      (strcmp(word,"acos") != 0) && (strcmp(word,"atan") != 0) && (strcmp(word,"atan2") != 0) &&
+      (strcmp(word,"random") != 0) && (strcmp(word,"normal") != 0) && (strcmp(word,"ceil") != 0) &&
+      (strcmp(word,"floor") != 0) && (strcmp(word,"round") != 0) && (strcmp(word,"ternary") != 0) &&
+      (strcmp(word,"ramp") != 0) && (strcmp(word,"stagger") != 0) &&
+      (strcmp(word,"logfreq") != 0) && (strcmp(word,"logfreq2") != 0) &&
+      (strcmp(word,"logfreq3") != 0) && (strcmp(word,"stride") != 0) &&
+      (strcmp(word,"stride2") != 0) && (strcmp(word,"vdisplace") != 0) &&
+      (strcmp(word,"swiggle") != 0) && (strcmp(word,"cwiggle") != 0) && (strcmp(word,"sign") != 0) &&
+      (strstr(word,"py_") != word))
     return 0;
 
   // parse contents for comma-separated args
@@ -4234,7 +4233,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid vdisplace function in variable formula: must have 2 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use vdisplace(x,y) function with fix dt/reset",ivar);
     if (tree) newtree->type = VDISPLACE;
     else {
@@ -4246,7 +4245,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"swiggle") == 0) {
     if (narg != 3)
       print_var_error(FLERR,"Invalid swiggle function in variable formula: must have 3 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use swiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = SWIGGLE;
     else {
@@ -4261,7 +4260,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"cwiggle") == 0) {
     if (narg != 3)
       print_var_error(FLERR,"Invalid cwiggle function in variable formula: must have 3 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use cwiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = CWIGGLE;
     else {
@@ -4344,13 +4343,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 {
   // word not a match to any group function
 
-  if (strcmp(word,"count") != 0 && strcmp(word,"mass") &&
-      strcmp(word,"charge") != 0 && strcmp(word,"xcm") != 0 &&
-      strcmp(word,"vcm") != 0 && strcmp(word,"fcm") != 0 &&
-      strcmp(word,"bound") != 0 && strcmp(word,"gyration") != 0 &&
-      strcmp(word,"ke") != 0 && strcmp(word,"angmom") != 0 &&
-      strcmp(word,"torque") != 0 && strcmp(word,"inertia") != 0 &&
-      strcmp(word,"omega") != 0)
+  if ((strcmp(word,"count") != 0) && (strcmp(word,"mass") != 0) &&
+      (strcmp(word,"charge") != 0) && (strcmp(word,"xcm") != 0) &&
+      (strcmp(word,"vcm") != 0) && (strcmp(word,"fcm") != 0) &&
+      (strcmp(word,"bound") != 0) && (strcmp(word,"gyration") != 0) &&
+      (strcmp(word,"ke") != 0) && (strcmp(word,"angmom") != 0) &&
+      (strcmp(word,"torque") != 0) && (strcmp(word,"inertia") != 0) &&
+      (strcmp(word,"omega") != 0))
     return 0;
 
   // parse contents for comma-separated args
@@ -4889,8 +4888,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     }
 
     if ((method == SORT) || (method == RSORT)) {
-      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<double>());
-      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<double>());
+      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<>());
+      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<>());
 
       if (tree) {
         double *newvec;
@@ -5090,7 +5089,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     } else argstack[nargstack++] = value;
 
   } else if (word == "is_timeout") {
-    if ((narg != 1) || (std::string(args[0]).size() != 0))
+    if ((narg != 1) || (!std::string(args[0]).empty()))
       print_var_error(FLERR,"Invalid is_timeout() function in variable formula",ivar);
     value = timer->is_timeout() ? 1.0 : 0.0;
 
@@ -5129,7 +5128,7 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word is not a match to any feature function
 
-  if (strcmp(word,"is_available") && strcmp(word,"is_active") && strcmp(word,"is_defined") != 0)
+  if ((strcmp(word,"is_available") != 0) && (strcmp(word,"is_active") != 0) && (strcmp(word,"is_defined") != 0))
     return 0;
 
   // process feature functions

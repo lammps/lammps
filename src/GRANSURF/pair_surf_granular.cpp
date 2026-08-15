@@ -326,7 +326,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       contact_surfs.push_back(mycontact);
     }
 
-    if (contact_surfs.size() == 0) continue;
+    if (contact_surfs.empty()) continue;
 
     // Sort contacts by overlap and create a map
     std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_presort);
@@ -644,7 +644,7 @@ void PairSurfGranular::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, Error::NOLASTLINE,

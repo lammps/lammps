@@ -159,7 +159,7 @@ void BondBPM::init_style()
       if (id_fix_dummy_special) {
         // check if an update fix already exists, if so use it
         auto fixes = modify->get_fix_by_style("UPDATE_SPECIAL_BONDS");
-        if (fixes.size() > 0 ) {
+        if (!fixes.empty() ) {
           fix_update_special_bonds = dynamic_cast<FixUpdateSpecialBonds *>(fixes[0]);
         } else {
           id_fix_update_special_bonds = utils::strdup("BPM_UPDATE_SPECIAL_BONDS");

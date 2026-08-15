@@ -49,7 +49,7 @@ EwaldGPUT::~EwaldGPU() {
   k_cssn.clear();
   k_structure.clear();
   k_field.clear();
-  if (ewald_program) delete ewald_program;
+  delete ewald_program;
   delete ans;
 }
 
@@ -380,7 +380,7 @@ void EwaldGPUT::compile_kernels(UCL_Device &dev) {
 
   std::string flags=device->compile_string();
 
-  if (ewald_program) delete ewald_program;
+  delete ewald_program;
   ewald_program=new UCL_Program(dev);
   ewald_program->load_string(ewald,flags.c_str(),nullptr,screen);
 

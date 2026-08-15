@@ -672,7 +672,7 @@ void MSM::deallocate()
   memory->destroy2d_offset(phi1d,-order_allocated);
   memory->destroy2d_offset(dphi1d,-order_allocated);
 
-  if (gcall) delete gcall;
+  delete gcall;
   memory->destroy(gcall_buf1);
   memory->destroy(gcall_buf2);
   gcall = nullptr;

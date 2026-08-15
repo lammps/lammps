@@ -696,7 +696,7 @@ void FixDeform::init()
     if (ifix->rigid_flag) rfix.push_back(ifix);
 
   auto fix_sllod = modify->get_fix_by_style("nvt/sllod");
-  if (fix_sllod.size() > 0) {
+  if (!fix_sllod.empty()) {
     const auto *ifix = fix_sllod[0];
 
     // warn about flows which may produce a non-constant flow tensor

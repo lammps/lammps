@@ -551,7 +551,7 @@ void FixRigidSmall::init()
   //   and gravity is not applied correctly
 
   if ((inpfile || onemols) && !id_gravity) {
-    if (modify->get_fix_by_style("^gravity").size() > 0)
+    if (!modify->get_fix_by_style("^gravity").empty())
       if (comm->me == 0)
         error->warning(FLERR,"Gravity may not be correctly applied to rigid "
                        "bodies if they consist of overlapped particles");

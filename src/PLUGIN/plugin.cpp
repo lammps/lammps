@@ -586,7 +586,7 @@ void plugin_clear(LAMMPS *lmp)
 {
   bool oldverbose = verbose;
   verbose = true;
-  while (pluginlist.size() > 0) {
+  while (!pluginlist.empty()) {
     auto p = pluginlist.begin();
     plugin_unload(p->style, p->name, lmp);
   }
@@ -600,7 +600,7 @@ void plugin_clear(LAMMPS *lmp)
 void plugin_finalize()
 {
 #if defined(LMP_PLUGIN)
-  while (pluginlist.size() > 0) {
+  while (!pluginlist.empty()) {
     auto p = pluginlist.begin();
 
     void *handle = p->handle;

@@ -1,6 +1,6 @@
 ---
 lammps_version: 4 Jul 2026
-tags: granular legacy unvetted
+tags: granular legacy unvetted unstable
 date_generated: Tue Jul 28 17:55:47 2026
 epsilon: 1e-10
 skip_tests:

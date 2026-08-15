@@ -107,7 +107,7 @@ FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
   // error checks
 
   if (cetable_active) {
-    for (int i = 0; i < ce_values.size(); i++) {
+    for (int i = 0; i < (int) ce_values.size(); i++) {
       if (ce_values[i] <= 0.0)
         error->all(FLERR, Error::NOPOINTER, "Fix ttm/cascade all electronic_specific_heat "
                    "entries in the file must be > 0.0");
@@ -115,7 +115,7 @@ FixTTMCascade::FixTTMCascade(LAMMPS *lmp, int narg, char **arg)
   }
 
   if (ketable_active) {
-    for (int i = 0; i < ke_values.size(); i++) {
+    for (int i = 0; i < (int) ke_values.size(); i++) {
       if (ke_values[i] <= 0.0)
         error->all(FLERR, Error::NOPOINTER, "Fix ttm/cascade all electronic_thermal_conductivity "
                    "entries in the file must be > 0.0");

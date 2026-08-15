@@ -502,7 +502,7 @@ void PairGranular::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");

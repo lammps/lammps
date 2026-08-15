@@ -228,7 +228,7 @@ FixColvars::~FixColvars()
 
   memory->sfree(comm_buf);
 
-  if (proxy) delete proxy;
+  delete proxy;
   if (root2root != MPI_COMM_NULL) MPI_Comm_free(&root2root);
   --instances;
 }
@@ -369,7 +369,7 @@ int FixColvars::modify_param(int narg, char **arg)
     // Run the command through Colvars
     error_code |= script->run(narg+1, script_args);
     std::string const result = proxy->get_error_msgs() + script->str_result();
-    if (result.size()) utils::logmesg(lmp, result);
+    if (!result.empty()) utils::logmesg(lmp, result);
     setup_colvars();
     // free allocated memory
     for (int i = 0; i < narg; i++) memory->sfree(script_args[i+1]);

@@ -137,11 +137,11 @@ FixEOStableRX::FixEOStableRX(LAMMPS *lmp, int narg, char **arg) :
   }
 
   if (rx_flag) read_file(arg[7]);
-  else dHf[0] = std::stod(arg[7]);
+  else dHf[0] = utils::numeric(FLERR,arg[7],false,lmp);
 
   if (narg==10) {
-    energyCorr[0] = std::stod(arg[8]);
-    tempCorrCoeff[0] = std::stod(arg[9]);
+    energyCorr[0] = utils::numeric(FLERR,arg[8],false,lmp);
+    tempCorrCoeff[0] = utils::numeric(FLERR,arg[9],false,lmp);
   }
 
   comm_forward = 3;
@@ -515,7 +515,7 @@ void FixEOStableRX::param_extract(RxTableFileReader & reader, Table *tb)
         eosSpecies[ncolumn] =  ispecies;
         ncolumn++;
       } catch (const std::out_of_range &) {
-        error->one(FLERR,
+        error->one(FLERR, Error::NOLASTLINE,
                    "name={} not found in species list\n"
                    "Invalid keyword in fix eos/table/rx parameters",
                    word);
@@ -524,9 +524,9 @@ void FixEOStableRX::param_extract(RxTableFileReader & reader, Table *tb)
 
     for (int icolumn = 0; icolumn < ncolumn; icolumn++)
       if (eosSpecies[icolumn]==-1)
-        error->one(FLERR,"EOS data is missing from fix eos/table/rx table");
+        error->one(FLERR, Error::NOLASTLINE,"EOS data is missing from fix eos/table/rx table");
     if (ncolumn != nspecies) {
-      error->one(FLERR,
+      error->one(FLERR, Error::NOLASTLINE,
                  "ncolumns={} nspecies={}\n"
                  "The number of columns in fix eos/table/rx "
                  "does not match the number of species",
@@ -716,7 +716,8 @@ void FixEOStableRX::temperature_lookup(int id, double ui, double &thetai)
   // Apply the Secant Method
   for (it=0; it<maxit; it++) {
     if (fabs(f2-f1) < MY_EPSILON) {
-      if (std::isnan(f1) || std::isnan(f2)) error->one(FLERR,"NaN detected in secant solver.");
+      if (std::isnan(f1) || std::isnan(f2))
+        error->one(FLERR, Error::NOLASTLINE, "NaN detected in secant solver.");
       temp = t1;
       temp = MAX(temp,tb->lo);
       temp = MIN(temp,tb->hi);

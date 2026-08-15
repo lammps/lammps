@@ -400,13 +400,13 @@ void PairSRP::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
-  if (btype_str.size() > 0) {
+  if (!btype_str.empty()) {
     btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR, Error::NOLASTLINE, "Invalid bond type {} for pair style srp", btype);
   }
 
-  if (bptype_str.size() > 0)
+  if (!bptype_str.empty())
     bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR, Error::NOLASTLINE, "Invalid bond particle type {} for pair style srp", bptype);

@@ -2535,7 +2535,7 @@ void Image::write_TGA(FILE *fp, bool compressed)
           old[2] = pix[2];
         }
 
-        if (memcmp(old, pix, 3) || (len == 127) || (j == tgawidth - 1)) {
+        if ((memcmp(old, pix, 3) != 0) || (len == 127) || (j == tgawidth - 1)) {
           if (j != tgawidth - 1) --len;
           len |= 0x80U;
           fputc(len, fp);

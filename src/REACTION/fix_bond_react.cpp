@@ -140,7 +140,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->get_fix_by_style("^bond/react").size() != 0)
+  if (!modify->get_fix_by_style("^bond/react").empty())
     error->all(FLERR, Error::NOLASTLINE, "Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -1387,6 +1387,7 @@ void FixBondReact::superimpose_algorithm()
 
   if (!rxnflag) return;
 
+  // NOLINTBEGIN
   // C++11 and later compatible version of Park pRNG
   std::minstd_rand park_rng;
   if (shuffle_seed == 0) {
@@ -1395,6 +1396,7 @@ void FixBondReact::superimpose_algorithm()
   } else {
     park_rng.seed(shuffle_seed);
   }
+  // NOLINTEND
 
   std::vector<int> oversteps(rxns.size(), 0);
   if (comm->me == 0) {

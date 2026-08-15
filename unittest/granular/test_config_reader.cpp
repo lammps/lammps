@@ -467,6 +467,6 @@ void TestConfigReader::tags(const yaml_event_t &event)
     config.tags.clear();
     for (std::string tag; std::getline(data, tag, ' ');) {
         const auto addme = trim(tag);
-        if (addme.size() > 0) config.tags.push_back(addme);
+        if (!addme.empty()) config.tags.push_back(addme);
     }
 }

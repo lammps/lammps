@@ -170,7 +170,7 @@ class Neighbor : protected Pointers {
   NeighList *find_list(void *, const int id = 0) const;
   NeighRequest *find_request(void *, const int id = 0) const;
 
-  [[nodiscard]] const std::vector<NeighRequest *> get_pair_requests() const;
+  [[nodiscard]] std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 

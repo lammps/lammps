@@ -254,7 +254,7 @@ void PPPMKokkos<DeviceType>::init()
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // adjust g_ewald
 

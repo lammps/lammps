@@ -216,7 +216,7 @@ void ComputeFrenkel::init()
     error->all(FLERR, Error::NOLASTLINE,
                "Compute frenkel is not compatible with comm_style tiled; "
                "please contact the LAMMPS developers");
-  if (modify->get_fix_by_style("^balance").size() > 0)
+  if (!modify->get_fix_by_style("^balance").empty())
     error->all(FLERR, Error::NOLASTLINE,
                "Compute frenkel is not compatible with fix balance; "
                "please contact the LAMMPS developers");

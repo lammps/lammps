@@ -192,8 +192,9 @@ the in.conq2 input file in the directory
 This fix necessitates the use of a long range solver that calculates and
 provides the matrix of electrode-electrode interactions and a vector of
 electrode-electrolyte interactions.  The Kspace styles
-*ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are
-created specifically for this task :ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
+*ewald/electrode*, *pppm/electrode*, *pppm/electrode/tip4p* and
+*pppm/electrode/intel* are created specifically for this task
+:ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
 
 For systems with non-periodic boundaries in one or two directions dipole
 corrections are available with the :doc:`kspace_modify <kspace_modify>`.
@@ -363,8 +364,8 @@ function of the charge-at-0V (such as the ``in.conq2`` example mentioned above).
 
 Please cite :ref:`(Ahrens-Iwers2022) <Ahrens-Iwers2>` in any publication that
 uses this implementation.  Please cite also the publication on the combination
-of the CPM with PPPM if you use *pppm/electrode* :ref:`(Ahrens-Iwers)
-<Ahrens-Iwers>`.
+of the CPM with PPPM if you use *pppm/electrode* or
+*pppm/electrode/tip4p* :ref:`(Ahrens-Iwers) <Ahrens-Iwers>`.
 
 ----------
 

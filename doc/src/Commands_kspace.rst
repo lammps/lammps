@@ -33,6 +33,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pppm/tip4p (o) <kspace_style>`
    * :doc:`pppm/dielectric <kspace_style>`
    * :doc:`pppm/electrode (i) <kspace_style>`
+   * :doc:`pppm/electrode/tip4p <kspace_style>`
    * :doc:`scafacos <kspace_style>`
    * :doc:`zero <kspace_style>`
 

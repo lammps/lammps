@@ -2,7 +2,6 @@
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
    LAMMPS development team: developers@lammps.org
-
    Copyright (2003) Sandia Corporation.  Under the terms of Contract
    DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
    certain rights in this software.  This software is distributed under
@@ -15,7 +14,7 @@
    Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
 ------------------------------------------------------------------------- */
 
-#include "pppm_electrode.h"
+#include "pppm_electrode_tip4p.h"
 
 #include "angle.h"
 #include "atom.h"
@@ -52,7 +51,7 @@ static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 static const char cite_pppm_electrode[] =
-    "kspace_style pppm/electrode command:\n\n"
+    "kspace_style pppm/electrode/tip4p command:\n\n"
     "@article{Ahrens2021,\n"
     "author = {Ahrens-Iwers, Ludwig J.V. and Mei{\\ss}ner, Robert H.},\n"
     "doi = {10.1063/5.0063381},\n"
@@ -65,13 +64,14 @@ static const char cite_pppm_electrode[] =
 
 /* ---------------------------------------------------------------------- */
 
-PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
+PPPMElectrodeTIP4P::PPPMElectrodeTIP4P(LAMMPS *lmp) :
     PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr),
     boundcorr(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
   group_group_enable = 0;
+ 
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
   compute_vector_called = false;
@@ -82,11 +82,11 @@ PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
    free all memory
 ------------------------------------------------------------------------- */
 
-PPPMElectrode::~PPPMElectrode()
+PPPMElectrodeTIP4P::~PPPMElectrodeTIP4P()
 {
   if (copymode) return;
 
-  PPPMElectrode::deallocate();
+  PPPMElectrodeTIP4P::deallocate();
   if (peratom_allocate_flag) deallocate_peratom();
   if (group_allocate_flag) deallocate_groups();
   memory->destroy(part2grid);
@@ -97,42 +97,43 @@ PPPMElectrode::~PPPMElectrode()
    called once before run
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::init()
+void PPPMElectrodeTIP4P::init()
 {
-  if (me == 0) utils::logmesg(lmp, "PPPM/electrode initialization ...\n");
 
   // error check
   if (slabflag == 3)
-    error->all(FLERR, "Cannot (yet) use PPPM/electrode with 'kspace_modify slab ew2d'");
+    error->all(FLERR, "Cannot (yet) use pppm/electrode/tip4p with 'kspace_modify slab ew2d'");
 
   triclinic_check();
   triclinic = domain->triclinic;
-  if (triclinic) error->all(FLERR, "Cannot (yet) use PPPM/electrode with triclinic box ");
-  if (domain->dimension == 2) error->all(FLERR, "Cannot use PPPM/electrode with 2d simulation");
+  if (triclinic) error->all(FLERR, "Cannot (yet) use pppm/electrode/tip4p with triclinic box ");
+  if (domain->dimension == 2) error->all(FLERR, "Cannot use pppm/electrode/tip4p with 2d simulation");
 
   if (!atom->q_flag) error->all(FLERR, "KSpace style requires atom attribute q");
 
   if (slabflag == 0 && wireflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR, "Cannot use non-periodic boundaries with PPPM/electrode");
+    error->all(FLERR, "Cannot use non-periodic boundaries with pppm/electrode/tip4p");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || domain->boundary[2][0] != 1 ||
         domain->boundary[2][1] != 1)
-      error->all(FLERR, "Incorrect boundaries with slab PPPM/electrode");
+      error->all(FLERR, "Incorrect boundaries with slab pppm/electrode/tip4p");
   } else if (wireflag) {
     if (domain->zperiodic != 1 || domain->boundary[0][0] != 1 || domain->boundary[0][1] != 1 ||
         domain->boundary[1][0] != 1 || domain->boundary[1][1] != 1)
-      error->all(FLERR, "Incorrect boundaries with wire PPPM/electrode");
+      error->all(FLERR, "Incorrect boundaries with wire pppm/electrode/tip4p");
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR, "PPPM/electrode order cannot be < 2 or > {}", MAXORDER);
+    error->all(FLERR, "pppm/electrode/tip4p order cannot be < 2 or > {}", MAXORDER);
 
   // compute two charge force
-
   two_charge();
+  // Detect whether the current pair style is TIP4P
+  tip4pflag = force->pair->tip4pflag;
 
+  if (tip4pflag && force->newton == 0)
+    error->all(FLERR, "Kspace style pppm/electrode/tip4p with TIP4P requires newton on");
   // extract short-range Coulombic cutoff from pair style
-
   pair_check();
 
   int itmp = 0;
@@ -140,6 +141,37 @@ void PPPMElectrode::init()
   if (p_cutoff == nullptr) error->all(FLERR, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
+  // if kspace is TIP4P, extract TIP4P params from pair style
+  // bond/angle are not yet init(), so ensure equilibrium request is valid
+
+  qdist = 0.0;
+
+  if (tip4pflag) {
+
+    auto *p_qdist = (double *) force->pair->extract("qdist", itmp);
+    int *p_typeO = (int *) force->pair->extract("typeO", itmp);
+    int *p_typeH = (int *) force->pair->extract("typeH", itmp);
+    int *p_typeA = (int *) force->pair->extract("typeA", itmp);
+    int *p_typeB = (int *) force->pair->extract("typeB", itmp);
+    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
+      error->all(FLERR, "Pair style is incompatible with TIP4P KSpace style");
+    qdist = *p_qdist;
+    typeO = *p_typeO;
+    typeH = *p_typeH;
+    int typeA = *p_typeA;
+    int typeB = *p_typeB;
+
+    if (force->angle == nullptr || force->bond == nullptr || force->angle->setflag == nullptr ||
+        force->bond->setflag == nullptr)
+      error->all(FLERR, "Bond and angle potentials must be defined for TIP4P");
+    if (typeA < 1 || typeA > atom->nangletypes || force->angle->setflag[typeA] == 0)
+      error->all(FLERR, "Bad TIP4P angle type for PPPM/TIP4P");
+    if (typeB < 1 || typeB > atom->nbondtypes || force->bond->setflag[typeB] == 0)
+      error->all(FLERR, "Bad TIP4P bond type for PPPM/TIP4P");
+    double theta = force->angle->equilibrium_angle(typeA);
+    double blen = force->bond->equilibrium_distance(typeB);
+    alpha = qdist / (cos(0.5 * theta) * blen);
+  }
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -173,7 +205,7 @@ void PPPMElectrode::init()
   while (order >= minorder) {
     if (iteration && me == 0)
       error->warning(FLERR,
-                     "Reducing PPPM/electrode order b/c stencil extends "
+                     "Reducing pppm/electrode/tip4p order b/c stencil extends "
                      "beyond nearest neighbor processor");
 
     if (stagger_flag && !differentiation_flag) compute_gf_denom();
@@ -193,9 +225,9 @@ void PPPMElectrode::init()
     iteration++;
   }
 
-  if (order < minorder) error->all(FLERR, "PPPM/electrode order < minimum allowed order");
+  if (order < minorder) error->all(FLERR, "pppm/electrode/tip4p order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
-    error->all(FLERR, "PPPM/electrode grid stencil extends beyond nearest neighbor processor");
+    error->all(FLERR, "pppm/electrode/tip4p grid stencil extends beyond nearest neighbor processor");
   if (gc) delete gc;
 
   // adjust g_ewald
@@ -221,7 +253,6 @@ void PPPMElectrode::init()
                         estimated_accuracy / two_charge_force);
     mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n", ngrid_max, nfft_both_max);
-    utils::logmesg(lmp, mesg);
   }
 
   // allocate K-space dependent memory
@@ -242,20 +273,20 @@ void PPPMElectrode::init()
    adjust PPPM coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::setup()
+void PPPMElectrodeTIP4P::setup()
 {
   // perform some checks to avoid illegal boundaries with read_data
 
   if (slabflag == 0 && wireflag == 0 && domain->nonperiodic > 0)
-    error->all(FLERR, "Cannot use non-periodic boundaries with PPPM/electrode");
+    error->all(FLERR, "Cannot use non-periodic boundaries with pppm/electrode/tip4p");
   if (slabflag) {
     if (domain->xperiodic != 1 || domain->yperiodic != 1 || domain->boundary[2][0] != 1 ||
         domain->boundary[2][1] != 1)
-      error->all(FLERR, "Incorrect boundaries with slab PPPM/electrode");
+      error->all(FLERR, "Incorrect boundaries with slab pppm/electrode/tip4p");
   } else if (wireflag) {
     if (domain->zperiodic != 1 || domain->boundary[0][0] != 1 || domain->boundary[0][1] != 1 ||
         domain->boundary[1][0] != 1 || domain->boundary[1][1] != 1)
-      error->all(FLERR, "Incorrect boundaries with wire PPPM/electrode");
+      error->all(FLERR, "Incorrect boundaries with wire pppm/electrode/tip4p");
   }
 
   int i, j, k, n;
@@ -343,7 +374,7 @@ void PPPMElectrode::setup()
    called by fix balance b/c it changed sizes of processor sub-domains
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::reset_grid()
+void PPPMElectrodeTIP4P::reset_grid()
 {
   // free all arrays previously allocated
 
@@ -363,7 +394,7 @@ void PPPMElectrode::reset_grid()
 
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,
-               "PPPM/electrode grid stencil extends "
+               "pppm/electrode/tip4p grid stencil extends "
                "beyond nearest neighbor processor");
 
   // pre-compute Green's function denomiator expansion
@@ -382,7 +413,7 @@ void PPPMElectrode::reset_grid()
    compute the PPPM long-range force, energy, virial
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::compute(int eflag, int vflag)
+void PPPMElectrodeTIP4P::compute(int eflag, int vflag)
 {
   int i, j;
 
@@ -492,13 +523,13 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // ntotal accounts for ghost atom tallying
+  // ntotal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     double *q = atom->q;
     int nlocal = atom->nlocal;
     int ntotal = nlocal;
-
+    if (tip4pflag) ntotal += atom->nghost;
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
@@ -522,7 +553,100 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
-void PPPMElectrode::start_compute()
+
+/* ----------------------------------------------------------------------
+   compute the fictitious TIP4P charge site (M)
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
+{
+  double **x = atom->x;
+
+  iH1 = atom->map(atom->tag[i] + 1);
+  iH2 = atom->map(atom->tag[i] + 2);
+
+  if (iH1 == -1 || iH2 == -1)
+    error->one(FLERR, "TIP4P hydrogen is missing");
+
+  if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
+    error->one(FLERR, "TIP4P hydrogen has incorrect atom type");
+
+  iH1 = domain->closest_image(i,iH1);
+  iH2 = domain->closest_image(i,iH2);
+
+  // compute the fictitious M-site position from the O-H geometry
+
+  double delx1 = x[iH1][0] - x[i][0];
+  double dely1 = x[iH1][1] - x[i][1];
+  double delz1 = x[iH1][2] - x[i][2];
+
+  double delx2 = x[iH2][0] - x[i][0];
+  double dely2 = x[iH2][1] - x[i][1];
+  double delz2 = x[iH2][2] - x[i][2];
+
+  xM[0] = x[i][0] + alpha * 0.5 * (delx1 + delx2);
+  xM[1] = x[i][1] + alpha * 0.5 * (dely1 + dely2);
+  xM[2] = x[i][2] + alpha * 0.5 * (delz1 + delz2);
+}
+
+/* ----------------------------------------------------------------------
+   TIP4P-aware particle mapping
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeTIP4P::particle_map()
+{
+  // use the standard PPPM charge assignment for non-TIP4P systems
+  if (!tip4pflag) {
+    PPPM::particle_map();
+    return;
+  }
+
+  int nx, ny, nz;
+  int iH1, iH2;
+  double *xi;
+  double xM[3];
+
+  int *type = atom->type;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
+    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
+
+  int flag = 0;
+
+  for (int i = 0; i < nlocal; i++) {
+
+    // use the fictitious M-site position for TIP4P oxygen atoms
+    if (type[i] == typeO) {
+      find_M(i,iH1,iH2,xM);
+      xi = xM;
+    } else {
+      xi = x[i];
+    }
+
+    // determine the lower-left PPPM grid point for the interpolation stencil
+    nx = static_cast<int>((xi[0]-boxlo[0])*delxinv+shift) - OFFSET;
+    ny = static_cast<int>((xi[1]-boxlo[1])*delyinv+shift) - OFFSET;
+    nz = static_cast<int>((xi[2]-boxlo[2])*delzinv+shift) - OFFSET;
+
+    part2grid[i][0] = nx;
+    part2grid[i][1] = ny;
+    part2grid[i][2] = nz;
+
+    // verify that the complete PPPM interpolation stencil fits inside the local grid
+    if (nx+nlower < nxlo_out || nx+nupper > nxhi_out ||
+        ny+nlower < nylo_out || ny+nupper > nyhi_out ||
+        nz+nlower < nzlo_out || nz+nupper > nzhi_out)
+      flag = 1;
+  }
+
+  if (flag)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
+}
+
+void PPPMElectrodeTIP4P::start_compute()
 {
   if (compute_step < update->ntimestep) {
     if (compute_step == -1) setup();
@@ -531,7 +655,7 @@ void PPPMElectrode::start_compute()
     if (atom->nmax > nmax) {
       memory->destroy(part2grid);
       nmax = atom->nmax;
-      memory->create(part2grid, nmax, 3, "pppm/electrode:part2grid");
+      memory->create(part2grid, nmax, 3, "pppm/electrode/tip4p:part2grid");
     }
     // find grid points for all my particles
     // map my particle charge onto my local 3d density grid
@@ -542,7 +666,7 @@ void PPPMElectrode::start_compute()
 
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
-void PPPMElectrode::compute_vector(double *vec, int sensor_grpbit, int source_grpbit,
+void PPPMElectrodeTIP4P::compute_vector(double *vec, int sensor_grpbit, int source_grpbit,
                                    bool invert_source)
 {
   start_compute();
@@ -589,7 +713,7 @@ void PPPMElectrode::compute_vector(double *vec, int sensor_grpbit, int source_gr
   compute_vector_called = true;
 }
 
-void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
+void PPPMElectrodeTIP4P::project_psi(double *vec, int sensor_grpbit)
 {
   // project u_brick with weight matrix
   double **x = atom->x;
@@ -630,13 +754,13 @@ void PPPMElectrode::project_psi(double *vec, int sensor_grpbit)
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
+void PPPMElectrodeTIP4P::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
 {
   compute(1, 0);    // make sure density bricks etc. are set up
 
   // fft green's function k -> r (double)
   double *greens_real;
-  memory->create(greens_real, nz_pppm * ny_pppm * nx_pppm, "pppm/electrode:greens_real");
+  memory->create(greens_real, nz_pppm * ny_pppm * nx_pppm, "pppm/electrode/tip4p:greens_real");
   memset(greens_real, 0,
          (std::size_t) nz_pppm * (std::size_t) ny_pppm * (std::size_t) nx_pppm * sizeof(double));
   for (int i = 0, n = 0; i < nfft; i++) {
@@ -659,7 +783,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
 
   // gather x_ele
   double **x_ele;
-  memory->create(x_ele, nmat, 3, "pppm/electrode:x_ele");
+  memory->create(x_ele, nmat, 3, "pppm/electrode/tip4p:x_ele");
   memset(&(x_ele[0][0]), 0, nmat * 3 * sizeof(double));
   double **x = atom->x;
   for (int i = 0; i < nlocal; i++) {
@@ -679,7 +803,7 @@ void PPPMElectrode::compute_matrix(bigint *imat, double **matrix, bool timer_fla
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
+void PPPMElectrodeTIP4P::one_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
                                             double **matrix, const int nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
@@ -701,7 +825,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, d
   const int nj_local = j_list.size();
 
   FFT_SCALAR ***rho1d_j;
-  memory->create(rho1d_j, nj_local, 3, order, "pppm/electrode:rho1d_j");
+  memory->create(rho1d_j, nj_local, 3, order, "pppm/electrode/tip4p:rho1d_j");
 
   for (int jlist_pos = 0; jlist_pos < nj_local; jlist_pos++) {
     int j = j_list[jlist_pos];
@@ -724,7 +848,7 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, d
   const int order2 = order * order;
   const int order6 = order2 * order2 * order2;
   double *amesh;
-  memory->create(amesh, order6, "pppm/electrode:amesh");
+  memory->create(amesh, order6, "pppm/electrode/tip4p:amesh");
   for (int ipos = 0; ipos < nmat; ipos++) {
     double *_noalias xi_ele = x_ele[ipos];
     // new calculation for nx, ny, nz because part2grid available for nlocal,
@@ -779,13 +903,11 @@ void PPPMElectrode::one_step_multiplication(bigint *imat, double *greens_real, d
   memory->destroy(amesh);
   memory->destroy(rho1d_j);
   MPI_Barrier(world);
-  if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, "Single step time: {:.4g} s\n", MPI_Wtime() - step1_time);
 }
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::build_amesh(const int dx,    // = njx - nix
+void PPPMElectrodeTIP4P::build_amesh(const int dx,    // = njx - nix
                                 const int dy,    // = njy - niy
                                 const int dz,    // = njz - niz
                                 double *amesh, double *const greens_real)
@@ -815,7 +937,7 @@ void PPPMElectrode::build_amesh(const int dx,    // = njx - nix
 
 /* ----------------------------------------------------------------------*/
 
-void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
+void PPPMElectrodeTIP4P::two_step_multiplication(bigint *imat, double *greens_real, double **x_ele,
                                             double **matrix, const int nmat, bool timer_flag)
 {
   // map green's function in real space from mesh to particle positions
@@ -830,7 +952,7 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
   int nxyz = nx_ele * ny_ele * nz_ele;
 
   double **gw;
-  memory->create(gw, nmat, nxyz, "pppm/electrode:gw");
+  memory->create(gw, nmat, nxyz, "pppm/electrode/tip4p:gw");
   memset(&(gw[0][0]), 0, (std::size_t) nmat * (std::size_t) nxyz * sizeof(double));
 
   auto fmod = [](int x, int n) {    // fast unsigned mod
@@ -881,7 +1003,6 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, "step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time);
 
   // nested loop over electrode atoms i and j and stencil of i
   // in theory could reuse make_rho1d_j here -- but this step is already
@@ -921,15 +1042,13 @@ void PPPMElectrode::two_step_multiplication(bigint *imat, double *greens_real, d
   }
   MPI_Barrier(world);
   memory->destroy(gw);
-  if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, "step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time);
 }
 
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::allocate()
+void PPPMElectrodeTIP4P::allocate()
 {
   if (slabflag == 1) {
     // EW3Dc dipole correction
@@ -1050,8 +1169,8 @@ void PPPMElectrode::allocate()
   // ELECTRODE specific allocations
 
   memory->create3d_offset(electrolyte_density_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out,
-                          nxlo_out, nxhi_out, "pppm/electrode:electrolyte_density_brick");
-  memory->create(electrolyte_density_fft, nfft_both, "pppm/electrode:electrolyte_density_fft");
+                          nxlo_out, nxhi_out, "pppm/electrode/tip4p:electrolyte_density_brick");
+  memory->create(electrolyte_density_fft, nfft_both, "pppm/electrode/tip4p:electrolyte_density_fft");
 
   if (differentiation_flag != 1)
     memory->create3d_offset(u_brick, nzlo_out, nzhi_out, nylo_out, nyhi_out, nxlo_out, nxhi_out,
@@ -1063,7 +1182,7 @@ void PPPMElectrode::allocate()
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::deallocate()
+void PPPMElectrodeTIP4P::deallocate()
 {
   delete gc;
   gc = nullptr;
@@ -1114,7 +1233,7 @@ void PPPMElectrode::deallocate()
   remap = nullptr;
 }
 
-void PPPMElectrode::allocate_peratom()
+void PPPMElectrodeTIP4P::allocate_peratom()
 {
   peratom_allocate_flag = 1;
 
@@ -1151,7 +1270,7 @@ void PPPMElectrode::allocate_peratom()
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::set_grid_global()
+void PPPMElectrodeTIP4P::set_grid_global()
 {
   // use xprd,yprd,zprd (even if triclinic, and then scale later)
   // adjust z dimension for 2d slab PPPM
@@ -1258,7 +1377,7 @@ void PPPMElectrode::set_grid_global()
   h_z = zprd_slab / nz_pppm;
 
   if (nx_pppm >= OFFSET || ny_pppm >= OFFSET || nz_pppm >= OFFSET)
-    error->all(FLERR, "PPPM/electrode grid is too large");
+    error->all(FLERR, "pppm/electrode/tip4p grid is too large");
 }
 
 /* ----------------------------------------------------------------------
@@ -1266,7 +1385,7 @@ void PPPMElectrode::set_grid_global()
 -------------------------------------------------------------------------
 */
 
-double PPPMElectrode::compute_df_kspace()
+double PPPMElectrodeTIP4P::compute_df_kspace()
 {
   double xprd = domain->xprd;
   double yprd = domain->yprd;
@@ -1293,7 +1412,7 @@ double PPPMElectrode::compute_df_kspace()
 -------------------------------------------------------------------------
 */
 
-double PPPMElectrode::compute_qopt()
+double PPPMElectrodeTIP4P::compute_qopt()
 {
   int k, l, m, nx, ny, nz;
   double argx, argy, argz, wx, wy, wz, sx, sy, sz, qx, qy, qz;
@@ -1389,7 +1508,7 @@ double PPPMElectrode::compute_qopt()
    n xyz lo/hi fft = FFT columns that I own (all of x dim, 2d decomp in yz)
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::set_grid_local()
+void PPPMElectrodeTIP4P::set_grid_local()
 {
   // global indices of PPPM grid range from 0 to N-1
   // nlo_in,nhi_in = lower/upper limits of the 3d sub-brick of
@@ -1443,6 +1562,8 @@ void PPPMElectrode::set_grid_local()
   // nlo,nhi = global coords of grid pt to "lower left" of
   // smallest/largest
   //           position a particle in my box can be at
+  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
+  //   qdist = offset due to TIP4P fictitious charge
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
   // for slab PPPM, assign z grid as if it were not extended
@@ -1462,7 +1583,7 @@ void PPPMElectrode::set_grid_local()
   double zprd_slab = zprd * slab_volfactor;
 
   double dist[3] = {0.0, 0.0, 0.0};
-  double cuthalf = 0.5 * neighbor->skin;
+  double cuthalf = 0.5 * neighbor->skin + qdist;
   dist[0] = dist[1] = dist[2] = cuthalf;
 
   int nlo, nhi;
@@ -1561,7 +1682,7 @@ void PPPMElectrode::set_grid_local()
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::compute_gf_ik()
+void PPPMElectrodeTIP4P::compute_gf_ik()
 {
   const double *const prd = domain->prd;
 
@@ -1648,7 +1769,7 @@ void PPPMElectrode::compute_gf_ik()
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::compute_gf_ad()
+void PPPMElectrodeTIP4P::compute_gf_ad()
 {
   const double *const prd = domain->prd;
 
@@ -1753,7 +1874,390 @@ ghosts) in global grid
 -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scratch_brick,
+/* ----------------------------------------------------------------------
+   TIP4P-aware charge assignment
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeTIP4P::make_rho()
+{
+  // use the standard PPPM charge assignment for non-TIP4P systems
+  if (!tip4pflag) {
+    PPPM::make_rho();
+    return;
+  }
+
+  int i, l, m, n, nx, ny, nz, mx, my, mz;
+  FFT_SCALAR dx, dy, dz, x0, y0, z0;
+
+  FFT_SCALAR *vec = &density_brick[nzlo_out][nylo_out][nxlo_out];
+  for (i = 0; i < ngrid; i++) vec[i] = ZEROF;
+
+  int *type = atom->type;
+  double *q = atom->q;
+  double **x = atom->x;
+  int nlocal = atom->nlocal;
+
+  int iH1, iH2;
+  double *xi;
+  double xM[3];
+
+  for (i = 0; i < nlocal; i++) {
+
+    // assign the TIP4P oxygen charge at the fictitious M-site position
+    if (type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      xi = xM;
+    } else {
+      xi = x[i];
+    }
+
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+
+    dx = nx + shiftone - (xi[0] - boxlo[0]) * delxinv;
+    dy = ny + shiftone - (xi[1] - boxlo[1]) * delyinv;
+    dz = nz + shiftone - (xi[2] - boxlo[2]) * delzinv;
+
+    compute_rho1d(dx, dy, dz);
+
+    // distribute the particle charge using the PPPM interpolation stencil
+    z0 = delvolinv * q[i];
+
+    for (n = nlower; n <= nupper; n++) {
+      mz = n + nz;
+      y0 = z0 * rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+        my = m + ny;
+        x0 = y0 * rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l + nx;
+          density_brick[mz][my][mx] += x0 * rho1d[0][l];
+        }
+      }
+    }
+  }
+}
+/* ----------------------------------------------------------------------
+   TIP4P-aware field interpolation (ik differentiation)
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeTIP4P::fieldforce_ik()
+{
+  int i, l, m, n, nx, ny, nz, mx, my, mz;
+  FFT_SCALAR dx, dy, dz, x0, y0, z0;
+  FFT_SCALAR ekx, eky, ekz;
+  double *xi;
+  int iH1, iH2;
+  double xM[3];
+  double fx, fy, fz;
+
+  // interpolate electric field from nearby grid points
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double **f = atom->f;
+
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+
+    // evaluate per-atom energy/virial at the TIP4P M-site position
+    // and redistribute the contribution to O and H atoms below
+    if (type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      xi = xM;
+    } else {
+      xi = x[i];
+    }
+
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+
+    dx = nx + shiftone - (xi[0] - boxlo[0]) * delxinv;
+    dy = ny + shiftone - (xi[1] - boxlo[1]) * delyinv;
+    dz = nz + shiftone - (xi[2] - boxlo[2]) * delzinv;
+
+    compute_rho1d(dx, dy, dz);
+
+    // interpolate the PPPM potential and virial quantities from the grid
+    ekx = eky = ekz = ZEROF;
+
+    for (n = nlower; n <= nupper; n++) {
+      mz = n + nz;
+      z0 = rho1d[2][n];
+
+      for (m = nlower; m <= nupper; m++) {
+        my = m + ny;
+        y0 = z0 * rho1d[1][m];
+
+        for (l = nlower; l <= nupper; l++) {
+          mx = l + nx;
+          x0 = y0 * rho1d[0][l];
+
+          ekx -= x0 * vdx_brick[mz][my][mx];
+          eky -= x0 * vdy_brick[mz][my][mx];
+          ekz -= x0 * vdz_brick[mz][my][mx];
+        }
+      }
+    }
+
+    // convert the interpolated electric field into real-space forces
+    const double qfactor = qqrd2e * scale * q[i];
+
+    if (type[i] != typeO) {
+
+      f[i][0] += qfactor * ekx;
+      f[i][1] += qfactor * eky;
+
+      if (slabflag != 2) f[i][2] += qfactor * ekz;
+
+      // distribute the M-site contribution according to the TIP4P geometry
+    } else {
+
+      // redistribute the M-site force to the oxygen and hydrogen atoms
+      fx = qfactor * ekx;
+      fy = qfactor * eky;
+      fz = qfactor * ekz;
+
+      f[i][0] += fx * (1.0 - alpha);
+      f[i][1] += fy * (1.0 - alpha);
+
+      if (slabflag != 2) f[i][2] += fz * (1.0 - alpha);
+
+      f[iH1][0] += 0.5 * alpha * fx;
+      f[iH1][1] += 0.5 * alpha * fy;
+
+      if (slabflag != 2) f[iH1][2] += 0.5 * alpha * fz;
+
+      f[iH2][0] += 0.5 * alpha * fx;
+      f[iH2][1] += 0.5 * alpha * fy;
+
+      if (slabflag != 2) f[iH2][2] += 0.5 * alpha * fz;
+    }
+  }
+}
+void PPPMElectrodeTIP4P::fieldforce_ad()
+{
+  int i, l, m, n, nx, ny, nz, mx, my, mz;
+  FFT_SCALAR dx, dy, dz;
+  FFT_SCALAR ekx, eky, ekz;
+  double *xi;
+  int iH1, iH2;
+  double xM[3];
+  double s1, s2, s3;
+  double sf;
+  double fx, fy, fz;
+
+  double *prd = domain->prd;
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+
+  double hx_inv = nx_pppm / xprd;
+  double hy_inv = ny_pppm / yprd;
+  double hz_inv = nz_pppm / zprd;
+
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of E-field on particle
+
+  double *q = atom->q;
+  double **x = atom->x;
+  double **f = atom->f;
+
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    // use the fictitious M-site position for TIP4P oxygen atoms
+    if (type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      xi = xM;
+    } else
+      xi = x[i];
+
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx + shiftone - (xi[0] - boxlo[0]) * delxinv;
+    dy = ny + shiftone - (xi[1] - boxlo[1]) * delyinv;
+    dz = nz + shiftone - (xi[2] - boxlo[2]) * delzinv;
+
+    compute_rho1d(dx, dy, dz);
+    compute_drho1d(dx, dy, dz);
+
+    ekx = eky = ekz = ZEROF;
+    for (n = nlower; n <= nupper; n++) {
+      mz = n + nz;
+      for (m = nlower; m <= nupper; m++) {
+        my = m + ny;
+        for (l = nlower; l <= nupper; l++) {
+          mx = l + nx;
+          ekx += drho1d[0][l] * rho1d[1][m] * rho1d[2][n] * u_brick[mz][my][mx];
+          eky += rho1d[0][l] * drho1d[1][m] * rho1d[2][n] * u_brick[mz][my][mx];
+          ekz += rho1d[0][l] * rho1d[1][m] * drho1d[2][n] * u_brick[mz][my][mx];
+        }
+      }
+    }
+    ekx *= hx_inv;
+    eky *= hy_inv;
+    ekz *= hz_inv;
+
+    // convert E-field to force and subtract self forces
+
+    const double qfactor = qqrd2e * scale;
+
+    s1 = xi[0] * hx_inv;
+    s2 = xi[1] * hy_inv;
+    s3 = xi[2] * hz_inv;
+    sf = sf_coeff[0] * sin(2 * MY_PI * s1);
+    sf += sf_coeff[1] * sin(4 * MY_PI * s1);
+    sf *= 2.0 * q[i] * q[i];
+    fx = qfactor * (ekx * q[i] - sf);
+
+    sf = sf_coeff[2] * sin(2 * MY_PI * s2);
+    sf += sf_coeff[3] * sin(4 * MY_PI * s2);
+    sf *= 2.0 * q[i] * q[i];
+    fy = qfactor * (eky * q[i] - sf);
+
+    sf = sf_coeff[4] * sin(2 * MY_PI * s3);
+    sf += sf_coeff[5] * sin(4 * MY_PI * s3);
+    sf *= 2.0 * q[i] * q[i];
+    fz = qfactor * (ekz * q[i] - sf);
+
+    if (type[i] != typeO) {
+      f[i][0] += fx;
+      f[i][1] += fy;
+      if (slabflag != 2) f[i][2] += fz;
+
+    } else {
+
+      // redistribute the M-site force to the oxygen and hydrogen atoms
+      f[i][0] += fx * (1 - alpha);
+      f[i][1] += fy * (1 - alpha);
+      if (slabflag != 2) f[i][2] += fz * (1 - alpha);
+
+      f[iH1][0] += 0.5 * alpha * fx;
+      f[iH1][1] += 0.5 * alpha * fy;
+      if (slabflag != 2) f[iH1][2] += 0.5 * alpha * fz;
+
+      f[iH2][0] += 0.5 * alpha * fx;
+      f[iH2][1] += 0.5 * alpha * fy;
+      if (slabflag != 2) f[iH2][2] += 0.5 * alpha * fz;
+    }
+  }
+}
+
+void PPPMElectrodeTIP4P::fieldforce_peratom()
+{
+  int i, l, m, n, nx, ny, nz, mx, my, mz;
+  FFT_SCALAR dx, dy, dz, x0, y0, z0;
+  double *xi;
+  int iH1, iH2;
+  double xM[3];
+  FFT_SCALAR u_pa, v0, v1, v2, v3, v4, v5;
+
+  // loop over my charges, interpolate electric field from nearby grid points
+  // (nx,ny,nz) = global coords of grid pt to "lower left" of charge
+  // (dx,dy,dz) = distance to "lower left" grid pt
+  // (mx,my,mz) = global coords of moving stencil pt
+  // ek = 3 components of E-field on particle
+
+  double *q = atom->q;
+  double **x = atom->x;
+
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  for (i = 0; i < nlocal; i++) {
+    // use the fictitious M-site position for TIP4P oxygen atoms
+    if (type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      xi = xM;
+    } else
+      xi = x[i];
+
+    nx = part2grid[i][0];
+    ny = part2grid[i][1];
+    nz = part2grid[i][2];
+    dx = nx + shiftone - (xi[0] - boxlo[0]) * delxinv;
+    dy = ny + shiftone - (xi[1] - boxlo[1]) * delyinv;
+    dz = nz + shiftone - (xi[2] - boxlo[2]) * delzinv;
+
+    compute_rho1d(dx, dy, dz);
+
+    // interpolate per-atom energy and virial contributions from the PPPM grid
+    u_pa = v0 = v1 = v2 = v3 = v4 = v5 = ZEROF;
+    for (n = nlower; n <= nupper; n++) {
+      mz = n + nz;
+      z0 = rho1d[2][n];
+      for (m = nlower; m <= nupper; m++) {
+        my = m + ny;
+        y0 = z0 * rho1d[1][m];
+        for (l = nlower; l <= nupper; l++) {
+          mx = l + nx;
+          x0 = y0 * rho1d[0][l];
+          if (eflag_atom) u_pa += x0 * u_brick[mz][my][mx];
+          if (vflag_atom) {
+            v0 += x0 * v0_brick[mz][my][mx];
+            v1 += x0 * v1_brick[mz][my][mx];
+            v2 += x0 * v2_brick[mz][my][mx];
+            v3 += x0 * v3_brick[mz][my][mx];
+            v4 += x0 * v4_brick[mz][my][mx];
+            v5 += x0 * v5_brick[mz][my][mx];
+          }
+        }
+      }
+    }
+
+    if (eflag_atom) {
+      if (type[i] != typeO) {
+        eatom[i] += q[i] * u_pa;
+      } else {
+        // redistribute the M-site contribution to the oxygen and hydrogen atoms
+        eatom[i] += q[i] * u_pa * (1 - alpha);
+        eatom[iH1] += q[i] * u_pa * alpha * 0.5;
+        eatom[iH2] += q[i] * u_pa * alpha * 0.5;
+      }
+    }
+    if (vflag_atom) {
+      if (type[i] != typeO) {
+        vatom[i][0] += v0 * q[i];
+        vatom[i][1] += v1 * q[i];
+        vatom[i][2] += v2 * q[i];
+        vatom[i][3] += v3 * q[i];
+        vatom[i][4] += v4 * q[i];
+        vatom[i][5] += v5 * q[i];
+      } else {
+        vatom[i][0] += v0 * (1 - alpha) * q[i];
+        vatom[i][1] += v1 * (1 - alpha) * q[i];
+        vatom[i][2] += v2 * (1 - alpha) * q[i];
+        vatom[i][3] += v3 * (1 - alpha) * q[i];
+        vatom[i][4] += v4 * (1 - alpha) * q[i];
+        vatom[i][5] += v5 * (1 - alpha) * q[i];
+        vatom[iH1][0] += v0 * alpha * 0.5 * q[i];
+        vatom[iH1][1] += v1 * alpha * 0.5 * q[i];
+        vatom[iH1][2] += v2 * alpha * 0.5 * q[i];
+        vatom[iH1][3] += v3 * alpha * 0.5 * q[i];
+        vatom[iH1][4] += v4 * alpha * 0.5 * q[i];
+        vatom[iH1][5] += v5 * alpha * 0.5 * q[i];
+        vatom[iH2][0] += v0 * alpha * 0.5 * q[i];
+        vatom[iH2][1] += v1 * alpha * 0.5 * q[i];
+        vatom[iH2][2] += v2 * alpha * 0.5 * q[i];
+        vatom[iH2][3] += v3 * alpha * 0.5 * q[i];
+        vatom[iH2][4] += v4 * alpha * 0.5 * q[i];
+        vatom[iH2][5] += v5 * alpha * 0.5 * q[i];
+      }
+    }
+  }
+}
+
+void PPPMElectrodeTIP4P::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scratch_brick,
                                       bool invert_source)
 {
   int l, m, n, nx, ny, nz, mx, my, mz;
@@ -1774,19 +2278,34 @@ void PPPMElectrode::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scratch_b
   double **x = atom->x;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+  int *type = atom->type;
+  int iH1, iH2;
+  double *xi;
+  double xM[3];
 
   for (int i = 0; i < nlocal; i++) {
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     if (!i_in_source) continue;
+
+    // use the fictitious M-site position for TIP4P oxygen atoms
+    if (tip4pflag && type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      xi = xM;
+    } else {
+      xi = x[i];
+    }
+
     nx = part2grid[i][0];
     ny = part2grid[i][1];
     nz = part2grid[i][2];
-    dx = nx + shiftone - (x[i][0] - boxlo[0]) * delxinv;
-    dy = ny + shiftone - (x[i][1] - boxlo[1]) * delyinv;
-    dz = nz + shiftone - (x[i][2] - boxlo[2]) * delzinv;
+
+    dx = nx + shiftone - (xi[0] - boxlo[0]) * delxinv;
+    dy = ny + shiftone - (xi[1] - boxlo[1]) * delyinv;
+    dz = nz + shiftone - (xi[2] - boxlo[2]) * delzinv;
 
     compute_rho1d(dx, dy, dz);
 
+    // spread the particle charge onto the surrounding PPPM interpolation stencil
     z0 = delvolinv * q[i];
     for (n = nlower; n <= nupper; n++) {
       mz = n + nz;
@@ -1807,12 +2326,12 @@ void PPPMElectrode::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scratch_b
    group-group interactions
  -------------------------------------------------------------------------
 */
-void PPPMElectrode::compute_group_group(int /*groupbit_A*/, int /*groupbit_B*/, int /*AA_flag*/)
+void PPPMElectrodeTIP4P::compute_group_group(int /*groupbit_A*/, int /*groupbit_B*/, int /*AA_flag*/)
 {
-  error->all(FLERR, "group group interaction not implemented in pppm/electrode yet");
+  error->all(FLERR, "group group interaction not implemented in pppm/electrode/tip4p yet");
 }
 
-void PPPMElectrode::compute_matrix_corr(bigint *imat, double **matrix)
+void PPPMElectrodeTIP4P::compute_matrix_corr(bigint *imat, double **matrix)
 {
   boundcorr->matrix_corr(imat, matrix);
 }
@@ -1822,7 +2341,7 @@ void PPPMElectrode::compute_matrix_corr(bigint *imat, double **matrix)
  -------------------------------------------------------------------------
 */
 
-void PPPMElectrode::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
+void PPPMElectrodeTIP4P::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
                                         bool invert_source)
 {
   boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);

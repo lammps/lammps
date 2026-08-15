@@ -405,13 +405,9 @@ int FixElectrodeConp::groupnum_from_name(char *groupname)
 
 void FixElectrodeConp::init()
 {
-  pair = nullptr;    // not sure if needed -- remove if unnecessary
-  pair = (Pair *) force->pair_match("coul", 0);
-  if (pair == nullptr) {    // couldn't find a pair with name coul -- maybe hybrid
-    // return 1st hybrid substyle containing 'coul'
-    pair = (Pair *) force->pair_match("coul", 0, 1);
-  }
-  if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
+  pair = force->pair;
+  if (pair == nullptr) error->all(FLERR, "No pair style defined");
+  if (!pair->pppmflag) error->all(FLERR, "Fix electrode requires a long-range Coulomb pair style");
 
   // error if more than one fix electrode/*
   if (modify->get_fix_by_style("^electrode").size() > 1)

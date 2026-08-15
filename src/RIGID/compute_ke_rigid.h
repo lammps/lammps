@@ -32,7 +32,7 @@ class ComputeKERigid : public Compute {
   double compute_scalar() override;
 
  private:
-  int irfix;
+  class Fix *irfix;
   char *rfix;
 };
 

@@ -486,7 +486,7 @@ ComputeChunkAtom::~ComputeChunkAtom()
 {
   // check nfix in case all fixes have already been deleted
 
-  if (id_fix.size() && modify->nfix) modify->delete_fix(id_fix);
+  if (!id_fix.empty() && modify->nfix) modify->delete_fix(id_fix);
 
   memory->destroy(chunk);
   memory->destroy(ichunk);

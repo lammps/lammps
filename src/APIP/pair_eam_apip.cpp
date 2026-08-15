@@ -579,7 +579,7 @@ double PairEAMAPIP::init_one(int i, int j)
 
 void PairEAMAPIP::setup()
 {
-  if (modify->get_fix_by_style("^lambda/la/csp/apip$").size() == 0) {
+  if (modify->get_fix_by_style("^lambda/la/csp/apip$").empty()) {
     lambda_la = false;
   } else {
     lambda_la = true;
@@ -588,7 +588,7 @@ void PairEAMAPIP::setup()
                      "  eam/apip      : compute potential energies for local-averaging forces\n");
   }
 
-  if (modify->get_fix_by_style("^lambda_thermostat/apip$").size() == 0) {
+  if (modify->get_fix_by_style("^lambda_thermostat/apip$").empty()) {
     lambda_thermostat = false;
   } else {
     lambda_thermostat = true;

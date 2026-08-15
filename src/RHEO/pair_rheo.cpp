@@ -479,13 +479,13 @@ void PairRHEO::coeff(int narg, char **arg)
 void PairRHEO::setup()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use pair rheo");
+  if (fixes.empty()) error->all(FLERR, "Need to define fix rheo to use pair rheo");
   if (fixes.size() > 1) error->all(FLERR, "Must have only one fix rheo defined");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   // Currently only allow one instance of fix rheo/pressure
   fixes = modify->get_fix_by_style("^rheo/pressure$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
+  if (fixes.empty()) error->all(FLERR, "Need to define fix rheo/pressure to use pair rheo");
   if (fixes.size() > 1) error->all(FLERR, "Must have only one fix rheo/pressure defined");
   fix_pressure = dynamic_cast<FixRHEOPressure *>(fixes[0]);
 
@@ -503,7 +503,7 @@ void PairRHEO::setup()
   if (thermal_flag) {
     fixes = modify->get_fix_by_style("^rheo/thermal$");
     // FixRHEO should perform these checks
-    if (fixes.size() == 0 || fixes.size() > 1)
+    if (fixes.empty() || fixes.size() > 1)
       error->all(FLERR, "Must have one and only one instance of fix rheo/thermal defined");
     fix_thermal = dynamic_cast<FixRHEOThermal *>(fixes[0]);
   }

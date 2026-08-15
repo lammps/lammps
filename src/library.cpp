@@ -835,7 +835,7 @@ void lammps_commands_string(void *handle, const char *str)
           }
         }
         // stop processing when quit command is found
-        if (words.size() && (words[0] == "quit")) {
+        if (!words.empty() && (words[0] == "quit")) {
           if (lmp->comm->me == 0)
             utils::logmesg(lmp, "Encountered a 'quit' command. Stopping ...\n");
           break;

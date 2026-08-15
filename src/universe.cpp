@@ -174,7 +174,7 @@ void Universe::add_world(char *str)
     // str may not be empty and may only consist of digits or 'x'
 
     std::string part(str);
-    if (part.size() == 0) valid = false;
+    if (part.empty()) valid = false;
     if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {

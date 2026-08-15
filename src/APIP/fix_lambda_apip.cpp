@@ -252,7 +252,7 @@ void FixLambdaAPIP::init()
   if (count > 1) error->all(FLERR, "More than one fix lambda.");
 
   // warn if there is no fix lambda_thermostat/apip
-  if (comm->me == 0 && modify->get_fix_by_style("lambda_thermostat/apip").size() == 0)
+  if (comm->me == 0 && modify->get_fix_by_style("lambda_thermostat/apip").empty())
     error->warning(FLERR,
                    "The energy is not conserved when lambda changes as fix lambda_thermostat/apip "
                    "is not used.");

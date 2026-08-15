@@ -502,7 +502,7 @@ void FixRX::init()
     error->all(FLERR, Error::NOLASTLINE, "Must use pair_style dpd/fdt/energy with fix rx");
 
   auto fixes = modify->get_fix_by_style("^eos/table/rx");
-  if (!fixes.size())
+  if (fixes.empty())
     error->all(FLERR, Error::NOLASTLINE, "fix rx requires fix eos/table/rx to be specified");
 
   // need a half neighbor list

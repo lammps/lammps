@@ -954,7 +954,7 @@ void FixGraphicsIsosurface::end_of_step()
   numobjs = n;
 
   // write grid to STL format file, if requested
-  if (filename.size() > 0) {
+  if (!filename.empty()) {
     int maxobjs = 0;
     uint32_t allobjs = 0U;
     MPI_Allreduce(&numobjs, &maxobjs, 1, MPI_INT, MPI_SUM, world);

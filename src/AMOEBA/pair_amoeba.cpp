@@ -861,7 +861,7 @@ void PairAmoeba::init_style()
     else if (flag_check[i] != flag) err = "has the wrong type";
     else if (cols_check[i] != cols) err = "has the wrong number of columns";
     else if (ghost_check[i] && !ghost) err = "must be set by fix property/atom with ghost yes";
-    if (err != "")
+    if (!err.empty())
       error->all(FLERR,"Pair {} per-atom variable {} {}", mystyle, names[i], err);
   }
 

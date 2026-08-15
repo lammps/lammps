@@ -118,7 +118,7 @@ void FixNVTSllodEff::init()
   // check fix deform remap settings
 
   auto deform = modify->get_fix_by_style("^deform");
-  if (deform.size() < 1)
+  if (deform.empty())
     error->all(FLERR, Error::NOLASTLINE, "Using fix {} with no fix deform defined", style);
 
   for (auto &ifix : deform) {

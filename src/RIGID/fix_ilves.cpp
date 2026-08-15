@@ -478,7 +478,7 @@ void FixIlves::setup(int vflag)
     // (full-step) timestep factors used to predict the unconstrained positions
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0)
+      if (!fixes.empty())
         fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else
         error->all(FLERR, Error::NOLASTLINE, "Run style respa did not create fix RESPA");

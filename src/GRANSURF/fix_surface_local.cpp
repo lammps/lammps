@@ -463,7 +463,7 @@ void FixSurfaceLocal::setup(int /*vflag*/)
   // movelist = pointers to each instance
 
   auto movelist = modify->get_fix_by_style("^move");
-  if (movelist.size() == 0) return;
+  if (movelist.empty()) return;
 
   // check for inconsistent surf motion
   // error if a single surf is assigned to multiple motions

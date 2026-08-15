@@ -1598,7 +1598,7 @@ template <typename T> std::string join_impl(const std::vector<T> &values, const 
 {
   std::string result;
 
-  if (values.size() > 0) result = fmt::format("{}", values[0]);
+  if (!values.empty()) result = fmt::format("{}", values[0]);
   for (std::size_t i = 1; i < values.size(); ++i) result += sep + fmt::format("{}", values[i]);
 
   return result;
@@ -1666,7 +1666,7 @@ std::string utils::join_words(const std::vector<std::string> &words, const std::
 {
   std::string result;
 
-  if (words.size() > 0) result = words[0];
+  if (!words.empty()) result = words[0];
   for (std::size_t i = 1; i < words.size(); ++i) result += sep + words[i];
 
   return result;

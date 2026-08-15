@@ -4234,7 +4234,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid vdisplace function in variable formula: must have 2 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use vdisplace(x,y) function with fix dt/reset",ivar);
     if (tree) newtree->type = VDISPLACE;
     else {
@@ -4246,7 +4246,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"swiggle") == 0) {
     if (narg != 3)
       print_var_error(FLERR,"Invalid swiggle function in variable formula: must have 3 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use swiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = SWIGGLE;
     else {
@@ -4261,7 +4261,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"cwiggle") == 0) {
     if (narg != 3)
       print_var_error(FLERR,"Invalid cwiggle function in variable formula: must have 3 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use cwiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = CWIGGLE;
     else {
@@ -5090,7 +5090,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     } else argstack[nargstack++] = value;
 
   } else if (word == "is_timeout") {
-    if ((narg != 1) || (std::string(args[0]).size() != 0))
+    if ((narg != 1) || (!std::string(args[0]).empty()))
       print_var_error(FLERR,"Invalid is_timeout() function in variable formula",ivar);
     value = timer->is_timeout() ? 1.0 : 0.0;
 

@@ -394,7 +394,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
 
   #include "lal_pre_ocl_config.h"
 
-  if (s_config=="" || s_config=="none")
+  if (s_config.empty() || s_config=="none")
     s_config="generic";
 
   int config_index=-1;

@@ -518,7 +518,7 @@ void GranSubModNormalMDR::coeffs_to_local()
 void GranSubModNormalMDR::init()
 {
   if (!fix_mdr_flag) {
-    if (modify->get_fix_by_style("GRANULAR/MDR").size() == 0) {
+    if (modify->get_fix_by_style("GRANULAR/MDR").empty()) {
       id_fix = utils::strdup("MDR");
       modify->add_fix(fmt::format("{} all GRANULAR/MDR", id_fix));
     }

@@ -140,7 +140,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->get_fix_by_style("^bond/react").size() != 0)
+  if (!modify->get_fix_by_style("^bond/react").empty())
     error->all(FLERR, Error::NOLASTLINE, "Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified

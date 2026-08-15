@@ -1193,9 +1193,9 @@ struct AtomVecKokkos_PackReverse {
     const typename DAT::tdual_double_2d_lr &buf,
     const int &first, const uint64_t &datamask):
       _f(atomKK->k_f.view<DeviceType>()),
-      _torque(atomKK->k_torque.view<DeviceType>()),
       _fm(atomKK->k_fm.view<DeviceType>()),
       _fm_long(atomKK->k_fm_long.view<DeviceType>()),
+      _torque(atomKK->k_torque.view<DeviceType>()),
       _first(first),_datamask(datamask) {
         const size_t elements = atomKK->avecKK->size_reverse;
         const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/elements;
@@ -1281,9 +1281,9 @@ struct AtomVecKokkos_UnPackReverse {
     const typename DAT::tdual_int_1d &list,
     const uint64_t datamask):
       _f(atomKK->k_f.view<DeviceType>()),
-      _torque(atomKK->k_torque.view<DeviceType>()),
       _fm(atomKK->k_fm.view<DeviceType>()),
       _fm_long(atomKK->k_fm_long.view<DeviceType>()),
+      _torque(atomKK->k_torque.view<DeviceType>()),
       _list(list.view<DeviceType>()),
       _datamask(datamask) {
         const size_t elements = atomKK->avecKK->size_reverse;
@@ -1376,10 +1376,10 @@ struct AtomVecKokkos_UnPackReverseSelf {
     const typename DAT::tdual_int_1d &list,
     const uint64_t &datamask):
       _f(atomKK->k_f.view<DeviceType>()),
-      _torque(atomKK->k_torque.view<DeviceType>()),
       _fm(atomKK->k_fm.view<DeviceType>()),
       _fm_long(atomKK->k_fm_long.view<DeviceType>()),
-      _nfirst(nfirst),_list(list.view<DeviceType>()),
+      _torque(atomKK->k_torque.view<DeviceType>()),
+      _list(list.view<DeviceType>()),_nfirst(nfirst),
       _datamask(datamask) {};
 
 // NOLINTNEXTLINE
@@ -1798,15 +1798,15 @@ struct AtomVecKokkos_PackBorderVel {
     const double &dvx, const double &dvy, const double &dvz,
     const int &deform_groupbit,
     const uint64_t &datamask):
-      _buf(buf),_list(list),_datamask(datamask),
+      _buf(buf),_list(list),
       _x(atomKK->k_x.view<DeviceType>()),
+      _v(atomKK->k_v.view<DeviceType>()),
       _tag(atomKK->k_tag.view<DeviceType>()),
       _type(atomKK->k_type.view<DeviceType>()),
       _mask(atomKK->k_mask.view<DeviceType>()),
       _angmom(atomKK->k_angmom.view<DeviceType>()),
       _molecule(atomKK->k_molecule.view<DeviceType>()),
       _q(atomKK->k_q.view<DeviceType>()),
-      _v(atomKK->k_v.view<DeviceType>()),
       _mu(atomKK->k_mu.view<DeviceType>()),
       _sp(atomKK->k_sp.view<DeviceType>()),
       _radius(atomKK->k_radius.view<DeviceType>()),
@@ -1820,7 +1820,8 @@ struct AtomVecKokkos_PackBorderVel {
       _uCGnew(atomKK->k_uCGnew.view<DeviceType>()),
       _dx(dx),_dy(dy),_dz(dz),
       _dvx(dvx),_dvy(dvy),_dvz(dvz),
-      _deform_groupbit(deform_groupbit) {
+      _deform_groupbit(deform_groupbit),
+      _datamask(datamask) {
         const size_t elements = atomKK->avecKK->size_border + atomKK->avecKK->size_velocity;
         const int maxsend = (buf.extent(0)*buf.extent(1))/elements;
         _buf = typename AT::t_double_2d_lr_um(buf.data(),maxsend,elements);

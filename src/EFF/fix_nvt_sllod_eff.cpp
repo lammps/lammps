@@ -156,7 +156,7 @@ void FixNVTSllodEff::init()
 
 void FixNVTSllodEff::nve_x()
 {
-  if (integrator == LEGACY) return FixNH::nve_x();
+  if (integrator == LEGACY) return FixNHEff::nve_x();
 
   double **v = atom->v;
   double **x = atom->x;

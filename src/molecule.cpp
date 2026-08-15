@@ -1730,7 +1730,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             APPLY_SHAKE_ATOMS(4);
             break;
           case 0:
-            APPLY_SHAKE_ATOMS(0);
+            APPLY_SHAKE_ATOMS(0); // NOLINT
             break;
           default:
             error->all(FLERR, Error::NOLASTLINE,
@@ -1807,7 +1807,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             SET_SHAKE_TYPE(Atom::ANGLE, 2, 3, aoffset);
             break;
           case 2:
-            SET_SHAKE_TYPE(Atom::BOND, 0, 1, boffset);
+            SET_SHAKE_TYPE(Atom::BOND, 0, 1, boffset); // NOLINT
             break;
           case 3:
             SET_SHAKE_TYPE(Atom::BOND, 0, 2, boffset);

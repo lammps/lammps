@@ -120,7 +120,6 @@ enum{DONE, ADD, SUBTRACT, MULTIPLY, DIVIDE, CARAT, MODULO, UNARY,
 enum { SUM, XMIN, XMAX, AVE, TRAP, SLOPE, SORT, RSORT, NOVECTOR };
 
 }    // namespace
-// NOLINTEND
 
 // clang-format on
 

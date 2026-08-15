@@ -1145,7 +1145,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
       if (fichierE) fichierE<< setprecision(9) <<" "<<gp<<" "<<nmol[gp]
                             <<" "<<tmpAll[gp][2]<<" "<<tmpAll[gp][3]<<" "<<tmpAll[gp][4]+tmpAll[gp][5];
     }
-    if (fichierE) fichierE<<endl;
+    if (fichierE) fichierE<< "\n";
     if (fichierE) fichierE.close();
   }
   // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1316,7 +1316,7 @@ void PairSMTBQ::tabqeq()
 
   mu = erfc(alf*rc)/rc ;
 
-  //if (fichier) fichier <<" r  -  potqn " <<endl ;
+  //if (fichier) fichier <<" r  -  potqn\n";
 
   //-------------------------
   for (k=0; k < kmax+5; k++)

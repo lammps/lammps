@@ -49,7 +49,7 @@ static constexpr double BIG = 1.0e20;
 
 // XYZ PLANE need to be 0,1,2
 
-enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION};
+enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION=3};
 enum {NONE,CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */

@@ -44,6 +44,7 @@ on whether to remove that member from the TSC.
 11. Ellad Tadmor ([@tadmor](https://github.com/tadmor)), University of Minnesota
 12. Tim Mattox ([@timattox](https://github.com/timattox)), Hewlett Packard Enterprise
 13. Ian Bogle ([@IanBogle](https://github.com/IanBogle)), AMD
+14. Nick Hagerty ([@hagertnl](https://github.com/hagertnl)), Oak Ridge National Laboratory
 
 ### 1.4 TSC Chair
 

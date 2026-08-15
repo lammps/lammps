@@ -362,6 +362,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`viscosity/cos <compute_viscosity_cos>` - velocity profile under cosine-shaped acceleration
 * :doc:`voronoi/atom <compute_voronoi_atom>` - Voronoi volume and neighbors for each atom
 * :doc:`xrd <compute_xrd>` - X-ray diffraction intensity on a mesh of reciprocal lattice nodes
+* :doc:`xrd/fft <compute_xrd>` - X-ray diffraction intensity computed with FFTs
 
 Restrictions
 """"""""""""

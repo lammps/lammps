@@ -25,17 +25,23 @@ User-diffraction includes:
 1) compute_xrd :  calculate x-ray diffraction intensities as a
                   scattering angle (2theta)
 
-2) compute_xrd_consts.h :  coefficients used for x-ray atomic
+2) compute xrd/fft : the same calculation as "compute xrd", evaluated
+                     with fast Fourier transforms instead of a direct
+                     sum.  Requires the KSPACE package for its FFT
+                     wrappers, and is only built when that package is
+                     installed as well.
+
+3) compute_xrd_consts.h :  coefficients used for x-ray atomic
                            scattering factors listed by element
 
-3) compute saed : calculate 3D diffraction intensities for the
+4) compute saed : calculate 3D diffraction intensities for the
                   purpose of creating selected area electron
                   diffraction patterns
 
-4) compute_xrd_consts.h :  coefficients used for electron atomic
-                           scattering factors listed by element
+5) compute_saed_consts.h :  coefficients used for electron atomic
+                            scattering factors listed by element
 
-3) fix saed/vtk :  writes 3D diffraction intensity data calculated
+6) fix saed/vtk :  writes 3D diffraction intensity data calculated
                    with "compute saed" in vtk format
 
 

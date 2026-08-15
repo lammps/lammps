@@ -1,7 +1,11 @@
 .. index:: compute xrd
+.. index:: compute xrd/fft
 
 compute xrd command
 ===================
+
+compute xrd/fft command
+=======================
 
 Syntax
 """"""
@@ -9,13 +13,14 @@ Syntax
 .. code-block:: LAMMPS
 
    compute ID group-ID xrd lambda type1 type2 ... typeN keyword value ...
+   compute ID group-ID xrd/fft lambda type1 type2 ... typeN keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
-* xrd = style name of this compute command
+* xrd or xrd/fft = style name of this compute command
 * lambda = wavelength of incident radiation (length units)
 * type1 type2 ... typeN = chemical symbol of each atom type (see valid options below)
 * zero or more keyword/value pairs may be appended
-* keyword = *2Theta* or *c* or *LP* or *manual* or *echo*
+* keyword = *2Theta* or *c* or *LP* or *manual* or *echo* or *order* or *oversample*
 
   .. parsed-literal::
 
@@ -30,6 +35,10 @@ Syntax
        *manual* = flag to use manual spacing of reciprocal lattice points
                   based on the values of the *c* parameters
        *echo* = flag to provide extra output for debugging purposes
+       *order* value = width of the spreading stencil of compute xrd/fft (default 7)
+         must be an odd number of 3 or larger
+       *oversample* value = oversampling factor of the FFT mesh of compute xrd/fft (default 2.0)
+         must be 1.25 or larger
 
 Examples
 """"""""
@@ -38,6 +47,8 @@ Examples
 
    compute 1 all xrd 1.541838 Al O 2Theta 0.087 0.87 c 1 1 1 LP 1 echo
    compute 2 all xrd 1.541838 Al O 2Theta 10 100 c 0.05 0.05 0.05 LP 1 manual
+   compute 3 all xrd/fft 1.541838 Al O 2Theta 10 100 c 1 1 1 LP 1
+   compute 4 all xrd/fft 1.541838 Al O 2Theta 10 100 c 1 1 1 LP 1 order 9
 
    fix 1 all ave/histo/weight 1 1 1 0.087 0.87 250 c_1[1] c_1[2] mode vector file Rad2Theta.xrd
    fix 2 all ave/histo/weight 1 1 1 10 100 250 c_2[1] c_2[2] mode vector file Deg2Theta.xrd
@@ -86,6 +97,14 @@ is defined from the average of the (inversed) box lengths with periodic
 boundary conditions.  Meshes defined by the simulation domain must
 contain at least one periodic boundary.
 
+.. versionadded:: TBD
+
+For a triclinic cell the mesh is built on the reciprocal lattice vectors of the
+cell, which are no longer aligned with the coordinate axes.  This is the same
+construction the :doc:`kspace styles <kspace_style>` use.  A tilted cell needs
+more nodes to reach a given scattering angle than an orthogonal cell of the
+same volume, so the calculation becomes more expensive as the tilt grows.
+
 If the *manual* flag is included, the mesh of reciprocal lattice nodes
 will be defined using the *c* values for the spacing along each
 reciprocal lattice axis. Note that manual mapping of the reciprocal
@@ -105,14 +124,14 @@ diffraction intensity due to Compton scattering.  Compute xrd uses
 analytical approximations of the atomic scattering factors that vary
 for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
-:ref:`(Colliex) <Colliex>`:
+:ref:`(Brown) <Brown>`:
 
 .. math::
 
    f_j\left ( \frac{\sin(\theta)}{\lambda} \right )=\sum_{i=1}^{4}
    a_i \exp\left ( -b_i \frac{\sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
-Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
+Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
 type. Valid chemical symbols for compute xrd are:
 
@@ -139,7 +158,7 @@ type. Valid chemical symbols for compute xrd are:
 +------+------+------+-------+------+
 | Fe   | Fe2+ | Fe3+ | Co    | Co2+ |
 +------+------+------+-------+------+
-| Co   | Ni   | Ni2+ | Ni3+  | Cu   |
+| Co3+ | Ni   | Ni2+ | Ni3+  | Cu   |
 +------+------+------+-------+------+
 | Cu1+ | Cu2+ | Zn   | Zn2+  | Ga   |
 +------+------+------+-------+------+
@@ -202,8 +221,108 @@ type. Valid chemical symbols for compute xrd are:
 | Pu6+ | Am   | Cm   | Bk    | Cf   |
 +------+------+------+-------+------+
 
+.. versionchanged:: TBD
+
+The table above listed *Co* twice, in the second and in the third of the three
+cobalt entries, and the lookup returned the last match.  The coefficients of the
+third entry are those of Co\ :math:`^{3+}`, so *Co* selected the
+Co\ :math:`^{3+}` scattering factors and Co\ :math:`^{3+}` itself could not be
+selected at all.  The third entry is now spelled *Co3+*, so *Co* selects neutral
+cobalt.  Diffraction intensities of simulations that used *Co* change
+accordingly.
+
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.
+
+FFT version of the calculation
+""""""""""""""""""""""""""""""
+
+.. versionadded:: TBD
+
+Compute *xrd* evaluates the structure factor equation directly at every
+reciprocal lattice node, which costs one sine and one cosine evaluation per
+(node, atom) pair.  The cost therefore grows as the product of the number of
+nodes and the number of atoms, which becomes prohibitive for large cells.
+
+Compute *xrd/fft* computes the same quantity with fast Fourier transforms.  The
+atoms are spread onto a uniform mesh with a Kaiser-Bessel window, one FFT is
+taken per chemical element, and the Fourier transform of the window is divided
+out again.  It accepts exactly the same arguments as compute *xrd* and produces
+the same rows in the same order, so it is a drop-in replacement in existing
+input scripts.
+
+Because compute *xrd* samples reciprocal space at multiples of the spacings
+:math:`\Delta k` set by the *c* parameters, and the phase factor
+:math:`\exp(2 \pi i m x \Delta k)` repeats with period :math:`1/\Delta k`, the
+mesh spans a cell of that edge length and the atom coordinates are folded into
+it.  This is exact, and it holds whether that cell is larger than the
+simulation box (small *c* values, finer sampling of reciprocal space) or
+smaller than it (large *c* values).
+
+The result is not identical to the direct sum, but converges rapidly toward it
+as the spreading stencil is widened with the *order* keyword.  For a single
+atom, the relative error of the intensity is about :math:`1 \times 10^{-6}` at
+the default *order* of 7, :math:`1 \times 10^{-8}` at *order* 9, and
+:math:`1 \times 10^{-10}` at *order* 11.  For a system of :math:`N` atoms the
+error of a strong reflection stays at that level, while the relative error of
+the weak diffuse intensity between reflections grows roughly as
+:math:`\sqrt{N}`, since the error scales with the total scattering power while
+the diffuse amplitude scales with its square root.  The default settings are
+appropriate for peak positions and intensities; *order* 9 or 11 is recommended
+for quantitative work on weak diffuse scattering in large systems.
+
+The *oversample* keyword sets how much finer the FFT mesh is than the highest
+reciprocal lattice node explored.  Lowering it reduces the memory needed for
+the mesh but requires a larger *order* for the same accuracy, and it also
+amplifies round-off, so values below 1.5 are not recommended.
+
+The mesh contains roughly :math:`(2\,\mathrm{oversample})^3` grid points per
+reciprocal lattice node of the rectilinear search box.  Its size is reported
+when the *echo* keyword is used.  If the mesh does not fit in memory, reduce
+the *2Theta* range, increase the *c* values, or lower *oversample*.
+
+The mesh depends only on the settings of the compute, not on how many
+processors are used, so results are reproducible to round-off across processor
+counts.  The mesh is divided into slabs along :math:`z` when there are no more
+processors than it has planes, and into bricks over all three dimensions when
+there are more, so that no processor has to collect the contributions of all
+the others.  A processor that ends up with no part of the mesh still
+contributes its own atoms but takes no part in the transform.
+
+Cost for large systems
+""""""""""""""""""""""
+
+The work of spreading the atoms onto the mesh is divided over the processors,
+so the atoms themselves are not what limits the size of a calculation.  What
+limits it is the mesh, whose size is set by the volume of the simulation cell
+and by the resolution requested in reciprocal space.
+
+Each processor stores only the part of the mesh that its own atoms reach.  How
+large that part is depends on how the mesh compares with the simulation cell.
+The mesh spans the diffraction cell, which is the simulation cell divided by
+*c*, so as the atoms of one processor are followed across the simulation cell
+they wrap the mesh *c* times in each direction.  A processor therefore holds
+roughly :math:`c^3/P` of the mesh with :math:`P` processors, which is the whole
+mesh once :math:`c^3` exceeds :math:`P`, and falls with :math:`P` beyond that.
+Only the parts of the mesh a processor holds are communicated when the
+contributions are summed, so the same applies to the volume of communication.
+A warning is printed when the mesh would need more than 512 Mbytes on one
+processor, which is the amount needed in the worst case above.
+
+The *c* values are the control for this.  They set the spacing of the
+reciprocal lattice nodes in units of the inverse cell dimensions, so the number
+of mesh points falls as :math:`c^{-3}` and the number of rows of the output
+array falls with it.  For a cell of a few hundred nanometers, values of *c*
+between 10 and 30 keep both within a few hundred Mbytes per processor while
+still resolving a powder pattern far more finely than the width of a
+measured peak.  Values near 1 are appropriate for small cells, where every
+reciprocal lattice node of the cell is of interest.
+
+The number of rows of the output array is also the same on every processor,
+because that is what a global array is, and one value per row is communicated
+each time the compute is invoked.  Keeping the row count to a few million is
+therefore worthwhile for its own sake; :doc:`fix ave/histo <fix_ave_histo>`
+bins the rows into a pattern afterwards regardless of how many there are.
 
 Output info
 """""""""""
@@ -228,7 +347,37 @@ Restrictions
 This compute is part of the DIFFRACTION package.  It is only
 enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-The compute_xrd command does not work for triclinic cells.
+For a triclinic cell, all boundaries must be periodic.  A non-periodic
+direction has no reciprocal lattice vector of its own and is given the average
+of the periodic ones, which only makes sense when the reciprocal lattice is
+aligned with the coordinate axes.  The *manual* flag, which sets an
+axis-aligned mesh in absolute units, is not subject to this.
+
+.. versionchanged:: TBD
+
+When the mesh is defined by the simulation domain and the box is resized, by
+:doc:`fix npt <fix_nh>`, :doc:`fix deform <fix_deform>` or :doc:`change_box
+<change_box>`, the reciprocal lattice is rescaled to follow the cell, so a
+Bragg reflection moves to the diffraction angle of the strained lattice.  This
+follows the same approach as the :doc:`kspace styles <kspace_style>`: *which*
+nodes are explored is fixed when the compute is defined, since the number of
+rows of the output array cannot change afterwards, but the reciprocal lattice
+vectors are scaled with the cell.  Previously the nodes kept the positions they
+had when the compute was defined, which gave the diffraction angles of the
+original lattice.
+
+Because the set of nodes is fixed, a large change of box size moves some of
+them outside the requested *2Theta* range.  Their true angle is still reported,
+so a histogram over the requested range simply excludes them, and a warning is
+printed once when more than one percent of the nodes have left the range.  For
+a long run over a wide range of box sizes, define the compute at a
+representative size, or use the *manual* flag, whose spacing is set in absolute
+units and does not depend on the box at all.
+
+Compute *xrd/fft* uses the FFT wrappers of the KSPACE package and is only
+available if LAMMPS was built with both the DIFFRACTION and the KSPACE
+packages.  Building with single precision FFTs limits the accuracy of weak
+diffuse intensities.
 
 Related commands
 """"""""""""""""
@@ -240,7 +389,7 @@ Default
 """""""
 
 The option defaults are *2Theta* = 1 179 (degrees), *c* = 1 1 1, *LP* = 1,
-no manual flag, no echo flag.
+no manual flag, no echo flag, *order* = 7, *oversample* = 2.0.
 
 ----------
 
@@ -249,12 +398,12 @@ no manual flag, no echo flag.
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
-.. _Colliex:
+.. _Brown:
 
-**(Colliex)** Colliex et al. International Tables for Crystallography
-Volume C: Mathematical and Chemical Tables, 249-429 (2004).
+**(Brown)** Brown et al. International Tables for Crystallography
+Volume C: Mathematical and Chemical Tables, 554-95 (2004).
 
-.. _Peng:
+.. _Fox:
 
-**(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
-(1996).
+**(Fox)** Fox, O'Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93
+(1989).

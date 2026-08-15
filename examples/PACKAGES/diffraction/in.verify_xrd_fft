@@ -1,0 +1,39 @@
+# Verification of compute xrd/fft against the direct DFT of compute xrd.
+#
+# Both computes are given identical arguments and run on the same configuration,
+# so their global arrays must contain the same rows in the same order and the
+# same intensities to within the accuracy of the Kaiser-Bessel spreading.
+#
+# The lattice is randomly displaced and randomly decorated with two elements so
+# that the atoms do not sit on FFT mesh points and both atomic scattering
+# factors are exercised, which a perfect crystal would not do.
+#
+# Compare the two output files with:
+#   python3 compare_xrd.py xrd_dft.out xrd_fft.out
+
+boundary        p p p
+units           metal
+lattice         fcc 3.52
+region          box block 0 6 0 6 0 6
+create_box      2 box
+create_atoms    1 box
+
+pair_style      none
+mass            * 58.71
+atom_modify     sort 0 0
+
+set             group all type/fraction 2 0.35 8571
+displace_atoms  all random 0.6 0.6 0.6 12345 units box
+
+compute         XRD  all xrd     1.541838 Ni Al 2Theta 40 80 c 2 2 2 LP 1
+compute         XRDF all xrd/fft 1.541838 Ni Al 2Theta 40 80 c 2 2 2 LP 1 echo
+
+# the default " %g" format would round the output to six significant digits,
+# which is coarser than the difference being measured
+
+fix             1 all ave/time 1 1 1 c_XRD[*]  format " %24.17g" &
+                mode vector file xrd_dft.out
+fix             2 all ave/time 1 1 1 c_XRDF[*] format " %24.17g" &
+                mode vector file xrd_fft.out
+
+run             0

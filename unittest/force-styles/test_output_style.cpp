@@ -295,7 +295,14 @@ TEST(OutputStyle, plain)
         FAIL() << "no compute or fix with ID 'test' defined";
     }
 
-    const double epsilon = test_config.epsilon;
+    double epsilon = test_config.epsilon;
+    // relax test precision for styles transforming on an FFT mesh when the
+    // FFTs are done in single precision
+#if defined(FFT_SINGLE)
+    auto *test_compute = lmp->modify->get_compute_by_id("test");
+    if (test_compute && utils::strmatch(test_compute->style, "/fft$")) epsilon *= 1.0e5;
+#endif
+
     ErrorStats stats;
 
     if (data.has_scalar) EXPECT_FP_LE_WITH_EPS(data.scalar, test_config.global_scalar, epsilon);

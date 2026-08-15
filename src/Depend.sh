@@ -96,6 +96,7 @@ if (test $1 = "KSPACE") then
   depend CG-SPICA
   depend CORESHELL
   depend DIELECTRIC
+  depend DIFFRACTION
   depend DPD-BASIC
   depend OPT
   depend OPENMP

@@ -57,27 +57,25 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_compute_xrd_c);
 
   ntypes = atom->ntypes;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int dimension = domain->dimension;
-  int *periodicity = domain->periodicity;
-  int triclinic = domain->triclinic;
+  triclinic = domain->triclinic;
   me = comm->me;
 
   // Checking errors
   if (dimension == 2)
      error->all(FLERR,"Compute XRD does not work with 2d structures");
   if (narg < 4+ntypes)
-     error->all(FLERR,"Illegal Compute XRD Command");
-  if (triclinic == 1)
-     error->all(FLERR,"Compute XRD does not work with triclinic structures");
+     error->all(FLERR,"Compute XRD: expected a wavelength and the chemical symbol of each of "
+                "the {} atom types",ntypes);
 
   array_flag = 1;
   extarray = 0;
 
   // Store radiation wavelength
   lambda = utils::numeric(FLERR,arg[3],false,lmp);
-  if (lambda < 0)
-    error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
+  if (lambda <= 0)
+    error->all(FLERR,"Compute XRD: Wavelength must be greater than zero");
 
   // Define atom types for atomic scattering factor coefficients
   int iarg = 4;
@@ -89,6 +87,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
     for (int j = 0; j < XRDmaxType; j++) {
       if (utils::lowercase(arg[iarg]) == utils::lowercase(XRDtypeList[j])) {
         ztype[i] = j;
+        break;
        }
      }
     if (ztype[i] == XRDmaxType + 1) error->all(FLERR,"Compute XRD: Invalid ASF atom type {}", arg[iarg]);
@@ -103,26 +102,28 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   LP = 1;
   manual = false;
   echo = false;
+  nufft_order = 7;
+  nufft_oversample = 2.0;
 
   // Process optional args
   while (iarg < narg) {
     if (strcmp(arg[iarg],"2Theta") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal Compute XRD Command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"compute xrd 2Theta",error);
       Min2Theta = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       Max2Theta = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       iarg += 3;
 
     } else if (strcmp(arg[iarg],"c") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal Compute XRD Command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"compute xrd c",error);
       c[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       c[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       c[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (c[0] < 0 || c[1] < 0 || c[2] < 0)
+      if ((c[0] <= 0.0) || (c[1] <= 0.0) || (c[2] <= 0.0))
         error->all(FLERR,"Compute XRD: c's must be greater than 0");
       iarg += 4;
 
     } else if (strcmp(arg[iarg],"LP") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal Compute XRD Command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute xrd LP",error);
       LP = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
 
       if (LP != 1 && LP != 0)
@@ -137,7 +138,24 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
       manual = true;
       iarg += 1;
 
-    } else error->all(FLERR,"Illegal Compute XRD Command");
+    // only used by the derived compute xrd/fft style, parsed here because the
+    // reciprocal lattice nodes are enumerated by this constructor
+
+    } else if (strcmp(arg[iarg],"order") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute xrd order",error);
+      nufft_order = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if ((nufft_order < 3) || (nufft_order % 2 == 0))
+        error->all(FLERR,"Compute XRD: order must be an odd number of 3 or larger");
+      iarg += 2;
+
+    } else if (strcmp(arg[iarg],"oversample") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute xrd oversample",error);
+      nufft_oversample = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (nufft_oversample < MIN_OVERSAMPLE)
+        error->all(FLERR,"Compute XRD: oversample must be {} or larger",MIN_OVERSAMPLE);
+      iarg += 2;
+
+    } else error->all(FLERR,"Unknown compute xrd keyword: {}",arg[iarg]);
   }
 
   // error check and process min/max 2Theta values
@@ -158,55 +176,35 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
   // Calculating spacing between reciprocal lattice points
   // Using distance based on periodic repeating distance
-  if (!manual) {
-    if (!periodicity[0] && !periodicity[1] && !periodicity[2])
-      error->all(FLERR,"Compute SAED must have at least one periodic boundary unless manual spacing specified");
+  // the boundary conditions are validated in set_spacing(), which is called
+  // again whenever the box changes
 
-    double *prd;
-    double ave_inv = 0.0;
-    prd = domain->prd;
+  set_spacing();
 
-    if (periodicity[0]) {
-      prd_inv[0] = 1 / prd[0];
-      ave_inv += prd_inv[0];
-    }
-    if (periodicity[1]) {
-      prd_inv[1] = 1 / prd[1];
-      ave_inv += prd_inv[1];
-    }
-    if (periodicity[2]) {
-      prd_inv[2] = 1 / prd[2];
-      ave_inv += prd_inv[2];
-    }
+  // which reciprocal lattice nodes are explored is fixed here and never
+  // changes, because the number of rows of the output array cannot change.
+  // rlv itself follows the box from here on.
 
-    // Using the average inverse dimensions for non-periodic direction
-    ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
-    if (!periodicity[0]) {
-      prd_inv[0] = ave_inv;
-    }
-    if (!periodicity[1]) {
-      prd_inv[1] = ave_inv;
-    }
-    if (!periodicity[2]) {
-      prd_inv[2] = ave_inv;
-    }
-  }
+  for (int i=0; i<6; i++) h_last[i] = domain->h[i];
+  warned_range = 0;
 
-  // Use manual mapping of reciprocal lattice
-  if (manual) {
-    for (int i=0; i<3; i++) {
-      prd_inv[i] = 1.0;
-    }
-  }
+  // index i of a node satisfies i = K.a_i/c_i, with a_i the box edge vector, so
+  // |i| <= Kmax*|a_i|/c_i bounds the search.  for an orthogonal cell that is
+  // the familiar Kmax/dK.
 
-  // Find reciprocal spacing and integer dimensions
-  for (int i=0; i<3; i++) {
-    dK[i] = prd_inv[i]*c[i];
-    Knmax[i] = (int) ceil(Kmax / dK[i]);
+  if (!triclinic || manual) {
+    for (int i=0; i<3; i++) Knmax[i] = (int) ceil(Kmax / dK[i]);
+  } else {
+    double *h = domain->h;
+    double alen[3];
+    alen[0] = h[0];
+    alen[1] = sqrt(h[5]*h[5] + h[1]*h[1]);
+    alen[2] = sqrt(h[4]*h[4] + h[3]*h[3] + h[2]*h[2]);
+    for (int i=0; i<3; i++) Knmax[i] = (int) ceil(Kmax * alen[i] / c[i]);
   }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
-  int nRows = 0;
+  bigint nRows = 0;
   double dinv2= 0.0;
   double ang = 0.0;
   double K[3];
@@ -215,9 +213,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
     for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
       for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
-        K[0] = i * dK[0];
-        K[1] = j * dK[1];
-        K[2] = k * dK[2];
+        kvector(rlv,i,j,k,K);
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         if  (4 >= dinv2 * lambda * lambda) {
           ang = asin(lambda * sqrt(dinv2) * 0.5);
@@ -230,6 +226,12 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   }
 
 
+  // store_tmp holds three integers per row, so that product must stay in range too
+
+  if (3*nRows > MAXSMALLINT)
+    error->all(FLERR,"Compute XRD: too many reciprocal lattice nodes ({}); reduce the "
+               "2Theta range or increase the c values",nRows);
+
   size_array_rows = nRows;
   size_array_cols = 2;
 
@@ -240,6 +242,36 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
 
   memory->create(array,size_array_rows,size_array_cols,"xrd:array");
   memory->create(store_tmp,3*size_array_rows,"xrd:store_tmp");
+
+  // record which nodes those are.  the set never changes, because the number
+  // of rows of the output array cannot, so this scan of the search box is done
+  // once here rather than again at the start of every run: for a large cell it
+  // costs more than the diffraction calculation itself.
+
+  bigint nfill = 0;
+  double convf = 360 / MY_PI;
+  if (radflag == 1) convf = 2;
+
+  for (int i = -Knmax[0]; i <= Knmax[0]; i++) {
+    for (int j = -Knmax[1]; j <= Knmax[1]; j++) {
+      for (int k = -Knmax[2]; k <= Knmax[2]; k++) {
+        kvector(rlv,i,j,k,K);
+        dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
+        if  (4 >= dinv2 * lambda * lambda) {
+          ang = asin(lambda * sqrt(dinv2) * 0.5);
+          if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
+            store_tmp[3*nfill] = k;
+            store_tmp[3*nfill+1] = j;
+            store_tmp[3*nfill+2] = i;
+            array[nfill][0] = ang * convf;
+            nfill++;
+          }
+        }
+      }
+    }
+  }
+
+  if (nfill != nRows) error->all(FLERR,"Compute XRD rows mismatch");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,40 +287,146 @@ ComputeXRD::~ComputeXRD()
 
 void ComputeXRD::init()
 {
+  // the set of reciprocal lattice nodes was fixed when the compute was defined
+  // and cannot change, so all that is needed here is to pick up a box change
+  // that happened before this run started and refresh the angles from it
 
-  int mmax = (2*Knmax[0]+1)*(2*Knmax[1]+1)*(2*Knmax[2]+1);
-  double K[3];
-  double dinv2 = 0.0;
-  double ang = 0.0;
+  set_spacing();
+  for (int i = 0; i < 6; i++) h_last[i] = domain->h[i];
+  refresh_angles();
+}
 
+/* ----------------------------------------------------------------------
+   spacing of the reciprocal lattice nodes for the current box
+------------------------------------------------------------------------- */
+
+void ComputeXRD::set_spacing()
+{
+  // the cell may have acquired tilt, or a boundary may have changed, since the
+  // compute was defined, so both are picked up here rather than remembered
+
+  triclinic = domain->triclinic;
+
+  if (manual) {
+    for (int i = 0; i < 3; i++) prd_inv[i] = 1.0;
+
+  } else {
+    int *periodicity = domain->periodicity;
+    double *prd = domain->prd;
+    double ave_inv = 0.0;
+
+    if (!periodicity[0] && !periodicity[1] && !periodicity[2])
+      error->all(FLERR,"Compute XRD must have at least one periodic boundary unless "
+                 "manual spacing is specified");
+
+    // a non-periodic direction has no reciprocal lattice vector of its own and
+    // is given the average of the periodic ones, which is only meaningful when
+    // the reciprocal lattice is aligned with the coordinate axes
+
+    if (triclinic && (!periodicity[0] || !periodicity[1] || !periodicity[2]))
+      error->all(FLERR,"Compute XRD with a triclinic cell requires all boundaries to be "
+                 "periodic unless manual spacing is specified");
+
+    for (int i = 0; i < 3; i++)
+      if (periodicity[i]) {
+        prd_inv[i] = 1.0 / prd[i];
+        ave_inv += prd_inv[i];
+      }
+
+    // Using the average inverse dimensions for non-periodic direction
+    ave_inv = ave_inv / (periodicity[0] + periodicity[1] + periodicity[2]);
+    for (int i = 0; i < 3; i++)
+      if (!periodicity[i]) prd_inv[i] = ave_inv;
+  }
+
+  for (int i = 0; i < 3; i++) dK[i] = prd_inv[i]*c[i];
+
+  // reciprocal lattice vectors of the cell, scaled by the c parameters.  the
+  // rows of the inverse box matrix are the reciprocal lattice vectors, and they
+  // are exactly zero off the diagonal for an orthogonal cell, so this reduces
+  // to the diagonal spacing without changing a single bit.  manual spacing asks
+  // for a fixed grid in absolute units, so it stays aligned with the axes.
+
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) rlv[i][j] = 0.0;
+
+  rlv[0][0] = dK[0];
+  rlv[1][1] = dK[1];
+  rlv[2][2] = dK[2];
+
+  if (triclinic && !manual) {
+    double *h_inv = domain->h_inv;
+    rlv[0][1] = c[0]*h_inv[5];
+    rlv[0][2] = c[0]*h_inv[4];
+    rlv[1][2] = c[1]*h_inv[3];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   rescale the reciprocal lattice if the box has changed since it was last
+   set up, following the same approach as the kspace styles: the set of nodes
+   is fixed, but the reciprocal lattice vectors are scaled with the cell.
+   returns 1 if anything changed.
+------------------------------------------------------------------------- */
+
+int ComputeXRD::update_reciprocal()
+{
+  if (manual) return 0;
+
+  // compare the whole box matrix, not only its diagonal: a pure shear changes
+  // the tilt factors and leaves the three edge lengths untouched, and it
+  // changes the reciprocal lattice just as a resize does
+
+  int changed = 0;
+  for (int i = 0; i < 6; i++)
+    if (domain->h[i] != h_last[i]) changed = 1;
+  if (!changed) return 0;
+
+  set_spacing();
+  for (int i = 0; i < 6; i++) h_last[i] = domain->h[i];
+  refresh_angles();
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   recompute the diffraction angle of every node from the current spacing.
+   a node that has moved beyond the limit of the Ewald sphere no longer
+   diffracts; it keeps its row but is flagged with an angle of zero, which is
+   outside any valid 2Theta range.
+------------------------------------------------------------------------- */
+
+void ComputeXRD::refresh_angles()
+{
   double convf = 360 / MY_PI;
   if (radflag == 1) convf = 2;
 
-  int n = 0;
-  for (int m = 0; m < mmax; m++) {
-    int k = m%(2*Knmax[2]+1);
-    int j = (m%((2*Knmax[2]+1)*(2*Knmax[1]+1))-k)/(2*Knmax[2]+1);
-    int i = (m-j*(2*Knmax[2]+1)-k)/((2*Knmax[2]+1)*(2*Knmax[1]+1))-Knmax[0];
-    j = j-Knmax[1];
-    k = k-Knmax[2];
-    K[0] = i * dK[0];
-    K[1] = j * dK[1];
-    K[2] = k * dK[2];
-    dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
-    if  (4 >= dinv2 * lambda * lambda) {
-       ang = asin(lambda * sqrt(dinv2) * 0.5);
-       if ((ang <= Max2Theta) && (ang >= Min2Theta)) {
-          store_tmp[3*n] = k;
-          store_tmp[3*n+1] = j;
-          store_tmp[3*n+2] = i;
-          array[n][0] = ang * convf;
-          n++;
-       }
+  bigint noutside = 0;
+
+  for (int n = 0; n < size_array_rows; n++) {
+    double K[3];
+    kvector(rlv,store_tmp[3*n+2],store_tmp[3*n+1],store_tmp[3*n],K);
+    double dinv2 = K[0]*K[0] + K[1]*K[1] + K[2]*K[2];
+
+    if (4 >= dinv2 * lambda * lambda) {
+      double ang = asin(lambda * sqrt(dinv2) * 0.5);
+      array[n][0] = ang * convf;
+      if ((ang > Max2Theta) || (ang < Min2Theta)) noutside++;
+    } else {
+      array[n][0] = 0.0;
+      noutside++;
     }
   }
- if (n != size_array_rows)
-     error->all(FLERR,"Compute XRD compute_array() rows mismatch");
 
+  // the node set was fixed when the compute was defined, so a large change of
+  // box size moves part of it out of the requested range
+
+  if (!warned_range && (100*noutside > size_array_rows) && (comm->me == 0)) {
+    warned_range = 1;
+    error->warning(FLERR,"{:.3}% of the reciprocal lattice nodes of compute {} have moved "
+                   "outside its 2Theta range as the box changed.  The node set is fixed when "
+                   "the compute is defined; define it at a representative box size, or use "
+                   "manual spacing",100.0*noutside/size_array_rows,id);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -296,6 +434,8 @@ void ComputeXRD::init()
 void ComputeXRD::compute_array()
 {
   invoked_array = update->ntimestep;
+
+  update_reciprocal();
 
   if (me == 0 && echo) utils::logmesg(lmp, "-----\nComputing XRD intensities");
 
@@ -307,7 +447,7 @@ void ComputeXRD::compute_array()
   ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
   int *type  = atom->type;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int *mask = atom->mask;
 
   nlocalgroup = 0;
@@ -340,7 +480,7 @@ void ComputeXRD::compute_array()
     utils::logmesg(lmp,"\n");
 
     if (LP == 1)
-        utils::logmesg(lmp,"Applying Lorentz-Polarization Factor During XRD Calculation 2\n");
+        utils::logmesg(lmp,"Applying Lorentz-Polarization Factor During XRD Calculation\n");
   }
 
   int m = 0;
@@ -377,17 +517,26 @@ void ComputeXRD::compute_array()
         int k = store_tmp[3*n];
         int j = store_tmp[3*n+1];
         int i = store_tmp[3*n+2];
-        K[0] = i * dK[0];
-        K[1] = j * dK[1];
-        K[2] = k * dK[2];
+        kvector(rlv,i,j,k,K);
 
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         dinv = sqrt(dinv2);
         SinTheta_lambda = 0.5*dinv;
         SinTheta = SinTheta_lambda * lambda;
-        ang = asin( SinTheta );
-        Cos2Theta = cos( 2 * ang);
-        CosTheta = cos( ang );
+
+        // a node driven past the limit of the Ewald sphere by a change of box
+        // size no longer diffracts and has no diffraction angle.  it keeps its
+        // row, with zero intensity, just as refresh_angles() gives it an angle
+        // of zero, which lies outside any valid 2Theta range
+
+        if (SinTheta > 1.0) sqrt_lp = 0.0;
+        else {
+          ang = asin( SinTheta );
+          Cos2Theta = cos( 2 * ang);
+          CosTheta = cos( ang );
+          sqrt_lp = sqrt( (1 + Cos2Theta * Cos2Theta) /
+               ( CosTheta * SinTheta * SinTheta) );
+        }
 
         Fatom1 = 0.0;
         Fatom2 = 0.0;
@@ -409,8 +558,6 @@ void ComputeXRD::compute_array()
           Fatom1 += f[typei] * cos(inners);
           Fatom2 += f[typei] * sin(inners);
         }
-        sqrt_lp = sqrt( (1 + Cos2Theta * Cos2Theta) /
-             ( CosTheta * SinTheta * SinTheta) );
         Fvec[2*n] = Fatom1 * sqrt_lp;
         Fvec[2*n+1] = Fatom2 * sqrt_lp;
 
@@ -437,13 +584,17 @@ void ComputeXRD::compute_array()
         int k = store_tmp[3*n];
         int j = store_tmp[3*n+1];
         int i = store_tmp[3*n+2];
-        K[0] = i * dK[0];
-        K[1] = j * dK[1];
-        K[2] = k * dK[2];
+        kvector(rlv,i,j,k,K);
 
         dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
         dinv = sqrt(dinv2);
         SinTheta_lambda = 0.5*dinv;
+
+        // see the branch above: a node past the limit of the Ewald sphere no
+        // longer diffracts
+
+        double scale = 1.0;
+        if (SinTheta_lambda * lambda > 1.0) scale = 0.0;
 
         Fatom1 = 0.0;
         Fatom2 = 0.0;
@@ -465,8 +616,8 @@ void ComputeXRD::compute_array()
           Fatom1 += f[typei] * cos(inners);
           Fatom2 += f[typei] * sin(inners);
         }
-        Fvec[2*n] = Fatom1;
-        Fvec[2*n+1] = Fatom2;
+        Fvec[2*n] = Fatom1 * scale;
+        Fvec[2*n+1] = Fatom2 * scale;
 
         // reporting progress of calculation
         if (echo) {

@@ -3729,7 +3729,7 @@ void Variable::free_tree(Tree *tree)
     for (int i = 0; i < tree->nextra; i++) free_tree(tree->extra[i]);
     delete[] tree->extra;
   }
-  if (tree->argvars) delete[] tree->argvars;
+  delete[] tree->argvars;
 
   if (tree->selfalloc) memory->destroy(tree->array);
   delete tree;

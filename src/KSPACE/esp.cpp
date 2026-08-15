@@ -303,7 +303,7 @@ void ESP::init()
   if (order < minorder) error->all(FLERR,"ESP order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"ESP grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // allocate K-space dependent memory
   // don't invoke allocate peratom() or group(), will be allocated when needed

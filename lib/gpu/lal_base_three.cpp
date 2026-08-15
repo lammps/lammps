@@ -46,12 +46,12 @@ BaseThreeT::~BaseThree() {
   k_three_end_vatom.clear();
   k_pair.clear();
   k_short_nbor.clear();
-  if (pair_program) delete pair_program;
+  delete pair_program;
   #if defined(LAL_OCL_EV_JIT)
   k_three_center_noev.clear();
   k_three_end_noev.clear();
   k_pair_noev.clear();
-  if (pair_program_noev) delete pair_program_noev;
+  delete pair_program_noev;
   #endif
 }
 
@@ -421,7 +421,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
   _spq=spq;
 
   std::string vatom_name=std::string(three_end)+"_vatom";
-  if (pair_program) delete pair_program;
+  delete pair_program;
   pair_program=new UCL_Program(dev);
   std::string oclstring = device->compile_string()+" -DEVFLAG=1";
   if (_onetype>=0) oclstring+=" -DONETYPE="+device->toa(_onetype)+
@@ -440,7 +440,7 @@ void BaseThreeT::compile_kernels(UCL_Device &dev, const void *pair_str,
   if (_onetype>=0) oclstring+=" -DONETYPE="+device->toa(_onetype)+
                      " -DONETYPE3="+device->toa(_onetype3);
   if (_spq) oclstring+=" -DSPQ="+device->toa(_spq);
-  if (pair_program_noev) delete pair_program_noev;
+  delete pair_program_noev;
   pair_program_noev=new UCL_Program(dev);
   pair_program_noev->load_string(pair_str,oclstring.c_str(),nullptr,screen);
   k_three_center_noev.set_function(*pair_program_noev,three_center);

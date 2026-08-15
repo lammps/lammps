@@ -384,7 +384,7 @@ template <typename Scalar, typename ConstArrayOfCoords, typename ConstArray>
 void Superpose3D<Scalar, ConstArrayOfCoords, ConstArray>::Dealloc()
 {
   if (R) MathEigen::Dealloc2D(&R);
-  if (aWeights) delete[] aWeights;
+  delete[] aWeights;
   if (aaXf_shifted) MathEigen::Dealloc2D(&aaXf_shifted);
   if (aaXm_shifted) MathEigen::Dealloc2D(&aaXm_shifted);
 }

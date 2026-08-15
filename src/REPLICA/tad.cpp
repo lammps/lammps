@@ -58,7 +58,7 @@ TAD::TAD(LAMMPS *lmp) :
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != nullptr) delete[] neb_logfilename;
+  delete[] neb_logfilename;
   delete[] min_style;
   delete[] min_style_neb;
 }

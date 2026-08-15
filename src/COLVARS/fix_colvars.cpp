@@ -228,7 +228,7 @@ FixColvars::~FixColvars()
 
   memory->sfree(comm_buf);
 
-  if (proxy) delete proxy;
+  delete proxy;
   if (root2root != MPI_COMM_NULL) MPI_Comm_free(&root2root);
   --instances;
 }

@@ -2101,7 +2101,7 @@ int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 
 void Domain::set_lattice(int narg, char **arg)
 {
-  if (lattice) delete lattice;
+  delete lattice;
   lattice = nullptr;
   lattice = new Lattice(lmp,narg,arg);
 }

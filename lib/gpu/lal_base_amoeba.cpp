@@ -47,7 +47,7 @@ BaseAmoebaT::~BaseAmoeba() {
   if (fft_plan_created) cufftDestroy(plan);
   #endif
 
-  if (pair_program) delete pair_program;
+  delete pair_program;
 }
 
 template <class numtyp, class acctyp>
@@ -910,7 +910,7 @@ void BaseAmoebaT::compile_kernels(UCL_Device &dev, const void *pair_str,
   if (_compiled)
     return;
 
-  if (pair_program) delete pair_program;
+  delete pair_program;
   pair_program=new UCL_Program(dev);
   std::string oclstring = device->compile_string()+" -DEVFLAG=1";
   pair_program->load_string(pair_str, oclstring.c_str(),nullptr, screen);

@@ -86,7 +86,7 @@ PairTDPD::~PairTDPD()
     memory->destroy(powercc);
   }
 
-  if (random) delete random;
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -463,7 +463,7 @@ void PairTDPD::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 

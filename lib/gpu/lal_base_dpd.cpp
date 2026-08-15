@@ -38,10 +38,10 @@ BaseDPDT::~BaseDPD() {
   delete nbor;
   k_pair_fast.clear();
   k_pair.clear();
-  if (pair_program) delete pair_program;
+  delete pair_program;
   #if defined(LAL_OCL_EV_JIT)
   k_pair_noev.clear();
-  if (pair_program_noev) delete pair_program_noev;
+  delete pair_program_noev;
   #endif
 }
 
@@ -337,7 +337,7 @@ void BaseDPDT::compile_kernels(UCL_Device &dev, const void *pair_str,
   _onetype=onetype;
 
   std::string s_fast=std::string(kname)+"_fast";
-  if (pair_program) delete pair_program;
+  delete pair_program;
   pair_program=new UCL_Program(dev);
   std::string oclstring = device->compile_string()+" -DEVFLAG=1";
   if (_onetype) oclstring+=" -DONETYPE="+device->toa(_onetype);
@@ -350,7 +350,7 @@ void BaseDPDT::compile_kernels(UCL_Device &dev, const void *pair_str,
   #if defined(LAL_OCL_EV_JIT)
   oclstring = device->compile_string()+" -DEVFLAG=0";
   if (_onetype) oclstring+=" -DONETYPE="+device->toa(_onetype);
-  if (pair_program_noev) delete pair_program_noev;
+  delete pair_program_noev;
   pair_program_noev=new UCL_Program(dev);
   pair_program_noev->load_string(pair_str,oclstring.c_str(),nullptr,screen);
   k_pair_noev.set_function(*pair_program_noev,s_fast.c_str());

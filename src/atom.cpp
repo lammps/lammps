@@ -680,7 +680,7 @@ void Atom::set_atomflag_defaults()
 void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
   delete[] atom_style;
-  if (avec) delete avec;
+  delete avec;
   atom_style = nullptr;
   avec = nullptr;
 

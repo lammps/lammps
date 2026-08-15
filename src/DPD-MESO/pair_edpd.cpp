@@ -93,8 +93,8 @@ PairEDPD::~PairEDPD()
   if (power_flag) memory->destroy(sc);
   if (kappa_flag) memory->destroy(kc);
 
-  if (random) delete random;
-  if (randomT) delete randomT;
+  delete random;
+  delete randomT;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -535,9 +535,9 @@ void PairEDPD::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
-  if (randomT) delete randomT;
+  delete randomT;
   randomT = new RanMars(lmp,seed + comm->me);
 }
 

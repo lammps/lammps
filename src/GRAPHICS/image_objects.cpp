@@ -168,12 +168,13 @@ std::vector<triangle> transform_normals(const std::vector<triangle> &norms, cons
 // "bot" to "tip" is 1.0, "tiplength is "mid" to "tip". "diameter" is the width at "bot"
 // "tipwidth" is the additional width at "mid".
 //
-//          |\
-// |--------| \
-// |--------| /
-//          |/
-// ^        ^  ^
-// bot    mid tip
+/*          |\
+ * |--------| \
+ * |--------| /
+ *          |/
+ * ^        ^  ^
+ * bot    mid tip
+ */
 
 ArrowObj::ArrowObj(double _tipl, double _tipw, double radius, int res) :
     tiplength(_tipl), tipwidth(_tipw), diameter(2.0 * radius), resolution(res)
@@ -301,14 +302,14 @@ void ArrowObj::draw(Image *img, const double *color, const double *bottom, const
 // diameter on either side of the cone is zero.
 // a cylinder is just a special case of a cone with both radii of the same value.
 //
-// |\
-// | \
-// |  |  _ center
-// |  |
-// | /
-// |/
-// ^  ^
-//bot top
+/* |\
+ * | \
+ * |  |  _ center
+ * |  |
+ * | /
+ * |/
+ * ^  ^
+ *bot top */
 
 ConeObj::ConeObj(double length, double topwidth, double botwidth, int flag, int resolution)
 {

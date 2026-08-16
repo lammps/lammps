@@ -173,10 +173,7 @@ void FixLambdaThermostatAPIP::init()
   // full neighbour list for thermostating
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  int counter = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "lambda_thermostat/apip") == 0) counter++;
-  if (counter > 1)
+  if (modify->get_fix_by_style("^lambda_thermostat/apip$").size() > 1)
     error->all(FLERR, "fix lambda_thermostat/apip: more than one fix lambda_thermostat/apip");
 
   // local neighbor list

@@ -256,11 +256,8 @@ void FixLambdaLACSPAPIP::init()
   if (atom->tag_enable == 0) error->all(FLERR, "fix lambda/la/csp/apip requires atom IDs");
 
   // only one fix lambda/la/csp/apip
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/la/csp/apip") == 0) count++;
-  }
-  if (count > 1) error->all(FLERR, "More than one fix lambda/la/csp/apip.");
+  if (modify->get_fix_by_style("^lambda/la/csp/apip$").size() > 1)
+    error->all(FLERR, "More than one fix lambda/la/csp/apip.");
 
   if (force->pair->cutforce < cut_hi)
     error->all(FLERR, "cutoff of potential ({}) smaller than cutoff of weighting function ({})",

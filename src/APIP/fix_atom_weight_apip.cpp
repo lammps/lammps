@@ -240,23 +240,15 @@ int FixAtomWeightAPIP::setmask()
 
 void FixAtomWeightAPIP::init()
 {
-  int counter = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "atom_weight/apip") == 0) counter++;
-  }
-  if (counter > 1) error->all(FLERR, "More than one atom_weight/apip fix");
+  if (modify->get_fix_by_style("^atom_weight/apip$").size() > 1)
+    error->all(FLERR, "More than one atom_weight/apip fix");
 
   // get ptr to fix lambda
-  counter = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/apip") == 0) {
-      fix_lambda = modify->fix[i];
-      counter++;
-    }
-  }
-  if (counter > 1) error->all(FLERR, "More than one fix lambda");
-  if (counter == 0 && (time_lambda_extract_name || time_lambda_atom > 0))
+  auto lambda_fixes = modify->get_fix_by_style("^lambda/apip$");
+  if (lambda_fixes.size() > 1) error->all(FLERR, "More than one fix lambda");
+  if (lambda_fixes.empty() && (time_lambda_extract_name || (time_lambda_atom > 0)))
     error->all(FLERR, "fix lambda required to approximate weight of pair style lambda/zone");
+  fix_lambda = lambda_fixes.empty() ? nullptr : lambda_fixes.front();
 
   // This fix is evaluated in pre_exchange, but needs to be evaluated before load-balancing fixes.
   for (auto *ifix : modify->get_fix_list()) {

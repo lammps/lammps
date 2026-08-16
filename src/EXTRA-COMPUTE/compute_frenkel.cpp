@@ -645,6 +645,7 @@ void ComputeFrenkel::find_clusters()
   for (int k = 0; k < nlatsites; k++) {
     if (clusterID[k] == 0) continue;
     n = clusterID2occupied_index(clusterID[k]);
+    if (n < 0) continue;
     domain->closest_image(cluster_approx_center[n], latsites[k], nearest_image);
     local_cluster_x[n][0] += nearest_image[0] / cluster_nsites[n];
     local_cluster_x[n][1] += nearest_image[1] / cluster_nsites[n];

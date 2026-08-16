@@ -72,7 +72,7 @@ ComputeRHEOInterface::ComputeRHEOInterface(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeRHEOInterface::~ComputeRHEOInterface()
 {
-  if (id_fix_pa && modify->nfix) modify->delete_fix(id_fix_pa);
+  if (id_fix_pa) modify->delete_fix(id_fix_pa);
   delete[] id_fix_pa;
   memory->destroy(chi);
   memory->destroy(norm);

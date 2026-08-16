@@ -165,7 +165,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 
 FixNonaffineDisplacement::~FixNonaffineDisplacement()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
 
   if (nad_style == D2MIN) {

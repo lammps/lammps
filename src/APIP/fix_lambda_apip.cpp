@@ -301,9 +301,8 @@ void FixLambdaAPIP::post_constructor()
   // delete existing fix store if existing
   fixstore = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
   fixstore2 = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd2));
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  if (fixstore2 && modify->nfix) modify->delete_fix(fixstore2->id);
+  if (fixstore) modify->delete_fix(fixstore->id);
+  if (fixstore2) modify->delete_fix(fixstore2->id);
   fixstore = nullptr;
 
   // create new FixStoreAtom

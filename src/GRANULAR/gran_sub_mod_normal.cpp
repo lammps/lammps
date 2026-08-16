@@ -472,8 +472,7 @@ GranSubModNormalMDR::GranSubModNormalMDR(GranularModel *gm, LAMMPS *lmp) :
 
 GranSubModNormalMDR::~GranSubModNormalMDR()
 {
-  if (id_fix && modify->nfix)
-    modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
 }
 

@@ -70,7 +70,7 @@ BondBPMZero::BondBPMZero(LAMMPS *_lmp) :
 BondBPMZero::~BondBPMZero()
 {
   delete[] svector;
-  if (id_fix_property_bond && modify->nfix) {
+  if (id_fix_property_bond) {
     modify->delete_fix(id_fix_property_bond);
     delete[] id_fix_property_bond;
   }

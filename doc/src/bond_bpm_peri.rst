@@ -11,7 +11,7 @@ Syntax
    bond_style bpm/peri keyword value attribute1 attribute2 ...
 
 * zero or more keyword/value pairs may be appended
-* keyword = *store/local*
+* keyword = *store/local* or *write/reference* or *read/reference*
 
   .. parsed-literal::
 
@@ -25,6 +25,13 @@ Syntax
             *x, y, z* = the center of mass position of the two atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the two atoms (distance units)
 
+       *write/reference* values = fix_ID N
+          * fix_ID = ID of associated internal fix to write data
+          * N = prepare data for output every this many timesteps
+
+       *read/reference* values = filename
+          * filename = name of reference file to read data from
+
 Examples
 """"""""
 
@@ -35,6 +42,9 @@ Examples
    bond_coeff 1 lps 14.9e9 14.9e9 0.0015001 0.0005 0.25
    bond_coeff 1 ves 14.9e9 14.9e9 0.5 0.001 0.0015001 0.0005 0.25
    bond_coeff 1 eps 14.9e9 14.9e9 118.43 0.0015001 0.0005 0.25
+
+   bond_style bpm/peri write/reference myfix 1000 read/reference bond.ref
+   dump 1 all local 1000 bond*.ref f_myfix[*]
 
 Description
 """""""""""
@@ -214,12 +224,31 @@ Restart and other info
 This bond style writes the reference state of each bond and its
 per-type coefficients to :doc:`binary restart files <restart>`.  Loading
 a restart file restores bonds and their reference state.  The reference
-state is NOT written to data files.
+state is NOT written to data files.  However, after restarting, bonds
+reference data can be restored using the *read/reference* option.
 
 If the *store/local* option is used, an internal fix records data for
 each breaking bond into a local vector or array accessible through a
 :doc:`dump local <dump>` command, as for the other :doc:`BPM bond styles
 <bond_bpm_spring>`.
+
+If the *write/reference* keyword is used, an internal fix will process
+and transfer the internal bond history (e.g. :math:`r_0`) to an
+internal fix labeled *fix_ID*.  This allows the internal bond reference
+and history data to be accessed by other LAMMPS commands.  In addition
+to the bond history the IDs of the two atoms in the bond are also
+included.  See :doc:`Howto bpm <Howto_bpm>` for the complete list of
+included outputs.  Note that for the state-based *ves* and *eps* models
+the bond history includes the evolving history variables in addition to
+the reference length :math:`r_0`.
+
+If the *read/reference* keyword is used, data is read from the file
+labeled *filename*.  This allows internal bond reference and history
+data to be restored to a previous state.  The first two columns of the
+reference file must contain the IDs of the two atoms in the bond, with
+the remaining columns corresponding to the internal bond data.  For more
+details on formatting the reference file see :doc:`Howto bpm
+<Howto_bpm>`.
 
 Restrictions
 """"""""""""

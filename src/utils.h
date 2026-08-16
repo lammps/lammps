@@ -206,7 +206,7 @@ template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
 {
   static_assert(std::is_arithmetic_v<TYPE> || std::is_pointer_v<TYPE> || std::is_array_v<TYPE>,
                 "Argument type not supported by utils::sprintf()");
-  return arg;
+  return arg; // NOLINT
 }
 
 /*! \overload converts a std::string argument to a C-style string */

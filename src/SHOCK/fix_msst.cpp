@@ -297,7 +297,7 @@ void FixMSST::init()
   // find fix external being used to drive LAMMPS from DFTB+
 
   if (dftb) {
-    auto extfixes = modify->get_fix_by_style("^external$");
+    auto extfixes = modify->get_fix_by_style("^external");
     if (extfixes.empty())
       error->all(FLERR, "Fix msst dftb cannot be used w/out fix external");
     fix_external = dynamic_cast<FixExternal *>(extfixes.back());

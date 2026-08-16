@@ -256,7 +256,7 @@ void FixLambdaLACSPAPIP::init()
   if (atom->tag_enable == 0) error->all(FLERR, "fix lambda/la/csp/apip requires atom IDs");
 
   // only one fix lambda/la/csp/apip
-  if (modify->get_fix_by_style("^lambda/la/csp/apip$").size() > 1)
+  if (modify->get_fix_by_style("^lambda/la/csp/apip").size() > 1)
     error->all(FLERR, "More than one fix lambda/la/csp/apip.");
 
   if (force->pair->cutforce < cut_hi)

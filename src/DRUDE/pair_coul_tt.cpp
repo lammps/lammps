@@ -287,7 +287,7 @@ void PairCoulTT::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style coul/tt requires atom attribute q");
-  auto drude_fixes = modify->get_fix_by_style("^drude");
+  auto drude_fixes = modify->get_fix_by_style("^drude$");
   if (drude_fixes.empty()) error->all(FLERR, "Pair coul/tt requires fix drude");
   fix_drude = dynamic_cast<FixDrude *>(drude_fixes.front());
 

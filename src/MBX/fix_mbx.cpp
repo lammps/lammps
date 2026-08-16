@@ -661,7 +661,7 @@ void FixMBX::setup_post_neighbor()
 {
 
   // Figure out if there is a gcmc fix somewhere
-  auto gcmc_fixes = modify->get_fix_by_style("^gcmc$");
+  auto gcmc_fixes = modify->get_fix_by_style("^gcmc");
   if (gcmc_fixes.size() > 1)
     error->all(FLERR, "[MBX] Only one GCMC fix instance allowed to be active");
   has_gcmc = !gcmc_fixes.empty();

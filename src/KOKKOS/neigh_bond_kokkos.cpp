@@ -164,7 +164,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     }
   }
 
-  if (!modify->get_fix_by_style("^gcmc$").empty())
+  if (!modify->get_fix_by_style("^gcmc").empty())
     bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs

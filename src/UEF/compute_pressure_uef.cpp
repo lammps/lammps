@@ -48,7 +48,7 @@ void ComputePressureUef::init()
 
   // check to make sure the other uef fix is on
 
-  auto uef_fixes = modify->get_fix_by_style("^n[vp]t/uef$");
+  auto uef_fixes = modify->get_fix_by_style("^n[vp]t/uef");
   if (uef_fixes.empty())
     error->all(FLERR,"Can't use compute pressure/uef without defining a fix nvt/npt/uef");
   fix_uef = dynamic_cast<FixNHUef *>(uef_fixes.front());

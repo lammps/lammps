@@ -115,7 +115,7 @@ void PPPMGPU::init()
 
   // ensure no conflict with fix balance
 
-  if (!modify->get_fix_by_style("^balance$").empty())
+  if (!modify->get_fix_by_style("^balance").empty())
     error->all(FLERR,"Cannot currently use pppm/gpu with fix balance.");
 
   // unsupported option

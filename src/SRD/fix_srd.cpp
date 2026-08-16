@@ -368,7 +368,7 @@ void FixSRD::init()
   // wallexist = 1 if SRD wall(s) are defined
 
   wallexist = 0;
-  auto wallfixes = modify->get_fix_by_style("^wall/srd$");
+  auto wallfixes = modify->get_fix_by_style("^wall/srd");
   if (wallfixes.size() > 1)
     error->all(FLERR, Error::NOLASTLINE, "Cannot use fix wall/srd more than once");
   if (wallfixes.size() == 1) {

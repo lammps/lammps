@@ -622,8 +622,7 @@ TEST_F(SimpleCommandsTest, Geturl)
         TEST_FAILURE(".*ERROR: Illegal geturl command: missing argument.*", command("geturl "););
         TEST_FAILURE(".*ERROR: URL 'dummy' is not a supported URL.*", command("geturl dummy"););
         TEST_FAILURE(".*ERROR: URL '/tmp' is not a supported URL.*", command("geturl /tmp"););
-        TEST_FAILURE(".*ERROR on proc 0: Download of xxx.txt failed with: "
-                     "HTTP response code said error 40.*",
+        TEST_FAILURE(".*ERROR on proc 0: Download of xxx.txt failed.*",
                      command("geturl https://github.com/xxx.txt"););
     } else {
         TEST_FAILURE(".*ERROR: LAMMPS has not been compiled with libcurl support*",

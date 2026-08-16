@@ -175,24 +175,17 @@ void FixEHEX::init()
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 
-    int cnt_shake = 0;
-    int id_shake;
-    for (int i = 0; i < modify->nfix; i++) {
-      if (strcmp("rattle", modify->fix[i]->style) == 0 ||
-          strcmp("shake", modify->fix[i]->style) == 0) {
-        cnt_shake++;
-        id_shake = i;
-      }
-    }
+    auto shakefixes = modify->get_fix_by_style("^shake$");
+    const auto &rattlefixes = modify->get_fix_by_style("^rattle$");
+    shakefixes.insert(shakefixes.end(), rattlefixes.begin(), rattlefixes.end());
 
-    if (cnt_shake > 1)
+    if (shakefixes.size() > 1)
       error->all(FLERR, "Multiple instances of fix shake/rattle detected (not supported yet)");
-    else if (cnt_shake == 1) {
-      fshake = (dynamic_cast<FixShake *>(modify->fix[id_shake]));
-    } else if (cnt_shake == 0)
+    else if (shakefixes.empty())
       error->all(
           FLERR,
           "Fix ehex was configured with keyword constrain, but shake/rattle was not defined");
+    fshake = dynamic_cast<FixShake *>(shakefixes.front());
   }
 }
 

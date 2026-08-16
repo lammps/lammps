@@ -402,22 +402,16 @@ void PairDPDfdtEnergy::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
 
-  splitFDT_flag = false;
+  splitFDT_flag = !modify->get_fix_by_style("^shardlow").empty();
   neighbor->add_request(this);
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
-      splitFDT_flag = true;
-    }
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers if splitFDT_flag is false
   if (!splitFDT_flag && (force->newton_pair == 0) && (comm->me == 0)) error->warning(FLERR,
       "Pair dpd/fdt/energy requires newton pair on if not also using fix shardlow");
 
-  bool eos_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^eos")) eos_flag = true;
-  if (!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
+  if (modify->get_fix_by_style("^eos").empty())
+    error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
 }
 
 /* ----------------------------------------------------------------------

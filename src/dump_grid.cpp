@@ -769,19 +769,15 @@ int DumpGrid::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"int") == 0) {
       delete[] format_int_user;
       format_int_user = utils::strdup(arg[2]);
-      delete[] format_bigint_user;
-      int n = strlen(format_int_user) + 8;
-      format_bigint_user = new char[n];
       // replace "d" in format_int_user with bigint format specifier
-      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
-      char *ptr = strchr(format_int_user,'d');
-      if (ptr == nullptr)
+      // which is BIGINT_FORMAT without the leading '%'
+      std::string ifmt = format_int_user;
+      auto found = ifmt.find('d');
+      if (found == std::string::npos)
         error->all(FLERR,"Dump_modify int format does not contain d character");
-      char str[8];
-      snprintf(str,8,"%s",BIGINT_FORMAT);
-      *ptr = '\0';
-      snprintf(format_bigint_user,n,"%s%s%s",format_int_user,&str[1],ptr+1);
-      *ptr = 'd';
+      ifmt.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+      delete[] format_bigint_user;
+      format_bigint_user = utils::strdup(ifmt);
 
     } else if (strcmp(arg[1],"float") == 0) {
       delete[] format_float_user;

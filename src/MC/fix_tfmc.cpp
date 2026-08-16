@@ -122,6 +122,10 @@ void FixTFMC::init()
   // (and real MD in general)
   if (!modify->get_fix_by_style("^shake").empty())
     error->all(FLERR,"Fix tfmc is not compatible with fix shake");
+  if (!modify->get_fix_by_style("^rattle").empty())
+    error->all(FLERR,"Fix tfmc is not compatible with fix rattle");
+  if (!modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Fix tfmc is not compatible with fix ilves");
 
   // obtain lowest mass in the system
   // We do this here, in init(), rather than in initial_integrate().

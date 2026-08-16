@@ -259,12 +259,18 @@ void FixFilterCorotate::init()
 {
   int i;
   // error if more than one filter
-  if (modify->get_fix_by_style("^filter/corotate$").size() > 1)
+  if (modify->get_fix_by_style("^filter/corotate").size() > 1)
     error->all(FLERR,"More than one fix filter/corotate");
 
   // check for fix shake:
-  if (modify->get_fix_by_style("^shake$").size() > 1)
+  if (modify->get_fix_by_style("^shake").size() > 1)
     error->one(FLERR,"Both fix shake and fix filter/corotate detected.");
+  // check for fix rattle:
+  if (modify->get_fix_by_style("^rattle").size() > 1)
+    error->one(FLERR,"Both fix rattle and fix filter/corotate detected.");
+  // check for fix ilves:
+  if (modify->get_fix_by_style("^ilves").size() > 1)
+    error->one(FLERR,"Both fix ilves and fix filter/corotate detected.");
 
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created

@@ -171,12 +171,17 @@ void FixEHEX::init()
   if (group->count(igroup) == 0) error->all(FLERR, "Fix ehex group has no atoms");
 
   fshake = nullptr;
+
   if (constraints) {
+
+    // check for fix ilves:
+    if (modify->get_fix_by_style("^ilves").size() > 1)
+      error->one(FLERR,"Fix ehex is not compatible with fix ilves");
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 
-    auto shakefixes = modify->get_fix_by_style("^shake$");
-    const auto &rattlefixes = modify->get_fix_by_style("^rattle$");
+    auto shakefixes = modify->get_fix_by_style("^shake");
+    const auto &rattlefixes = modify->get_fix_by_style("^rattle");
     shakefixes.insert(shakefixes.end(), rattlefixes.begin(), rattlefixes.end());
 
     if (shakefixes.size() > 1)

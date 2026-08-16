@@ -938,8 +938,6 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 void PairOxdnaHbond::init_style()
 {
-  int ifix;
-
   // initialise fix for local reference frame
   fix_lrf = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF");
@@ -949,9 +947,8 @@ void PairOxdnaHbond::init_style()
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
   // optionally initialise fix for unique base pairing
-  ifix = modify->find_fix("Basepairs");
 
-  if (ifix < 0) {
+  if (!modify->get_fix_by_id("Basepairs")) {
     if (comm->me == 0) utils::logmesg(lmp,"Parsing normal base pairing\n");
   }
   else {

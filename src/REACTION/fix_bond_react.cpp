@@ -2380,7 +2380,7 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
   // for 'rxnbond', varid corresponds to 'compute bond/local' name,
   //                and fragid is a pre-reaction fragment containing the two atoms in the bond
   if (rxnfunc == "rxnbond") {
-    int icompute,ibond;
+    int ibond;
     double perbondval;
     std::set<tagint> aset;
     std::string computeid = varid;
@@ -2388,9 +2388,8 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     if (computeid.substr(0,2) != "c_") error->one(FLERR,"Bond/react: Reaction special function compute "
                                          "name should begin with 'c_'");
     computeid = computeid.substr(2);
-    icompute = modify->find_compute(computeid);
-    if (icompute < 0) error->one(FLERR,"Bond/react: Reaction special function compute name does not exist");
-    cperbond = modify->compute[icompute];
+    cperbond = modify->get_compute_by_id(computeid);
+    if (!cperbond) error->one(FLERR,"Bond/react: Reaction special function compute name does not exist");
     std::string compute_style = cperbond->style;
     if (compute_style != "bond/local") error->one(FLERR,"Bond/react: Compute used by reaction "
                                          "special function 'rxnbond' must be of style 'bond/local'");

@@ -602,7 +602,7 @@ void FixAmoebaPiTorsion::read_data_header(char *line)
       npitorsions = ValueTokenizer(line).next_bigint();
     } else if (strstr(line,"pitorsion types")) {
       npitorsion_types = ValueTokenizer(line).next_int();
-    } else error->all(FLERR, Error::NOLASTLINE, 
+    } else error->all(FLERR, Error::NOLASTLINE,
                       "Invalid read data header line for amoeba/fix pitorsion");
   } catch (TokenizerException &e) {
     error->all(FLERR, Error::NOLASTLINE,

@@ -263,13 +263,13 @@ void FixFilterCorotate::init()
     error->all(FLERR,"More than one fix filter/corotate");
 
   // check for fix shake:
-  if (modify->get_fix_by_style("^shake").size() > 1)
+  if (!modify->get_fix_by_style("^shake").empty())
     error->one(FLERR,"Both fix shake and fix filter/corotate detected.");
   // check for fix rattle:
-  if (modify->get_fix_by_style("^rattle").size() > 1)
+  if (!modify->get_fix_by_style("^rattle").empty())
     error->one(FLERR,"Both fix rattle and fix filter/corotate detected.");
   // check for fix ilves:
-  if (modify->get_fix_by_style("^ilves").size() > 1)
+  if (!modify->get_fix_by_style("^ilves").empty())
     error->one(FLERR,"Both fix ilves and fix filter/corotate detected.");
 
   // if rRESPA, find associated fix that must exist
@@ -637,13 +637,11 @@ void FixFilterCorotate::pre_neighbor()
         int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
         if (abs(signum)!= 1)
-          error->all(FLERR,"Wrong orientation in cluster of size 5"
-                     "in fix filter/corotate!");
+          error->all(FLERR,"Wrong orientation in cluster of size 5 in fix filter/corotate!");
         clist_q0[i][8] *= signum;
         clist_q0[i][11] *= signum;
       } else {
-        error->all(FLERR,"Fix filter/corotate cluster with size > 5"
-                   "not yet configured...");
+        error->all(FLERR,"Fix filter/corotate cluster with size > 5 not yet configured...");
       }
     }
 }

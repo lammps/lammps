@@ -175,8 +175,8 @@ void FixEHEX::init()
   if (constraints) {
 
     // check for fix ilves:
-    if (modify->get_fix_by_style("^ilves").size() > 1)
-      error->one(FLERR,"Fix ehex is not compatible with fix ilves");
+    if (!modify->get_fix_by_style("^ilves").empty())
+      error->one(FLERR, Error::NOLASTLINE, "Fix ehex is not compatible with fix ilves");
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 
@@ -185,7 +185,8 @@ void FixEHEX::init()
     shakefixes.insert(shakefixes.end(), rattlefixes.begin(), rattlefixes.end());
 
     if (shakefixes.size() > 1)
-      error->all(FLERR, "Multiple instances of fix shake/rattle detected (not supported yet)");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Multiple instances of fix shake/rattle detected (not supported yet)");
     else if (shakefixes.empty())
       error->all(
           FLERR,

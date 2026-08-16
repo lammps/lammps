@@ -561,8 +561,7 @@ void Variable::set(int narg, char **arg)
     newvar.data = new char *[newvar.num];
     newvar.data[0] = utils::strdup(arg[2]);
     newvar.data[1] = utils::strdup(arg[3]);
-    newvar.data[2] = new char[VALUELENGTH];
-    strcpy(newvar.data[2], "(undefined)");
+    newvar.data[2] = utils::strdup("(undefined)");
     newvar.style = FORMAT;
     return;
 
@@ -1190,7 +1189,8 @@ char *Variable::retrieve(const char *name)
       error->all(FLERR, "Variable {}: format variable {} has incompatible style",
                  var.name, var.data[0]);
     double answer = compute_equal(jvar);
-    snprintf(var.data[2],VALUELENGTH,var.data[1],answer);
+    delete[] var.data[2];
+    var.data[2] = utils::strdup(utils::sprintf(var.data[1], answer));
     str = var.data[2];
 
   } else if (var.style == GETENV) {

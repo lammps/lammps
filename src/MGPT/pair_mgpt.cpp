@@ -1752,9 +1752,8 @@ void PairMGPT::coeff(int narg, char **arg)
   if (strcmp(arg[0],"*") != 0 || strcmp(arg[1],"*") != 0)
     error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
-  double vol;
-  if (sscanf(arg[4], "%lg", &vol) != 1 || vol <= 0.0)
-    error->all(FLERR,"Invalid volume in mgpt (MGPT) pair coefficients.");
+  double vol = utils::numeric(FLERR, arg[4], false, lmp);
+  if (vol <= 0.0) error->all(FLERR,"Invalid volume in mgpt (MGPT) pair coefficients.");
 
   volpres_flag = 1;
   single_precision = 0;

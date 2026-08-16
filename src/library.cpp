@@ -6482,8 +6482,8 @@ void NeighProxy::command(int narg, char **arg)
   neigh_idx = -1;
   if (narg != 3) return;
   auto *req = neighbor->add_request(this, arg[0]);
-  int flags = atoi(arg[1]);
-  double cutoff = atof(arg[2]);
+  int flags = utils::inumeric(FLERR, arg[1], false, lmp);
+  double cutoff = utils::numeric(FLERR, arg[2], false, lmp);
   req->apply_flags(flags);
   if (cutoff > 0.0) req->set_cutoff(cutoff);
   lmp->init();

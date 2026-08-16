@@ -1909,12 +1909,6 @@ template<class DeviceType, typename real_type, typename accum_type, int vector_l
 inline
 double SNAKokkos<DeviceType, real_type, accum_type, vector_length>::factorial(int n)
 {
-  //if (n < 0 || n > nmaxfactorial) {
-  //  char str[128];
-  //  sprintf(str, "Invalid argument to factorial %d", n);
-  //  error->all(FLERR, str);
-  //}
-
   return nfac_table[n];
 }
 

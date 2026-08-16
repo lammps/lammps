@@ -66,6 +66,10 @@ add_executable(test_fmtlib test_fmtlib.cpp)
 target_link_libraries(test_fmtlib PRIVATE lammps GTest::GMockMain)
 add_test(NAME FmtLib COMMAND test_fmtlib)
 
+add_executable(test_sprintf test_sprintf.cpp)
+target_link_libraries(test_sprintf PRIVATE lammps GTest::GMockMain)
+add_test(NAME Sprintf COMMAND test_sprintf)
+
 add_executable(test_json test_json.cpp)
 target_link_libraries(test_json PRIVATE lammps GTest::GMockMain)
 add_test(NAME JSON COMMAND test_json)

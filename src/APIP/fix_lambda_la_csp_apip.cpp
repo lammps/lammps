@@ -200,14 +200,9 @@ void FixLambdaLACSPAPIP::post_constructor()
   if (fixstore_pairs) modify->delete_fix(fixstore_pairs->id);
   fixstore_pairs = nullptr;
 
-  char str_values[40];
-  sprintf(str_values, "%d", nnn);
-
-  // arguments of peratom:
-  cmd += " all STORE/ATOM ";
-  cmd += str_values;    // n1
-  cmd += " 0 0 1";      // n2 gflag rflag
-  fixstore_pairs = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
+  // STORE/ATOM arguments: n1 (number of doubles per atom) n2 gflag rflag
+  fixstore_pairs =
+      dynamic_cast<FixStoreAtom *>(modify->add_fix(fmt::format("{} all STORE/ATOM {} 0 0 1", cmd, nnn)));
 
   // do not carry the CSP-pairs with atoms during normal atom migration yet
   // activate after the CSP-pairs are calculated

@@ -139,8 +139,9 @@ void PairLambdaInputAPIP::init_style()
     error->all(FLERR, "pair_lambda input requires an atom style with lambda_input");
 
   // find fix lambda
-  auto lambda_fixes = modify->get_fix_by_style("^lambda/apip$");
-  if (lambda_fixes.size() != 1) error->all(FLERR, "Exact one fix lambda required");
+  auto lambda_fixes = modify->get_fix_by_style("^lambda/apip");
+  if (lambda_fixes.size() != 1)
+    error->all(FLERR, Error::NOLASTLINE, "Exact one fix lambda/apip required");
   fix_lambda = dynamic_cast<FixLambdaAPIP *>(lambda_fixes.front());
 
   // get group whose input is ignored from fix lambda

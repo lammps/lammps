@@ -44,7 +44,7 @@ FixAmoebaPiTorsion::FixAmoebaPiTorsion(LAMMPS *lmp, int narg, char **arg) :
   pitorsion_atom2(nullptr), pitorsion_atom3(nullptr), pitorsion_atom4(nullptr), pitorsion_atom5(nullptr),
   pitorsion_atom6(nullptr), pitorsion_list(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal fix amoeba/pitorsion command");
+  if (narg != 3) error->all(FLERR, 2, "Illegal fix amoeba/pitorsion command");
 
   // settings for this fix
 
@@ -243,8 +243,8 @@ void FixAmoebaPiTorsion::pre_neighbor()
 
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
           atom4 == -1 || atom5 == -1 || atom6 == -1)
-        error->one(FLERR,"PiTorsion atoms {} {} {} {} {} {} missing on "
-                   "proc {} at step {}",
+        error->one(FLERR, Error::NOLASTLINE,
+                   "PiTorsion atoms {} {} {} {} {} {} missing on proc {} at step {}",
                    pitorsion_atom1[i][m],pitorsion_atom2[i][m],
                    pitorsion_atom3[i][m],pitorsion_atom4[i][m],
                    pitorsion_atom5[i][m],pitorsion_atom6[i][m],
@@ -602,10 +602,11 @@ void FixAmoebaPiTorsion::read_data_header(char *line)
       npitorsions = ValueTokenizer(line).next_bigint();
     } else if (strstr(line,"pitorsion types")) {
       npitorsion_types = ValueTokenizer(line).next_int();
-    } else error->all(FLERR,
+    } else error->all(FLERR, Error::NOLASTLINE, 
                       "Invalid read data header line for amoeba/fix pitorsion");
   } catch (TokenizerException &e) {
-    error->all(FLERR,"Invalid read data header line for amoeba/fix pitorsion: {}", e.what());
+    error->all(FLERR, Error::NOLASTLINE,
+               "Invalid read data header line for amoeba/fix pitorsion: {}", e.what());
   }
 }
 
@@ -624,7 +625,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
     which = 0;
   } else if (strstr(keyword,"PiTorsion Coeffs")) {
     which = 1;
-  } else error->all(FLERR,"Invalid read data section for fix amoeba/pitorsion");
+  } else error->all(FLERR, Error::NOLASTLINE, "Invalid read data section for fix amoeba/pitorsion");
 
   // loop over lines of PiTorsion Coeffs
   // tokenize the line into values
@@ -645,10 +646,12 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
         itype = values.next_int();
         value = values.next_double();
       } catch (TokenizerException &e) {
-        error->all(FLERR,"Incorrect args for fix amoeba/pitorsion coeffs: {}", e.what());
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Incorrect args for fix amoeba/pitorsion coeffs: {}", e.what());
       }
       if (itype <= 0 || itype > npitorsion_types)
-        error->all(FLERR,"Incorrect args for fix amoeba/pitorsion coeffs");
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Incorrect args for fix amoeba/pitorsion coeffs");
       kpit[itype] = value;
       buf = next + 1;
     }
@@ -670,7 +673,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
     *next = '\n';
 
     if (nwords != 8)
-      error->all(FLERR,"Incorrect {} format in data file",keyword);
+      error->all(FLERR, Error::NOLASTLINE, "Incorrect {} format in data file",keyword);
 
     for (int i = 0; i < n; i++) {
       next = strchr(buf,'\n');
@@ -686,7 +689,8 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
         atom5 = values.next_tagint();
         atom6 = values.next_tagint();
       } catch (TokenizerException &e) {
-        error->all(FLERR,"Incorrect {} format in data file: {}", keyword, e.what());
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Incorrect {} format in data file: {}", keyword, e.what());
       }
 
       atom1 += id_offset;
@@ -698,7 +702,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
 
       if ((m = atom->map(atom1)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
-          error->one(FLERR,"Too many PiTorsions for one atom");
+          error->one(FLERR, Error::NOLASTLINE, "Too many PiTorsions for one atom");
         pitorsion_type[m][num_pitorsion[m]] = itype;
         pitorsion_atom1[m][num_pitorsion[m]] = atom1;
         pitorsion_atom2[m][num_pitorsion[m]] = atom2;
@@ -711,7 +715,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
 
       if ((m = atom->map(atom2)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
-          error->one(FLERR,"Too many PiTorsions for one atom");
+          error->one(FLERR, Error::NOLASTLINE, "Too many PiTorsions for one atom");
         pitorsion_type[m][num_pitorsion[m]] = itype;
         pitorsion_atom1[m][num_pitorsion[m]] = atom1;
         pitorsion_atom2[m][num_pitorsion[m]] = atom2;
@@ -724,7 +728,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
 
       if ((m = atom->map(atom3)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
-          error->one(FLERR,"Too many PiTorsions for one atom");
+          error->one(FLERR, Error::NOLASTLINE, "Too many PiTorsions for one atom");
         pitorsion_type[m][num_pitorsion[m]] = itype;
         pitorsion_atom1[m][num_pitorsion[m]] = atom1;
         pitorsion_atom2[m][num_pitorsion[m]] = atom2;
@@ -737,7 +741,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
 
       if ((m = atom->map(atom4)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
-          error->one(FLERR,"Too many PiTorsions for one atom");
+          error->one(FLERR, Error::NOLASTLINE, "Too many PiTorsions for one atom");
         pitorsion_type[m][num_pitorsion[m]] = itype;
         pitorsion_atom1[m][num_pitorsion[m]] = atom1;
         pitorsion_atom2[m][num_pitorsion[m]] = atom2;
@@ -750,7 +754,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
 
       if ((m = atom->map(atom5)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
-          error->one(FLERR,"Too many PiTorsions for one atom");
+          error->one(FLERR, Error::NOLASTLINE, "Too many PiTorsions for one atom");
         pitorsion_type[m][num_pitorsion[m]] = itype;
         pitorsion_atom1[m][num_pitorsion[m]] = atom1;
         pitorsion_atom2[m][num_pitorsion[m]] = atom2;
@@ -763,7 +767,7 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
 
       if ((m = atom->map(atom6)) >= 0) {
         if (num_pitorsion[m] == PITORSIONMAX)
-          error->one(FLERR,"Too many PiTorsions for one atom");
+          error->one(FLERR, Error::NOLASTLINE, "Too many PiTorsions for one atom");
         pitorsion_type[m][num_pitorsion[m]] = itype;
         pitorsion_atom1[m][num_pitorsion[m]] = atom1;
         pitorsion_atom2[m][num_pitorsion[m]] = atom2;

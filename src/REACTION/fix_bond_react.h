@@ -248,6 +248,7 @@ class FixBondReact : public Fix {
   int get_chirality(double[12]);                           // get handedness given an ordered set of coordinates
 
   void readline(char *);
+  int firstint(char *, const char *);
   void parse_keyword(int, char *, char *);
 
   void far_partner(Reaction &);

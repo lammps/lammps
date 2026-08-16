@@ -80,9 +80,8 @@ void EwaldGPU::init()
   if (strcmp(update->integrate_style, "verlet/split") == 0)
     error->all(FLERR, "Cannot use ewald/gpu with run_style verlet/split");
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "balance") == 0)
-      error->all(FLERR, "Cannot currently use ewald/gpu with fix balance");
+  if (!modify->get_fix_by_style("^balance").empty())
+    error->all(FLERR, "Cannot currently use ewald/gpu with fix balance");
 
   // initialize the GPU device and atom storage first, so that the device is
   // ready when Ewald::init() -> setup() uploads the k-space coefficients

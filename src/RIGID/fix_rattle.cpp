@@ -131,9 +131,9 @@ void FixRattle::init() {
 
   int after = 0;
   int flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(id,modify->fix[i]->id) == 0) after = 1;
-    else if ((modify->fmask[i] & FINAL_INTEGRATE) && after) flag = 1;
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix == this) after = 1;
+    else if (after && (modify->get_fix_mask(ifix) & FINAL_INTEGRATE)) flag = 1;
   }
 
   if (flag && comm->me == 0)

@@ -128,8 +128,7 @@ PairSRP::~PairSRP()
     memory->destroy(segment);
   }
 
-  // check nfix in case all fixes have already been deleted
-  if (modify->nfix && modify->get_fix_by_id(f_srp->id)!=nullptr) modify->delete_fix(f_srp->id);
+  modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -464,17 +463,14 @@ void PairSRP::init_style()
   // if bond type is 0, then all bonds have bond particles
   // btype = bond type
 
-  char c0[20];
-  char* arg0[2];
-  sprintf(c0, "%d", btype);
-  arg0[0] = (char *) "btype";
-  arg0[1] = c0;
+  std::string bval = std::to_string(btype);
+  char *arg0[2] = {(char *) "btype", bval.data()};
   f_srp->modify_params(2, arg0);
 
   // bptype = bond particle type
-  sprintf(c0, "%d", bptype);
+  std::string bpval = std::to_string(bptype);
   arg0[0] = (char *) "bptype";
-  arg0[1] = c0;
+  arg0[1] = bpval.data();
   f_srp->modify_params(2, arg0);
 
   // bond particles do not contribute to energy or virial

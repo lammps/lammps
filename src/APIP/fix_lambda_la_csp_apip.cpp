@@ -176,10 +176,10 @@ FixLambdaLACSPAPIP::~FixLambdaLACSPAPIP()
   memory->destroy(nearest);
   memory->destroy(prefactor1);
   memory->destroy(prefactor2);
-  if (fixstore_pairs && modify->nfix) modify->delete_fix(fixstore_pairs->id);
-  if (fixstore_la_avg && modify->nfix) modify->delete_fix(fixstore_la_avg->id);
-  if (fixstore_la_inp && modify->nfix) modify->delete_fix(fixstore_la_inp->id);
-  if (fixstore_la_norm && modify->nfix) modify->delete_fix(fixstore_la_norm->id);
+  if (fixstore_pairs) modify->delete_fix(fixstore_pairs->id);
+  if (fixstore_la_avg) modify->delete_fix(fixstore_la_avg->id);
+  if (fixstore_la_inp) modify->delete_fix(fixstore_la_inp->id);
+  if (fixstore_la_norm) modify->delete_fix(fixstore_la_norm->id);
   fixstore_pairs = fixstore_la_avg = fixstore_la_inp = fixstore_la_norm = nullptr;
 }
 
@@ -197,18 +197,12 @@ void FixLambdaLACSPAPIP::post_constructor()
 
   // delete existing fix store if existing
   fixstore_pairs = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
-  // check nfix in case all fixes have already been deleted
-  if (fixstore_pairs && modify->nfix) modify->delete_fix(fixstore_pairs->id);
+  if (fixstore_pairs) modify->delete_fix(fixstore_pairs->id);
   fixstore_pairs = nullptr;
 
-  char str_values[40];
-  sprintf(str_values, "%d", nnn);
-
-  // arguments of peratom:
-  cmd += " all STORE/ATOM ";
-  cmd += str_values;    // n1
-  cmd += " 0 0 1";      // n2 gflag rflag
-  fixstore_pairs = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
+  // STORE/ATOM arguments: n1 (number of doubles per atom) n2 gflag rflag
+  fixstore_pairs =
+      dynamic_cast<FixStoreAtom *>(modify->add_fix(fmt::format("{} all STORE/ATOM {} 0 0 1", cmd, nnn)));
 
   // do not carry the CSP-pairs with atoms during normal atom migration yet
   // activate after the CSP-pairs are calculated
@@ -218,7 +212,7 @@ void FixLambdaLACSPAPIP::post_constructor()
   cmd = id;
   cmd += "LA_INP";
   fixstore_la_inp = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
-  if (fixstore_la_inp && modify->nfix) modify->delete_fix(fixstore_la_inp->id);
+  if (fixstore_la_inp) modify->delete_fix(fixstore_la_inp->id);
   fixstore_la_inp = nullptr;
   cmd += " all STORE/ATOM 1 0 1 0";
   fixstore_la_inp = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
@@ -226,7 +220,7 @@ void FixLambdaLACSPAPIP::post_constructor()
   cmd = id;
   cmd += "LA_NORM";
   fixstore_la_norm = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
-  if (fixstore_la_norm && modify->nfix) modify->delete_fix(fixstore_la_norm->id);
+  if (fixstore_la_norm) modify->delete_fix(fixstore_la_norm->id);
   fixstore_la_norm = nullptr;
   cmd += " all STORE/ATOM 1 0 1 0";
   fixstore_la_norm = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
@@ -234,7 +228,7 @@ void FixLambdaLACSPAPIP::post_constructor()
   cmd = id;
   cmd += "LA_AVG";
   fixstore_la_avg = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
-  if (fixstore_la_avg && modify->nfix) modify->delete_fix(fixstore_la_avg->id);
+  if (fixstore_la_avg) modify->delete_fix(fixstore_la_avg->id);
   fixstore_la_avg = nullptr;
   cmd += " all STORE/ATOM 1 0 1 0";
   fixstore_la_avg = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
@@ -262,11 +256,8 @@ void FixLambdaLACSPAPIP::init()
   if (atom->tag_enable == 0) error->all(FLERR, "fix lambda/la/csp/apip requires atom IDs");
 
   // only one fix lambda/la/csp/apip
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/la/csp/apip") == 0) count++;
-  }
-  if (count > 1) error->all(FLERR, "More than one fix lambda/la/csp/apip.");
+  if (modify->get_fix_by_style("^lambda/la/csp/apip").size() > 1)
+    error->all(FLERR, "More than one fix lambda/la/csp/apip.");
 
   if (force->pair->cutforce < cut_hi)
     error->all(FLERR, "cutoff of potential ({}) smaller than cutoff of weighting function ({})",

@@ -2025,6 +2025,8 @@ void Input::uncompute()
 {
   if (narg != 1)
     error->all(FLERR, Error::COMMAND, "Uncompute command expects exactly one argument");
+  if (!modify->get_compute_by_id(arg[0]))
+    error->all(FLERR, Error::ARGZERO, "Could not find compute ID {} to delete", arg[0]);
   modify->delete_compute(arg[0]);
 }
 
@@ -2041,6 +2043,8 @@ void Input::undump()
 void Input::unfix()
 {
   if (narg != 1) error->all(FLERR, Error::COMMAND, "Unfix command expects exactly one argument");
+  if (!modify->get_fix_by_id(arg[0]))
+    error->all(FLERR, Error::ARGZERO, "Could not find fix ID {} to delete", arg[0]);
   modify->delete_fix(arg[0]);
 }
 

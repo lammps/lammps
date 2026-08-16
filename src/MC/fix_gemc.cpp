@@ -186,7 +186,7 @@ void FixGEMC::init()
 
   // for full energy
 
-  c_pe = modify->compute[modify->find_compute("thermo_pe")];
+  c_pe = modify->get_compute_by_id("thermo_pe");
 
   // check if atoms charged
 

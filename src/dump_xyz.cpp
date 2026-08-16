@@ -79,14 +79,10 @@ void DumpXYZ::init_style()
     format = utils::strdup(fmt::format("{}\n", format_default));
 
   // initialize typenames array to be backward compatible by default
-  // a 32-bit int can be maximally 10 digits plus sign
-
   if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[12];
-      snprintf(typenames[itype],12,"%d",itype);
-    }
+    for (int itype = 1; itype <= ntypes; itype++)
+      typenames[itype] = utils::strdup(std::to_string(itype));
   }
 
   // setup function ptr

@@ -125,7 +125,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   int bond_off = 0;
   int angle_off = 0;
   for (const auto &ifix : modify->get_fix_list())
-    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle"))
+    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle") ||
+        utils::strmatch(ifix->style,"^ilves"))
       bond_off = angle_off = 1;
   if (force->bond && force->bond_match("quartic")) bond_off = 1;
 
@@ -163,9 +164,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     }
   }
 
-  for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
-      bond_off = angle_off = dihedral_off = improper_off = 1;
+  if (!modify->get_fix_by_style("^gcmc").empty())
+    bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 

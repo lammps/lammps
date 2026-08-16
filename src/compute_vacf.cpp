@@ -71,9 +71,7 @@ ComputeVACF::ComputeVACF(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeVACF::~ComputeVACF()
 {
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
 
   delete[] id_fix;
   delete[] vector;

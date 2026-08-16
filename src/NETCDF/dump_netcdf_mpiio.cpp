@@ -288,16 +288,16 @@ void DumpNetCDFMPIIO::openfile()
     for (int i = 0; i < n_perat; i++) {
       int dim = perat[i].dims;
       if (vector_dim[dim] < 0) {
-        char dimstr[1024];
+        std::string dimstr;
         if (dim == 3) {
-          strcpy(dimstr, NC_SPATIAL_STR);
+          dimstr = NC_SPATIAL_STR;
         } else if (dim == 6) {
-          strcpy(dimstr, NC_VOIGT_STR);
+          dimstr = NC_VOIGT_STR;
         } else {
-          sprintf(dimstr, "vec%i", dim);
+          dimstr = fmt::format("vec{}", dim);
         }
         if (dim != 1) {
-          NCERRX( ncmpi_inq_dimid(ncid, dimstr, &vector_dim[dim]), dimstr );
+          NCERRX( ncmpi_inq_dimid(ncid, dimstr.c_str(), &vector_dim[dim]), dimstr.c_str() );
         }
       }
     }
@@ -362,16 +362,16 @@ void DumpNetCDFMPIIO::openfile()
     for (int i = 0; i < n_perat; i++) {
       int dim = perat[i].dims;
       if (vector_dim[dim] < 0) {
-        char dimstr[1024];
+        std::string dimstr;
         if (dim == 3) {
-          strcpy(dimstr, NC_SPATIAL_STR);
+          dimstr = NC_SPATIAL_STR;
         } else if (dim == 6) {
-          strcpy(dimstr, NC_VOIGT_STR);
+          dimstr = NC_VOIGT_STR;
         } else {
-          sprintf(dimstr, "vec%i", dim);
+          dimstr = fmt::format("vec{}", dim);
         }
         if (dim != 1) {
-          NCERRX( ncmpi_def_dim(ncid, dimstr, dim, &vector_dim[dim]), dimstr );
+          NCERRX( ncmpi_def_dim(ncid, dimstr.c_str(), dim, &vector_dim[dim]), dimstr.c_str() );
         }
       }
     }

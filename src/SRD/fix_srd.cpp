@@ -368,23 +368,22 @@ void FixSRD::init()
   // wallexist = 1 if SRD wall(s) are defined
 
   wallexist = 0;
-  for (int m = 0; m < modify->nfix; m++) {
-    if (strcmp(modify->fix[m]->style, "wall/srd") == 0) {
-      if (wallexist)
-        error->all(FLERR, Error::NOLASTLINE, "Cannot use fix wall/srd more than once");
-      wallexist = 1;
-      wallfix = dynamic_cast<FixWallSRD *>(modify->fix[m]);
-      nwall = wallfix->nwall;
-      wallvarflag = wallfix->varflag;
-      wallwhich = wallfix->wallwhich;
-      xwall = wallfix->xwall;
-      xwallhold = wallfix->xwallhold;
-      vwall = wallfix->vwall;
-      fwall = wallfix->fwall;
-      walltrigger = 0.5 * neighbor->skin;
-      if (wallfix->overlap && overlap == 0 && comm->me == 0)
-        error->warning(FLERR, "Fix SRD walls overlap but fix srd overlap not set");
-    }
+  auto wallfixes = modify->get_fix_by_style("^wall/srd");
+  if (wallfixes.size() > 1)
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix wall/srd more than once");
+  if (wallfixes.size() == 1) {
+    wallexist = 1;
+    wallfix = dynamic_cast<FixWallSRD *>(wallfixes.front());
+    nwall = wallfix->nwall;
+    wallvarflag = wallfix->varflag;
+    wallwhich = wallfix->wallwhich;
+    xwall = wallfix->xwall;
+    xwallhold = wallfix->xwallhold;
+    vwall = wallfix->vwall;
+    fwall = wallfix->fwall;
+    walltrigger = 0.5 * neighbor->skin;
+    if (wallfix->overlap && (overlap == 0) && (comm->me == 0))
+      error->warning(FLERR, "Fix SRD walls overlap but fix srd overlap not set");
   }
 
   // set change_flags if box size or shape changes
@@ -392,13 +391,12 @@ void FixSRD::init()
   change_size = change_shape = deformflag = 0;
   if (domain->nonperiodic == 2) change_size = 1;
 
-  Fix **fixes = modify->fix;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (fixes[i]->box_change & BOX_CHANGE_SIZE) change_size = 1;
-    if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
-    if (strcmp(fixes[i]->style, "deform") == 0) {
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->box_change & BOX_CHANGE_SIZE) change_size = 1;
+    if (ifix->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
+    if (strcmp(ifix->style, "deform") == 0) {
       deformflag = 1;
-      auto *deform = dynamic_cast<FixDeform *>(modify->fix[i]);
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, Error::NOLASTLINE,
                    "Using fix srd with inconsistent fix deform remap option");

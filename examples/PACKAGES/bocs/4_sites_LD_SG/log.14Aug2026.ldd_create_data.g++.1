@@ -1,4 +1,5 @@
-LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-1182-g53c241293a-modified)
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-810-g16d2516d2d-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 units           real
 dimension       3
@@ -36,7 +37,7 @@ Read molecule template CHAIN:
 create_atoms 0 random 60 885401 my_box mol CHAIN 454756
 Created 240 atoms
   using lattice units in orthogonal box = (0 0 0) to (40 40 40)
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.003 seconds
 
 include ff_bonded_params.lammps
 bond_coeff 1 4 3.0 # < this is v2 and v3
@@ -98,64 +99,64 @@ Neighbor list info ...
   ghost atom cutoff = 17
   binsize = 8.5, bins = 5 5 5
   2 neighbor lists, perpetual/occasional/extra = 2 0 0
-  (1) pair ldd, perpetual, trim from (2)
-      attributes: half, newton on, cut 8.5
-      pair build: trim
-      stencil: none
-      bin: none
-  (2) pair table, perpetual
+  (1) pair ldd, perpetual
       attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair table, perpetual
+      attributes: half, newton on, cut 17
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
 WARNING: Energy due to 3 extra global DOFs will be included in minimizer energies
  (src/min.cpp:224)
-Per MPI rank memory allocation (min/avg/max) = 16.89 | 16.89 | 16.89 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 16.91 | 16.91 | 16.91 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
          0   300            15980.509      1.5543122e-15  16194.233      19402.689      64000        
       1000   300            11807.527      54.925844      12076.177      10420.899      83012.039    
-      2000   300            8935.5926      222.58409      9371.9007      5464.4215      105846.28    
+      2000   300            8935.5926      222.58409      9371.9007      5464.4214      105846.28    
       3000   300            6850.6386      509.74684      7574.1095      2800.0309      133289.09    
       4000   300            5289.8911      889.96616      6393.5814      1353.8057      163761.6     
       5000   300            4088.8184      1275.2995      5577.842       632.30887      192390.96    
-      6000   300            3052.0089      1557.5661      4823.299       264.96388      213438.15    
-      7000   300            1857.6037      1585.4698      3656.7976      125.95586      216191.03    
-      8000   300            814.51014      1160.9621      2189.1963      116.48402      186697.28    
-      9000   300            487.69663      834.03         1535.4507      134.61442      163797.1     
+      6000   300            3052.0089      1557.5661      4823.299       264.96387      213438.15    
+      7000   300            1857.6037      1585.4698      3656.7977      125.95586      216191.03    
+      8000   300            814.51015      1160.9621      2189.1963      116.48402      186697.28    
+      9000   300            487.69663      834.02999      1535.4507      134.61442      163797.1     
      10000   300            283.42235      565.64469      1062.7911      151.8067       143054.15    
-Loop time of 1.58006 on 1 procs for 10000 steps with 240 atoms
+Loop time of 1.72067 on 1 procs for 10000 steps with 240 atoms
 
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+99.2% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
   Energy initial, next-to-last, final = 
-       15980.508520547   964.813080373434   964.359403560846
+       15980.508522551    964.81308274103     964.3594059452
   Force two-norm initial, final = 31533.813 426.9689
   Force max component initial, final = 19854.206 116.99034
-  Final line search alpha, max atom move = 2.4846848e-06 0.00029068412
+  Final line search alpha, max atom move = 2.4846848e-06 0.00029068411
   Iterations, force evaluations = 10000 10000
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.3952     | 1.3952     | 1.3952     |   0.0 | 88.30
-Bond    | 0.066533   | 0.066533   | 0.066533   |   0.0 |  4.21
-Neigh   | 0.0071358  | 0.0071358  | 0.0071358  |   0.0 |  0.45
-Comm    | 0.01644    | 0.01644    | 0.01644    |   0.0 |  1.04
-Output  | 0.00014309 | 0.00014309 | 0.00014309 |   0.0 |  0.01
+Pair    | 1.5328     | 1.5328     | 1.5328     |   0.0 | 89.08
+Bond    | 0.065003   | 0.065003   | 0.065003   |   0.0 |  3.78
+Neigh   | 0.010888   | 0.010888   | 0.010888   |   0.0 |  0.63
+Comm    | 0.015209   | 0.015209   | 0.015209   |   0.0 |  0.88
+Output  | 0.00013883 | 0.00013883 | 0.00013883 |   0.0 |  0.01
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.09464    |            |       |  5.99
+Other   |            | 0.09668    |            |       |  5.62
 
 Nlocal:            240 ave         240 max         240 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:            756 ave         756 max         756 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:            611 ave         611 max         611 min
+Neighs:           4053 ave        4053 max        4053 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 611
-Ave neighs/atom = 2.5458333
+Total # of neighbors = 4053
+Ave neighs/atom = 16.8875
 Ave special neighs/atom = 3
 Neighbor list builds = 51
 Dangerous builds = 0

@@ -523,17 +523,6 @@ void PairLubricatePoly::init_style()
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
 
-  // check for fix deform, if exists it must use "remap v"
-
-  shearing = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      shearing = 1;
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using pair lubricate/poly with inconsistent "
-                   "fix deform remap option");
-    }
-
   // set Ef = 0 since used whether shearing or not
 
   Ef[0][0] = Ef[0][1] = Ef[0][2] = 0.0;

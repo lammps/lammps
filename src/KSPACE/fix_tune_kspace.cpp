@@ -290,7 +290,7 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
 
   // Re-init computes to update pointers to virials, etc.
 
-  for (int i = 0; i < modify->ncompute; i++) modify->compute[i]->init();
+  for (const auto &icompute : modify->get_compute_list()) icompute->init();
 }
 
 /* ----------------------------------------------------------------------

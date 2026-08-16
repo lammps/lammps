@@ -215,10 +215,8 @@ int FixLambdaAPIP::modify_param(int narg, char **arg)
 
 FixLambdaAPIP::~FixLambdaAPIP()
 {
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  if (fixstore2 && modify->nfix) modify->delete_fix(fixstore2->id);
-  fixstore = fixstore2 = nullptr;
+  if (fixstore) modify->delete_fix(fixstore->id);
+  if (fixstore2) modify->delete_fix(fixstore2->id);
 
   memory->destroy(peratom_stats);
 
@@ -294,37 +292,23 @@ void FixLambdaAPIP::init()
 
 void FixLambdaAPIP::post_constructor()
 {
-  std::string cmd, cmd2;
-  cmd = id;
-  cmd2 = id;
-  cmd += "LAMBDA_INPUT_HISTORY";
-  cmd2 += "LAMBDA_HISTORY";
+  std::string cmd = fmt::format("{}LAMBDA_INPUT_HISTORY", id);
+  std::string cmd2 = fmt::format("{}LAMBDA_HISTORY", id);
 
   // delete existing fix store if existing
   fixstore = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
   fixstore2 = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd2));
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  if (fixstore2 && modify->nfix) modify->delete_fix(fixstore2->id);
+  if (fixstore) modify->delete_fix(fixstore->id);
+  if (fixstore2) modify->delete_fix(fixstore2->id);
   fixstore = nullptr;
 
   // create new FixStoreAtom
   // store history_length of last values and the sum over all values
-  char history_length_str[40], history2_length_str[40];
-  sprintf(history_length_str, "%d", history_length + 2);      // lambda_input
-  sprintf(history2_length_str, "%d", history2_length + 1);    // lambda
-
-  // arguments of peratom:
-  // first: 1 -> store in restart file
-  // second: number of doubles to store per atom
-  cmd += " all STORE/ATOM ";
-  cmd2 += " all STORE/ATOM ";
-  cmd += history_length_str;      // n1
-  cmd2 += history2_length_str;    // n1
-  cmd += " 0 0 1";                // n2 gflag rflag
-  cmd2 += " 0 0 1";               // n2 gflag rflag
-  fixstore = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
-  fixstore2 = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd2));
+  // STORE/ATOM arguments: n1 (number of doubles per atom) n2 gflag rflag
+  fixstore = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} all STORE/ATOM {} 0 0 1", cmd, history_length + 2)));
+  fixstore2 = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} all STORE/ATOM {} 0 0 1", cmd2, history2_length + 1)));
 
   // carry weights with atoms during normal atom migration
   fixstore->disable = 0;

@@ -30,6 +30,7 @@
 #include "force.h"
 #include "memory.h"
 #include "platform.h"
+#include "safe_pointers.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -1768,13 +1769,10 @@ void PairMGPT::coeff(int narg, char **arg)
           error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
         if (strcmp(arg[iarg+1],"yes") == 0) volpres_flag = 1;
         else if (strcmp(arg[iarg+1],"no") == 0) volpres_flag = 0;
-        else {
-          char line[1024];
-          sprintf(line,"(In %s:%d) Invalid value for volumetric pressure argument.\n"
-                  "It should be \"volpress yes\" or \"volpress no\".\n"
-                  "The value is \"%s\".\n",FLERR,arg[iarg+1]);
-          error->all(FLERR,line);
-        }
+        else
+          error->all(FLERR,iarg+1,"Invalid value for volumetric pressure argument.\n"
+                     "It should be \"volpress yes\" or \"volpress no\".\n"
+                     "The value is \"{}\".",arg[iarg+1]);
         iarg += 2;
         if (comm->me == 0) printf("* volpress: volpres_flag = %d [%s %s]\n",volpres_flag,arg[iarg-2],arg[iarg-1]);
       } else if (strcmp(arg[iarg],"nbody") == 0) {
@@ -1788,13 +1786,11 @@ void PairMGPT::coeff(int narg, char **arg)
               if (comm->me == 0) printf("Explicitly adding %d-tuple forces.\n",i+1);
             }
         } else {
-          char line[1024];
-          sprintf(line,"(In %s:%d) Invalid value for nbody flag.\n"
-                  "It should be e.g. \"nbody=1234\" (for single, pair, triple, and quad forces/energiers)\n"
-                  "For e.g. only pair and triple forces/energies, use \"nbody=23\".\n"
-                  "The default is \"nbody=1234\".\n"
-                  "The current value is \"%s\".\n",FLERR,arg[iarg+1]);
-          error->all(FLERR,line);
+          error->all(FLERR,iarg+1,"Invalid value for nbody flag.\n"
+                     "It should be e.g. \"nbody=1234\" (for single, pair, triple, and quad forces/energies)\n"
+                     "For e.g. only pair and triple forces/energies, use \"nbody=23\".\n"
+                     "The default is \"nbody=1234\".\n"
+                     "The current value is \"{}\".",arg[iarg+1]);
         }
         nbody_tag = 1;
         iarg += 2;
@@ -1803,23 +1799,18 @@ void PairMGPT::coeff(int narg, char **arg)
           error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
         if (strcmp(arg[iarg+1],"single") == 0) single_precision = 1;
         else if (strcmp(arg[iarg+1],"double") == 0) single_precision = 0;
-        else {
-          char line[1024];
-          sprintf(line,"(In %s:%d) Invalid value for precision argument.\n"
-                  "It should be \"precision single\" or \"precision double\".\n"
-                  "The value is \"%s\".\n",FLERR,arg[iarg+1]);
-          error->all(FLERR,line);
-        }
+        else
+          error->all(FLERR,iarg+1,"Invalid value for precision argument.\n"
+                     "It should be \"precision single\" or \"precision double\".\n"
+                     "The value is \"{}\".",arg[iarg+1]);
         iarg += 2;
         if (comm->me == 0) printf("* precision: single_flag = %d [%s %s]\n",single_precision,arg[iarg-2],arg[iarg-1]);
       } else {
-        char line[1024];
-        sprintf(line,"(In %s:%d) Invalid argument. Allowed arguments are:\n"
-                "    volpress {yes|no} , default = yes\n"
-                "    precision {single|double} , default = double\n"
-                "    nbody {[1234,]*} , default = whichever terms potential require\n"
-                "The invalid argument is \"%s\".\n",FLERR,arg[iarg]);
-        error->all(FLERR,line);
+        error->all(FLERR,iarg,"Invalid argument. Allowed arguments are:\n"
+                   "    volpress {{yes|no}} , default = yes\n"
+                   "    precision {{single|double}} , default = double\n"
+                   "    nbody {{[1234,]*}} , default = whichever terms potential require\n"
+                   "The invalid argument is \"{}\".",arg[iarg]);
       }
     }
 
@@ -1827,15 +1818,12 @@ void PairMGPT::coeff(int narg, char **arg)
       printf("Volumetric pressure is %s.\n",volpres_flag ? "on" : "off");
 
     if (comm->me == 0) {
-      FILE *parmin_fp = utils::open_potential(arg[2],lmp,nullptr);
-      FILE *potin_fp = utils::open_potential(arg[3],lmp,nullptr);
-      if (parmin_fp == nullptr || potin_fp == nullptr) {
-        char str[128];
-        sprintf(str,"Cannot open MGPT potential files %s %s",arg[2],arg[3]);
-        error->one(FLERR,str);
+      {
+        SafeFilePtr parmin_fp = utils::open_potential(arg[2],lmp,nullptr);
+        SafeFilePtr potin_fp = utils::open_potential(arg[3],lmp,nullptr);
+        if (!parmin_fp || !potin_fp)
+          error->one(FLERR,"Cannot open MGPT potential files {} {}",arg[2],arg[3]);
       }
-      fclose(parmin_fp);
-      fclose(potin_fp);
 
       splinepot.readpot(arg[2],arg[3],vol);
       printf("evol0 = %.10e\n",splinepot.evol0);

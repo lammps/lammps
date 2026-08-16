@@ -163,9 +163,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     }
   }
 
-  for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
-      bond_off = angle_off = dihedral_off = improper_off = 1;
+  if (!modify->get_fix_by_style("^gcmc$").empty())
+    bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 

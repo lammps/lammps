@@ -259,18 +259,11 @@ void FixFilterCorotate::init()
 {
   int i;
   // error if more than one filter
-  int count = 0;
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"filter/corotate") == 0) count++;
-  }
-  if (count > 1) error->all(FLERR,"More than one fix filter/corotate");
+  if (modify->get_fix_by_style("^filter/corotate$").size() > 1)
+    error->all(FLERR,"More than one fix filter/corotate");
 
   // check for fix shake:
-  count = 0;
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  }
-  if (count > 1)
+  if (modify->get_fix_by_style("^shake$").size() > 1)
     error->one(FLERR,"Both fix shake and fix filter/corotate detected.");
 
   // if rRESPA, find associated fix that must exist

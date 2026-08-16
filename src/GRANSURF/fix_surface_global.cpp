@@ -1580,8 +1580,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
         xsurf_original = nullptr;
         pointmove = nullptr;
 
-        int ifix = modify->find_fix(id);
-        modify->fmask[ifix] &= ~INITIAL_INTEGRATE;
+        modify->clear_fix_mask(this, INITIAL_INTEGRATE);
         force_reneighbor = 0;
         next_reneighbor = -1;
       }
@@ -1631,8 +1630,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     if (mstyle == VARIABLE) anymove_variable = 1;
     motions[imotion].time_origin = update->ntimestep;
 
-    int ifix = modify->find_fix(id);
-    modify->fmask[ifix] |= INITIAL_INTEGRATE;
+    modify->set_fix_mask(this, INITIAL_INTEGRATE);
 
     force_reneighbor = 1;
     next_reneighbor = -1;

@@ -125,6 +125,18 @@ class Modify : protected Pointers {
     }
     return 0;
   }
+  void set_fix_mask(Fix *ifix, int flags)
+  {
+    for (int i = 0; i < nfix; ++i) {
+      if (fix[i] == ifix) fmask[i] |= flags;
+    }
+  }
+  void clear_fix_mask(Fix *ifix, int flags)
+  {
+    for (int i = 0; i < nfix; ++i) {
+      if (fix[i] == ifix) fmask[i] &= ~flags;
+    }
+  }
 
   Compute *add_compute(int, char **, int trysuffix = 1);
   Compute *add_compute(const std::string &, int trysuffix = 1);

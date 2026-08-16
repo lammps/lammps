@@ -176,7 +176,7 @@ void FixEHEX::init()
 
     // check for fix ilves:
     if (!modify->get_fix_by_style("^ilves").empty())
-      error->one(FLERR, Error::NOLASTLINE, "Fix ehex is not compatible with fix ilves");
+      error->all(FLERR, Error::NOLASTLINE, "Fix ehex is not compatible with fix ilves");
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 

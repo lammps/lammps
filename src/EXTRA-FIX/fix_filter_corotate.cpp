@@ -264,13 +264,13 @@ void FixFilterCorotate::init()
 
   // check for fix shake:
   if (!modify->get_fix_by_style("^shake").empty())
-    error->one(FLERR,"Both fix shake and fix filter/corotate detected.");
+    error->all(FLERR,"Both fix shake and fix filter/corotate detected.");
   // check for fix rattle:
   if (!modify->get_fix_by_style("^rattle").empty())
-    error->one(FLERR,"Both fix rattle and fix filter/corotate detected.");
+    error->all(FLERR,"Both fix rattle and fix filter/corotate detected.");
   // check for fix ilves:
   if (!modify->get_fix_by_style("^ilves").empty())
-    error->one(FLERR,"Both fix ilves and fix filter/corotate detected.");
+    error->all(FLERR,"Both fix ilves and fix filter/corotate detected.");
 
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created

@@ -218,6 +218,11 @@ void FixNVESpin::init()
   }
 
   // set ptrs for fix precession/spin styles
+  // reset flags and cached pointers first, since the fixes
+  // may have been deleted since a previous run
+
+  precession_spin_flag = maglangevin_flag = setforce_spin_flag = 0;
+  locksetforcespin = nullptr;
 
   auto precfixes = modify->get_fix_by_style("^precession/spin");
   nprecspin = (int) precfixes.size();

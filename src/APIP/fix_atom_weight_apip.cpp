@@ -198,9 +198,7 @@ FixAtomWeightAPIP::~FixAtomWeightAPIP()
   delete[] time_group_extract_name;
   delete[] time_group_name;
 
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = nullptr;
+  if (fixstore) modify->delete_fix(fixstore->id);
 }
 
 /**

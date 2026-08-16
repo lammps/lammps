@@ -96,9 +96,9 @@ void FixGraphicsLines::post_constructor()
 
 FixGraphicsLines::~FixGraphicsLines()
 {
-  if (modify->ncompute && modify->get_compute_by_id(id_cprop)) modify->delete_compute(id_cprop);
-  if (modify->nfix && modify->get_fix_by_id(id_fave)) modify->delete_fix(id_fave);
-  if (modify->nfix && modify->get_fix_by_id(id_fstore)) modify->delete_fix(id_fstore);
+  if (modify->get_compute_by_id(id_cprop)) modify->delete_compute(id_cprop);
+  if (modify->get_fix_by_id(id_fave)) modify->delete_fix(id_fave);
+  if (modify->get_fix_by_id(id_fstore)) modify->delete_fix(id_fstore);
   delete[] id_cprop;
   delete[] id_fave;
   delete[] id_fstore;

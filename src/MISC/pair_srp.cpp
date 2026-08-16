@@ -128,8 +128,7 @@ PairSRP::~PairSRP()
     memory->destroy(segment);
   }
 
-  // check nfix in case all fixes have already been deleted
-  if (modify->nfix && modify->get_fix_by_id(f_srp->id)!=nullptr) modify->delete_fix(f_srp->id);
+  modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------

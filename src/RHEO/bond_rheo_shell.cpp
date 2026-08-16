@@ -80,7 +80,7 @@ BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
 
 BondRHEOShell::~BondRHEOShell()
 {
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
   delete[] id_fix;
   delete[] svector;
 

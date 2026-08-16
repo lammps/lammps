@@ -182,13 +182,9 @@ PairAmoeba::~PairAmoeba()
 {
   delete[] pvector;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) {
-    if (id_pole) modify->delete_fix(id_pole);
-    if (id_udalt) modify->delete_fix(id_udalt);
-    if (id_upalt) modify->delete_fix(id_upalt);
-  }
+  if (id_pole) modify->delete_fix(id_pole);
+  if (id_udalt) modify->delete_fix(id_udalt);
+  if (id_upalt) modify->delete_fix(id_upalt);
 
   delete[] id_pole;
   delete[] id_udalt;

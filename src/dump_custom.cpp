@@ -191,10 +191,8 @@ DumpCustom::~DumpCustom()
   memory->destroy(thresh_value);
   memory->destroy(thresh_last);
 
-  // check nfix in case all fixes have already been deleted
-
   for (int i = 0; i < nthreshlast; i++) {
-    if (modify->nfix) modify->delete_fix(thresh_fixID[i]);
+    modify->delete_fix(thresh_fixID[i]);
     delete[] thresh_fixID[i];
   }
   memory->sfree(thresh_fix);

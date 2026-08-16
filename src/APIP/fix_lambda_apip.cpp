@@ -215,10 +215,8 @@ int FixLambdaAPIP::modify_param(int narg, char **arg)
 
 FixLambdaAPIP::~FixLambdaAPIP()
 {
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  if (fixstore2 && modify->nfix) modify->delete_fix(fixstore2->id);
-  fixstore = fixstore2 = nullptr;
+  if (fixstore) modify->delete_fix(fixstore->id);
+  if (fixstore2) modify->delete_fix(fixstore2->id);
 
   memory->destroy(peratom_stats);
 

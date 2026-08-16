@@ -376,9 +376,9 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  fix_rigid = nullptr;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) { fix_rigid = ifix; break; }
 
   // Define history indices
 

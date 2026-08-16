@@ -117,8 +117,8 @@ void ComputeEntropyAtom::init()
                    " distance.");
     }
 
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^entropy/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 
   // Request a full neighbor list
   int list_flags = NeighConst::REQ_FULL;

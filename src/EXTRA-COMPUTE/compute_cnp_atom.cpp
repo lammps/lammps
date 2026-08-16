@@ -104,8 +104,8 @@ void ComputeCNPAtom::init()
     error->warning(FLERR,"Compute cnp/atom cutoff may be too large to find "
                    "ghost atom neighbors");
 
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^cnp/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 
   // need an occasional full neighbor list
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);

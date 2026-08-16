@@ -112,7 +112,7 @@ void ReaderADIOS::settings(int narg, char **arg)
   while (idx < narg) {
     if (!strcmp(arg[idx], "timeout")) {
       if (idx + 1 < narg) {
-        internal->timeout = std::stof(arg[idx + 1]);
+        internal->timeout = (float) utils::numeric(FLERR, arg[idx + 1], false, lmp);
         internal->io.SetParameter("OpenTimeoutSecs", arg[idx + 1]);
         ++idx;
       } else {

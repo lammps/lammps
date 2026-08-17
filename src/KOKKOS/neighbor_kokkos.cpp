@@ -76,6 +76,17 @@ void NeighborKokkos::init()
   atomKK = (AtomKokkos *) atom;
   Neighbor::init();
 
+  // the pairwise neighbor list build of the KOKKOS package looks up special
+  // bonds in the per-atom special list only.  with a molecule template that
+  // list does not exist, so all special bonds would be silently ignored.
+  // atom styles using a molecule template have no KOKKOS version (yet) and
+  // are already rejected by AtomKokkos::new_avec(), but check here as well,
+  // so that adding one cannot make the neighbor lists silently incorrect
+
+  if (atom->molecular == Atom::TEMPLATE)
+    error->all(FLERR,Error::NOLASTLINE,
+               "KOKKOS package does not support atom styles with a molecule template");
+
   // Neighbor::init() allocates the host-side xhold array, but KOKKOS stores
   // the positions of the last build in its own view of the same name and
   // never fills the host array.  free it, so that Neighbor::get_xhold()

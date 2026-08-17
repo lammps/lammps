@@ -157,6 +157,7 @@ class NPairKokkos : public NPair {
   // data from Neighbor class
 
   DAT::ttransform_kkfloat_2d k_cutneighsq;
+  DAT::ttransform_kkfloat_2d k_cutneighghostsq;
 
   // exclusion data from Neighbor class
 
@@ -194,6 +195,7 @@ class NeighborKokkosExecute
   // data from Neighbor class
 
   const typename AT::t_kkfloat_2d_randomread cutneighsq;
+  const typename AT::t_kkfloat_2d_randomread cutneighghostsq;
 
   // exclusion data from Neighbor class
 
@@ -264,6 +266,7 @@ class NeighborKokkosExecute
   NeighborKokkosExecute(
                         const NeighListKokkos<DeviceType> &_neigh_list,
                         const typename AT::t_kkfloat_2d_randomread &_cutneighsq,
+                        const typename AT::t_kkfloat_2d_randomread &_cutneighghostsq,
                         const typename AT::t_int_1d &_bincount,
                         const typename AT::t_int_2d &_bins,
                         const typename AT::t_int_1d &_atom2bin,
@@ -303,7 +306,8 @@ class NeighborKokkosExecute
                         const HAT::t_int_scalar _h_resize,
                         const typename AT::t_int_scalar _new_maxneighs,
                         const HAT::t_int_scalar _h_new_maxneighs):
-    neigh_list(_neigh_list),delta(_delta),cutneighsq(_cutneighsq),exclude(_exclude),
+    neigh_list(_neigh_list),delta(_delta),cutneighsq(_cutneighsq),
+    cutneighghostsq(_cutneighghostsq),exclude(_exclude),
     nex_type(_nex_type),ex1_type(_ex1_type),ex2_type(_ex2_type),
     ex_type(_ex_type),nex_group(_nex_group),
     ex1_bit(_ex1_bit),ex2_bit(_ex2_bit),

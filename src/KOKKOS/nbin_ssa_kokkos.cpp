@@ -21,6 +21,8 @@
 
 #include "atom_kokkos.h"
 #include "domain.h"
+#include "error.h"
+#include "group.h"
 #include "update.h"
 #include "atom_masks.h"
 #include "kokkos_type.h"
@@ -35,6 +37,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   atoms_per_bin = ghosts_per_gbin = 16;
 
   d_resize = typename AT::t_int_scalar("NBinSSAKokkos::d_resize");
+  d_error_flag = typename AT::t_int_scalar("NBinSSAKokkos::d_error_flag");
   d_lbinxlo = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinxlo");
   d_lbinylo = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinylo");
   d_lbinzlo = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinzlo");
@@ -42,6 +45,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   d_lbinyhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinyhi");
   d_lbinzhi = typename AT::t_int_scalar("NBinSSAKokkos::d_lbinzhi");
   h_resize = Kokkos::create_mirror_view(d_resize);
+  h_error_flag = Kokkos::create_mirror_view(d_error_flag);
   h_lbinxlo = Kokkos::create_mirror_view(d_lbinxlo);
   h_lbinylo = Kokkos::create_mirror_view(d_lbinylo);
   h_lbinzlo = Kokkos::create_mirror_view(d_lbinzlo);
@@ -49,6 +53,7 @@ NBinSSAKokkos<DeviceType>::NBinSSAKokkos(LAMMPS *lmp) : NBinStandard(lmp)
   h_lbinyhi = Kokkos::create_mirror_view(d_lbinyhi);
   h_lbinzhi = Kokkos::create_mirror_view(d_lbinzhi);
   h_resize() = 1;
+  h_error_flag() = 0;
 
   k_gbincount = DAT::tdual_int_1d("NBinSSAKokkos::gbincount",8);
   gbincount = k_gbincount.view<DeviceType>();
@@ -105,8 +110,17 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
 
-  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
+  // with "neigh_modify include" only atoms of that group are binned
+  // the owned atoms of that group come first, ghosts must be tested one by one
+
+  const int nowned = nlocal;
+  if (includegroup) nlocal = atom->nfirst;
+  bitmask_ = includegroup ? group->bitmask[includegroup] : 0;
+
+  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,
+               includegroup ? (X_MASK | MASK_MASK) : X_MASK);
   x = atomKK->k_x.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
 
   sublo_[0] = domain->sublo[0];
   sublo_[1] = domain->sublo[1];
@@ -121,12 +135,23 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   k_binID = DAT::tdual_int_1d("NBinSSAKokkos::binID",nall);
   binID = k_binID.view<DeviceType>();
 
+  h_error_flag() = 0;
+  Kokkos::deep_copy(d_error_flag, h_error_flag);
+
   // find each local atom's binID
   {
     atoms_per_bin = 0;
     NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
   }
+
+  // atoms with non-numeric coordinates have no valid binID, so bail out
+  // before the binID data is used
+
+  Kokkos::deep_copy(h_error_flag, d_error_flag);
+  if (h_error_flag())
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
+
   Kokkos::deep_copy(h_lbinxlo, d_lbinxlo);
   Kokkos::deep_copy(h_lbinylo, d_lbinylo);
   Kokkos::deep_copy(h_lbinzlo, d_lbinzlo);
@@ -141,7 +166,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
-    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nlocal,nall), f, ghosts_per_gbin);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nowned,nall), f, ghosts_per_gbin);
   }
 
   // actually bin the ghost atoms
@@ -158,7 +183,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     auto gbincount_ = gbincount;
     auto gbins_ = gbins;
 
-    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nlocal,nall),
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nowned,nall),
      LAMMPS_LAMBDA (const int i) {
       const int iAIR = binID_(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
@@ -224,6 +249,14 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binIDAtomsItem(const int &i, int &update) const
 {
+  // a non-numeric coordinate would produce a bogus bin index
+  // flag it for the host to turn into an error and skip this atom
+
+  if (!Kokkos::isfinite(x(i, 0)) || !Kokkos::isfinite(x(i, 1)) || !Kokkos::isfinite(x(i, 2))) {
+    d_error_flag() = 1;
+    return;
+  }
+
   int loc[3];
   const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
   binID(i) = ibin;
@@ -245,6 +278,13 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
 {
+  // with "neigh_modify include" skip ghosts that are not in the include group
+
+  if (bitmask_ && !(mask(i) & bitmask_)) {
+    binID(i) = -1;
+    return;
+  }
+
   const int iAIR = coord2ssaAIR(x(i, 0), x(i, 1), x(i, 2));
   binID(i) = iAIR;
   if (iAIR > 0) { // include only ghost atoms in an AIR

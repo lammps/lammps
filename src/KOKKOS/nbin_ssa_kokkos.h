@@ -63,7 +63,10 @@ class NBinSSAKokkos : public NBinStandard {
 
   typename AT::t_int_scalar d_resize;
   HAT::t_int_scalar h_resize;
+  typename AT::t_int_scalar d_error_flag;
+  HAT::t_int_scalar h_error_flag;
   typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_int_1d_randomread mask;
 
   // Bounds of the local atoms in the bins array
   typename AT::t_int_scalar d_lbinxlo;  // lowest local bin x-dim coordinate
@@ -172,6 +175,7 @@ class NBinSSAKokkos : public NBinStandard {
  private:
   double bboxlo_[3],bboxhi_[3];
   double sublo_[3], subhi_[3];
+  int bitmask_;    // bitmask of the include group, 0 if there is none
 };
 
 template<class DeviceType>

@@ -59,9 +59,11 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_neighbor_info()
   // general params
 
   k_cutneighsq = neighborKK->k_cutneighsq;
+  k_cutneighghostsq = neighborKK->k_cutneighghostsq;
 
   // overwrite per-type Neighbor cutoffs with custom value set by requestor
   // only works for style = BIN (checked by Neighbor class)
+  // the ghost cutoffs are left alone, same as in NPair::copy_neighbor_info()
 
   if (cutoff_custom > 0.0) {
     int n = atom->ntypes;
@@ -73,6 +75,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::copy_neighbor_info()
   }
 
   k_cutneighsq.modify_host();
+  k_cutneighghostsq.modify_host();
 
   // exclusion info
 
@@ -168,6 +171,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
   NeighborKokkosExecute<DeviceType>
     data(*list,
          k_cutneighsq.view<DeviceType>(),
+         k_cutneighghostsq.view<DeviceType>(),
          k_bincount.view<DeviceType>(),
          k_bins.view<DeviceType>(),
          k_atom2bin.view<DeviceType>(),
@@ -203,6 +207,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
          skin,d_resize,h_resize,d_new_maxneighs,h_new_maxneighs);
 
   k_cutneighsq.sync<DeviceType>();
+  k_cutneighghostsq.sync<DeviceType>();
   k_ex1_type.sync<DeviceType>();
   k_ex2_type.sync<DeviceType>();
   k_ex_type.sync<DeviceType>();
@@ -934,7 +939,7 @@ void NeighborKokkosExecute<DeviceType>::
         const double delz = ztmp - x(j,2);
         const double rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq <= cutneighsq(itype,jtype)) {
+        if (rsq <= cutneighghostsq(itype,jtype)) {
           if (n < neigh_list.maxneighs) neighbors_i(n++) = j;
           else n++;
         }
@@ -1078,7 +1083,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
           const double delz = ztmp - other_x[m + 2 * atoms_per_bin];
           const double rsq = delx*delx + dely*dely + delz*delz;
 
-          if (rsq <= cutneighsq(itype,jtype)) {
+          if (rsq <= (ghost ? cutneighghostsq(itype,jtype) : cutneighsq(itype,jtype))) {
             if (molecular != Atom::ATOMIC && !ghost) {
               if (!moltemplate)
                 which = NeighborKokkosExecute<DeviceType>::find_special(i,j);

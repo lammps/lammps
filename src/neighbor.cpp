@@ -349,9 +349,13 @@ void Neighbor::init()
 
   n = atom->ntypes;
   if (cutneighsq == nullptr) {
-    if (lmp->kokkos) init_cutneighsq_kokkos(n);
-    else memory->create(cutneighsq, n + 1, n + 1, "neigh:cutneighsq");
-    memory->create(cutneighghostsq, n + 1, n + 1, "neigh:cutneighghostsq");
+    if (lmp->kokkos) {
+      init_cutneighsq_kokkos(n);
+      init_cutneighghostsq_kokkos(n);
+    } else {
+      memory->create(cutneighsq, n + 1, n + 1, "neigh:cutneighsq");
+      memory->create(cutneighghostsq, n + 1, n + 1, "neigh:cutneighghostsq");
+    }
     cuttype = new double[n + 1];
     cuttypesq = new double[n + 1];
   }

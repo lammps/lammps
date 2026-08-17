@@ -55,6 +55,9 @@ NeighborKokkos::~NeighborKokkos()
     memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
     cutneighsq = nullptr;
 
+    memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
+    cutneighghostsq = nullptr;
+
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
     memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
@@ -93,6 +96,14 @@ void NeighborKokkos::init_cutneighsq_kokkos(int n)
 {
   memoryKK->create_kokkos(k_cutneighsq,cutneighsq,n+1,n+1,"neigh:cutneighsq");
   k_cutneighsq.modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighborKokkos::init_cutneighghostsq_kokkos(int n)
+{
+  memoryKK->create_kokkos(k_cutneighghostsq,cutneighghostsq,n+1,n+1,"neigh:cutneighghostsq");
+  k_cutneighghostsq.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */

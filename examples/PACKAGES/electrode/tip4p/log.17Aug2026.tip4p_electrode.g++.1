@@ -1,0 +1,356 @@
+LAMMPS (4 Jul 2026)
+echo both
+
+# ======================================================================
+# Example:
+# TIP4P water with constant-potential graphene electrodes
+#
+# This test exercises:
+#
+#   * lj/cut/tip4p/long for TIP4P water
+#   * lj/cut/tip4p/long for water-graphene interactions
+#   * lj/cut/coul/long for graphene-graphene interactions
+#   * pppm/electrode/tip4p for long-range electrostatics
+#   * fix electrode/conp for constant-potential electrodes
+#
+# IMPORTANT:
+#
+# This input intentionally uses PairHybrid with a TIP4P sub-style and
+# another sub-style containing Coulomb interactions. LAMMPS may therefore
+# print the standard PairHybrid TIP4P warning; this warning is expected
+# and is unrelated to the TIP4P/ELECTRODE implementation.
+#
+# The purpose of this test is instead to verify that:
+#
+#   1. TIP4P parameters are correctly extracted.
+#   2. pppm/electrode/tip4p initializes correctly.
+#   3. TIP4P charge mapping works correctly.
+#   4. fix electrode/conp initializes and operates correctly.
+#   5. The simulation can proceed without an ERROR.
+#
+# System:
+#
+#   * TIP4P water
+#   * two parallel graphene electrodes
+#   * 20 Angstrom electrode separation
+#   * constant potentials of -0.25 V and +0.25 V
+#
+# Data file:
+#
+#   data.tip4p_electrode_graphene
+#
+# ======================================================================
+
+units           real
+dimension       3
+boundary        p p f
+
+atom_style      full
+
+
+# ----------------------------------------------------------------------
+# Molecular topology
+# ----------------------------------------------------------------------
+
+bond_style      harmonic
+angle_style     harmonic
+
+
+# ----------------------------------------------------------------------
+# System
+#
+# Atom types:
+#
+#   1 : TIP4P oxygen
+#   2 : TIP4P hydrogen
+#   3 : graphene electrode 1
+#   4 : graphene electrode 2
+#
+# The two graphene electrodes are separated by 20 Angstrom.
+# ----------------------------------------------------------------------
+
+read_data       data.tip4p_electrode_graphene
+Reading data file ...
+  orthogonal box = (0 0 -5) to (21.27 22.1044 25)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  660 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0 0 -5) to (21.27 22.1044 25)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  200 bonds
+  reading angles ...
+  100 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0
+  special bond factors coul:  0        0        0
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.013 seconds
+  read_data CPU = 0.051 seconds
+
+
+# ----------------------------------------------------------------------
+# Hybrid force field
+#
+# TIP4P water and water-graphene interactions:
+#   lj/cut/tip4p/long
+#
+# Graphene-graphene interactions:
+#   lj/cut/coul/long
+# ----------------------------------------------------------------------
+
+pair_style      hybrid lj/cut/coul/long 8.0 8.0 lj/cut/tip4p/long 1 2 1 1 0.1546 8.0 8.0
+WARNING: Using a tip4p sub-style with other sub-styles that include coulomb interactions can result in inconsistent calculation of the coulomb interactions (D:\LAMMPS_PR3\lammps-4Jul2026-pr3\src\pair_hybrid.cpp:380)
+
+
+# ----------------------------------------------------------------------
+# TIP4P water
+# ----------------------------------------------------------------------
+
+pair_coeff      1 1 lj/cut/tip4p/long 0.1852 3.1589   # O-O
+pair_coeff      1 2 lj/cut/tip4p/long 0.0    0.0      # O-H
+pair_coeff      2 2 lj/cut/tip4p/long 0.0    0.0      # H-H
+
+
+# ----------------------------------------------------------------------
+# Graphene electrodes
+# ----------------------------------------------------------------------
+
+pair_coeff      3 3 lj/cut/coul/long 0.085842 3.40    # C-C
+pair_coeff      4 4 lj/cut/coul/long 0.085842 3.40    # C-C
+pair_coeff      3 4 lj/cut/coul/long 0.085842 3.40    # C-C
+
+
+# ----------------------------------------------------------------------
+# Water - graphene
+# ----------------------------------------------------------------------
+
+pair_coeff      1 3 lj/cut/tip4p/long 0.1261 3.27945  # O-C
+pair_coeff      1 4 lj/cut/tip4p/long 0.1261 3.27945  # O-C
+pair_coeff      2 3 lj/cut/tip4p/long 0.0    1.6      # H-C
+pair_coeff      2 4 lj/cut/tip4p/long 0.0    1.6      # H-C
+
+
+# ----------------------------------------------------------------------
+# Neighbor list
+# ----------------------------------------------------------------------
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+
+# ----------------------------------------------------------------------
+# Long-range electrostatics
+# ----------------------------------------------------------------------
+
+kspace_style    pppm/electrode/tip4p 1.0e-4
+kspace_modify   slab 3.0
+Updated KSpace settings:
+  KSpace computation is turned:    ON
+  Use MPI collective operations:   OFF
+  Use MPI non-blocking operations: OFF
+  Gewald is determined automatically
+  Slab volfactor manually set to:    3
+
+# ----------------------------------------------------------------------
+# Groups
+# ----------------------------------------------------------------------
+
+group           water type 1 2
+300 atoms in group water
+
+group           GL type 3
+180 atoms in group GL
+group           GH type 4
+180 atoms in group GH
+group           G union GL GH
+360 atoms in group G
+
+
+# ----------------------------------------------------------------------
+# Initial velocities
+# ----------------------------------------------------------------------
+
+velocity        water create 300.0 492845 mom yes rot yes dist gaussian
+
+
+# ----------------------------------------------------------------------
+# Constraints and dynamics
+# ----------------------------------------------------------------------
+
+fix             freeze G setforce 0.0 0.0 0.0
+
+fix             shake water shake 1.0e-4 20 0 b 1 a 1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+     100 = # of frozen angles
+  find clusters CPU = 0.001 seconds
+
+fix             nvt water nvt temp 300.0 300.0 100.0
+
+
+# ----------------------------------------------------------------------
+# Constant-potential electrodes
+#
+# The two graphene electrodes are maintained at -0.25 V and +0.25 V.
+# ----------------------------------------------------------------------
+
+fix             conp GL electrode/conp -0.25 1.805 couple GH 0.25 symm on
+360 atoms in group conp_group
+
+
+# ----------------------------------------------------------------------
+# Electrode charge diagnostics
+# ----------------------------------------------------------------------
+
+compute         q_atom G property/atom q
+
+compute         q_GL GL reduce sum c_q_atom
+compute         q_GH GH reduce sum c_q_atom
+
+variable        Q_GL equal c_q_GL
+variable        Q_GH equal c_q_GH
+variable        Q_total equal c_q_GL+c_q_GH
+
+# Absolute charge magnitude on each electrode
+
+variable        q_abs atom abs(c_q_atom)
+
+compute         qabs_GL GL reduce sum v_q_abs
+compute         qabs_GH GH reduce sum v_q_abs
+
+# Maximum and minimum atomic charges on the electrodes
+
+compute         qmax_G G reduce max c_q_atom
+compute         qmin_G G reduce min c_q_atom
+
+
+
+# Thermodynamic output
+# ----------------------------------------------------------------------
+
+thermo          10
+
+thermo_style    custom step temp pe ecoul elong etotal press v_Q_GL v_Q_GH v_Q_total c_qabs_GL c_qabs_GH c_qmax_G c_qmin_G
+# ----------------------------------------------------------------------
+
+# ----------------------------------------------------------------------
+# Demonstration run
+# ----------------------------------------------------------------------
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- kspace_style pppm/electrode/tip4p command:
+
+@article{Ahrens2021,
+author = {Ahrens-Iwers, Ludwig J.V. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0063381},
+title = {{Constant potential simulations on a mesh}},
+journal = {Journal of Chemical Physics},
+year = {2021}
+volume = {155},
+pages = {104104},
+}
+- fix electrode command:
+
+@article{Ahrens2022
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+doi = {10.1063/5.0099239},
+title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
+journal = {The Journal of Chemical Physics},
+year = {2022}
+volume = {157},
+pages = {084801},
+}
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM/electrode/tip4p initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.32477516
+  grid = 15 15 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.023654874
+  estimated relative force accuracy = 7.1235949e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 20812 9000
+WARNING: Communication cutoff 0 is shorter than a bond length based estimate of 3.4358. This may lead to errors. (D:\LAMMPS_PR3\lammps-4Jul2026-pr3\src\comm.cpp:694)
+WARNING: Increasing communication cutoff to 11.1118 for TIP4P pair style (D:\LAMMPS_PR3\lammps-4Jul2026-pr3\src\KSPACE\pair_lj_cut_tip4p_long.cpp:497)
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.3092
+  ghost atom cutoff = 11.1118
+  binsize = 5.1546, bins = 5 5 6
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut/coul/long, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/cut/tip4p/long, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) fix electrode/conp, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 12.24 | 12.24 | 12.24 Mbytes
+   Step          Temp          PotEng         E_coul         E_long         TotEng         Press          v_Q_GL         v_Q_GH       v_Q_total      c_qabs_GL      c_qabs_GH       c_qmax_G       c_qmin_G
+         0   160.46512      6677002.1      11088.306     -11227.001      6677269.5      1.3022021e+08  0.12340449    -0.12340449     5.2735594e-16  1.0289526      0.99046173     0.023458677   -0.0740704
+        10   262.56779      6676747        10992.139     -11239.865      6677184.5      1.3021585e+08  0.045122015   -0.045122015    4.8572257e-16  1.0066126      0.98531168     0.018005092   -0.075405622
+        20   346.53787      6676592.3      10923.425     -11253.422      6677169.8      1.3021401e+08 -0.13051935     0.13051935     3.8857806e-16  0.92833742     1.0102903      0.017864838   -0.035732313
+        30   335.59155      6676576.4      10924.14      -11249.398      6677135.6      1.3021351e+08 -0.30395638     0.30395638    -2.7755576e-16  0.7998501      0.98055724     0.017567055   -0.032726633
+        40   321.26409      6676566.3      10918.582     -11252.344      6677101.7      1.3021332e+08 -0.3735399      0.3735399     -5.5511151e-16  0.71715416     0.93142963     0.018238792   -0.029529403
+        50   304.1776       6676565.6      10918.61      -11258.905      6677072.4      1.3021335e+08 -0.35992167     0.35992167    -4.9960036e-16  0.70330216     0.90160146     0.018335701   -0.034793429
+        60   295.29079      6676549        10902.342     -11260.079      6677041        1.3021321e+08 -0.28032808     0.28032808    -8.8817842e-16  0.73763845     0.84646153     0.019711275   -0.036263552
+        70   279.50004      6676541.4      10888.333     -11258.946      6677007.1      1.3021322e+08 -0.16711385     0.16711385    -5.2735594e-16  0.72103402     0.77468827     0.018681294   -0.030465818
+        80   263.18497      6676535.6      10867.848     -11257.584      6676974.2      1.3021332e+08 -0.11189299     0.11189299    -2.0816682e-16  0.72582095     0.69694698     0.016399524   -0.024967062
+        90   244.29755      6676537.5      10862.173     -11258.072      6676944.6      1.3021343e+08 -0.12275484     0.12275484    -2.3592239e-16  0.7368642      0.66481929     0.014960935   -0.022902418
+       100   247.33633      6676503.9      10836.644     -11261.732      6676916        1.3021311e+08 -0.15017338     0.15017338    -8.3266727e-17  0.71991331     0.69858463     0.01920796    -0.024771694
+Loop time of 0.737296 on 1 procs for 100 steps with 660 atoms
+
+Performance: 11.718 ns/day, 2.048 hours/ns, 135.631 timesteps/s, 89.516 katom-step/s
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.15792    | 0.15792    | 0.15792    |   0.0 | 21.42
+Bond    | 8.25e-05   | 8.25e-05   | 8.25e-05   |   0.0 |  0.01
+Kspace  | 0.25171    | 0.25171    | 0.25171    |   0.0 | 34.14
+Neigh   | 0.01261    | 0.01261    | 0.01261    |   0.0 |  1.71
+Comm    | 0.0018394  | 0.0018394  | 0.0018394  |   0.0 |  0.25
+Output  | 0.0039996  | 0.0039996  | 0.0039996  |   0.0 |  0.54
+Modify  | 0.30833    | 0.30833    | 0.30833    |   0.0 | 41.82
+Other   |            | 0.0008144  |            |       |  0.11
+
+Nlocal:            660 ave         660 max         660 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2084 ave        2084 max        2084 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          66098 ave       66098 max       66098 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 66098
+Ave neighs/atom = 100.14848
+Ave special neighs/atom = 0.90909091
+Neighbor list builds = 7
+Dangerous builds = 0
+Total wall time: 0:00:04

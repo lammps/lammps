@@ -40,6 +40,7 @@ ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeKEAtom::~ComputeKEAtom()
 {
+  if (copymode) return;
   memory->destroy(ke);
 }
 

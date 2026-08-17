@@ -1,11 +1,17 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csvr/kk
 .. index:: fix temp/csld
+.. index:: fix temp/csld/kk
 
 fix temp/csvr command
 =====================
 
+Accelerator Variants: *temp/csvr/kk*
+
 fix temp/csld command
 =====================
+
+Accelerator Variants: *temp/csld/kk*
 
 Syntax
 """"""
@@ -173,6 +179,10 @@ using the *start* and *stop* keywords of the :doc:`run <run>` command.
 See the :doc:`run <run>` command for details of how to do this.
 
 These fixes are not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

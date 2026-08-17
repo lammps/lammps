@@ -56,6 +56,7 @@ ComputeTempPartial::ComputeTempPartial(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempPartial::~ComputeTempPartial()
 {
+  if (copymode) return;
   memory->destroy(vbiasall);
   delete [] vector;
 }

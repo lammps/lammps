@@ -78,7 +78,7 @@ OPT.
    * :doc:`improper/local <compute_improper_local>`
    * :doc:`inertia/chunk <compute_inertia_chunk>`
    * :doc:`ke <compute_ke>`
-   * :doc:`ke/atom (o) <compute_ke_atom>`
+   * :doc:`ke/atom (ko) <compute_ke_atom>`
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
@@ -170,8 +170,8 @@ OPT.
    * :doc:`temp/deform/eff <compute_temp_deform_eff>`
    * :doc:`temp/drude <compute_temp_drude>`
    * :doc:`temp/eff <compute_temp_eff>`
-   * :doc:`temp/partial <compute_temp_partial>`
-   * :doc:`temp/profile <compute_temp_profile>`
+   * :doc:`temp/partial (k) <compute_temp_partial>`
+   * :doc:`temp/profile (k) <compute_temp_profile>`
    * :doc:`temp/ramp <compute_temp_ramp>`
    * :doc:`temp/region <compute_temp_region>`
    * :doc:`temp/region/eff <compute_temp_region_eff>`

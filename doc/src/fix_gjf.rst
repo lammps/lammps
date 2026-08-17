@@ -1,7 +1,10 @@
 .. index:: fix gjf
+.. index:: fix gjf/kk
 
 fix gjf command
 ========================
+
+Accelerator Variants: *gjf/kk*
 
 Syntax
 """"""
@@ -137,6 +140,10 @@ The keyword *vel* determines which velocity is used to determine
 quantities of interest in the simulation.
 
 The keyword *method* selects one of the eight GJ-methods implemented in LAMMPS.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

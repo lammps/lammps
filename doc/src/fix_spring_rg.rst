@@ -1,7 +1,10 @@
 .. index:: fix spring/rg
+.. index:: fix spring/rg/kk
 
 fix spring/rg command
 =====================
+
+Accelerator Variant: *spring/rg/kk*
 
 Syntax
 """"""
@@ -80,6 +83,12 @@ the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minim
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

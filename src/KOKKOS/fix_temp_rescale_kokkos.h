@@ -36,6 +36,7 @@ class FixTempRescaleKokkos : public FixTempRescale {
 
   FixTempRescaleKokkos(class LAMMPS *, int, char **);
   ~FixTempRescaleKokkos() override {}
+  void init() override;
   void end_of_step() override;
 };
 

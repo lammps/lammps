@@ -1,7 +1,10 @@
 .. index:: fix halt
+.. index:: fix halt/kk
 
 fix halt command
 ================
+
+Accelerator Variants: *halt/kk*
 
 Syntax
 """"""
@@ -234,6 +237,10 @@ relevant to this fix.  No global or per-atom quantities are stored by
 this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

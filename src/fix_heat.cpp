@@ -86,6 +86,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) :
 
 FixHeat::~FixHeat()
 {
+  if (copymode) return;
   delete[] hstr;
   delete[] idregion;
   memory->destroy(vheat);

@@ -17,7 +17,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`addforce (k) <fix_addforce>`
    * :doc:`add/heat <fix_add_heat>`
    * :doc:`addtorque/atom <fix_addtorque_atom>`
-   * :doc:`addtorque/group <fix_addtorque_group>`
+   * :doc:`addtorque/group (k) <fix_addtorque_group>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`align/self <fix_align_self>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
@@ -83,7 +83,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`freeze (k) <fix_freeze>`
    * :doc:`gcmc <fix_gcmc>`
    * :doc:`gemc <fix_gemc>`
-   * :doc:`gjf <fix_gjf>`
+   * :doc:`gjf (k) <fix_gjf>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
    * :doc:`graphics/arrows <fix_graphics_arrows>`
@@ -96,7 +96,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`graphics/replica <fix_graphics_replica>`
    * :doc:`gravity (ko) <fix_gravity>`
    * :doc:`grem <fix_grem>`
-   * :doc:`halt <fix_halt>`
+   * :doc:`halt (k) <fix_halt>`
    * :doc:`heat <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
    * :doc:`hmc <fix_hmc>`
@@ -191,8 +191,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
-   * :doc:`press/berendsen <fix_press_berendsen>`
-   * :doc:`press/langevin <fix_press_langevin>`
+   * :doc:`press/berendsen (k) <fix_press_berendsen>`
+   * :doc:`press/langevin (k) <fix_press_langevin>`
    * :doc:`print <fix_print>`
    * :doc:`propel/self <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
@@ -254,7 +254,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sph/stationary <fix_sph_stationary>`
    * :doc:`spring (k) <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
-   * :doc:`spring/rg <fix_spring_rg>`
+   * :doc:`spring/rg (k) <fix_spring_rg>`
    * :doc:`spring/self (k) <fix_spring_self>`
    * :doc:`srd <fix_srd>`
    * :doc:`store/force <fix_store_force>`
@@ -263,15 +263,15 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`surface/local <fix_surface_local>`
    * :doc:`tdpd/source <fix_dpd_source>`
    * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
-   * :doc:`temp/csld <fix_temp_csvr>`
-   * :doc:`temp/csvr <fix_temp_csvr>`
+   * :doc:`temp/csld (k) <fix_temp_csvr>`
+   * :doc:`temp/csvr (k) <fix_temp_csvr>`
    * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
    * :doc:`tgnpt/drude <fix_tgnh_drude>`
    * :doc:`tgnvt/drude <fix_tgnh_drude>`
    * :doc:`thermal/conductivity <fix_thermal_conductivity>`
-   * :doc:`ti/spring <fix_ti_spring>`
+   * :doc:`ti/spring (k) <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`
    * :doc:`ttm <fix_ttm>`
    * :doc:`ttm/cascade <fix_ttm>`

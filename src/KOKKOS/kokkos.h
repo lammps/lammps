@@ -86,6 +86,13 @@ class KokkosLMP : protected Pointers {
   void newton_check();
   bigint neigh_count(int);
 
+  // warn (on rank 0) when a KOKKOS-enabled style relies on an internal helper
+  // compute that is not itself a KOKKOS style, which forces a host/device sync
+  // every step.  Detected via the compute's kokkosable member.  No-op when the
+  // compute is null or already kokkosable.
+  static void warn_nonkokkos_compute(class LAMMPS *, const std::string &parentstyle,
+                                     class Compute *, const std::string &role);
+
   template<class DeviceType>
   int need_dup(int qeq_flag = 0)
   {

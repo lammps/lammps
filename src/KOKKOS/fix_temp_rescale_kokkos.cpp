@@ -18,7 +18,9 @@
 #include "compute.h"
 #include "error.h"
 #include "force.h"
+#include "group.h"
 #include "input.h"
+#include "kokkos.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
@@ -44,6 +46,31 @@ FixTempRescaleKokkos<DeviceType>::FixTempRescaleKokkos(LAMMPS *lmp, int narg, ch
 
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
+
+  // the base class created the internal temperature compute relying on the
+  // command-line -sf kk suffix.  When this style is requested with an explicit
+  // /kk suffix but without -sf kk, that compute is not a KOKKOS style and would
+  // force a host/device sync every step.  Recreate it as temp/kk in that case.
+
+  if (tflag) {
+    Compute *c = modify->get_compute_by_id(id_temp);
+    if (c && !c->kokkosable) {
+      modify->delete_compute(id_temp);
+      modify->add_compute(fmt::format("{} {} temp/kk", id_temp, group->names[igroup]));
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   warn if the temperature compute is not a KOKKOS style (e.g. set via
+   fix_modify temp to a non-kk compute): correct but forces per-step syncs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixTempRescaleKokkos<DeviceType>::init()
+{
+  FixTempRescale::init();
+  KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -51,10 +78,15 @@ FixTempRescaleKokkos<DeviceType>::FixTempRescaleKokkos(LAMMPS *lmp, int narg, ch
 template<class DeviceType>
 void FixTempRescaleKokkos<DeviceType>::end_of_step()
 {
-  atomKK->sync(temperature->execution_space,temperature->datamask_read);
-  double t_current = temperature->compute_scalar();
-  atomKK->modified(temperature->execution_space,temperature->datamask_modify);
-  atomKK->sync(execution_space,temperature->datamask_modify);
+  double t_current;
+  if (temperature->kokkosable)
+    t_current = temperature->compute_scalar();
+  else {
+    atomKK->sync(temperature->execution_space,temperature->datamask_read);
+    t_current = temperature->compute_scalar();
+    atomKK->modified(temperature->execution_space,temperature->datamask_modify);
+    atomKK->sync(execution_space,temperature->datamask_modify);
+  }
 
   // there is nothing to do, if there are no degrees of freedom
 
@@ -98,7 +130,7 @@ void FixTempRescaleKokkos<DeviceType>::end_of_step()
     int nlocal = atom->nlocal;
     auto groupbit = this->groupbit;
 
-    if (which == NOBIAS) {
+    if (which == BIAS) {
       if (temperature->kokkosable) temperature->remove_bias_all_kk();
       else {
         atomKK->sync(temperature->execution_space,temperature->datamask_read);
@@ -120,8 +152,8 @@ void FixTempRescaleKokkos<DeviceType>::end_of_step()
 
     atomKK->modified(execution_space,V_MASK);
 
-    if (which == NOBIAS) {
-      if (temperature->kokkosable) temperature->restore_bias_all();
+    if (which == BIAS) {
+      if (temperature->kokkosable) temperature->restore_bias_all_kk();
       else {
         atomKK->sync(temperature->execution_space,temperature->datamask_read);
         temperature->restore_bias_all();

@@ -15,6 +15,8 @@
 #include "kokkos.h"
 
 #include "citeme.h"
+#include "comm.h"
+#include "compute.h"
 #include "error.h"
 #include "force.h"
 #include "memory_kokkos.h"
@@ -904,4 +906,24 @@ void KokkosLMP::my_signal_handler(int sig)
     kill(getpid(),SIGABRT);
 #endif
   }
+}
+
+/* ----------------------------------------------------------------------
+   warn (rank 0) when a KOKKOS style relies on a non-KOKKOS helper compute
+   (e.g. a thermostat/barostat whose temperature compute is not kokkosable).
+   Such a helper runs on the host, forcing a per-step host/device sync of the
+   per-atom data it reads.  Results stay correct (the KOKKOS styles guard their
+   device paths), but performance silently degrades.  No-op if the compute is
+   null or already kokkosable.
+------------------------------------------------------------------------- */
+
+void KokkosLMP::warn_nonkokkos_compute(LAMMPS *lmp, const std::string &parentstyle,
+                                       Compute *c, const std::string &role)
+{
+  if (!c || c->kokkosable) return;
+  if (lmp->comm->me == 0)
+    lmp->error->warning(FLERR, "KOKKOS fix {} is using non-KOKKOS {} compute {}; this forces a "
+                        "host/device synchronization every step.  Use the '-sf kk' command-line "
+                        "switch or a {} compute with a '/kk' suffix for best performance.",
+                        parentstyle, role, c->id, role);
 }

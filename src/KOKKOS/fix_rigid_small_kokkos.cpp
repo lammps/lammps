@@ -233,6 +233,14 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
   k_xcmimage.sync_host();
   k_displace.sync_host();
   k_vatom.sync_host();
+  // the extended-particle arrays migrate with the atoms too, and pre_neighbor()
+  // marks them host-modified after the host exchange, so they have to be flushed
+  // here as well or that modify_host() collides with an outstanding device claim
+  if (extended) {
+    k_eflags.sync_host();
+    if (orientflag) k_orient.sync_host();
+    if (dorientflag) k_dorient.sync_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -326,6 +334,7 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
     k_atom2body.sync_host();
     k_xcmimage.sync_host();
     k_displace.sync_host();
+    k_vatom.sync_host();     // setup_device_push() marks this host-modified below
     if (extended) {
       k_eflags.sync_host();
       if (orientflag) k_orient.sync_host();
@@ -370,11 +379,13 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
     k_atom2body.modify_host();
     k_xcmimage.modify_host();
     k_displace.modify_host();
+    k_vatom.modify_host();
     k_bodytag.template sync<DeviceType>();
     k_bodyown.template sync<DeviceType>();
     k_atom2body.template sync<DeviceType>();
     k_xcmimage.template sync<DeviceType>();
     k_displace.template sync<DeviceType>();
+    k_vatom.template sync<DeviceType>();
     refresh_atom_views();
   }
 
@@ -1558,11 +1569,24 @@ void FixRigidSmallKokkos<DeviceType>::grow_arrays(int nmax)
 
   refresh_atom_views();
 
+  // grow_kokkos() resizes the DualView, and DualView::resize() takes its
+  // resize_on_device branch and marks the device side modified.  Retire that
+  // claim on every array grown above, or the next modify_host() on one of them
+  // -- from here, setup_device_push(), pre_neighbor() or sort_kokkos() -- sees
+  // both flags set and Kokkos::abort()s.  The sync_host() calls do this for the
+  // five arrays whose contents are restored below; k_vatom and the extended
+  // arrays only need the claim dropped.
   k_bodyown.sync_host();
   k_atom2body.sync_host();
   k_bodytag.sync_host();
   k_xcmimage.sync_host();
   k_displace.sync_host();
+  k_vatom.clear_sync_state();
+  if (extended) {
+    k_eflags.clear_sync_state();
+    if (orientflag) k_orient.clear_sync_state();
+    if (dorientflag) k_dorient.clear_sync_state();
+  }
 
   // restore the preserved contents into the new host mirrors
   for (int i = 0; i < nsave; i++) {

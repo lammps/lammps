@@ -1,0 +1,103 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifdef FIX_CLASS
+// clang-format off
+FixStyle(continuum/chunk,FixContinuumChunk);
+// clang-format on
+#else
+
+#ifndef LMP_FIX_CONTINUUM_CHUNK_H
+#define LMP_FIX_CONTINUUM_CHUNK_H
+
+#include "fix.h"
+
+namespace LAMMPS_NS {
+
+class FixContinuumChunk : public Fix {
+ public:
+  FixContinuumChunk(class LAMMPS *, int, char **);
+  ~FixContinuumChunk() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void setup(int) override;
+  void end_of_step() override;
+  double compute_array(int, int) override;
+  double memory_usage() override;
+
+ private:
+  std::vector<std::pair<int, int>> values;
+  std::vector<std::string> labels;
+
+  struct StencilOffset {
+    int dn[3];     // index shifts along chunk axes 0, 1, 2
+    double dx[3];  // displacement shifts along spatial axes x, y, z
+  };
+  std::vector<StencilOffset> stencil;
+
+  int dim, bin_dim, pstyle, calculate_pair, calculate_2_loops;
+  int boundary_group_flag, boundary_groupbit;
+  int index_density, index_momentum[3], index_velocity[3], index_vgrad[3][3];
+  double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
+
+  int nvalues, nskip, nrepeat, nfreq, irepeat;
+  int boundaryflag, overwrite, colextra;
+  bigint nvalid, nvalid_last;
+  char *format, *format_user;
+  FILE *fp;
+
+  class NeighList *list;
+
+  int ave, nwindow;
+  int normcount, iwindow, window_limit;
+
+  double *delta;
+  int nchunk, maxchunk, ncoord, reducedflag;
+  int *nlayers, *chunk_dim;
+  char *idchunk;
+  class ComputeChunkAtom *cchunk;
+  int lockforever;
+
+  bigint filepos;
+
+  int maxvar;
+  double *varatom;
+
+  // one,many,sum vecs/arrays are used with a single Nfreq epoch
+  // total,list vecs/arrays are used across epochs
+
+  double *count_one, *count_many, *count_sum;
+  double *countk_one, *countk_many, *countk_sum;
+  double **values_one, **values_many, **values_sum;
+  double *count_total, **count_list;
+  double *countk_total, **countk_list;
+  double **values_total, ***values_list;
+
+  double *density_one, *density_sum;
+  double **momentum_one, **momentum_sum;
+
+  void allocate();
+  bigint nextvalid();
+  inline double calc_w(const double) const;
+  inline double calc_w_int(double*, double*) const;
+  void add_tensor_component(char *, int);
+  void add_vector_component(char *, int);
+  int shifted_bin(int, int *) const;
+  void build_stencil();
+};
+
+}    // namespace LAMMPS_NS
+
+#endif
+#endif

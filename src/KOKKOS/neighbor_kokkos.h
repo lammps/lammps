@@ -84,7 +84,6 @@ class NeighborKokkos : public Neighbor {
   template<class DeviceType> int check_distance_kokkos();
   void build(int) override;
   template<class DeviceType> void build_kokkos(int);
-  void setup_bins_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();

@@ -406,6 +406,11 @@ store an interaction matrix (either elastance or capacitance) of *N* by
 prohibitive for large electrode groups.  The fix will issue a warning if
 it expects to use more than 0.5 GiB of memory.
 
+TIP4P constant-potential simulations are not supported with the
+INTEL-accelerated ELECTRODE variants.  In particular,
+*fix electrode/conp/intel* requires *pppm/electrode/intel*, which does
+not provide TIP4P support.
+
 Default
 """""""
 

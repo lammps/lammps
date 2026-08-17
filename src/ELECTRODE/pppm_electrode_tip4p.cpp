@@ -71,6 +71,7 @@ PPPMElectrodeTIP4P::PPPMElectrodeTIP4P(LAMMPS *lmp) :
   if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
   group_group_enable = 0;
+  tip4pflag = 1;
  
   electrolyte_density_brick = nullptr;
   electrolyte_density_fft = nullptr;
@@ -99,6 +100,7 @@ PPPMElectrodeTIP4P::~PPPMElectrodeTIP4P()
 
 void PPPMElectrodeTIP4P::init()
 {
+  if (me == 0) utils::logmesg(lmp, "PPPM/electrode/tip4p initialization ...\n");
 
   // error check
   if (slabflag == 3)
@@ -128,10 +130,8 @@ void PPPMElectrodeTIP4P::init()
 
   // compute two charge force
   two_charge();
-  // Detect whether the current pair style is TIP4P
-  tip4pflag = force->pair->tip4pflag;
 
-  if (tip4pflag && force->newton == 0)
+  if (force->newton == 0)
     error->all(FLERR, "Kspace style pppm/electrode/tip4p with TIP4P requires newton on");
   // extract short-range Coulombic cutoff from pair style
   pair_check();
@@ -253,6 +253,7 @@ void PPPMElectrodeTIP4P::init()
                         estimated_accuracy / two_charge_force);
     mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n", ngrid_max, nfft_both_max);
+    utils::logmesg(lmp, mesg);
   }
 
   // allocate K-space dependent memory
@@ -595,11 +596,6 @@ void PPPMElectrodeTIP4P::find_M(int i, int &iH1, int &iH2, double *xM)
 
 void PPPMElectrodeTIP4P::particle_map()
 {
-  // use the standard PPPM charge assignment for non-TIP4P systems
-  if (!tip4pflag) {
-    PPPM::particle_map();
-    return;
-  }
 
   int nx, ny, nz;
   int iH1, iH2;
@@ -903,6 +899,8 @@ void PPPMElectrodeTIP4P::one_step_multiplication(bigint *imat, double *greens_re
   memory->destroy(amesh);
   memory->destroy(rho1d_j);
   MPI_Barrier(world);
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, "Single step time: {:.4g} s\n", MPI_Wtime() - step1_time);
 }
 
 /* ----------------------------------------------------------------------*/
@@ -1003,6 +1001,7 @@ void PPPMElectrodeTIP4P::two_step_multiplication(bigint *imat, double *greens_re
   }
   MPI_Barrier(world);
   if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, "step 1 time: {:.4g} s\n", MPI_Wtime() - step1_time);
 
   // nested loop over electrode atoms i and j and stencil of i
   // in theory could reuse make_rho1d_j here -- but this step is already
@@ -1042,6 +1041,8 @@ void PPPMElectrodeTIP4P::two_step_multiplication(bigint *imat, double *greens_re
   }
   MPI_Barrier(world);
   memory->destroy(gw);
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, "step 2 time: {:.4g} s\n", MPI_Wtime() - step2_time);
 }
 
 /* ----------------------------------------------------------------------
@@ -1880,11 +1881,6 @@ ghosts) in global grid
 
 void PPPMElectrodeTIP4P::make_rho()
 {
-  // use the standard PPPM charge assignment for non-TIP4P systems
-  if (!tip4pflag) {
-    PPPM::make_rho();
-    return;
-  }
 
   int i, l, m, n, nx, ny, nz, mx, my, mz;
   FFT_SCALAR dx, dy, dz, x0, y0, z0;
@@ -2288,7 +2284,7 @@ void PPPMElectrodeTIP4P::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scra
     if (!i_in_source) continue;
 
     // use the fictitious M-site position for TIP4P oxygen atoms
-    if (tip4pflag && type[i] == typeO) {
+    if (type[i] == typeO) {
       find_M(i, iH1, iH2, xM);
       xi = xM;
     } else {

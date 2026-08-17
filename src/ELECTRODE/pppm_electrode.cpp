@@ -140,7 +140,6 @@ void PPPMElectrode::init()
   if (p_cutoff == nullptr) error->all(FLERR, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
-
   // compute qsum & qsqsum and warn if not charge-neutral
 
   scale = 1.0;
@@ -492,13 +491,10 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // ntotal accounts for ghost atom tallying
 
   if (evflag_atom) {
     double *q = atom->q;
     int nlocal = atom->nlocal;
-    int ntotal = nlocal;
-
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
@@ -507,11 +503,10 @@ void PPPMElectrode::compute(int eflag, int vflag)
             g_ewald * q[i] * q[i] / MY_PIS + MY_PI2 * q[i] * qsum / (g_ewald * g_ewald * volume);
         eatom[i] *= qscale;
       }
-      for (i = nlocal; i < ntotal; i++) eatom[i] *= 0.5 * qscale;
     }
 
     if (vflag_atom) {
-      for (i = 0; i < ntotal; i++)
+      for (i = 0; i < nlocal; i++)
         for (j = 0; j < 6; j++) vatom[i][j] *= 0.5 * qscale;
     }
   }

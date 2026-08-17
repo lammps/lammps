@@ -66,11 +66,7 @@ class PPPMElectrodeTIP4P : public PPPM, public ElectrodeKSpace {
   int last_source_grpbit;
   bool last_invert_source;
   // TIP4P support: atom types and geometric parameters for the fictitious M-site
-  int typeO = 0;
-  int typeH = 0;
 
-  double qdist = 0.0;
-  double alpha = 0.0;
   void start_compute();
   void particle_map() override;
   void make_rho() override;

@@ -787,6 +787,12 @@ void CommKokkos::grow_buf_pair(int n) {
   max_buf_pair = n * BUFFACTOR;
   k_buf_send_pair.resize(max_buf_pair);
   k_buf_recv_pair.resize(max_buf_pair);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_pair.clear_sync_state();
+  k_buf_recv_pair.clear_sync_state();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -795,6 +801,12 @@ void CommKokkos::grow_buf_fix(int n) {
   max_buf_fix = n * BUFFACTOR;
   k_buf_send_fix.resize(max_buf_fix);
   k_buf_recv_fix.resize(max_buf_fix);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_fix.clear_sync_state();
+  k_buf_recv_fix.clear_sync_state();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -803,6 +815,12 @@ void CommKokkos::grow_buf_compute(int n) {
   max_buf_compute = n * BUFFACTOR;
   k_buf_send_compute.resize(max_buf_compute);
   k_buf_recv_compute.resize(max_buf_compute);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_compute.clear_sync_state();
+  k_buf_recv_compute.clear_sync_state();
 }
 
 

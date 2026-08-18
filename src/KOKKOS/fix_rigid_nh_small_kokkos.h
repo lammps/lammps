@@ -47,6 +47,14 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
   void restart(char *buf) override;
   void reset_target(double) override;
 
+  // run the per-body initial/final Nose-Hoover update on the device
+  // (must be public: nvcc's extended __host__ __device__ lambda extension
+  // requires the enclosing function to have public access)
+  void nh_initial_integrate_bodies(const double scale_r, const double scale_t[3],
+                                   const double scale_v[3]);
+  void nh_final_integrate_bodies(const double scale_r, const double scale_t[3]);
+  void nh_akin(double &akin_t_out, double &akin_r_out);
+
  protected:
   using Range1D = Kokkos::RangePolicy<DeviceType>;
 
@@ -165,12 +173,6 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
   void allocate_order();
   void deallocate_chain();
   void deallocate_order();
-
-  // run the per-body initial/final Nose-Hoover update on the device
-  void nh_initial_integrate_bodies(const double scale_r, const double scale_t[3],
-                                   const double scale_v[3]);
-  void nh_final_integrate_bodies(const double scale_r, const double scale_t[3]);
-  void nh_akin(double &akin_t_out, double &akin_r_out);
 
   inline double maclaurin_series(double);
 };

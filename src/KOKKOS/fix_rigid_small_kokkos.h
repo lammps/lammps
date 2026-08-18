@@ -128,10 +128,13 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
 
   void compute_forces_and_torques_kokkos();
 
- protected:
-  void set_xv_kokkos(int);
+  // nvcc's extended __host__ __device__ lambda extension requires the
+  // enclosing function to have public access
   void setup_device_push();
   void apply_langevin_thermostat_kokkos();
+
+ protected:
+  void set_xv_kokkos(int);
 
   using ImageIntView1D = typename AT::t_imageint_1d;
   using TagIntView1D = typename AT::t_tagint_1d;

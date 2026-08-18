@@ -556,6 +556,7 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
     k_langextra.resize(nmax_body, 6);
     k_langextra.clear_sync_state();   // resize marked the device side (see grow_body)
     k_langextra.modify_host();
+    k_langextra.template sync<DeviceType>();
     d_langextra = k_langextra.template view<DeviceType>();
   }
 

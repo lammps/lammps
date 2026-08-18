@@ -80,6 +80,23 @@ namespace MathExtraKokkos {
 
   KOKKOS_INLINE_FUNCTION void mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w);
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const double *quat, KK_FLOAT mat[3][3]);
+  KOKKOS_INLINE_FUNCTION void angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                              KK_FLOAT *idiag, KK_FLOAT *w);
+  KOKKOS_INLINE_FUNCTION void omega_to_angmom(KK_FLOAT *w, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                              KK_FLOAT *idiag, KK_FLOAT *m);
+  KOKKOS_INLINE_FUNCTION void q_to_exyz(double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez);
+  KOKKOS_INLINE_FUNCTION void exyz_to_q(KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez, double *q);
+
+  // quaternion math used by the rigid-body NH (thermostat/barostat) integrator.
+  // the orientation/momentum quaternions (a, c here, body conjqm/quat/fquat) stay
+  // double; body-frame 3-vectors (b/vec), inertia and the timestep are KK_FLOAT.
+  KOKKOS_INLINE_FUNCTION void quatquat(double *a, double *b, double *c);
+  KOKKOS_INLINE_FUNCTION void quatvec(double *a, KK_FLOAT *b, double *c);
+  KOKKOS_INLINE_FUNCTION void invquatvec(double *a, double *b, KK_FLOAT *c);
+  KOKKOS_INLINE_FUNCTION void no_squish_rotate(int k, double *p, double *q, KK_FLOAT *inertia,
+                                               KK_FLOAT dt);
+  KOKKOS_INLINE_FUNCTION void multiply_shape_shape(const KK_FLOAT *one, const KK_FLOAT *two,
+                                                   KK_FLOAT *ans);
 }
 
 /* ----------------------------------------------------------------------
@@ -607,6 +624,221 @@ void MathExtraKokkos::quat_to_mat(const double *quat, KK_FLOAT mat[3][3])
   mat[2][0] = twoik-twojw;
   mat[2][1] = twojk+twoiw;
   mat[2][2] = w2-i2-j2+k2;
+}
+
+/* ----------------------------------------------------------------------
+   compute omega from angular momentum
+   w = omega = angular velocity in space frame
+   wbody = angular velocity in body frame
+   project space-frame angular momentum onto body axes
+     and divide by principal moments of inertia
+   set wbody component to 0.0 if inertia component is 0.0
+     otherwise body can spin easily around that axis
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                      KK_FLOAT *idiag, KK_FLOAT *w)
+{
+  KK_FLOAT wbody[3];
+
+  if (idiag[0] == 0.0) wbody[0] = 0.0;
+  else wbody[0] = (m[0]*ex[0] + m[1]*ex[1] + m[2]*ex[2]) / idiag[0];
+  if (idiag[1] == 0.0) wbody[1] = 0.0;
+  else wbody[1] = (m[0]*ey[0] + m[1]*ey[1] + m[2]*ey[2]) / idiag[1];
+  if (idiag[2] == 0.0) wbody[2] = 0.0;
+  else wbody[2] = (m[0]*ez[0] + m[1]*ez[1] + m[2]*ez[2]) / idiag[2];
+
+  w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
+  w[1] = wbody[0]*ex[1] + wbody[1]*ey[1] + wbody[2]*ez[1];
+  w[2] = wbody[0]*ex[2] + wbody[1]*ey[2] + wbody[2]*ez[2];
+}
+
+/* ----------------------------------------------------------------------
+   compute space-frame ex,ey,ez from current quaternion q
+   ex,ey,ez = space-frame coords of 1st,2nd,3rd principal axis
+   operation is ex = q' d q = Q d, where d is (1,0,0) = 1st axis in body frame
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::q_to_exyz(double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez)
+{
+  ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
+  ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
+  ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
+
+  ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
+  ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
+  ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
+
+  ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
+  ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
+  ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+}
+
+/* ----------------------------------------------------------------------
+   compute angular momentum from omega, both in space frame
+   only know Idiag so need to do M = Iw in body frame
+   ex,ey,ez are column vectors of rotation matrix P
+   wbody = P_transpose wspace
+   Mbody = Idiag wbody
+   Mspace = P Mbody
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::omega_to_angmom(KK_FLOAT *w, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
+                                      KK_FLOAT *idiag, KK_FLOAT *m)
+{
+  KK_FLOAT mbody[3];
+
+  mbody[0] = (w[0]*ex[0] + w[1]*ex[1] + w[2]*ex[2]) * idiag[0];
+  mbody[1] = (w[0]*ey[0] + w[1]*ey[1] + w[2]*ey[2]) * idiag[1];
+  mbody[2] = (w[0]*ez[0] + w[1]*ez[1] + w[2]*ez[2]) * idiag[2];
+
+  m[0] = mbody[0]*ex[0] + mbody[1]*ey[0] + mbody[2]*ez[0];
+  m[1] = mbody[0]*ex[1] + mbody[1]*ey[1] + mbody[2]*ez[1];
+  m[2] = mbody[0]*ex[2] + mbody[1]*ey[2] + mbody[2]*ez[2];
+}
+
+/* ----------------------------------------------------------------------
+   create unit quaternion from space-frame ex,ey,ez
+   ex,ey,ez are columns of a rotation matrix
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::exyz_to_q(KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez, double *q)
+{
+  // squares of quaternion components (kept double: they feed the double quat)
+
+  double q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
+  double q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
+  double q2sq = q0sq - 0.5 * (ex[0] + ez[2]);
+  double q3sq = q0sq - 0.5 * (ex[0] + ey[1]);
+
+  // some component must be greater than 1/4 since they sum to 1
+  // compute other components from it
+
+  if (q0sq >= 0.25) {
+    q[0] = sqrt(q0sq);
+    q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
+    q[2] = (ez[0] - ex[2]) / (4.0*q[0]);
+    q[3] = (ex[1] - ey[0]) / (4.0*q[0]);
+  } else if (q1sq >= 0.25) {
+    q[1] = sqrt(q1sq);
+    q[0] = (ey[2] - ez[1]) / (4.0*q[1]);
+    q[2] = (ey[0] + ex[1]) / (4.0*q[1]);
+    q[3] = (ex[2] + ez[0]) / (4.0*q[1]);
+  } else if (q2sq >= 0.25) {
+    q[2] = sqrt(q2sq);
+    q[0] = (ez[0] - ex[2]) / (4.0*q[2]);
+    q[1] = (ey[0] + ex[1]) / (4.0*q[2]);
+    q[3] = (ez[1] + ey[2]) / (4.0*q[2]);
+  } else if (q3sq >= 0.25) {
+    q[3] = sqrt(q3sq);
+    q[0] = (ex[1] - ey[0]) / (4.0*q[3]);
+    q[1] = (ez[0] + ex[2]) / (4.0*q[3]);
+    q[2] = (ez[1] + ey[2]) / (4.0*q[3]);
+  }
+
+  MathExtraKokkos::qnormalize(q);
+}
+
+/* ----------------------------------------------------------------------
+   quaternion multiply: c = a*b
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::quatquat(double *a, double *b, double *c)
+{
+  c[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
+  c[1] = a[0] * b[1] + b[0] * a[1] + a[2] * b[3] - a[3] * b[2];
+  c[2] = a[0] * b[2] + b[0] * a[2] + a[3] * b[1] - a[1] * b[3];
+  c[3] = a[0] * b[3] + b[0] * a[3] + a[1] * b[2] - a[2] * b[1];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion-vector multiply: c = a*b, where b = (0,b)
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::quatvec(double *a, KK_FLOAT *b, double *c)
+{
+  c[0] = -a[1] * b[0] - a[2] * b[1] - a[3] * b[2];
+  c[1] = a[0] * b[0] + a[2] * b[2] - a[3] * b[1];
+  c[2] = a[0] * b[1] + a[3] * b[0] - a[1] * b[2];
+  c[3] = a[0] * b[2] + a[1] * b[1] - a[2] * b[0];
+}
+
+/* ----------------------------------------------------------------------
+   quaternion multiply: c = inv(a)*b
+   a is a quaternion
+   b is a four component vector
+   c is a three component vector
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::invquatvec(double *a, double *b, KK_FLOAT *c)
+{
+  c[0] = -a[1] * b[0] + a[0] * b[1] + a[3] * b[2] - a[2] * b[3];
+  c[1] = -a[2] * b[0] - a[3] * b[1] + a[0] * b[2] + a[1] * b[3];
+  c[2] = -a[3] * b[0] + a[2] * b[1] - a[1] * b[2] + a[0] * b[3];
+}
+
+/* ----------------------------------------------------------------------
+   apply evolution operators to quat, quat momentum
+   Miller et al., J Chem Phys. 116, 8649-8659 (2002)
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q, KK_FLOAT *inertia,
+                                       KK_FLOAT dt)
+{
+  double phi,c_phi,s_phi,kp[4],kq[4];
+
+  // apply permuation operator on p and q, get kp and kq
+
+  if (k == 1) {
+    kq[0] = -q[1];  kp[0] = -p[1];
+    kq[1] =  q[0];  kp[1] =  p[0];
+    kq[2] =  q[3];  kp[2] =  p[3];
+    kq[3] = -q[2];  kp[3] = -p[2];
+  } else if (k == 2) {
+    kq[0] = -q[2];  kp[0] = -p[2];
+    kq[1] = -q[3];  kp[1] = -p[3];
+    kq[2] =  q[0];  kp[2] =  p[0];
+    kq[3] =  q[1];  kp[3] =  p[1];
+  } else {
+    kq[0] = -q[3];  kp[0] = -p[3];
+    kq[1] =  q[2];  kp[1] =  p[2];
+    kq[2] = -q[1];  kp[2] = -p[1];
+    kq[3] =  q[0];  kp[3] =  p[0];
+  }
+
+  // obtain phi, cosines and sines
+
+  phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
+  if (inertia[k-1] == 0.0) phi = 0.0;
+  else phi /= 4.0 * inertia[k-1];
+  c_phi = cos(dt * phi);
+  s_phi = sin(dt * phi);
+
+  // advance p and q
+
+  p[0] = c_phi*p[0] + s_phi*kp[0];
+  p[1] = c_phi*p[1] + s_phi*kp[1];
+  p[2] = c_phi*p[2] + s_phi*kp[2];
+  p[3] = c_phi*p[3] + s_phi*kp[3];
+
+  q[0] = c_phi*q[0] + s_phi*kq[0];
+  q[1] = c_phi*q[1] + s_phi*kq[1];
+  q[2] = c_phi*q[2] + s_phi*kq[2];
+  q[3] = c_phi*q[3] + s_phi*kq[3];
+}
+
+/* ----------------------------------------------------------------------
+   multiply 2 shape (Voigt) matrices: ans = one*two
+------------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::multiply_shape_shape(const KK_FLOAT *one, const KK_FLOAT *two, KK_FLOAT *ans)
+{
+  ans[0] = one[0] * two[0];
+  ans[1] = one[1] * two[1];
+  ans[2] = one[2] * two[2];
+  ans[3] = one[1] * two[3] + one[3] * two[2];
+  ans[4] = one[0] * two[4] + one[5] * two[3] + one[4] * two[2];
+  ans[5] = one[0] * two[5] + one[5] * two[1];
 }
 
 #endif

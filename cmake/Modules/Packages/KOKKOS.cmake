@@ -184,6 +184,13 @@ if(PKG_GRANULAR)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_wall_gran_old.cpp)
 endif()
 
+# fix rigid/nh/small/kk is an abstract base class (no style header) and must be
+# listed explicitly, like fix_nh_kokkos.cpp; its concrete nve/nvt/npt/nph styles
+# are picked up by the generic style detection
+if(PKG_RIGID)
+  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_nh_small_kokkos.cpp)
+endif()
+
 if(PKG_KSPACE)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fft3d_kokkos.cpp
                                  ${KOKKOS_PKG_SOURCES_DIR}/grid3d_kokkos.cpp

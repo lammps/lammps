@@ -333,10 +333,31 @@ void AtomKokkos::sort()
 
   if (sort_legacy) {
     sync(Host, ALL_MASK);
+
+    // Atom::sort() permutes the per-atom arrays of the fixes that grow with the
+    // atoms as well, through their copy_arrays() on the host, so those have to
+    // be host-current here and claimed again below.  ALL_MASK above covers only
+    // the arrays that Atom owns.
+
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      if (!fix_iextra->kokkosable) continue;
+      KokkosBase *kkbase = dynamic_cast<KokkosBase *>(fix_iextra);
+      if (kkbase) kkbase->sync_host_for_sort();
+    }
+
     int prev_auto_sync = lmp->kokkos->auto_sync;
     lmp->kokkos->auto_sync = 1;
     Atom::sort();
     lmp->kokkos->auto_sync = prev_auto_sync;
+
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      if (!fix_iextra->kokkosable) continue;
+      KokkosBase *kkbase = dynamic_cast<KokkosBase *>(fix_iextra);
+      if (kkbase) kkbase->modified_host_for_sort();
+    }
+
     modified(Host, ALL_MASK);
   } else sort_device();
 }

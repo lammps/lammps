@@ -1,0 +1,27 @@
+# Rigid 8-atom cubes in a triclinic box
+# Exercises the triclinic mathextra/domain paths of fix rigid/small(/kk).
+#   lmp -in in.rigid.cubes.tri
+#   lmp -k on -sf kk -in in.rigid.cubes.tri
+
+units           lj
+atom_style      molecular
+atom_modify     map array
+
+read_data       data.rigid.cubes
+
+change_box      all triclinic
+change_box      all xy final 3.0 xz final 2.0 yz final 1.0 remap units box
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 1.5 4928459 mom yes rot yes
+
+fix             1 all rigid/small molecule
+
+thermo_style    custom step temp pe ke etotal
+thermo          200
+timestep        0.0005
+run             4000

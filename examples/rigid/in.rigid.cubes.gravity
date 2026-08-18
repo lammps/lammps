@@ -1,0 +1,35 @@
+# Rigid-body test: a grid of 8-atom rigid cubes under a uniform gravity field
+# Reduced version of the system used to validate fix rigid/small/kk.
+#
+# The constant force drives all bodies coherently in one direction, so bodies
+# migrate across processor boundaries in two dimensions at once (the diagonal /
+# forwarded-body exchange case).  This exercises the device atom-exchange body
+# bookkeeping far more aggressively than thermal diffusion does; run multi-proc
+# (e.g. mpirun -np 4) on the device to stress it.
+#
+# Run the non-Kokkos and Kokkos versions and compare the thermo output:
+#   lmp -in in.rigid.cubes.gravity
+#   lmp -k on -sf kk -pk kokkos comm device sort device -in in.rigid.cubes.gravity
+# (data.rigid.cubes is produced by gen_cubes.py)
+
+units           lj
+atom_style      molecular
+atom_modify     map array
+
+read_data       data.rigid.cubes
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+# rigid bodies do not feel internal forces; exclude intra-body neighbor pairs
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 1.5 4928459 mom yes rot yes
+
+fix             grav all gravity 1.0 vector 0.3 0.4 -0.85
+fix             1 all rigid/small molecule
+
+thermo_style    custom step temp pe ke etotal
+thermo          200
+timestep        0.0005
+run             4000

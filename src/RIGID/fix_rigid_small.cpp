@@ -480,6 +480,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
 FixRigidSmall::~FixRigidSmall()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
@@ -646,7 +648,15 @@ void FixRigidSmall::setup(int vflag)
     memory->destroy(langextra);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    // memory->create() does not zero: post_force() only fills the rows of bodies
+    // it thermostats, but setup() and compute_forces_and_torques() fold every
+    // row into the body forces, so the untouched rows have to start at zero.
+    memset(&langextra[0][0],0,(size_t)maxlang*6*sizeof(double));
   }
+
+  // note langextra is zeroed where it is allocated: it holds the Langevin
+  // force/torque that compute_forces_and_torques() adds to every body, but
+  // apply_langevin_thermostat() does not run until the first post_force().
 
   compute_forces_and_torques();
 
@@ -896,6 +906,10 @@ void FixRigidSmall::apply_langevin_thermostat()
     memory->destroy(langextra);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    // memory->create() does not zero: post_force() only fills the rows of bodies
+    // it thermostats, but setup() and compute_forces_and_torques() fold every
+    // row into the body forces, so the untouched rows have to start at zero.
+    memset(&langextra[0][0],0,(size_t)maxlang*6*sizeof(double));
   }
 
   double delta = update->ntimestep - update->beginstep;

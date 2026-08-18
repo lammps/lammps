@@ -1,0 +1,30 @@
+# Rigid bodies of finite dipolar particles (atom_style hybrid sphere dipole) --
+# exercises both the SPHERE (omega) and DIPOLE (mu) extended paths of
+# fix rigid/small/kk.  A dipole pair style makes PotEng depend on the dipole
+# orientations that set_xv rotates with each body on the device.
+#   lmp -in in.rigid.dipoles
+#   lmp -k on -sf kk -in in.rigid.dipoles
+
+units           lj
+atom_style      hybrid sphere dipole
+atom_modify     map array
+
+lattice         sc 0.05
+region          box block 0 4 0 4 0 4
+create_box      1 box
+
+fix             prop all property/atom mol ghost yes
+molecule        mymol mol.dipole3
+create_atoms    0 region box mol mymol 71328
+
+pair_style      lj/cut/dipole/cut 2.5
+pair_coeff      1 1 1.0 1.0
+neigh_modify    exclude molecule/intra all
+
+fix             1 all rigid/small molecule
+
+compute         erot all erotate/sphere
+thermo_style    custom step pe f_1 c_erot
+thermo          200
+timestep        0.002
+run             2000

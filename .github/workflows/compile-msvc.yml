@@ -40,7 +40,7 @@ jobs:
         choco install ccache ninja -y
 
     - name: Set up ccache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ${{ env.CCACHE_DIR }}
         key: win-unit-ccache-${{ github.sha }}

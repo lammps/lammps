@@ -201,13 +201,14 @@ std::string varargs_sprintf(const char *format, ...);
  *  C-style variable argument list of varargs_sprintf().  Arithmetic types,
  *  pointers, and arrays (e.g. string literals) are passed through unchanged;
  *  all other types are rejected at compile time. */
-
+// NOLINTBEGIN
 template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
 {
   static_assert(std::is_arithmetic_v<TYPE> || std::is_pointer_v<TYPE> || std::is_array_v<TYPE>,
                 "Argument type not supported by utils::sprintf()");
-  return arg; // NOLINT
+  return arg;
 }
+// NOLINTEND
 
 /*! \overload converts a std::string argument to a C-style string */
 

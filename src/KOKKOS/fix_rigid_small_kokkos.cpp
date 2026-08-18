@@ -2516,6 +2516,50 @@ void FixRigidSmallKokkos<DeviceType>::image_shift()
   Kokkos::Profiling::popRegion();
 }
 
+/* ----------------------------------------------------------------------
+   The legacy sort permutes these arrays through copy_arrays() on the host,
+   where sort_kokkos() below permutes them on the device.  Bring them to the
+   host for it, and claim the host side once it has run, or the device copies
+   keep the pre-sort ordering: atom2body then resolves an atom to the wrong
+   body and set_xv() places it at that body's centre.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::sync_host_for_sort()
+{
+  k_bodytag.sync_host();
+  k_bodyown.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+  k_displace.sync_host();
+  k_vatom.sync_host();
+  if (extended) {
+    k_eflags.sync_host();
+    if (orientflag) k_orient.sync_host();
+    if (dorientflag) k_dorient.sync_host();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::modified_host_for_sort()
+{
+  k_bodytag.modify_host();
+  k_bodyown.modify_host();
+  k_atom2body.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  k_vatom.modify_host();
+  if (extended) {
+    k_eflags.modify_host();
+    if (orientflag) k_orient.modify_host();
+    if (dorientflag) k_dorient.modify_host();
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
 {

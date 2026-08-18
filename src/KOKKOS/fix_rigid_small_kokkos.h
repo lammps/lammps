@@ -112,6 +112,8 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void reset_atom2body() override;
   void image_shift() override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  void sync_host_for_sort() override;
+  void modified_host_for_sort() override;
 
   KOKKOS_INLINE_FUNCTION
   void operator()(TagInitialIntegrate, const int) const;

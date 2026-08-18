@@ -22,6 +22,7 @@
 #include <mpi.h>
 
 #include <string>
+#include <type_traits>
 #include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
@@ -191,6 +192,75 @@ void print(FILE *fp, const std::string &mesg);
  *  \param mesg   string with message to be printed */
 
 void print(const std::string &mesg);
+
+/*! Internal function handling the variable argument list for sprintf(). */
+
+std::string varargs_sprintf(const char *format, ...);
+
+/*! Internal helper function passing individual arguments for sprintf() to the
+ *  C-style variable argument list of varargs_sprintf().  Arithmetic types,
+ *  pointers, and arrays (e.g. string literals) are passed through unchanged;
+ *  all other types are rejected at compile time. */
+// NOLINTBEGIN
+template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
+{
+  static_assert(std::is_arithmetic_v<TYPE> || std::is_pointer_v<TYPE> || std::is_array_v<TYPE>,
+                "Argument type not supported by utils::sprintf()");
+  return arg;
+}
+// NOLINTEND
+
+/*! \overload converts a std::string argument to a C-style string */
+
+inline const char *sprintf_arg(const std::string &arg)
+{
+  return arg.c_str();
+}
+
+/*! Format data into a string with printf() style formatting and return it
+
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+This function formats its arguments according to a printf() style format
+string and returns the result as a ``std::string``, similar to the
+(non-standard) ``asprintf()`` C library function.  It is a convenient
+replacement for formatting into a fixed size buffer with ``snprintf()``
+without the risk of truncation.  The actual conversion is done by the
+``vsnprintf()`` C library function, first into a fixed size internal buffer
+and - should that buffer be too small - a second time into a temporary
+buffer of exactly the required size.  Thus the accepted format specifiers
+and modifiers and the resulting output are those of the C library.  In case
+of an output error an empty string is returned.
+
+Unlike its C library counterparts, this function also accepts
+``std::string`` instances as arguments for ``%s`` conversions in addition
+to C-style strings, and arguments with class types that cannot be passed
+through a C-style variable argument list are rejected at compile time.
+It cannot detect, however, when an argument does not match its format
+specifier, so the same care as with ``snprintf()`` must be taken.
+
+.. note::
+
+   The main application of this function is the output of numerical data
+   with user provided format strings that are only known at runtime, as
+   is the case for dump styles or thermo output.  For all other string
+   formatting tasks the functions using {fmt} style format strings, i.e.
+   ``fmt::format()``, :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`,
+   or :cpp:func:`utils::logmesg() <LAMMPS_NS::utils::logmesg>`, are
+   preferred since they detect format errors at runtime.
+
+\endverbatim
+ *
+ *  \param format printf() style format string
+ *  \param args   arguments to format string
+ *  \return       string with formatted output */
+
+template <typename... Args> std::string sprintf(const std::string &format, Args &&...args)
+{
+  return varargs_sprintf(format.c_str(), sprintf_arg(args)...);
+}
 
 /*! Return text redirecting the user to a specific paragraph in the manual
  *

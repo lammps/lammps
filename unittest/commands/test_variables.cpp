@@ -26,6 +26,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdio>
 #include <cstring>
 #include <vector>
 
@@ -844,6 +845,21 @@ TEST_F(VariableTest, Format)
     command("variable three delete");
     END_HIDE_OUTPUT();
     EXPECT_THAT(variable->retrieve("f1one"), StrEq("-0.6220 "));
+
+    // format variable results are no longer truncated to 63 characters
+    char refbuf[512];
+    snprintf(refbuf, sizeof(refbuf), "%70.40f", -0.622);
+    BEGIN_HIDE_OUTPUT();
+    command("variable wide1 format one \"%70.40f\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("wide1"), StrEq(refbuf));
+
+    // formatted immediate variable expansions are no longer truncated to 255 characters
+    snprintf(refbuf, sizeof(refbuf), "%.310f", 1.0 / 3.0);
+    BEGIN_HIDE_OUTPUT();
+    command("variable wide2 index $(1.0/3.0:%.310f)");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("wide2"), StrEq(refbuf));
 
     TEST_FAILURE(".*ERROR: Variable f1idx: format variable idx has incompatible style.*",
                  command("variable f1idx format idx %8.4f"););

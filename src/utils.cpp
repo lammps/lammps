@@ -33,6 +33,8 @@
 #include <cctype>
 #include <cerrno>
 #include <cmath>
+#include <cstdarg>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <stdexcept>
@@ -289,6 +291,39 @@ void utils::print(const std::string &mesg)
 void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
 {
   print(fp, fmt::vformat(format, args));
+}
+
+/* internal function handling the variable argument list for utils::sprintf() */
+
+std::string utils::varargs_sprintf(const char *format, ...)
+{
+  constexpr int firstsize = 512;
+  char firstbuf[firstsize];
+  va_list ap, ap2;
+
+  va_start(ap, format);
+  va_copy(ap2, ap);
+  int len = vsnprintf(firstbuf, firstsize, format, ap);
+  va_end(ap);
+
+  // conversion or output error
+  if (len < 0) {
+    va_end(ap2);
+    return "";
+  }
+
+  // output fits into the fixed size buffer
+  if (len < firstsize) {
+    va_end(ap2);
+    return {firstbuf, (std::size_t) len};
+  }
+
+  // otherwise repeat the conversion with a suitably sized buffer
+  std::string result(len + 1, '\0');
+  vsnprintf(result.data(), len + 1, format, ap2);
+  va_end(ap2);
+  result.resize(len);
+  return result;
 }
 
 std::string utils::errorurl(int errorcode)

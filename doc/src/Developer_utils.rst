@@ -259,6 +259,9 @@ Convenience functions
 .. doxygenfunction:: print(FILE *fp, const std::string &mesg)
    :project: progguide
 
+.. doxygenfunction:: sprintf(const std::string &format, Args&&... args)
+   :project: progguide
+
 .. doxygenfunction:: errorurl
    :project: progguide
 

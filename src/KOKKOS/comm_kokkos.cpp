@@ -386,6 +386,13 @@ void CommKokkos::forward_comm_device(Fix *fix, int size)
   else nsize = fix->comm_forward;
   KokkosBase* fixKKBase = dynamic_cast<KokkosBase*>(fix);
 
+  // styles reach this entry point directly as well as through the dispatcher
+  // above, and only the dispatcher syncs the send list.  With the atom
+  // communication on the host the borders build writes the list on the host,
+  // so without this the device copy is whatever it last held: a fresh view of
+  // zeros right after a resize, or an earlier neighbor build's swap lists
+  k_sendlist.sync<DeviceType>();
+
   for (iswap = 0; iswap < nswap; iswap++) {
     int n = MAX(max_buf_fix,nsize*sendnum[iswap]);
     n = MAX(n,nsize*recvnum[iswap]);
@@ -478,6 +485,13 @@ void CommKokkos::reverse_comm_device(Fix *fix, int size)
   if (size) nsize = size;
   else nsize = fix->comm_reverse;
   KokkosBase* fixKKBase = dynamic_cast<KokkosBase*>(fix);
+
+  // styles reach this entry point directly as well as through the dispatcher
+  // above, and only the dispatcher syncs the send list.  With the atom
+  // communication on the host the borders build writes the list on the host,
+  // so without this the device copy is whatever it last held: a fresh view of
+  // zeros right after a resize, or an earlier neighbor build's swap lists
+  k_sendlist.sync<DeviceType>();
 
   for (iswap = 0; iswap < nswap; iswap++) {
     int n = MAX(max_buf_fix,nsize*sendnum[iswap]);
@@ -582,6 +596,13 @@ void CommKokkos::forward_comm_device(Compute *compute, int size)
   if (size) nsize = size;
   else nsize = compute->comm_forward;
   KokkosBase* computeKKBase = dynamic_cast<KokkosBase*>(compute);
+
+  // styles reach this entry point directly as well as through the dispatcher
+  // above, and only the dispatcher syncs the send list.  With the atom
+  // communication on the host the borders build writes the list on the host,
+  // so without this the device copy is whatever it last held: a fresh view of
+  // zeros right after a resize, or an earlier neighbor build's swap lists
+  k_sendlist.sync<DeviceType>();
 
   for (iswap = 0; iswap < nswap; iswap++) {
     int n = MAX(max_buf_compute,nsize*sendnum[iswap]);
@@ -722,6 +743,14 @@ void CommKokkos::forward_comm_device(Pair *pair, int size)
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
   int nmax = max_buf_pair;
+
+  // styles reach this entry point directly as well as through the dispatcher
+  // above, and only the dispatcher syncs the send list.  With the atom
+  // communication on the host the borders build writes the list on the host,
+  // so without this the device copy is whatever it last held: a fresh view of
+  // zeros right after a resize, or an earlier neighbor build's swap lists
+  k_sendlist.sync<DeviceType>();
+
   for (iswap = 0; iswap < nswap; iswap++) {
     nmax = MAX(nmax,nsize*sendnum[iswap]);
     nmax = MAX(nmax,nsize*recvnum[iswap]);
@@ -787,6 +816,12 @@ void CommKokkos::grow_buf_pair(int n) {
   max_buf_pair = n * BUFFACTOR;
   k_buf_send_pair.resize(max_buf_pair);
   k_buf_recv_pair.resize(max_buf_pair);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_pair.clear_sync_state();
+  k_buf_recv_pair.clear_sync_state();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -795,6 +830,12 @@ void CommKokkos::grow_buf_fix(int n) {
   max_buf_fix = n * BUFFACTOR;
   k_buf_send_fix.resize(max_buf_fix);
   k_buf_recv_fix.resize(max_buf_fix);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_fix.clear_sync_state();
+  k_buf_recv_fix.clear_sync_state();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -803,6 +844,12 @@ void CommKokkos::grow_buf_compute(int n) {
   max_buf_compute = n * BUFFACTOR;
   k_buf_send_compute.resize(max_buf_compute);
   k_buf_recv_compute.resize(max_buf_compute);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_compute.clear_sync_state();
+  k_buf_recv_compute.clear_sync_state();
 }
 
 
@@ -834,6 +881,14 @@ void CommKokkos::reverse_comm_device(Pair *pair, int size)
   else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
 
   int nmax = max_buf_pair;
+
+  // styles reach this entry point directly as well as through the dispatcher
+  // above, and only the dispatcher syncs the send list.  With the atom
+  // communication on the host the borders build writes the list on the host,
+  // so without this the device copy is whatever it last held: a fresh view of
+  // zeros right after a resize, or an earlier neighbor build's swap lists
+  k_sendlist.sync<DeviceType>();
+
   for (iswap = 0; iswap < nswap; iswap++) {
     nmax = MAX(nmax,nsize*sendnum[iswap]);
     nmax = MAX(nmax,nsize*recvnum[iswap]);

@@ -71,6 +71,12 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   ~FixRigidSmallKokkos();
   int setmask() override;
   void pre_exchange() override;
+
+  // Verlet::setup() runs comm->exchange() on every run, and on the second and
+  // later runs the device copies are the current ones, so the host exchange
+  // needs the same flush the exchange during a run gets from pre_exchange().
+  // Modify::setup_pre_exchange() is the only hook that runs before it.
+  void setup_pre_exchange() override { pre_exchange(); }
   void init() override;
   void setup(int) override;
   void initial_integrate(int) override;

@@ -285,7 +285,7 @@ adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
 
-.. versionadded:: TBD
+.. versionadded:: 21Aug2026
 
 The *pppm/xtb* and *pppm/tip4p/xtb* styles provide the corresponding
 PPPM electrostatics together with the source-to-sensor potential projection

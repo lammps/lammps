@@ -210,7 +210,8 @@ struct LJCL2Common {
   }
 };
 
-template<class DeviceType, bool FULL, bool DUAL, bool PACK, int VAR = LJCL2_VAR_NORMAL>
+template<class DeviceType, bool FULL, bool DUAL, bool PACK, int VAR = LJCL2_VAR_NORMAL,
+         bool BALLOT = false>
 struct LJCL2Force : public LJCL2Common<DeviceType> {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -248,12 +249,16 @@ struct LJCL2Force : public LJCL2Common<DeviceType> {
   // a register.  The inner row has the same capacity as the master row and the
   // inner list is a subset of it, so the append cannot overflow.
   //
-  // The append is a contended per-atom atomic.  An atomic-free variant (lane L
-  // owns jj = L, L+vl, ... and writes keepers at L + vl*t) was built and
-  // measured 10% SLOWER: splitting the loop into a refresh branch and a tight
-  // branch inlines this body twice (REG 43 -> 55) and gives the tight loop a
-  // per-lane trip count that nvcc can no longer unroll, which costs more than
-  // the atomics saved.  See kokkos_neigh.md 20.8 before trying it again.
+  // The append is a contended per-atom atomic, and it is expensive: a refresh
+  // step measures 5.072 ms against 3.000 for a plain flat step, and the master
+  // walk explains only the 3.000 (kokkos_neigh.md 10.7).  With BALLOT it is
+  // replaced by a warp-aggregated append -- see the header.  An earlier per-lane
+  // SEGMENTED variant (lane L writes keepers at L + vl*t) was built and measured
+  // 10% SLOWER: splitting the loop into a refresh branch and a tight branch
+  // inlines this body twice (REG 43 -> 55) and gives the tight loop a per-lane
+  // trip count that nvcc can no longer unroll, which costs more than the atomics
+  // saved.  BALLOT avoids that trap: one body, one branch, and the inner row
+  // stays compact.
   KOKKOS_INLINE_FUNCTION
   void pair_contrib(const int i, const KK_FLOAT xtmp, const KK_FLOAT ytmp,
                     const KK_FLOAT ztmp, const KK_FLOAT qtmp, const int itype,
@@ -283,8 +288,55 @@ struct LJCL2Force : public LJCL2Common<DeviceType> {
     const KK_FLOAT delz = ztmp - zj;
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if (DUAL && store && rsq < inner_cutsq)
-      d_inbr(i, Kokkos::atomic_fetch_add(&d_innum(i), 1)) = jraw;
+    if (DUAL && store) {
+      const bool keep = (rsq < inner_cutsq);
+      if (BALLOT) {
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700)
+        // Warp-aggregated append.  __match_any_sync isolates the lanes working
+        // on THIS atom, so nothing is assumed about how Kokkos maps vector lanes
+        // onto the warp, and __ballot_sync gives that group's keeper mask.  One
+        // lane reserves the group's whole block with a single atomic and
+        // broadcasts the base, so the atomics per row drop from one per keeper
+        // (~360 at inner skin 2.5) to one per iteration that keeps anything
+        // (~95), and the lanes of a group stop serializing on one address.
+        //
+        // Correctness must NOT depend on which lanes __activemask() reports --
+        // it carries no convergence guarantee, and this is why the base comes
+        // from an atomic instead of from a count carried in registers.  Were the
+        // group ever split across two masks, a register-carried count would be
+        // short in both halves and the halves would overwrite each other,
+        // silently dropping pairs from the inner list.  With a per-subset
+        // reservation any partition of the group stays correct; only the order
+        // within the row changes, and the row is a set (the special-bond bits
+        // ride inside jraw), so order is immaterial.  A truly atomic-free form
+        // would need every lane of the group to reach the vote on every
+        // iteration, i.e. padding the vector range to a multiple of the vector
+        // length and clamping the index -- worth trying only if the measurement
+        // says these remaining atomics still cost something.
+        const unsigned active = __activemask();
+        const unsigned gmask  = __match_any_sync(active, i);
+        const unsigned pred   = __ballot_sync(active, keep) & gmask;
+        if (pred) {   // uniform across gmask: every lane of it computed `pred`
+          unsigned laneid;
+          asm volatile("mov.u32 %0, %%laneid;" : "=r"(laneid));
+          const int leader = __ffs(pred) - 1;
+          int base = 0;
+          if ((int) laneid == leader)
+            base = Kokkos::atomic_fetch_add(&d_innum(i), __popc(pred));
+          base = __shfl_sync(gmask, base, leader);
+          if (keep) d_inbr(i, base + __popc(pred & ((1u << laneid) - 1u))) = jraw;
+        }
+#else
+        // Host, pre-Volta and non-CUDA backends have no warp vote, so fall back
+        // to the plain per-keeper atomic.  A per-lane running count would be
+        // WRONG here whenever vector_length > 1: every lane of the group would
+        // write at its own offset and keepers would overwrite each other.
+        if (keep) d_inbr(i, Kokkos::atomic_fetch_add(&d_innum(i), 1)) = jraw;
+#endif
+      } else {
+        if (keep) d_inbr(i, Kokkos::atomic_fetch_add(&d_innum(i), 1)) = jraw;
+      }
+    }
 
     // Diagnostic variant 3: stop after the gather and the distance test.  The
     // in-cutoff accumulation of the raw separation keeps the loads and the
@@ -856,6 +908,12 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
   if (pack_on) pack_refresh();
 
+  // ---- atomic-free warp-aggregated inner-list append (dual cutoff only)
+  if (ballot_on < 0) {
+    ballot_on = 0;
+    if (const char *e = std::getenv("LMP_LJCL2_BALLOT")) ballot_on = std::atoi(e) ? 1 : 0;
+  }
+
   // ---- kernel variant.  1-3 are diagnostics whose forces are WRONG by
   // construction; they are only ever selected explicitly, and the style warns
   // once so no benchmark log can be mistaken for a physical run.
@@ -875,8 +933,13 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (dual) {
-    if (pack_on) flat_compute<false,true,true>();
-    else         flat_compute<false,true,false>();
+    if (ballot_on) {
+      if (pack_on) flat_compute<false,true,true,LJCL2_VAR_NORMAL,true>();
+      else         flat_compute<false,true,false,LJCL2_VAR_NORMAL,true>();
+    } else {
+      if (pack_on) flat_compute<false,true,true>();
+      else         flat_compute<false,true,false>();
+    }
   } else if (use_full) {
     if (pack_on) flat_compute<true,false,true>();
     else         flat_compute<true,false,false>();
@@ -907,12 +970,12 @@ void PairLJCutCoulLong2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<bool FULL, bool DUAL, bool PACK, int VAR>
+template<bool FULL, bool DUAL, bool PACK, int VAR, bool BALLOT>
 void PairLJCutCoulLong2Kokkos<DeviceType>::flat_compute()
 {
   auto* k_list = static_cast<NeighListKokkos<DeviceType>*>(this->list);
 
-  LJCL2Force<DeviceType,FULL,DUAL,PACK,VAR> ff;
+  LJCL2Force<DeviceType,FULL,DUAL,PACK,VAR,BALLOT> ff;
   fill_common(ff);
   ff.d_numneigh = k_list->d_numneigh;
   ff.d_neighbors= k_list->d_neighbors;

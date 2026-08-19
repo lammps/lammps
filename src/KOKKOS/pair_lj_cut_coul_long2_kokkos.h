@@ -105,6 +105,32 @@ class PairLJCutCoulLong2Kokkos : public PairLJCutCoulLongKokkos<DeviceType> {
   double inner_cutsq = 0.0;
   bigint dual_built_step = -1;
 
+  // ---- warp-aggregated inner-list append, LMP_LJCL2_BALLOT=1.
+  // Measured (kokkos_neigh.md 10.7): a refresh step costs 5.072 ms against
+  // 3.000 for a plain flat step.  The master walk accounts for the 3.000, so
+  // the remaining 2.07 ms is the append itself -- ~100M contended
+  // atomic_fetch_add on d_innum(i), where every vector lane of an atom hits the
+  // SAME counter and the hardware serializes them.
+  //
+  // d_innum(i) is only ever touched by the one group of vector lanes that owns
+  // atom i, so that group can agree among itself first and touch memory once:
+  // __match_any_sync supplies the group mask, __ballot_sync the keeper mask,
+  // then a single lane reserves the group's whole block with one atomic and
+  // broadcasts the base.  Atomics per row fall from one per keeper (~360 at
+  // inner skin 2.5) to one per iteration that keeps anything (~95), and no two
+  // lanes of a group contend for the same address any more.
+  //
+  // The base deliberately comes from an atomic rather than from a running count
+  // carried in registers: __activemask() carries no convergence guarantee, and a
+  // register-carried count would silently drop pairs if a group were ever split
+  // across two masks (see the long comment on the append itself).
+  //
+  // This is NOT the per-lane segmented append that lost 10% in section 7: the
+  // row stays compact (so the tight walk is unchanged and still unrollable), the
+  // loop is not split, and the body is not inlined twice, so the register
+  // allocation should not move.
+  int ballot_on = -1;         // -1 = not yet probed, 0 = off, 1 = on
+
   // ---- packed j-side gather (experimental, LMP_LJCL2_PACK=1) ----
   // Per neighbor entry the kernel gathers x(j,0..2) (three separate 32-bit
   // loads: a LayoutRight float*[3] has a 12-byte stride, which nvcc cannot
@@ -129,7 +155,8 @@ class PairLJCutCoulLong2Kokkos : public PairLJCutCoulLongKokkos<DeviceType> {
   // a branch in the inner loop is enough to move the register allocation.
   int launch_vector_length() const;
   void pack_refresh();
-  template<bool FULL, bool DUAL, bool PACK, int VAR = 0> void flat_compute();
+  template<bool FULL, bool DUAL, bool PACK, int VAR = 0, bool BALLOT = false>
+  void flat_compute();
   template<class FunctorT> void fill_common(FunctorT &ff);
   template<int CI> void union_compute();
   template<int CI> void union_build();

@@ -27,29 +27,38 @@ Description
 Define a computation that calculates the inertia tensor for multiple
 chunks of atoms.
 
-In LAMMPS, chunks are collections of atoms defined by a
-:doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
-to a single chunk (or no chunk).  The ID for this command is specified
-as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the
-:doc:`compute chunk/atom <compute_chunk_atom>` and
-:doc:`Howto chunk <Howto_chunk>`
-doc pages for details of how chunks can be defined and examples of how
-they can be used to measure properties of a system.
+In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
+chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
+single chunk (or no chunk).  The ID for this command is specified as
+chunkID.  For example, a single chunk could be the atoms in a molecule
+or atoms in a spatial bin.  See the :doc:`compute chunk/atom
+<compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>` doc pages for
+details of how chunks can be defined and examples of how they can be
+used to measure properties of a system.
 
 This compute calculates the six components of the symmetric inertia
 tensor for each chunk, ordered
-:math:`I_{xx},I_{yy},I_{zz},I_{xy},I_{yz},I_{xz}`.
-The calculation includes all effects due to atoms passing through periodic
-boundaries.
+:math:`I_{xx},I_{yy},I_{zz},I_{xy},I_{yz},I_{xz}`.  The calculation
+includes all effects due to atoms passing through periodic boundaries.
+
+.. versionchanged:: TBD
+
+For :doc:`finite-size particles <Howto_spherical>` (finite-size spheres,
+ellipsoids, superellipsoids, line segments, triangles, and body
+particles) the moment of inertia of the particle's own shape is now
+added to each chunk via the parallel-axis theorem.  Previously all atoms
+were treated as point masses.  For finite spheres, ellipsoids, lines,
+and triangles this matches the :doc:`fix rigid <fix_rigid>` command;
+superellipsoids and body particles use their stored per-particle moment
+of inertia.
 
 Note that only atoms in the specified group contribute to the
 calculation.  The :doc:`compute chunk/atom <compute_chunk_atom>` command
-defines its own group; atoms will have a chunk ID = 0 if they are not
-in that group, signifying they are not assigned to a chunk, and will
-thus also not contribute to this calculation.  You can specify the
-"all" group for this command if you simply want to include atoms with
-non-zero chunk IDs.
+defines its own group; atoms will have a chunk ID = 0 if they are not in
+that group, signifying they are not assigned to a chunk, and will thus
+also not contribute to this calculation.  You can specify the "all"
+group for this command if you simply want to include atoms with non-zero
+chunk IDs.
 
 .. note::
 
@@ -76,11 +85,11 @@ Output info
 """""""""""
 
 This compute calculates a global array where the number of rows = the
-number of chunks *Nchunk* as calculated by the specified
-:doc:`compute chunk/atom <compute_chunk_atom>` command.
-The number of columns is 6, one for each of the 6 components of the inertia
-tensor for each chunk, ordered as listed above.  These values can be accessed
-by any command that uses global array values from a compute as input.  See the
+number of chunks *Nchunk* as calculated by the specified :doc:`compute
+chunk/atom <compute_chunk_atom>` command.  The number of columns is 6,
+one for each of the 6 components of the inertia tensor for each chunk,
+ordered as listed above.  These values can be accessed by any command
+that uses global array values from a compute as input.  See the
 :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
@@ -94,6 +103,7 @@ none
 Related commands
 """"""""""""""""
 
+:doc:`compute inertia <compute_inertia>`,
 :doc:`variable inertia() function <variable>`
 
 Default

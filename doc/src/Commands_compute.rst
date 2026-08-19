@@ -76,6 +76,7 @@ OPT.
    * :doc:`hma <compute_hma>`
    * :doc:`improper <compute_improper>`
    * :doc:`improper/local <compute_improper_local>`
+   * :doc:`inertia <compute_inertia>`
    * :doc:`inertia/chunk <compute_inertia_chunk>`
    * :doc:`ke <compute_ke>`
    * :doc:`ke/atom (o) <compute_ke_atom>`

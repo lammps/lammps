@@ -4470,11 +4470,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,lmom);
+      group->angmom_extended(igroup,lmom);
     } else if (narg == 3) {
       auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->angmom(igroup,xcm,lmom,region);
+      group->angmom_extended(igroup,lmom,region);
     } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = lmom[0];
     else if (strcmp(args[1],"y") == 0) value = lmom[1];
@@ -4506,11 +4508,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->inertia(igroup,xcm,inertia);
+      group->inertia_extended(igroup,inertia);
     } else if (narg == 3) {
       auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->inertia(igroup,xcm,inertia,region);
+      group->inertia_extended(igroup,inertia,region);
     } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"xx") == 0) value = inertia[0][0];
     else if (strcmp(args[1],"yy") == 0) value = inertia[1][1];
@@ -4527,14 +4531,18 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,angmom);
+      group->angmom_extended(igroup,angmom);
       group->inertia(igroup,xcm,inertia);
+      group->inertia_extended(igroup,inertia);
       group->omega(angmom,inertia,omega);
     } else if (narg == 3) {
       auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->angmom(igroup,xcm,angmom,region);
+      group->angmom_extended(igroup,angmom,region);
       group->inertia(igroup,xcm,inertia,region);
+      group->inertia_extended(igroup,inertia,region);
       group->omega(angmom,inertia,omega);
     } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = omega[0];

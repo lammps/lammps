@@ -672,13 +672,27 @@ forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
   }
 
   for (m = 0; m < nswap; m++) {
-    if (swap[m].sendproc == me)
+    const int self = (swap[m].sendproc == me);
+
+    if (self)
       kspaceKKBase->pack_forward_grid_kokkos(which,k_buf2,swap[m].npack,k_swap_packlist,m);
     else
       kspaceKKBase->pack_forward_grid_kokkos(which,k_buf1,swap[m].npack,k_swap_packlist,m);
-    DeviceType().fence();
 
-    if (swap[m].sendproc != me) {
+    // The fences below exist only to make the packed buffer visible outside the
+    // device execution space -- to the host when MPI is not GPU-aware, or to a
+    // device-side MPI read when it is.  A self swap does no MPI at all: pack and
+    // unpack are both kernels on the same execution space instance, so the
+    // stream already orders them, and the fence only drains the pipeline.  The
+    // tiled path below has always relied on exactly this (its "copies to self"
+    // loop fences neither side), so this makes the brick path consistent with it.
+    //
+    // Every swap is a self swap on one rank, and any dimension with a single
+    // proc self-swaps for periodicity, so on the single-GPU melt benchmark this
+    // removes ~22 full device fences per step from PPPM -- measured at ~150-190
+    // us/step of GPU idle, ~2.5-3% of the step (kokkos_neigh.md 12.4).
+    if (!self) {
+      DeviceType().fence();
 
       if (!lmp->kokkos->gpu_aware_flag) {
         k_buf1.modify<DeviceType>();
@@ -698,7 +712,7 @@ forward_comm_kspace_brick(KSpace *kspace, int which, int nper,
     }
 
     kspaceKKBase->unpack_forward_grid_kokkos(which,k_buf2,0,swap[m].nunpack,k_swap_unpacklist,m);
-    DeviceType().fence();
+    if (!self) DeviceType().fence();
   }
 }
 
@@ -812,13 +826,16 @@ reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
   }
 
   for (m = nswap-1; m >= 0; m--) {
-    if (swap[m].recvproc == me)
+    const int self = (swap[m].recvproc == me);
+
+    if (self)
       kspaceKKBase->pack_reverse_grid_kokkos(which,k_buf2,swap[m].nunpack,k_swap_unpacklist,m);
     else
       kspaceKKBase->pack_reverse_grid_kokkos(which,k_buf1,swap[m].nunpack,k_swap_unpacklist,m);
-    DeviceType().fence();
 
-    if (swap[m].recvproc != me) {
+    // self swap: no MPI, so no fence -- see forward_comm_kspace_brick above
+    if (!self) {
+      DeviceType().fence();
 
       if (!lmp->kokkos->gpu_aware_flag) {
         k_buf1.modify<DeviceType>();
@@ -839,7 +856,7 @@ reverse_comm_kspace_brick(KSpace *kspace, int which, int nper,
     }
 
     kspaceKKBase->unpack_reverse_grid_kokkos(which,k_buf2,0,swap[m].npack,k_swap_packlist,m);
-    DeviceType().fence();
+    if (!self) DeviceType().fence();
   }
 }
 

@@ -1,0 +1,53 @@
+# 64-atom SiC zinc-blende crystal under the Tersoff bond-order potential,
+# constrained to the C_2(z) subgroup of the full F-43m point group by
+# fix symmetry. Demonstrates fix symmetry on a real materials-science
+# setup: chemically distinct atom types, 3-body bond-order forces, and a
+# non-trivial 2-fold rotation that pins Si atoms on the rotation axis
+# while leaving C atoms paired across z.
+#
+# Zinc-blende SiC has no inversion symmetry (inversion swaps Si and C),
+# so P-1 cannot be used. The 2-fold rotation about z preserves both FCC
+# sublattices, hence both atom types.
+#
+# Companion files data.sic_c2 and sic_c2.json are produced by
+# generate_sic_c2.py.
+
+units           metal
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+read_data       data.sic_c2
+
+# SiC.tersoff lists C first, then Si. data.sic_c2 sets type 1 = C, type 2 = Si.
+pair_style      tersoff
+pair_coeff      * * SiC.tersoff C Si
+
+# Small thermal kick so the dynamics is non-trivial. The 2-fold rotation
+# constrains Si atoms on the corner sublattice to move only along z.
+velocity        all create 300.0 87287 mom yes rot yes
+
+fix             1 all nve
+fix             sym all symmetry sic_c2.json
+
+timestep        0.0005
+thermo          50
+thermo_style    custom step temp pe etotal press
+
+# Pick representative orbits from sic_c2.json:
+#   tag 1  Wyckoff Si on the rotation axis at (0,0,0)   -> x = y = 0 forever
+#   tags 5  & 32  paired C atoms                         -> sum_xy/L is integer, z equal
+#   tags 2  & 18  paired Si atoms                        -> same invariants
+variable        wy_x   equal x[1]
+variable        wy_y   equal y[1]
+variable        c_resx equal (x[5]+x[32])/lx-round((x[5]+x[32])/lx)
+variable        c_resy equal (y[5]+y[32])/ly-round((y[5]+y[32])/ly)
+variable        c_dz   equal z[5]-z[32]
+variable        si_resx equal (x[2]+x[18])/lx-round((x[2]+x[18])/lx)
+variable        si_resy equal (y[2]+y[18])/ly-round((y[2]+y[18])/ly)
+variable        si_dz   equal z[2]-z[18]
+
+print           "pre-run  Wyckoff Si: (${wy_x},${wy_y})  C pair: res=(${c_resx},${c_resy}) dz=${c_dz}  Si pair: res=(${si_resx},${si_resy}) dz=${si_dz}"
+run             200
+print           "post-run Wyckoff Si: (${wy_x},${wy_y})  C pair: res=(${c_resx},${c_resy}) dz=${c_dz}  Si pair: res=(${si_resx},${si_resy}) dz=${si_dz}"
+print           "(Wyckoff x,y must stay 0; both pair residuals ~1e-12; both dz ~1e-12)"

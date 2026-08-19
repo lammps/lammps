@@ -195,6 +195,11 @@
 /fix_*manifold*.cpp
 /fix_*manifold*.h
 
+/fix_symmetry.cpp
+/fix_symmetry.h
+/symmetry_group.cpp
+/symmetry_group.h
+
 /meam*.h
 /meam*.cpp
 /pair_meam.cpp

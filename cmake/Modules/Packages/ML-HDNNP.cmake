@@ -79,7 +79,6 @@ if(DOWNLOAD_N2P2)
     CONFIGURE_COMMAND ""
     PATCH_COMMAND sed -i -e "s/\\(MPI_\\(P\\|Unp\\)ack(\\)/\\1(void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
     BUILD_COMMAND ${N2P2_MAKE} -C <SOURCE_DIR>/src -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
-    BUILD_ALWAYS YES
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1
     LOG_BUILD ON

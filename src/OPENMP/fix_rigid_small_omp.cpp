@@ -94,7 +94,7 @@ void FixRigidSmallOMP::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm(this,26);
+  comm->forward_comm(this,29);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 

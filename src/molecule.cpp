@@ -55,7 +55,7 @@ Molecule::Molecule(LAMMPS *lmp) :
     improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr), nspecial(nullptr),
     special(nullptr), shake_flag(nullptr), shake_atom(nullptr), shake_type(nullptr),
     avec_body(nullptr), ibodyparams(nullptr), dbodyparams(nullptr), fragmentmask(nullptr),
-    dx(nullptr), dxcom(nullptr), dxbody(nullptr), quat_external(nullptr), fp(nullptr),
+    dx(nullptr), dxcom(nullptr), dxbody(nullptr), fp(nullptr),
     count(nullptr)
 {
   // parse args until reach unknown arg (next file)
@@ -64,6 +64,7 @@ Molecule::Molecule(LAMMPS *lmp) :
   boffset = aoffset = doffset = ioffset = 0;
   sizescale = 1.0;
   json_format = 0;
+  quat_external[0] = quat_external[1] = quat_external[2] = quat_external[3] = 0.0;
 
   // initialize all fields to empty
 

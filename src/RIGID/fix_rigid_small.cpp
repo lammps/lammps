@@ -1094,7 +1094,7 @@ bigint FixRigidSmall::dof(int tgroup)
     j = atom2body[i];
     counts[j][2]++;
     if (mask[i] & tgroupbit) {
-      if (extended && (eflags[i] & ~(POINT | DIPOLE))) counts[j][1]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE | TORQUE))) counts[j][1]++;
       else counts[j][0]++;
     }
   }
@@ -1832,9 +1832,13 @@ void FixRigidSmall::setup_bodies_static()
       } else eflags[i] |= POINT;
 
       // set DIPOLE if atom->mu and mu[3] > 0.0
+      // point dipoles also need TORQUE so the torque
+      // from dipole interactions acts on the body
 
-      if (atom->mu_flag && mu[i][3] > 0.0)
+      if (atom->mu_flag && mu[i][3] > 0.0) {
         eflags[i] |= DIPOLE;
+        if (atom->torque_flag) eflags[i] |= TORQUE;
+      }
     }
   }
 

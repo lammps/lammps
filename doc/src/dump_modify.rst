@@ -960,7 +960,7 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 21Aug2026
 
 The :ref:`EXTRA-DUMP package <PKG-EXTRA-DUMP>` offers writing dump files
 in `VTK file formats <https://vtk.org/>`_ that can be read by a variety

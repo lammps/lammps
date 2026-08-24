@@ -10,7 +10,7 @@ Syntax
 
    atom_style style args
 
-* style = *amoeba* or *angle* or *apip* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tdpd* or *tri* or *template* or *hybrid*
+* style = *amoeba* or *angle* or *apip* or *atomic* or *body* or *bond* or *charge* or *dielectric* or *dipole* or  *dpd* or *edpd* or *electron* or *ellipsoid* or *full* or *line* or *mdpd* or *molecular* or *oxdna* or *peri* or *smd* or *sph* or *sphere* or *bpm/sphere* or *spin* or *tspin* or *tdpd* or *tri* or *template* or *hybrid*
 
   .. parsed-literal::
 
@@ -219,6 +219,10 @@ the Additional Information section below.
      - *atomic* + "magnetic moment data"
      - :ref:`SPIN <PKG-SPIN>`
      - magnetic particles
+   * - *tspin*
+     - *spin* + spin velocity, spin mass
+     - :ref:`SPIN <PKG-SPIN>`
+     - magnetic particles with a dynamical spin modulus
    * - *tdpd*
      - *atomic* + cc, cc_flux, vest
      - :ref:`DPD-MESO <PKG-DPD-MESO>`
@@ -394,6 +398,18 @@ which store a density (rho), energy (esph), and heat capacity (cv).
 
 For the *spin* style, a magnetic spin is associated with each atom.
 Those spins have a norm (their magnetic moment) and a direction.
+
+.. versionadded:: TBD
+
+The *tspin* style extends the *spin* style for inertial spin dynamics.
+In addition to the spin itself, each atom stores a spin velocity and a
+spin mass, so that the norm of the spin is a dynamical degree of
+freedom rather than a constant of the motion.  See :doc:`fix nve/tspin
+<fix_nve_tspin>` for details.  The *tspin* style reads and writes the
+same Atoms and Velocities sections of a data file as the *spin* style;
+the spin masses and spin velocities are set with the
+:doc:`velocity/tspin <velocity_tspin>` command and are stored in
+restart files.
 
 The *tdpd* style is for transport dissipative particle dynamics (tDPD)
 particles which store a set of chemical concentration. An integer

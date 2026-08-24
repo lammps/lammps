@@ -113,6 +113,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
    * :doc:`langevin/spin <fix_langevin_spin>`
+   * :doc:`langevin/tspin <fix_langevin_tspin>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
    * :doc:`lb/viscous <fix_lb_viscous>`
@@ -162,6 +163,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
    * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
+   * :doc:`nve/tspin <fix_nve_tspin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
    * :doc:`nvt (giko) <fix_nh>`
@@ -172,6 +174,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nvt/sllod (iko) <fix_nvt_sllod>`
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
    * :doc:`nvt/sphere (ko) <fix_nvt_sphere>`
+   * :doc:`nvt/tspin <fix_nvt_tspin>`
    * :doc:`nvt/uef <fix_nh_uef>`
    * :doc:`oneway (k) <fix_oneway>`
    * :doc:`orient/bcc (o) <fix_orient>`
@@ -256,6 +259,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg <fix_spring_rg>`
    * :doc:`spring/self (k) <fix_spring_self>`
+   * :doc:`spring/tspin <fix_spring_tspin>`
    * :doc:`srd <fix_srd>`
    * :doc:`store/force <fix_store_force>`
    * :doc:`store/state <fix_store_state>`

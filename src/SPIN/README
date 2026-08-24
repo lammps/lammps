@@ -11,6 +11,9 @@ atom in the system
 * performing geodesic NEB calculations
 * computing and outputting magnetic quantities
 * minimizing the energy or total torque of a magnetic system
+* performing inertial spin dynamics, in which the spin modulus is a
+dynamical degree of freedom, and thermostating it with a Nose-Hoover
+chain or a Langevin bath
 
 The different options provided by this package are explained in the
 LAMMPS documentation.

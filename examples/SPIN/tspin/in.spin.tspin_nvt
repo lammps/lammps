@@ -1,0 +1,56 @@
+# bcc iron in a inertial spin dynamics simulation, thermostatted
+#
+# The spin degrees of freedom are held at 300 K with a Nose-Hoover chain.
+# fix langevin/tspin can be used instead for a stochastic bath.
+
+units           metal
+dimension       3
+boundary        p p p
+atom_style      tspin
+
+# necessary for the serial algorithm (sametag)
+atom_modify     map array
+
+lattice         bcc 2.8665
+region          box block 0.0 4.0 0.0 4.0 0.0 4.0
+create_box      1 box
+create_atoms    1 box
+
+mass            1 55.845
+
+# start from the ferromagnetic ground state, so that the run shows the
+# thermostat equilibrating the spins rather than a large relaxation transient
+
+set             group all spin/atom 2.2 0.0 0.0 1.0
+
+pair_style      spin/exchange 3.5
+pair_coeff      * * exchange 3.4 0.02726 0.2171 1.841
+
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
+
+# assign the spin masses and draw spin velocities at the target temperature
+
+velocity/tspin  all create 300.0 12345 spinmass 0.0075
+
+fix             pin all spring/tspin 1.0 2.2
+fix             1 all nvt/tspin lattice frozen temp 300.0 300.0 0.01
+
+timestep        0.0001
+
+compute         out_mag all spin
+compute         ske all ke/tspin
+
+variable        magnorm equal c_out_mag[4]
+variable        nspin   equal count(all)
+variable        tspin   equal 2.0*c_ske/(3.0*v_nspin*8.617333262e-5)
+
+# the spin temperature needs about 1 ps to equilibrate from the ordered
+# starting state; the running average settles on the requested 300 K
+
+
+thermo          2000
+thermo_style    custom step time v_magnorm pe f_pin c_ske v_tspin
+thermo_modify   format float %20.15g
+
+run             20000

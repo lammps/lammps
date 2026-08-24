@@ -166,6 +166,8 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   // SPIN package
 
   sp = fm = fm_long = nullptr;
+  v_s = f_spin = nullptr;
+  s_mass = nullptr;
 
   // EFF package
 
@@ -502,6 +504,9 @@ void Atom::peratom_create()
   add_peratom("sp",&sp,DOUBLE,4);
   add_peratom("fm",&fm,DOUBLE,3,1);
   add_peratom("fm_long",&fm_long,DOUBLE,3,1);
+  add_peratom("v_s",&v_s,DOUBLE,3);
+  add_peratom("f_spin",&f_spin,DOUBLE,3,1);
+  add_peratom("s_mass",&s_mass,DOUBLE,0);
 
   // EFF package
 
@@ -660,7 +665,7 @@ void Atom::set_atomflag_defaults()
   rheo_status_flag = conductivity_flag = pressure_flag = viscosity_flag = 0;
   rho_flag = esph_flag = cv_flag = vest_flag = 0;
   dpd_flag = edpd_flag = tdpd_flag = 0;
-  sp_flag = 0;
+  sp_flag = tsp_flag = 0;
   x0_flag = 0;
   smd_flag = damage_flag = 0;
   mesont_flag = 0;
@@ -3139,6 +3144,9 @@ void *Atom::extract(const char *name)
   // SPIN PACKAGE
 
   if (strcmp(name,"sp") == 0) return (void *) sp;
+  if (strcmp(name,"v_s") == 0) return (void *) v_s;
+  if (strcmp(name,"f_spin") == 0) return (void *) f_spin;
+  if (strcmp(name,"s_mass") == 0) return (void *) s_mass;
 
   // EFF package
 
@@ -3307,6 +3315,13 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"s0") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"x0") == 0) return LAMMPS_DOUBLE_2D;
 
+  // SPIN package
+
+  if (strcmp(name,"sp") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"v_s") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"f_spin") == 0) return LAMMPS_DOUBLE_2D;
+  if (strcmp(name,"s_mass") == 0) return LAMMPS_DOUBLE;
+
   // EFF and in part ELECTRODE package
 
   if (strcmp(name,"espin") == 0) return LAMMPS_INT;
@@ -3449,6 +3464,8 @@ int Atom::extract_size(const char *name, int type)
       if (strcmp(name,"sp") == 0) return nall;
       if (strcmp(name,"fm") == 0) return nlocal;
       if (strcmp(name,"fm_long") == 0) return nlocal;
+      if (strcmp(name,"v_s") == 0) return nlocal;
+      if (strcmp(name,"f_spin") == 0) return nlocal;
 
       // SPH package
 
@@ -3479,6 +3496,8 @@ int Atom::extract_size(const char *name, int type)
       if (strcmp(name,"sp") == 0) return 4;
       if (strcmp(name,"fm") == 0) return 3;
       if (strcmp(name,"fm_long") == 0) return 3;
+      if (strcmp(name,"v_s") == 0) return 3;
+      if (strcmp(name,"f_spin") == 0) return 3;
 
       // SPH package
 
@@ -3550,6 +3569,10 @@ int Atom::extract_size(const char *name, int type)
 
     if (strcmp(name,"vfrac") == 0) return nall;
     if (strcmp(name,"s0") == 0) return nall;
+
+    // SPIN package
+
+    if (strcmp(name,"s_mass") == 0) return nlocal;
 
     // EFF and in part ELECTRODE package
 

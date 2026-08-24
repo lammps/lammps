@@ -120,6 +120,8 @@ class Atom : protected Pointers {
   // SPIN package
 
   double **sp, **fm, **fm_long;
+  double **v_s, **f_spin;
+  double *s_mass;
 
   // EFF package
 
@@ -206,7 +208,7 @@ class Atom : protected Pointers {
 
   // SPIN package
 
-  int sp_flag;
+  int sp_flag, tsp_flag;
 
   // MACHDYN package
 

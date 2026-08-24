@@ -50,6 +50,64 @@ and atomic motions.
 The minimization style :doc:`min/spin <min_spin>` can be applied
 to the spins to perform a minimization of the spin configuration.
 
+Inertial spin dynamics
+======================
+
+.. versionadded:: TBD
+
+All of the above describes fixed-modulus spin dynamics, in which the
+magnitude of each spin is a constant of the motion and only its
+direction evolves.  The SPIN package also supports inertial spin
+dynamics, in which the spin modulus itself is a dynamical degree of
+freedom.  Each spin then carries a spin velocity and a spin mass, and
+obeys a Newtonian second-order equation of motion instead of the
+first-order Landau-Lifshitz precession equation.
+
+This model requires :doc:`atom_style tspin <atom_style>` and a
+different set of commands:
+
+* :doc:`fix nve/tspin <fix_nve_tspin>` integrates the equations of
+  motion.
+* :doc:`fix nvt/tspin <fix_nvt_tspin>` does the same and adds a
+  Nose-Hoover chain thermostat on the spin velocities, while
+  :doc:`fix langevin/tspin <fix_langevin_tspin>` provides a Langevin
+  bath for the same degrees of freedom.
+* :doc:`fix spring/tspin <fix_spring_tspin>` supplies the longitudinal
+  potential on the spin modulus.  It is required: the effective field
+  of the SPIN pair styles has a component parallel to the spin, which
+  is harmless for a fixed-modulus spin but drives the modulus without
+  bound once it is free to evolve.
+* :doc:`velocity/tspin <velocity_tspin>` assigns the spin masses and
+  initializes the spin velocities.
+* :doc:`compute ke/tspin <compute_ke_tspin>` reports the kinetic energy
+  of the spin degrees of freedom, which is not part of the
+  thermodynamic keyword *ke*.
+
+A minimal thermostatted example on a fixed lattice is:
+
+.. code-block:: LAMMPS
+
+   atom_style      tspin
+   pair_style      spin/exchange 4.0
+   pair_coeff      * * exchange 4.0 0.02 0.2 1.4
+
+   velocity/tspin  all create 300.0 12345 spinmass 0.0075
+   fix             pin  all spring/tspin 1.0 2.2
+   fix             1    all nve/tspin lattice frozen
+   fix             bath all langevin/tspin 300.0 300.0 0.05 48279
+
+   compute         ske all ke/tspin
+   thermo_style    custom step pe f_pin c_ske
+
+The inertial and the fixed-modulus styles describe different physics
+and must not be combined on the same group of atoms.  Because the
+resulting spin dynamics is second order in time, its characteristic
+frequencies scale as the inverse square root of the spin mass and are
+not the Landau-Lifshitz precession frequencies.  Static thermodynamic
+averages should be verified to be independent of the spin mass.
+
+----------
+
 All the computed magnetic properties can be output by two main
 commands. The first one is :doc:`compute spin <compute_spin>`, that
 enables to evaluate magnetic averaged quantities, such as the total

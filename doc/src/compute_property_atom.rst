@@ -59,6 +59,8 @@ Syntax
            *spx, spy, spz* = direction of the atomic magnetic spin
            *sp* = magintude of atomic magnetic spin moment
            *fmx, fmy, fmz* = magnetic force
+           *vsx, vsy, vsz* = spin velocity (atom style tspin only)
+           *smass* = spin mass (atom style tspin only)
            *nbonds* = number of bonds assigned to an atom
            *radius,diameter* = radius,diameter of spherical particle
            *omegax,omegay,omegaz* = angular velocity of spherical particle
@@ -296,6 +298,14 @@ units for *q*).
 For the spin quantities, *sp* is in the units of the Bohr magneton;
 *spx*, *spy*, and *spz* are unitless quantities; and *fmx*, *fmy*, and
 *fmz* are given in rad/THz.
+
+.. versionadded:: TBD
+
+The *vsx*, *vsy*, *vsz* and *smass* attributes are only available with
+:doc:`atom_style tspin <atom_style>` and describe the additional spin
+degrees of freedom of :doc:`inertial spin dynamics <fix_nve_tspin>`.
+*smass* is in mass units, and the spin velocity components are in units
+of Bohr magneton per time unit.
 
 Restrictions
 """"""""""""

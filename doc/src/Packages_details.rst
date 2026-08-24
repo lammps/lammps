@@ -2994,7 +2994,10 @@ SPIN package
 **Contents:**
 
 Model atomic magnetic spins classically, coupled to atoms moving in
-the usual manner via MD.  Various pair, fix, and compute styles.
+the usual manner via MD.  Various pair, fix, and compute styles.  Both
+fixed-modulus Landau-Lifshitz spin dynamics and inertial spin dynamics,
+in which the spin modulus is a dynamical degree of freedom, are
+supported.
 
 **Author:** Julien Tranchida (Sandia).
 
@@ -3012,7 +3015,13 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 * :doc:`fix nve/spin <fix_nve_spin>`
 * :doc:`fix langevin/spin <fix_langevin_spin>`
 * :doc:`fix precession/spin <fix_precession_spin>`
+* :doc:`fix nve/tspin <fix_nve_tspin>`
+* :doc:`fix nvt/tspin <fix_nvt_tspin>`
+* :doc:`fix langevin/tspin <fix_langevin_tspin>`
+* :doc:`fix spring/tspin <fix_spring_tspin>`
 * :doc:`compute spin <compute_spin>`
+* :doc:`compute ke/tspin <compute_ke_tspin>`
+* :doc:`velocity/tspin <velocity_tspin>`
 * :doc:`neb/spin <neb_spin>`
 * ``examples/SPIN``
 

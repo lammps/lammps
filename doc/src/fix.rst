@@ -290,6 +290,7 @@ accelerated styles exist.
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model
 * :doc:`langevin/spin <fix_langevin_spin>` - Langevin temperature control for a spin or spin-lattice system
+* :doc:`langevin/tspin <fix_langevin_tspin>` - Langevin temperature control for inertial spin dynamics
 * :doc:`lb/fluid <fix_lb_fluid>` - lattice-Boltzmann fluid on a uniform mesh
 * :doc:`lb/momentum <fix_lb_momentum>` - :doc:`fix momentum <fix_momentum>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lb/viscous <fix_lb_viscous>` - :doc:`fix viscous <fix_viscous>` replacement for use with a lattice-Boltzmann fluid
@@ -340,6 +341,7 @@ accelerated styles exist.
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
 * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>` - NVE for spherical particles used in the BPM package
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
+* :doc:`nve/tspin <fix_nve_tspin>` - NVE for inertial spin dynamics with a dynamical spin modulus
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
 * :doc:`nvt <fix_nh>` - NVT time integration via Nose/Hoover
@@ -350,6 +352,7 @@ accelerated styles exist.
 * :doc:`nvt/sllod <fix_nvt_sllod>` - NVT for NEMD with SLLOD equations
 * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>` - NVT for NEMD with SLLOD equations for the electron force field model
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
+* :doc:`nvt/tspin <fix_nvt_tspin>` - NVT for inertial spin dynamics via Nose/Hoover
 * :doc:`nvt/uef <fix_nh_uef>` - NVT style time integration with diagonal flow
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
@@ -434,6 +437,7 @@ accelerated styles exist.
 * :doc:`spring/chunk <fix_spring_chunk>` - apply harmonic spring force to each chunk of atoms
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of group of atoms
 * :doc:`spring/self <fix_spring_self>` - spring from each atom to its origin
+* :doc:`spring/tspin <fix_spring_tspin>` - harmonic restoring potential on the spin modulus
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom

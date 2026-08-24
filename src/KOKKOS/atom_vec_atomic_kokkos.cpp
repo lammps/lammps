@@ -109,24 +109,6 @@ void AtomVecAtomicKokkos::grow_pointers()
   h_f = atomKK->k_f.view_hostkk();
 }
 
-/* ----------------------------------------------------------------------
-   sort atom arrays on device
-------------------------------------------------------------------------- */
-
-void AtomVecAtomicKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
-{
-  atomKK->sync(Device, ALL_MASK & ~F_MASK);
-
-  Sorter.sort(LMPDeviceType(), d_tag);
-  Sorter.sort(LMPDeviceType(), d_type);
-  Sorter.sort(LMPDeviceType(), d_mask);
-  Sorter.sort(LMPDeviceType(), d_image);
-  Sorter.sort(LMPDeviceType(), d_x);
-  Sorter.sort(LMPDeviceType(), d_v);
-
-  atomKK->modified(Device, ALL_MASK & ~F_MASK);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void AtomVecAtomicKokkos::sync(ExecutionSpace space, uint64_t mask)

@@ -15,7 +15,7 @@
    Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
 ------------------------------------------------------------------------- */
 
-#include "fix_nvt_tspin.h"
+#include "fix_nph_tspin.h"
 
 #include "error.h"
 #include "group.h"
@@ -25,15 +25,25 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVTTSpin::FixNVTTSpin(LAMMPS *lmp, int narg, char **arg) : FixNHTSpin(lmp, narg, arg)
+FixNPHTSpin::FixNPHTSpin(LAMMPS *lmp, int narg, char **arg) : FixNHTSpin(lmp, narg, arg)
 {
-  if (!tstat_flag) error->all(FLERR, "Temperature control must be used with fix {}", style);
-  if (pstat_flag) error->all(FLERR, "Pressure control can not be used with fix {}", style);
+  if (tstat_flag) error->all(FLERR, "Temperature control can not be used with fix {}", style);
+  if (!pstat_flag) error->all(FLERR, "Pressure control must be used with fix {}", style);
 
   // create a new compute temp style
   // id = fix-ID + temp
+  // compute group = all since pressure is always global (group all)
+  // and thus its KE/temperature contribution should use group all
 
   id_temp = utils::strdup(std::string(id) + "_temp");
-  modify->add_compute(fmt::format("{} {} temp", id_temp, group->names[igroup]));
+  modify->add_compute(fmt::format("{} all temp", id_temp));
   tcomputeflag = 1;
+
+  // create a new compute pressure style
+  // id = fix-ID + press, compute group = all
+  // pass id_temp as 4th arg to pressure constructor
+
+  id_press = utils::strdup(std::string(id) + "_press");
+  modify->add_compute(fmt::format("{} all pressure {}", id_press, id_temp));
+  pcomputeflag = 1;
 }

@@ -28,6 +28,7 @@
 #include "comm.h"
 #include "error.h"
 #include "fix_nve_spin.h"
+#include "fix_nh_tspin.h"
 #include "fix_nve_tspin.h"
 #include "force.h"
 #include "math_const.h"
@@ -78,13 +79,15 @@ void PairSpin::init_style()
     error->all(FLERR,"Pair spin requires atom/spin style");
 
   // checking if a spin integrator or neb/spin is a listed fix
-  // nve/tspin and its derived styles integrate inertial spin dynamics
+  // the tspin styles integrate inertial spin dynamics
 
-  auto tspin_fixes = modify->get_fix_by_style("^nv[et]/tspin");
+  auto nve_tspin = modify->get_fix_by_style("^nve/tspin");
+  auto nh_tspin = modify->get_fix_by_style("^n(vt|pt|ph)/tspin");
+  const std::size_t ntspin = nve_tspin.size() + nh_tspin.size();
 
   if ((comm->me == 0) && ((modify->get_fix_by_style("^nve/spin").size()
                            + modify->get_fix_by_style("^neb/spin").size()
-                           + tspin_fixes.size()) == 0))
+                           + ntspin) == 0))
     error->warning(FLERR,"Using spin pair style without nve/spin, nve/tspin or neb/spin");
 
   // check if newton pair is on
@@ -104,10 +107,13 @@ void PairSpin::init_style()
   else if (fixes.size() > 1)
     error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
 
-  if (tspin_fixes.size() == 1)
-    lattice_flag = (dynamic_cast<FixNVETSpin *>(tspin_fixes.front()))->lattice_flag;
-  else if (tspin_fixes.size() > 1)
-    error->warning(FLERR,"Using multiple instances of fix nve/tspin");
+  if (ntspin == 1) {
+    if (nve_tspin.size() == 1)
+      lattice_flag = (dynamic_cast<FixNVETSpin *>(nve_tspin.front()))->lattice_flag;
+    else
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(nh_tspin.front()))->lattice_flag;
+  } else if (ntspin > 1)
+    error->warning(FLERR,"Using multiple instances of the tspin integrators");
 
   // init. size of energy stacking lists
 

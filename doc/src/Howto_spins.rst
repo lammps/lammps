@@ -68,10 +68,11 @@ different set of commands:
 
 * :doc:`fix nve/tspin <fix_nve_tspin>` integrates the equations of
   motion.
-* :doc:`fix nvt/tspin <fix_nvt_tspin>` does the same and adds a
-  Nose-Hoover chain thermostat on the spin velocities, while
+* :doc:`fix nvt/tspin, fix npt/tspin and fix nph/tspin <fix_nvt_tspin>`
+  do the same and add a Nose-Hoover chain on the spin velocities on top of
+  the usual lattice thermostat and barostat, while
   :doc:`fix langevin/tspin <fix_langevin_tspin>` provides a Langevin
-  bath for the same degrees of freedom.
+  bath for the spin degrees of freedom alone.
 * :doc:`fix spring/tspin <fix_spring_tspin>` supplies the longitudinal
   potential on the spin modulus.  It is required: the effective field
   of the SPIN pair styles has a component parallel to the spin, which

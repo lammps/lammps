@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - 7bd373ebc6-modified)
+LAMMPS (4 Jul 2026 - Development - 32babbbd2a-modified)
 # bcc iron in a inertial spin dynamics simulation (NVE)
 #
 # The spin modulus is a dynamical degree of freedom here, so the run needs a
@@ -22,7 +22,7 @@ Created orthogonal box = (0 0 0) to (11.466 11.466 11.466)
 create_atoms    1 box
 Created 128 atoms
   using lattice units in orthogonal box = (0 0 0) to (11.466 11.466 11.466)
-  create_atoms CPU = 0.000 seconds
+  create_atoms CPU = 0.001 seconds
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -85,20 +85,20 @@ Per MPI rank memory allocation (min/avg/max) = 5.841 | 5.841 | 5.841 Mbytes
       1600                  0.16    0.625991331063499    -6.53002849101774    0.216905933696859     5.95850812323464   -0.354614434086248
       1800                  0.18     0.66312232962503    -7.26639625026894    0.254404291988641      6.6573749890085   -0.354616969271806
       2000                   0.2    0.680445142414857     -7.8124091226515    0.288505020482448     7.16928537862628   -0.354618723542768
-Loop time of 0.0372146 on 1 procs for 2000 steps with 128 atoms
+Loop time of 0.038812 on 1 procs for 2000 steps with 128 atoms
 
-Performance: 464.334 ns/day, 0.052 hours/ns, 53742.312 timesteps/s, 6.879 Matom-step/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 445.223 ns/day, 0.054 hours/ns, 51530.454 timesteps/s, 6.596 Matom-step/s
+99.7% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.022771   | 0.022771   | 0.022771   |   0.0 | 61.19
+Pair    | 0.023776   | 0.023776   | 0.023776   |   0.0 | 61.26
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.010543   | 0.010543   | 0.010543   |   0.0 | 28.33
-Output  | 3.2501e-05 | 3.2501e-05 | 3.2501e-05 |   0.0 |  0.09
-Modify  | 0.0022364  | 0.0022364  | 0.0022364  |   0.0 |  6.01
-Other   |            | 0.001632   |            |       |  4.39
+Comm    | 0.010919   | 0.010919   | 0.010919   |   0.0 | 28.13
+Output  | 3.6001e-05 | 3.6001e-05 | 3.6001e-05 |   0.0 |  0.09
+Modify  | 0.0022978  | 0.0022978  | 0.0022978  |   0.0 |  5.92
+Other   |            | 0.001783   |            |       |  4.59
 
 Nlocal:            128 ave         128 max         128 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

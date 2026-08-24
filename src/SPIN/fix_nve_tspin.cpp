@@ -102,18 +102,6 @@ FixNVETSpin::FixNVETSpin(LAMMPS *lmp, int narg, char **arg) :
       spinmass_flag = 1;
       iarg += 2;
 
-
-      // keywords temp, tchain, tloop and drag are parsed in fix nvt/tspin
-
-    } else if (strcmp(arg[iarg], "temp") == 0) {
-      iarg += 4;
-    } else if (strcmp(arg[iarg], "tchain") == 0) {
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "tloop") == 0) {
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "drag") == 0) {
-      iarg += 2;
-
     } else {
       error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
     }

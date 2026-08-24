@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - 7bd373ebc6-modified)
+LAMMPS (4 Jul 2026 - Development - 32babbbd2a-modified)
 # bcc iron in a inertial spin dynamics simulation, thermostatted
 #
 # The spin degrees of freedom are held at 300 K with a Nose-Hoover chain.
@@ -63,6 +63,7 @@ thermo_style    custom step time v_magnorm pe f_pin c_ske v_tspin
 thermo_modify   format float %20.15g
 
 run             20000
+WARNING: Using spin pair style without nve/spin, nve/tspin or neb/spin (src/SPIN/pair_spin.cpp:91)
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 10 steps, delay = 20 steps, check = yes
@@ -89,20 +90,20 @@ Per MPI rank memory allocation (min/avg/max) = 5.827 | 5.827 | 5.827 Mbytes
      16000                   1.6    0.819697469298671    -10.6550904812077     1.46107288158754     5.10208793864208     308.371208034957
      18000                   1.8    0.804112027568945    -10.6708901938874     1.56195266225671     5.04642123415358     305.006701363005
      20000                     2    0.778280260260857    -10.3343617979711     1.75947659096962     5.06424054747061     306.083704197925
-Loop time of 0.327214 on 4 procs for 20000 steps with 128 atoms
+Loop time of 0.322844 on 4 procs for 20000 steps with 128 atoms
 
-Performance: 528.094 ns/day, 0.045 hours/ns, 61122.046 timesteps/s, 7.824 Matom-step/s
-99.3% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 535.243 ns/day, 0.045 hours/ns, 61949.442 timesteps/s, 7.930 Matom-step/s
+99.4% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.080612   | 0.082691   | 0.085224   |   0.7 | 25.27
+Pair    | 0.082283   | 0.083489   | 0.084894   |   0.3 | 25.86
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.19889    | 0.20094    | 0.20197    |   0.3 | 61.41
-Output  | 0.00017358 | 0.0001886  | 0.00023217 |   0.0 |  0.06
-Modify  | 0.0297     | 0.030953   | 0.032279   |   0.6 |  9.46
-Other   |            | 0.01245    |            |       |  3.80
+Comm    | 0.18868    | 0.18998    | 0.19099    |   0.2 | 58.85
+Output  | 0.00015171 | 0.00016922 | 0.00022112 |   0.0 |  0.05
+Modify  | 0.035898   | 0.036591   | 0.037213   |   0.3 | 11.33
+Other   |            | 0.01261    |            |       |  3.91
 
 Nlocal:             32 ave          32 max          32 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

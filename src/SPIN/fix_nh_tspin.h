@@ -14,39 +14,50 @@
 #ifndef LMP_FIX_NH_TSPIN_H
 #define LMP_FIX_NH_TSPIN_H
 
-#include "fix_nve_tspin.h"
+#include "fix_nh.h"
 
 namespace LAMMPS_NS {
 
-class FixNHTSpin : public FixNVETSpin {
+class FixNHTSpin : public FixNH {
  public:
   FixNHTSpin(class LAMMPS *, int, char **);
   ~FixNHTSpin() override;
 
-  int setmask() override;
   void init() override;
   void setup(int) override;
-  void initial_integrate(int) override;
-  void final_integrate() override;
   double compute_scalar() override;
   void reset_dt() override;
   void write_restart(FILE *) override;
+  int size_restart_global() override;
   void restart(char *) override;
 
+  // read by PairSpin::init_style()
+
+  int lattice_flag;
+
  protected:
-  int tstat_flag;    // 1 if the temp keyword was used
-  double t_start, t_stop, t_target, t_freq, t_period;
-  double t_current, ke_target, tdof;
-  double drag, tdrag_factor;
+  int spin_flag;        // 1 if the spin degrees of freedom are integrated
+  int spinmass_flag;    // 1 if the spinmass keyword was used
+  double spinmass;      // spin mass in units of the atomic mass of the type
 
-  int mtchain, nc_tchain;
-  double *eta, *eta_dot, *eta_dotdot, *eta_mass;
-  double dtq, dt4, dt8, dthalf;
+  double dtf_spin;      // dtf times hbar, for the rad.THz precession field
+  double t_current_spin, ke_target_spin, tdof_spin;
 
-  void compute_temp_target();
-  double compute_spin_temp();
+  // Nose-Hoover chain acting on the spin velocities, parallel to the chain
+  // of the parent class and driven by the same target temperature
+
+  double *etas, *etas_dot, *etas_dotdot, *etas_mass;
+
+  void nve_v() override;
+  void nve_x() override;
+  void nh_v_temp() override;
+  void nhc_temp_integrate() override;
+
   void nhc_spin_integrate();
+  double compute_spin_temp();
   void nh_vs_scale(double);
+  void set_spin_mass();
+  void spin_kick();
 };
 
 }    // namespace LAMMPS_NS

@@ -342,6 +342,8 @@ accelerated styles exist.
 * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>` - NVE for spherical particles used in the BPM package
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
 * :doc:`nve/tspin <fix_nve_tspin>` - NVE for inertial spin dynamics with a dynamical spin modulus
+* :doc:`nph/tspin <fix_nvt_tspin>` - NPH for inertial spin dynamics
+* :doc:`npt/tspin <fix_nvt_tspin>` - NPT for inertial spin dynamics
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
 * :doc:`nvt <fix_nh>` - NVT time integration via Nose/Hoover

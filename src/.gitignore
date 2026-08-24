@@ -399,6 +399,10 @@
 /fix_nve_spin.h
 /fix_nve_tspin.cpp
 /fix_nve_tspin.h
+/fix_nph_tspin.cpp
+/fix_nph_tspin.h
+/fix_npt_tspin.cpp
+/fix_npt_tspin.h
 /fix_nvt_tspin.cpp
 /fix_nvt_tspin.h
 /fix_precession_spin.cpp

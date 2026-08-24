@@ -3017,6 +3017,8 @@ supported.
 * :doc:`fix precession/spin <fix_precession_spin>`
 * :doc:`fix nve/tspin <fix_nve_tspin>`
 * :doc:`fix nvt/tspin <fix_nvt_tspin>`
+* :doc:`fix npt/tspin <fix_nvt_tspin>`
+* :doc:`fix nph/tspin <fix_nvt_tspin>`
 * :doc:`fix langevin/tspin <fix_langevin_tspin>`
 * :doc:`fix spring/tspin <fix_spring_tspin>`
 * :doc:`compute spin <compute_spin>`

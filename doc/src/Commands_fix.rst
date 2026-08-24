@@ -164,6 +164,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tspin <fix_nve_tspin>`
+   * :doc:`nph/tspin <fix_nvt_tspin>`
+   * :doc:`npt/tspin <fix_nvt_tspin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk <fix_nvk>`
    * :doc:`nvt (giko) <fix_nh>`

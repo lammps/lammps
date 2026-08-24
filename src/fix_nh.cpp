@@ -407,6 +407,15 @@ FixNH::FixNH(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "ext") == 0) {
       iarg += 2;
 
+      // keywords spinmass, lattice and spin are parsed in fix nvt/npt/nph/tspin
+
+    } else if (strcmp(arg[iarg], "spinmass") == 0) {
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "lattice") == 0) {
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "spin") == 0) {
+      iarg += 2;
+
       // keywords psllod, peculiar, kick and integrator are parsed in fix/nvt/sllod
 
     } else if (strcmp(arg[iarg], "psllod") == 0) {

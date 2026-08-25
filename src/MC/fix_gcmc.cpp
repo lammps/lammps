@@ -273,20 +273,32 @@ void FixGCMC::options(int narg, char **arg)
   overlap_flag = 0;
   min_ngas = -1;
   max_ngas = INT_MAX;
+  molindex = 0;
+  molindex_flag = 0;
+
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mol") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc", error);
-      imol = atom->find_molecule(arg[iarg + 1]);
-      if (imol == -1)
-        error->all(FLERR, iarg + 1, "Molecule template ID {} for fix gcmc does not exist",
-                   arg[iarg + 1]);
-      if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
-        error->warning(FLERR, "Molecule template for fix gcmc has multiple molecules");
+      imol_base = atom->find_molecule(arg[iarg+1]);
+      if (imol_base == -1)
+        error->all(FLERR,"Molecule template ID for fix gcmc does not exist");
+      // This flag is deactivated, since GCMC can handle multiple molecule arrays from now on
+      //if (atom->molecules[imol]->nset > 1 && comm->me == 0)
+      //  error->warning(FLERR,"Molecule template for "
+      //                 "fix gcmc has multiple molecules");
       exchmode = EXCHMOL;
       onemols = atom->molecules;
-      nmol = onemols[imol]->nset;
+      nmol = onemols[imol_base]->nset;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"molindex") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal fix gcmc command");
+      int index = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (index < 1)
+        error->all(FLERR,"Fix gcmc molindex must be >= 1");
+      molindex = index - 1; // local index 0-base internally
+      molindex_flag = 1; // activation
       iarg += 2;
     } else if (strcmp(arg[iarg], "mcmoves") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix gcmc mcmoves", error);
@@ -387,6 +399,20 @@ void FixGCMC::options(int narg, char **arg)
     } else {
       error->all(FLERR, iarg, "Unknown fix gcmc keyword {}", arg[iarg]);
     }
+  }
+
+  // Select one member of a multi-molecule template.
+  // Input syntax is 1-based: molindex 1, molindex 2, ...
+  if (exchmode == EXCHMOL) {
+    if (molindex >= nmol)
+      error->all(FLERR, "Fix gcmc molindex {} exceeds molecule template size {}", molindex+1,nmol);
+
+    imol = imol_base + molindex; // backward compability
+
+    if (nmol > 1 && !molindex_flag && comm->me == 0)
+      error->warning(FLERR, "Molecule template for fix gcmc has multiple molecules; using molindex 1");
+  } else if (molindex_flag) { //
+    error->all(FLERR,"Fix gcmc molindex requires the mol keyword");
   }
 }
 
@@ -591,27 +617,38 @@ void FixGCMC::init()
       error->all(FLERR, "Fix gcmc molecule command requires that atoms have molecule attributes");
 
   // if rigidflag defined, check for rigid/small fix
-  // its molecule template must be same as this one
+  // its molecule template must be same as this one / old
+  // Both fixes must reference the same multi-molecule template set.
+  // molindex selects which member of that set is used via this GCMC fix.
+
 
   fixrigid = nullptr;
   if (rigidflag) {
     fixrigid = modify->get_fix_by_id(idrigid);
     if (!fixrigid) error->all(FLERR,"Fix gcmc rigid fix ID {} does not exist", idrigid);
     int tmp;
-    if (&onemols[imol] != (Molecule **) fixrigid->extract("onemol",tmp))
+    auto *rigid_onemols = (Molecule **) fixrigid->extract("onemol",tmp); //
+    if (!rigid_onemols || &onemols[imol_base] != rigid_onemols)
       error->all(FLERR, "Fix gcmc and fix rigid/small not using same molecule template ID");
+    if (molindex >= rigid_onemols[0]->nset)
+      error->all(FLERR, "Fix gcmc molindex is outside molecule template used by fix rigid/small");
   }
 
   // if shakeflag defined, check for SHAKE fix
-  // its molecule template must be same as this one
+  // its molecule template must be same as this one / old
+  // if shakeflag defined, apply the same template-set check
+
 
   fixshake = nullptr;
   if (shakeflag) {
     fixshake = modify->get_fix_by_id(idshake);
     if (!fixshake) error->all(FLERR,"Fix gcmc shake fix ID {} does not exist", idshake);
     int tmp;
-    if (&onemols[imol] != (Molecule **) fixshake->extract("onemol",tmp))
+    auto *shake_onemols = (Molecule **) fixshake->extract("onemol",tmp);
+    if (!shake_onemols || &onemols[imol_base] != shake_onemols)
       error->all(FLERR,"Fix gcmc and fix shake not using same molecule template ID");
+    if (molindex >= shake_onemols[0]->nset)
+      error->all(FLERR, "Fix gcmc molindex is outside molecule template used by fix shake");
   }
 
   if (domain->dimension == 2)
@@ -1495,12 +1532,21 @@ void FixGCMC::attempt_molecule_insertion()
     // FixRigidSmall::set_molecule stores rigid body attributes
     // FixShake::set_molecule stores shake info for molecule
 
+    /*
+    // GCMC fix prevents using molecule template array whose length is larger than 1 internally.
+    // the for-loop is removed and molindex is replaced
     for (int submol = 0; submol < nmol; ++submol) {
       if (rigidflag)
         fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
       else if (shakeflag)
         fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
     }
+    */
+    if (rigidflag)
+      fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+    else if (shakeflag)
+      fixshake->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+
     atom->natoms += natoms_per_molecule;
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
@@ -2196,13 +2242,20 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   // FixRigidSmall::set_molecule stores rigid body attributes
   // FixShake::set_molecule stores shake info for molecule
-
+  /*
+  // As before, we replaced for-loop with molindex
   for (int submol = 0; submol < nmol; ++submol) {
     if (rigidflag)
       fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
     else if (shakeflag)
       fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
   }
+  */
+  if (rigidflag)
+    fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+  else if (shakeflag)
+    fixshake->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+
   atom->natoms += natoms_per_molecule;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");

@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 
 class PPPMElectrode : public PPPM, public ElectrodeKSpace {
  public:
-  PPPMElectrode(class LAMMPS *);
+  PPPMElectrode(class LAMMPS *, bool register_citation = true);
   ~PPPMElectrode() override;
   void init() override;
   void setup() override;
@@ -61,13 +61,14 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void compute_gf_ik() override;
   void compute_gf_ad() override;
 
- private:
+ protected:
   int compute_step;
   int last_source_grpbit;
   bool last_invert_source;
   void start_compute();
-  void make_rho_in_brick(int, FFT_SCALAR ***, bool);
-  void project_psi(double *, int);
+  virtual void make_rho_in_brick(int, FFT_SCALAR ***, bool);
+  virtual void init_tip4p();
+  virtual void project_psi(double *, int);
   void one_step_multiplication(bigint *, double *, double **, double **, const int, bool);
   void two_step_multiplication(bigint *, double *, double **, double **, const int, bool);
   void build_amesh(int, int, int, double *, double *);

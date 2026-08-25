@@ -65,11 +65,11 @@ static const char cite_pppm_electrode[] =
 
 /* ---------------------------------------------------------------------- */
 
-PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
+PPPMElectrode::PPPMElectrode(LAMMPS *lmp, bool register_citation) :
     PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr),
     boundcorr(nullptr)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
+  if (register_citation && lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
   group_group_enable = 0;
   electrolyte_density_brick = nullptr;
@@ -97,18 +97,24 @@ PPPMElectrode::~PPPMElectrode()
    called once before run
 ------------------------------------------------------------------------- */
 
+void PPPMElectrode::init_tip4p()
+{
+}
+
 void PPPMElectrode::init()
 {
-  if (me == 0) utils::logmesg(lmp, "PPPM/electrode initialization ...\n");
+  const char *style = tip4pflag ? "pppm/electrode/tip4p" : "PPPM/electrode";
+
+  if (me == 0) utils::logmesg(lmp, "{} initialization ...\n", style);
 
   // error check
   if (slabflag == 3)
-    error->all(FLERR, "Cannot (yet) use PPPM/electrode with 'kspace_modify slab ew2d'");
+    error->all(FLERR, "Cannot (yet) use {} with 'kspace_modify slab ew2d'", style);
 
   triclinic_check();
   triclinic = domain->triclinic;
-  if (triclinic) error->all(FLERR, "Cannot (yet) use PPPM/electrode with triclinic box ");
-  if (domain->dimension == 2) error->all(FLERR, "Cannot use PPPM/electrode with 2d simulation");
+  if (triclinic) error->all(FLERR, "Cannot (yet) use {} with triclinic box ", style);
+  if (domain->dimension == 2) error->all(FLERR, "Cannot use {} with 2d simulation", style);
 
   if (!atom->q_flag) error->all(FLERR, "KSpace style requires atom attribute q");
 
@@ -125,11 +131,14 @@ void PPPMElectrode::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR, "PPPM/electrode order cannot be < 2 or > {}", MAXORDER);
+    error->all(FLERR, "{} order cannot be < 2 or > {}", style, MAXORDER);
 
   // compute two charge force
 
   two_charge();
+
+  if (tip4pflag && force->newton == 0)
+    error->all(FLERR, "Kspace style pppm/electrode/tip4p with TIP4P requires newton on");
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -139,6 +148,8 @@ void PPPMElectrode::init()
   auto *p_cutoff = (double *) force->pair->extract("cut_coul", itmp);
   if (p_cutoff == nullptr) error->all(FLERR, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
+
+  init_tip4p();
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -495,6 +506,8 @@ void PPPMElectrode::compute(int eflag, int vflag)
   if (evflag_atom) {
     double *q = atom->q;
     int nlocal = atom->nlocal;
+    int ntotal = nlocal;
+    if (tip4pflag) ntotal += atom->nghost;
 
     if (eflag_atom) {
       for (i = 0; i < nlocal; i++) {
@@ -503,10 +516,11 @@ void PPPMElectrode::compute(int eflag, int vflag)
             g_ewald * q[i] * q[i] / MY_PIS + MY_PI2 * q[i] * qsum / (g_ewald * g_ewald * volume);
         eatom[i] *= qscale;
       }
+      for (i = nlocal; i < ntotal; i++) eatom[i] *= 0.5 * qscale;
     }
 
     if (vflag_atom) {
-      for (i = 0; i < nlocal; i++)
+      for (i = 0; i < ntotal; i++)
         for (j = 0; j < 6; j++) vatom[i][j] *= 0.5 * qscale;
     }
   }
@@ -1066,6 +1080,7 @@ void PPPMElectrode::deallocate()
   memory->destroy(gc_buf2);
 
   if (boundcorr != nullptr) delete boundcorr;
+  boundcorr = nullptr;
   memory->destroy3d_offset(electrolyte_density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy(electrolyte_density_fft);
 
@@ -1457,7 +1472,7 @@ void PPPMElectrode::set_grid_local()
   double zprd_slab = zprd * slab_volfactor;
 
   double dist[3] = {0.0, 0.0, 0.0};
-  double cuthalf = 0.5 * neighbor->skin;
+  double cuthalf = 0.5 * neighbor->skin + (tip4pflag ? qdist : 0.0);
   dist[0] = dist[1] = dist[2] = cuthalf;
 
   int nlo, nhi;

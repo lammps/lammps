@@ -24,50 +24,23 @@ KSpaceStyle(pppm/electrode/tip4p, PPPMElectrodeTIP4P);
 #ifndef LMP_PPPM_ELECTRODE_TIP4P_H
 #define LMP_PPPM_ELECTRODE_TIP4P_H
 
-#include "electrode_kspace.h"
+#include "pppm_electrode.h"
 #include "pppm.h"
 
 namespace LAMMPS_NS {
 
-class PPPMElectrodeTIP4P : public PPPM, public ElectrodeKSpace {
+class PPPMElectrodeTIP4P : public PPPMElectrode {
  public:
   PPPMElectrodeTIP4P(class LAMMPS *);
   ~PPPMElectrodeTIP4P() override;
-  void init() override;
-  void setup() override;
-  void reset_grid() override;
-  void compute(int, int) override;
-
-  void compute_vector(double *, int, int, bool) override;
-  void compute_vector_corr(double *, int, int, bool) override;
-  void compute_matrix(bigint *, double **, bool) override;
-  void compute_matrix_corr(bigint *, double **) override;
-
-  void compute_group_group(int, int, int) override;
-
  protected:
-  FFT_SCALAR ***electrolyte_density_brick;
-  FFT_SCALAR *electrolyte_density_fft;
-  class BoundaryCorrection *boundcorr;
 
-  void set_grid_global() override;
-  void set_grid_local() override;
 
-  void allocate() override;
-  void deallocate() override;
-  void allocate_peratom() override;
-  double compute_df_kspace() override;
-  double compute_qopt() override;
-  void compute_gf_ik() override;
-  void compute_gf_ad() override;
 
+   void init_tip4p() override;
  private:
-  int compute_step;
-  int last_source_grpbit;
-  bool last_invert_source;
   // TIP4P support: atom types and geometric parameters for the fictitious M-site
 
-  void start_compute();
   void particle_map() override;
   void make_rho() override;
   void fieldforce_ik() override;
@@ -77,12 +50,7 @@ class PPPMElectrodeTIP4P : public PPPM, public ElectrodeKSpace {
 
   // compute the fictitious TIP4P charge site position
   void find_M(int i, int &iH1, int &iH2, double *xM);
-  void make_rho_in_brick(int, FFT_SCALAR ***, bool);
-  void project_psi(double *, int);
-  void one_step_multiplication(bigint *, double *, double **, double **, const int, bool);
-  void two_step_multiplication(bigint *, double *, double **, double **, const int, bool);
-  void build_amesh(int, int, int, double *, double *);
-  bool compute_vector_called;
+  void make_rho_in_brick(int, FFT_SCALAR ***, bool) override;
 };
 
 }    // namespace LAMMPS_NS

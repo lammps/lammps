@@ -25,9 +25,11 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
+     keyword = *mol* or *molindex* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
+       *molindex* value = I
+         I = index of the molecule to select from a multi-molecule template
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
          Patomtrans = proportion of atom translation MC moves
          Pmoltrans = proportion of molecule translation MC moves
@@ -65,6 +67,8 @@ Examples
 
    labelmap atom 1 Li
    fix 2 ion gcmc 10 1000 1000 Li 29494 298.0 -0.5 0.01
+
+   fix 5 co2 gcmc 10 100 100 0 7672 300.0 -9.7 0.1 mol gasmix molindex 2 full_energy 
 
 Description
 """""""""""
@@ -105,6 +109,36 @@ performed.  *M* should typically be chosen to be approximately equal to the
 expected number of gas atoms or molecules of the given type within the
 simulation cell or region, which will result in roughly one MC move per
 atom or molecule per MC cycle.
+
+The ``molindex`` keyword selects which molecule from a molecule template
+containing multiple :doc:`molecule` definitions is used by this fix.
+
+.. note::
+
+   The index I is 1-based. For example, if
+
+   .. code-block:: LAMMPS
+
+      molecule gasmix acn.mol co2.mol toff 3 boff 2 aoff 1
+
+   is defined, then
+
+   .. code-block:: LAMMPS
+
+      mol gasmix molindex 1
+
+   selects ``acn.mol``, while
+
+   .. code-block:: LAMMPS
+
+      mol gasmix molindex 2
+
+   selects ``co2.mol``. If ``molindex`` is not specified, the first
+   molecule in the template is used, preserving the previous behavior. 
+
+   When used together with the rigid keyword, the rigid/small fix 
+   must use the same molecule template. The selected molindex identifies 
+   the corresponding molecule within that template.
 
 All inserted particles are always added to two groups: the default group
 "all" and the fix group specified in the fix command.  In addition,

@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 
    Assign spin masses and create a random distribution of spin velocities at
    a given spin temperature, for use with inertial spin dynamics.  This is
@@ -30,6 +31,7 @@
 #include "group.h"
 #include "memory.h"
 #include "random_park.h"
+#include "tspin.h"
 #include "update.h"
 
 #include <cmath>
@@ -37,12 +39,11 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr double SPIN_EPSILON = 1.0e-4;
-
 /* ---------------------------------------------------------------------- */
 
 VelocityTSpin::VelocityTSpin(LAMMPS *lmp) :
-    Command(lmp), igroup(0), groupbit(0), momentum_flag(1), spinmass_flag(0), spinmass(1.0)
+    Command(lmp), igroup(0), groupbit(0), momentum_flag(1), index_vs(-1), index_sm(-1),
+    spinmass_flag(0), spinmass(1.0)
 {
 }
 
@@ -103,11 +104,11 @@ void VelocityTSpin::command(int narg, char **arg)
 
 void VelocityTSpin::create(double t_desired, int seed)
 {
-  if (!atom->tsp_flag) error->all(FLERR, "Velocity/tspin requires atom style tspin");
+  tspin_bind_state(atom, error, "Velocity/tspin", index_vs, index_sm);
 
   double **sp = atom->sp;
-  double **s_dot = atom->v_s;
-  double *s_mass = atom->s_mass;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
@@ -119,15 +120,26 @@ void VelocityTSpin::create(double t_desired, int seed)
   memory->create(local_dof, ntypes + 1, "velocity/tspin:local_dof");
   memory->create(global_dof, ntypes + 1, "velocity/tspin:global_dof");
   for (int itype = 0; itype <= ntypes; itype++) local_dof[itype] = 0;
+  int nomass = 0;
 
-  // zero all spin velocities, assign spin masses, count spin degrees of freedom
+  // assign spin masses and count spin degrees of freedom
+  // atoms outside the group keep whatever spin velocity they already have
 
   for (int i = 0; i < nlocal; i++) {
-    s_dot[i][0] = s_dot[i][1] = s_dot[i][2] = 0.0;
     if (!(mask[i] & groupbit)) continue;
+    if ((sp[i][3] <= TSPIN_EPS) && (s_mass[i] <= 0.0)) continue;
     if (spinmass_flag) s_mass[i] = spinmass * (rmass ? rmass[i] : mass[type[i]]);
-    if (sp[i][3] > SPIN_EPSILON) local_dof[type[i]] += 3;
+    if (s_mass[i] <= 0.0) { nomass = 1; continue; }
+    s_dot[i][0] = s_dot[i][1] = s_dot[i][2] = 0.0;
+    local_dof[type[i]] += 3;
   }
+
+  int nomass_all = 0;
+  MPI_Allreduce(&nomass, &nomass_all, 1, MPI_INT, MPI_MAX, world);
+  if (nomass_all)
+    error->all(FLERR,
+               "Velocity/tspin found magnetic atoms without a spin mass; give the spinmass "
+               "keyword either here or to the tspin integrator");
 
   MPI_Allreduce(local_dof, global_dof, ntypes + 1, MPI_INT, MPI_SUM, world);
 
@@ -137,7 +149,7 @@ void VelocityTSpin::create(double t_desired, int seed)
   for (int itype = 1; itype <= ntypes; itype++) {
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit) || (type[i] != itype)) continue;
-      if (sp[i][3] <= SPIN_EPSILON) continue;
+      if (s_mass[i] <= 0.0) continue;
       s_dot[i][0] = random.gaussian();
       s_dot[i][1] = random.gaussian();
       s_dot[i][2] = random.gaussian();
@@ -150,7 +162,7 @@ void VelocityTSpin::create(double t_desired, int seed)
     double local_ke = 0.0;
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit) || (type[i] != itype)) continue;
-      if (sp[i][3] <= SPIN_EPSILON) continue;
+      if (s_mass[i] <= 0.0) continue;
       local_ke += s_mass[i] *
           (s_dot[i][0] * s_dot[i][0] + s_dot[i][1] * s_dot[i][1] + s_dot[i][2] * s_dot[i][2]);
     }
@@ -165,7 +177,7 @@ void VelocityTSpin::create(double t_desired, int seed)
     const double rescale = sqrt(t_desired / cur_t);
     for (int i = 0; i < nlocal; i++) {
       if (!(mask[i] & groupbit) || (type[i] != itype)) continue;
-      if (sp[i][3] <= SPIN_EPSILON) continue;
+      if (s_mass[i] <= 0.0) continue;
       s_dot[i][0] *= rescale;
       s_dot[i][1] *= rescale;
       s_dot[i][2] *= rescale;
@@ -177,26 +189,28 @@ void VelocityTSpin::create(double t_desired, int seed)
 }
 
 /* ----------------------------------------------------------------------
-   subtract the mean spin velocity of atom type itype
+   subtract the spin-mass weighted mean spin velocity of atom type itype,
+   so that sum_i m_s,i v_s,i vanishes rather than sum_i v_s,i
 ------------------------------------------------------------------------- */
 
 void VelocityTSpin::zero_mean(int itype)
 {
   double **sp = atom->sp;
-  double **s_dot = atom->v_s;
+  double **s_dot = atom->darray[index_vs];
   int *type = atom->type;
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
+  double *s_mass = atom->dvector[index_sm];
   double local_sum[4] = {0.0, 0.0, 0.0, 0.0};
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit) || (type[i] != itype)) continue;
-    if (sp[i][3] <= SPIN_EPSILON) continue;
-    local_sum[0] += s_dot[i][0];
-    local_sum[1] += s_dot[i][1];
-    local_sum[2] += s_dot[i][2];
-    local_sum[3] += 1.0;
+    if (s_mass[i] <= 0.0) continue;
+    local_sum[0] += s_mass[i] * s_dot[i][0];
+    local_sum[1] += s_mass[i] * s_dot[i][1];
+    local_sum[2] += s_mass[i] * s_dot[i][2];
+    local_sum[3] += s_mass[i];
   }
 
   double global_sum[4];
@@ -206,7 +220,7 @@ void VelocityTSpin::zero_mean(int itype)
   const double invn = 1.0 / global_sum[3];
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit) || (type[i] != itype)) continue;
-    if (sp[i][3] <= SPIN_EPSILON) continue;
+    if (s_mass[i] <= 0.0) continue;
     s_dot[i][0] -= global_sum[0] * invn;
     s_dot[i][1] -= global_sum[1] * invn;
     s_dot[i][2] -= global_sum[2] * invn;

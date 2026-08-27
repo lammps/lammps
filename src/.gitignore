@@ -381,8 +381,6 @@
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h
-/atom_vec_tspin.cpp
-/atom_vec_tspin.h
 /compute_ke_tspin.cpp
 /compute_ke_tspin.h
 /compute_spin.cpp
@@ -435,6 +433,7 @@
 /pair_spin_magelec.h
 /pair_spin_neel.cpp
 /pair_spin_neel.h
+/tspin.h
 /velocity_tspin.cpp
 /velocity_tspin.h
 

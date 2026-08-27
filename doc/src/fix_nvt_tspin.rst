@@ -32,8 +32,9 @@ Syntax
        *lattice* value = *moving* or *frozen*
          moving = integrate the atomic positions and velocities
          frozen = hold the atoms on a fixed lattice, spins only
-       *spin* value = *moving*
-         the spins are always integrated by these fixes
+       *spin* value = *moving* or *frozen*
+         moving = integrate and thermostat the spins
+         frozen = hold the spins fixed, lattice only
 
 Examples
 """"""""
@@ -108,10 +109,16 @@ These fixes are part of the SPIN package.  They are only enabled if LAMMPS
 was built with this package.  See the :doc:`Build package <Build_package>`
 page for more info.
 
-They require :doc:`atom_style tspin <atom_style>`.  A barostat cannot be
-combined with *lattice frozen*.  The limitation of :doc:`fix nve/tspin
-<fix_nve_tspin>` concerning the *zeeman* keyword of :doc:`fix
-precession/spin <fix_precession_spin>` applies here as well.
+They require :doc:`atom_style spin <atom_style>`.  A barostat cannot be
+combined with *lattice frozen*, and at least one of *lattice* and *spin* has to
+be *moving*.  These fixes cannot be used with a :doc:`dynamic group <group>`:
+the number of spin degrees of freedom and the chain masses are fixed at setup.
+There is no KOKKOS version.  As for :doc:`fix nve/tspin <fix_nve_tspin>`, a
+compatible magnetic interaction must encode the full force
+:math:`-\partial U/\partial\vec{S}_i` in the rad.THz *fm* array by multiplying
+it by :math:`|\vec{S}_i|/\hbar`.  The existing magnetic pair styles of the SPIN
+package only guarantee a fixed-modulus Landau-Lifshitz torque and cannot be used
+with these fixes.
 
 Related commands
 """"""""""""""""

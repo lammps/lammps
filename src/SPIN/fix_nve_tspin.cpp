@@ -1,3 +1,4 @@
+// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -12,31 +13,37 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 
-   Velocity-Verlet integration of inertial spin dynamics.  Each spin obeys
-   the Newtonian equation of motion
+   Velocity-Verlet integration of inertial spin dynamics on atom_style spin.
 
-       s_mass d^2 s / dt^2 = fm
+   The spin of atom i is the full three-component vector
 
-   for the un-normalized spin vector s = sp[3] * (sp[0], sp[1], sp[2]).
+       S_i = sp[i][3] * (sp[i][0], sp[i][1], sp[i][2])          in muB
 
-   The force is assembled from two contributions.  The SPIN pair styles and
-   fix precession/spin express their interaction through the precession field
-   fm, an angular frequency in rad.THz whose associated energy depends on the
-   spin direction only.  The corresponding force on the full spin vector is
-   therefore transverse and inversely proportional to the modulus,
+   whose modulus is a dynamical degree of freedom, and it obeys the Newtonian
+   equation of motion
 
-       F_perp = (hbar/|S|) [ fm - (fm.s^) s^ ]
+       m_s d^2 S_i / dt^2 = F_i,      F_i = -dU/dS_i            in eV/muB
 
-   Styles whose energy is a genuine function of the full spin vector, such as
-   fix spring/tspin and fix langevin/tspin, instead accumulate their force
-   directly into f_spin, in energy units, and it is used as it is.  After
-   every update
-   the spin direction sp[0..2] and the spin modulus sp[3] are recomputed, so
-   the modulus is a dynamical degree of freedom.  This is in contrast to
-   fix nve/spin, which integrates the fixed-modulus Landau-Lifshitz
-   precession of a unit vector.
+   with a spin mass m_s and a spin velocity dS_i/dt.  This is a different
+   physical model from fix nve/spin, which integrates the fixed-modulus
+   Landau-Lifshitz precession of a unit vector.
+
+   The magnetic interaction is read from the existing per-atom array fm in
+   rad.THz.  A TSPIN-compatible interaction encodes the full magnetic force as
+
+       fm_i = (|S_i|/hbar) F_i,       F_i = -dU/dS_i
+
+   so the force needed by the equation of motion is recovered with
+
+       F_i = (hbar / |S_i|) fm_i
+
+   with all three components kept.  This is a stronger contract than the torque
+   convention used by fixed-modulus Landau-Lifshitz styles, where a component
+   parallel to the spin drops out of fm x S and need not represent a physical
+   radial force.
 ------------------------------------------------------------------------- */
 
 #include "fix_nve_tspin.h"
@@ -45,7 +52,8 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
-#include "respa.h"
+#include "modify.h"
+#include "tspin.h"
 #include "update.h"
 
 #include <cmath>
@@ -71,12 +79,10 @@ static int dof_moving(int iarg, char **arg, LAMMPS *lmp)
 /* ---------------------------------------------------------------------- */
 
 FixNVETSpin::FixNVETSpin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), step_respa(nullptr)
+    Fix(lmp, narg, arg)
 {
-  if (!atom->tsp_flag)
-    error->all(FLERR, "Fix {} requires atom style tspin", style);
+  if (!atom->sp_flag) error->all(FLERR, "Fix {} requires atom style spin", style);
 
-  dynamic_group_allow = 1;
   time_integrate = 1;
 
   lattice_flag = 1;
@@ -87,25 +93,49 @@ FixNVETSpin::FixNVETSpin(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 3;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "lattice") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, std::string("fix ") + style + " lattice", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " lattice", error);
       lattice_flag = dof_moving(iarg + 1, arg, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "spin") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, std::string("fix ") + style + " spin", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " spin", error);
       spin_flag = dof_moving(iarg + 1, arg, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "spinmass") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, std::string("fix ") + style + " spinmass", error);
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " spinmass", error);
       spinmass = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       if (spinmass <= 0.0)
         error->all(FLERR, iarg + 1, "Fix {} spinmass value must be > 0", style);
       spinmass_flag = 1;
       iarg += 2;
-
     } else {
       error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
     }
   }
+
+  // spin velocity and spin mass live in custom per-atom properties, so that
+  // they migrate and are stored in restart files without a new atom style
+
+}
+
+/* ----------------------------------------------------------------------
+   the spin velocity and the spin mass live in custom per-atom properties, so
+   that they migrate with the atoms and are written to restart files without a
+   new atom style.  Modify::add_fix() may only be called from here, once this
+   fix is fully registered.
+------------------------------------------------------------------------- */
+
+void FixNVETSpin::post_constructor()
+{
+  tspin_create_state(modify, error);
+  tspin_bind_state(atom, error, std::string("Fix ") + style, index_vs, index_sm);
+
+  // assign the spin masses right away, so that the velocity/tspin command can
+  // be used before the first run
+
+  if (spinmass_flag) set_spin_mass();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,8 +145,6 @@ int FixNVETSpin::setmask()
   int mask = 0;
   mask |= INITIAL_INTEGRATE;
   mask |= FINAL_INTEGRATE;
-  mask |= INITIAL_INTEGRATE_RESPA;
-  mask |= FINAL_INTEGRATE_RESPA;
   return mask;
 }
 
@@ -126,13 +154,17 @@ void FixNVETSpin::init()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+  hbar = force->hplanck / MY_2PI;
 
-  // fm is in rad.THz; hbar converts it into an energy gradient
+  // the state fix can be removed between runs, so bind to it again here
 
-  dtf_spin = dtf * force->hplanck / MY_2PI;
+  tspin_bind_state(atom, error, std::string("Fix ") + style, index_vs, index_sm);
+
+  // the magnetic force is not stored per rRESPA level, so the spin update
+  // cannot be split over the levels
 
   if (utils::strmatch(update->integrate_style, "^respa"))
-    step_respa = (dynamic_cast<Respa *>(update->integrate))->step;
+    error->all(FLERR, "Fix {} is not compatible with run_style respa", style);
 }
 
 /* ----------------------------------------------------------------------
@@ -142,7 +174,7 @@ void FixNVETSpin::init()
 void FixNVETSpin::set_spin_mass()
 {
   double **sp = atom->sp;
-  double *s_mass = atom->s_mass;
+  double *s_mass = atom->dvector[index_sm];
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
@@ -151,7 +183,7 @@ void FixNVETSpin::set_spin_mass()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if (sp[i][3] <= 0.0) continue;
+    if ((sp[i][3] <= TSPIN_EPS) && (s_mass[i] <= 0.0)) continue;
     s_mass[i] = spinmass * (rmass ? rmass[i] : mass[type[i]]);
   }
 }
@@ -161,27 +193,68 @@ void FixNVETSpin::set_spin_mass()
 void FixNVETSpin::setup(int vflag)
 {
   if (spinmass_flag) set_spin_mass();
+  check_spin_mass();
+  Fix::setup(vflag);
+}
 
-  // every magnetic atom in the group must have a spin mass, otherwise its
-  // spin would be silently left out of the integration
+/* ----------------------------------------------------------------------
+   every magnetic atom in the group must have a spin mass by now
+------------------------------------------------------------------------- */
+
+void FixNVETSpin::check_spin_mass()
+{
+  if (!spin_flag) return;
 
   double **sp = atom->sp;
-  double *s_mass = atom->s_mass;
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   int flag = 0;
   for (int i = 0; i < nlocal; i++)
-    if ((mask[i] & groupbit) && (sp[i][3] > 0.0) && (s_mass[i] <= 0.0)) flag = 1;
+    if ((mask[i] & groupbit) && (sp[i][3] > TSPIN_EPS) && (s_mass[i] <= 0.0)) flag = 1;
 
   int flagall = 0;
   MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_MAX, world);
-  if (flagall && spin_flag)
+  if (flagall)
     error->all(FLERR,
-               "Fix {} requires a spin mass for every magnetic atom in the group; "
-               "use the spinmass keyword or the velocity/tspin command", style);
+               "Fix {} requires a spin mass for every magnetic atom in the group; use the "
+               "spinmass keyword or the velocity/tspin command", style);
+}
 
-  Fix::setup(vflag);
+/* ----------------------------------------------------------------------
+   half-step update of the spin velocities
+------------------------------------------------------------------------- */
+
+void FixNVETSpin::spin_kick()
+{
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    if (s_mass[i] <= 0.0) continue;
+
+    // The fm encoding is singular only at exactly zero modulus.  Do not turn
+    // a small modulus into an absorbing state: omit the kick at the isolated
+    // zero crossing and let the drift carry the full spin vector through it.
+
+    if (sp[i][3] == 0.0) continue;
+
+    // A TSPIN-compatible fm encodes the full spin force in rad.THz;
+    // hbar/|S| converts it back to eV/muB, radial component included.
+
+    const double dtfsp = dtf * hbar / (s_mass[i] * sp[i][3]);
+
+    s_dot[i][0] += dtfsp * fm[i][0];
+    s_dot[i][1] += dtfsp * fm[i][1];
+    s_dot[i][2] += dtfsp * fm[i][2];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -190,8 +263,6 @@ void FixNVETSpin::setup(int vflag)
 
 void FixNVETSpin::initial_integrate(int /*vflag*/)
 {
-  double dtfm;
-
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
@@ -202,12 +273,10 @@ void FixNVETSpin::initial_integrate(int /*vflag*/)
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // update v and x of atoms in group
-
   if (lattice_flag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        dtfm = dtf / (rmass ? rmass[i] : mass[type[i]]);
+        const double dtfm = dtf / (rmass ? rmass[i] : mass[type[i]]);
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
@@ -218,42 +287,32 @@ void FixNVETSpin::initial_integrate(int /*vflag*/)
       }
   }
 
-  // update v_s and the spin of atoms in group
+  if (!spin_flag) return;
 
-  if (spin_flag) {
-    double **sp = atom->sp;
-    double **s_dot = atom->v_s;
-    double **fm = atom->fm;
-    double **f_spin = atom->f_spin;
-    double *s_mass = atom->s_mass;
+  spin_kick();
 
-    for (int i = 0; i < nlocal; i++) {
-      if (!(mask[i] & groupbit)) continue;
-      if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
+  // rebuild the un-normalized spin, advance it, then split it again into a
+  // direction and a modulus, so that sp keeps its atom_style spin meaning
 
-      const double dtfsm = dtf / s_mass[i];
-      const double dtfsp = dtf_spin / (s_mass[i] * sp[i][3]);
-      const double fdots = fm[i][0] * sp[i][0] + fm[i][1] * sp[i][1] + fm[i][2] * sp[i][2];
+  double **sp = atom->sp;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
 
-      s_dot[i][0] += dtfsp * (fm[i][0] - fdots * sp[i][0]) + dtfsm * f_spin[i][0];
-      s_dot[i][1] += dtfsp * (fm[i][1] - fdots * sp[i][1]) + dtfsm * f_spin[i][1];
-      s_dot[i][2] += dtfsp * (fm[i][2] - fdots * sp[i][2]) + dtfsm * f_spin[i][2];
+  for (int i = 0; i < nlocal; i++) {
+    if (!(mask[i] & groupbit)) continue;
+    if (s_mass[i] <= 0.0) continue;
 
-      // rebuild the un-normalized spin, advance it, then split it again
-      // into a direction and a modulus
+    double s[3];
+    s[0] = sp[i][3] * sp[i][0] + dtv * s_dot[i][0];
+    s[1] = sp[i][3] * sp[i][1] + dtv * s_dot[i][1];
+    s[2] = sp[i][3] * sp[i][2] + dtv * s_dot[i][2];
 
-      double s[3];
-      s[0] = sp[i][3] * sp[i][0] + dtv * s_dot[i][0];
-      s[1] = sp[i][3] * sp[i][1] + dtv * s_dot[i][1];
-      s[2] = sp[i][3] * sp[i][2] + dtv * s_dot[i][2];
-
-      const double smag = sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
-      if (smag > 0.0) {
-        sp[i][0] = s[0] / smag;
-        sp[i][1] = s[1] / smag;
-        sp[i][2] = s[2] / smag;
-        sp[i][3] = smag;
-      }
+    const double smag = sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
+    sp[i][3] = smag;
+    if (smag > 0.0) {
+      sp[i][0] = s[0] / smag;
+      sp[i][1] = s[1] / smag;
+      sp[i][2] = s[2] / smag;
     }
   }
 }
@@ -262,8 +321,6 @@ void FixNVETSpin::initial_integrate(int /*vflag*/)
 
 void FixNVETSpin::final_integrate()
 {
-  double dtfm;
-
   double **v = atom->v;
   double **f = atom->f;
   double *rmass = atom->rmass;
@@ -273,66 +330,17 @@ void FixNVETSpin::final_integrate()
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
-  // update v of atoms in group
-
   if (lattice_flag) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & groupbit) {
-        dtfm = dtf / (rmass ? rmass[i] : mass[type[i]]);
+        const double dtfm = dtf / (rmass ? rmass[i] : mass[type[i]]);
         v[i][0] += dtfm * f[i][0];
         v[i][1] += dtfm * f[i][1];
         v[i][2] += dtfm * f[i][2];
       }
   }
 
-  // update v_s of atoms in group
-
-  if (spin_flag) {
-    double **sp = atom->sp;
-    double **s_dot = atom->v_s;
-    double **fm = atom->fm;
-    double **f_spin = atom->f_spin;
-    double *s_mass = atom->s_mass;
-
-    for (int i = 0; i < nlocal; i++) {
-      if (!(mask[i] & groupbit)) continue;
-      if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
-
-      const double dtfsm = dtf / s_mass[i];
-      const double dtfsp = dtf_spin / (s_mass[i] * sp[i][3]);
-      const double fdots = fm[i][0] * sp[i][0] + fm[i][1] * sp[i][1] + fm[i][2] * sp[i][2];
-
-      s_dot[i][0] += dtfsp * (fm[i][0] - fdots * sp[i][0]) + dtfsm * f_spin[i][0];
-      s_dot[i][1] += dtfsp * (fm[i][1] - fdots * sp[i][1]) + dtfsm * f_spin[i][1];
-      s_dot[i][2] += dtfsp * (fm[i][2] - fdots * sp[i][2]) + dtfsm * f_spin[i][2];
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVETSpin::initial_integrate_respa(int vflag, int ilevel, int /*iloop*/)
-{
-  dtv = step_respa[ilevel];
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  dtf_spin = dtf * force->hplanck / MY_2PI;
-
-  // innermost level - update of v, x, v_s and the spins
-  // all other levels - update of v and v_s
-
-  if (ilevel == 0)
-    initial_integrate(vflag);
-  else
-    final_integrate();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixNVETSpin::final_integrate_respa(int ilevel, int /*iloop*/)
-{
-  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
-  dtf_spin = dtf * force->hplanck / MY_2PI;
-  final_integrate();
+  if (spin_flag) spin_kick();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -341,5 +349,5 @@ void FixNVETSpin::reset_dt()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
-  dtf_spin = dtf * force->hplanck / MY_2PI;
+  hbar = force->hplanck / MY_2PI;
 }

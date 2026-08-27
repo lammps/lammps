@@ -42,15 +42,17 @@ which adds the radial magnetic force
    \vec{F}^{m}_{i} \rightarrow \vec{F}^{m}_{i}
    - K \left( \left| \vec{S}_i \right| - S_0 \right) \hat{s}_i
 
+The fix stores this full radial force in the rad.THz *fm* array after
+multiplying it by :math:`|\vec{S}_i|/\hbar`, following the same full-gradient
+encoding expected by the TSPIN integrators.
+
 This fix supplies the longitudinal energy scale that inertial spin
-dynamics requires.  The SPIN pair styles provide a Landau-Lifshitz
-effective field, whose component parallel to :math:`\vec{S}_i` does no
-work on a fixed-modulus spin but acts as a radial driving force once
-the modulus is a dynamical degree of freedom.  A simulation using
+dynamics requires.  The spin modulus is a free coordinate in
 :doc:`fix nve/tspin <fix_nve_tspin>`, :doc:`fix nvt/tspin
-<fix_nvt_tspin>` or :doc:`fix langevin/tspin <fix_langevin_tspin>`
-therefore has to include this fix, or some other longitudinal
-potential, otherwise the spin modulus is unbounded.
+<fix_nvt_tspin>` and :doc:`fix langevin/tspin <fix_langevin_tspin>`, so
+unless the magnetic potential itself resolves the magnitude of the
+local moment and restores it, this fix or some other longitudinal
+potential has to be present, otherwise the modulus is unbounded.
 
 In thermal equilibrium at spin temperature :math:`T_s` and for a stiff
 spring, the modulus fluctuates about :math:`S_0` with variance
@@ -88,7 +90,7 @@ The *spring/tspin* fix is part of the SPIN package.  This style is only
 enabled if LAMMPS was built with this package.  See the :doc:`Build
 package <Build_package>` page for more info.
 
-This fix requires :doc:`atom_style tspin <atom_style>`.
+This fix requires :doc:`atom_style spin <atom_style>`.
 
 Related commands
 """"""""""""""""

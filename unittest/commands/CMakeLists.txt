@@ -48,6 +48,14 @@ add_executable(test_fix_spring_chunk test_fix_spring_chunk.cpp)
 target_link_libraries(test_fix_spring_chunk PRIVATE lammps GTest::GMock)
 add_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
 
+# tests for the inertial spin dynamics styles of the SPIN package
+if(PKG_SPIN)
+  add_executable(test_tspin test_tspin.cpp)
+  target_link_libraries(test_tspin PRIVATE lammps GTest::GMock)
+  add_test(NAME TSpin COMMAND test_tspin)
+  set_tests_properties(TSpin PROPERTIES LABELS "spin")
+endif()
+
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)
 target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)

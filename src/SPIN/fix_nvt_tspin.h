@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(nvt/tspin,FixNVTTSpin);

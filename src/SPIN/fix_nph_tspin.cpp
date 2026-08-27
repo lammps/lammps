@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 ------------------------------------------------------------------------- */
 
 #include "fix_nph_tspin.h"

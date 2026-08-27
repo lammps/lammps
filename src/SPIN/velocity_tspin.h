@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
+------------------------------------------------------------------------- */
+
 #ifdef COMMAND_CLASS
 // clang-format off
 CommandStyle(velocity/tspin,VelocityTSpin);
@@ -33,6 +38,7 @@ class VelocityTSpin : public Command {
  private:
   int igroup, groupbit;
   int momentum_flag;
+  int index_vs, index_sm;    // custom per-atom properties, see tspin.h
   int spinmass_flag;
   double spinmass;
 

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
+------------------------------------------------------------------------- */
+
 #ifndef LMP_FIX_NH_TSPIN_H
 #define LMP_FIX_NH_TSPIN_H
 
@@ -23,6 +28,7 @@ class FixNHTSpin : public FixNH {
   FixNHTSpin(class LAMMPS *, int, char **);
   ~FixNHTSpin() override;
 
+  void post_constructor() override;
   void init() override;
   void setup(int) override;
   double compute_scalar() override;
@@ -37,10 +43,12 @@ class FixNHTSpin : public FixNH {
 
  protected:
   int spin_flag;        // 1 if the spin degrees of freedom are integrated
-  int spinmass_flag;    // 1 if the spinmass keyword was used
+  int spinmass_flag;    // 1 if the spinmass keyword was used, then this fix owns s_mass
   double spinmass;      // spin mass in units of the atomic mass of the type
+  int index_vs;         // custom per-atom property holding the spin velocity
+  int index_sm;         // custom per-atom property holding the spin mass
+  double hbar;          // Planck constant over 2 pi, in eV/(rad.THz)
 
-  double dtf_spin;      // dtf times hbar, for the rad.THz precession field
   double t_current_spin, ke_target_spin, tdof_spin;
 
   // Nose-Hoover chain acting on the spin velocities, parallel to the chain

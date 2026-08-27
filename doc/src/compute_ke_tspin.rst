@@ -67,7 +67,7 @@ The *ke/tspin* compute is part of the SPIN package.  This style is only
 enabled if LAMMPS was built with this package.  See the :doc:`Build
 package <Build_package>` page for more info.
 
-This compute requires :doc:`atom_style tspin <atom_style>`.
+This compute requires :doc:`atom_style spin <atom_style>`.
 
 Related commands
 """"""""""""""""

@@ -12,42 +12,45 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 
    Harmonic restoring potential on the spin modulus,
 
        U = 1/2 k (|S| - S0)^2 ,
 
    which supplies the longitudinal energy scale that inertial spin dynamics
-   needs.  The SPIN pair styles provide a Landau-Lifshitz effective field,
-   whose component parallel to S does no work on a fixed-modulus spin but
-   acts as a radial driving force once the modulus is dynamical.  A run
-   using fix nve/tspin, fix nvt/tspin or fix langevin/tspin therefore has to
-   include this fix (or another longitudinal potential), otherwise the spin
-   modulus is unbounded.
+   needs.  The spin modulus is a free coordinate under fix nve/tspin, fix
+   nvt/tspin and fix langevin/tspin, so unless the magnetic potential itself
+   resolves the magnitude of the local moment and restores it, this fix or an
+   equivalent one has to be present, otherwise the modulus is unbounded.
 ------------------------------------------------------------------------- */
 
 #include "fix_spring_tspin.h"
 
 #include "atom.h"
 #include "error.h"
+#include "force.h"
+#include "math_const.h"
 #include "respa.h"
+#include "tspin.h"
 #include "update.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using MathConst::MY_2PI;
 
 /* ---------------------------------------------------------------------- */
 
 FixSpringTSpin::FixSpringTSpin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), k(0.0), s0(0.0), espring(0.0), ilevel_respa(0)
+    Fix(lmp, narg, arg), k(0.0), s0(0.0), espring(0.0), ilevel_respa(0), index_sm(-1)
 {
   if (narg != 5) utils::missing_cmd_args(FLERR, "fix spring/tspin", error);
 
-  if (!atom->tsp_flag)
-    error->all(FLERR, "Fix spring/tspin requires atom style tspin");
+  if (!atom->sp_flag)
+    error->all(FLERR, "Fix spring/tspin requires atom style spin");
 
   scalar_flag = 1;
   global_freq = 1;
@@ -76,6 +79,10 @@ int FixSpringTSpin::setmask()
 
 void FixSpringTSpin::init()
 {
+  int flag, cols;
+  index_sm = atom->find_custom(TSPIN_SMASS, flag, cols);
+  if ((index_sm >= 0) && ((flag != 1) || (cols != 0))) index_sm = -1;
+
   if (utils::strmatch(update->integrate_style, "^respa")) {
     ilevel_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
@@ -108,29 +115,40 @@ void FixSpringTSpin::min_setup(int vflag)
 void FixSpringTSpin::post_force(int /*vflag*/)
 {
   double **sp = atom->sp;
-  double **f_spin = atom->f_spin;
+  double **fm = atom->fm;
+  double *s_mass = (index_sm >= 0) ? atom->dvector[index_sm] : nullptr;
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   espring = 0.0;
+  const double hbar = force->hplanck / MY_2PI;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
     const double smag = sp[i][3];
-    if (smag <= 0.0) continue;
+    const bool dynamic = s_mass && (s_mass[i] > 0.0);
+    if ((smag <= TSPIN_EPS) && !dynamic) continue;
 
     const double dmod = smag - s0;
     espring += 0.5 * k * dmod * dmod;
 
-    // F = -dU/dS = -k (|S|-S0) S/|S|, and S/|S| is the spin direction
-    // this is a genuine energy gradient, so it goes into f_spin rather than
-    // into the precession field fm
+    // The radial direction is undefined at exactly zero modulus.  Keep the
+    // potential energy continuous for a dynamical spin and let its velocity
+    // carry it through zero; the force is well-defined again immediately.
 
-    const double pref = -k * dmod;
-    f_spin[i][0] += pref * sp[i][0];
-    f_spin[i][1] += pref * sp[i][1];
-    f_spin[i][2] += pref * sp[i][2];
+    if (smag == 0.0) continue;
+
+    // F = -dU/dS = -k (|S|-S0) s^,  in eV/muB.  fm holds the precession
+    // field of the SPIN package, so the force is stored the way pair style
+    // deepspin stores it, scaled by |S|/hbar, and fix nve/tspin converts it
+    // back.  A purely radial term like this one leaves fm x S unchanged and
+    // therefore does not disturb the fixed-modulus styles.
+
+    const double pref = -k * dmod * smag / hbar;
+    fm[i][0] += pref * sp[i][0];
+    fm[i][1] += pref * sp[i][1];
+    fm[i][2] += pref * sp[i][2];
   }
 }
 

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
+------------------------------------------------------------------------- */
+
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(langevin/tspin,FixLangevinTSpin);
@@ -39,6 +44,7 @@ class FixLangevinTSpin : public Fix {
  protected:
   double t_start, t_stop, t_period, t_target;
   int zeroflag;
+  int index_vs, index_sm;    // custom per-atom properties, see tspin.h
   int ilevel_respa;
   double gamma_drag, gamma_random;
 

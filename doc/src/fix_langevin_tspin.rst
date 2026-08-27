@@ -54,6 +54,11 @@ velocities sample a Maxwell-Boltzmann distribution at the target spin
 temperature, which is ramped linearly from Tstart to Tstop over the
 course of the run.
 
+These bath terms are full forces in energy per Bohr magneton.  Before adding
+them to *fm*, the fix multiplies them by
+:math:`|\vec{S}_i|/\hbar`, preserving the rad.THz units and the full-gradient
+encoding required by the TSPIN integrator.
+
 This fix does not perform time integration; combine it with :doc:`fix
 nve/tspin <fix_nve_tspin>`.  The warning in that page about the need
 for a longitudinal potential on the spin modulus applies here as well.
@@ -94,7 +99,7 @@ The *langevin/tspin* fix is part of the SPIN package.  This style is
 only enabled if LAMMPS was built with this package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-This fix requires :doc:`atom_style tspin <atom_style>`.  The time
+This fix requires :doc:`atom_style spin <atom_style>`.  The time
 integration has to be performed by :doc:`fix nve/tspin
 <fix_nve_tspin>`.
 

@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ------------------------------------------------------------------------
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
+------------------------------------------------------------------------- */
+
 #ifdef COMPUTE_CLASS
 // clang-format off
 ComputeStyle(ke/tspin,ComputeKETSpin);
@@ -33,6 +38,9 @@ class ComputeKETSpin : public Compute {
 
  private:
   double pfactor;
+
+ protected:
+  int index_vs, index_sm;    // custom per-atom properties, see tspin.h
 };
 
 }    // namespace LAMMPS_NS

@@ -12,12 +12,16 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 
-   Langevin thermostat for inertial spin dynamics.  A friction and a random
-   force are added to the magnetic force fm of every spin in the group,
+   Langevin thermostat for inertial spin dynamics.  The full bath force on
+   every spin in the group is
 
-       fm -> fm - (s_mass/t_period) v_s + sqrt(2 s_mass k_B T/(t_period dt)) R
+       F_bath = -(s_mass/t_period) v_s
+                + sqrt(2 s_mass k_B T/(t_period dt)) R
+
+   and is encoded in the rad.THz fm array as fm += |S|/hbar * F_bath.
 
    so that the spin velocities v_s sample a Maxwell-Boltzmann distribution at
    the requested spin temperature.  This is a kinetic thermostat acting on
@@ -32,8 +36,10 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_const.h"
 #include "random_mars.h"
 #include "respa.h"
+#include "tspin.h"
 #include "update.h"
 
 #include <cmath>
@@ -41,19 +47,19 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using MathConst::MY_2PI;
 
 /* ---------------------------------------------------------------------- */
 
 FixLangevinTSpin::FixLangevinTSpin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), t_target(0.0), zeroflag(0), ilevel_respa(0), gamma_drag(0.0),
+    Fix(lmp, narg, arg), t_target(0.0), zeroflag(0), index_vs(-1), index_sm(-1), ilevel_respa(0), gamma_drag(0.0),
     gamma_random(0.0), random(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix langevin/tspin", error);
 
-  if (!atom->tsp_flag)
-    error->all(FLERR, "Fix langevin/tspin requires atom style tspin");
+  if (!atom->sp_flag)
+    error->all(FLERR, "Fix langevin/tspin requires atom style spin");
 
-  dynamic_group_allow = 1;
   respa_level_support = 1;
 
   t_start = utils::numeric(FLERR, arg[3], false, lmp);
@@ -103,6 +109,7 @@ int FixLangevinTSpin::setmask()
 
 void FixLangevinTSpin::init()
 {
+  tspin_bind_state(atom, error, std::string("Fix ") + style, index_vs, index_sm);
   reset_dt();
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
@@ -144,13 +151,14 @@ void FixLangevinTSpin::post_force(int /*vflag*/)
   compute_target();
 
   double **sp = atom->sp;
-  double **f_spin = atom->f_spin;
-  double **s_dot = atom->v_s;
-  double *s_mass = atom->s_mass;
+  double **fm = atom->fm;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   const double tsqrt = sqrt(t_target);
+  const double hbar = force->hplanck / MY_2PI;
 
   // the friction and noise prefactors are per atom, because the spin mass is
   // a per-atom property
@@ -160,7 +168,7 @@ void FixLangevinTSpin::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
+    if (s_mass[i] <= 0.0) continue;
 
     const double gamma1 = -s_mass[i] * gamma_drag;
     const double gamma2 = sqrt(s_mass[i]) * gamma_random * tsqrt;
@@ -170,9 +178,13 @@ void FixLangevinTSpin::post_force(int /*vflag*/)
     fran[1] = gamma2 * (random->uniform() - 0.5);
     fran[2] = gamma2 * (random->uniform() - 0.5);
 
-    f_spin[i][0] += gamma1 * s_dot[i][0] + fran[0];
-    f_spin[i][1] += gamma1 * s_dot[i][1] + fran[1];
-    f_spin[i][2] += gamma1 * s_dot[i][2] + fran[2];
+    // the bath force is an energy gradient in eV/muB; fm keeps the units of
+    // the SPIN package, so scale by |S|/hbar on the way in
+
+    const double tofm = sp[i][3] / hbar;
+    fm[i][0] += tofm * (gamma1 * s_dot[i][0] + fran[0]);
+    fm[i][1] += tofm * (gamma1 * s_dot[i][1] + fran[1]);
+    fm[i][2] += tofm * (gamma1 * s_dot[i][2] + fran[2]);
 
     if (zeroflag) {
       fsum[0] += fran[0];
@@ -198,10 +210,11 @@ void FixLangevinTSpin::post_force(int /*vflag*/)
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
-    f_spin[i][0] -= fsumall[0];
-    f_spin[i][1] -= fsumall[1];
-    f_spin[i][2] -= fsumall[2];
+    if (s_mass[i] <= 0.0) continue;
+    const double tofm = sp[i][3] / hbar;
+    fm[i][0] -= tofm * fsumall[0];
+    fm[i][1] -= tofm * fsumall[1];
+    fm[i][2] -= tofm * fsumall[2];
   }
 }
 
@@ -216,10 +229,10 @@ void FixLangevinTSpin::post_force_respa(int vflag, int ilevel, int /*iloop*/)
 
 void FixLangevinTSpin::reset_dt()
 {
-  // fm = -(m/t_period) v_s + sqrt(24 kB T m/(t_period dt)) (U[0,1) - 1/2)
+  // F = -(m_s/t_period) v_s + sqrt(24 kB T m_s/(t_period dt)) (U[0,1) - 1/2)
   // the uniform deviate has variance 1/12, hence the factor 24
-  // the bath force is a genuine force in energy units and is accumulated
-  // into f_spin, so no hbar conversion is needed
+  // the prefactors are those of the lattice fix langevin, so the force comes
+  // out in the same units as an ordinary force and post_force() converts it
 
   gamma_drag = 1.0 / t_period / force->ftm2v;
   gamma_random = sqrt(24.0 * force->boltz / t_period / update->dt / force->mvv2e) / force->ftm2v;

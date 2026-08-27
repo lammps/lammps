@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 
    Kinetic energy stored in the spin degrees of freedom of inertial spin
    dynamics, sum over the group of 1/2 s_mass |v_s|^2.  Because this energy
@@ -26,6 +27,7 @@
 #include "atom.h"
 #include "error.h"
 #include "force.h"
+#include "tspin.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -33,12 +35,12 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeKETSpin::ComputeKETSpin(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), pfactor(0.0)
+    Compute(lmp, narg, arg), index_vs(-1), index_sm(-1), pfactor(0.0)
 {
   if (narg != 3) error->all(FLERR, "Illegal compute ke/tspin command");
 
-  if (!atom->tsp_flag)
-    error->all(FLERR, "Compute ke/tspin requires atom style tspin");
+  if (!atom->sp_flag)
+    error->all(FLERR, "Compute ke/tspin requires atom style spin");
 
   scalar_flag = 1;
   extscalar = 1;
@@ -49,6 +51,7 @@ ComputeKETSpin::ComputeKETSpin(LAMMPS *lmp, int narg, char **arg) :
 void ComputeKETSpin::init()
 {
   pfactor = 0.5 * force->mvv2e;
+  tspin_bind_state(atom, error, "Compute ke/tspin", index_vs, index_sm);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,8 +60,8 @@ double ComputeKETSpin::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  double **v_s = atom->v_s;
-  double *s_mass = atom->s_mass;
+  double **v_s = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 

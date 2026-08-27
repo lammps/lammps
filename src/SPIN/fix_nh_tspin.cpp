@@ -12,7 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ------------------------------------------------------------------------
-   Contributing author: AUTHOR_NAME_TBD (AFFILIATION_TBD)
+   Contributing author: Zhengtao Huang (The University of Hong Kong)
+                        hzt990224@gmail.com
 
    Nose-Hoover machinery for inertial spin dynamics.  This is a base class
    and registers no fix style of its own; fix nvt/tspin, fix npt/tspin and
@@ -30,6 +31,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "tspin.h"
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
@@ -46,10 +48,15 @@ using MathConst::MY_2PI;
 
 FixNHTSpin::FixNHTSpin(LAMMPS *lmp, int narg, char **arg) :
     FixNH(lmp, narg, arg), lattice_flag(1), spin_flag(1), spinmass_flag(0), spinmass(1.0),
-    dtf_spin(0.0), t_current_spin(0.0), ke_target_spin(0.0), tdof_spin(0.0), etas(nullptr),
-    etas_dot(nullptr), etas_dotdot(nullptr), etas_mass(nullptr)
+    index_vs(-1), index_sm(-1),
+    hbar(0.0), t_current_spin(0.0), ke_target_spin(0.0), tdof_spin(0.0),
+    etas(nullptr), etas_dot(nullptr), etas_dotdot(nullptr), etas_mass(nullptr)
 {
-  if (!atom->tsp_flag) error->all(FLERR, "Fix {} requires atom style tspin", style);
+  if (!atom->sp_flag) error->all(FLERR, "Fix {} requires atom style spin", style);
+
+  // the spin degrees of freedom and the chain masses are set once at setup
+
+  dynamic_group_allow = 0;
 
   // parse the keywords that the parent class skipped
 
@@ -76,20 +83,27 @@ FixNHTSpin::FixNHTSpin(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "spin") == 0) {
       if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR, std::string("fix ") + style + " spin", error);
-      const std::string value = arg[iarg + 1];
-      if (value == "frozen")
+      const std::string svalue = arg[iarg + 1];
+      if (svalue == "frozen")
         spin_flag = 0;
-      else if ((value == "moving") || (value == "mobile"))
+      else if ((svalue == "moving") || (svalue == "mobile"))
         spin_flag = 1;
       else
         spin_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp) ? 1 : 0;
+      iarg += 2;
+
+      // the value of the dilate keyword of the parent class is a group ID and
+      // could be spelled like one of the keywords above, so skip it explicitly
+
+    } else if (strcmp(arg[iarg], "dilate") == 0) {
       iarg += 2;
     } else {
       iarg++;    // every other keyword belongs to the parent class
     }
   }
 
-  if (!spin_flag) error->all(FLERR, "Fix {} cannot be used with spin frozen", style);
+  if (!lattice_flag && !spin_flag)
+    error->all(FLERR, "Fix {} has nothing to integrate with both lattice and spin frozen", style);
   if (pstat_flag && !lattice_flag)
     error->all(FLERR, "Fix {} cannot use a barostat with lattice frozen", style);
 
@@ -103,6 +117,24 @@ FixNHTSpin::FixNHTSpin(LAMMPS *lmp, int narg, char **arg) :
 
   for (int ich = 0; ich < mtchain; ich++) etas[ich] = etas_dot[ich] = etas_dotdot[ich] = 0.0;
   etas_dot[mtchain] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   the spin velocity and the spin mass live in custom per-atom properties, so
+   that they migrate with the atoms and are written to restart files without a
+   new atom style.  Modify::add_fix() may only be called from here, once this
+   fix is fully registered.
+------------------------------------------------------------------------- */
+
+void FixNHTSpin::post_constructor()
+{
+  tspin_create_state(modify, error);
+  tspin_bind_state(atom, error, std::string("Fix ") + style, index_vs, index_sm);
+
+  // assign the spin masses right away, so that the velocity/tspin command can
+  // be used before the first run
+
+  if (spinmass_flag) set_spin_mass();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -120,6 +152,17 @@ FixNHTSpin::~FixNHTSpin()
 void FixNHTSpin::init()
 {
   FixNH::init();
+
+  // the state fix can be removed between runs, so bind to it again here
+
+  tspin_bind_state(atom, error, std::string("Fix ") + style, index_vs, index_sm);
+
+  // the spin force is not stored per rRESPA level, so the spin update cannot
+  // be split over the levels
+
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    error->all(FLERR, "Fix {} is not compatible with run_style respa", style);
+
   reset_dt();
 }
 
@@ -128,10 +171,7 @@ void FixNHTSpin::init()
 void FixNHTSpin::reset_dt()
 {
   FixNH::reset_dt();
-
-  // fm is in rad.THz; hbar converts it into an energy gradient
-
-  dtf_spin = dtf * force->hplanck / MY_2PI;
+  hbar = force->hplanck / MY_2PI;
 }
 
 /* ----------------------------------------------------------------------
@@ -141,7 +181,7 @@ void FixNHTSpin::reset_dt()
 void FixNHTSpin::set_spin_mass()
 {
   double **sp = atom->sp;
-  double *s_mass = atom->s_mass;
+  double *s_mass = atom->dvector[index_sm];
   double *mass = atom->mass;
   double *rmass = atom->rmass;
   int *type = atom->type;
@@ -150,7 +190,7 @@ void FixNHTSpin::set_spin_mass()
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if (sp[i][3] <= 0.0) continue;
+    if ((sp[i][3] <= TSPIN_EPS) && (s_mass[i] <= 0.0)) continue;
     s_mass[i] = spinmass * (rmass ? rmass[i] : mass[type[i]]);
   }
 }
@@ -161,8 +201,14 @@ void FixNHTSpin::setup(int vflag)
 {
   if (spinmass_flag) set_spin_mass();
 
+  if (!spin_flag) {
+    tdof_spin = 0.0;
+    FixNH::setup(vflag);
+    return;
+  }
+
   double **sp = atom->sp;
-  double *s_mass = atom->s_mass;
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
@@ -170,10 +216,10 @@ void FixNHTSpin::setup(int vflag)
 
   int ndof = 0, flag = 0;
   for (int i = 0; i < nlocal; i++) {
-    if (!(mask[i] & groupbit) || (sp[i][3] <= 0.0)) continue;
+    if (!(mask[i] & groupbit)) continue;
     if (s_mass[i] > 0.0)
       ndof += 3;
-    else
+    else if (sp[i][3] > TSPIN_EPS)
       flag = 1;
   }
 
@@ -213,15 +259,15 @@ void FixNHTSpin::setup(int vflag)
 double FixNHTSpin::compute_spin_temp()
 {
   double **sp = atom->sp;
-  double **s_dot = atom->v_s;
-  double *s_mass = atom->s_mass;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   double ke = 0.0;
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
+    if (s_mass[i] <= 0.0) continue;
     ke += s_mass[i] *
         (s_dot[i][0] * s_dot[i][0] + s_dot[i][1] * s_dot[i][1] + s_dot[i][2] * s_dot[i][2]);
   }
@@ -240,14 +286,14 @@ double FixNHTSpin::compute_spin_temp()
 void FixNHTSpin::nh_vs_scale(double factor)
 {
   double **sp = atom->sp;
-  double **s_dot = atom->v_s;
-  double *s_mass = atom->s_mass;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   const int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
+    if (s_mass[i] <= 0.0) continue;
     s_dot[i][0] *= factor;
     s_dot[i][1] *= factor;
     s_dot[i][2] *= factor;
@@ -331,6 +377,7 @@ void FixNHTSpin::nhc_spin_integrate()
 void FixNHTSpin::nhc_temp_integrate()
 {
   if (lattice_flag) FixNH::nhc_temp_integrate();
+  if (!spin_flag) return;
 
   ke_target_spin = tdof_spin * boltz * t_target;
   t_current_spin = compute_spin_temp();
@@ -344,25 +391,31 @@ void FixNHTSpin::nhc_temp_integrate()
 void FixNHTSpin::spin_kick()
 {
   double **sp = atom->sp;
-  double **s_dot = atom->v_s;
+  double **s_dot = atom->darray[index_vs];
   double **fm = atom->fm;
-  double **f_spin = atom->f_spin;
-  double *s_mass = atom->s_mass;
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
+    if (s_mass[i] <= 0.0) continue;
 
-    const double dtfsm = dtf / s_mass[i];
-    const double dtfsp = dtf_spin / (s_mass[i] * sp[i][3]);
-    const double fdots = fm[i][0] * sp[i][0] + fm[i][1] * sp[i][1] + fm[i][2] * sp[i][2];
+    // At an isolated zero crossing fm cannot be inverted because its
+    // |S|/hbar encoding vanishes.  Skip only that kick; the drift below keeps
+    // the Cartesian spin moving and leaves the zero-modulus state immediately.
 
-    s_dot[i][0] += dtfsp * (fm[i][0] - fdots * sp[i][0]) + dtfsm * f_spin[i][0];
-    s_dot[i][1] += dtfsp * (fm[i][1] - fdots * sp[i][1]) + dtfsm * f_spin[i][1];
-    s_dot[i][2] += dtfsp * (fm[i][2] - fdots * sp[i][2]) + dtfsm * f_spin[i][2];
+    if (sp[i][3] == 0.0) continue;
+
+    // A TSPIN-compatible fm encodes the full spin force in rad.THz;
+    // hbar/|S| converts it back to eV/muB, radial component included.
+
+    const double dtfsp = dtf * hbar / (s_mass[i] * sp[i][3]);
+
+    s_dot[i][0] += dtfsp * fm[i][0];
+    s_dot[i][1] += dtfsp * fm[i][1];
+    s_dot[i][2] += dtfsp * fm[i][2];
   }
 }
 
@@ -373,7 +426,7 @@ void FixNHTSpin::spin_kick()
 void FixNHTSpin::nve_v()
 {
   if (lattice_flag) FixNH::nve_v();
-  spin_kick();
+  if (spin_flag) spin_kick();
 }
 
 /* ----------------------------------------------------------------------
@@ -383,17 +436,18 @@ void FixNHTSpin::nve_v()
 void FixNHTSpin::nve_x()
 {
   if (lattice_flag) FixNH::nve_x();
+  if (!spin_flag) return;
 
   double **sp = atom->sp;
-  double **s_dot = atom->v_s;
-  double *s_mass = atom->s_mass;
+  double **s_dot = atom->darray[index_vs];
+  double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
-    if ((sp[i][3] <= 0.0) || (s_mass[i] <= 0.0)) continue;
+    if (s_mass[i] <= 0.0) continue;
 
     // rebuild the un-normalized spin, advance it, then split it again
     // into a direction and a modulus
@@ -404,11 +458,11 @@ void FixNHTSpin::nve_x()
     s[2] = sp[i][3] * sp[i][2] + dtv * s_dot[i][2];
 
     const double smag = sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
+    sp[i][3] = smag;
     if (smag > 0.0) {
       sp[i][0] = s[0] / smag;
       sp[i][1] = s[1] / smag;
       sp[i][2] = s[2] / smag;
-      sp[i][3] = smag;
     }
   }
 }
@@ -431,12 +485,12 @@ double FixNHTSpin::compute_scalar()
 {
   double energy = lattice_flag ? FixNH::compute_scalar() : 0.0;
 
-  if (!tstat_flag) return energy;
+  if (!tstat_flag || !spin_flag) return energy;
 
   energy += tdof_spin * boltz * t_target * etas[0];
   for (int ich = 1; ich < mtchain; ich++) energy += boltz * t_target * etas[ich];
   for (int ich = 0; ich < mtchain; ich++)
-    energy += 0.5 * etas_mass[ich] * etas_dot[ich] * etas_dot[ich] * force->mvv2e;
+    energy += 0.5 * etas_mass[ich] * etas_dot[ich] * etas_dot[ich];
 
   return energy;
 }

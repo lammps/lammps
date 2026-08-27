@@ -74,21 +74,6 @@ PPPMElectrodeTIP4P::PPPMElectrodeTIP4P(LAMMPS *lmp) :
  
 }
 /* ----------------------------------------------------------------------
-   free all memory
-------------------------------------------------------------------------- */
-
-PPPMElectrodeTIP4P::~PPPMElectrodeTIP4P()
-{
-  if (copymode) return;
-
-  PPPMElectrode::deallocate();
-  if (peratom_allocate_flag) deallocate_peratom();
-  if (group_allocate_flag) deallocate_groups();
-  memory->destroy(part2grid);
-  memory->destroy(acons);
-}
-
-/* ----------------------------------------------------------------------
    called once before run
 ------------------------------------------------------------------------- */
 

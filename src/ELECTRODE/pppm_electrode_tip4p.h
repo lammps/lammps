@@ -32,7 +32,6 @@ namespace LAMMPS_NS {
 class PPPMElectrodeTIP4P : public PPPMElectrode {
  public:
   PPPMElectrodeTIP4P(class LAMMPS *);
-  ~PPPMElectrodeTIP4P() override;
  protected:
 
 

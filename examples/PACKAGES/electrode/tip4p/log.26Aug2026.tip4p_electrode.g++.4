@@ -1,7 +1,6 @@
 LAMMPS (4 Jul 2026)
-echo both
-
-# ======================================================================
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
 # Example:
 # TIP4P water with constant-potential graphene electrodes
 #
@@ -9,18 +8,10 @@ echo both
 #
 #   * lj/cut/tip4p/long for TIP4P water
 #   * lj/cut/tip4p/long for water-graphene interactions
-#   * lj/cut/coul/long for graphene-graphene interactions
 #   * pppm/electrode/tip4p for long-range electrostatics
 #   * fix electrode/conp for constant-potential electrodes
 #
-# IMPORTANT:
-#
-# This input intentionally uses PairHybrid with a TIP4P sub-style and
-# another sub-style containing Coulomb interactions. LAMMPS may therefore
-# print the standard PairHybrid TIP4P warning; this warning is expected
-# and is unrelated to the TIP4P/ELECTRODE implementation.
-#
-# The purpose of this test is instead to verify that:
+# The purpose of this test is to verify that:
 #
 #   1. TIP4P parameters are correctly extracted.
 #   2. pppm/electrode/tip4p initializes correctly.
@@ -72,7 +63,7 @@ angle_style     harmonic
 read_data       data.tip4p_electrode_graphene
 Reading data file ...
   orthogonal box = (0 0 -5) to (21.27 22.1044 25)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading atoms ...
   660 atoms
   scanning bonds ...
@@ -80,7 +71,7 @@ Reading data file ...
   scanning angles ...
   1 = max angles/atom
   orthogonal box = (0 0 -5) to (21.27 22.1044 25)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
   reading bonds ...
   200 bonds
   reading angles ...
@@ -92,50 +83,43 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-3 neighbors
      1 = max # of 1-4 neighbors
      2 = max # of special neighbors
-  special bonds CPU = 0.013 seconds
-  read_data CPU = 0.051 seconds
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.022 seconds
 
 
 # ----------------------------------------------------------------------
-# Hybrid force field
-#
-# TIP4P water and water-graphene interactions:
-#   lj/cut/tip4p/long
-#
-# Graphene-graphene interactions:
-#   lj/cut/coul/long
+# Force field
 # ----------------------------------------------------------------------
 
-pair_style      hybrid lj/cut/coul/long 8.0 8.0 lj/cut/tip4p/long 1 2 1 1 0.1546 8.0 8.0
-WARNING: Using a tip4p sub-style with other sub-styles that include coulomb interactions can result in inconsistent calculation of the coulomb interactions (D:\LAMMPS_PR3\lammps-4Jul2026-pr3\src\pair_hybrid.cpp:380)
+pair_style      lj/cut/tip4p/long 1 2 1 1 0.1546 8.0 8.0
 
 
 # ----------------------------------------------------------------------
 # TIP4P water
 # ----------------------------------------------------------------------
 
-pair_coeff      1 1 lj/cut/tip4p/long 0.1852 3.1589   # O-O
-pair_coeff      1 2 lj/cut/tip4p/long 0.0    0.0      # O-H
-pair_coeff      2 2 lj/cut/tip4p/long 0.0    0.0      # H-H
+pair_coeff      1 1 0.1852 3.1589   # O-O
+pair_coeff      1 2 0.0    0.0      # O-H
+pair_coeff      2 2 0.0    0.0      # H-H
 
 
 # ----------------------------------------------------------------------
 # Graphene electrodes
 # ----------------------------------------------------------------------
 
-pair_coeff      3 3 lj/cut/coul/long 0.085842 3.40    # C-C
-pair_coeff      4 4 lj/cut/coul/long 0.085842 3.40    # C-C
-pair_coeff      3 4 lj/cut/coul/long 0.085842 3.40    # C-C
+pair_coeff      3 3 0.085842 3.40    # C-C
+pair_coeff      4 4 0.085842 3.40    # C-C
+pair_coeff      3 4 0.085842 3.40    # C-C
 
 
 # ----------------------------------------------------------------------
 # Water - graphene
 # ----------------------------------------------------------------------
 
-pair_coeff      1 3 lj/cut/tip4p/long 0.1261 3.27945  # O-C
-pair_coeff      1 4 lj/cut/tip4p/long 0.1261 3.27945  # O-C
-pair_coeff      2 3 lj/cut/tip4p/long 0.0    1.6      # H-C
-pair_coeff      2 4 lj/cut/tip4p/long 0.0    1.6      # H-C
+pair_coeff      1 3 0.1261 3.27945  # O-C
+pair_coeff      1 4 0.1261 3.27945  # O-C
+pair_coeff      2 3 0.0    1.6      # H-C
+pair_coeff      2 4 0.0    1.6      # H-C
 
 
 # ----------------------------------------------------------------------
@@ -159,6 +143,7 @@ Updated KSpace settings:
   Gewald is determined automatically
   Slab volfactor manually set to:    3
 
+
 # ----------------------------------------------------------------------
 # Groups
 # ----------------------------------------------------------------------
@@ -178,7 +163,7 @@ group           G union GL GH
 # Initial velocities
 # ----------------------------------------------------------------------
 
-velocity        water create 300.0 492845 mom yes rot yes dist gaussian
+velocity        water create 300.0 492845 mom yes rot yes dist gaussian loop geom
 
 
 # ----------------------------------------------------------------------
@@ -193,7 +178,7 @@ Finding SHAKE clusters ...
        0 = # of size 3 clusters
        0 = # of size 4 clusters
      100 = # of frozen angles
-  find clusters CPU = 0.001 seconds
+  find clusters CPU = 0.000 seconds
 
 fix             nvt water nvt temp 300.0 300.0 100.0
 
@@ -234,14 +219,14 @@ compute         qmax_G G reduce max c_q_atom
 compute         qmin_G G reduce min c_q_atom
 
 
-
+# ----------------------------------------------------------------------
 # Thermodynamic output
 # ----------------------------------------------------------------------
 
 thermo          10
 
 thermo_style    custom step temp pe ecoul elong etotal press v_Q_GL v_Q_GH v_Q_total c_qabs_GL c_qabs_GH c_qmax_G c_qmin_G
-# ----------------------------------------------------------------------
+
 
 # ----------------------------------------------------------------------
 # Demonstration run
@@ -277,7 +262,7 @@ pages = {084801},
 }
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
-PPPM/electrode/tip4p initialization ...
+pppm/electrode/tip4p initialization ...
   using 12-bit tables for long-range coulomb
   G vector (1/distance) = 0.32477516
   grid = 15 15 40
@@ -285,9 +270,9 @@ PPPM/electrode/tip4p initialization ...
   estimated absolute RMS force accuracy = 0.023654874
   estimated relative force accuracy = 7.1235949e-05
   using double precision KISS FFT
-  3d grid and FFT values/proc = 20812 9000
-WARNING: Communication cutoff 0 is shorter than a bond length based estimate of 3.4358. This may lead to errors. (D:\LAMMPS_PR3\lammps-4Jul2026-pr3\src\comm.cpp:694)
-WARNING: Increasing communication cutoff to 11.1118 for TIP4P pair style (D:\LAMMPS_PR3\lammps-4Jul2026-pr3\src\KSPACE\pair_lj_cut_tip4p_long.cpp:497)
+  3d grid and FFT values/proc = 11088 4080
+WARNING: Communication cutoff 0 is shorter than a bond length based estimate of 3.4358. This may lead to errors. (D:\LAMMPS_PR3\lammps-4Jul2026-pr3-clean-work\src\comm.cpp:694)
+WARNING: Increasing communication cutoff to 11.1118 for TIP4P pair style (D:\LAMMPS_PR3\lammps-4Jul2026-pr3-clean-work\src\KSPACE\pair_lj_cut_tip4p_long.cpp:497)
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
@@ -295,62 +280,57 @@ Neighbor list info ...
   master list distance cutoff = 10.3092
   ghost atom cutoff = 11.1118
   binsize = 5.1546, bins = 5 5 6
-  3 neighbor lists, perpetual/occasional/extra = 3 0 0
-  (1) pair lj/cut/coul/long, perpetual, skip from (3)
-      attributes: half, newton on
-      pair build: skip
-      stencil: none
-      bin: none
-  (2) pair lj/cut/tip4p/long, perpetual, skip from (3)
-      attributes: half, newton on
-      pair build: skip
-      stencil: none
-      bin: none
-  (3) fix electrode/conp, perpetual
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut/tip4p/long, perpetual
       attributes: half, newton on
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 12.24 | 12.24 | 12.24 Mbytes
+  (2) fix electrode/conp, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 10.18 | 10.4 | 10.64 Mbytes
    Step          Temp          PotEng         E_coul         E_long         TotEng         Press          v_Q_GL         v_Q_GH       v_Q_total      c_qabs_GL      c_qabs_GH       c_qmax_G       c_qmin_G
-         0   160.46512      6677002.1      11088.306     -11227.001      6677269.5      1.3022021e+08  0.12340449    -0.12340449     5.2735594e-16  1.0289526      0.99046173     0.023458677   -0.0740704
-        10   262.56779      6676747        10992.139     -11239.865      6677184.5      1.3021585e+08  0.045122015   -0.045122015    4.8572257e-16  1.0066126      0.98531168     0.018005092   -0.075405622
-        20   346.53787      6676592.3      10923.425     -11253.422      6677169.8      1.3021401e+08 -0.13051935     0.13051935     3.8857806e-16  0.92833742     1.0102903      0.017864838   -0.035732313
-        30   335.59155      6676576.4      10924.14      -11249.398      6677135.6      1.3021351e+08 -0.30395638     0.30395638    -2.7755576e-16  0.7998501      0.98055724     0.017567055   -0.032726633
-        40   321.26409      6676566.3      10918.582     -11252.344      6677101.7      1.3021332e+08 -0.3735399      0.3735399     -5.5511151e-16  0.71715416     0.93142963     0.018238792   -0.029529403
-        50   304.1776       6676565.6      10918.61      -11258.905      6677072.4      1.3021335e+08 -0.35992167     0.35992167    -4.9960036e-16  0.70330216     0.90160146     0.018335701   -0.034793429
-        60   295.29079      6676549        10902.342     -11260.079      6677041        1.3021321e+08 -0.28032808     0.28032808    -8.8817842e-16  0.73763845     0.84646153     0.019711275   -0.036263552
-        70   279.50004      6676541.4      10888.333     -11258.946      6677007.1      1.3021322e+08 -0.16711385     0.16711385    -5.2735594e-16  0.72103402     0.77468827     0.018681294   -0.030465818
-        80   263.18497      6676535.6      10867.848     -11257.584      6676974.2      1.3021332e+08 -0.11189299     0.11189299    -2.0816682e-16  0.72582095     0.69694698     0.016399524   -0.024967062
-        90   244.29755      6676537.5      10862.173     -11258.072      6676944.6      1.3021343e+08 -0.12275484     0.12275484    -2.3592239e-16  0.7368642      0.66481929     0.014960935   -0.022902418
-       100   247.33633      6676503.9      10836.644     -11261.732      6676916        1.3021311e+08 -0.15017338     0.15017338    -8.3266727e-17  0.71991331     0.69858463     0.01920796    -0.024771694
-Loop time of 0.737296 on 1 procs for 100 steps with 660 atoms
+         0   160.46512      6675799.2      9966.7136     -11284.503      6676066.6      1.3021089e+08  0.032514631   -0.032514631    1.8041124e-16  0.4417852      0.36674183     0.01940498    -0.0133057
+        10   71.639381      6675846.2      10009.414     -11283.995      6675965.5      1.302126e+08   0.022047377   -0.022047377   -5.8980598e-17  0.44532998     0.39400097     0.018597402   -0.014981721
+        20   74.647181      6675841.9      9998.6208     -11284.355      6675966.3      1.302127e+08   0.018383156   -0.018383156    1.6653345e-16  0.44141718     0.40564072     0.018645533   -0.014345553
+        30   81.707794      6675831.8      9986.8905     -11284.044      6675968        1.3021261e+08  0.0091521839  -0.0091521839   1.2490009e-16  0.44373962     0.39598344     0.018682156   -0.011852061
+        40   73.397868      6675848.5      10004.641     -11283.882      6675970.8      1.3021269e+08 -0.027328443    0.027328443    1.2490009e-16  0.46102662     0.39474662     0.018041663   -0.014243221
+        50   79.10808       6675842.2      9999.3589     -11283.249      6675974        1.3021264e+08 -0.058279693    0.058279693   -5.5511151e-17  0.46765206     0.41407055     0.017677862   -0.01427931
+        60   75.879971      6675850.7      10009.923     -11282.521      6675977.2      1.3021264e+08 -0.055563858    0.055563858    1.3877788e-16  0.4569868      0.43558125     0.017875192   -0.014518113
+        70   76.921483      6675852        10015.214     -11282.227      6675980.2      1.3021259e+08 -0.03074442     0.03074442    -2.0816682e-17  0.4486494      0.415446       0.01744133    -0.015115056
+        80   81.744438      6675847        10011.681     -11281.713      6675983.2      1.3021255e+08 -0.0083187304   0.0083187304   2.810252e-16   0.45498617     0.3767064      0.016067569   -0.015830881
+        90   75.497807      6675860.4      10024.413     -11280.855      6675986.2      1.3021265e+08 -0.024770184    0.024770184    2.289835e-16   0.46071923     0.38989334     0.015800926   -0.016351455
+       100   78.882782      6675857.5      10026.205     -11280.675      6675988.9      1.3021252e+08 -0.060981562    0.060981562   -1.8041124e-16  0.45210489     0.43984258     0.016337275   -0.016538004
+Loop time of 0.516463 on 4 procs for 100 steps with 660 atoms
 
-Performance: 11.718 ns/day, 2.048 hours/ns, 135.631 timesteps/s, 89.516 katom-step/s
-99.6% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 16.729 ns/day, 1.435 hours/ns, 193.625 timesteps/s, 127.792 katom-step/s
+91.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.15792    | 0.15792    | 0.15792    |   0.0 | 21.42
-Bond    | 8.25e-05   | 8.25e-05   | 8.25e-05   |   0.0 |  0.01
-Kspace  | 0.25171    | 0.25171    | 0.25171    |   0.0 | 34.14
-Neigh   | 0.01261    | 0.01261    | 0.01261    |   0.0 |  1.71
-Comm    | 0.0018394  | 0.0018394  | 0.0018394  |   0.0 |  0.25
-Output  | 0.0039996  | 0.0039996  | 0.0039996  |   0.0 |  0.54
-Modify  | 0.30833    | 0.30833    | 0.30833    |   0.0 | 41.82
-Other   |            | 0.0008144  |            |       |  0.11
+Pair    | 0.076887   | 0.0893     | 0.10133    |   3.2 | 17.29
+Bond    | 5.91e-05   | 9.0575e-05 | 0.0001676  |   0.0 |  0.02
+Kspace  | 0.18191    | 0.19381    | 0.20605    |   2.1 | 37.53
+Neigh   | 0.0027573  | 0.0027845  | 0.0028112  |   0.0 |  0.54
+Comm    | 0.013123   | 0.013483   | 0.013926   |   0.3 |  2.61
+Output  | 0.0010599  | 0.0011567  | 0.0013079  |   0.3 |  0.22
+Modify  | 0.21343    | 0.21403    | 0.21461    |   0.1 | 41.44
+Other   |            | 0.001806   |            |       |  0.35
 
-Nlocal:            660 ave         660 max         660 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           2084 ave        2084 max        2084 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          66098 ave       66098 max       66098 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            165 ave         168 max         160 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Nghost:           1916 ave        1919 max        1911 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Neighs:          18056 ave       21110 max       14672 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
 
-Total # of neighbors = 66098
-Ave neighs/atom = 100.14848
+Total # of neighbors = 72224
+Ave neighs/atom = 109.4303
 Ave special neighs/atom = 0.90909091
-Neighbor list builds = 7
+Neighbor list builds = 3
 Dangerous builds = 0
-Total wall time: 0:00:04
+Total wall time: 0:00:02

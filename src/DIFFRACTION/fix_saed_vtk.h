@@ -22,6 +22,8 @@ FixStyle(saed/vtk,FixSAEDVTK);
 
 #include "fix.h"
 
+#include <string>
+
 namespace LAMMPS_NS {
 
 class FixSAEDVTK : public Fix {
@@ -33,25 +35,23 @@ class FixSAEDVTK : public Fix {
   void setup(int) override;
   void end_of_step() override;
   double compute_vector(int) override;
-  void reset_timestep(bigint);
 
  private:
   int nrepeat, nfreq, irepeat;
   bigint nvalid;
   char *ids;
-  FILE *fp;
   int nrows;
 
-  int ave, nwindow, nsum, startstep;
+  int ave, nwindow, startstep;
 
   int norm, iwindow, window_limit;
   double *vector;
   double *vector_total;
   double **vector_list;
 
-  void invoke_scalar(bigint);
   void invoke_vector(bigint);
   void options(int, char **);
+  [[nodiscard]] std::string filecurrent() const;
 
   bigint nextvalid();
 
@@ -64,7 +64,6 @@ class FixSAEDVTK : public Fix {
   int Knmax[3];      // maximum integer value for K points in each dimension
   int Knmin[3];      // minimum integer value for K points in each dimension
 
-  int KnSlice[6];       // min 0-2 max 2-5 hkl index using zone
   double Kmax;          // Maximum reciprocal distance to explore
   double c[3];          // Parameters controlling resolution of reciprocal space explored
   double dR_Ewald;      // Thickness of Ewald sphere slice
@@ -72,6 +71,8 @@ class FixSAEDVTK : public Fix {
 
   char *filename;    // user-specified file
   int nOutput;
+  int vtkformat;     // VTKLEGACY or VTKXML
+  int binaryflag;    // 1 if the data is written in binary
   int Dim[3];
   bool manual;    // Turn on manual recpiprocal map
 };

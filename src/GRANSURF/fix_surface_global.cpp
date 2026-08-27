@@ -63,7 +63,8 @@ enum{LINEAR,WIGGLE,ROTATE,TRANSROT,VARIABLE};
 enum{INTERNAL = 0,EXTERNAL,UNCONNECTED};
 enum{NSQ, BIN};
 
-static constexpr double FLATTHRESH = 0.00015230484360876085; // = 1.0-cos(MY_PI/180.0); = 1 degree
+// = 1.0-cos(MY_PI/180.0); = 1 degree
+static constexpr double FLATTHRESH = 0.00015230484360876085;
 static constexpr int DELTAMODEL = 4;
 static constexpr int DELTAMOTION = 4;
 static constexpr int MAXSURFTYPE = 1024;  // limit for # of surf types
@@ -79,7 +80,20 @@ static inline int FLIPSIDE(int nside) {
 /* ---------------------------------------------------------------------- */
 
 FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixSurface(lmp, narg, arg), tstr(nullptr), nb(nullptr), ns(nullptr)
+    FixSurface(lmp, narg, arg), tstr(nullptr), xsurf(nullptr), vsurf(nullptr), omegasurf(nullptr),
+    radsurf(nullptr), modeltypes(nullptr), models(nullptr), types2model(nullptr), nb(nullptr),
+    ns(nullptr), motions(nullptr), mol2motion(nullptr), points_original(nullptr),
+    xsurf_original(nullptr), points_lastneigh(nullptr), pointmove(nullptr), fix_history(nullptr),
+    zeroes(nullptr), fix_rigid(nullptr), mass_rigid(nullptr), points(nullptr), lines(nullptr),
+    tris(nullptr), idsurf(nullptr), neigh_p1(nullptr), pwhich_p1(nullptr), nside_p1(nullptr),
+    aflag_p1(nullptr), fflag_p1(nullptr), neigh_p2(nullptr), pwhich_p2(nullptr), nside_p2(nullptr),
+    aflag_p2(nullptr), fflag_p2(nullptr), neigh_e1(nullptr), ewhich_e1(nullptr), nside_e1(nullptr),
+    aflag_e1(nullptr), fflag_e1(nullptr), neigh_e2(nullptr), ewhich_e2(nullptr), nside_e2(nullptr),
+    aflag_e2(nullptr), fflag_e2(nullptr), neigh_e3(nullptr), ewhich_e3(nullptr), nside_e3(nullptr),
+    aflag_e3(nullptr), fflag_e3(nullptr), neigh_c1(nullptr), cwhich_c1(nullptr), nside_c1(nullptr),
+    fflag_c1(nullptr), neigh_c2(nullptr), cwhich_c2(nullptr), nside_c2(nullptr), fflag_c2(nullptr),
+    neigh_c3(nullptr), cwhich_c3(nullptr), nside_c3(nullptr), fflag_c3(nullptr), connect2d(nullptr),
+    connect3d(nullptr), imflag(nullptr), imdata(nullptr)
 {
   if (!atom->radius_flag || !atom->omega_flag)
     error->all(FLERR, 2, "Fix surface/global requires atom attributes radius and omega");
@@ -94,9 +108,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
   npoints = maxpoints = 0;
   nlines = ntris = 0;
-  points = nullptr;
-  lines = nullptr;
-  tris = nullptr;
   last_setup_bins = -1;
 
   neigh_style = BIN;
@@ -110,19 +121,19 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix surface/global input", error);
       if (strcmp(arg[iarg+1],"mol") == 0) {
         if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix surface/global input mol", error);
-        extract_from_molecule(arg[iarg+2],&hash,npoints,maxpoints,points,nlines,lines,ntris,tris);
+        extract_from_molecule(arg[iarg+2],hash,npoints,maxpoints,points,nlines,lines,ntris,tris);
         iarg += 3;
       } else if (strcmp(arg[iarg+1],"stl") == 0) {
         if (iarg+5 > narg) utils::missing_cmd_args(FLERR, "fix surface/global input stl", error);
         int stype = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         int smol = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
-        extract_from_stlfile(arg[iarg+4],stype,(tagint) smol,&hash,npoints,maxpoints,points,ntris,tris);
+        extract_from_stlfile(arg[iarg+4],stype,(tagint) smol,hash,npoints,maxpoints,points,ntris,tris);
         iarg += 5;
       } else error->all(FLERR, iarg+1, "Unknown fix surface/global input keyword: {}", arg[iarg+1]);
     } else break;
-
     ninput++;
   }
+  hash.clear();     // free memory
 
   if (ninput == 0)
     error->all(FLERR, 2, "Fix surface/global command requires using the input keyword");
@@ -131,7 +142,6 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   // disable bonded/history option for now
 
   class GranularModel* model;
-  models = nullptr;
   nmodel = maxmodel = 0;
   heat_flag = 0;
   use_history = 0;
@@ -144,7 +154,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       if (nmodel == maxmodel) {
         maxmodel += DELTAMODEL;
         modeltypes = (ModelTypes *)
-          memory->srealloc(models,maxmodel*sizeof(ModelTypes),"surf/global:modeltypes");
+          memory->srealloc(modeltypes,maxmodel*sizeof(ModelTypes),"surf/global:modeltypes");
         models = (Granular_NS::GranularModel **)
           memory->srealloc(models,maxmodel*sizeof(Granular_NS::GranularModel *),
                            "surf/global:models");
@@ -273,6 +283,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
       iarg += 2;
     } else if (strcmp(arg[iarg],"temperature") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix surface/global temperature", error);
+      delete[] tstr;
       if (utils::strmatch(arg[iarg+1], "^v_")) {
         tstr = utils::strdup(arg[iarg+1] + 2);
       } else {
@@ -326,57 +337,19 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   else nsurf = ntris;
 
   nmotion = maxmotion = 0;
-  motions = nullptr;
   anymove = anymove_variable = 0;
-
-  points_lastneigh = nullptr;
-  points_original = nullptr;
-  xsurf_original = nullptr;
-  pointmove = nullptr;
-
-  neigh_p1 = neigh_p2 = nullptr;
-  pwhich_p1 = pwhich_p2 = nullptr;
-  nside_p1 = nside_p2 = nullptr;
-  aflag_p1 = aflag_p2 = nullptr;
-  fflag_p1 = fflag_p2 = nullptr;
-
-  neigh_e1 = neigh_e2 = neigh_e3 = nullptr;
-  ewhich_e1 = ewhich_e2 = ewhich_e3 = nullptr;
-  nside_e1 = nside_e2 = nside_e3 =nullptr;
-  aflag_e1 = aflag_e2 = aflag_e3 = nullptr;
-  fflag_e1 = fflag_e2 = fflag_e3 = nullptr;
-  neigh_c1 = neigh_c2 = neigh_c3 = nullptr;
-  cwhich_c1 = cwhich_c2 = cwhich_c3 = nullptr;
-  fflag_c1 = fflag_c2 = fflag_c3 = nullptr;
-
-  connect2d = nullptr;
-  connect3d = nullptr;
-
-  xsurf = vsurf = omegasurf = nullptr;
-  radsurf = nullptr;
-  idsurf = nullptr;
 
   nsurf_ghost = -1;
 
   nmax = 0;
-  mass_rigid = nullptr;
-
-  fix_rigid = nullptr;
-  fix_history = nullptr;
-
   list = new NeighList(lmp);
   if (use_history) {
     listhistory = new NeighList(lmp);
     zeroes = new double[size_history];
     for (int i = 0; i < size_history; i++) zeroes[i] = 0.0;
-  } else {
-    listhistory = nullptr;
-    zeroes = nullptr;
   }
 
   imax = 0;
-  imflag = nullptr;
-  imdata = nullptr;
 
   mol2motion = new int[maxsurfmol+1];
   for (int i = 0; i <= maxsurfmol; i++)
@@ -433,8 +406,8 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   for (int i = 0; i < nmodel; i++) delete models[i];
   memory->sfree(models);
 
-  for (int i = 1; i <= atom->ntypes; i++) delete [] types2model[i];
-  delete [] types2model;
+  for (int i = 1; i <= atom->ntypes; i++) delete[] types2model[i];
+  delete[] types2model;
 
   memory->destroy(neigh_p1);
   memory->destroy(neigh_p2);
@@ -472,6 +445,9 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   memory->destroy(fflag_c1);
   memory->destroy(fflag_c2);
   memory->destroy(fflag_c3);
+  memory->destroy(nside_c1);
+  memory->destroy(nside_c2);
+  memory->destroy(nside_c3);
 
   memory->sfree(connect2d);
   memory->sfree(connect3d);
@@ -486,22 +462,22 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
 
   for (int i = 0; i < nmotion; i++) {
     if (motions[i].mstyle == VARIABLE) {
-      delete [] motions[i].xvarstr;
-      delete [] motions[i].yvarstr;
-      delete [] motions[i].zvarstr;
-      delete [] motions[i].vxvarstr;
-      delete [] motions[i].vyvarstr;
-      delete [] motions[i].vzvarstr;
+      delete[] motions[i].xvarstr;
+      delete[] motions[i].yvarstr;
+      delete[] motions[i].zvarstr;
+      delete[] motions[i].vxvarstr;
+      delete[] motions[i].vyvarstr;
+      delete[] motions[i].vzvarstr;
     }
   }
 
   memory->sfree(motions);
-  delete [] mol2motion;
+  delete[] mol2motion;
 
   delete list;
   delete listhistory;
-  delete [] zeroes;
-  delete [] tstr;
+  delete[] zeroes;
+  delete[] tstr;
 
   delete nb;
   delete ns;
@@ -755,7 +731,7 @@ void FixSurfaceGlobal::init()
         jmotion = mol2motion[jmol];
         if (imotion != jmotion) ecount++;
       }
-      for (j = 0; j < nc1; j++) {
+      for (j = 0; j < nc2; j++) {
         jtri = connect3d[itri].neigh_c2[j];
         if (jtri < itri) continue;
         jmol = tris[jtri].mol;
@@ -870,19 +846,10 @@ void FixSurfaceGlobal::initial_integrate(int /*vflag*/)
 
 void FixSurfaceGlobal::pre_neighbor()
 {
-  int i,j,j2,k,n,nn,dnum,dnumbytes;
+  int i,j,j2,k,n;
   double xtmp,ytmp,ztmp,delx,dely,delz;
   double radi,rsq,radsum,cutsq;
   int *neighptr;
-  double *valueptr;
-
-  int *npartner;
-  tagint **partner;
-  double **valuepartner;
-  int **firstflag;
-  double **firstvalue;
-  MyPage<tagint> *ipage_atom;
-  MyPage<double> *dpage_atom;
 
   double **x = atom->x;
   double *radius = atom->radius;
@@ -902,15 +869,6 @@ void FixSurfaceGlobal::pre_neighbor()
   if (use_history) {
     fix_history->otherlist = list;
     fix_history->nlocal_neigh = nlocal;
-    npartner = fix_history->get_npartner();         // # of touching partners of each atom
-    partner = fix_history->get_partner();           // global atom IDs for the partners
-    valuepartner = fix_history->get_valuepartner(); // values for the partners
-    ipage_atom = fix_history->get_ipage_atom();     // pages of partner atom IDs
-    dpage_atom = fix_history->get_dpage_atom();     // pages of partner values
-    firstflag = fix_history->firstflag;       // ptr to each atom's neighbor flag
-    firstvalue = fix_history->firstvalue;     // ptr to each atom's values
-    dnum = fix_history->get_dnum();
-    dnumbytes = dnum * sizeof(double);
   }
 
   // store current point positions for future neighbor trigger check
@@ -926,10 +884,6 @@ void FixSurfaceGlobal::pre_neighbor()
 
   int inum = 0;
   ipage->reset();
-  if (use_history) {
-    ipage_atom->reset();
-    dpage_atom->reset();
-  }
 
   if (neigh_style == BIN) {
     if (nb == nullptr) {
@@ -1049,10 +1003,6 @@ void FixSurfaceGlobal::pre_neighbor()
     for (i = 0; i < nlocal; i++) {
       n = 0;
       neighptr = ipage->vget();
-      if (use_history) {
-        nn = 0;
-        valueptr = dpage_atom->vget();
-      }
 
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -1118,10 +1068,6 @@ void FixSurfaceGlobal::pre_neighbor()
     for (i = 0; i < nlocal; i++) {
       n = 0;
       neighptr = ipage->vget();
-      if (use_history) {
-        nn = 0;
-        valueptr = dpage_atom->vget();
-      }
 
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -1187,7 +1133,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
   int itype, jtype, external_flag, priority;
   double xtmp, ytmp, ztmp, radi, delx, dely, delz, meff;
   int *ilist, *jlist, *numneigh, **firstneigh;
-  int *touch, **firstflag, touch_flag;
+  int *touch, **firstflag;
   double rsq, rsq_com, rmag, radsum, max_overlap, dot;
   double x_min_image[3], norm[3], dr[3], contact[3], ds[3], xc[3], vc[3], omegac[3];
   double *forces, *torquesi, *history, *allhistory, **firsthistory;
@@ -1408,14 +1354,14 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     }
 
 
-    if (contact_surfs.size() == 0)
+    if (contact_surfs.empty())
       continue;
 
     // Sort contacts by overlap and create a map
     std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_presort);
 
     contacts_map.clear();
-    for (auto n = 0; n < contact_surfs.size(); n++)
+    for (std::size_t n = 0; n < contact_surfs.size(); n++)
       contacts_map[contact_surfs[n].index] = n;
 
     // Initial walk to assign consistent sides of surfaces
@@ -1427,11 +1373,11 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     // Given corrected surface norms, resort contacts
     std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_sort);
 
-    for (auto n = 0; n < contact_surfs.size(); n++)
+    for (std::size_t n = 0; n < contact_surfs.size(); n++)
       contacts_map[contact_surfs[n].index] = n;
 
     processed_contacts.clear();
-    for (auto n = 0; n < contact_surfs.size(); n++) {
+    for (std::size_t n = 0; n < contact_surfs.size(); n++) {
 
       j = contact_surfs[n].index;
       if (processed_contacts.find(j) != processed_contacts.end()) continue;
@@ -1453,7 +1399,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
 
         // Calculate overlap-weighted average normal vector
         MathExtra::zero3(dr);
-        for (auto it = 0; it < composite_surfs.size(); it++) {
+        for (std::size_t it = 0; it < composite_surfs.size(); it++) {
           m = composite_surfs[it];
           if (contact_surfs[m].overlap < EPSILON) continue;
           MathExtra::scaleadd3(contact_surfs[m].overlap * contact_surfs[m].weight_contribution, contact_surfs[m].dr_force, dr, dr);
@@ -1497,12 +1443,12 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
       }
 
       // guaranteed in contact, but need to calculate intermediate variables
-      touch_flag = model->check_contact();
+      model->check_contact();
 
       if (use_history) {
         // Check if another flat contact has a stored history
         if (touch[jj] != 1) {
-          for (auto it = 0; it < composite_surfs.size(); it++) {
+          for (std::size_t it = 0; it < composite_surfs.size(); it++) {
             m = composite_surfs[it];
             jjtmp = contact_surfs[m].neigh_index;
             if (touch[jjtmp] == 1)
@@ -1521,7 +1467,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
       //   can be arbitrary if not all connected flat surfaces are mutually flat
       //   e.g. a hair pin turn where surfs on either end of the 'U' are not flat
       if (use_history) {
-        for (auto it = 0; it < composite_surfs.size(); it++) {
+        for (std::size_t it = 0; it < composite_surfs.size(); it++) {
           m = composite_surfs[it];
           jjtmp = contact_surfs[m].neigh_index;
           if (jj != jjtmp) {
@@ -1559,7 +1505,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     for (int i = 1; i <= maxsurfmol; i++) smols[i] = 0;
 
     auto fields = Tokenizer(arg[1], ",").as_vector();
-    for (int ifield = 0; ifield < fields.size(); ifield++) {
+    for (std::size_t ifield = 0; ifield < fields.size(); ifield++) {
       utils::bounds(FLERR, fields[ifield], 1, maxsurfmol, lo, hi, error);
       for (int i = lo; i <= hi; i++) smols[i] = 1;
     }
@@ -1637,13 +1583,12 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
         xsurf_original = nullptr;
         pointmove = nullptr;
 
-        int ifix = modify->find_fix(id);
-        modify->fmask[ifix] &= ~INITIAL_INTEGRATE;
+        modify->clear_fix_mask(this, INITIAL_INTEGRATE);
         force_reneighbor = 0;
         next_reneighbor = -1;
       }
 
-      delete [] smols;
+      delete[] smols;
       return 3;
     }
 
@@ -1688,8 +1633,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     if (mstyle == VARIABLE) anymove_variable = 1;
     motions[imotion].time_origin = update->ntimestep;
 
-    int ifix = modify->find_fix(id);
-    modify->fmask[ifix] |= INITIAL_INTEGRATE;
+    modify->set_fix_mask(this, INITIAL_INTEGRATE);
 
     force_reneighbor = 1;
     next_reneighbor = -1;
@@ -1747,7 +1691,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     utils::logmesg(lmp,"Fix_modify move:\n");
     utils::logmesg(lmp,"  turned on motion for {} surfs\n", count);
 
-    delete [] smols;
+    delete[] smols;
     return 2 + styleargs;
   }
 
@@ -2547,6 +2491,9 @@ void FixSurfaceGlobal::connectivity3d_complete()
       else if (tris[i].p2 == tris[j].p2) jpsecond = 2;
       else if (tris[i].p2 == tris[j].p3) jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(points[tris[i].p2].x,points[tris[i].p1].x,iedge);
       edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
                         connect3d[i].fflag_e1[m],connect3d[i].ewhich_e1[m],
@@ -2565,6 +2512,9 @@ void FixSurfaceGlobal::connectivity3d_complete()
       else if (tris[i].p3 == tris[j].p2) jpsecond = 2;
       else if (tris[i].p3 == tris[j].p3) jpsecond = 3;
 
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
+
       MathExtra::sub3(points[tris[i].p3].x,points[tris[i].p2].x,iedge);
       edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
                         connect3d[i].fflag_e2[m],connect3d[i].ewhich_e2[m],
@@ -2582,6 +2532,9 @@ void FixSurfaceGlobal::connectivity3d_complete()
       if (tris[i].p1 == tris[j].p1) jpsecond = 1;
       else if (tris[i].p1 == tris[j].p2) jpsecond = 2;
       else if (tris[i].p1 == tris[j].p3) jpsecond = 3;
+
+      if ((jpfirst < 0) || (jpsecond < 0))
+        error->one(FLERR, Error::NOLASTLINE, "Inconsistent surface connectivity");
 
       MathExtra::sub3(points[tris[i].p1].x,points[tris[i].p3].x,iedge);
       edge_connection3d(tris[i].norm,tris[j].norm,iedge,jpfirst,jpsecond,flatthresh,
@@ -3506,7 +3459,7 @@ void FixSurfaceGlobal::prewalk_connections2d()
   int j = contact_surfs[0].index;
   to_walk[j] = contact_surfs[0].nside;
 
-  int k, n, m, nsidej, nsidek, nconnect, nc;
+  int k, n, m, nsidej, nsidek, nconnect;
   std::tuple<int, int> element;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
@@ -3548,7 +3501,7 @@ void FixSurfaceGlobal::prewalk_connections2d()
 
     // Check if there is another disconnected surf
     if (to_walk.empty()) {
-      for (nc = 0; nc < contact_surfs.size(); nc++) {
+      for (std::size_t nc = 0; nc < contact_surfs.size(); nc++) {
         j = contact_surfs[nc].index;
         if (walked.find(j) == walked.end())
           to_walk[j] = contact_surfs[nc].nside;
@@ -3567,7 +3520,7 @@ void FixSurfaceGlobal::prewalk_connections3d()
   int j = contact_surfs[0].index;
   to_walk[j] = contact_surfs[0].nside;
 
-  int k, n, m, nsidej, nsidek, nconnect, nc, ntotal;
+  int k, n, m, nsidej, nsidek, nc, nconnect, ntotal;
   std::tuple<int, int> element;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
@@ -3647,7 +3600,7 @@ void FixSurfaceGlobal::prewalk_connections3d()
 
     // Check if there is another disconnected surf
     if (to_walk.empty()) {
-      for (nc = 0; nc < contact_surfs.size(); nc++) {
+      for (nc = 0; nc < (int)contact_surfs.size(); nc++) {
         j = contact_surfs[nc].index;
         if (walked.find(j) == walked.end())
           to_walk[j] = contact_surfs[nc].nside;
@@ -3667,9 +3620,8 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> &composite_surfs, std
   std::set<int> to_add;
 
   // Find next closest surface
-  int j, n;
-  for (n = 0; n < contact_surfs.size(); n++) {
-    j = contact_surfs[n].index;
+  for (std::size_t n = 0; n < contact_surfs.size(); n++) {
+    auto j = contact_surfs[n].index;
 
     if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
@@ -3677,7 +3629,7 @@ void FixSurfaceGlobal::walk_connections2d(std::vector<int> &composite_surfs, std
     }
   }
 
-  int k, m, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
+  int j, k, m, n, jflag, aflag, fflag, nconnect, nc, contact_at_joint;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
     j = *it;
@@ -3754,9 +3706,8 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> &composite_surfs, std
   std::set<int> to_add;
 
   // Find next closest surface
-  int j, n;
-  for (n = 0; n < contact_surfs.size(); n++) {
-    j = contact_surfs[n].index;
+  for (std::size_t n = 0; n < contact_surfs.size(); n++) {
+    auto j = contact_surfs[n].index;
 
     if (processed_contacts.find(j) == processed_contacts.end()) {
       to_walk.insert(j);
@@ -3767,10 +3718,10 @@ void FixSurfaceGlobal::walk_connections3d(std::vector<int> &composite_surfs, std
   int k, m, jflag, aflag, fflag, which, nconnect, nc, ntotal, contact_at_joint;
   while (!to_walk.empty()) {
     auto it = to_walk.begin();
-    j = *it;
+    auto j = *it;
     to_walk.erase(it);
 
-    n = contacts_map[j];
+    auto n = contacts_map[j];
     processed_contacts.insert(j);
     composite_surfs.push_back(n);
     jflag = contact_surfs[n].flag;
@@ -3907,7 +3858,7 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> &composite_surfs)
 
   double max_overlap = -BIG;
   double max_overlap_ext = -BIG;
-  for (auto it = 0; it < composite_surfs.size(); it++) {
+  for (std::size_t it = 0; it < composite_surfs.size(); it++) {
     n = composite_surfs[it];
     j = contact_surfs[n].index;
 
@@ -3936,7 +3887,7 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> &composite_surfs)
   // Calculate constraints on force norm
   int i, ck, pt, ptk, caflag;
   double max_dot;
-  for (auto it = 0; it < composite_surfs.size(); it++) {
+  for (std::size_t it = 0; it < composite_surfs.size(); it++) {
     n = composite_surfs[it];
     j = contact_surfs[n].index;
     flag = contact_surfs[n].flag;
@@ -3959,7 +3910,7 @@ double FixSurfaceGlobal::calculate_2d_forces(std::vector<int> &composite_surfs)
 
     max_dot = -2;
     ck = -1;
-    for (i = 0; i < contact_surfs[n].cindex.size(); i++) {
+    for (i = 0; i < (int) contact_surfs[n].cindex.size(); i++) {
       k = contact_surfs[n].cindex[i];
       m = contacts_map[k];
       dot = MathExtra::dot3(jnorm, contact_surfs[m].surf_norm);
@@ -4028,7 +3979,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
   int uc_flag = 0;
 
   // Find if surface is hidden and/or whether it's unconnected
-  for (auto it = 0; it < composite_surfs.size(); it++) {
+  for (std::size_t it = 0; it < composite_surfs.size(); it++) {
     n = composite_surfs[it];
     j = contact_surfs[n].index;
 
@@ -4060,12 +4011,13 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
   // Find primary constraint for all corner/edge connections
   int which1, which2;
   double max_dot1, max_dot2;
-  for (auto it = 0; it < composite_surfs.size(); it++) {
+  for (std::size_t it = 0; it < composite_surfs.size(); it++) {
     n = composite_surfs[it];
     j = contact_surfs[n].index;
     flag = contact_surfs[n].flag;
     MathExtra::copy3(contact_surfs[n].surf_norm, jnorm);
 
+    which1 = which2 = -1;
     if (flag == -4) {
       which1 = 0;
       which2 = 2;
@@ -4080,7 +4032,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
     // If multiple constraints (e.g. a T), find which is closest aligned
     max_dot1 = max_dot2 = -2.0;
     contact_surfs[n].ck1 = contact_surfs[n].ck2 = -1;
-    for (i = 0; i < contact_surfs[n].cindex.size(); i++) {
+    for (i = 0; i < (int) contact_surfs[n].cindex.size(); i++) {
       k = contact_surfs[n].cindex[i];
       m = contacts_map[k];
       dot = MathExtra::dot3(jnorm, contact_surfs[m].surf_norm);
@@ -4110,7 +4062,7 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
   double w_connect = 1.0;
   if (uc_flag) {
     double max_dist_uc = 0.0;
-    for (auto it = 0; it < composite_surfs.size(); it++) {
+    for (std::size_t it = 0; it < composite_surfs.size(); it++) {
       n = composite_surfs[it];
       j = contact_surfs[n].index;
       flag = contact_surfs[n].flag;
@@ -4178,12 +4130,12 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
   //    per-surf calculations
   // -----------------------------------
 
-  int pt, pt1, pt2, external1, external2, edge1_uc, edge2_uc;
+  int pt, pt1, pt2, external1, external2;
   double w_in_plane, dot1a, dot2a, dot1xp, dot2xp, dot1ip, dot2ip, w1_in_plane, w2_in_plane, w1, w2, wtmp;
   double line1[3], line2[3], dr_in_plane[3];
   double dr1[3], dr2[3], fn1[3], fn2[3], fntot[3], normave[3];
 
-  for (auto it = 0; it < composite_surfs.size(); it++) {
+  for (std::size_t it = 0; it < composite_surfs.size(); it++) {
     n = composite_surfs[it];
     j = contact_surfs[n].index;
 
@@ -4293,8 +4245,6 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
       MathExtra::zero3(fntot);
       w1_in_plane = 1.0;
       w2_in_plane = 1.0;
-      edge1_uc = 0;
-      edge2_uc = 0;
 
       // default, use dr w/o component along edge
       dot = MathExtra::dot3(dr, line1);
@@ -4330,7 +4280,6 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
           if (dist < rmag)
             w1_in_plane = MAX(0.0, MIN(1.0, dist / (rmag * (1.0 - w_connect))));
         }
-        edge1_uc = 1;
       }
 
       // ---------- Edge 2 ----------
@@ -4355,7 +4304,6 @@ double FixSurfaceGlobal::calculate_3d_forces(std::vector<int> &composite_surfs)
           if (dist < rmag)
             w2_in_plane = MAX(0.0, MIN(1.0, dist / (rmag * (1.0 - w_connect))));
         }
-        edge2_uc = 1;
       }
 
       // ---------- Interpolation ----------

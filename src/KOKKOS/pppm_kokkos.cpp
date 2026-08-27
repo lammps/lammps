@@ -18,8 +18,10 @@
 
 #include "pppm_kokkos.h"
 
+#include "angle.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "bond.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -187,12 +189,9 @@ void PPPMKokkos<DeviceType>::init()
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
-
-  if (tip4pflag)
-      error->all(FLERR,"Cannot (yet) use PPPM Kokkos TIP4P");
+  if (tip4pflag) init_tip4p();
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -255,7 +254,7 @@ void PPPMKokkos<DeviceType>::init()
   if (order < minorder) error->all(FLERR,"PPPM order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // adjust g_ewald
 
@@ -666,6 +665,12 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
                      k_gc_buf1,k_gc_buf2,MPI_FFT_SCALAR);
 
+  // energy/force scale factor. must be updated before fieldforce(),
+  // which folds it into the interpolated grid forces, since the scale
+  // parameter may have been changed by fix adapt since the last call
+
+  qscale = qqrd2e * scale;
+
   // calculate the force on my particles
 
   fieldforce();
@@ -675,8 +680,6 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
-
-  qscale = qqrd2e * scale;
 
   if (eflag_global) {
     double energy_all;
@@ -704,6 +707,7 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   if (evflag_atom) {
     int nlocal = atomKK->nlocal;
     int ntotal = nlocal;
+    if (tip4pflag) ntotal += atomKK->nghost;
 
     // ensure all relevant _kk values are up to date
     g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
@@ -713,6 +717,14 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
       copymode = 1;
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self1>(0,nlocal),*this);
       copymode = 0;
+
+      // TIP4P also tallies eatom on ghost H atoms; scale those (no self term)
+
+      if (ntotal > nlocal) {
+        copymode = 1;
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPPPM_self3>(nlocal,ntotal),*this);
+        copymode = 0;
+      }
     }
 
     if (vflag_atom) {
@@ -761,6 +773,14 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_self2, const int &i) const
 {
   for (int j = 0; j < 6; j++) d_vatom(i,j) *= static_cast<KK_ACC_FLOAT>(0.5*qscale);
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PPPMKokkos<DeviceType>::operator()(TagPPPM_self3, const int &i) const
+{
+  d_eatom[i] *= static_cast<KK_ACC_FLOAT>(0.5*qscale);
 }
 
 /* ----------------------------------------------------------------------
@@ -1318,17 +1338,6 @@ void PPPMKokkos<DeviceType>::make_rho()
   Kokkos::parallel_for(config,*this);
   copymode = 0;
 #endif
-}
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_make_rho_zero, const int &ii) const
-{
-  int iz = ii/(numy_out*numx_out);
-  int iy = (ii - iz*numy_out*numx_out) / numx_out;
-  int ix = ii - iz*numy_out*numx_out - iy*numx_out;
-  d_density_brick(iz,iy,ix) = 0;
 }
 
 template<class DeviceType>
@@ -2481,34 +2490,6 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_reverse, const int &i) co
 }
 
 /* ----------------------------------------------------------------------
-   charge assignment into rho1d
-   dx,dy,dz = distance of particle from "lower left" grid point
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::compute_rho1d(const int i, const FFT_SCALAR &dx, const FFT_SCALAR &dy,
-                         const FFT_SCALAR &dz) const
-{
-  int k,l;
-  FFT_SCALAR r1,r2,r3;
-
-  for (k = (1-order)/2; k <= order/2; k++) {
-    r1 = r2 = r3 = 0;
-
-    for (l = order-1; l >= 0; l--) {
-      r1 = d_rho_coeff(l,k-(1-order)/2) + r1*dx;
-      r2 = d_rho_coeff(l,k-(1-order)/2) + r2*dy;
-      r3 = d_rho_coeff(l,k-(1-order)/2) + r3*dz;
-    }
-    d_rho1d(i,k+order/2,0) = r1;
-    d_rho1d(i,k+order/2,1) = r2;
-    d_rho1d(i,k+order/2,2) = r3;
-  }
-}
-
-/* ----------------------------------------------------------------------
    generate coeffients for the weight function of order n
 
               (n-1)
@@ -2643,25 +2624,6 @@ KOKKOS_INLINE_FUNCTION
 void PPPMKokkos<DeviceType>::operator()(TagPPPM_slabcorr1, const int &i, double &dipole) const
 {
   dipole += static_cast<double>(q[i]*x(i,2));
-}
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_slabcorr2, const int &i, double &dipole_r2) const
-{
-  dipole_r2 += static_cast<double>(q[i]*x(i,2)*x(i,2));
-}
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void PPPMKokkos<DeviceType>::operator()(TagPPPM_slabcorr3, const int &i) const
-{
-  double z_i = static_cast<double>(x(i,2));
-  double q_i = static_cast<double>(q[i]);
-  d_eatom[i] += static_cast<KK_ACC_FLOAT>(efact * q_i*(z_i*dipole_all - 0.5*(dipole_r2 +
-    qsum*z_i*z_i) - qsum*zprd_slab*zprd_slab/12.0));
 }
 
 template<class DeviceType>

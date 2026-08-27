@@ -32,7 +32,8 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr)
+  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr), convert_choice(nullptr),
+  write_choice(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump atom command");
 
@@ -85,8 +86,8 @@ void DumpAtom::init_style()
   int icol = 0;
   columns.clear();
   for (const auto &item : utils::split_words(default_columns)) {
-    if (columns.size()) columns += " ";
-    if (keyword_user[icol].size()) columns += keyword_user[icol];
+    if (!columns.empty()) columns += " ";
+    if (!keyword_user[icol].empty()) columns += keyword_user[icol];
     else columns += item;
     ++icol;
   }

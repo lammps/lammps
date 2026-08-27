@@ -50,7 +50,7 @@ class RegPrism : public Region {
   double corners[8][3];       // 8 corner pts of prism
   int tri[12][3];             // 3 corner pts of 12 triangles (2 per face)
 
-  void find_nearest(double *, double &, double &, double &);
+  int find_nearest(double *, double &, double &, double &);
   int inside_tri(double *, double *, double *, double *, double *);
   double closest(double *, double *, double *, double);
 

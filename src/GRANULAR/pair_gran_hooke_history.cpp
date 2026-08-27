@@ -465,7 +465,7 @@ void PairGranHookeHistory::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");
@@ -591,6 +591,7 @@ void PairGranHookeHistory::write_restart_settings(FILE *fp)
   fwrite(&gammat, sizeof(double), 1, fp);
   fwrite(&xmu, sizeof(double), 1, fp);
   fwrite(&dampflag, sizeof(int), 1, fp);
+  fwrite(&limit_damping, sizeof(int), 1, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -606,6 +607,7 @@ void PairGranHookeHistory::read_restart_settings(FILE *fp)
     utils::sfread(FLERR, &gammat, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &xmu, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &dampflag, sizeof(int), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &limit_damping, sizeof(int), 1, fp, nullptr, error);
   }
   MPI_Bcast(&kn, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&kt, 1, MPI_DOUBLE, 0, world);
@@ -613,6 +615,7 @@ void PairGranHookeHistory::read_restart_settings(FILE *fp)
   MPI_Bcast(&gammat, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&xmu, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&dampflag, 1, MPI_INT, 0, world);
+  MPI_Bcast(&limit_damping, 1, MPI_INT, 0, world);
 }
 
 /* ---------------------------------------------------------------------- */

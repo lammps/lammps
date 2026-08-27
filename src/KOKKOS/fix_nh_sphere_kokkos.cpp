@@ -107,12 +107,14 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNHSphereKokkos<DeviceType>::operator()(TagFixNHSphere_nve_v_omega, const int &i) const
 {
+  const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(this->dtf);
+  const KK_FLOAT inertia_kk = static_cast<KK_FLOAT>(inertia);
   if (this->mask(i) & this->groupbit) {
-    const KK_FLOAT dtfrotate  = this->dtf / inertia;
+    const KK_FLOAT dtfrotate  = dtf_kk / inertia_kk;
     const KK_FLOAT dtirotate  = dtfrotate / (radius_kk(i) * radius_kk(i) * this->rmass(i));
-    omega_kk(i, 0) += dtirotate * torque_kk(i, 0);
-    omega_kk(i, 1) += dtirotate * torque_kk(i, 1);
-    omega_kk(i, 2) += dtirotate * torque_kk(i, 2);
+    omega_kk(i, 0) += dtirotate * static_cast<KK_FLOAT>(torque_kk(i, 0));
+    omega_kk(i, 1) += dtirotate * static_cast<KK_FLOAT>(torque_kk(i, 1));
+    omega_kk(i, 2) += dtirotate * static_cast<KK_FLOAT>(torque_kk(i, 2));
   }
 }
 
@@ -155,10 +157,11 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNHSphereKokkos<DeviceType>::operator()(TagFixNHSphere_nve_x_dipole, const int &i) const
 {
-  if (this->mask(i) & this->groupbit && mu_kk(i, 3) > 0.0) {
-    const KK_FLOAT g0  = mu_kk(i, 0) + this->dtv * (omega_kk(i, 1) * mu_kk(i, 2) - omega_kk(i, 2) * mu_kk(i, 1));
-    const KK_FLOAT g1  = mu_kk(i, 1) + this->dtv * (omega_kk(i, 2) * mu_kk(i, 0) - omega_kk(i, 0) * mu_kk(i, 2));
-    const KK_FLOAT g2  = mu_kk(i, 2) + this->dtv * (omega_kk(i, 0) * mu_kk(i, 1) - omega_kk(i, 1) * mu_kk(i, 0));
+  const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(this->dtv);
+  if (this->mask(i) & this->groupbit && mu_kk(i, 3) > static_cast<KK_FLOAT>(0.0)) {
+    const KK_FLOAT g0  = mu_kk(i, 0) + dtv_kk * (omega_kk(i, 1) * mu_kk(i, 2) - omega_kk(i, 2) * mu_kk(i, 1));
+    const KK_FLOAT g1  = mu_kk(i, 1) + dtv_kk * (omega_kk(i, 2) * mu_kk(i, 0) - omega_kk(i, 0) * mu_kk(i, 2));
+    const KK_FLOAT g2  = mu_kk(i, 2) + dtv_kk * (omega_kk(i, 0) * mu_kk(i, 1) - omega_kk(i, 1) * mu_kk(i, 0));
     const KK_FLOAT msq = g0 * g0 + g1 * g1 + g2 * g2;
     const KK_FLOAT scale = mu_kk(i, 3) / Kokkos::sqrt(msq);
     mu_kk(i, 0) = g0 * scale;
@@ -199,10 +202,11 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNHSphereKokkos<DeviceType>::operator()(TagFixNHSphere_nh_v_temp_omega, const int &i) const
 {
+  const KK_FLOAT factor_eta_kk = static_cast<KK_FLOAT>(this->factor_eta);
   if (this->mask(i) & this->groupbit) {
-    omega_kk(i, 0) *= this->factor_eta;
-    omega_kk(i, 1) *= this->factor_eta;
-    omega_kk(i, 2) *= this->factor_eta;
+    omega_kk(i, 0) *= factor_eta_kk;
+    omega_kk(i, 1) *= factor_eta_kk;
+    omega_kk(i, 2) *= factor_eta_kk;
   }
 }
 

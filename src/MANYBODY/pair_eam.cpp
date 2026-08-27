@@ -89,7 +89,7 @@ PairEAM::~PairEAM()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    delete [] type2frho;
+    delete[] type2frho;
     type2frho = nullptr;
     memory->destroy(type2rhor);
     memory->destroy(type2z2r);
@@ -98,7 +98,7 @@ PairEAM::~PairEAM()
 
   if (funcfl) {
     for (int i = 0; i < nfuncfl; i++) {
-      delete [] funcfl[i].file;
+      delete[] funcfl[i].file;
       memory->destroy(funcfl[i].frho);
       memory->destroy(funcfl[i].rhor);
       memory->destroy(funcfl[i].zr);
@@ -504,10 +504,10 @@ void PairEAM::coeff_funcfl(int narg, char **arg)
     if (strcmp(arg[2],funcfl[ifuncfl].file) == 0) break;
 
   if (ifuncfl == nfuncfl) {
-    nfuncfl++;
     funcfl = (Funcfl *)
-      memory->srealloc(funcfl,nfuncfl*sizeof(Funcfl),"pair:funcfl");
+      memory->srealloc(funcfl,(nfuncfl+1)*sizeof(Funcfl),"pair:funcfl");
     read_file(arg[2]);
+    nfuncfl++;
     funcfl[ifuncfl].file = utils::strdup(arg[2]);
   }
 
@@ -662,7 +662,7 @@ void PairEAM::read_file(char *filename)
 
 void PairEAM::read_funcfl(char *filename)
 {
-  Funcfl *file = &funcfl[nfuncfl-1];
+  Funcfl *file = &funcfl[nfuncfl];
 
   // read potential file
   if (comm->me == 0) {
@@ -706,6 +706,9 @@ void PairEAM::read_funcfl(char *filename)
           file->zr[j] *= sqrt_conv;
       }
     } catch (TokenizerException &e) {
+      memory->destroy(file->frho);
+      memory->destroy(file->rhor);
+      memory->destroy(file->zr);
       error->one(FLERR, e.what());
     }
   }
@@ -796,6 +799,10 @@ void PairEAM::read_setfl(char *filename)
         }
       }
     } catch (TokenizerException &e) {
+      memory->destroy(file->mass);
+      memory->destroy(file->frho);
+      memory->destroy(file->rhor);
+      memory->destroy(file->z2r);
       error->one(FLERR, e.what());
     }
   }
@@ -917,6 +924,10 @@ void PairEAM::read_fs(char *filename)
         }
       }
     } catch (TokenizerException &e) {
+      memory->destroy(file->mass);
+      memory->destroy(file->frho);
+      memory->destroy(file->rhor);
+      memory->destroy(file->z2r);
       error->one(FLERR, e.what());
     }
   }

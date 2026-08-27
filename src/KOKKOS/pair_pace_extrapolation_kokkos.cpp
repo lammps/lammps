@@ -75,8 +75,13 @@ PairPACEExtrapolationKokkos<DeviceType>::~PairPACEExtrapolationKokkos()
 {
   if (copymode) return;
 
-  memoryKK->destroy_kokkos(k_eatom,eatom);
-  memoryKK->destroy_kokkos(k_vatom,vatom);
+  // with host_flag the base class compute() is used and eatom/vatom are
+  // plain arrays from Pair::ev_setup() that are freed in ~Pair(); calling
+  // destroy_kokkos() on them would clear the pointers without freeing
+  if (!host_flag) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+  }
 
   deallocate_views_of_views();
 }

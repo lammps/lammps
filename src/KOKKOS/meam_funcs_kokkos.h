@@ -38,29 +38,30 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::G_gam(const KK_FLOAT gamma, const int ibar, int &errorflag) const
 {
   KK_FLOAT gsmooth_switchpoint;
+  const KK_FLOAT gsmooth_factor_kk = static_cast<KK_FLOAT>(gsmooth_factor);
 
   switch (ibar) {
     case 0:
     case 4:
-      gsmooth_switchpoint = -gsmooth_factor / (gsmooth_factor + 1);
+      gsmooth_switchpoint = -gsmooth_factor_kk / (gsmooth_factor_kk + 1);
       if (gamma < gsmooth_switchpoint) {
         // e.g. gsmooth_factor is 99, {:
         // gsmooth_switchpoint = -0.99
         // G = 0.01*(-0.99/gamma)**99
-        KK_FLOAT G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
-        return sqrt(G);
+        KK_FLOAT G = 1 / (gsmooth_factor_kk + 1) * Kokkos::pow((gsmooth_switchpoint / gamma), gsmooth_factor_kk);
+        return Kokkos::sqrt(G);
       } else {
-        return sqrt(1.0 + gamma);
+        return Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) + gamma);
       }
     case 1:
-      return MathSpecialKokkos::fm_exp(gamma / 2.0);
+      return static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(gamma) / 2.0));
     case 3:
-      return 2.0 / (1.0 + MathSpecialKokkos::fm_exp(-gamma));
+      return static_cast<KK_FLOAT>(2.0 / (1.0 + MathSpecialKokkos::fm_exp(static_cast<double>(-gamma))));
     case -5:
-      if ((1.0 + gamma) >= 0) {
-        return sqrt(1.0 + gamma);
+      if ((static_cast<KK_FLOAT>(1.0) + gamma) >= 0) {
+        return Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) + gamma);
       } else {
-        return -sqrt(-1.0 - gamma);
+        return -Kokkos::sqrt(static_cast<KK_FLOAT>(-1.0) - gamma);
       }
   }
   errorflag = 1;
@@ -83,40 +84,41 @@ KK_FLOAT MEAMKokkos<DeviceType>::dG_gam(const KK_FLOAT gamma, const int ibar, KK
 {
   KK_FLOAT gsmooth_switchpoint;
   KK_FLOAT G;
+  const KK_FLOAT gsmooth_factor_kk = static_cast<KK_FLOAT>(gsmooth_factor);
 
   switch (ibar) {
     case 0:
     case 4:
-      gsmooth_switchpoint = -gsmooth_factor / (gsmooth_factor + 1);
+      gsmooth_switchpoint = -gsmooth_factor_kk / (gsmooth_factor_kk + 1);
       if (gamma < gsmooth_switchpoint) {
         // e.g. gsmooth_factor is 99, {:
         // gsmooth_switchpoint = -0.99
         // G = 0.01*(-0.99/gamma)**99
-        G = 1 / (gsmooth_factor + 1) * pow((gsmooth_switchpoint / gamma), gsmooth_factor);
-        G = sqrt(G);
-        dG = -gsmooth_factor * G / (2.0 * gamma);
+        G = 1 / (gsmooth_factor_kk + 1) * Kokkos::pow((gsmooth_switchpoint / gamma), gsmooth_factor_kk);
+        G = Kokkos::sqrt(G);
+        dG = -gsmooth_factor_kk * G / (static_cast<KK_FLOAT>(2.0) * gamma);
         return G;
       } else {
-        G = sqrt(1.0 + gamma);
-        dG = 1.0 / (2.0 * G);
+        G = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) + gamma);
+        dG = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(2.0) * G);
         return G;
       }
     case 1:
-      G = MathSpecialKokkos::fm_exp(gamma / 2.0);
-      dG = G / 2.0;
+      G = static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(gamma) / 2.0));
+      dG = G / static_cast<KK_FLOAT>(2.0);
       return G;
     case 3:
-      G = 2.0 / (1.0 + MathSpecialKokkos::fm_exp(-gamma));
-      dG = G * (2.0 - G) / 2;
+      G = static_cast<KK_FLOAT>(2.0 / (1.0 + MathSpecialKokkos::fm_exp(static_cast<double>(-gamma))));
+      dG = G * (static_cast<KK_FLOAT>(2.0) - G) / 2;
       return G;
     case -5:
-      if ((1.0 + gamma) >= 0) {
-        G = sqrt(1.0 + gamma);
-        dG = 1.0 / (2.0 * G);
+      if ((static_cast<KK_FLOAT>(1.0) + gamma) >= 0) {
+        G = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) + gamma);
+        dG = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(2.0) * G);
         return G;
       } else {
-        G = -sqrt(-1.0 - gamma);
-        dG = -1.0 / (2.0 * G);
+        G = -Kokkos::sqrt(static_cast<KK_FLOAT>(-1.0) - gamma);
+        dG = static_cast<KK_FLOAT>(-1.0) / (static_cast<KK_FLOAT>(2.0) * G);
         return G;
       }
   }
@@ -133,19 +135,19 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::zbl(const KK_FLOAT r, const int z1, const int z2) const
 {
   int i;
-  const KK_FLOAT c[] = { 0.028171, 0.28022, 0.50986, 0.18175 };
-  const KK_FLOAT d[] = { 0.20162, 0.40290, 0.94229, 3.1998 };
-  const KK_FLOAT azero = 0.4685;
-  const KK_FLOAT cc = 14.3997;
+  const KK_FLOAT c[] = { static_cast<KK_FLOAT>(0.028171), static_cast<KK_FLOAT>(0.28022), static_cast<KK_FLOAT>(0.50986), static_cast<KK_FLOAT>(0.18175) };
+  const KK_FLOAT d[] = { static_cast<KK_FLOAT>(0.20162), static_cast<KK_FLOAT>(0.40290), static_cast<KK_FLOAT>(0.94229), static_cast<KK_FLOAT>(3.1998) };
+  const KK_FLOAT azero = static_cast<KK_FLOAT>(0.4685);
+  const KK_FLOAT cc = static_cast<KK_FLOAT>(14.3997);
   KK_FLOAT a, x;
   // azero = (9pi^2/128)^1/3 (0.529) Angstroms
-  a = azero / (pow(z1, 0.23) + pow(z2, 0.23));
+  a = azero / static_cast<KK_FLOAT>(pow(z1, 0.23) + pow(z2, 0.23));
   KK_FLOAT result = 0.0;
   x = r / a;
   for (i = 0; i <= 3; i++) {
-    result = result + c[i] * MathSpecialKokkos::fm_exp(-d[i] * x);
+    result = result + c[i] * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-d[i] * x)));
   }
-  if (r > 0.0)
+  if (r > static_cast<KK_FLOAT>(0.0))
     result = result * z1 * z2 / r * cc;
   return result;
 }
@@ -160,9 +162,9 @@ KK_FLOAT MEAMKokkos<DeviceType>::embedding(const KK_FLOAT A, const KK_FLOAT Ec, 
 {
   const KK_FLOAT AEc = A * Ec;
 
-  if (rhobar > 0.0) {
-      const KK_FLOAT lrb = log(rhobar);
-      dF = AEc * (1.0 + lrb);
+  if (rhobar > static_cast<KK_FLOAT>(0.0)) {
+      const KK_FLOAT lrb = Kokkos::log(rhobar);
+      dF = AEc * (static_cast<KK_FLOAT>(1.0) + lrb);
       return AEc * rhobar * lrb;
   } else {
     if (emb_lin_neg == 0) {
@@ -187,8 +189,8 @@ KK_FLOAT MEAMKokkos<DeviceType>::erose(const KK_FLOAT r, const KK_FLOAT re, cons
   KK_FLOAT astar, a3;
   KK_FLOAT result = 0.0;
 
-  if (r > 0.0) {
-    astar = alpha * (r / re - 1.0);
+  if (r > static_cast<KK_FLOAT>(0.0)) {
+    astar = alpha * (r / re - static_cast<KK_FLOAT>(1.0));
     a3 = 0.0;
     if (astar >= 0)
       a3 = attrac;
@@ -196,11 +198,11 @@ KK_FLOAT MEAMKokkos<DeviceType>::erose(const KK_FLOAT r, const KK_FLOAT re, cons
       a3 = repuls;
 
     if (form == 1)
-      result = -Ec * (1 + astar + (-attrac + repuls / r) * MathSpecialKokkos::cube(astar)) * MathSpecialKokkos::fm_exp(-astar);
+      result = -Ec * (1 + astar + (-attrac + repuls / r) * MathSpecialKokkos::cube(astar)) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-astar)));
     else if (form == 2)
-      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar)) * MathSpecialKokkos::fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar)) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-astar)));
     else
-      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar) / (r / re)) * MathSpecialKokkos::fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar) / (r / re)) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-astar)));
   }
   return result;
 }
@@ -226,32 +228,32 @@ void MEAMKokkos<DeviceType>::get_shpfcn(const lattice_t latt, const KK_FLOAT sth
     case HCP:
       s[0] = 0.0;
       s[1] = 0.0;
-      s[2] = 1.0 / 3.0;
+      s[2] = static_cast<KK_FLOAT>(1.0 / 3.0);
       break;
     case CH4: // CH4 actually needs shape factor for diamond for C, dimer for H
     case DIA:
     case DIA3:
       s[0] = 0.0;
       s[1] = 0.0;
-      s[2] = 32.0 / 9.0;
+      s[2] = static_cast<KK_FLOAT>(32.0 / 9.0);
       break;
     case DIM:
       s[0] = 1.0;
-      s[1] = 2.0 / 3.0;
+      s[1] = static_cast<KK_FLOAT>(2.0 / 3.0);
       // s(4) = 1.d0 // this should be 0.4 unless (1-legendre) is multiplied in the density calc.
-      s[2] = 0.40; // this is (1-legendre) where legendre = 0.6 in dynamo is accounted.
+      s[2] = static_cast<KK_FLOAT>(0.40); // this is (1-legendre) where legendre = 0.6 in dynamo is accounted.
       break;
     case LIN: // linear, theta being 180
       s[0] = 0.0;
-      s[1] = 8.0 / 3.0; // 4*(co**4 + si**4 - 1.0/3.0) in zig become 4*(1-1/3)
+      s[1] = static_cast<KK_FLOAT>(8.0 / 3.0); // 4*(co**4 + si**4 - 1.0/3.0) in zig become 4*(1-1/3)
       s[2] = 0.0;
       break;
     case ZIG: //zig-zag
     case TRI: //trimer e.g. H2O
-      s[0] = 4.0*pow(cthe,2);
-      s[1] = 4.0*(pow(cthe,4) + pow(sthe,4) - 1.0/3.0);
-      s[2] = 4.0*(pow(cthe,2) * (3*pow(sthe,4) + pow(cthe,4)));
-      s[2] = s[2] - 0.6*s[0]; //legend in dyn, 0.6 is default value.
+      s[0] = static_cast<KK_FLOAT>(4.0) * Kokkos::pow(cthe,static_cast<KK_FLOAT>(2));
+      s[1] = static_cast<KK_FLOAT>(4.0) * (Kokkos::pow(cthe,static_cast<KK_FLOAT>(4)) + Kokkos::pow(sthe,static_cast<KK_FLOAT>(4)) - static_cast<KK_FLOAT>(1.0/3.0));
+      s[2] = static_cast<KK_FLOAT>(4.0) * (Kokkos::pow(cthe,static_cast<KK_FLOAT>(2)) * (3*Kokkos::pow(sthe,static_cast<KK_FLOAT>(4)) + Kokkos::pow(cthe,static_cast<KK_FLOAT>(4))));
+      s[2] = s[2] - static_cast<KK_FLOAT>(0.6)*s[0]; //legend in dyn, 0.6 is default value.
       break;
     default:
       s[0] = 0.0;

@@ -2421,7 +2421,7 @@ void AtomVec::setup_fields()
 {
   int n, cols;
 
-  if ((fields_data_atom.size() < 1) || (fields_data_atom[0] != "id"))
+  if ((fields_data_atom.empty()) || (fields_data_atom[0] != "id"))
     error->all(FLERR, "Atom style fields_data_atom must have 'id' as first field");
   if ((fields_data_vel.size() < 2) || (fields_data_vel[0] != "id") || (fields_data_vel[1] != "v"))
     error->all(FLERR, "Atom style fields_data_vel must have 'id' and 'v' as first two fields");

@@ -320,7 +320,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     d_firsttouch(i,jj) = 1;
 
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0)/r;
     const KK_FLOAT rsqinv = static_cast<KK_FLOAT>(1.0)/rsq;
 
@@ -374,7 +374,7 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
       shear2 += vtr2*dt_kk;
       shear3 += vtr3*dt_kk;
     }
-    KK_FLOAT shrmag = sqrt(shear1*shear1 + shear2*shear2 +
+    KK_FLOAT shrmag = Kokkos::sqrt(shear1*shear1 + shear2*shear2 +
                           shear3*shear3);
 
     if (SHEARUPDATE) {
@@ -396,8 +396,8 @@ void PairGranHookeHistoryKokkos<DeviceType>::operator()(TagPairGranHookeHistoryC
 
     // rescale frictional displacements and forces if needed
 
-    KK_FLOAT fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-    KK_FLOAT fn = xmu_kk * fabs(ccel*r);
+    KK_FLOAT fs = Kokkos::sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+    KK_FLOAT fn = xmu_kk * Kokkos::fabs(ccel*r);
 
     if (fs > fn) {
       if (shrmag != static_cast<KK_FLOAT>(0.0)) {

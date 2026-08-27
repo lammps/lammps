@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 02: a particle bouncing repeatedly off a wall, whose
-// successive rebound heights converge to the hard-sphere limit as the spring
-// stiffness increases.  Mirrors MFiX-DEM VVUQ case DEM-02.  All test logic is
-// shared via test_dem_common; the reference systems live in tests/dem02-*.yaml.
+// DEM verification test 02: elastic Hertzian normal impact of two spheres (peak contact force).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem02-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

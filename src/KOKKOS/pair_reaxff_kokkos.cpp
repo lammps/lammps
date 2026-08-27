@@ -3574,8 +3574,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
     KK_FLOAT estriph = 0.0;
 
     if (BO_i >= 1.00) {
-      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
-                         (jmass == 12.0000 && imass == 15.9990)) {
+      if (gp[37] == 2 || (imass == (KK_FLOAT)12.0000 && jmass == (KK_FLOAT)15.9990) ||
+                         (jmass == (KK_FLOAT)12.0000 && imass == (KK_FLOAT)15.9990)) {
         const KK_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50));
         const KK_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
         const KK_FLOAT exphub1 = exp(-gp[3] * (d_total_bo[j]-BO_i));

@@ -13,7 +13,7 @@ VENV           = $(BUILDDIR)/docenv
 ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
-MATHJAXTAG     = 4.1.2
+MATHJAXTAG     = 4.1.3
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
@@ -76,6 +76,7 @@ help:
 	@echo "  char_check    check for non-ASCII characters"
 	@echo "  role_check    check for misformatted role keywords"
 	@echo "  link_check    check external links in the manual"
+	@echo "  extract_check check extract() function consistency with tables in the manual"
 	@echo "  spelling      spell-check the manual"
 
 # ------------------------------------------
@@ -275,6 +276,13 @@ role_check :
 	@( env LC_ALL=C grep -n '\(ref\|doc\)`[^`]' $(RSTDIR)/*.rst && exit 1 || : )
 	@( env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                         $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} && exit 1 || : )
+
+extract_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		$(PYTHON) utils/check-fix-adapt-tables.py --root .. ;\
+		deactivate ;\
+	)
 
 upgrade: $(VENV)
 	@(\

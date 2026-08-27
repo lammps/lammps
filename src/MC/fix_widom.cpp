@@ -197,7 +197,7 @@ void FixWidom::options(int narg, char **arg)
     if (strcmp(arg[iarg],"mol") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix widom mol", error);
       auto onemols = atom->get_molecule_by_id(arg[iarg+1]);
-      if (onemols.size() == 0)
+      if (onemols.empty())
         error->all(FLERR,"Molecule template ID {} for fix widom does not exist", arg[iarg+1]);
       if (onemols.size() > 1 && comm->me == 0)
         error->warning(FLERR,"Molecule template {} for fix widom has multiple molecules; "

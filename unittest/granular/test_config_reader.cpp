@@ -459,10 +459,14 @@ void TestConfigReader::global_vector(const yaml_event_t &event)
 
 void TestConfigReader::tags(const yaml_event_t &event)
 {
-    std::stringstream data((char *)event.data.scalar.value);
+    // accept both space- and comma-separated tag lists
+    std::string tags_value((char *)event.data.scalar.value);
+    for (auto &c : tags_value)
+        if (c == ',') c = ' ';
+    std::stringstream data(tags_value);
     config.tags.clear();
     for (std::string tag; std::getline(data, tag, ' ');) {
         const auto addme = trim(tag);
-        if (addme.size() > 0) config.tags.push_back(addme);
+        if (!addme.empty()) config.tags.push_back(addme);
     }
 }

@@ -3133,39 +3133,31 @@ double PairAIREBO::gSpline(double costh, double Nij, int typei,
     if (costh < gCdom[0]) costh = gCdom[0];
     if (costh > gCdom[4]) costh = gCdom[4];
     if (Nij >= NCmax) {
-      for (i = 0; i < 4; i++) {
-        if (costh >= gCdom[i] && costh <= gCdom[i+1]) {
-          for (j = 0; j < 6; j++) coeffs[j] = gC2[i][j];
-        }
-      }
+      // the clamped costh always falls into one of the intervals; the scan
+      // stops at the matching interval and defaults to the last one otherwise
+      for (i = 0; i < 3; i++)
+        if (costh < gCdom[i+1]) break;
+      for (j = 0; j < 6; j++) coeffs[j] = gC2[i][j];
       g2 = Sp5th(costh,coeffs,&dg2);
       g = g2;
       *dgdc = dg2;
       *dgdN = 0.0;
     }
     if (Nij <= NCmin) {
-      for (i = 0; i < 4; i++) {
-        if (costh >= gCdom[i] && costh <= gCdom[i+1]) {
-          for (j = 0; j < 6; j++) coeffs[j] = gC1[i][j];
-        }
-      }
+      for (i = 0; i < 3; i++)
+        if (costh < gCdom[i+1]) break;
+      for (j = 0; j < 6; j++) coeffs[j] = gC1[i][j];
       g1 = Sp5th(costh,coeffs,&dg1);
       g = g1;
       *dgdc = dg1;
       *dgdN = 0.0;
     }
     if (Nij > NCmin && Nij < NCmax) {
-      for (i = 0; i < 4; i++) {
-        if (costh >= gCdom[i] && costh <= gCdom[i+1]) {
-          for (j = 0; j < 6; j++) coeffs[j] = gC1[i][j];
-        }
-      }
+      for (i = 0; i < 3; i++)
+        if (costh < gCdom[i+1]) break;
+      for (j = 0; j < 6; j++) coeffs[j] = gC1[i][j];
       g1 = Sp5th(costh,coeffs,&dg1);
-      for (i = 0; i < 4; i++) {
-        if (costh >= gCdom[i] && costh <= gCdom[i+1]) {
-          for (j = 0; j < 6; j++) coeffs[j] = gC2[i][j];
-        }
-      }
+      for (j = 0; j < 6; j++) coeffs[j] = gC2[i][j];
       g2 = Sp5th(costh,coeffs,&dg2);
       cut = Sp(Nij,NCmin,NCmax,dS);
       g = g2+cut*(g1-g2);
@@ -3179,11 +3171,9 @@ double PairAIREBO::gSpline(double costh, double Nij, int typei,
   if (typei == 1) {
     if (costh < gHdom[0]) costh = gHdom[0];
     if (costh > gHdom[3]) costh = gHdom[3];
-    for (i = 0; i < 3; i++) {
-      if (costh >= gHdom[i] && costh <= gHdom[i+1]) {
-        for (j = 0; j < 6; j++) coeffs[j] = gH[i][j];
-      }
-    }
+    for (i = 0; i < 2; i++)
+      if (costh < gHdom[i+1]) break;
+    for (j = 0; j < 6; j++) coeffs[j] = gH[i][j];
     g = Sp5th(costh,coeffs,&dg1);
     *dgdN = 0.0;
     *dgdc = dg1;

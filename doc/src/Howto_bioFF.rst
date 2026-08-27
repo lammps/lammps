@@ -240,7 +240,7 @@ converted into the ClassII-xe functional form.  The conversion from
 ClassII to ClassII-xe functional form requires reparameterizing the
 cross-terms, which can be accomplished via the LUNAR tool, for which a
 link is provided on the `Pre/Post processing
-<https://www.lammps.org/prepost.html>`_ page.  LUNAR can be used to
+<https://www.lammps.org/ecosystem/prepost/>`_ page.  LUNAR can be used to
 build a model from scratch in either COMPASS or PCFF (using its
 'atom_typing' and 'all2lmp' modules) and then convert that model to
 COMPASS-xe or PCFF-xe (using its 'auto_morse_bond_update' module).  To
@@ -269,8 +269,8 @@ removed.  On the other hand, :doc:`fix bond/react <fix_bond_react>` can
 relax high-energy configurations via the ``stabilization`` keyword,
 whereby a small local group of atoms involved in the discontinuity are
 integrated with :doc:`fix nve/limit <fix_nve_limit>`.  `LUNAR
-<https://www.lammps.org/prepost.html>`_ can also be used to assist with
-setting up simulations that include :doc:`fix bond/react
+<https://www.lammps.org/ecosystem/prepost/>`_ can also be used to assist
+with setting up simulations that include :doc:`fix bond/react
 <fix_bond_react>`.
 
 DREIDING
@@ -358,7 +358,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-MacKerell:
 
-**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586 . https://doi.org/10.1021/jp973084f
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem B, 102, 3586. https://doi.org/10.1021/jp973084f
 
 .. _howto-Cornell:
 
@@ -382,7 +382,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-Jorgensen:
 
-**(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
+**(Jorgensen2)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
 
 .. _howto-Maple:
 

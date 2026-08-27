@@ -18,7 +18,7 @@ files and image files.
 
 If you uncomment the :doc:`dump <dump>` command in the input script, a
 text dump file will be produced, which can be animated by various
-`visualization programs <https://www.lammps.org/viz.html>`_.
+`visualization programs <https://www.lammps.org/ecosystem/visualization/>`_.
 
 If you uncomment the :doc:`dump image <dump>` command in the input
 script, and assuming you have built LAMMPS with a JPG library, JPG
@@ -26,8 +26,8 @@ snapshot images will be produced when the simulation runs.  They can
 be quickly post-processed into a movie using commands described on the
 :doc:`dump image <dump_image>` doc page.
 
-Animations of many of the examples can be viewed on the Movies section
-of the `LAMMPS website <https://www.lammps.org/movies.html>`_.
+Animations of many of the examples can be viewed on the Examples gallery section
+of the `LAMMPS website <https://www.lammps.org/examples/>`_.
 
 There are two kinds of subdirectories in the examples folder.  Lower
 case named directories contain one or a few simple, quick-to-run
@@ -195,8 +195,8 @@ Here is how you can run and visualize one of the sample problems:
 
 Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a
-variety of third-party tools highlighted on the
-`Visualization <https://www.lammps.org/viz.html>`_ page of the LAMMPS
+variety of third-party tools highlighted on the `Visualization
+<https://www.lammps.org/ecosystem/visualization/>`_ page of the LAMMPS
 website.
 
 If you uncomment the :doc:`dump image <dump_image>` line(s) in the input

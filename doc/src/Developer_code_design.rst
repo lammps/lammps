@@ -223,41 +223,41 @@ uses a programming pattern called `Factory`.  Those are functions that
 create an instance of a specific derived class, say ``PairLJCut`` and
 return a pointer to the type of the common base class of that style,
 ``Pair`` in this case.  To associate the factory function with the
-style keyword, a ``std::map`` class is used with function pointers
-indexed by their keyword (for example "lj/cut" for ``PairLJCut`` and
-"morse" for ``PairMorse``).  A couple of typedefs help keep the code
-readable, and a template function is used to implement the actual
-factory functions for the individual classes.  Below is an example
-of such a factory function from the ``Force`` class as declared in
-``force.h`` and implemented in ``force.cpp``.  The file ``style_pair.h``
-is generated during compilation and includes all main header files
-(i.e. those starting with ``pair_``) of pair styles and then the
-macro ``PairStyle()`` will associate the style name "lj/cut"
-with a factory function creating an instance of the ``PairLJCut``
-class.
+style keyword, a process-global registry (the ``CreatorRegistry`` class
+template declared in ``creator_registry.h``) is used that stores the
+factory function pointers indexed by their keyword (for example "lj/cut"
+for ``PairLJCut`` and "morse" for ``PairMorse``).  A couple of typedefs
+help keep the code readable, and a template function is used to implement
+the actual factory functions for the individual classes.
+
+During compilation, the build system parses the ``PairStyle()`` marker
+lines in the header files of all "installed" pair styles (those starting
+with ``pair_``) and generates the file ``style_pair.cpp``.  That file
+``#include``\s those headers and defines a ``register_pair_styles()``
+function which adds one factory function per style to the registry returned
+by the ``Force::pair_styles()`` accessor.  As with all style categories, the
+``PAIR_CLASS`` macro is never actually defined during compilation; the
+``#ifdef PAIR_CLASS`` block in each header is only a marker for the build
+system's parser.  Below is an example of the relevant declarations and the
+generated code:
 
 .. code-block:: c++
 
    // from force.h
-   typedef Pair *(*PairCreator)(LAMMPS *);
-   typedef std::map<std::string, PairCreator> PairCreatorMap;
-   PairCreatorMap *pair_map;
+   using PairCreator = Pair *(*)(LAMMPS *);
+   static CreatorRegistry<PairCreator> &pair_styles();
 
-   // from force.cpp
-   template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
+   // from the generated file style_pair.cpp
+   template <typename T> static Pair *creator(LAMMPS *lmp)
    {
      return new T(lmp);
    }
 
-   // [...]
-
-   pair_map = new PairCreatorMap();
-
-   #define PAIR_CLASS
-   #define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
-   #include "style_pair.h"
-   #undef PairStyle
-   #undef PAIR_CLASS
+   void register_pair_styles()
+   {
+     // [...] one add_builtin() call per installed pair style
+     Force::pair_styles().add_builtin("lj/cut", &creator<PairLJCut>);
+   }
 
    // from pair_lj_cut.h
 
@@ -266,10 +266,22 @@ class.
    #else
    // [...]
 
-Similar code constructs are present in other files like ``modify.cpp`` and
-``modify.h`` or ``neighbor.cpp`` and ``neighbor.h``.  Those contain
-similar macros and include ``style_*.h`` files for creating class instances
-of styles they manage.
+All per-category ``register_*_styles()`` functions are called once per
+process from ``register_builtin_styles()`` (guarded by ``std::call_once``)
+when the first ``LAMMPS`` instance is created.  Because the registry is
+process-global, the built-in styles are registered only once and remain
+available after a :doc:`clear <clear>` command and across multiple concurrent
+``LAMMPS`` instances in the same process; this is also what allows
+:doc:`plugins <plugin>` to persist (see :doc:`Developer_plugins`).  The same
+mechanism is used for the other style categories that are created from a
+user-facing keyword and managed by ``Modify`` (fixes, computes), ``Update``
+(integrators, minimizers), ``Domain`` (regions), ``Output`` (dumps),
+``Input`` (commands), and ``Atom`` (atom styles).  A few internal style
+categories that are *not* selected by a user-facing keyword --- the neighbor
+list ``nbin``/``npair``/``nstencil``/``ntopo`` classes in ``neighbor.cpp``
+and the granular sub-models --- still use the older approach that
+``#include``\s a generated ``style_*.h`` file while the corresponding
+``XXX_CLASS`` macro is defined.
 
 
 I/O and output formatting
@@ -278,10 +290,10 @@ I/O and output formatting
 C-style stdio versus C++ style iostreams
 ========================================
 
-LAMMPS uses the `stdio <https://cppreference.com/w/cpp/io/c.html>`
+LAMMPS uses the `stdio <https://cppreference.com/cpp/io/c>`
 library of the standard C library for reading from and writing to files
 and console instead of C++ `iostreams
-<https://cppreference.com/w/cpp/io.html>`_.  This is mainly motivated
+<https://cppreference.com/cpp/io.html>`_.  This is mainly motivated
 by better performance, better control over formatting, and less effort
 to achieve specific formatting.
 
@@ -295,9 +307,9 @@ Furthermore, output should generally only be done by MPI rank 0
 function <LAMMPS_NS::utils::logmesg>`.
 
 We strongly discourage the use of `stringstreams
-<https://cppreference.com/w/cpp/io/basic_stringstream.html>`_ because
+<https://cppreference.com/cpp/io/basic_stringstream>`_ because
 the bundled `{fmt} library <https://fmt.dev>`_ or the `C++ format
-library <https://cppreference.com/w/cpp/utility/format.html>`_ (for
+library <https://cppreference.com/cpp/utility/format>`_ (for
 C++20 and later) and the customized tokenizer classes provide the same
 functionality in a cleaner way with better performance.  This also helps
 maintain a consistent programming syntax with code from many different
@@ -310,7 +322,7 @@ The LAMMPS source code currently includes a slightly modified copy of
 the `{fmt} library <https://fmt.dev>`_, which is preferred over
 formatting with the "printf()" family of functions.  When compiling for
 C++20 and later we switch to using the `C++ format library
-<https://cppreference.com/w/cpp/utility/format.html>`_.  The namespace
+<https://cppreference.com/cpp/utility/format>`_.  The namespace
 prefix currently remains ``fmt::`` through a small wrapper.  In the
 future, this will be switched to ``std::`` when LAMMPS requires the
 C++20 standard as the minimum C++ standard.  Thus only functionality
@@ -318,7 +330,7 @@ compatible with the C++ format library for C++20 is accepted.  Using
 ``std::format`` requires a fully C++20 compatible compiler (e.g. GCC 13
 and later, Clang 14 and later, or MSVC 16.10 and later) and we `use the
 __cpp_lib_format feature test macro
-<https://cppreference.com/w/cpp/utility/feature_test.html>`_ to confirm
+<https://cppreference.com/cpp/utility/feature_test>`_ to confirm
 the availability of ``std::format``.
 
 The primary reason for this choice is that it allows a typesafe default
@@ -341,7 +353,7 @@ choose the default format based on the data type of the argument.
 Otherwise, the :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`
 function may be used instead of ``printf()`` or ``fprintf()``.  The
 equivalent `std::print() function
-<https://cppreference.com/w/cpp/io/print.html>`_ will become
+<https://cppreference.com/cpp/io/print>`_ will become
 available in C++ 23.  In addition, several LAMMPS output functions, that
 originally accepted a single string as argument have been overloaded to
 accept a format string with optional arguments as well (e.g.,
@@ -413,11 +425,11 @@ first will be the value shown and the second the minimum width.
 For more details and examples, please consult the `{fmt} syntax
 documentation <https://fmt.dev/latest/syntax/>`_ website or the
 `corresponding C++ syntax reference
-<https://cppreference.com/w/cpp/utility/format/spec.html>`_.  Since
+<https://cppreference.com/cpp/utility/format/spec>`_.  Since
 we plan to eventually transition from {fmt} to using ``std::format()``
 of the C++ standard library, it is advisable to avoid using any
 extensions beyond what the `C++20 standard offers
-<https://cppreference.com/w/cpp/utility/format/format.html>`_.
+<https://cppreference.com/cpp/utility/format/format>`_.
 
 JSON format input and output
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

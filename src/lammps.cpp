@@ -14,29 +14,14 @@
 
 #include "lammps.h"
 
-#include "style_angle.h"     // IWYU pragma: keep
-#include "style_atom.h"      // IWYU pragma: keep
-#include "style_body.h"      // IWYU pragma: keep
-#include "style_bond.h"      // IWYU pragma: keep
-#include "style_command.h"   // IWYU pragma: keep
-#include "style_compute.h"   // IWYU pragma: keep
-#include "style_dihedral.h"  // IWYU pragma: keep
-#include "style_dump.h"      // IWYU pragma: keep
-#include "style_fix.h"       // IWYU pragma: keep
-#include "style_improper.h"  // IWYU pragma: keep
-#include "style_integrate.h" // IWYU pragma: keep
-#include "style_kspace.h"    // IWYU pragma: keep
-#include "style_minimize.h"  // IWYU pragma: keep
-#include "style_pair.h"      // IWYU pragma: keep
-#include "style_reader.h"    // IWYU pragma: keep
-#include "style_region.h"    // IWYU pragma: keep
-
 #include "accelerator_kokkos.h"
 #include "accelerator_omp.h"
 #include "atom.h"
+#include "atom_vec_body.h"
 #include "citeme.h"
 #include "comm.h"
 #include "comm_brick.h"
+#include "creator_registry.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -48,6 +33,8 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
+#include "package_registry.h"
+#include "platform.h"
 #include "suffix.h"
 #include "timer.h"
 #include "universe.h"
@@ -59,6 +46,7 @@
 #include "plugin.h"
 #endif
 
+#include <algorithm>
 #include <cctype>
 #include <cmath>
 #include <cstring>
@@ -73,26 +61,25 @@
 #define UPDATE_STRING ""
 #endif
 
-static void print_style(FILE *fp, const char *str, int &pos);
+// list the keywords of all styles in a global registry in aligned columns,
+// sorted, with a trailing "*" on styles currently provided by a plugin
+// (used by LAMMPS::help)
 
-struct LAMMPS_NS::package_styles_lists {
-  std::map<std::string,std::string> angle_styles;
-  std::map<std::string,std::string> atom_styles;
-  std::map<std::string,std::string> body_styles;
-  std::map<std::string,std::string> bond_styles;
-  std::map<std::string,std::string> command_styles;
-  std::map<std::string,std::string> compute_styles;
-  std::map<std::string,std::string> dihedral_styles;
-  std::map<std::string,std::string> dump_styles;
-  std::map<std::string,std::string> fix_styles;
-  std::map<std::string,std::string> improper_styles;
-  std::map<std::string,std::string> integrate_styles;
-  std::map<std::string,std::string> kspace_styles;
-  std::map<std::string,std::string> minimize_styles;
-  std::map<std::string,std::string> pair_styles;
-  std::map<std::string,std::string> reader_styles;
-  std::map<std::string,std::string> region_styles;
-};
+template <typename Creator>
+static void print_styles(FILE *fp, const LAMMPS_NS::CreatorRegistry<Creator> &reg, int width)
+{
+  std::vector<std::string> names;
+  for (const auto &name : reg.keys()) {
+    if (isupper(name[0]) || LAMMPS_NS::utils::strmatch(name, "/kk/host$")
+        || LAMMPS_NS::utils::strmatch(name, "/kk/device$"))
+      continue;
+    names.push_back(name);
+  }
+  std::sort(names.begin(), names.end());
+  for (auto &name : names)
+    if (reg.has_plugin(name)) name += "*";
+  LAMMPS_NS::utils::print(fp, LAMMPS_NS::utils::columnize(names, width));
+}
 
 using namespace LAMMPS_NS;
 
@@ -135,6 +122,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   modify(nullptr), group(nullptr), output(nullptr), timer(nullptr), kokkos(nullptr),
   atomKK(nullptr), memoryKK(nullptr), python(nullptr), citeme(nullptr)
 {
+  // register all built-in styles into their process-global registries.
+  // idempotent and thread-safe; runs only on the first LAMMPS instance.
+  register_builtin_styles();
+
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
@@ -163,8 +154,6 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   infile = nullptr;
 
   initclock = platform::walltime();
-
-  init_pkg_lists();
 
 #if defined(LMP_PYTHON) && defined(_WIN32)
   // If the LAMMPSHOME environment variable is set, it should point
@@ -835,7 +824,6 @@ LAMMPS::~LAMMPS() noexcept(false)
   delete error;
   delete memory;
 
-  delete pkg_lists;
   delete[] exename;
 }
 
@@ -888,9 +876,9 @@ void LAMMPS::create()
 
   python = new Python(this);
 
-  // restore and auto-load plugins
+  // auto-load plugins; previously loaded plugins persist in the global style
+  // registry across "clear", so they do not need to be restored here
 #if defined(LMP_PLUGIN)
-  plugin_restore(this, true);
   plugin_auto_load(this);
 #endif
 }
@@ -1040,115 +1028,9 @@ void LAMMPS::destroy()
   restart_ver = -1;       // reset last restart version id
 }
 
-/* ----------------------------------------------------------------------
-   initialize lists of styles in packages
-------------------------------------------------------------------------- */
-
-void _noopt LAMMPS::init_pkg_lists()
-{
-  pkg_lists = new package_styles_lists;
-#define PACKAGE "UNKNOWN"
-#define ANGLE_CLASS
-#define AngleStyle(key,Class)                   \
-  pkg_lists->angle_styles[#key] = PACKAGE;
-#include "packages_angle.h"
-#undef AngleStyle
-#undef ANGLE_CLASS
-#define ATOM_CLASS
-#define AtomStyle(key,Class)                    \
-  pkg_lists->atom_styles[#key] = PACKAGE;
-#include "packages_atom.h"
-#undef AtomStyle
-#undef ATOM_CLASS
-#define BODY_CLASS
-#define BodyStyle(key,Class)                    \
-  pkg_lists->body_styles[#key] = PACKAGE;
-#include "packages_body.h"
-#undef BodyStyle
-#undef BODY_CLASS
-#define BOND_CLASS
-#define BondStyle(key,Class)                    \
-  pkg_lists->bond_styles[#key] = PACKAGE;
-#include "packages_bond.h"
-#undef BondStyle
-#undef BOND_CLASS
-#define COMMAND_CLASS
-#define CommandStyle(key,Class)                 \
-  pkg_lists->command_styles[#key] = PACKAGE;
-#include "packages_command.h"
-#undef CommandStyle
-#undef COMMAND_CLASS
-#define COMPUTE_CLASS
-#define ComputeStyle(key,Class)                 \
-  pkg_lists->compute_styles[#key] = PACKAGE;
-#include "packages_compute.h"
-#undef ComputeStyle
-#undef COMPUTE_CLASS
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class)                \
-  pkg_lists->dihedral_styles[#key] = PACKAGE;
-#include "packages_dihedral.h"
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
-#define DUMP_CLASS
-#define DumpStyle(key,Class)                    \
-  pkg_lists->dump_styles[#key] = PACKAGE;
-#include "packages_dump.h"
-#undef DumpStyle
-#undef DUMP_CLASS
-#define FIX_CLASS
-#define FixStyle(key,Class)                     \
-  pkg_lists->fix_styles[#key] = PACKAGE;
-#include "packages_fix.h"
-#undef FixStyle
-#undef FIX_CLASS
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class)                \
-  pkg_lists->improper_styles[#key] = PACKAGE;
-#include "packages_improper.h"
-#undef ImproperStyle
-#undef IMPROPER_CLASS
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class)               \
-  pkg_lists->integrate_styles[#key] = PACKAGE;
-#include "packages_integrate.h"
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class)                  \
-  pkg_lists->kspace_styles[#key] = PACKAGE;
-#include "packages_kspace.h"
-#undef KSpaceStyle
-#undef KSPACE_CLASS
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class)                \
-  pkg_lists->minimize_styles[#key] = PACKAGE;
-#include "packages_minimize.h"
-#undef MinimizeStyle
-#undef MINIMIZE_CLASS
-#define PAIR_CLASS
-#define PairStyle(key,Class)                    \
-  pkg_lists->pair_styles[#key] = PACKAGE;
-#include "packages_pair.h"
-#undef PairStyle
-#undef PAIR_CLASS
-#define READER_CLASS
-#define ReaderStyle(key,Class)                  \
-  pkg_lists->reader_styles[#key] = PACKAGE;
-#include "packages_reader.h"
-#undef ReaderStyle
-#undef READER_CLASS
-#define REGION_CLASS
-#define RegionStyle(key,Class)                  \
-  pkg_lists->region_styles[#key] = PACKAGE;
-#include "packages_region.h"
-#undef RegionStyle
-#undef REGION_CLASS
-}
-
 #define check_for_match(style,list,name)                                \
   if (strcmp(list,#style) == 0) {                                       \
-    std::map<std::string,std::string> &styles(pkg_lists-> style ## _styles); \
+    std::map<std::string,std::string> &styles(package_styles(). style ## _styles); \
     if (styles.find(name) != styles.end()) {                            \
       return styles[name].c_str();                                      \
     }                                                                   \
@@ -1223,6 +1105,10 @@ void _noopt LAMMPS::help()
 
   int use_pager = platform::is_console(fp);
 
+  // adapt to the terminal width when writing to a console, else use 80 columns
+  int width = LAMMPS_NS::platform::terminal_width(fp);
+  if ((width < 1) || !use_pager) width = 80;
+
   // cannot use this with OpenMPI since its console is non-functional
 
 #if defined(OPEN_MPI)
@@ -1278,119 +1164,68 @@ void _noopt LAMMPS::help()
           "-var varname value          : set index style variable (-v)\n\n",
           exename);
 
-  print_config(fp);
-  fprintf(fp,"List of individual style options included in this LAMMPS executable\n\n");
+  print_config(fp, width);
+  fprintf(fp,"Lists of individual styles included in this LAMMPS executable\n");
+  fprintf(fp,"(a trailing * marks a style currently provided by a plugin)\n\n");
 
-  int pos = 80;
   fprintf(fp,"* Atom styles:\n");
-#define ATOM_CLASS
-#define AtomStyle(key,Class) print_style(fp,#key,pos);
-#include "style_atom.h"  // IWYU pragma: keep
-#undef ATOM_CLASS
+  print_styles(fp, Atom::avec_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
+  fprintf(fp,"* Body styles:\n");
+  print_styles(fp, AtomVecBody::body_styles(), width);
+  fprintf(fp,"\n\n");
+
   fprintf(fp,"* Integrate styles:\n");
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key,Class) print_style(fp,#key,pos);
-#include "style_integrate.h"  // IWYU pragma: keep
-#undef INTEGRATE_CLASS
+  print_styles(fp, Update::integrate_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Minimize styles:\n");
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_minimize.h"  // IWYU pragma: keep
-#undef MINIMIZE_CLASS
+  print_styles(fp, Update::minimize_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Pair styles:\n");
-#define PAIR_CLASS
-#define PairStyle(key,Class) print_style(fp,#key,pos);
-#include "style_pair.h"  // IWYU pragma: keep
-#undef PAIR_CLASS
+  print_styles(fp, Force::pair_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Bond styles:\n");
-#define BOND_CLASS
-#define BondStyle(key,Class) print_style(fp,#key,pos);
-#include "style_bond.h"  // IWYU pragma: keep
-#undef BOND_CLASS
+  print_styles(fp, Force::bond_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Angle styles:\n");
-#define ANGLE_CLASS
-#define AngleStyle(key,Class) print_style(fp,#key,pos);
-#include "style_angle.h"  // IWYU pragma: keep
-#undef ANGLE_CLASS
+  print_styles(fp, Force::angle_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Dihedral styles:\n");
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dihedral.h"  // IWYU pragma: keep
-#undef DIHEDRAL_CLASS
+  print_styles(fp, Force::dihedral_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Improper styles:\n");
-#define IMPROPER_CLASS
-#define ImproperStyle(key,Class) print_style(fp,#key,pos);
-#include "style_improper.h"  // IWYU pragma: keep
-#undef IMPROPER_CLASS
+  print_styles(fp, Force::improper_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* KSpace styles:\n");
-#define KSPACE_CLASS
-#define KSpaceStyle(key,Class) print_style(fp,#key,pos);
-#include "style_kspace.h"  // IWYU pragma: keep
-#undef KSPACE_CLASS
+  print_styles(fp, Force::kspace_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
-  fprintf(fp,"* Fix styles\n");
-#define FIX_CLASS
-#define FixStyle(key,Class) print_style(fp,#key,pos);
-#include "style_fix.h"  // IWYU pragma: keep
-#undef FIX_CLASS
+  fprintf(fp,"* Fix styles:\n");
+  print_styles(fp, Modify::fix_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Compute styles:\n");
-#define COMPUTE_CLASS
-#define ComputeStyle(key,Class) print_style(fp,#key,pos);
-#include "style_compute.h"  // IWYU pragma: keep
-#undef COMPUTE_CLASS
+  print_styles(fp, Modify::compute_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Region styles:\n");
-#define REGION_CLASS
-#define RegionStyle(key,Class) print_style(fp,#key,pos);
-#include "style_region.h"  // IWYU pragma: keep
-#undef REGION_CLASS
+  print_styles(fp, Domain::region_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Dump styles:\n");
-#define DUMP_CLASS
-#define DumpStyle(key,Class) print_style(fp,#key,pos);
-#include "style_dump.h"  // IWYU pragma: keep
-#undef DUMP_CLASS
+  print_styles(fp, Output::dump_styles(), width);
   fprintf(fp,"\n\n");
 
-  pos = 80;
   fprintf(fp,"* Command styles\n");
-#define COMMAND_CLASS
-#define CommandStyle(key,Class) print_style(fp,#key,pos);
-#include "style_command.h"  // IWYU pragma: keep
-#undef COMMAND_CLASS
+  print_styles(fp, Input::command_styles(), width);
   fprintf(fp,"\n\n");
 
   // close pipe to pager, if active
@@ -1398,42 +1233,7 @@ void _noopt LAMMPS::help()
   if (pager != nullptr) platform::pclose(fp);
 }
 
-/* ----------------------------------------------------------------------
-   print style names in columns
-   skip any internal style that starts with an upper-case letter
-   also skip "redundant" KOKKOS styles ending in kk/host or kk/device
-------------------------------------------------------------------------- */
-
-void print_style(FILE *fp, const char *str, int &pos)
-{
-  if (isupper(str[0]) || utils::strmatch(str,"/kk/host$")
-      || utils::strmatch(str,"/kk/device$")) return;
-
-  int len = strlen(str);
-  if (pos+len > 80) {
-    fprintf(fp,"\n");
-    pos = 0;
-  }
-
-  if (len < 16) {
-    fprintf(fp,"%-16s",str);
-    pos += 16;
-  } else if (len < 32) {
-    fprintf(fp,"%-32s",str);
-    pos += 32;
-  } else if (len < 48) {
-    fprintf(fp,"%-48s",str);
-    pos += 48;
-  } else if (len < 64) {
-    fprintf(fp,"%-64s",str);
-    pos += 64;
-  } else {
-    fprintf(fp,"%-80s",str);
-    pos += 80;
-  }
-}
-
-void LAMMPS::print_config(FILE *fp)
+void LAMMPS::print_config(FILE *fp, int width)
 {
   const char *pkg;
   int ncword, ncline = 0;
@@ -1484,7 +1284,7 @@ void LAMMPS::print_config(FILE *fp)
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {
     ncword = strlen(pkg);
-    if (ncline + ncword > 78) {
+    if ((ncline + ncword) > (width - 1)) {
       ncline = 0;
       fputs("\n",fp);
     }

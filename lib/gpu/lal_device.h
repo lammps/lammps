@@ -334,7 +334,7 @@ class Device {
  private:
   std::queue<Answer<numtyp,acctyp> *> ans_queue;
   int _init_count;
-  bool _device_init, _host_timer_started, _time_device;
+  bool _device_init, _comm_gpu_allocated, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
       _replica_size;

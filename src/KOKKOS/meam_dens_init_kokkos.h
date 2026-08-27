@@ -292,7 +292,7 @@ void
 MEAMKokkos<DeviceType>::getscreen(int i, int offset, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh_half,
                 typename AT::t_int_1d d_numneigh_full, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map)
 const {
-  const KK_FLOAT drinv = 1.0 / delr_meam;
+  const KK_FLOAT drinv = static_cast<KK_FLOAT>(1.0 / delr_meam);
   const int elti = d_map[type[i]];
   if (elti < 0) return;
 
@@ -316,7 +316,7 @@ const {
 
     const KK_FLOAT rij2 = delxij * delxij + delyij * delyij + delzij * delzij;
 
-    if (rij2 > cutforcesq) {
+    if (rij2 > static_cast<KK_FLOAT>(cutforcesq)) {
       d_dscrfcn[offset+jn] = 0.0;
       d_scrfcn[offset+jn] = 0.0;
       d_fcpair[offset+jn] = 0.0;
@@ -324,9 +324,9 @@ const {
     }
 
     // Now compute derivatives
-    const KK_FLOAT rbound = ebound_meam[elti][eltj] * rij2;
-    const KK_FLOAT rij = sqrt(rij2);
-    const KK_FLOAT rnorm = (cutforce - rij) * drinv;
+    const KK_FLOAT rbound = static_cast<KK_FLOAT>(ebound_meam[elti][eltj]) * rij2;
+    const KK_FLOAT rij = Kokkos::sqrt(rij2);
+    const KK_FLOAT rnorm = (static_cast<KK_FLOAT>(cutforce) - rij) * drinv;
     KK_FLOAT sij = 1.0;
 
     // if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
@@ -357,11 +357,11 @@ const {
       const KK_FLOAT a = 1 - (xik - xjk) * (xik - xjk);
       // if a < 0, then ellipse equation doesn't describe this case and
       // atom k can't possibly screen i-j
-      if (a <= 0.0) continue;
+      if (a <= static_cast<KK_FLOAT>(0.0)) continue;
 
-      KK_FLOAT cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-      const KK_FLOAT Cmax = Cmax_meam[elti][eltj][eltk];
-      const KK_FLOAT Cmin = Cmin_meam[elti][eltj][eltk];
+      KK_FLOAT cikj = (static_cast<KK_FLOAT>(2.0) * (xik + xjk) + a - static_cast<KK_FLOAT>(2.0)) / a;
+      const KK_FLOAT Cmax = static_cast<KK_FLOAT>(Cmax_meam[elti][eltj][eltk]);
+      const KK_FLOAT Cmin = static_cast<KK_FLOAT>(Cmin_meam[elti][eltj][eltk]);
       KK_FLOAT sikj;
       if (cikj >= Cmax) continue;
       // note that cikj may be slightly negative (within numerical
@@ -410,11 +410,11 @@ const {
         const KK_FLOAT a = 1 - (xik - xjk) * (xik - xjk);
         // if a < 0, then ellipse equation doesn't describe this case and
         // atom k can't possibly screen i-j
-        if (a <= 0.0) continue;
+        if (a <= static_cast<KK_FLOAT>(0.0)) continue;
 
-        KK_FLOAT cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-        const KK_FLOAT Cmax = Cmax_meam[elti][eltj][eltk];
-        const KK_FLOAT Cmin = Cmin_meam[elti][eltj][eltk];
+        KK_FLOAT cikj = (static_cast<KK_FLOAT>(2.0) * (xik + xjk) + a - static_cast<KK_FLOAT>(2.0)) / a;
+        const KK_FLOAT Cmax = static_cast<KK_FLOAT>(Cmax_meam[elti][eltj][eltk]);
+        const KK_FLOAT Cmin = static_cast<KK_FLOAT>(Cmin_meam[elti][eltj][eltk]);
         if (cikj >= Cmax) {
           continue;
           // Note that cikj may be slightly negative (within numerical
@@ -496,57 +496,57 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
       delij[1] = x(j,1) - ytmp;
       delij[2] = x(j,2) - ztmp;
       const KK_FLOAT rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
-      if (rij2 < cutforcesq) {
+      if (rij2 < static_cast<KK_FLOAT>(cutforcesq)) {
         const int eltj = d_map[type[j]];
-        const KK_FLOAT rij = sqrt(rij2);
-        const KK_FLOAT ai = rij / re_meam[elti][elti] - 1.0;
-        const KK_FLOAT aj = rij / re_meam[eltj][eltj] - 1.0;
-        const KK_FLOAT ro0i = rho0_meam[elti];
-        const KK_FLOAT ro0j = rho0_meam[eltj];
-        const KK_FLOAT rhoa0j = ro0j * MathSpecialKokkos::fm_exp(-beta0_meam[eltj] * aj) * sij;
-        KK_FLOAT rhoa1j = ro0j * MathSpecialKokkos::fm_exp(-beta1_meam[eltj] * aj) * sij;
-        KK_FLOAT rhoa2j = ro0j * MathSpecialKokkos::fm_exp(-beta2_meam[eltj] * aj) * sij;
-        KK_FLOAT rhoa3j = ro0j * MathSpecialKokkos::fm_exp(-beta3_meam[eltj] * aj) * sij;
-        const KK_FLOAT rhoa0i = ro0i * MathSpecialKokkos::fm_exp(-beta0_meam[elti] * ai) * sij;
-        KK_FLOAT rhoa1i = ro0i * MathSpecialKokkos::fm_exp(-beta1_meam[elti] * ai) * sij;
-        KK_FLOAT rhoa2i = ro0i * MathSpecialKokkos::fm_exp(-beta2_meam[elti] * ai) * sij;
-        KK_FLOAT rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai) * sij;
+        const KK_FLOAT rij = Kokkos::sqrt(rij2);
+        const KK_FLOAT ai = rij / static_cast<KK_FLOAT>(re_meam[elti][elti]) - static_cast<KK_FLOAT>(1.0);
+        const KK_FLOAT aj = rij / static_cast<KK_FLOAT>(re_meam[eltj][eltj]) - static_cast<KK_FLOAT>(1.0);
+        const KK_FLOAT ro0i = static_cast<KK_FLOAT>(rho0_meam[elti]);
+        const KK_FLOAT ro0j = static_cast<KK_FLOAT>(rho0_meam[eltj]);
+        const KK_FLOAT rhoa0j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta0_meam[eltj]) * aj))) * sij;
+        KK_FLOAT rhoa1j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1_meam[eltj]) * aj))) * sij;
+        KK_FLOAT rhoa2j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2_meam[eltj]) * aj))) * sij;
+        KK_FLOAT rhoa3j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3_meam[eltj]) * aj))) * sij;
+        const KK_FLOAT rhoa0i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta0_meam[elti]) * ai))) * sij;
+        KK_FLOAT rhoa1i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1_meam[elti]) * ai))) * sij;
+        KK_FLOAT rhoa2i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2_meam[elti]) * ai))) * sij;
+        KK_FLOAT rhoa3i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3_meam[elti]) * ai))) * sij;
         // msmeam
         KK_FLOAT rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
         if (msmeamflag) {
-          rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * sij;
-          rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * sij;
-          rhoa3mj = ro0j * t3m_meam[eltj] * MathSpecialKokkos::fm_exp(-beta3m_meam[eltj] * aj) * sij;
-          rhoa1mi = ro0i * t1m_meam[elti] * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * sij;
-          rhoa2mi = ro0i * t2m_meam[elti] * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * sij;
-          rhoa3mi = ro0i * t3m_meam[elti] * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * sij;
+          rhoa1mj = ro0j * static_cast<KK_FLOAT>(t1m_meam[eltj]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1m_meam[eltj]) * aj))) * sij;
+          rhoa2mj = ro0j * static_cast<KK_FLOAT>(t2m_meam[eltj]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2m_meam[eltj]) * aj))) * sij;
+          rhoa3mj = ro0j * static_cast<KK_FLOAT>(t3m_meam[eltj]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3m_meam[eltj]) * aj))) * sij;
+          rhoa1mi = ro0i * static_cast<KK_FLOAT>(t1m_meam[elti]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1m_meam[elti]) * ai))) * sij;
+          rhoa2mi = ro0i * static_cast<KK_FLOAT>(t2m_meam[elti]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2m_meam[elti]) * ai))) * sij;
+          rhoa3mi = ro0i * static_cast<KK_FLOAT>(t3m_meam[elti]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3m_meam[elti]) * ai))) * sij;
         }
         if (ialloy == 1) {
-          rhoa1j *= t1_meam[eltj];
-          rhoa2j *= t2_meam[eltj];
-          rhoa3j *= t3_meam[eltj];
-          rhoa1i *= t1_meam[elti];
-          rhoa2i *= t2_meam[elti];
-          rhoa3i *= t3_meam[elti];
+          rhoa1j *= static_cast<KK_FLOAT>(t1_meam[eltj]);
+          rhoa2j *= static_cast<KK_FLOAT>(t2_meam[eltj]);
+          rhoa3j *= static_cast<KK_FLOAT>(t3_meam[eltj]);
+          rhoa1i *= static_cast<KK_FLOAT>(t1_meam[elti]);
+          rhoa2i *= static_cast<KK_FLOAT>(t2_meam[elti]);
+          rhoa3i *= static_cast<KK_FLOAT>(t3_meam[elti]);
         }
         a_rho0[i] += rhoa0j;
         a_rho0[j] += rhoa0i;
         // For ialloy = 2, use single-element value (not average)
         if (ialloy != 2) {
-          a_t_ave(i,0) += t1_meam[eltj] * rhoa0j;
-          a_t_ave(i,1) += t2_meam[eltj] * rhoa0j;
-          a_t_ave(i,2) += t3_meam[eltj] * rhoa0j;
-          a_t_ave(j,0) += t1_meam[elti] * rhoa0i;
-          a_t_ave(j,1) += t2_meam[elti] * rhoa0i;
-          a_t_ave(j,2) += t3_meam[elti] * rhoa0i;
+          a_t_ave(i,0) += static_cast<KK_FLOAT>(t1_meam[eltj]) * rhoa0j;
+          a_t_ave(i,1) += static_cast<KK_FLOAT>(t2_meam[eltj]) * rhoa0j;
+          a_t_ave(i,2) += static_cast<KK_FLOAT>(t3_meam[eltj]) * rhoa0j;
+          a_t_ave(j,0) += static_cast<KK_FLOAT>(t1_meam[elti]) * rhoa0i;
+          a_t_ave(j,1) += static_cast<KK_FLOAT>(t2_meam[elti]) * rhoa0i;
+          a_t_ave(j,2) += static_cast<KK_FLOAT>(t3_meam[elti]) * rhoa0i;
         }
         if (ialloy == 1) {
-          a_tsq_ave(i,0) += t1_meam[eltj] * t1_meam[eltj] * rhoa0j;
-          a_tsq_ave(i,1) += t2_meam[eltj] * t2_meam[eltj] * rhoa0j;
-          a_tsq_ave(i,2) += t3_meam[eltj] * t3_meam[eltj] * rhoa0j;
-          a_tsq_ave(j,0) += t1_meam[elti] * t1_meam[elti] * rhoa0i;
-          a_tsq_ave(j,1) += t2_meam[elti] * t2_meam[elti] * rhoa0i;
-          a_tsq_ave(j,2) += t3_meam[elti] * t3_meam[elti] * rhoa0i;
+          a_tsq_ave(i,0) += static_cast<KK_FLOAT>(t1_meam[eltj]) * static_cast<KK_FLOAT>(t1_meam[eltj]) * rhoa0j;
+          a_tsq_ave(i,1) += static_cast<KK_FLOAT>(t2_meam[eltj]) * static_cast<KK_FLOAT>(t2_meam[eltj]) * rhoa0j;
+          a_tsq_ave(i,2) += static_cast<KK_FLOAT>(t3_meam[eltj]) * static_cast<KK_FLOAT>(t3_meam[eltj]) * rhoa0j;
+          a_tsq_ave(j,0) += static_cast<KK_FLOAT>(t1_meam[elti]) * static_cast<KK_FLOAT>(t1_meam[elti]) * rhoa0i;
+          a_tsq_ave(j,1) += static_cast<KK_FLOAT>(t2_meam[elti]) * static_cast<KK_FLOAT>(t2_meam[elti]) * rhoa0i;
+          a_tsq_ave(j,2) += static_cast<KK_FLOAT>(t3_meam[elti]) * static_cast<KK_FLOAT>(t3_meam[elti]) * rhoa0i;
         }
         a_arho2b[i] += rhoa2j;
         a_arho2b[j] += rhoa2i;
@@ -614,17 +614,17 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::dfcut(const KK_FLOAT xi, KK_FLOAT& dfc) const
 {
-  if (xi >= 1.0) {
+  if (xi >= static_cast<KK_FLOAT>(1.0)) {
     dfc = 0.0;
     return 1.0;
-  } else if (xi <= 0.0) {
+  } else if (xi <= static_cast<KK_FLOAT>(0.0)) {
     dfc = 0.0;
     return 0.0;
   } else {
-    const KK_FLOAT a = 1.0 - xi;
+    const KK_FLOAT a = static_cast<KK_FLOAT>(1.0) - xi;
     const KK_FLOAT a3 = a * a * a;
     const KK_FLOAT a4 = a * a3;
-    const KK_FLOAT a1m4 = 1.0 - a4;
+    const KK_FLOAT a1m4 = static_cast<KK_FLOAT>(1.0) - a4;
 
     dfc = 8 * a1m4 * a3;
     return a1m4*a1m4;
@@ -674,15 +674,15 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT MEAMKokkos<DeviceType>::fcut(const KK_FLOAT xi) const
 {
   KK_FLOAT a;
-  if (xi >= 1.0)
+  if (xi >= static_cast<KK_FLOAT>(1.0))
     return 1.0;
-  else if (xi <= 0.0)
+  else if (xi <= static_cast<KK_FLOAT>(0.0))
     return 0.0;
   else {
     // ( 1.d0 - (1.d0 - xi)**4 )**2, but with better codegen
-    a = 1.0 - xi;
+    a = static_cast<KK_FLOAT>(1.0) - xi;
     a *= a; a *= a;
-    a = 1.0 - a;
+    a = static_cast<KK_FLOAT>(1.0) - a;
     return a * a;
   }
 }

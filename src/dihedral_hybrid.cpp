@@ -231,7 +231,7 @@ void DihedralHybrid::settings(int narg, char **arg)
     // by looking for the next known dihedral style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->dihedral_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::dihedral_styles().contains(arg[jarg]) &&
            !lmp->match_style("dihedral", arg[jarg]))
       jarg++;
 
@@ -361,6 +361,8 @@ void DihedralHybrid::read_restart(FILE *fp)
   int me = comm->me;
   if (me == 0) utils::sfread(FLERR, &nstyles, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&nstyles, 1, MPI_INT, 0, world);
+  if ((nstyles < 1) || (nstyles > 64))
+    error->all(FLERR, "Invalid number of sub-styles in restart file");
   styles = new Dihedral *[nstyles];
   keywords = new char *[nstyles];
 
@@ -370,6 +372,7 @@ void DihedralHybrid::read_restart(FILE *fp)
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid style name length in restart file");
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR, keywords[m], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(keywords[m], n, MPI_CHAR, 0, world);

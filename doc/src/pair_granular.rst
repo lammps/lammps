@@ -410,11 +410,18 @@ restitution coefficient *e* according to:
 
 .. math::
 
-   \alpha = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
+   \alpha / \sqrt{2} = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
 
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but no
 error check is performed on this.
+
+.. versionchanged:: TBD
+
+This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
+where the factor of :math:`\sqrt{2}` arises from a difference in convention
+from Tsuji when defining :math:`\alpha` using either the mass vs. effective
+mass. This factor was missing in earlier versions of LAMMPS.
 
 The *coeff_restitution* model is useful when a specific normal
 coefficient of restitution :math:`e` is required.  It operates much like
@@ -1130,7 +1137,7 @@ reduction. Journal of the Mechanics and Physics of Solids, 183, 105492.
 
 .. _Zunker2024II:
 
-**(Zunker and Kamrin, 2024)** Zunker, W., & Kamrin, K. (2024).
+**(Zunker and Kamrin, 2024b)** Zunker, W., & Kamrin, K. (2024).
 A mechanically-derived contact model for adhesive elastic-perfectly
 plastic particles, Part II: Contact under high compaction-modeling
 a bulk elastic response. Journal of the Mechanics and Physics of Solids,

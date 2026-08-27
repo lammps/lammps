@@ -206,8 +206,8 @@ none
 
 .. _Bussi1:
 
-.. _Bussi2:
-
 **(Bussi1)** Bussi, Donadio and Parrinello, J. Chem. Phys. 126, 014101(2007)
+
+.. _Bussi2:
 
 **(Bussi2)** Bussi and Parrinello, Phys. Rev. E 75, 056707 (2007)

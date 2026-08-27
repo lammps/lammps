@@ -265,7 +265,7 @@ void BondQuarticKokkos<DeviceType>::operator()(TagBondQuarticCompute<NEWTON_BOND
     return;
   }
 
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT dr = r - d_rc[type];
   const KK_FLOAT r2 = dr*dr;
   const KK_FLOAT ra = dr - d_b1[type];

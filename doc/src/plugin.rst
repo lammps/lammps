@@ -49,14 +49,14 @@ binary without having to recompile and link the entire executable.
    property.  Loading a plugin means that it is not only available for
    the current LAMMPS instance but for all *future* LAMMPS instances.
 
-   After a :doc:`clear <clear>` command, all currently loaded plugins
-   will be restored and do not need to be loaded again.
+   Loaded plugins are kept in a process-global style registry, so they
+   remain available after a :doc:`clear <clear>` command and do not need
+   to be loaded again.
 
-   When using the library interface or the Python or Fortran module
-   to create multiple concurrent LAMMPS instances, all plugins should
-   be loaded by the first created LAMMPS instance as all future instances
-   will inherit them.  To import plugins that were loaded by a different
-   LAMMPS instance, use the *restore* command.
+   When using the library interface or the Python or Fortran module to
+   create multiple concurrent LAMMPS instances, a plugin loaded by any
+   instance is immediately available to all other LAMMPS instances in the
+   same process.
 
 
 The *load* command will load and initialize all plugins contained in the
@@ -79,8 +79,12 @@ The *clear* command will unload all currently loaded plugins.
 
 .. versionadded:: 12Jun2025
 
-The *restore* command will restore all currently loaded plugins.
-This allows to "import" plugins into a different LAMMPS instance.
+.. versionchanged:: TBD
+
+The *restore* command is no longer required and does nothing: loaded plugins
+are now kept in a process-global style registry that persists across the
+:doc:`clear <clear>` command and is shared by all LAMMPS instances in the same
+process.  The command is retained for backward compatibility.
 
 .. admonition:: Automatic loading of plugins
    :class: note

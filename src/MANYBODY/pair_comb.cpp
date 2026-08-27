@@ -473,13 +473,6 @@ void PairComb::init_style()
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires atom attribute q");
 
-  // ptr to QEQ fix
-
-  //for (i = 0; i < modify->nfix; i++)
-  //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
-  //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = nullptr;
-
   // need a full neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL);

@@ -242,6 +242,12 @@ unsigned char *read_image(FILE *fp, int &width, int &height, const std::string &
     width = (int) header.width[0] + ((int) header.width[1]) * 256;
     height = (int) header.height[0] + ((int) header.height[1]) * 256;
 
+    // reject huge images where the buffer size computation would overflow an int
+    if ((bigint) 3 * width * height > (bigint) MAXSMALLINT) {
+      info = "TGA image dimensions too large";
+      return nullptr;
+    }
+
     bool right2left = (header.imagedescriptor & 0x10) ? true : false;
     bool fromtop = (header.imagedescriptor & 0x20) ? true : false;
 
@@ -661,8 +667,8 @@ FixGraphicsLabels::FixGraphicsLabels(LAMMPS *lmp, int narg, char **arg) :
           else if (strcmp(arg[iarg + 1], "bond") == 0)
             scale.mapidx = Image::BOND_MAP;
           else
-            error->all(FLERR, iarg + 1,
-                       "Unknown fix graphics/labels colorscale map value: {}", arg[iarg + 1]);
+            error->all(FLERR, iarg + 1, "Unknown fix graphics/labels colorscale map value: {}",
+                       arg[iarg + 1]);
           iarg += 2;
         } else if (strcmp(arg[iarg], "fontcolor") == 0) {
           if (iarg + 2 > narg)

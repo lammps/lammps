@@ -500,9 +500,9 @@ void FixNHKokkos<DeviceType>::nh_v_press()
   int nlocal = atomKK->nlocal;
   if (igroup == atomKK->firstgroup) nlocal = atomKK->nfirst;
 
-  factor[0] = exp(-dt4*(omega_dot[0]+mtk_term2));
-  factor[1] = exp(-dt4*(omega_dot[1]+mtk_term2));
-  factor[2] = exp(-dt4*(omega_dot[2]+mtk_term2));
+  factor[0] = static_cast<KK_FLOAT>(exp(-dt4*(omega_dot[0]+mtk_term2)));
+  factor[1] = static_cast<KK_FLOAT>(exp(-dt4*(omega_dot[1]+mtk_term2)));
+  factor[2] = static_cast<KK_FLOAT>(exp(-dt4*(omega_dot[2]+mtk_term2)));
 
   if (which == BIAS) {
     if (temperature->kokkosable) temperature->remove_bias_all_kk();
@@ -546,8 +546,12 @@ void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_press<TRICLINIC_FLAG>, co
     v(i,1) *= factor[1];
     v(i,2) *= factor[2];
     if (TRICLINIC_FLAG) {
-      v(i,0) += -dthalf*(v(i,1)*omega_dot[5] + v(i,2)*omega_dot[4]);
-      v(i,1) += -dthalf*v(i,2)*omega_dot[3];
+      const KK_FLOAT dthalf_kk = static_cast<KK_FLOAT>(dthalf);
+      const KK_FLOAT omega_dot3_kk = static_cast<KK_FLOAT>(omega_dot[3]);
+      const KK_FLOAT omega_dot4_kk = static_cast<KK_FLOAT>(omega_dot[4]);
+      const KK_FLOAT omega_dot5_kk = static_cast<KK_FLOAT>(omega_dot[5]);
+      v(i,0) += -dthalf_kk*(v(i,1)*omega_dot5_kk + v(i,2)*omega_dot4_kk);
+      v(i,1) += -dthalf_kk*v(i,2)*omega_dot3_kk;
     }
     v(i,0) *= factor[0];
     v(i,1) *= factor[1];
@@ -588,19 +592,20 @@ template<int RMASS>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_v<RMASS>, const int &i) const {
+  const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
   if (RMASS) {
     if (mask[i] & groupbit) {
-      const KK_FLOAT dtfm = dtf / rmass[i];
-      v(i,0) += dtfm*f(i,0);
-      v(i,1) += dtfm*f(i,1);
-      v(i,2) += dtfm*f(i,2);
+      const KK_FLOAT dtfm = dtf_kk / rmass[i];
+      v(i,0) += dtfm*static_cast<KK_FLOAT>(f(i,0));
+      v(i,1) += dtfm*static_cast<KK_FLOAT>(f(i,1));
+      v(i,2) += dtfm*static_cast<KK_FLOAT>(f(i,2));
     }
   } else {
     if (mask[i] & groupbit) {
-      const KK_FLOAT dtfm = dtf / mass[type[i]];
-      v(i,0) += dtfm*f(i,0);
-      v(i,1) += dtfm*f(i,1);
-      v(i,2) += dtfm*f(i,2);
+      const KK_FLOAT dtfm = dtf_kk / mass[type[i]];
+      v(i,0) += dtfm*static_cast<KK_FLOAT>(f(i,0));
+      v(i,1) += dtfm*static_cast<KK_FLOAT>(f(i,1));
+      v(i,2) += dtfm*static_cast<KK_FLOAT>(f(i,2));
     }
   }
 }
@@ -632,10 +637,11 @@ template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nve_x, const int &i) const {
+  const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   if (mask[i] & groupbit) {
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    x(i,0) += dtv_kk * v(i,0);
+    x(i,1) += dtv_kk * v(i,1);
+    x(i,2) += dtv_kk * v(i,2);
   }
 }
 
@@ -684,10 +690,11 @@ template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixNHKokkos<DeviceType>::operator()(TagFixNH_nh_v_temp, const int &i) const {
+  const KK_FLOAT factor_eta_kk = static_cast<KK_FLOAT>(factor_eta);
   if (mask[i] & groupbit) {
-    v(i,0) *= factor_eta;
-    v(i,1) *= factor_eta;
-    v(i,2) *= factor_eta;
+    v(i,0) *= factor_eta_kk;
+    v(i,1) *= factor_eta_kk;
+    v(i,2) *= factor_eta_kk;
   }
 }
 

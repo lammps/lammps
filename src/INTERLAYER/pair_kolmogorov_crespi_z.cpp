@@ -202,9 +202,9 @@ void PairKolmogorovCrespiZ::allocate()
 
 void PairKolmogorovCrespiZ::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR, "Illegal pair_style command");
-  if (strcmp(force->pair_style, "hybrid/overlay") != 0)
-    error->all(FLERR, "ERROR: requires hybrid/overlay pair_style");
+  if (narg != 1) error->all(FLERR, "Pair style kolmogorov/crespi/z requires exactly one argument");
+  if (!utils::strmatch(force->pair_style, "^hybrid/overlay"))
+    error->all(FLERR, "Pair style kolmogorov/crespi/z must be used as hybrid/overlay sub-style");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 }

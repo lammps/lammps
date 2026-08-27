@@ -60,7 +60,7 @@ PairDPDfdt::~PairDPDfdt()
   }
 
 
-  if (random) delete random;
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -314,12 +314,8 @@ void PairDPDfdt::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair dpd/fdt requires ghost atoms store velocity");
 
-  splitFDT_flag = false;
+  splitFDT_flag = !modify->get_fix_by_style("^shardlow").empty();
   neighbor->add_request(this);
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
-      splitFDT_flag = true;
-    }
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers if splitFDT_flag is false
@@ -427,7 +423,7 @@ void PairDPDfdt::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 

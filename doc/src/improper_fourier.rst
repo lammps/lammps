@@ -34,8 +34,9 @@ The *fourier* improper style uses the following potential:
 where K is the force constant, C0, C1, C2 are dimensionless coefficients,
 and omega is the angle between the IL axis and the IJK plane:
 
-.. image:: JPG/umbrella.jpg
+.. image:: JPG/umbrella.png
    :align: center
+   :width: 50%
 
 If all parameter (see below) is not zero, the all the three possible angles will taken in account.
 

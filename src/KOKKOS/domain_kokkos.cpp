@@ -72,12 +72,12 @@ public:
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i, value_type &dst) const {
-    dst.value[0][0] = MIN(dst.value[0][0],x(i,0));
-    dst.value[0][1] = MAX(dst.value[0][1],x(i,0));
-    dst.value[1][0] = MIN(dst.value[1][0],x(i,1));
-    dst.value[1][1] = MAX(dst.value[1][1],x(i,1));
-    dst.value[2][0] = MIN(dst.value[2][0],x(i,2));
-    dst.value[2][1] = MAX(dst.value[2][1],x(i,2));
+    dst.value[0][0] = MIN(dst.value[0][0],static_cast<double>(x(i,0)));
+    dst.value[0][1] = MAX(dst.value[0][1],static_cast<double>(x(i,0)));
+    dst.value[1][0] = MIN(dst.value[1][0],static_cast<double>(x(i,1)));
+    dst.value[1][1] = MAX(dst.value[1][1],static_cast<double>(x(i,1)));
+    dst.value[2][0] = MIN(dst.value[2][0],static_cast<double>(x(i,2)));
+    dst.value[2][1] = MAX(dst.value[2][1],static_cast<double>(x(i,2)));
   }
 };
 
@@ -251,19 +251,19 @@ struct DomainPBCFunctor {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
     if (PERIODIC && xperiodic) {
-      if (x(i,0) < lo[0]) {
-        x(i,0) += period[0];
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) += h_rate[0];
+      if (x(i,0) < static_cast<KK_FLOAT>(lo[0])) {
+        x(i,0) += static_cast<KK_FLOAT>(period[0]);
+        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) += static_cast<KK_FLOAT>(h_rate[0]);
         imageint idim = image[i] & IMGMASK;
         const imageint otherdims = image[i] ^ idim;
         idim--;
         idim &= IMGMASK;
         image[i] = otherdims | idim;
       }
-      if (x(i,0) >= hi[0]) {
-        x(i,0) -= period[0];
-        x(i,0) = MAX(x(i,0),lo[0]);
-        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) -= h_rate[0];
+      if (x(i,0) >= static_cast<KK_FLOAT>(hi[0])) {
+        x(i,0) -= static_cast<KK_FLOAT>(period[0]);
+        x(i,0) = MAX(x(i,0),static_cast<KK_FLOAT>(lo[0]));
+        if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) -= static_cast<KK_FLOAT>(h_rate[0]);
         imageint idim = image[i] & IMGMASK;
         const imageint otherdims = image[i] ^ idim;
         idim++;
@@ -273,11 +273,11 @@ struct DomainPBCFunctor {
     }
 
     if (PERIODIC && yperiodic) {
-      if (x(i,1) < lo[1]) {
-        x(i,1) += period[1];
+      if (x(i,1) < static_cast<KK_FLOAT>(lo[1])) {
+        x(i,1) += static_cast<KK_FLOAT>(period[1]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
-          v(i,0) += h_rate[5];
-          v(i,1) += h_rate[1];
+          v(i,0) += static_cast<KK_FLOAT>(h_rate[5]);
+          v(i,1) += static_cast<KK_FLOAT>(h_rate[1]);
         }
         imageint idim = (image[i] >> IMGBITS) & IMGMASK;
         const imageint otherdims = image[i] ^ (idim << IMGBITS);
@@ -285,12 +285,12 @@ struct DomainPBCFunctor {
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMGBITS);
       }
-      if (x(i,1) >= hi[1]) {
-        x(i,1) -= period[1];
-        x(i,1) = MAX(x(i,1),lo[1]);
+      if (x(i,1) >= static_cast<KK_FLOAT>(hi[1])) {
+        x(i,1) -= static_cast<KK_FLOAT>(period[1]);
+        x(i,1) = MAX(x(i,1),static_cast<KK_FLOAT>(lo[1]));
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
-          v(i,0) -= h_rate[5];
-          v(i,1) -= h_rate[1];
+          v(i,0) -= static_cast<KK_FLOAT>(h_rate[5]);
+          v(i,1) -= static_cast<KK_FLOAT>(h_rate[1]);
         }
         imageint idim = (image[i] >> IMGBITS) & IMGMASK;
         const imageint otherdims = image[i] ^ (idim << IMGBITS);
@@ -301,12 +301,12 @@ struct DomainPBCFunctor {
     }
 
     if (PERIODIC && zperiodic) {
-      if (x(i,2) < lo[2]) {
-        x(i,2) += period[2];
+      if (x(i,2) < static_cast<KK_FLOAT>(lo[2])) {
+        x(i,2) += static_cast<KK_FLOAT>(period[2]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
-          v(i,0) += h_rate[4];
-          v(i,1) += h_rate[3];
-          v(i,2) += h_rate[2];
+          v(i,0) += static_cast<KK_FLOAT>(h_rate[4]);
+          v(i,1) += static_cast<KK_FLOAT>(h_rate[3]);
+          v(i,2) += static_cast<KK_FLOAT>(h_rate[2]);
         }
         imageint idim = image[i] >> IMG2BITS;
         const imageint otherdims = image[i] ^ (idim << IMG2BITS);
@@ -314,13 +314,13 @@ struct DomainPBCFunctor {
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMG2BITS);
       }
-      if (x(i,2) >= hi[2]) {
-        x(i,2) -= period[2];
-        x(i,2) = MAX(x(i,2),lo[2]);
+      if (x(i,2) >= static_cast<KK_FLOAT>(hi[2])) {
+        x(i,2) -= static_cast<KK_FLOAT>(period[2]);
+        x(i,2) = MAX(x(i,2),static_cast<KK_FLOAT>(lo[2]));
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
-          v(i,0) -= h_rate[4];
-          v(i,1) -= h_rate[3];
-          v(i,2) -= h_rate[2];
+          v(i,0) -= static_cast<KK_FLOAT>(h_rate[4]);
+          v(i,1) -= static_cast<KK_FLOAT>(h_rate[3]);
+          v(i,2) -= static_cast<KK_FLOAT>(h_rate[2]);
         }
         imageint idim = image[i] >> IMG2BITS;
         const imageint otherdims = image[i] ^ (idim << IMG2BITS);
@@ -424,15 +424,15 @@ void DomainKokkos::remap_all()
 
   if (triclinic == 0) {
     for (int i=0; i<3; i++) {
-      lo[i] = boxlo[i];
-      hi[i] = boxhi[i];
-      period[i] = prd[i];
+      lo[i] = static_cast<KK_FLOAT>(boxlo[i]);
+      hi[i] = static_cast<KK_FLOAT>(boxhi[i]);
+      period[i] = static_cast<KK_FLOAT>(prd[i]);
     }
   } else {
     for (int i=0; i<3; i++) {
-      lo[i] = boxlo_lamda[i];
-      hi[i] = boxhi_lamda[i];
-      period[i] = prd_lamda[i];
+      lo[i] = static_cast<KK_FLOAT>(boxlo_lamda[i]);
+      hi[i] = static_cast<KK_FLOAT>(boxhi_lamda[i]);
+      period[i] = static_cast<KK_FLOAT>(prd_lamda[i]);
     }
     x2lamda(nlocal);
   }
@@ -599,9 +599,9 @@ KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_lamda2x, const int &i) const {
   const KK_FLOAT xi1 = x(i,1);
   const KK_FLOAT xi2 = x(i,2);
-  x(i,0) = h[0]*x(i,0) + h[5]*xi1 + h[4]*xi2 + boxlo[0];
-  x(i,1) = h[1]*xi1 + h[3]*xi2 + boxlo[1];
-  x(i,2) = h[2]*xi2 + boxlo[2];
+  x(i,0) = static_cast<KK_FLOAT>(h[0])*x(i,0) + static_cast<KK_FLOAT>(h[5])*xi1 + static_cast<KK_FLOAT>(h[4])*xi2 + static_cast<KK_FLOAT>(boxlo[0]);
+  x(i,1) = static_cast<KK_FLOAT>(h[1])*xi1 + static_cast<KK_FLOAT>(h[3])*xi2 + static_cast<KK_FLOAT>(boxlo[1]);
+  x(i,2) = static_cast<KK_FLOAT>(h[2])*xi2 + static_cast<KK_FLOAT>(boxlo[2]);
 }
 
 // NOLINTNEXTLINE
@@ -610,9 +610,9 @@ void DomainKokkos::operator()(TagDomain_lamda2x_group, const int &i) const {
   if (mask[i] & groupbit) {
     const KK_FLOAT xi1 = x(i,1);
     const KK_FLOAT xi2 = x(i,2);
-    x(i,0) = h[0]*x(i,0) + h[5]*xi1 + h[4]*xi2 + boxlo[0];
-    x(i,1) = h[1]*xi1 + h[3]*xi2 + boxlo[1];
-    x(i,2) = h[2]*xi2 + boxlo[2];
+    x(i,0) = static_cast<KK_FLOAT>(h[0])*x(i,0) + static_cast<KK_FLOAT>(h[5])*xi1 + static_cast<KK_FLOAT>(h[4])*xi2 + static_cast<KK_FLOAT>(boxlo[0]);
+    x(i,1) = static_cast<KK_FLOAT>(h[1])*xi1 + static_cast<KK_FLOAT>(h[3])*xi2 + static_cast<KK_FLOAT>(boxlo[1]);
+    x(i,2) = static_cast<KK_FLOAT>(h[2])*xi2 + static_cast<KK_FLOAT>(boxlo[2]);
   }
 }
 
@@ -651,13 +651,13 @@ void DomainKokkos::x2lamda(int n, int groupbit_in)
 KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_x2lamda, const int &i) const {
   KK_FLOAT delta[3];
-  delta[0] = x(i,0) - boxlo[0];
-  delta[1] = x(i,1) - boxlo[1];
-  delta[2] = x(i,2) - boxlo[2];
+  delta[0] = x(i,0) - static_cast<KK_FLOAT>(boxlo[0]);
+  delta[1] = x(i,1) - static_cast<KK_FLOAT>(boxlo[1]);
+  delta[2] = x(i,2) - static_cast<KK_FLOAT>(boxlo[2]);
 
-  x(i,0) = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
-  x(i,1) = h_inv[1]*delta[1] + h_inv[3]*delta[2];
-  x(i,2) = h_inv[2]*delta[2];
+  x(i,0) = static_cast<KK_FLOAT>(h_inv[0])*delta[0] + static_cast<KK_FLOAT>(h_inv[5])*delta[1] + static_cast<KK_FLOAT>(h_inv[4])*delta[2];
+  x(i,1) = static_cast<KK_FLOAT>(h_inv[1])*delta[1] + static_cast<KK_FLOAT>(h_inv[3])*delta[2];
+  x(i,2) = static_cast<KK_FLOAT>(h_inv[2])*delta[2];
 }
 
 // NOLINTNEXTLINE
@@ -665,13 +665,13 @@ KOKKOS_INLINE_FUNCTION
 void DomainKokkos::operator()(TagDomain_x2lamda_group, const int &i) const {
   if (mask[i] & groupbit) {
     KK_FLOAT delta[3];
-    delta[0] = x(i,0) - boxlo[0];
-    delta[1] = x(i,1) - boxlo[1];
-    delta[2] = x(i,2) - boxlo[2];
+    delta[0] = x(i,0) - static_cast<KK_FLOAT>(boxlo[0]);
+    delta[1] = x(i,1) - static_cast<KK_FLOAT>(boxlo[1]);
+    delta[2] = x(i,2) - static_cast<KK_FLOAT>(boxlo[2]);
 
-    x(i,0) = h_inv[0]*delta[0] + h_inv[5]*delta[1] + h_inv[4]*delta[2];
-    x(i,1) = h_inv[1]*delta[1] + h_inv[3]*delta[2];
-    x(i,2) = h_inv[2]*delta[2];
+    x(i,0) = static_cast<KK_FLOAT>(h_inv[0])*delta[0] + static_cast<KK_FLOAT>(h_inv[5])*delta[1] + static_cast<KK_FLOAT>(h_inv[4])*delta[2];
+    x(i,1) = static_cast<KK_FLOAT>(h_inv[1])*delta[1] + static_cast<KK_FLOAT>(h_inv[3])*delta[2];
+    x(i,2) = static_cast<KK_FLOAT>(h_inv[2])*delta[2];
   }
 }
 

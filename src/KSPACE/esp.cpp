@@ -43,25 +43,98 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-static constexpr int MAXORDER = 32;
-static constexpr int OFFSET = 16384;
-static constexpr double SMALL = 0.00001;
-static constexpr double EPS_HOC = 1.0e-7;
-static constexpr FFT_SCALAR ZEROF = 0.0;
+// clang-format on
+namespace {
+
+constexpr int MAXORDER = 32;
+constexpr int OFFSET = 16384;
+constexpr double SMALL = 0.00001;
+constexpr double EPS_HOC = 1.0e-7;
+constexpr FFT_SCALAR ZEROF = 0.0;
+
+double poly_horner(const double x, const double *coeff, const int n)
+{
+  // coeff[0] + coeff[1] x + ... + coeff[n-1] x^(n-1)
+  double p = coeff[n - 1];
+  for (int i = n - 2; i >= 0; --i) p = p * x + coeff[i];
+  return p;
+}
+
+void poly_and_deriv_horner(const double x, const double *coeff, const int n, double &p, double &dp)
+{
+  // p(x) and dp/dx, Horner form
+  p = coeff[n - 1];
+  dp = 0.0;
+  for (int i = n - 2; i >= 0; --i) {
+    dp = dp * x + p;
+    p = p * x + coeff[i];
+  }
+}
+}    // namespace
+
+// integer-form helper: t = scale * abs_index
+#define spreading_weight2_from_abs_index(abs_index, scale)  \
+  spreading_weight2_from_t(scale * (double) abs_index)
+
+[[nodiscard]] double ESP::spreading_weight2_from_t(const double t) const
+{
+  // t = (order * h / 2) * |q| / spreading_select_c
+  // returns ( (order/2 * poly(2t-1))^2 ), or 0 if t>1
+  if (t > 1.0) return 0.0;
+  const double x = 2.0 * t - 1.0;
+  // apply Horner rule for polynomial evaluation
+  const double appx = poly_horner(x, fourier_spread_poly_coeff, fourier_spreading_order);
+  const double w = 0.5 * order * appx;
+  return w * w;
+}
+[[nodiscard]] double ESP::gf_denom_psw(const double &kx, const double &ky, const double &kz,
+                                  const double &hx, const double &hy, const double &hz) const
+{
+  int Nmax = (differentiation_flag == 0) ? 2 : 0;
+
+  const double stepx = 2.0 * MY_PI / hx;
+  const double stepy = 2.0 * MY_PI / hy;
+  const double stepz = 2.0 * MY_PI / hz;
+
+  // sum_{nx,ny,nz} wx*wy*wz = (sum wx)*(sum wy)*(sum wz)
+  double sumx = 0.0, sumy = 0.0, sumz = 0.0;
+
+  for (int nx = -Nmax; nx <= Nmax; ++nx) {
+    const double qx = kx + stepx * (double) nx;
+    const double t = (0.5 * order * hx * fabs(qx)) / spreading_select_c;
+    sumx += spreading_weight2_from_t(t);
+  }
+
+  for (int ny = -Nmax; ny <= Nmax; ++ny) {
+    const double qy = ky + stepy * (double) ny;
+    const double t = (0.5 * order * hy * fabs(qy)) / spreading_select_c;
+    sumy += spreading_weight2_from_t(t);
+  }
+
+  for (int nz = -Nmax; nz <= Nmax; ++nz) {
+    const double qz = kz + stepz * (double) nz;
+    const double t = (0.5 * order * hz * fabs(qz)) / spreading_select_c;
+    sumz += spreading_weight2_from_t(t);
+  }
+
+  const double denom = sumx * sumy * sumz;
+  return denom * denom;
+};
+
 
 /* ---------------------------------------------------------------------- */
 
-ESP::ESP(LAMMPS *lmp) : KSpace(lmp),
-  factors(nullptr), density_brick(nullptr), vdx_brick(nullptr), vdy_brick(nullptr), vdz_brick(nullptr),
-  u_brick(nullptr), v0_brick(nullptr), v1_brick(nullptr), v2_brick(nullptr), v3_brick(nullptr),
-  v4_brick(nullptr), v5_brick(nullptr), greensfn(nullptr), greensfn2(nullptr), vg(nullptr), vg2(nullptr), fkx(nullptr), fky(nullptr),
-  fkz(nullptr), density_fft(nullptr), work1(nullptr), work2(nullptr), rho1d(nullptr),
-  rho_coeff(nullptr), drho1d(nullptr), drho_coeff(nullptr),
-  sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
-  sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr),
-  fft1(nullptr), fft2(nullptr), remap(nullptr), gc(nullptr),
-  gc_buf1(nullptr), gc_buf2(nullptr), density_A_brick(nullptr), density_B_brick(nullptr), density_A_fft(nullptr),
-  density_B_fft(nullptr), part2grid(nullptr), boxlo(nullptr)
+ESP::ESP(LAMMPS *lmp) :
+    KSpace(lmp), factors(nullptr), density_brick(nullptr), vdx_brick(nullptr), vdy_brick(nullptr),
+    vdz_brick(nullptr), u_brick(nullptr), v0_brick(nullptr), v1_brick(nullptr), v2_brick(nullptr),
+    v3_brick(nullptr), v4_brick(nullptr), v5_brick(nullptr), greensfn(nullptr), greensfn2(nullptr),
+    vg(nullptr), vg2(nullptr), fkx(nullptr), fky(nullptr), fkz(nullptr), density_fft(nullptr),
+    work1(nullptr), work2(nullptr), rho1d(nullptr), rho_coeff(nullptr), drho1d(nullptr),
+    drho_coeff(nullptr), sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
+    sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr), fft1(nullptr),
+    fft2(nullptr), remap(nullptr), gc(nullptr), gc_buf1(nullptr), gc_buf2(nullptr),
+    density_A_brick(nullptr), density_B_brick(nullptr), density_A_fft(nullptr),
+    density_B_fft(nullptr), part2grid(nullptr), boxlo(nullptr)
 {
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
@@ -303,7 +376,7 @@ void ESP::init()
   if (order < minorder) error->all(FLERR,"ESP order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"ESP grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // allocate K-space dependent memory
   // don't invoke allocate peratom() or group(), will be allocated when needed

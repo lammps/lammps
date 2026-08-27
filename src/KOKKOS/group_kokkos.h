@@ -53,7 +53,7 @@ double mass_kk(int igroup)
     atomKK->sync(execution_space,MASK_MASK|RMASS_MASK);
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_one) {
-      if (d_mask(i) & groupbit) l_one += d_rmass(i);
+      if (d_mask(i) & groupbit) l_one += static_cast<double>(d_rmass(i));
     }, one);
 
   } else {
@@ -64,7 +64,7 @@ double mass_kk(int igroup)
     atomKK->k_mass.template sync<DeviceType>();
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_one) {
-      if (d_mask(i) & groupbit) l_one += d_mass(d_type(i));
+      if (d_mask(i) & groupbit) l_one += static_cast<double>(d_mass(d_type(i)));
     }, one);
 
   }
@@ -102,11 +102,11 @@ void xcm_kk(int igroup, double masstotal, double *xcm)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_cmx, double &l_cmy, double &l_cmz) {
       if (d_mask(i) & groupbit) {
-        double massone = d_rmass(i);
+        double massone = static_cast<double>(d_rmass(i));
         Few<double,3> x_i;
-        x_i[0] = d_x(i,0);
-        x_i[1] = d_x(i,1);
-        x_i[2] = d_x(i,2);
+        x_i[0] = static_cast<double>(d_x(i,0));
+        x_i[1] = static_cast<double>(d_x(i,1));
+        x_i[2] = static_cast<double>(d_x(i,2));
         auto unwrapKK = DomainKokkos::unmap(l_prd,l_h,l_triclinic,x_i,d_image(i));
         l_cmx += unwrapKK[0] * massone;
         l_cmy += unwrapKK[1] * massone;
@@ -123,11 +123,11 @@ void xcm_kk(int igroup, double masstotal, double *xcm)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_cmx, double &l_cmy, double &l_cmz) {
       if (d_mask(i) & groupbit) {
-        double massone = d_mass(d_type(i));
+        double massone = static_cast<double>(d_mass(d_type(i)));
         Few<double,3> x_i;
-        x_i[0] = d_x(i,0);
-        x_i[1] = d_x(i,1);
-        x_i[2] = d_x(i,2);
+        x_i[0] = static_cast<double>(d_x(i,0));
+        x_i[1] = static_cast<double>(d_x(i,1));
+        x_i[2] = static_cast<double>(d_x(i,2));
         auto unwrapKK = DomainKokkos::unmap(l_prd,l_h,l_triclinic,x_i,d_image(i));
         l_cmx += unwrapKK[0] * massone;
         l_cmy += unwrapKK[1] * massone;
@@ -169,10 +169,10 @@ void vcm_kk(int igroup, double masstotal, double *vcm)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_px, double &l_py, double &l_pz) {
       if (d_mask(i) & groupbit) {
-        double massone = d_rmass(i);
-        l_px += d_v(i,0) * massone;
-        l_py += d_v(i,1) * massone;
-        l_pz += d_v(i,2) * massone;
+        KK_FLOAT massone = d_rmass(i);
+        l_px += static_cast<double>(d_v(i,0) * massone);
+        l_py += static_cast<double>(d_v(i,1) * massone);
+        l_pz += static_cast<double>(d_v(i,2) * massone);
       }
     }, p[0], p[1], p[2]);
 
@@ -185,10 +185,10 @@ void vcm_kk(int igroup, double masstotal, double *vcm)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_px, double &l_py, double &l_pz) {
       if (d_mask(i) & groupbit) {
-        double massone = d_mass(d_type(i));
-        l_px += d_v(i,0) * massone;
-        l_py += d_v(i,1) * massone;
-        l_pz += d_v(i,2) * massone;
+        KK_FLOAT massone = d_mass(d_type(i));
+        l_px += static_cast<double>(d_v(i,0) * massone);
+        l_py += static_cast<double>(d_v(i,1) * massone);
+        l_pz += static_cast<double>(d_v(i,2) * massone);
       }
     }, p[0], p[1], p[2]);
 
@@ -233,18 +233,18 @@ void angmom_kk(int igroup, double *xcm, double *lmom)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_px, double &l_py, double &l_pz) {
       if (d_mask(i) & groupbit) {
-        double massone = d_rmass(i);
+        double massone = static_cast<double>(d_rmass(i));
         Few<double,3> x_i;
-        x_i[0] = d_x(i,0);
-        x_i[1] = d_x(i,1);
-        x_i[2] = d_x(i,2);
+        x_i[0] = static_cast<double>(d_x(i,0));
+        x_i[1] = static_cast<double>(d_x(i,1));
+        x_i[2] = static_cast<double>(d_x(i,2));
         auto unwrapKK = DomainKokkos::unmap(l_prd,l_h,l_triclinic,x_i,d_image(i));
         double dx = unwrapKK[0] - l_xcm0;
         double dy = unwrapKK[1] - l_xcm1;
         double dz = unwrapKK[2] - l_xcm2;
-        l_px += massone * (dy * d_v(i,2) - dz * d_v(i,1));
-        l_py += massone * (dz * d_v(i,0) - dx * d_v(i,2));
-        l_pz += massone * (dx * d_v(i,1) - dy * d_v(i,0));
+        l_px += massone * (dy * static_cast<double>(d_v(i,2)) - dz * static_cast<double>(d_v(i,1)));
+        l_py += massone * (dz * static_cast<double>(d_v(i,0)) - dx * static_cast<double>(d_v(i,2)));
+        l_pz += massone * (dx * static_cast<double>(d_v(i,1)) - dy * static_cast<double>(d_v(i,0)));
       }
     }, p[0], p[1], p[2]);
 
@@ -257,18 +257,18 @@ void angmom_kk(int igroup, double *xcm, double *lmom)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_px, double &l_py, double &l_pz) {
       if (d_mask(i) & groupbit) {
-        double massone = d_mass(d_type(i));
+        double massone = static_cast<double>(d_mass(d_type(i)));
         Few<double,3> x_i;
-        x_i[0] = d_x(i,0);
-        x_i[1] = d_x(i,1);
-        x_i[2] = d_x(i,2);
+        x_i[0] = static_cast<double>(d_x(i,0));
+        x_i[1] = static_cast<double>(d_x(i,1));
+        x_i[2] = static_cast<double>(d_x(i,2));
         auto unwrapKK = DomainKokkos::unmap(l_prd,l_h,l_triclinic,x_i,d_image(i));
         double dx = unwrapKK[0] - l_xcm0;
         double dy = unwrapKK[1] - l_xcm1;
         double dz = unwrapKK[2] - l_xcm2;
-        l_px += massone * (dy * d_v(i,2) - dz * d_v(i,1));
-        l_py += massone * (dz * d_v(i,0) - dx * d_v(i,2));
-        l_pz += massone * (dx * d_v(i,1) - dy * d_v(i,0));
+        l_px += massone * (dy * static_cast<double>(d_v(i,2)) - dz * static_cast<double>(d_v(i,1)));
+        l_py += massone * (dz * static_cast<double>(d_v(i,0)) - dx * static_cast<double>(d_v(i,2)));
+        l_pz += massone * (dx * static_cast<double>(d_v(i,1)) - dy * static_cast<double>(d_v(i,0)));
       }
     }, p[0], p[1], p[2]);
 
@@ -308,11 +308,11 @@ void inertia_kk(int igroup, double *xcm, double itensor[3][3])
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_i00, double &l_i11, double &l_i22, double &l_i01, double &l_i12, double &l_i02) {
       if (d_mask(i) & groupbit) {
-        double massone = d_rmass(i);
+        double massone = static_cast<double>(d_rmass(i));
         Few<double,3> x_i;
-        x_i[0] = d_x(i,0);
-        x_i[1] = d_x(i,1);
-        x_i[2] = d_x(i,2);
+        x_i[0] = static_cast<double>(d_x(i,0));
+        x_i[1] = static_cast<double>(d_x(i,1));
+        x_i[2] = static_cast<double>(d_x(i,2));
         auto unwrapKK = DomainKokkos::unmap(l_prd,l_h,l_triclinic,x_i,d_image(i));
         double dx = unwrapKK[0] - l_xcm0;
         double dy = unwrapKK[1] - l_xcm1;
@@ -335,11 +335,11 @@ void inertia_kk(int igroup, double *xcm, double itensor[3][3])
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,atom->nlocal), KOKKOS_LAMBDA(const int i, double &l_i00, double &l_i11, double &l_i22, double &l_i01, double &l_i12, double &l_i02) {
       if (d_mask(i) & groupbit) {
-        double massone = d_mass(d_type(i));
+        double massone = static_cast<double>(d_mass(d_type(i)));
         Few<double,3> x_i;
-        x_i[0] = d_x(i,0);
-        x_i[1] = d_x(i,1);
-        x_i[2] = d_x(i,2);
+        x_i[0] = static_cast<double>(d_x(i,0));
+        x_i[1] = static_cast<double>(d_x(i,1));
+        x_i[2] = static_cast<double>(d_x(i,2));
         auto unwrapKK = DomainKokkos::unmap(l_prd,l_h,l_triclinic,x_i,d_image(i));
         double dx = unwrapKK[0] - l_xcm0;
         double dy = unwrapKK[1] - l_xcm1;

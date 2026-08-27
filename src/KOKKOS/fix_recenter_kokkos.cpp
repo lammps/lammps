@@ -102,9 +102,9 @@ void FixRecenterKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   auto d_x = atomKK->k_x.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_group2bit = group2bit;
-  double l_shiftx = shift[0];
-  double l_shifty = shift[1];
-  double l_shiftz = shift[2];
+  const KK_FLOAT l_shiftx = static_cast<KK_FLOAT>(shift[0]);
+  const KK_FLOAT l_shifty = static_cast<KK_FLOAT>(shift[1]);
+  const KK_FLOAT l_shiftz = static_cast<KK_FLOAT>(shift[2]);
 
   copymode = 1;
 

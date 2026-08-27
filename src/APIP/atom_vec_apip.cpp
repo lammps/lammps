@@ -21,7 +21,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecApip::AtomVecApip(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecApip::AtomVecApip(LAMMPS *lmp) :
+    AtomVec(lmp), apip_lambda(nullptr), apip_lambda_input(nullptr), apip_lambda_const(nullptr),
+    apip_lambda_input_ta(nullptr), apip_e_fast(nullptr), apip_e_precise(nullptr),
+    apip_f_const_lambda(nullptr), apip_f_dyn_lambda(nullptr), apip_lambda_required(nullptr)
 {
   molecular = Atom::ATOMIC;
   mass_type = PER_TYPE;

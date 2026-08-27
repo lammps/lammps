@@ -189,16 +189,16 @@ skipped for intermediate runs.
    You might wish to specify a command that exits the run by
    jumping out of the loop, e.g.
 
-.. code-block:: LAMMPS
+   .. code-block:: LAMMPS
 
-   variable t equal temp
-   run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'"
+      variable t equal temp
+      run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'"
 
-However, this will not work.  The run command simply executes each
-command one at a time each time it pauses, then continues the run.
+   However, this will not work.  The run command simply executes each
+   command one at a time each time it pauses, then continues the run.
 
-Instead, you should use the :doc:`fix halt <fix_halt>` command, which
-has additional options for how to exit the run.
+   Instead, you should use the :doc:`fix halt <fix_halt>` command, which
+   has additional options for how to exit the run.
 
 Restrictions
 """"""""""""

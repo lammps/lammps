@@ -259,6 +259,9 @@ Convenience functions
 .. doxygenfunction:: print(FILE *fp, const std::string &mesg)
    :project: progguide
 
+.. doxygenfunction:: sprintf(const std::string &format, Args&&... args)
+   :project: progguide
+
 .. doxygenfunction:: errorurl
    :project: progguide
 
@@ -532,7 +535,8 @@ run on MPI rank 0 only, will use the
 <LAMMPS_NS::utils::get_potential_file_path>` function to look up and
 open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
 case of failures to read or to convert numbers, so that LAMMPS will be
-aborted.
+aborted.  A third class, :cpp:class:`STLReader <LAMMPS_NS::STLReader>`,
+is specialized on reading triangle mesh data from files in STL format.
 
 .. code-block:: c++
    :caption: Use of PotentialFileReader class in pair style coul/streitz
@@ -587,6 +591,111 @@ A file that would be parsed by the reader code fragment looks like this:
    :members:
 
 .. doxygenclass:: LAMMPS_NS::PotentialFileReader
+   :project: progguide
+   :members:
+
+----------
+
+The :cpp:class:`STLReader <LAMMPS_NS::STLReader>` class reads triangle
+meshes from files in STL format, as used, for example, by the
+:doc:`create_atoms mesh <create_atoms>` command or the :doc:`fix
+surface/global <fix_surface_global>` command.  Files in the plain text
+variant of the format are parsed with the help of the
+:cpp:class:`TextFileReader <LAMMPS_NS::TextFileReader>` and
+:cpp:class:`ValueTokenizer <LAMMPS_NS::ValueTokenizer>` classes, while
+files in the binary variant are read directly.  Unlike the other file
+reader classes, the mesh data is not returned line by line, but the
+entire file is read and its triangles are returned in one call.
+
+.. doxygenclass:: LAMMPS_NS::STLReader
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::STLReaderException
+   :project: progguide
+   :members:
+
+----------
+
+.. _file-writer-classes:
+
+File writer classes
+-------------------
+
+The file writer classes are the counterpart to the file reader classes:
+they collect the recurring work of producing a file in some established
+format in one place, so that the styles using it only have to supply the
+data.
+
+The :cpp:class:`VTKWriter <LAMMPS_NS::VTKWriter>` class writes the subset
+of the file formats of the `VTK visualization toolkit <https://vtk.org>`_
+that LAMMPS needs.  It is used by the :doc:`dump vtk <dump_vtk>`,
+:doc:`dump grid/vtk <dump>`, and :doc:`fix saed/vtk <fix_saed_vtk>`
+styles.  Writing these files directly means that none of them requires
+the VTK library to be installed.
+
+Both the "legacy" and the XML flavor of the format are supported, each
+with text or binary encoding, and binary data in the XML flavor is
+compressed when LAMMPS is built with the zlib library.  The available
+datasets are a list of points, either as polydata or as an unstructured
+grid, a single hexahedron, a rectilinear grid, and a uniform grid.
+Reading VTK files is not supported and not needed.
+
+Using the class always follows the same four steps: create a writer for
+the desired format, select exactly one dataset, attach any number of data
+arrays, and write.  Anything inconsistent, such as an array whose length
+does not match the number of points, or a file that cannot be opened, is
+reported by throwing a :cpp:class:`VTKWriterException
+<LAMMPS_NS::VTKWriterException>`, so callers are expected to catch it and
+turn it into a LAMMPS error.
+
+.. code-block:: c++
+   :caption: Use of the VTKWriter class for writing atom positions
+
+    std::vector<double> coords;      // 3 values per atom
+    std::vector<int> ids;            // 1 value per atom
+
+    for (int i = 0; i < atom->nlocal; ++i) {
+      coords.push_back(atom->x[i][0]);
+      coords.push_back(atom->x[i][1]);
+      coords.push_back(atom->x[i][2]);
+      ids.push_back(atom->tag[i]);
+    }
+
+    try {
+      VTKWriter writer(VTKWriter::XML, false);
+      writer.set_polydata(std::move(coords));
+      writer.add_point_array("id", 1, std::move(ids));
+      writer.write("positions.vtp");
+    } catch (VTKWriterException &e) {
+      error->one(FLERR, e.what());
+    }
+
+Coordinate and data vectors are taken by value, so callers that do not
+need their copy afterwards pass it with ``std::move()``, as in the
+example, and no data is copied.
+
+All floating point data, coordinates and data arrays alike, is stored in
+single precision by default, since that is what visualization programs
+work with.  The constructor takes an optional precision argument, which
+the dump styles expose through their *dump_modify double* keyword.
+Because single precision only keeps about 7 significant digits, it
+becomes noticeable for very large coordinates.  The class therefore
+records the largest coordinate magnitude that it wrote in single
+precision in :cpp:func:`max_single_precision_value
+<LAMMPS_NS::VTKWriter::max_single_precision_value>`, and
+:cpp:func:`single_precision_resolution
+<LAMMPS_NS::VTKWriter::single_precision_resolution>` turns that magnitude
+into the absolute resolution for a warning message, or 0.0 while single
+precision still resolves the coordinates well enough.  Data arrays are
+not tracked, because their values only need the relative resolution that
+single precision always provides.
+
+.. doxygenclass:: LAMMPS_NS::VTKWriter
+   :project: progguide
+   :members:
+
+.. doxygenclass:: LAMMPS_NS::VTKWriterException
    :project: progguide
    :members:
 

@@ -222,8 +222,8 @@ void ImproperFourierKokkos<DeviceType>::addone(EV_FLOAT &ev,
   az = vb1x*vb2y - vb1y*vb2x;
   ra2 = ax*ax + ay*ay + az*az;
   rh2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-  ra = sqrt(ra2);
-  rh = sqrt(rh2);
+  ra = Kokkos::sqrt(ra2);
+  rh = Kokkos::sqrt(rh2);
   if (ra < static_cast<KK_FLOAT>(SMALL)) ra = static_cast<KK_FLOAT>(SMALL);
   if (rh < static_cast<KK_FLOAT>(SMALL)) rh = static_cast<KK_FLOAT>(SMALL);
 
@@ -245,14 +245,14 @@ void ImproperFourierKokkos<DeviceType>::addone(EV_FLOAT &ev,
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   cotphi = c/s;
 
   projhfg = (vb3x*vb1x + vb3y*vb1y + vb3z*vb1z) /
-    sqrt(vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+    Kokkos::sqrt(vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
   projhfg += (vb3x*vb2x + vb3y*vb2y + vb3z*vb2z) /
-    sqrt(vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+    Kokkos::sqrt(vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
   if (projhfg > static_cast<KK_FLOAT>(0.0)) {
     s *= static_cast<KK_FLOAT>(-1.0);
     cotphi *= static_cast<KK_FLOAT>(-1.0);

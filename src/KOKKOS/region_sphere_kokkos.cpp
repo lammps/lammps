@@ -72,7 +72,7 @@ void RegSphereKokkos<DeviceType>::operator()(TagRegSphereMatchAll, const int &i)
     KK_FLOAT x_tmp = d_x(i,0);
     KK_FLOAT y_tmp = d_x(i,1);
     KK_FLOAT z_tmp = d_x(i,2);
-    d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
+    d_match[i] = match_kokkos(static_cast<double>(x_tmp),static_cast<double>(y_tmp),static_cast<double>(z_tmp));
   }
 }
 

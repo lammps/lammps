@@ -123,6 +123,10 @@ int EDPDT::init(const int ntypes,
         n++;
       }
     ucl_copy(sc,dview,false);
+  } else {
+    // never leave the buffer unallocated: a null device pointer as a
+    // kernel argument causes a GPU memory fault even when unused
+    sc.alloc(1,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   if (host_kc) {
@@ -138,6 +142,8 @@ int EDPDT::init(const int ntypes,
         n++;
       }
     ucl_copy(kc,dview,false);
+  } else {
+    kc.alloc(1,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   UCL_H_Vec<numtyp> host_rsq(lj_types*lj_types,*(this->ucl_device),

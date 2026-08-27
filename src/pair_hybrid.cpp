@@ -339,7 +339,7 @@ void PairHybrid::settings(int narg, char **arg)
 
     jarg = iarg + 1;
     while ((jarg < narg)
-           && !force->pair_map->count(arg[jarg])
+           && !Force::pair_styles().contains(arg[jarg])
            && !lmp->match_style("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
@@ -762,7 +762,7 @@ double PairHybrid::init_one(int i, int j)
 
         for (const auto &request : neighbor->get_pair_requests()) {
           if (styles[istyle] == request->get_requestor()) {
-            request->set_cutoff(cutmax_style[istyle]);
+            request->set_cutoff_max(cutmax_style[istyle]);
             break;
           }
         }
@@ -819,6 +819,8 @@ void PairHybrid::read_restart(FILE *fp)
   int me = comm->me;
   if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
+  if ((nstyles < 1) || (nstyles > 64))
+    error->all(FLERR,"Invalid number of sub-styles in restart file");
 
   // allocate list of sub-styles
 
@@ -850,6 +852,7 @@ void PairHybrid::read_restart(FILE *fp)
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR,"Invalid style name length in restart file");
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);

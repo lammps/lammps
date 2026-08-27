@@ -26,9 +26,13 @@
 #include "error.h"
 #include "force.h"
 #include "gran_sub_mod.h"
+#include "gran_sub_mod_damping.h"
+#include "gran_sub_mod_heat.h"
+#include "gran_sub_mod_normal.h"
+#include "gran_sub_mod_rolling.h"
+#include "gran_sub_mod_tangential.h"
+#include "gran_sub_mod_twisting.h"
 #include "math_extra.h"
-
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
 
 #include <cmath>
 #include <cstring>
@@ -37,15 +41,6 @@
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 using namespace MathExtra;
-
-/* ----------------------------------------------------------------------
-   one instance per GranSubMod style in style_gran_sub_mod.h
-------------------------------------------------------------------------- */
-
-template <typename T> static GranSubMod *gran_sub_mod_creator(GranularModel *gm, LAMMPS *lmp)
-{
-  return new T(gm, lmp);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -74,29 +69,8 @@ GranularModel::GranularModel(LAMMPS *lmp) :
   for (int i = 0; i < NSUBMODELS; i++) sub_models[i] = nullptr;
   transfer_history_factor = nullptr;
 
-  // extract info from GranSubMod classes listed in style_gran_sub_mod.h
-
-  nclass = 0;
-
-#define GRAN_SUB_MOD_CLASS
-#define GranSubModStyle(key, Class, type) nclass++;
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
-#undef GranSubModStyle
-#undef GRAN_SUB_MOD_CLASS
-
-  gran_sub_mod_class = new GranSubModCreator[nclass];
-  gran_sub_mod_names = new char *[nclass];
-  gran_sub_mod_types = new int[nclass];
-  nclass = 0;
-
-#define GRAN_SUB_MOD_CLASS
-#define GranSubModStyle(key, Class, type)                    \
-  gran_sub_mod_class[nclass] = &gran_sub_mod_creator<Class>; \
-  gran_sub_mod_names[nclass] = (char *) #key;                \
-  gran_sub_mod_types[nclass++] = type;
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
-#undef GranSubModStyle
-#undef GRAN_SUB_MOD_CLASS
+  // the list of available sub-models is the gran_sub_mod_table[] defined in
+  // gran_sub_mod_register.cpp (see that file to add a new sub-model)
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,9 +78,6 @@ GranularModel::GranularModel(LAMMPS *lmp) :
 GranularModel::~GranularModel()
 {
   delete[] transfer_history_factor;
-  delete[] gran_sub_mod_class;
-  delete[] gran_sub_mod_names;
-  delete[] gran_sub_mod_types;
   delete[] svector;
 
   for (int i = 0; i < NSUBMODELS; i++) delete sub_models[i];
@@ -146,18 +117,17 @@ int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType mo
 void GranularModel::construct_sub_model(std::string model_name, SubModelType model_type)
 {
   int i;
-  for (i = 0; i < nclass; i++) {
-    if (gran_sub_mod_types[i] == model_type) {
-      if (strcmp(gran_sub_mod_names[i], model_name.c_str()) == 0) {
-        GranSubModCreator &gran_sub_mod_creator = gran_sub_mod_class[i];
+  for (i = 0; i < num_gran_sub_mod; i++) {
+    if (gran_sub_mod_table[i].type == model_type) {
+      if (strcmp(gran_sub_mod_table[i].name, model_name.c_str()) == 0) {
         delete sub_models[model_type];
-        sub_models[model_type] = gran_sub_mod_creator(this, lmp);
+        sub_models[model_type] = gran_sub_mod_table[i].creator(this, lmp);
         break;
       }
     }
   }
 
-  if (i == nclass)
+  if (i == num_gran_sub_mod)
     error->all(FLERR, "Illegal model type {}", model_name);
 
   sub_models[model_type]->name.assign(model_name);
@@ -225,12 +195,15 @@ int GranularModel::define_classic_model(char **arg, int iarg, int narg)
   normal_model->coeffs[0] = kn;
   normal_model->coeffs[1] = gamman;
 
+  // avoid division by zero for undamped (elastic) classic models
+  const double gamma_ratio = (gamman != 0.0) ? gammat / gamman : 0.0;
+
   if (tangential_model->num_coeffs == 2) {
-    tangential_model->coeffs[0] = gammat / gamman;
+    tangential_model->coeffs[0] = gamma_ratio;
     tangential_model->coeffs[1] = xmu;
   } else {
     tangential_model->coeffs[0] = kt;
-    tangential_model->coeffs[1] = gammat / gamman;
+    tangential_model->coeffs[1] = gamma_ratio;
     tangential_model->coeffs[2] = xmu;
   }
 
@@ -370,6 +343,8 @@ void GranularModel::read_restart(FILE *fp)
     if (comm->me == 0)
       utils::sfread(FLERR, &num_char, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&num_char, 1, MPI_INT, 0, world);
+    if ((num_char < 0) || (num_char > 65536))
+      error->all(FLERR, "Invalid granular model name in restart file");
 
     std::string model_name(num_char, ' ');
     if (comm->me == 0)

@@ -43,6 +43,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "random_mars.h"
 #include "reset_atoms_mol.h"
 #include "respa.h"
+#include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
 
@@ -140,7 +141,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   master_group = "bond_react_MASTER_group";
 
   // by using fixed group names, only one instance of fix bond/react is allowed.
-  if (modify->get_fix_by_style("^bond/react").size() != 0)
+  if (!modify->get_fix_by_style("^bond/react").empty())
     error->all(FLERR, Error::NOLASTLINE, "Only one instance of fix bond/react allowed at a time");
 
   // let's find number of reactions specified
@@ -716,7 +717,7 @@ void FixBondReact::post_constructor()
 
   // create master_group if not already existing
   // NOTE: limit_tags and react_tags automaticaly intitialized to zero (unless read from restart)
-  group->find_or_create(master_group.c_str());
+  group->find_or_create(master_group);
   std::string cmd = fmt::format("{} dynamic all property limit_tags",master_group);
   group->assign(cmd);
 
@@ -737,7 +738,7 @@ void FixBondReact::post_constructor()
       std::string exclude_PARENT_group = exclude_group;
       exclude_group = exclude_PARENT_group + "_REACT";
 
-      group->find_or_create(exclude_group.c_str());
+      group->find_or_create(exclude_group);
       if (groupid == -1)
         cmd = fmt::format("{} dynamic all property statted_tags", exclude_group);
       else
@@ -1387,6 +1388,7 @@ void FixBondReact::superimpose_algorithm()
 
   if (!rxnflag) return;
 
+  // NOLINTBEGIN
   // C++11 and later compatible version of Park pRNG
   std::minstd_rand park_rng;
   if (shuffle_seed == 0) {
@@ -1395,6 +1397,7 @@ void FixBondReact::superimpose_algorithm()
   } else {
     park_rng.seed(shuffle_seed);
   }
+  // NOLINTEND
 
   std::vector<int> oversteps(rxns.size(), 0);
   if (comm->me == 0) {
@@ -2104,7 +2107,7 @@ int FixBondReact::check_constraints(Reaction &rxn, std::vector<tagint> &glove)
   // let's also check chirality within 'check_constraint'
   for (int i = 0; i < rxn.reactant->natoms; i++) {
     if (rxn.atoms[i].chiral[0] == 1) {
-      double my4coords[12];
+      double my4coords[12] = {0.0};
       // already ensured, by transitive property, that chiral simulation atom has four neighs
       for (int j = 0; j < 4; j++) {
         atom1 = atom->map(glove[i]);
@@ -2378,7 +2381,7 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
   // for 'rxnbond', varid corresponds to 'compute bond/local' name,
   //                and fragid is a pre-reaction fragment containing the two atoms in the bond
   if (rxnfunc == "rxnbond") {
-    int icompute,ibond;
+    int ibond;
     double perbondval;
     std::set<tagint> aset;
     std::string computeid = varid;
@@ -2386,9 +2389,8 @@ double FixBondReact::rxnfunction(const std::string& rxnfunc, const std::string& 
     if (computeid.substr(0,2) != "c_") error->one(FLERR,"Bond/react: Reaction special function compute "
                                          "name should begin with 'c_'");
     computeid = computeid.substr(2);
-    icompute = modify->find_compute(computeid);
-    if (icompute < 0) error->one(FLERR,"Bond/react: Reaction special function compute name does not exist");
-    cperbond = modify->compute[icompute];
+    cperbond = modify->get_compute_by_id(computeid);
+    if (!cperbond) error->one(FLERR,"Bond/react: Reaction special function compute name does not exist");
     std::string compute_style = cperbond->style;
     if (compute_style != "bond/local") error->one(FLERR,"Bond/react: Compute used by reaction "
                                          "special function 'rxnbond' must be of style 'bond/local'");
@@ -4286,7 +4288,8 @@ read map file
 
 void FixBondReact::read_map_file(Reaction &rxn)
 {
-  int rv, nedge, nequivalent, nchiral, nwild, ndelete, ncreate = 0;
+  int nedge, nequivalent, nchiral, nwild, ndelete, ncreate;
+  nedge = nchiral = nwild = ndelete = ncreate = 0;
   char line[MAXLINE] = {'\0'};
   char keyword[MAXLINE] = {'\0'};
   char *eof,*ptr;
@@ -4309,30 +4312,37 @@ void FixBondReact::read_map_file(Reaction &rxn)
     if ((ptr = strchr(line,'#'))) *ptr = '\0';
     if (strspn(line," \t\n\r") == strlen(line)) continue;
 
-    if (strstr(line,"edgeIDs")) sscanf(line,"%d",&nedge);
+    if (strstr(line,"edgeIDs")) {
+      nedge = firstint(line, "Map file header is incorrectly formatted");
+      if ((nedge < 0) || (nedge > rxn.reactant->natoms))
+        error->one(FLERR,"Fix bond/react: Invalid number of edgeIDs in map file");
+    }
     else if (strstr(line,"equivalences")) {
-      rv = sscanf(line,"%d",&nequivalent);
-      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      nequivalent = firstint(line, "Map file header is incorrectly formatted");
       if (nequivalent != rxn.reactant->natoms)
         error->one(FLERR,"Fix bond/react: Number of equivalences in map file must "
                    "equal number of atoms in reaction templates");
     }
     else if (strstr(line,"deleteIDs")) {
-      rv = sscanf(line,"%d",&ndelete);
-      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      ndelete = firstint(line, "Map file header is incorrectly formatted");
+      if ((ndelete < 0) || (ndelete > rxn.reactant->natoms))
+        error->one(FLERR,"Fix bond/react: Invalid number of deleteIDs in map file");
     } else if (strstr(line,"createIDs")) {
-      rv = sscanf(line,"%d",&ncreate);
-      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      ncreate = firstint(line, "Map file header is incorrectly formatted");
+      if ((ncreate < 0) || (ncreate > rxn.product->natoms))
+        error->one(FLERR,"Fix bond/react: Invalid number of createIDs in map file");
     } else if (strstr(line,"chiralIDs")) {
-      rv = sscanf(line,"%d",&nchiral);
-      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      nchiral = firstint(line, "Map file header is incorrectly formatted");
+      if ((nchiral < 0) || (nchiral > rxn.reactant->natoms))
+        error->one(FLERR,"Fix bond/react: Invalid number of chiralIDs in map file");
     } else if (strstr(line,"wildcards")) {
-      rv = sscanf(line,"%d",&nwild);
-      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      nwild = firstint(line, "Map file header is incorrectly formatted");
+      if ((nwild < 0) || (nwild > rxn.reactant->natoms))
+        error->one(FLERR,"Fix bond/react: Invalid number of wildcards in map file");
     } else if (strstr(line,"constraints")) {
-      int nconstraints;
-      rv = sscanf(line,"%d",&nconstraints);
-      if (rv != 1) error->one(FLERR, "Map file header is incorrectly formatted");
+      int nconstraints = firstint(line, "Map file header is incorrectly formatted");
+      if ((nconstraints < 0) || (nconstraints > 4096))
+        error->one(FLERR,"Fix bond/react: Invalid number of constraints in map file");
       rxn.constraints.resize(nconstraints);
       for (int i = 0; i < nconstraints; i++) rxn.constraints[i].ID = i;
     } else break;
@@ -4357,13 +4367,11 @@ void FixBondReact::read_map_file(Reaction &rxn)
         if (comm->me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
-      rv = sscanf(line,"%d",&rxn.ibonding);
-      if (rv != 1) error->one(FLERR, "InitiatorIDs section is incorrectly formatted");
+      rxn.ibonding = firstint(line, "InitiatorIDs section is incorrectly formatted");
       if (rxn.ibonding > rxn.reactant->natoms)
         error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
       readline(line);
-      rv = sscanf(line,"%d",&rxn.jbonding);
-      if (rv != 1) error->one(FLERR, "InitiatorIDs section is incorrectly formatted");
+      rxn.jbonding = firstint(line, "InitiatorIDs section is incorrectly formatted");
       if (rxn.jbonding > rxn.reactant->natoms)
         error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
@@ -4403,12 +4411,11 @@ void FixBondReact::EdgeIDs(char *line, Reaction &rxn, int nedge)
 {
   // puts a 1 at edge(edgeID)
 
-  int tmp,rv;
+  int tmp;
   for (int i = 0; i < nedge; i++) {
     readline(line);
-    rv = sscanf(line,"%d",&tmp);
-    if (rv != 1) error->one(FLERR, "EdgeIDs section is incorrectly formatted");
-    if (tmp > rxn.reactant->natoms)
+    tmp = firstint(line, "EdgeIDs section is incorrectly formatted");
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].edge = 1;
   }
@@ -4416,12 +4423,17 @@ void FixBondReact::EdgeIDs(char *line, Reaction &rxn, int nedge)
 
 void FixBondReact::Equivalences(char *line, Reaction &rxn, int nequivalent)
 {
-  int tmp1,tmp2,rv;
+  int tmp1 = 0, tmp2 = 0;
   for (int i = 0; i < nequivalent; i++) {
     readline(line);
-    rv = sscanf(line,"%d %d",&tmp1,&tmp2);
-    if (rv != 2) error->one(FLERR, "Equivalences section is incorrectly formatted");
-    if (tmp1 > rxn.reactant->natoms || tmp2 > rxn.product->natoms)
+    try {
+      ValueTokenizer values(line);
+      tmp1 = values.next_int();
+      tmp2 = values.next_int();
+    } catch (TokenizerException &) {
+      error->one(FLERR, "Equivalences section is incorrectly formatted");
+    }
+    if ((tmp1 < 1) || (tmp1 > rxn.reactant->natoms) || (tmp2 < 1) || (tmp2 > rxn.product->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
     rxn.atoms[tmp2-1].amap[0] = tmp2;
@@ -4445,12 +4457,11 @@ void FixBondReact::Equivalences(char *line, Reaction &rxn, int nequivalent)
 
 void FixBondReact::DeleteAtoms(char *line, Reaction &rxn, int ndelete)
 {
-  int tmp,rv;
+  int tmp;
   for (int i = 0; i < ndelete; i++) {
     readline(line);
-    rv = sscanf(line,"%d",&tmp);
-    if (rv != 1) error->one(FLERR, "DeleteIDs section is incorrectly formatted");
-    if (tmp > rxn.reactant->natoms)
+    tmp = firstint(line, "DeleteIDs section is incorrectly formatted");
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].deleted = 1;
   }
@@ -4459,12 +4470,11 @@ void FixBondReact::DeleteAtoms(char *line, Reaction &rxn, int ndelete)
 void FixBondReact::CreateAtoms(char *line, Reaction &rxn, int ncreate)
 {
   rxn.create_atoms_flag = 1;
-  int tmp,rv;
+  int tmp;
   for (int i = 0; i < ncreate; i++) {
     readline(line);
-    rv = sscanf(line,"%d",&tmp);
-    if (rv != 1) error->one(FLERR, Error::NOLASTLINE, "CreateIDs section is incorrectly formatted");
-    if (tmp > rxn.product->natoms)
+    tmp = firstint(line, "CreateIDs section is incorrectly formatted");
+    if ((tmp < 1) || (tmp > rxn.product->natoms))
       error->one(FLERR, Error::NOLASTLINE, "Fix bond/react: Invalid atom ID in CreateIDs section of map file");
     rxn.atoms[tmp-1].created = 1;
   }
@@ -4488,12 +4498,11 @@ void FixBondReact::CustomCharges(int ifragment, Reaction &rxn)
 
 void FixBondReact::ChiralCenters(char *line, Reaction &rxn, int nchiral)
 {
-  int tmp,rv;
+  int tmp;
   for (int i = 0; i < nchiral; i++) {
     readline(line);
-    rv = sscanf(line,"%d",&tmp);
-    if (rv != 1) error->one(FLERR, "ChiralIDs section is incorrectly formatted");
-    if (tmp > rxn.reactant->natoms)
+    tmp = firstint(line, "ChiralIDs section is incorrectly formatted");
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].chiral[0] = 1;
     if (rxn.reactant->xflag == 0)
@@ -4508,7 +4517,7 @@ void FixBondReact::ChiralCenters(char *line, Reaction &rxn, int nchiral)
       }
     }
     // record order of atom types, and coords
-    double my4coords[12];
+    double my4coords[12] = {0.0};
     for (int j = 0; j < 4; j++) {
       rxn.atoms[tmp-1].chiral[j+2] = rxn.reactant->type[rxn.reactant->special[tmp-1][j]-1];
       for (int k = 0; k < 3; k++) {
@@ -4525,8 +4534,8 @@ void FixBondReact::ReadWildcards(char *line, Reaction &rxn, int nwild)
   int tmp;
   for (int i = 0; i < nwild; i++) {
     readline(line);
-    sscanf(line,"%d",&tmp);
-    if (tmp > rxn.reactant->natoms)
+    tmp = firstint(line, "Wildcards section is incorrectly formatted");
+    if ((tmp < 1) || (tmp > rxn.reactant->natoms))
       error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
     rxn.atoms[tmp-1].wildcard = true;
   }
@@ -4674,6 +4683,18 @@ void FixBondReact::readline(char *line)
   MPI_Bcast(&n,1,MPI_INT,0,world);
   if (n == 0) error->all(FLERR,"Fix bond/react: Unexpected end of map file");
   MPI_Bcast(line,n,MPI_CHAR,0,world);
+}
+
+// parse the first integer on a line, error out with errmsg if not a number
+
+int FixBondReact::firstint(char *line, const char *errmsg)
+{
+  try {
+    return ValueTokenizer(line).next_int();
+  } catch (TokenizerException &) {
+    error->one(FLERR, errmsg);
+  }
+  return -1;
 }
 
 void FixBondReact::parse_keyword(int flag, char *line, char *keyword)
@@ -4952,6 +4973,8 @@ void FixBondReact::restart(char *buf)
       memory->create(ibuf,ibufcount,"bond/react:ibuf");
       memcpy(&ibuf[0],&buf[iptr],sizeof(int)*ibufcount);
     }
+    if ((r_nratelimits > 0) && (ibufcount <= 0))
+      error->all(FLERR,"Inconsistent rate limit data in restart file");
     int ii = 0;
     for (int i = 0; i < r_nratelimits; i++) {
       struct RateLimit r_rlm;

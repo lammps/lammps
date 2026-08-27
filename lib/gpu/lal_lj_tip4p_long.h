@@ -108,13 +108,15 @@ public:
   UCL_D_Vec<int> hneight;
   UCL_D_Vec<numtyp4> m; // position and charge of virtual particle
   UCL_D_Vec<acctyp4> ansO; // force applied to virtual particle
+  // atom index -> neighbor list row + 1, zero if the atom is not in the list
+  UCL_D_Vec<int> nbor_row;
   // UCL_D_Vec<acctyp4> force_comp;
 
   UCL_D_Vec<tagint> tag;
   UCL_D_Vec<int> map_array;
   UCL_D_Vec<int> atom_sametag;
 
-  UCL_Kernel k_pair_distrib, k_pair_reneigh, k_pair_newsite;
+  UCL_Kernel k_pair_distrib, k_pair_reneigh, k_pair_newsite, k_pair_rowmap;
   UCL_Kernel k_pair_distrib_noev, *k_pair_dt_sel;
 
  private:

@@ -133,6 +133,21 @@
    ...
 }
 {
+   MPICH_MPI_init11
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   ...
+   fun:allocate_and_init
+   ...
+   fun:psm3_info_query
+   ...
+   fun:find_provider
+   ...
+   fun:MPII_Init_thread.isra.0
+   ...
+}
+{
    MPICH_library1
    Memcheck:Leak
    match-leak-kinds: reachable
@@ -313,6 +328,19 @@
    fun:MPIDI_OFI_init_local
    ...
    fun:PMPI_Init
+   ...
+}
+{
+   MPICH_psm3_4
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:calloc
+   fun:psmx3_recv_generic
+   fun:psmx3_recvmsg
+   ...
+   fun:MPIDI_OFI_init_local
+   ...
+   fun:PMPI_Init_thread
    ...
 }
 {

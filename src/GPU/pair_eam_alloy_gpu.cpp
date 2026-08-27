@@ -24,7 +24,8 @@ using namespace LAMMPS_NS;
 int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
                        int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
                        double ***host_z2r_spline, double ***host_frho_spline, double **host_cutsq,
-                       double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
+                       double rdr, double rdrho, double rhomax, double rhomin,
+                       const int he_flag, int nrhor, int nrho, int nz2r,
                        int nfrho, int nr, const int nlocal, const int nall, const int max_nbors,
                        const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
                        int &fp_size);

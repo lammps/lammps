@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 09: particle-particle (not wall) collisions -- a
-// head-on (normal) and an oblique (shear) collision of two equal spheres.
-// Mirrors Sim A and Sim B of Mohajeri, Coetzee & Schott, Powder Technology
-// 447 (2024).  All test logic is shared via test_dem_common; the reference
-// systems live in tests/dem09-*.yaml.
+// DEM verification test 09: single particle settling to terminal velocity under drag.
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem09-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

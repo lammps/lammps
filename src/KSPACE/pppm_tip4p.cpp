@@ -513,8 +513,13 @@ void PPPMTIP4P::slabcorr()
 
   double dipole_r2 = 0.0;
   if (eflag_atom || fabs(qsum) > SMALL) {
-    for (int i = 0; i < nlocal; i++)
-      dipole_r2 += q[i]*x[i][2]*x[i][2];
+    for (int i = 0; i < nlocal; i++) {
+      if (type[i] == typeO) {
+        find_M(i,iH1,iH2,xM);
+        xi = xM;
+      } else xi = x[i];
+      dipole_r2 += q[i]*xi[2]*xi[2];
+    }
 
     // sum local contributions
 
@@ -529,31 +534,44 @@ void PPPMTIP4P::slabcorr()
     qsum*dipole_r2 - qsum*qsum*zprd_slab*zprd_slab/12.0)/volume;
   const double qscale = force->qqrd2e * scale;
 
-  if (eflag_global) energy_1 += qscale * e_slabcorr;
+  if (eflag_global) energy += qscale * e_slabcorr;
 
-  // per-atom energy
+  // per-atom energy. for O atoms evaluate at the M site and redistribute
+  // (1-alpha) : alpha/2 : alpha/2 onto O, H1, H2 like fieldforce_peratom()
 
   if (eflag_atom) {
     double efact = qscale * MY_2PI/volume;
-    for (int i = 0; i < nlocal; i++)
-      eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
-        qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
+    for (int i = 0; i < nlocal; i++) {
+      if (type[i] == typeO) {
+        find_M(i,iH1,iH2,xM);
+        const double e_pa = efact * q[i]*(xM[2]*dipole_all - 0.5*(dipole_r2 +
+          qsum*xM[2]*xM[2]) - qsum*zprd_slab*zprd_slab/12.0);
+        eatom[i] += e_pa*(1 - alpha);
+        eatom[iH1] += e_pa*alpha*0.5;
+        eatom[iH2] += e_pa*alpha*0.5;
+      } else {
+        eatom[i] += efact * q[i]*(x[i][2]*dipole_all - 0.5*(dipole_r2 +
+          qsum*x[i][2]*x[i][2]) - qsum*zprd_slab*zprd_slab/12.0);
+      }
+    }
   }
 
-  // add on force corrections
+  // add on force corrections. the force on the M site charge is
+  // evaluated at the M site and redistributed onto O, H1, H2
 
   double ffact = qscale * (-4.0*MY_PI/volume);
   double **f = atom->f;
 
   for (int i = 0; i < nlocal; i++) {
-    double fzi_corr = ffact * q[i]*(dipole_all - qsum*x[i][2]);
     if (type[i] == typeO) {
       find_M(i,iH1,iH2,xM);
+      const double fzi_corr = ffact * q[i]*(dipole_all - qsum*xM[2]);
       f[i][2] += fzi_corr*(1 - alpha);
       f[iH1][2] += 0.5*alpha*fzi_corr;
       f[iH2][2] += 0.5*alpha*fzi_corr;
+    } else {
+      f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
     }
-    else f[i][2] += fzi_corr;
   }
 }
 

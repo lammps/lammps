@@ -55,6 +55,7 @@ class NBinKokkos : public NBinStandard {
   typename AT::t_int_scalar d_resize;
   HAT::t_int_scalar h_resize;
   typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_int_1d_randomread mask;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -132,6 +133,9 @@ class NBinKokkos : public NBinStandard {
 
  private:
   double bboxlo_[3],bboxhi_[3];
+  int nowned_;     // # of owned atoms
+  int nfirst_;     // # of owned atoms in the include group, they come first
+  int bitmask_;    // bitmask of the include group, 0 if there is none
 };
 
 template<class DeviceType>

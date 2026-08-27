@@ -55,14 +55,23 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
   chunkperpage = user_chunkperpage;
   pagedelta = user_pagedelta;
 
+  // initialize all members freed by the destructor before any early
+  // return, so a partially constructed pool can be safely destroyed
+
+  ndatum = nchunk = 0;
+  freehead = chunksize = freelist = nullptr;
+  pages = nullptr;
+  whichbin = nullptr;
+  npage = 0;
+  binsize = 0;
+
   errorflag = 0;
   if (minchunk <= 0 || minchunk > maxchunk) errorflag = 1;
   if (user_nbin <= 0 || chunkperpage <= 0 || pagedelta <= 0) errorflag = 1;
+  if (errorflag) return;
 
   freehead = new int[nbin];
   chunksize = new int[nbin];
-  if (!freehead || !chunksize) errorflag = 1;
-  if (errorflag) return;
 
   // ensure nbin*binsize spans minchunk to maxchunk inclusive
 
@@ -75,11 +84,6 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
     chunksize[ibin] = minchunk + (ibin + 1) * binsize - 1;
     if (chunksize[ibin] > maxchunk) chunksize[ibin] = maxchunk;
   }
-
-  ndatum = nchunk = 0;
-  pages = nullptr;
-  whichbin = nullptr;
-  npage = 0;
 }
 
 /** Destroy class instance and free all allocated memory */
@@ -211,7 +215,7 @@ template <class T> double MyPoolChunk<T>::size() const
   double bytes = (double) npage * chunkperpage * sizeof(int);
   bytes += (double) npage * sizeof(T *);
   bytes += (double) npage * sizeof(int);
-  for (int i = 0; i < npage; ++i) bytes += (double) chunkperpage * chunksize[i] * sizeof(T);
+  for (int i = 0; i < npage; ++i) bytes += (double) chunkperpage * chunksize[whichbin[i]] * sizeof(T);
 
   return bytes;
 }

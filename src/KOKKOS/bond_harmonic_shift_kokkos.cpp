@@ -151,14 +151,14 @@ void BondHarmonicShiftKokkos<DeviceType>::operator()(TagBondHarmonicShiftCompute
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT dr = r - d_r0[type];
   const KK_FLOAT rk = d_k[type] * dr;
 
   // force & energy
 
   KK_FLOAT fbond = 0.0;
-  if (r > 0.0) fbond = -static_cast<KK_FLOAT>(2.0) * rk / r;
+  if (r > static_cast<KK_FLOAT>(0.0)) fbond = -static_cast<KK_FLOAT>(2.0) * rk / r;
 
   KK_FLOAT ebond = 0.0;
   if (eflag) {

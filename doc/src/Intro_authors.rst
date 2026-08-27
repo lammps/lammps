@@ -8,7 +8,7 @@ send an email to all of them at this address: "developers at
 lammps.org".  General questions about LAMMPS should be posted in the
 `LAMMPS forum on MatSci <https://matsci.org/lammps/>`_.
 
-.. We need to keep this file in sync with https://www.lammps.org/authors.html
+.. We need to keep this file in sync with https://www.lammps.org/about/developers/
 
 .. raw:: latex
 
@@ -90,7 +90,7 @@ Fisher Scientific.
 
 ----------
 
-The `Authors page <https://www.lammps.org/authors.html>`_ of the
+The `Contributors page <https://www.lammps.org/about/contributors/>`_ of the
 `LAMMPS website <lws_>`_ has a comprehensive list of all the individuals
 who have contributed code for a new feature or command or tool to
 LAMMPS.
@@ -119,7 +119,8 @@ general-purpose as it is without their expertise and efforts.
 
 ----------
 
-As discussed on the `History page <https://www.lammps.org/history.html>`_ of the website, LAMMPS
+As discussed on the `History page
+<https://www.lammps.org/about/history/>`_ of the website, LAMMPS
 originated as a cooperative project between DOE labs and industrial
 partners.  Folks involved in the design and testing of the original
 version of LAMMPS were the following:

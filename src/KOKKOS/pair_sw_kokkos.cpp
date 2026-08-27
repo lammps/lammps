@@ -178,14 +178,14 @@ void PairSWKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup)
     Kokkos::Experimental::contribute(f, dup_f);
 
-  if (eflag_global) eng_vdwl += ev_all.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev_all.evdwl);
   if (vflag_global) {
-    virial[0] += ev_all.v[0];
-    virial[1] += ev_all.v[1];
-    virial[2] += ev_all.v[2];
-    virial[3] += ev_all.v[3];
-    virial[4] += ev_all.v[4];
-    virial[5] += ev_all.v[5];
+    virial[0] += static_cast<double>(ev_all.v[0]);
+    virial[1] += static_cast<double>(ev_all.v[1]);
+    virial[2] += static_cast<double>(ev_all.v[2]);
+    virial[3] += static_cast<double>(ev_all.v[3]);
+    virial[4] += static_cast<double>(ev_all.v[4]);
+    virial[5] += static_cast<double>(ev_all.v[5]);
   }
 
   if (eflag_atom) {
@@ -240,7 +240,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWComputeShortNeigh, const int&
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       const int ijparam = d_elem3param(itype,jtype,jtype);
-      if (rsq < d_params[ijparam].cutsq) {
+      if (rsq < static_cast<KK_FLOAT>(d_params[ijparam].cutsq)) {
         d_neighbors_short(ii,inside) = j;
         inside++;
       }
@@ -306,15 +306,15 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
 
     twobody(d_params[ijparam],rsq,fpair,eflag,evdwl);
 
-    fxtmpi += delx*fpair;
-    fytmpi += dely*fpair;
-    fztmpi += delz*fpair;
-    a_f(j,0) -= delx*fpair;
-    a_f(j,1) -= dely*fpair;
-    a_f(j,2) -= delz*fpair;
+    fxtmpi += static_cast<KK_ACC_FLOAT>(delx*fpair);
+    fytmpi += static_cast<KK_ACC_FLOAT>(dely*fpair);
+    fztmpi += static_cast<KK_ACC_FLOAT>(delz*fpair);
+    a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+    a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+    a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
 
     if (EVFLAG) {
-      if (eflag) ev.evdwl += evdwl;
+      if (eflag) ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl);
       if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
   }
@@ -359,7 +359,7 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
       a_f(k,2) += fk[2];
 
       if (EVFLAG) {
-        if (eflag) ev.evdwl += evdwl;
+        if (eflag) ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl);
         if (vflag_either || eflag_atom) this->template ev_tally3<NEIGHFLAG>(ev,i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
       }
     }
@@ -479,16 +479,16 @@ void PairSWKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rsq, 
 {
   KK_FLOAT r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
 
-  r = sqrt(rsq);
-  rinvsq = 1.0/rsq;
-  rp = pow(r,-param.powerp);
-  rq = pow(r,-param.powerq);
-  rainv = 1.0 / (r - param.cut);
+  r = Kokkos::sqrt(rsq);
+  rinvsq = static_cast<KK_FLOAT>(1.0)/rsq;
+  rp = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerp));
+  rq = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerq));
+  rainv = static_cast<KK_FLOAT>(1.0) / (r - static_cast<KK_FLOAT>(param.cut));
   rainvsq = rainv*rainv*r;
-  expsrainv = exp(param.sigma * rainv);
-  fforce = (param.c1*rp - param.c2*rq +
-            (param.c3*rp -param.c4*rq) * rainvsq) * expsrainv * rinvsq;
-  if (eflag) eng = (param.c5*rp - param.c6*rq) * expsrainv;
+  expsrainv = Kokkos::exp(static_cast<KK_FLOAT>(param.sigma) * rainv);
+  fforce = (static_cast<KK_FLOAT>(param.c1)*rp - static_cast<KK_FLOAT>(param.c2)*rq +
+            (static_cast<KK_FLOAT>(param.c3)*rp -static_cast<KK_FLOAT>(param.c4)*rq) * rainvsq) * expsrainv * rinvsq;
+  if (eflag) eng = (static_cast<KK_FLOAT>(param.c5)*rp - static_cast<KK_FLOAT>(param.c6)*rq) * expsrainv;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -506,23 +506,23 @@ void PairSWKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param& p
   KK_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
   KK_FLOAT facang,facang12,csfacang,csfac1,csfac2;
 
-  r1 = sqrt(rsq1);
-  rinvsq1 = 1.0/rsq1;
-  rainv1 = 1.0/(r1 - paramij.cut);
-  gsrainv1 = paramij.sigma_gamma * rainv1;
+  r1 = Kokkos::sqrt(rsq1);
+  rinvsq1 = static_cast<KK_FLOAT>(1.0)/rsq1;
+  rainv1 = static_cast<KK_FLOAT>(1.0)/(r1 - static_cast<KK_FLOAT>(paramij.cut));
+  gsrainv1 = static_cast<KK_FLOAT>(paramij.sigma_gamma) * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1;
-  expgsrainv1 = exp(gsrainv1);
+  expgsrainv1 = Kokkos::exp(gsrainv1);
 
-  r2 = sqrt(rsq2);
-  rinvsq2 = 1.0/rsq2;
-  rainv2 = 1.0/(r2 - paramik.cut);
-  gsrainv2 = paramik.sigma_gamma * rainv2;
+  r2 = Kokkos::sqrt(rsq2);
+  rinvsq2 = static_cast<KK_FLOAT>(1.0)/rsq2;
+  rainv2 = static_cast<KK_FLOAT>(1.0)/(r2 - static_cast<KK_FLOAT>(paramik.cut));
+  gsrainv2 = static_cast<KK_FLOAT>(paramik.sigma_gamma) * rainv2;
   gsrainvsq2 = gsrainv2*rainv2/r2;
-  expgsrainv2 = exp(gsrainv2);
+  expgsrainv2 = Kokkos::exp(gsrainv2);
 
-  rinv12 = 1.0/(r1*r2);
+  rinv12 = static_cast<KK_FLOAT>(1.0)/(r1*r2);
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  delcs = cs - paramijk.costheta;
+  delcs = cs - static_cast<KK_FLOAT>(paramijk.costheta);
   delcssq = delcs*delcs;
 
   facexp = expgsrainv1*expgsrainv2;
@@ -530,23 +530,23 @@ void PairSWKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param& p
   // facrad = sqrt(paramij.lambda_epsilon*paramik.lambda_epsilon) *
   //          facexp*delcssq;
 
-  facrad = paramijk.lambda_epsilon * facexp*delcssq;
+  facrad = static_cast<KK_FLOAT>(paramijk.lambda_epsilon) * facexp*delcssq;
   frad1 = facrad*gsrainvsq1;
   frad2 = facrad*gsrainvsq2;
-  facang = paramijk.lambda_epsilon2 * facexp*delcs;
+  facang = static_cast<KK_FLOAT>(paramijk.lambda_epsilon2) * facexp*delcs;
   facang12 = rinv12*facang;
   csfacang = cs*facang;
   csfac1 = rinvsq1*csfacang;
 
-  fj[0] = delr1[0]*(frad1+csfac1)-delr2[0]*facang12;
-  fj[1] = delr1[1]*(frad1+csfac1)-delr2[1]*facang12;
-  fj[2] = delr1[2]*(frad1+csfac1)-delr2[2]*facang12;
+  fj[0] = static_cast<KK_ACC_FLOAT>(delr1[0]*(frad1+csfac1)-delr2[0]*facang12);
+  fj[1] = static_cast<KK_ACC_FLOAT>(delr1[1]*(frad1+csfac1)-delr2[1]*facang12);
+  fj[2] = static_cast<KK_ACC_FLOAT>(delr1[2]*(frad1+csfac1)-delr2[2]*facang12);
 
   csfac2 = rinvsq2*csfacang;
 
-  fk[0] = delr2[0]*(frad2+csfac2)-delr1[0]*facang12;
-  fk[1] = delr2[1]*(frad2+csfac2)-delr1[1]*facang12;
-  fk[2] = delr2[2]*(frad2+csfac2)-delr1[2]*facang12;
+  fk[0] = static_cast<KK_ACC_FLOAT>(delr2[0]*(frad2+csfac2)-delr1[0]*facang12);
+  fk[1] = static_cast<KK_ACC_FLOAT>(delr2[1]*(frad2+csfac2)-delr1[1]*facang12);
+  fk[2] = static_cast<KK_ACC_FLOAT>(delr2[2]*(frad2+csfac2)-delr1[2]*facang12);
 
   if (eflag) eng = facrad;
 }
@@ -571,9 +571,9 @@ void PairSWKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (eflag_atom) {
-    const KK_FLOAT epairhalf = 0.5 * epair;
-    a_eatom[i] += epairhalf;
-    a_eatom[j] += epairhalf;
+    const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * epair;
+    a_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+    a_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
   }
 
   if (vflag_either) {
@@ -585,28 +585,28 @@ void PairSWKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j
     const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
-      ev.v[0] += v0;
-      ev.v[1] += v1;
-      ev.v[2] += v2;
-      ev.v[3] += v3;
-      ev.v[4] += v4;
-      ev.v[5] += v5;
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(v0);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(v1);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(v3);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(v4);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
     }
 
     if (vflag_atom) {
-      a_vatom(i,0) += 0.5*v0;
-      a_vatom(i,1) += 0.5*v1;
-      a_vatom(i,2) += 0.5*v2;
-      a_vatom(i,3) += 0.5*v3;
-      a_vatom(i,4) += 0.5*v4;
-      a_vatom(i,5) += 0.5*v5;
+      a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+      a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+      a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+      a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+      a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+      a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
 
-      a_vatom(j,0) += 0.5*v0;
-      a_vatom(j,1) += 0.5*v1;
-      a_vatom(j,2) += 0.5*v2;
-      a_vatom(j,3) += 0.5*v3;
-      a_vatom(j,4) += 0.5*v4;
-      a_vatom(j,5) += 0.5*v5;
+      a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+      a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+      a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+      a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+      a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+      a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
     }
   }
 }
@@ -636,41 +636,41 @@ void PairSWKokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &
   auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   if (eflag_atom) {
-    epairthird = THIRD * (evdwl + ecoul);
-    a_eatom[i] += epairthird;
-    a_eatom[j] += epairthird;
-    a_eatom[k] += epairthird;
+    epairthird = static_cast<KK_FLOAT>(THIRD) * (evdwl + ecoul);
+    a_eatom[i] += static_cast<KK_ACC_FLOAT>(epairthird);
+    a_eatom[j] += static_cast<KK_ACC_FLOAT>(epairthird);
+    a_eatom[k] += static_cast<KK_ACC_FLOAT>(epairthird);
   }
 
   if (vflag_either) {
-    v[0] = drji[0]*fj[0] + drki[0]*fk[0];
-    v[1] = drji[1]*fj[1] + drki[1]*fk[1];
-    v[2] = drji[2]*fj[2] + drki[2]*fk[2];
-    v[3] = drji[0]*fj[1] + drki[0]*fk[1];
-    v[4] = drji[0]*fj[2] + drki[0]*fk[2];
-    v[5] = drji[1]*fj[2] + drki[1]*fk[2];
+    v[0] = drji[0]*static_cast<KK_FLOAT>(fj[0]) + drki[0]*static_cast<KK_FLOAT>(fk[0]);
+    v[1] = drji[1]*static_cast<KK_FLOAT>(fj[1]) + drki[1]*static_cast<KK_FLOAT>(fk[1]);
+    v[2] = drji[2]*static_cast<KK_FLOAT>(fj[2]) + drki[2]*static_cast<KK_FLOAT>(fk[2]);
+    v[3] = drji[0]*static_cast<KK_FLOAT>(fj[1]) + drki[0]*static_cast<KK_FLOAT>(fk[1]);
+    v[4] = drji[0]*static_cast<KK_FLOAT>(fj[2]) + drki[0]*static_cast<KK_FLOAT>(fk[2]);
+    v[5] = drji[1]*static_cast<KK_FLOAT>(fj[2]) + drki[1]*static_cast<KK_FLOAT>(fk[2]);
 
     if (vflag_global) {
-      ev.v[0] += v[0];
-      ev.v[1] += v[1];
-      ev.v[2] += v[2];
-      ev.v[3] += v[3];
-      ev.v[4] += v[4];
-      ev.v[5] += v[5];
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(v[0]);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(v[1]);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(v[2]);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(v[3]);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(v[4]);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(v[5]);
     }
 
     if (vflag_atom) {
-      a_vatom(i,0) += THIRD*v[0]; a_vatom(i,1) += THIRD*v[1];
-      a_vatom(i,2) += THIRD*v[2]; a_vatom(i,3) += THIRD*v[3];
-      a_vatom(i,4) += THIRD*v[4]; a_vatom(i,5) += THIRD*v[5];
+      a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[0]); a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[1]);
+      a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[2]); a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[3]);
+      a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[4]); a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[5]);
 
-      a_vatom(j,0) += THIRD*v[0]; a_vatom(j,1) += THIRD*v[1];
-      a_vatom(j,2) += THIRD*v[2]; a_vatom(j,3) += THIRD*v[3];
-      a_vatom(j,4) += THIRD*v[4]; a_vatom(j,5) += THIRD*v[5];
+      a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[0]); a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[1]);
+      a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[2]); a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[3]);
+      a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[4]); a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[5]);
 
-      a_vatom(k,0) += THIRD*v[0]; a_vatom(k,1) += THIRD*v[1];
-      a_vatom(k,2) += THIRD*v[2]; a_vatom(k,3) += THIRD*v[3];
-      a_vatom(k,4) += THIRD*v[4]; a_vatom(k,5) += THIRD*v[5];
+      a_vatom(k,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[0]); a_vatom(k,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[1]);
+      a_vatom(k,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[2]); a_vatom(k,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[3]);
+      a_vatom(k,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[4]); a_vatom(k,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[5]);
     }
   }
 }
@@ -691,22 +691,22 @@ void PairSWKokkos<DeviceType>::ev_tally3_atom(EV_FLOAT & /*ev*/, const int &i,
   KK_FLOAT epairthird,v[6];
 
   if (eflag_atom) {
-    epairthird = THIRD * (evdwl + ecoul);
-    d_eatom[i] += epairthird;
+    epairthird = static_cast<KK_FLOAT>(THIRD) * (evdwl + ecoul);
+    d_eatom[i] += static_cast<KK_ACC_FLOAT>(epairthird);
   }
 
   if (vflag_either) {
-    v[0] = drji[0]*fj[0] + drki[0]*fk[0];
-    v[1] = drji[1]*fj[1] + drki[1]*fk[1];
-    v[2] = drji[2]*fj[2] + drki[2]*fk[2];
-    v[3] = drji[0]*fj[1] + drki[0]*fk[1];
-    v[4] = drji[0]*fj[2] + drki[0]*fk[2];
-    v[5] = drji[1]*fj[2] + drki[1]*fk[2];
+    v[0] = drji[0]*static_cast<KK_FLOAT>(fj[0]) + drki[0]*static_cast<KK_FLOAT>(fk[0]);
+    v[1] = drji[1]*static_cast<KK_FLOAT>(fj[1]) + drki[1]*static_cast<KK_FLOAT>(fk[1]);
+    v[2] = drji[2]*static_cast<KK_FLOAT>(fj[2]) + drki[2]*static_cast<KK_FLOAT>(fk[2]);
+    v[3] = drji[0]*static_cast<KK_FLOAT>(fj[1]) + drki[0]*static_cast<KK_FLOAT>(fk[1]);
+    v[4] = drji[0]*static_cast<KK_FLOAT>(fj[2]) + drki[0]*static_cast<KK_FLOAT>(fk[2]);
+    v[5] = drji[1]*static_cast<KK_FLOAT>(fj[2]) + drki[1]*static_cast<KK_FLOAT>(fk[2]);
 
     if (vflag_atom) {
-      d_vatom(i,0) += THIRD*v[0]; d_vatom(i,1) += THIRD*v[1];
-      d_vatom(i,2) += THIRD*v[2]; d_vatom(i,3) += THIRD*v[3];
-      d_vatom(i,4) += THIRD*v[4]; d_vatom(i,5) += THIRD*v[5];
+      d_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[0]); d_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[1]);
+      d_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[2]); d_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[3]);
+      d_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[4]); d_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*v[5]);
     }
   }
 }

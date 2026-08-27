@@ -88,11 +88,8 @@ void ComputeAcklandAtom::init()
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"ackland/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute ackland/atom");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^ackland/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,16 +177,18 @@ void ComputeAcklandAtom::compute_peratom()
         }
       }
 
-      // Select 6 nearest neighbors
+      // Select up to 6 nearest neighbors
+      // undercoordinated atoms (n < 6) use all their neighbors
 
-      select2(6,n,distsq,nearest);
+      const int nsel = MIN(6,n);
+      select2(nsel,n,distsq,nearest);
 
       // Mean squared separation
 
       double r0_sq = 0.;
-      for (j = 0; j < 6; j++)
+      for (j = 0; j < nsel; j++)
         r0_sq += distsq[j];
-      r0_sq /= 6.;
+      if (nsel > 0) r0_sq /= nsel;
 
       // n0 near neighbors with: distsq<1.45*r0_sq
       // n1 near neighbors with: distsq<1.55*r0_sq

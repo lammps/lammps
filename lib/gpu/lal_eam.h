@@ -41,7 +41,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   int init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
            int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
            double ***host_z2r_spline, double ***host_frho_spline, double** host_cutsq,
-           double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
+           double rdr, double rdrho, double rhomax, double rhomin,
+           const int he_flag, int nrhor, int nrho, int nz2r,
            int nfrho, int nr, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
            const double gpu_split, FILE *_screen);
@@ -111,7 +112,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
 
   UCL_D_Vec<numtyp> cutsq;
 
-  numtyp _cutforcesq,_rdr,_rdrho, _rhomax;
+  numtyp _cutforcesq,_rdr,_rdrho, _rhomax, _rhomin;
+  int _he_flag;
 
   int _nfrho,_nrhor,_nrho,_nz2r,_nr;
 

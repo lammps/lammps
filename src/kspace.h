@@ -82,6 +82,7 @@ class KSpace : protected Pointers {
   int tip4pflag;         // 1 if a TIP4P solver
   int dipoleflag;        // 1 if a dipole solver
   int spinflag;          // 1 if a spin solver
+  int xtbflag;           // 1 if compatible with the QMMM-XTB package
   int rk_flag;           /* 1 if a solver uses two distinct communicator worlds for
                             r-space and k-space computations*/
   int differentiation_flag;

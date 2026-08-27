@@ -164,6 +164,28 @@ class AtomKokkos : public Atom {
     return local;
   }
 
+  // find the periodic image of atom j closest to atom i by walking the
+  // sametag chain: device-callable analog of Domain::closest_image()
+  template<class XViewType, class SametagViewType>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static int closest_image_kokkos(const int i, int j, const XViewType &x,
+                                  const SametagViewType &sametag)
+  {
+    if (j < 0) return j;
+    const KK_FLOAT xi0 = x(i,0), xi1 = x(i,1), xi2 = x(i,2);
+    int closest = j;
+    KK_FLOAT delx = xi0 - x(j,0), dely = xi1 - x(j,1), delz = xi2 - x(j,2);
+    KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+    while (sametag[j] >= 0) {
+      j = sametag[j];
+      delx = xi0 - x(j,0); dely = xi1 - x(j,1); delz = xi2 - x(j,2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) { rsqmin = rsq; closest = j; }
+    }
+    return closest;
+  }
+
   void init() override;
   void update_property_atom();
   void allocate_type_arrays() override;

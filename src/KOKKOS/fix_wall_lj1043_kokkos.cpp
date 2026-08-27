@@ -146,7 +146,7 @@ template <class DeviceType>
 void FixWallLJ1043Kokkos<DeviceType>::wall_particle(int m_in, int which, double coord_in)
 {
   m = m_in;
-  coord = coord_in;
+  coord = static_cast<KK_FLOAT>(coord_in);
 
   atomKK->sync(execution_space, datamask_read);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -189,25 +189,25 @@ void FixWallLJ1043Kokkos<DeviceType>::operator()(const int &i, value_type result
     KK_FLOAT delta;
     if (side < 0) delta = d_x(i,dim) - coord;
     else delta = coord - d_x(i,dim);
-    if (delta <= 0.0) return;
+    if (delta <= static_cast<KK_FLOAT>(0.0)) return;
     if (delta > d_cutoff(m)) return;
 
-    KK_FLOAT rinv = 1.0/delta;
+    KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0)/delta;
     KK_FLOAT r2inv = rinv*rinv;
     KK_FLOAT r4inv = r2inv*r2inv;
     KK_FLOAT r10inv = r4inv*r4inv*r2inv;
 
     // replace powint(delta+coeff4, -N) with explicit products for device
     KK_FLOAT dc4 = delta + d_coeff4(m);
-    KK_FLOAT dc4inv = 1.0/dc4;
+    KK_FLOAT dc4inv = static_cast<KK_FLOAT>(1.0)/dc4;
     KK_FLOAT dc4inv3 = dc4inv*dc4inv*dc4inv;
     KK_FLOAT dc4inv4 = dc4inv3*dc4inv;
 
     KK_FLOAT fwall = (KK_FLOAT) side *
         (d_coeff5(m)*r10inv*rinv - d_coeff6(m)*r4inv*rinv - d_coeff7(m)*dc4inv4);
-    d_f(i,dim) -= fwall;
-    result[0] += d_coeff1(m)*r10inv - d_coeff2(m)*r4inv - d_coeff3(m)*dc4inv3 - d_offset(m);
-    result[m+1] += fwall;
+    d_f(i,dim) -= static_cast<KK_ACC_FLOAT>(fwall);
+    result[0] += static_cast<double>(d_coeff1(m)*r10inv - d_coeff2(m)*r4inv - d_coeff3(m)*dc4inv3 - d_offset(m));
+    result[m+1] += static_cast<double>(fwall);
 
     if (evflag) {
       KK_FLOAT vn;
@@ -229,10 +229,10 @@ void FixWallLJ1043Kokkos<DeviceType>::v_tally(value_type result, int n, int i,
                                               KK_FLOAT vn) const
 {
   if (vflag_global)
-    result[n+7] += vn;
+    result[n+7] += static_cast<double>(vn);
 
   if (vflag_atom)
-    Kokkos::atomic_add(&(d_vatom(i,n)), vn);
+    Kokkos::atomic_add(&(d_vatom(i,n)), static_cast<KK_ACC_FLOAT>(vn));
 }
 
 namespace LAMMPS_NS {

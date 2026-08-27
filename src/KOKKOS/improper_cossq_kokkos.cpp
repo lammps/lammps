@@ -166,7 +166,7 @@ void ImproperCossqKokkos<DeviceType>::operator()(TagImproperCossqCompute<NEWTON_
   const KK_FLOAT vb1y = x(i2,1) - x(i1,1);
   const KK_FLOAT vb1z = x(i2,2) - x(i1,2);
   const KK_FLOAT rjisq = vb1x*vb1x + vb1y*vb1y + vb1z*vb1z;
-  const KK_FLOAT rji = sqrt(rjisq);
+  const KK_FLOAT rji = Kokkos::sqrt(rjisq);
 
   // separation vector between i2 and i3 (i3-i2)
   const KK_FLOAT vb2x = x(i3,0) - x(i2,0);
@@ -178,7 +178,7 @@ void ImproperCossqKokkos<DeviceType>::operator()(TagImproperCossqCompute<NEWTON_
   const KK_FLOAT vb3y = x(i4,1) - x(i3,1);
   const KK_FLOAT vb3z = x(i4,2) - x(i3,2);
   const KK_FLOAT rlksq = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-  const KK_FLOAT rlk = sqrt(rlksq);
+  const KK_FLOAT rlk = Kokkos::sqrt(rlksq);
 
   KK_FLOAT cosphi = (vb3x*vb1x + vb3y*vb1y + vb3z*vb1z)/(rji * rlk);
 
@@ -188,8 +188,8 @@ void ImproperCossqKokkos<DeviceType>::operator()(TagImproperCossqCompute<NEWTON_
   if (cosphi > static_cast<KK_FLOAT>(1.0))  cosphi -= static_cast<KK_FLOAT>(SMALL);
   if (cosphi < static_cast<KK_FLOAT>(-1.0)) cosphi += static_cast<KK_FLOAT>(SMALL);
 
-  const KK_FLOAT torangle = acos(cosphi);
-  cosphi = cos(torangle - d_chi[type]);
+  const KK_FLOAT torangle = Kokkos::acos(cosphi);
+  cosphi = Kokkos::cos(torangle - d_chi[type]);
 
   KK_FLOAT eimproper = static_cast<KK_FLOAT>(0.0);
   if (EVFLAG && eflag) eimproper = static_cast<KK_FLOAT>(0.5) * d_k[type] * cosphi * cosphi;
@@ -200,7 +200,7 @@ void ImproperCossqKokkos<DeviceType>::operator()(TagImproperCossqCompute<NEWTON_
   const KK_FLOAT clklk = rlksq;
   const KK_FLOAT clkji = vb3x*vb1x + vb3y*vb1y + vb3z*vb1z;
 
-  const KK_FLOAT cfact1 = angfac / sqrt(clklk * cjiji);
+  const KK_FLOAT cfact1 = angfac / Kokkos::sqrt(clklk * cjiji);
   const KK_FLOAT cfact2 = clkji / clklk;
   const KK_FLOAT cfact3 = clkji / cjiji;
 

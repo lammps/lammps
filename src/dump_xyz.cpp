@@ -31,7 +31,7 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpXYZ::DumpXYZ(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
-  typenames(nullptr)
+  typenames(nullptr), write_choice(nullptr)
 {
   if (narg != 5) error->all(FLERR, Error::NOPOINTER, "Illegal dump {} command", style);
   if (binary || multiproc) error->all(FLERR, 4, "Invalid dump {} filename", style);
@@ -79,14 +79,10 @@ void DumpXYZ::init_style()
     format = utils::strdup(fmt::format("{}\n", format_default));
 
   // initialize typenames array to be backward compatible by default
-  // a 32-bit int can be maximally 10 digits plus sign
-
   if (typenames == nullptr) {
     typenames = new char*[ntypes+1];
-    for (int itype = 1; itype <= ntypes; itype++) {
-      typenames[itype] = new char[12];
-      snprintf(typenames[itype],12,"%d",itype);
-    }
+    for (int itype = 1; itype <= ntypes; itype++)
+      typenames[itype] = utils::strdup(std::to_string(itype));
   }
 
   // setup function ptr

@@ -305,7 +305,7 @@ void PPPMDisp::init()
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : nullptr;
   double *p_cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : nullptr;
   double *p_cutoff_lj = pair ? (double *) pair->extract("cut_vdwl",tmp) : nullptr;
-  if (!(ptr||p_cutoff||p_cutoff_lj))
+  if (!ptr || !p_cutoff || !p_cutoff_lj)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
   cutoff_lj = *p_cutoff_lj;
@@ -463,7 +463,7 @@ void PPPMDisp::init()
       error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
     if (!overlap_allowed && !gc->ghost_adjacent())
       error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
-    if (gc) delete gc;
+    delete gc;
 
     // adjust g_ewald
 
@@ -520,7 +520,7 @@ void PPPMDisp::init()
                  "reduced below minorder");
     if (!overlap_allowed && !gc6->ghost_adjacent())
       error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
-    if (gc6) delete gc6;
+    delete gc6;
 
     // adjust g_ewald_6
 

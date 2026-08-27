@@ -441,7 +441,7 @@ void FixHyperGlobal::build_bond_list(int natom)
 
 void FixHyperGlobal::grow_bond()
 {
-  if (maxbond + DELTABOND > MAXSMALLINT)
+  if (maxbond > MAXSMALLINT - DELTABOND)
     error->one(FLERR,"Fix hyper/global bond count is too big");
   maxbond += DELTABOND;
   blist = (OneBond *)

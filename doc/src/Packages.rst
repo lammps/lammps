@@ -199,9 +199,9 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
-     - additional dump styles
+     - additional dump styles, including VTK output
      - :doc:`dump <dump>`
-     - n/a
+     - ``PACKAGES/vtk``
      - no
    * - :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
      - additional fix styles
@@ -226,7 +226,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`GPU <PKG-GPU>`
      - GPU-enabled styles
      - :doc:`Section gpu <Speed_gpu>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - int
    * - :ref:`GRANULAR <PKG-GRANULAR>`
      - granular systems
@@ -251,7 +251,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`INTEL <PKG-INTEL>`
      - optimized Intel CPU styles
      - :doc:`Speed intel <Speed_intel>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`INTERLAYER <PKG-INTERLAYER>`
      - Inter-layer pair potentials
@@ -266,7 +266,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`KOKKOS <PKG-KOKKOS>`
      - Kokkos-enabled styles
      - :doc:`Speed kokkos <Speed_kokkos>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`KSPACE <PKG-KSPACE>`
      - long-range Coulombic solvers
@@ -338,11 +338,6 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style hdnnp <pair_hdnnp>`
      - ``PACKAGES/hdnnp``
      - ext
-   * - :ref:`ML-RUNNER <PKG-ML-RUNNER>`
-     - Second-, third-, and fourth-generation high-dimensional neural network potentials
-     - :doc:`pair_style runner <pair_runner>`
-     - ``PACKAGES/runner``
-     - ext
    * - :ref:`ML-IAP <PKG-ML-IAP>`
      - multiple machine learning potentials
      - :doc:`pair_style mliap <pair_mliap>`
@@ -363,11 +358,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style quip <pair_quip>`
      - ``PACKAGES/quip``
      - ext
-   * - :ref:`ML-RANN <PKG-ML-RANN>`
-     - Pair style for RANN potentials
-     - :doc:`pair rann <pair_rann>`
-     - ``PACKAGES/rann``
-     - no
+   * - :ref:`ML-RUNNER <PKG-ML-RUNNER>`
+     - Second-, third-, and fourth-generation high-dimensional neural network potentials
+     - :doc:`pair_style runner <pair_runner>`
+     - ``PACKAGES/runner``
+     - ext
    * - :ref:`ML-SNAP <PKG-ML-SNAP>`
      - quantum-fitted potential
      - :doc:`pair_style snap <pair_snap>`
@@ -401,12 +396,12 @@ whether an extra library is needed to build and use the package:
    * - :ref:`OPENMP <PKG-OPENMP>`
      - OpenMP-enabled styles
      - :doc:`Speed omp <Speed_omp>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`OPT <PKG-OPT>`
      - optimized pair styles
      - :doc:`Speed opt <Speed_opt>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`ORIENT <PKG-ORIENT>`
      - fixes for orientation depended forces
@@ -452,6 +447,11 @@ whether an extra library is needed to build and use the package:
      - QM/MM coupling
      - :doc:`fix qmmm <fix_qmmm>`
      - ``PACKAGES/qmmm``
+     - ext
+   * - :ref:`QMMM-XTB <PKG-QMMM-XTB>`
+     - GFN1/GFN2-xTB QM/MM coupling with PPPM
+     - :doc:`fix qmmm/xtb <fix_qmmm_xtb>`
+     - ``PACKAGES/qmmm-xtb``
      - ext
    * - :ref:`QTB <PKG-QTB>`
      - quantum nuclear effects
@@ -526,11 +526,6 @@ whether an extra library is needed to build and use the package:
    * - :ref:`VORONOI <PKG-VORONOI>`
      - Voronoi tesselation
      - :doc:`compute voronoi/atom <compute_voronoi_atom>`
-     - n/a
-     - ext
-   * - :ref:`VTK <PKG-VTK>`
-     - dump output via VTK
-     - :doc:`compute vtk <dump_vtk>`
      - n/a
      - ext
    * - :ref:`YAFF <PKG-YAFF>`

@@ -333,8 +333,8 @@ the :doc:`fix graphics/objects <fix_graphics_objects>` command for a
 more detailed discussion on using variables with graphics objects.
 
 .. _jpeg_format: https://jpeg.org/jpeg/
-.. _png_format: https://en.wikipedia.org/wiki/portable_network_graphics
-.. _ppm_format: https://en.wikipedia.org/wiki/netpbm
+.. _png_format: https://en.wikipedia.org/wiki/Portable_network_graphics
+.. _ppm_format: https://en.wikipedia.org/wiki/Netpbm
 .. _tga_format: https://en.wikipedia.org/wiki/Truevision_TGA
 
 -----------

@@ -50,7 +50,7 @@ Description
 
 This command allows to carry out parallel hybrid molecular
 dynamics/Monte Carlo (MD/MC) simulations using the algorithms described
-in :ref:`(Sadigh1) <Sadigh1>`.  Simulations can be carried out in either
+in :ref:`(Sadigh) <Sadigh1>`.  Simulations can be carried out in either
 the semi-grand canonical (SGC) or variance constrained semi-grand
 canonical (VC-SGC) ensemble :ref:`(Sadigh2) <Sadigh2>`. Only atom type
 swaps are performed by the SGCMC fix. Relaxations are accounted for by
@@ -93,7 +93,7 @@ the simulation, e.g., to speed up equilibration at low temperatures.
 ------------
 
 The parameter *deltamu* is used to set the chemical potential differences
-in the SGC MC algorithm (see Eq. 16 in :ref:`Sadigh1 <Sadigh1>`).
+in the SGC MC algorithm (see Eq. 16 in :ref:`Sadigh <Sadigh1>`).
 The `N-1` differences are defined as :math:`\mu_1-\mu_2, \ldots, \mu_1-\mu_N`,
 where `N` is the number of atom types.
 
@@ -102,11 +102,11 @@ where `N` is the number of atom types.
 The variance-constrained SGC MC algorithm is activated if the keyword
 *variance* is used. In that case the fix parameter *deltamu* determines
 the effective average constraint in the parallel VC-SGC MC algorithm
-(parameter :math:`\delta\mu_0` in Eq. (20) of :ref:`Sadigh1
+(parameter :math:`\delta\mu_0` in Eq. (20) of :ref:`Sadigh
 <Sadigh1>`). The parameter *kappa* specifies the variance constraint
-(see Eqs. (20-21) in :ref:`Sadigh1 <Sadigh1>`).
+(see Eqs. (20-21) in :ref:`Sadigh <Sadigh1>`).
 The parameter *conc* sets the `N-1` target atomic concentration
-fractions (parameter :math:`c_0` in Eqs.  (20-21) of :ref:`Sadigh1 <Sadigh1>`)
+fractions (parameter :math:`c_0` in Eqs.  (20-21) of :ref:`Sadigh <Sadigh1>`)
 :math:`0 \le c_2, \ldots, c_N \le 1`, with
 :math:`c_1 = 1 - \Sigma_{i=2}^N c_i`.
 When the simulation includes `N` atom types (elements),
@@ -123,10 +123,10 @@ to initialize the random number generator on each processor.
 simulation. The size has to lie between 0.5 and 1.0. Normally, this
 parameter should be left unspecified which instructs the code to choose
 the optimal window size automatically (see Sect. III.B and Figure 6 in
-:ref:`Sadigh1 <Sadigh1>` for details).
+:ref:`Sadigh <Sadigh1>` for details).
 
 The number of times the window is moved during a MC cycle is set using
-the parameter *window_moves* (see Sect. III.B in :ref:`Sadigh1
+the parameter *window_moves* (see Sect. III.B in :ref:`Sadigh
 <Sadigh1>` for details).
 
 The *atomic/energy* keyword controls which method is used for calculating
@@ -208,7 +208,7 @@ The optional parameters default to the following values:
 
 .. _Sadigh1:
 
-**(Sadigh1)** B. Sadigh, P. Erhart, A. Stukowski, A. Caro, E. Martinez, and L. Zepeda-Ruiz, Phys. Rev. B **85**, 184203 (2012)
+**(Sadigh)** B. Sadigh, P. Erhart, A. Stukowski, A. Caro, E. Martinez, and L. Zepeda-Ruiz, Phys. Rev. B **85**, 184203 (2012)
 
 .. _Sadigh2:
 

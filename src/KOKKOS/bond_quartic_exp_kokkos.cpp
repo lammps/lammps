@@ -157,7 +157,7 @@ void BondQuarticExpKokkos<DeviceType>::operator()(
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT dr = r - d_r0[type];
   const KK_FLOAT dr2 = dr*dr;
   const KK_FLOAT dr3 = dr2*dr;
@@ -173,22 +173,22 @@ void BondQuarticExpKokkos<DeviceType>::operator()(
     static_cast<KK_FLOAT>(3.0)*d_k3[type]*dr2 +
     static_cast<KK_FLOAT>(4.0)*d_k4[type]*dr3;
 
-  if (r > 0.0) fbond = -de_bond/r;
+  if (r > static_cast<KK_FLOAT>(0.0)) fbond = -de_bond/r;
 
   if (eflag)
     ebond = d_k2[type]*dr2 + d_k3[type]*dr3 + d_k4[type]*dr4;
 
   // Exponential force and (optional) energy
 
-  if (d_A[type] != 0.0 && d_B[type] != 0.0) {
+  if (d_A[type] != static_cast<KK_FLOAT>(0.0) && d_B[type] != static_cast<KK_FLOAT>(0.0)) {
     const KK_FLOAT a = d_A[type];
     const KK_FLOAT b = d_B[type];
 
-    const KK_FLOAT ebond_exp = a * exp(-r/b);
+    const KK_FLOAT ebond_exp = a * Kokkos::exp(-r/b);
 
     if (eflag) ebond += ebond_exp;
 
-    if (r > 0.0) fbond += ebond_exp/(b*r);
+    if (r > static_cast<KK_FLOAT>(0.0)) fbond += ebond_exp/(b*r);
   }
 
   // apply force to each of 2 atoms

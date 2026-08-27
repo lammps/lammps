@@ -54,8 +54,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 Min::Min(LAMMPS *lmp) :
-    Pointers(lmp), stopstr(nullptr), fix_minimize(nullptr), pe_compute(nullptr), xvec(nullptr),
-    fvec(nullptr)
+  Pointers(lmp), stopstr((char *)"(skipped)"), fix_minimize(nullptr), pe_compute(nullptr),
+  xvec(nullptr), fvec(nullptr)
 {
   dmax = 0.1;
   searchflag = 0;

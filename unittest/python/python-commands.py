@@ -27,6 +27,17 @@ try:
 except:
     pass
 
+has_molecule=False
+try:
+    machine=None
+    if 'LAMMPS_MACHINE_NAME' in os.environ:
+        machine=os.environ['LAMMPS_MACHINE_NAME']
+    lmp=lammps(name=machine)
+    has_molecule = lmp.has_style("atom","full")
+    lmp.close()
+except:
+    pass
+
 class PythonCommand(unittest.TestCase):
 
     def setUp(self):
@@ -791,6 +802,7 @@ create_atoms 1 single &
                 self.assertEqual(vel[i][0:3],result[i][3])
                 self.assertEqual(self.lmp.decode_image_flags(img[i]), result[i][4])
 
+    @unittest.skipIf(not has_molecule,"Atom map test input requires the MOLECULE package")
     def test_map_atom(self):
         self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
         self.lmp.command("newton on on")

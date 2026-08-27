@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "group.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "update.h"
@@ -99,8 +100,17 @@ void NBinKokkos<DeviceType>::bin_atoms()
     f_zero.ptr = (void*) k_bincount.view<DeviceType>().data();
     Kokkos::parallel_for(mbins, f_zero);
 
-    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
+    // with "neigh_modify include" only atoms of that group are binned,
+    // so the group mask of the ghost atoms is needed as well
+
+    nowned_ = atom->nlocal;
+    nfirst_ = includegroup ? atom->nfirst : atom->nlocal;
+    bitmask_ = includegroup ? group->bitmask[includegroup] : 0;
+
+    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,
+                 includegroup ? (X_MASK | MASK_MASK) : X_MASK);
     x = atomKK->k_x.view<DeviceType>();
+    mask = atomKK->k_mask.view<DeviceType>();
 
     bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
     bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
@@ -131,7 +141,30 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 {
-  const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2));
+  // with "neigh_modify include" skip atoms that are not in the include group
+  // the owned atoms of that group come first, ghosts must be tested one by one
+
+  if (bitmask_) {
+    if (i < nowned_) {
+      if (i >= nfirst_) return;
+    } else if (!(mask(i) & bitmask_)) return;
+  }
+
+  // a non-numeric coordinate would produce a bogus bin index and the atomic
+  // update below would write out of bounds, so stop right here
+
+  if (!Kokkos::isfinite(x(i, 0)) || !Kokkos::isfinite(x(i, 1)) || !Kokkos::isfinite(x(i, 2)))
+    Kokkos::abort("Non-numeric positions - simulation unstable");
+
+  const int ibin = coord2bin(static_cast<double>(x(i, 0)), static_cast<double>(x(i, 1)), static_cast<double>(x(i, 2)));
+
+  // an atom that has left the region covered by the bins gets a bin index
+  // outside of the bin arrays and the atomic update below would write out of
+  // bounds.  this happens when atoms are lost or move too far between two
+  // neighbor list builds, so stop right here as well
+
+  if ((ibin < 0) || (ibin >= mbins))
+    Kokkos::abort("Atom outside of neighbor bin range - simulation unstable");
 
   atom2bin(i) = ibin;
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);

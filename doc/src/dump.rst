@@ -500,14 +500,47 @@ set up an atom type number to atom name mapping.
 
 The *grid/vtk* style writes VTK files for grid data on a regular
 rectilinear grid.  Its content is conceptually similar to that of the
-text file produced by the *grid* style, except that it in an XML-based
-format which visualization programs which support the VTK format can
-read, e.g. the `ParaView tool <https://www.paraview.org>`_.  For this
+text file produced by the *grid* style, except that it is in one of the
+VTK formats and can thus be read directly by visualization programs like
+the `ParaView tool <https://www.paraview.org>`_.  For this
 style, there can only be 1 or 3 per grid cell attributes specified.
 If it is a single value, it is a scalar quantity.  If 3 values are
 specified it is encoded in the VTK file as a vector quantity (for each
 grid cell).  The filename for this style must include a "\*" wildcard
 character to produce one file per snapshot; see details below.
+
+.. versionchanged:: TBD
+
+The files are now written through the built-in VTK file writer that is
+shared with the :doc:`dump vtk <dump_vtk>` and :doc:`fix saed/vtk
+<fix_saed_vtk>` styles.  The header now declares the file version and
+byte order as the format requires, no longer sets grid origin and
+spacing properties that have no meaning for a rectilinear grid, and the
+grid data is no longer truncated to about 6 digits.
+
+.. versionadded:: TBD
+
+The extension of the dump file name selects which of the VTK file
+formats is written.  A name ending in *.vtr* selects the XML rectilinear
+grid format, which is the default and what this style has always
+written.  A name ending in *.vti* selects the XML image data format,
+which describes the grid by its origin and spacing rather than by
+listing all cell boundaries, and is therefore more compact.  A name
+ending in *.vtk* selects the simple legacy VTK format.
+
+Since these naming conventions collide with the LAMMPS convention of
+appending ".bin" to a file name to select binary output, this style
+supports the :doc:`dump_modify binary <dump_modify>` keyword to request
+binary data explicitly.  Binary data is more compact, and in the two XML
+formats it is compressed as well if LAMMPS was built with the zlib
+library.
+
+All floating point data, that is grid cell coordinates and grid data
+alike, is stored in single precision by default, which resolves the
+coordinates to less than 0.001 length units as long as they stay below
+about 10000 length units.  LAMMPS prints a warning for grids that extend
+beyond that.  Use the :doc:`dump_modify double yes <dump_modify>`
+command to write all floating point data in double precision instead.
 
 .. versionadded:: 4May2022
 
@@ -640,9 +673,9 @@ when running on large numbers of processors.
 Note that using the "\*" and "%" characters together can produce a
 large number of small dump files!
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
-The MPIIO package and the the corresponding "/mpiio" dump styles, except
+The MPIIO package and the corresponding "/mpiio" dump styles, except
 for the unrelated "netcdf/mpiio" style were removed from LAMMPS.
 
 ----------

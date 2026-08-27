@@ -52,9 +52,11 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
   finitecutflag = 1;
 
   single_extra = 12;
+  extra_svector = 0;
   svector = new double[single_extra];
 
   neighprev = 0;
+  freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
 
@@ -82,7 +84,10 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
 id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
 id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
 
+  cutoff_global = -1.0;
   fix_history = nullptr;
+  models_list = nullptr;
+  nmodels = maxmodels = 0;
   fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix(fmt::format("{} all DUMMY", id_dummy)));
 }
 
@@ -487,7 +492,7 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),1));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
   } else if (use_history) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
@@ -497,7 +502,7 @@ void PairGranular::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");
@@ -682,6 +687,8 @@ void PairGranular::read_restart(FILE *fp)
 
   if (me == 0) utils::sfread(FLERR,&nmodels,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
+  if ((nmodels < 0) || (nmodels > maxmodels))
+    error->all(FLERR,"Invalid number of granular models in restart file");
 
   for (i = 0; i < nmodels; i++) {
     delete models_list[i];
@@ -746,7 +753,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->history_update = 0; // Don't update history
 
   // If history is needed
-  double *history,*allhistory;
+  double *history = nullptr, *allhistory = nullptr;
   int jnum = list->numneigh[i];
   int *jlist = list->firstneigh[i];
   if (use_history) {

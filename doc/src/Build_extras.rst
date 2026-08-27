@@ -65,10 +65,10 @@ This is the list of packages that may require additional steps.
    * :ref:`PLUMED <plumed>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`QMMM-XTB <qmmm-xtb>`
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`VTK <vtk>`
 
 ----------
 
@@ -1984,6 +1984,58 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
 ----------
 
+.. _qmmm-xtb:
+
+QMMM-XTB package
+----------------
+
+The QMMM-XTB package provides in-process GFN1-xTB and GFN2-xTB QM/MM
+coupling through `libxtb <https://github.com/grimme-lab/xtb>`_.  It requires
+the KSPACE package, libxtb 6.7 or newer, mctc-lib, and BLAS.  The ``xtb.pc``
+and ``mctc-lib.pc`` files must be available to ``pkg-config``.
+
+The package uses libxtb's Fortran module interface because its public C API
+does not expose the atom-dependent potential callback required during every
+SCC iteration.  Consequently, the libxtb Fortran ``.mod`` files must be
+installed and must be compatible with the Fortran compiler used to build
+LAMMPS.  A normal libxtb installation may omit these private modules; rebuild
+libxtb with the Meson option ``-Dinstall_modules=true`` when necessary.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      If libxtb and mctc-lib are installed in nonstandard locations, add
+      their ``pkgconfig`` directories to ``PKG_CONFIG_PATH``.  Then configure
+      LAMMPS with both KSPACE and QMMM-XTB enabled and identify the directory
+      containing the libxtb Fortran modules:
+
+      .. code-block:: bash
+
+         export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
+         cmake -S cmake -B build \
+           -D PKG_KSPACE=yes \
+           -D PKG_QMMM-XTB=yes \
+           -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
+         cmake --build build -j 8
+
+      ``XTB_FORTRAN_MODULE_DIR`` may be omitted when the module files are in
+      a directory reported by ``xtb.pc``.  Configuration stops with an error
+      if compatible module files cannot be found.  CMake locates BLAS through
+      its standard ``find_package(BLAS)`` mechanism.
+
+      At runtime, the dynamic loader must be able to find libxtb and its
+      dependencies.  Set ``XTBPATH`` to the directory containing
+      ``param_gfn1-xtb.txt`` and ``param_gfn2-xtb.txt`` when those files are
+      not installed in libxtb's default data location.
+
+   .. tab:: Traditional make
+
+      The QMMM-XTB package does not support the traditional make
+      build.  You need to build LAMMPS with CMake to use it.
+
+----------
+
 .. _rheo:
 
 RHEO package
@@ -2052,33 +2104,4 @@ To build with this package, you must download and build the
       .. versionchanged:: 10Sep2025
 
       The SCAFACOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
-
-----------
-
-.. _vtk:
-
-VTK package
--------------------------------
-
-To build with this package you must have the VTK library installed on
-your system.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_VTK=yes``.
-
-      This should auto-detect the VTK library if it is installed on your
-      system at standard locations.  Several advanced VTK options exist
-      if you need to specify where it was installed.  Use the ``ccmake``
-      (terminal window) or ``cmake-gui`` (graphical) tools to see these
-      options and set them interactively from their user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

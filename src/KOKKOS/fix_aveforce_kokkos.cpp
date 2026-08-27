@@ -138,9 +138,9 @@ void FixAveForceKokkos<DeviceType>::operator()(TagFixAveForceReduce, const int &
 {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
-    result[0] += f(i,0);
-    result[1] += f(i,1);
-    result[2] += f(i,2);
+    result[0] += static_cast<double>(f(i,0));
+    result[1] += static_cast<double>(f(i,1));
+    result[2] += static_cast<double>(f(i,2));
     result[3] += 1.0;
   }
 }
@@ -154,9 +154,9 @@ void FixAveForceKokkos<DeviceType>::operator()(TagFixAveForceApply, const int &i
 {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
-    if (xstyle) f(i,0) = m_fave[0];
-    if (ystyle) f(i,1) = m_fave[1];
-    if (zstyle) f(i,2) = m_fave[2];
+    if (xstyle) f(i,0) = static_cast<KK_ACC_FLOAT>(m_fave[0]);
+    if (ystyle) f(i,1) = static_cast<KK_ACC_FLOAT>(m_fave[1]);
+    if (zstyle) f(i,2) = static_cast<KK_ACC_FLOAT>(m_fave[2]);
   }
 }
 

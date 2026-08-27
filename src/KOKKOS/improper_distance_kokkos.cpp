@@ -174,7 +174,7 @@ void ImproperDistanceKokkos<DeviceType>::operator()(TagImproperDistanceCompute<N
   KK_FLOAT xna =   ybc*zbd - zbc*ybd;
   KK_FLOAT yna = -(xbc*zbd - zbc*xbd);
   KK_FLOAT zna =   xbc*ybd - ybc*xbd;
-  const KK_FLOAT rna = static_cast<KK_FLOAT>(1.0) / sqrt(xna*xna + yna*yna + zna*zna);
+  const KK_FLOAT rna = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(xna*xna + yna*yna + zna*zna);
   xna *= rna;
   yna *= rna;
   zna *= rna;

@@ -77,17 +77,32 @@ void PairEAMOMP::compute(int eflag, int vflag)
     else
       thr->init_eam(atom->nlocal, rho);
 
-    if (evflag) {
-      if (eflag) {
-        if (force->newton_pair) eval<1,1,1>(ifrom, ito, &beyond_rhomax, thr);
-        else eval<1,1,0>(ifrom, ito, &beyond_rhomax, thr);
+    if (he_flag) {
+      if (evflag) {
+        if (eflag) {
+          if (force->newton_pair) eval<1,1,1,1>(ifrom, ito, &beyond_rhomax, thr);
+          else eval<1,1,0,1>(ifrom, ito, &beyond_rhomax, thr);
+        } else {
+          if (force->newton_pair) eval<1,0,1,1>(ifrom, ito, &beyond_rhomax, thr);
+          else eval<1,0,0,1>(ifrom, ito, &beyond_rhomax, thr);
+        }
       } else {
-        if (force->newton_pair) eval<1,0,1>(ifrom, ito, &beyond_rhomax, thr);
-        else eval<1,0,0>(ifrom, ito, &beyond_rhomax, thr);
+        if (force->newton_pair) eval<0,0,1,1>(ifrom, ito, &beyond_rhomax, thr);
+        else eval<0,0,0,1>(ifrom, ito, &beyond_rhomax, thr);
       }
     } else {
-      if (force->newton_pair) eval<0,0,1>(ifrom, ito, &beyond_rhomax, thr);
-      else eval<0,0,0>(ifrom, ito, &beyond_rhomax, thr);
+      if (evflag) {
+        if (eflag) {
+          if (force->newton_pair) eval<1,1,1,0>(ifrom, ito, &beyond_rhomax, thr);
+          else eval<1,1,0,0>(ifrom, ito, &beyond_rhomax, thr);
+        } else {
+          if (force->newton_pair) eval<1,0,1,0>(ifrom, ito, &beyond_rhomax, thr);
+          else eval<1,0,0,0>(ifrom, ito, &beyond_rhomax, thr);
+        }
+      } else {
+        if (force->newton_pair) eval<0,0,1,0>(ifrom, ito, &beyond_rhomax, thr);
+        else eval<0,0,0,0>(ifrom, ito, &beyond_rhomax, thr);
+      }
     }
 
     thr->timer(Timer::PAIR);
@@ -105,7 +120,7 @@ void PairEAMOMP::compute(int eflag, int vflag)
   }
 }
 
-template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
 void PairEAMOMP::eval(int iifrom, int iito, int *beyond_rhomax, ThrData * const thr)
 {
   int i,j,ii,jj,m,jnum,itype,jtype;
@@ -201,23 +216,22 @@ void PairEAMOMP::eval(int iifrom, int iito, int *beyond_rhomax, ThrData * const 
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
+  // if rho > rhomax (e.g. due to close approach of two atoms) the table is
+  //   exceeded, so add linear term to conserve energy; for eam/he the table
+  //   starts at rhomin and may be exceeded on either side
 
   for (ii = iifrom; ii < iito; ii++) {
     i = ilist[ii];
-    p = rho[i]*rdrho + 1.0;
-    m = static_cast<int> (p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= m;
-    p = MIN(p,1.0);
+    embedding_index<HE>(rho[i],m,p);
     coeff = frho_spline[type2frho[type[i]]][m];
     fp[i] = (coeff[0]*p + coeff[1])*p + coeff[2];
     if (EFLAG) {
       phi = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-      if (rho[i] > rhomax) {
+      if (HE && (rho[i] < rhomin)) {
+        phi += fp[i] * (rho[i]-rhomin);
+      } else if (rho[i] > rhomax) {
         phi += fp[i] * (rho[i]-rhomax);
-        *beyond_rhomax = 1;
+        if (!HE) *beyond_rhomax = 1;
       }
       e_tally_thr(this, i, i, nlocal, NEWTON_PAIR, scale[type[i]][type[i]]*phi, 0.0, thr);
     }

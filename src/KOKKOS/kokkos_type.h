@@ -28,7 +28,10 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+// LMP_KOKKOS_GPU may also be set as a global compile definition by the build
+// system (see cmake/Modules/Packages/KOKKOS.cmake) so that non-KOKKOS sources,
+// which do not include this header, can detect a GPU-enabled Kokkos build.
+#if !defined(LMP_KOKKOS_GPU) && (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET))
 #define LMP_KOKKOS_GPU
 #endif
 
@@ -187,7 +190,7 @@ typedef LMPDeviceType::array_layout LMPDeviceLayout;
 template<class DeviceType>
 class KKDevice {
  public:
-#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
+#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)) || \
      (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
 #else
@@ -563,9 +566,9 @@ struct BinOp3DLAMMPS {
   template <class ViewType>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
-    int ix = static_cast<int> ((keys(i, 0) - min_[0]) * mul_[0]);
-    int iy = static_cast<int> ((keys(i, 1) - min_[1]) * mul_[1]);
-    int iz = static_cast<int> ((keys(i, 2) - min_[2]) * mul_[2]);
+    int ix = static_cast<int> ((static_cast<double>(keys(i, 0)) - min_[0]) * mul_[0]);
+    int iy = static_cast<int> ((static_cast<double>(keys(i, 1)) - min_[1]) * mul_[1]);
+    int iz = static_cast<int> ((static_cast<double>(keys(i, 2)) - min_[2]) * mul_[2]);
     ix = MAX(ix,0);
     iy = MAX(iy,0);
     iz = MAX(iz,0);

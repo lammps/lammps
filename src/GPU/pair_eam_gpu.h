@@ -44,9 +44,9 @@ class PairEAMGPU : public PairEAM {
   // functions in the gpu library (lal_eam*_ext.cpp)
 
   typedef int (*EAMGPUInitFn)(const int, double, int **, int **, int *, double ***, double ***,
-                              double ***, double **, double, double, double, int, int, int, int,
-                              int, const int, const int, const int, const int, const double, int &,
-                              FILE *, int &);
+                              double ***, double **, double, double, double, double, const int,
+                              int, int, int, int, int, const int, const int, const int, const int,
+                              const double, int &, FILE *, int &);
   typedef void (*EAMGPUClearFn)();
   typedef int **(*EAMGPUComputeNFn)(const int, const int, const int, double **, int *, double *,
                                     double *, tagint *, int **, tagint **, const bool, const bool,

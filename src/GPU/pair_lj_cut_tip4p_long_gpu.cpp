@@ -201,7 +201,7 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (gpu_mode == GPU_FORCE) {
     auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
     // NOTE: we must not add the neighbor list skin here. It is already added automatically.
-    req->set_cutoff(cut_coulplus);
+    req->set_cutoff_max(cut_coulplus);
   }
 }
 

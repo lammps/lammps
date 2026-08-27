@@ -162,7 +162,7 @@ void BondGaussianKokkos<DeviceType>::operator()(TagBondGaussianCompute<NEWTON_BO
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
 
   const int nt = d_nterms[type];
   const KK_FLOAT kbT = d_bond_temperature[type];
@@ -174,11 +174,11 @@ void BondGaussianKokkos<DeviceType>::operator()(TagBondGaussianCompute<NEWTON_BO
   KK_ACC_FLOAT sum_g_i = static_cast<KK_ACC_FLOAT>(0.0);
   KK_ACC_FLOAT sum_numerator = static_cast<KK_ACC_FLOAT>(0.0);
   for (int i = 0; i < nt; i++) {
-    const KK_ACC_FLOAT dr = r - d_r0(type,i);
-    const KK_ACC_FLOAT wsq = static_cast<KK_ACC_FLOAT>(d_width(type,i)) * d_width(type,i);
-    const KK_ACC_FLOAT prefactor = d_alpha(type,i) / (d_width(type,i) * sqrt(static_cast<KK_ACC_FLOAT>(MY_PI2)));
+    const KK_ACC_FLOAT dr = static_cast<KK_ACC_FLOAT>(r) - static_cast<KK_ACC_FLOAT>(d_r0(type,i));
+    const KK_ACC_FLOAT wsq = static_cast<KK_ACC_FLOAT>(d_width(type,i)) * static_cast<KK_ACC_FLOAT>(d_width(type,i));
+    const KK_ACC_FLOAT prefactor = static_cast<KK_ACC_FLOAT>(d_alpha(type,i)) / (static_cast<KK_ACC_FLOAT>(d_width(type,i)) * Kokkos::sqrt(static_cast<KK_ACC_FLOAT>(MY_PI2)));
     const KK_ACC_FLOAT exponent = -static_cast<KK_ACC_FLOAT>(2.0) * dr * dr / wsq;
-    const KK_ACC_FLOAT g_i = prefactor * exp(exponent);
+    const KK_ACC_FLOAT g_i = prefactor * Kokkos::exp(exponent);
     sum_g_i += g_i;
     sum_numerator += g_i * dr / wsq;
   }
@@ -190,10 +190,10 @@ void BondGaussianKokkos<DeviceType>::operator()(TagBondGaussianCompute<NEWTON_BO
 
   KK_FLOAT fbond = static_cast<KK_FLOAT>(0.0);
   if (r > static_cast<KK_FLOAT>(0.0))
-    fbond = static_cast<KK_FLOAT>(-static_cast<KK_ACC_FLOAT>(4.0) * kbT * (sum_numerator / sum_g_i) / r);
+    fbond = static_cast<KK_FLOAT>(-static_cast<KK_ACC_FLOAT>(4.0) * static_cast<KK_ACC_FLOAT>(kbT) * (sum_numerator / sum_g_i) / static_cast<KK_ACC_FLOAT>(r));
 
   KK_FLOAT ebond = static_cast<KK_FLOAT>(0.0);
-  if (eflag) ebond = static_cast<KK_FLOAT>(-kbT * log(sum_g_i));
+  if (eflag) ebond = static_cast<KK_FLOAT>(-static_cast<KK_ACC_FLOAT>(kbT) * Kokkos::log(sum_g_i));
 
   // apply force to each of 2 atoms
 

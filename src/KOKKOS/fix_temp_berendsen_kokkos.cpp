@@ -107,11 +107,12 @@ void FixTempBerendsenKokkos<DeviceType>::end_of_step()
 
   atomKK->sync(execution_space,V_MASK|MASK_MASK);
 
+  const KK_FLOAT lamda_kk = static_cast<KK_FLOAT>(lamda);
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(int i) {
     if (mask[i] & groupbit) {
-      v(i,0) *= lamda;
-      v(i,1) *= lamda;
-      v(i,2) *= lamda;
+      v(i,0) *= lamda_kk;
+      v(i,1) *= lamda_kk;
+      v(i,2) *= lamda_kk;
     }
   });
 

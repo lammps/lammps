@@ -25,7 +25,10 @@
 .. index:: kspace_style pppm/cg/omp
 .. index:: kspace_style pppm/stagger
 .. index:: kspace_style pppm/tip4p
+.. index:: kspace_style pppm/tip4p/kk
 .. index:: kspace_style pppm/tip4p/omp
+.. index:: kspace_style pppm/xtb
+.. index:: kspace_style pppm/tip4p/xtb
 .. index:: kspace_style pppm/electrode
 .. index:: kspace_style pppm/electrode/tip4p
 .. index:: kspace_style pppm/electrode/intel
@@ -48,8 +51,12 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/tip4p* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
-
+* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or
+*ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or
+*pppm/tip4p* or *pppm/xtb* or *pppm/tip4p/xtb* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or
+*pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/kk or
+*pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/tip4p* or
+*pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
   .. parsed-literal::
 
        *none* value = none
@@ -84,6 +91,10 @@ Syntax
        *pppm/disp* value = accuracy
          accuracy = desired relative error in forces
        *pppm/tip4p* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/xtb* value = accuracy
+         accuracy = desired relative error in forces
+       *pppm/tip4p/xtb* value = accuracy
          accuracy = desired relative error in forces
        *pppm/disp/tip4p* value = accuracy
          accuracy = desired relative error in forces
@@ -214,7 +225,7 @@ because of round-off in the structure-factor sums.
 
 The *ewald/disp* style adds a long-range dispersion sum option for
 :math:`1/r^6` potentials and is useful for simulation of interfaces
-:ref:`(Veld) <Veld>`.  It also performs standard Coulombic Ewald summations,
+:ref:`(In 't Veld) <Veld>`.  It also performs standard Coulombic Ewald summations,
 but in a more efficient manner than the *ewald* style.  The :math:`1/r^6`
 capability means that Lennard-Jones or Buckingham potentials can be
 used without a cutoff, i.e. they become full long-range potentials.
@@ -286,6 +297,15 @@ The *pppm/electrode/tip4p* style combines the TIP4P treatment of
 *pppm/tip4p* with the electrode methods required for the constant
 potential method.  It should be used with a TIP4P-compatible
 long-range pair style and :doc:`fix electrode/* <fix_electrode>`.
+
+.. versionadded:: TBD
+
+The *pppm/xtb* and *pppm/tip4p/xtb* styles provide the corresponding
+PPPM electrostatics together with the source-to-sensor potential projection
+required by :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.  They are part of the
+QMMM-XTB package and are intended for use with that fix.  Other calculations
+performed by these styles are inherited from *pppm* and *pppm/tip4p*,
+respectively.
 
 The *pppm/stagger* style performs calculations using two different
 meshes, one shifted slightly with respect to the other.  This can
@@ -415,7 +435,7 @@ pressure simulation with MSM will cause the code to run slower.
 
 The *scafacos* style is a wrapper on the `ScaFaCoS Coulomb solver
 library <http://www.scafacos.de/>`_ which provides a variety of solver
-methods which can be used with LAMMPS.  The paper by :ref:`(Sutman)
+methods which can be used with LAMMPS.  The paper by :ref:`(Sutmann2)
 <Sutmann2014>` gives an overview of ScaFaCoS.
 
 ScaFaCoS was developed by a consortium of German research facilities
@@ -527,8 +547,8 @@ will be "too accurate" for some portion of the run.
 
 RMS force errors in real space for *ewald* and *pppm* are estimated
 using equation 18 of :ref:`(Kolafa) <Kolafa>`, which is also referenced as
-equation 9 of :ref:`(Petersen) <Petersen>`. RMS force errors in K-space for
-*ewald* are estimated using equation 11 of :ref:`(Petersen) <Petersen>`,
+equation 9 of :ref:`(Petersen2) <Petersen>`. RMS force errors in K-space for
+*ewald* are estimated using equation 11 of :ref:`(Petersen2) <Petersen>`,
 which is similar to equation 32 of :ref:`(Kolafa) <Kolafa>`. RMS force
 errors in K-space for *pppm* are estimated using equation 38 of
 :ref:`(Deserno) <Deserno>`. RMS force errors for *msm* are estimated
@@ -537,7 +557,7 @@ of particular note. When using *msm* with non-periodic boundary
 conditions, it is expected that the error estimation will be too
 pessimistic. RMS force errors for dipoles when using *ewald/disp*
 or *ewald/dipole* are estimated using equations 33 and 46 of
-:ref:`(Wang) <Wang>`. The RMS force errors for *pppm/dipole* are estimated
+:ref:`(Wang3) <Wang>`. The RMS force errors for *pppm/dipole* are estimated
 using the equations in :ref:`(Cerda) <Cerda2008>`.
 
 See the :doc:`kspace_modify <kspace_modify>` command for additional
@@ -571,6 +591,15 @@ relative RMS error.
   :doc:`Build settings <Build_settings>` doc page for how to select a
   3rd-party FFT library.
 
+  The *pppm/tip4p/kk* style performs the same on-device work for TIP4P
+  systems: the off-atom M (massless charge) site is located, the charge
+  is mapped to the grid from that site, and the resulting force and
+  per-atom energy/virial are redistributed back onto the O atom and its
+  two H atoms, all in device kernels. Like *pppm/kk* it requires
+  *newton on* and does not (yet) support *kspace_modify diff ad* or
+  triclinic (non-orthogonal) boxes; use the non-accelerated
+  *pppm/tip4p* style for those cases.
+
 ----------
 
 Restrictions
@@ -584,6 +613,9 @@ The *ewald/disp*, *ewald*, *esp*, *pppm*, *pppm/disp*, and *msm* styles
 support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
+
+The *pppm/xtb* and *pppm/tip4p/xtb* styles currently require an orthorhombic
+simulation box, as does :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.
 
 .. versionchanged:: 4Jul2026
 
@@ -673,11 +705,11 @@ Adam Hilger, NY (1989).
 
 .. _Petersen:
 
-**(Petersen)** Petersen, J Chem Phys, 103, 3668 (1995).
+**(Petersen2)** Petersen, J Chem Phys, 103, 3668 (1995).
 
 .. _Wang:
 
-**(Wang)** Wang and Holm, J Chem Phys, 115, 6277 (2001).
+**(Wang3)** Wang and Holm, J Chem Phys, 115, 6277 (2001).
 
 .. _Pollock:
 
@@ -694,7 +726,7 @@ and Computation 5, 2322 (2009)
 
 .. _Veld:
 
-**(Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
+**(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
 
 .. _Toukmaji:
 
@@ -732,5 +764,5 @@ Illinois at Urbana-Champaign, (2006).
 
 .. _Sutmann2014:
 
-**(Sutmann)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
+**(Sutmann2)** G. Sutmann. ScaFaCoS - a Scalable library of Fast Coulomb Solvers for particle Systems.
   In Bajaj, Zavattieri, Koslowski, Siegmund, Proceedings of the Society of Engineering Science 51st Annual Technical Meeting. 2014.

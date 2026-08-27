@@ -120,7 +120,6 @@ enum{DONE, ADD, SUBTRACT, MULTIPLY, DIVIDE, CARAT, MODULO, UNARY,
 enum { SUM, XMIN, XMAX, AVE, TRAP, SLOPE, SORT, RSORT, NOVECTOR };
 
 }    // namespace
-// NOLINTEND
 
 // clang-format on
 
@@ -154,6 +153,9 @@ void Variable::VarInfo::clear()
   name.clear();
   data = nullptr;
   reader = nullptr;
+  vec.n = vec.nmax = 0;
+  vec.dynamic = 1;
+  vec.currentstep = -1;
   vec.values = nullptr;
   num = 0;
   pad = 0;
@@ -179,6 +181,9 @@ Variable::VarInfo::VarInfo(VarInfo &&other) noexcept
   other.style = UNASSIGNED;
   other.reader = nullptr;
   other.data = nullptr;
+  other.vec.n = other.vec.nmax = 0;
+  other.vec.dynamic = 1;
+  other.vec.currentstep = -1;
   other.vec.values = nullptr;
   other.num = 0;
   other.pad = 0;
@@ -205,6 +210,9 @@ Variable::VarInfo &Variable::VarInfo::operator=(VarInfo &&other) noexcept
     other.style = UNASSIGNED;
     other.reader = nullptr;
     other.data = nullptr;
+    other.vec.n = other.vec.nmax = 0;
+    other.vec.dynamic = 1;
+    other.vec.currentstep = -1;
     other.vec.values = nullptr;
     other.eval_in_progress = 0;
     other.num = 0;
@@ -262,6 +270,7 @@ void Variable::set(int narg, char **arg)
 
   int ivar = find(arg[0]);
   std::string varstyle = arg[1];
+  std::string vartext;
 
   // DELETE
   // doesn't matter if variable no longer exists
@@ -272,6 +281,22 @@ void Variable::set(int narg, char **arg)
                  narg, utils::errorurl(3));
     if (ivar >= 0) remove(ivar);
     return;
+  }
+
+  // For variable style string we allow self-references, so we need to run substitute
+  // on the argument now before the original content is deleted
+
+  if (varstyle == "string") {
+
+    int maxcopy = strlen(arg[2]) + 1;
+    int maxwork = maxcopy;
+    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
+    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
+    strcpy(scopy, arg[2]);
+    input->substitute(scopy, work, maxcopy, maxwork, 1);
+    vartext = scopy;
+    memory->sfree(work);
+    memory->sfree(scopy);
   }
 
   // find unassigned variable struct in list or append one
@@ -478,26 +503,18 @@ void Variable::set(int narg, char **arg)
   // replace pre-existing var if also style STRING (allows it to be reset)
   // num = 1, which = 1st value
   // data = 1 value, string to eval
+  // variable text has already been substituted on entry and stored in vartext
 
   if (varstyle == "string") {
     if (narg != 3)
       error->all(FLERR, "Illegal variable command: expected 3 arguments but found {}{}", narg,
                  utils::errorurl(3));
 
-    int maxcopy = strlen(arg[2]) + 1;
-    int maxwork = maxcopy;
-    auto *scopy = (char *) memory->smalloc(maxcopy, "var:string/copy");
-    auto *work = (char *) memory->smalloc(maxwork, "var:string/work");
-    strcpy(scopy, arg[2]);
-    input->substitute(scopy, work, maxcopy, maxwork, 1);
-    memory->sfree(work);
-
     newvar.num = 1;
     newvar.which = 0;
     newvar.pad = 0;
     newvar.data = new char *[newvar.num];
-    copy(1, &scopy, newvar.data);
-    memory->sfree(scopy);
+    newvar.data[0] = utils::strdup(vartext);
     newvar.style = STRING;
     return;
 
@@ -544,8 +561,7 @@ void Variable::set(int narg, char **arg)
     newvar.data = new char *[newvar.num];
     newvar.data[0] = utils::strdup(arg[2]);
     newvar.data[1] = utils::strdup(arg[3]);
-    newvar.data[2] = new char[VALUELENGTH];
-    strcpy(newvar.data[2], "(undefined)");
+    newvar.data[2] = utils::strdup("(undefined)");
     newvar.style = FORMAT;
     return;
 
@@ -773,6 +789,14 @@ int Variable::next(int narg, char **arg)
     else if (variables[ivar].style != varzero.style)
       error->all(FLERR,"All variables in next command must have same style");
   }
+
+  // reject duplicate variable names: incrementing the first copy may
+  // exhaust and remove the variable, leaving a dangling reference
+
+  for (int iarg = 0; iarg < narg-1; iarg++)
+    for (int jarg = iarg+1; jarg < narg; jarg++)
+      if (strcmp(arg[iarg],arg[jarg]) == 0)
+        error->all(FLERR, jarg, "Duplicate variable '{}' in next command", arg[jarg]);
 
   // invalid styles: STRING, EQUAL, WORLD, GETENV, ATOM, VECTOR,
   //                 FORMAT, PYTHON, TIMER, INTERNAL
@@ -1165,7 +1189,8 @@ char *Variable::retrieve(const char *name)
       error->all(FLERR, "Variable {}: format variable {} has incompatible style",
                  var.name, var.data[0]);
     double answer = compute_equal(jvar);
-    snprintf(var.data[2],VALUELENGTH,var.data[1],answer);
+    delete[] var.data[2];
+    var.data[2] = utils::strdup(utils::sprintf(var.data[1], answer));
     str = var.data[2];
 
   } else if (var.style == GETENV) {
@@ -1625,6 +1650,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           print_var_error(FLERR,"Variable evaluation before simulation box is defined"
                           + utils::errorurl(30),ivar);
 
+        // the compute is invoked below and reads per-atom data on the host
+
+        sync_peratom(nullptr);
+
         // uppercase used to access of peratom data by equal-style var
 
         int lowercase = 1;
@@ -1911,6 +1940,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         if (domain->box_exist == 0)
           print_var_error(FLERR,"Variable evaluation before simulation box is defined"
                           + utils::errorurl(30),ivar);
+
+        // the fix supplies per-atom data it stores on the host
+
+        sync_peratom(nullptr);
 
         // uppercase used to force access of
         // global vector vs global scalar, and global array vs global vector
@@ -2334,6 +2367,10 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           print_var_error(FLERR,"Variable evaluation before simulation box is defined"
                           + utils::errorurl(30),ivar);
 
+        // the i_ / d_ / i2_ / d2_ prefix says which custom array is read
+
+        sync_peratom(word);
+
         int index_custom,type_custom,cols_custom;
         if (word[1] == '2') index_custom = atom->find_custom(word+3,type_custom,cols_custom);
         else index_custom = atom->find_custom(word+2,type_custom,cols_custom);
@@ -2508,6 +2545,11 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
           if (domain->box_exist == 0)
             print_var_error(FLERR,"Variable evaluation before simulation box is defined"
                             + utils::errorurl(30),ivar);
+
+          // thermo keywords invoke the thermo computes, which read per-atom
+          // data on the host
+
+          sync_peratom(nullptr);
 
           int flag = output->thermo->evaluate_keyword(word,&value1);
           if (flag)
@@ -2770,8 +2812,10 @@ double Variable::collapse_tree(Tree *tree)
     arg2 = collapse_tree(tree->second);
     if (tree->first->type != VALUE || tree->second->type != VALUE) return 0.0;
     tree->type = VALUE;
-    if (arg2 == 0.0) error->one(FLERR,"Power by 0 in variable formula");
-    tree->value = pow(arg1,arg2);
+    if (arg2 == 0.0) tree->value = 1.0;
+    else if ((arg1 == 0.0) && (arg2 < 0.0))
+      error->one(FLERR,"Invalid power expression in variable formula");
+    else tree->value = pow(arg1,arg2);
     return tree->value;
   }
 
@@ -3138,7 +3182,6 @@ double Variable::collapse_tree(Tree *tree)
         ivalue3-ivalue1+1 < ivalue2 )
       error->all(FLERR,"Invalid math function in variable formula");
     if (update->ntimestep < ivalue1) tree->value = ivalue1;
-    //else if (update->ntimestep <= ivalue3) {
     else {
       tree->value = ivalue1;
       double logsp = ivalue1;
@@ -3337,9 +3380,12 @@ double Variable::eval_tree(Tree *tree, int i)
     return fmod(eval_tree(tree->first,i),denom);
   }
   if (tree->type == CARAT) {
+    double base = eval_tree(tree->first,i);
     double exponent = eval_tree(tree->second,i);
-    if (exponent == 0.0) error->one(FLERR,"Power by 0 in variable formula");
-    return pow(eval_tree(tree->first,i),exponent);
+    if (exponent == 0.0) return 1.0;
+    else if ((base == 0.0) && (exponent < 0.0))
+      error->one(FLERR,"Invalid power expression in variable formula");
+    else return pow(base,exponent);
   }
   if (tree->type == UNARY) return -eval_tree(tree->first,i);
 
@@ -3699,7 +3745,7 @@ void Variable::free_tree(Tree *tree)
     for (int i = 0; i < tree->nextra; i++) free_tree(tree->extra[i]);
     delete[] tree->extra;
   }
-  if (tree->argvars) delete[] tree->argvars;
+  delete[] tree->argvars;
 
   if (tree->selfalloc) memory->destroy(tree->array);
   delete tree;
@@ -3825,18 +3871,18 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
 {
   // word not a match to any math function
 
-  if (strcmp(word,"sqrt") != 0 && strcmp(word,"exp") && strcmp(word,"ln") != 0 &&
-      strcmp(word,"log") != 0 &&  strcmp(word,"abs") != 0 && strcmp(word,"sin") != 0 &&
-      strcmp(word,"cos") != 0 &&  strcmp(word,"tan") != 0 && strcmp(word,"asin") != 0 &&
-      strcmp(word,"acos") != 0 && strcmp(word,"atan") != 0 && strcmp(word,"atan2") != 0 &&
-      strcmp(word,"random") != 0 && strcmp(word,"normal") != 0 && strcmp(word,"ceil") != 0 &&
-      strcmp(word,"floor") != 0 && strcmp(word,"round") != 0 && strcmp(word,"ternary") != 0 &&
-      strcmp(word,"ramp") != 0 && strcmp(word,"stagger") != 0 &&
-      strcmp(word,"logfreq") != 0 && strcmp(word,"logfreq2") != 0 &&
-      strcmp(word,"logfreq3") != 0 && strcmp(word,"stride") != 0 &&
-      strcmp(word,"stride2") != 0 && strcmp(word,"vdisplace") != 0 &&
-      strcmp(word,"swiggle") != 0 && strcmp(word,"cwiggle") != 0 && strcmp(word,"sign") != 0 &&
-      strstr(word,"py_") != word)
+  if ((strcmp(word,"sqrt") != 0) && (strcmp(word,"exp") != 0) && (strcmp(word,"ln") != 0) &&
+      (strcmp(word,"log") != 0) &&  (strcmp(word,"abs") != 0) && (strcmp(word,"sin") != 0) &&
+      (strcmp(word,"cos") != 0) &&  (strcmp(word,"tan") != 0) && (strcmp(word,"asin") != 0) &&
+      (strcmp(word,"acos") != 0) && (strcmp(word,"atan") != 0) && (strcmp(word,"atan2") != 0) &&
+      (strcmp(word,"random") != 0) && (strcmp(word,"normal") != 0) && (strcmp(word,"ceil") != 0) &&
+      (strcmp(word,"floor") != 0) && (strcmp(word,"round") != 0) && (strcmp(word,"ternary") != 0) &&
+      (strcmp(word,"ramp") != 0) && (strcmp(word,"stagger") != 0) &&
+      (strcmp(word,"logfreq") != 0) && (strcmp(word,"logfreq2") != 0) &&
+      (strcmp(word,"logfreq3") != 0) && (strcmp(word,"stride") != 0) &&
+      (strcmp(word,"stride2") != 0) && (strcmp(word,"vdisplace") != 0) &&
+      (strcmp(word,"swiggle") != 0) && (strcmp(word,"cwiggle") != 0) && (strcmp(word,"sign") != 0) &&
+      (strstr(word,"py_") != word))
     return 0;
 
   // parse contents for comma-separated args
@@ -4204,7 +4250,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"vdisplace") == 0) {
     if (narg != 2)
       print_var_error(FLERR,"Invalid vdisplace function in variable formula: must have 2 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use vdisplace(x,y) function with fix dt/reset",ivar);
     if (tree) newtree->type = VDISPLACE;
     else {
@@ -4216,7 +4262,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"swiggle") == 0) {
     if (narg != 3)
       print_var_error(FLERR,"Invalid swiggle function in variable formula: must have 3 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use swiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = SWIGGLE;
     else {
@@ -4231,7 +4277,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   } else if (strcmp(word,"cwiggle") == 0) {
     if (narg != 3)
       print_var_error(FLERR,"Invalid cwiggle function in variable formula: must have 3 arguments",ivar);
-    if (modify->get_fix_by_style("dt/reset").size() > 0)
+    if (!modify->get_fix_by_style("dt/reset").empty())
       print_var_error(FLERR,"Must not use cwiggle(x,y,z) function with fix dt/reset",ivar);
     if (tree) newtree->type = CWIGGLE;
     else {
@@ -4258,7 +4304,7 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
     // pyvar = index of python-style variable which invokes Python function
 
     int pyvar = find(&word[3]);
-    if (variables[pyvar].style != PYTHON)
+    if ((pyvar < 0) || (variables[pyvar].style != PYTHON))
       print_var_error(FLERR,"Invalid python function variable name",ivar);
 
     // check that wrapper matches Python function
@@ -4296,6 +4342,19 @@ int Variable::math_function(char *word, char *contents, Tree **tree, Tree **tree
   return 1;
 }
 
+int Variable::is_group_function(const char *word)
+{
+  return (strcmp(word,"count") == 0) || (strcmp(word,"mass") == 0) ||
+         (strcmp(word,"charge") == 0) || (strcmp(word,"xcm") == 0) ||
+         (strcmp(word,"vcm") == 0) || (strcmp(word,"fcm") == 0) ||
+         (strcmp(word,"bound") == 0) || (strcmp(word,"gyration") == 0) ||
+         (strcmp(word,"ke") == 0) || (strcmp(word,"angmom") == 0) ||
+         (strcmp(word,"torque") == 0) || (strcmp(word,"inertia") == 0) ||
+         (strcmp(word,"omega") == 0);
+}
+
+/* ---------------------------------------------------------------------- */
+
 /* ----------------------------------------------------------------------
    process a group function in formula with optional region arg
    push result onto tree or arg stack
@@ -4314,14 +4373,7 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
 {
   // word not a match to any group function
 
-  if (strcmp(word,"count") != 0 && strcmp(word,"mass") &&
-      strcmp(word,"charge") != 0 && strcmp(word,"xcm") != 0 &&
-      strcmp(word,"vcm") != 0 && strcmp(word,"fcm") != 0 &&
-      strcmp(word,"bound") != 0 && strcmp(word,"gyration") != 0 &&
-      strcmp(word,"ke") != 0 && strcmp(word,"angmom") != 0 &&
-      strcmp(word,"torque") != 0 && strcmp(word,"inertia") != 0 &&
-      strcmp(word,"omega") != 0)
-    return 0;
+  if (!is_group_function(word)) return 0;
 
   // parse contents for comma-separated args
   // narg = number of args, args = strings between commas
@@ -4441,11 +4493,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->angmom(igroup,xcm,lmom);
+      group->angmom_extended(igroup,lmom);
     } else if (narg == 3) {
       auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->angmom(igroup,xcm,lmom,region);
+      group->angmom_extended(igroup,lmom,region);
     } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"x") == 0) value = lmom[0];
     else if (strcmp(args[1],"y") == 0) value = lmom[1];
@@ -4477,11 +4531,13 @@ int Variable::group_function(char *word, char *contents, Tree **tree, Tree **tre
       double masstotal = group->mass(igroup);
       group->xcm(igroup,masstotal,xcm);
       group->inertia(igroup,xcm,inertia);
+      group->inertia_extended(igroup,inertia);
     } else if (narg == 3) {
       auto *region = region_function(args[2],ivar);
       double masstotal = group->mass(igroup,region);
       group->xcm(igroup,masstotal,xcm,region);
       group->inertia(igroup,xcm,inertia,region);
+      group->inertia_extended(igroup,inertia,region);
     } else print_var_error(FLERR,group_errmesg,ivar);
     if (strcmp(args[1],"xx") == 0) value = inertia[0][0];
     else if (strcmp(args[1],"yy") == 0) value = inertia[1][1];
@@ -4569,6 +4625,13 @@ const std::unordered_map<std::string,int> special_function_map = {
 // NOLINTEND
 }
 
+int Variable::is_special_function(const std::string &word)
+{
+  return special_function_map.find(word) != special_function_map.end();
+}
+
+/* ---------------------------------------------------------------------- */
+
 int Variable::special_function(const std::string &word, char *contents, Tree **tree,
                                Tree **treestack, int &ntreestack, double *argstack,
                                int &nargstack, int ivar, char *str, int &istr, char *&ptr)
@@ -4577,7 +4640,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
   double value,sy,sxy;
 
   // return if "word" is not a match to any special function
-  if (special_function_map.find(word) == special_function_map.end()) return 0;
+  if (!is_special_function(word)) return 0;
 
   // process label2type() separately b/c its label arg can have commas in it
 
@@ -4776,10 +4839,10 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     std::vector<double> unsorted;
 
     if (compute) {
-      double *vec;
+      double *vec = nullptr;
       if (index) {
         if (compute->array) vec = &compute->array[0][index-1];
-        else vec = nullptr;
+        else print_var_error(FLERR,"Variable formula compute array has no values",ivar);
       } else vec = compute->vector;
 
       if ((method == SORT) || (method == RSORT)) unsorted.reserve(nvec);
@@ -4859,8 +4922,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     }
 
     if ((method == SORT) || (method == RSORT)) {
-      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<double>());
-      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<double>());
+      if (method == SORT) std::sort(unsorted.begin(), unsorted.end(), std::less<>());
+      if (method == RSORT) std::sort(unsorted.begin(), unsorted.end(), std::greater<>());
 
       if (tree) {
         double *newvec;
@@ -5060,7 +5123,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     } else argstack[nargstack++] = value;
 
   } else if (word == "is_timeout") {
-    if ((narg != 1) || (std::string(args[0]).size() != 0))
+    if ((narg != 1) || (!std::string(args[0]).empty()))
       print_var_error(FLERR,"Invalid is_timeout() function in variable formula",ivar);
     value = timer->is_timeout() ? 1.0 : 0.0;
 
@@ -5099,7 +5162,7 @@ int Variable::feature_function(char *word, char *contents, Tree **tree, Tree **t
 
   // word is not a match to any feature function
 
-  if (strcmp(word,"is_available") && strcmp(word,"is_active") && strcmp(word,"is_defined") != 0)
+  if ((strcmp(word,"is_available") != 0) && (strcmp(word,"is_active") != 0) && (strcmp(word,"is_defined") != 0))
     return 0;
 
   // process feature functions

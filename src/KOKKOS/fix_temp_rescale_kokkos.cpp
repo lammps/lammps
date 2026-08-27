@@ -110,11 +110,12 @@ void FixTempRescaleKokkos<DeviceType>::end_of_step()
 
     atomKK->sync(execution_space,V_MASK|MASK_MASK);
 
+    const KK_FLOAT factor_kk = static_cast<KK_FLOAT>(factor);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(int i) {
       if (mask[i] & groupbit) {
-        v(i,0) *= factor;
-        v(i,1) *= factor;
-        v(i,2) *= factor;
+        v(i,0) *= factor_kk;
+        v(i,1) *= factor_kk;
+        v(i,2) *= factor_kk;
       }
     });
 

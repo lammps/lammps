@@ -115,9 +115,9 @@ void FixMinimizeKokkos::reset_coords()
 
     Kokkos::parallel_for(nlocal, LAMMPS_LAMBDA(const int& i) {
       const int n = i*3;
-      double dx0 = l_x(i,0) - l_x0[n];
-      double dy0 = l_x(i,1) - l_x0[n+1];
-      double dz0 = l_x(i,2) - l_x0[n+2];
+      double dx0 = static_cast<double>(l_x(i,0) - l_x0[n]);
+      double dy0 = static_cast<double>(l_x(i,1) - l_x0[n+1]);
+      double dz0 = static_cast<double>(l_x(i,2) - l_x0[n+2]);
       double dx = dx0;
       double dy = dy0;
       double dz = dz0;
@@ -176,9 +176,9 @@ void FixMinimizeKokkos::reset_coords()
           }
         }
       } // end domain->minimum_image(FLERR, dx,dy,dz);
-      if (dx != dx0) l_x0[n] = l_x(i,0) - dx;
-      if (dy != dy0) l_x0[n+1] = l_x(i,1) - dy;
-      if (dz != dz0) l_x0[n+2] = l_x(i,2) - dz;
+      if (dx != dx0) l_x0[n] = l_x(i,0) - static_cast<KK_FLOAT>(dx);
+      if (dy != dy0) l_x0[n+1] = l_x(i,1) - static_cast<KK_FLOAT>(dy);
+      if (dz != dz0) l_x0[n+2] = l_x(i,2) - static_cast<KK_FLOAT>(dz);
     });
   }
   k_vectors.modify_device();

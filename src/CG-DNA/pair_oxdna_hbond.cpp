@@ -938,20 +938,17 @@ void PairOxdnaHbond::coeff(int narg, char **arg)
 ------------------------------------------------------------------------- */
 void PairOxdnaHbond::init_style()
 {
-  int ifix;
-
   // initialise fix for local reference frame
   fix_lrf = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF");
-  if (fixes.size() == 0) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
+  if (fixes.empty()) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
   else fix_lrf = dynamic_cast<FixOxdnaLRF *>(fixes[0]);
 
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);
 
   // optionally initialise fix for unique base pairing
-  ifix = modify->find_fix("Basepairs");
 
-  if (ifix < 0) {
+  if (!modify->get_fix_by_id("Basepairs")) {
     if (comm->me == 0) utils::logmesg(lmp,"Parsing normal base pairing\n");
   }
   else {
@@ -1259,6 +1256,7 @@ void PairOxdnaHbond::write_restart_settings(FILE *fp)
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
   fwrite(&tail_flag,sizeof(int),1,fp);
+  fwrite(&seqdepflag,sizeof(int),1,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1272,10 +1270,12 @@ void PairOxdnaHbond::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&tail_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&seqdepflag,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
   MPI_Bcast(&tail_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&seqdepflag,1,MPI_INT,0,world);
 }
 
 /* ---------------------------------------------------------------------- */

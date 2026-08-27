@@ -176,7 +176,7 @@ ComputeRHEOPropertyAtom::~ComputeRHEOPropertyAtom()
 void ComputeRHEOPropertyAtom::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0)
+  if (fixes.empty())
     error->all(FLERR, "Need to define fix rheo to use compute rheo/property/atom");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 

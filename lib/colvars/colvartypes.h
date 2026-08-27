@@ -10,8 +10,11 @@
 #ifndef COLVARTYPES_H
 #define COLVARTYPES_H
 
+#include "colvar_gpu_support.h"
 #include <sstream> // TODO specialize templates and replace this with iosfwd
 #include <vector>
+#include <array>
+#include <unordered_map>
 
 #ifdef COLVARS_LAMMPS
 // Use open-source Jacobi implementation
@@ -120,7 +123,7 @@ public:
   inline static void check_sizes(vector1d<T> const &v1, vector1d<T> const &v2)
   {
     if (v1.size() != v2.size()) {
-      cvm::error("Error: trying to perform an operation between vectors of different sizes, "+
+      cvm::error_static("Error: trying to perform an operation between vectors of different sizes, "+
                  cvm::to_str(v1.size())+" and "+cvm::to_str(v2.size())+".\n");
     }
   }
@@ -250,7 +253,7 @@ public:
   inline vector1d<T> const slice(size_t const i1, size_t const i2) const
   {
     if ((i2 < i1) || (i2 >= this->size())) {
-      cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
+      cvm::error_static("Error: trying to slice a vector using incorrect boundaries.\n");
     }
     vector1d<T> result(i2 - i1);
     size_t i;
@@ -265,7 +268,7 @@ public:
                           vector1d<T> const &v)
   {
     if ((i2 < i1) || (i2 >= this->size())) {
-      cvm::error("Error: trying to slice a vector using incorrect boundaries.\n");
+      cvm::error_static("Error: trying to slice a vector using incorrect boundaries.\n");
     }
     size_t i;
     for (i = 0; i < (i2 - i1); i++) {
@@ -328,7 +331,8 @@ public:
     if (this->size() == 0) return std::string("");
     std::ostringstream os;
     os.setf(std::ios::scientific, std::ios::floatfield);
-    os.precision(cvm::cv_prec);
+    // os.precision(cvmodule->cv_prec);
+    os.precision(14);
     os << (*this)[0];
     size_t i;
     for (i = 1; i < this->size(); i++) {
@@ -342,7 +346,7 @@ public:
     std::stringstream stream(s);
     size_t i = 0;
     if (this->size()) {
-      while ((stream >> (*this)[i]) && (i < this->size())) {
+      while ((i < this->size()) && (stream >> (*this)[i])) {
         i++;
       }
       if (i < this->size()) {
@@ -398,7 +402,7 @@ protected:
     inline int set(cvm::vector1d<T> const &v) const
     {
       if (v.size() != length) {
-        return cvm::error("Error: setting a matrix row from a vector of "
+        return cvm::error_static("Error: setting a matrix row from a vector of "
                           "incompatible size.\n", COLVARS_BUG_ERROR);
       }
       for (size_t i = 0; i < length; i++) data[i] = v[i];
@@ -548,7 +552,7 @@ public:
   {
     if ((m1.outer_length != m2.outer_length) ||
         (m1.inner_length != m2.inner_length)) {
-      cvm::error("Error: trying to perform an operation between "
+      cvm::error_static("Error: trying to perform an operation between "
                  "matrices of different sizes, "+
                  cvm::to_str(m1.outer_length)+"x"+
                  cvm::to_str(m1.inner_length)+" and "+
@@ -646,7 +650,7 @@ public:
   {
     vector1d<T> result(m.inner_length);
     if (m.outer_length != v.size()) {
-      cvm::error("Error: trying to multiply a vector and a matrix "
+      cvm::error_static("Error: trying to multiply a vector and a matrix "
                  "of incompatible sizes, "+
                   cvm::to_str(v.size()) + " and " +
                  cvm::to_str(m.outer_length)+"x"+cvm::to_str(m.inner_length) +
@@ -694,7 +698,8 @@ public:
     if (this->size() == 0) return std::string("");
     std::ostringstream os;
     os.setf(std::ios::scientific, std::ios::floatfield);
-    os.precision(cvm::cv_prec);
+    // os.precision(cvmodule->cv_prec);
+    os.precision(14);
     os << (*this)[0];
     size_t i;
     for (i = 1; i < data.size(); i++) {
@@ -726,18 +731,18 @@ public:
 
   cvm::real x, y, z;
 
-  inline rvector()
+  inline COLVARS_HOST_DEVICE rvector()
   {
     reset();
   }
 
   /// \brief Set all components to zero
-  inline void reset()
+  inline COLVARS_HOST_DEVICE void reset()
   {
     set(0.0);
   }
 
-  inline rvector(cvm::real x_i, cvm::real y_i, cvm::real z_i)
+  inline COLVARS_HOST_DEVICE rvector(cvm::real x_i, cvm::real y_i, cvm::real z_i)
   {
     set(x_i, y_i, z_i);
   }
@@ -747,19 +752,19 @@ public:
     set(v[0], v[1], v[2]);
   }
 
-  inline rvector(cvm::real t)
+  inline COLVARS_HOST_DEVICE rvector(cvm::real t)
   {
     set(t);
   }
 
   /// \brief Set all components to a scalar
-  inline void set(cvm::real value)
+  inline COLVARS_HOST_DEVICE void set(cvm::real value)
   {
     x = y = z = value;
   }
 
   /// \brief Assign all components
-  inline void set(cvm::real x_i, cvm::real y_i, cvm::real z_i)
+  inline COLVARS_HOST_DEVICE void set(cvm::real x_i, cvm::real y_i, cvm::real z_i)
   {
     x = x_i;
     y = y_i;
@@ -767,12 +772,12 @@ public:
   }
 
   /// \brief Access cartesian components by index
-  inline cvm::real & operator [] (int i) {
+  inline COLVARS_HOST_DEVICE cvm::real & operator [] (int i) {
     return (i == 0) ? x : (i == 1) ? y : (i == 2) ? z : x;
   }
 
   /// \brief Access cartesian components by index
-  inline cvm::real  operator [] (int i) const {
+  inline COLVARS_HOST_DEVICE cvm::real  operator [] (int i) const {
     return (i == 0) ? x : (i == 1) ? y : (i == 2) ? z : x;
   }
 
@@ -785,45 +790,51 @@ public:
     return result;
   }
 
-  inline void operator += (cvm::rvector const &v)
+  inline COLVARS_HOST_DEVICE void operator += (cvm::rvector const &v)
   {
     x += v.x;
     y += v.y;
     z += v.z;
   }
 
-  inline void operator -= (cvm::rvector const &v)
+  inline COLVARS_HOST_DEVICE void operator -= (cvm::rvector const &v)
   {
     x -= v.x;
     y -= v.y;
     z -= v.z;
   }
 
-  inline void operator *= (cvm::real v)
+  inline COLVARS_HOST_DEVICE void operator *= (cvm::real v)
   {
     x *= v;
     y *= v;
     z *= v;
   }
 
-  inline void operator /= (cvm::real const& v)
+  inline COLVARS_HOST_DEVICE void operator /= (cvm::real const& v)
   {
     x /= v;
     y /= v;
     z /= v;
   }
 
-  inline cvm::real norm2() const
+  inline COLVARS_HOST_DEVICE cvm::real norm2() const
   {
     return (x*x + y*y + z*z);
   }
 
-  inline cvm::real norm() const
+  inline COLVARS_HOST_DEVICE cvm::real norm() const
   {
-    return cvm::sqrt(this->norm2());
+#if (defined(__HIP_DEVICE_COMPILE__)) || (defined (__CUDA_ARCH__))
+#define COLVARS_MATH_SQRT ::sqrt
+#else
+#define COLVARS_MATH_SQRT cvm::sqrt
+#endif
+    return COLVARS_MATH_SQRT(this->norm2());
+#undef COLVARS_MATH_SQRT
   }
 
-  inline cvm::rvector unit() const
+  inline COLVARS_HOST_DEVICE cvm::rvector unit() const
   {
     const cvm::real n = this->norm();
     return (n > 0. ? cvm::rvector(x, y, z)/n : cvm::rvector(1., 0., 0.));
@@ -835,48 +846,49 @@ public:
   }
 
 
-  static inline cvm::rvector outer(cvm::rvector const &v1,
-                                   cvm::rvector const &v2)
+  static inline COLVARS_HOST_DEVICE
+  cvm::rvector outer(cvm::rvector const &v1,
+                     cvm::rvector const &v2)
   {
     return cvm::rvector( v1.y*v2.z - v2.y*v1.z,
                          -v1.x*v2.z + v2.x*v1.z,
                          v1.x*v2.y - v2.x*v1.y);
   }
 
-  friend inline cvm::rvector operator - (cvm::rvector const &v)
+  friend inline COLVARS_HOST_DEVICE cvm::rvector operator - (cvm::rvector const &v)
   {
     return cvm::rvector(-v.x, -v.y, -v.z);
   }
 
-  friend inline cvm::rvector operator + (cvm::rvector const &v1,
+  friend inline COLVARS_HOST_DEVICE cvm::rvector operator + (cvm::rvector const &v1,
                                          cvm::rvector const &v2)
   {
     return cvm::rvector(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
   }
-  friend inline cvm::rvector operator - (cvm::rvector const &v1,
+  friend inline COLVARS_HOST_DEVICE cvm::rvector operator - (cvm::rvector const &v1,
                                          cvm::rvector const &v2)
   {
     return cvm::rvector(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
   }
 
   /// Inner (dot) product
-  friend inline cvm::real operator * (cvm::rvector const &v1,
+  friend inline COLVARS_HOST_DEVICE cvm::real operator * (cvm::rvector const &v1,
                                       cvm::rvector const &v2)
   {
     return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
   }
 
-  friend inline cvm::rvector operator * (cvm::real a, cvm::rvector const &v)
+  friend inline COLVARS_HOST_DEVICE cvm::rvector operator * (cvm::real a, cvm::rvector const &v)
   {
     return cvm::rvector(a*v.x, a*v.y, a*v.z);
   }
 
-  friend inline cvm::rvector operator * (cvm::rvector const &v, cvm::real a)
+  friend inline COLVARS_HOST_DEVICE cvm::rvector operator * (cvm::rvector const &v, cvm::real a)
   {
     return cvm::rvector(a*v.x, a*v.y, a*v.z);
   }
 
-  friend inline cvm::rvector operator / (cvm::rvector const &v, cvm::real a)
+  friend inline COLVARS_HOST_DEVICE cvm::rvector operator / (cvm::rvector const &v, cvm::real a)
   {
     return cvm::rvector(v.x/a, v.y/a, v.z/a);
   }
@@ -895,15 +907,16 @@ public:
   cvm::real xx, xy, xz, yx, yy, yz, zx, zy, zz;
 
   /// Default constructor
-  inline rmatrix()
+  inline COLVARS_HOST_DEVICE rmatrix()
   {
     reset();
   }
 
   /// Constructor component by component
-  inline rmatrix(cvm::real xxi, cvm::real xyi, cvm::real xzi,
-                 cvm::real yxi, cvm::real yyi, cvm::real yzi,
-                 cvm::real zxi, cvm::real zyi, cvm::real zzi)
+  inline COLVARS_HOST_DEVICE
+  rmatrix(cvm::real xxi, cvm::real xyi, cvm::real xzi,
+          cvm::real yxi, cvm::real yyi, cvm::real yzi,
+          cvm::real zxi, cvm::real zyi, cvm::real zzi)
   {
     xx = xxi;
     xy = xyi;
@@ -917,13 +930,13 @@ public:
   }
 
 
-  inline void reset()
+  inline COLVARS_HOST_DEVICE void reset()
   {
     xx = xy = xz = yx = yy = yz = zx = zy = zz = 0.0;
   }
 
   /// Return the determinant
-  inline cvm::real determinant() const
+  inline COLVARS_HOST_DEVICE cvm::real determinant() const
   {
     return
       (  xx * (yy*zz - zy*yz))
@@ -931,19 +944,32 @@ public:
       + (zx * (xy*yz - yy*xz));
   }
 
-  inline cvm::rmatrix transpose() const
+  inline COLVARS_HOST_DEVICE cvm::rmatrix transpose() const
   {
     return cvm::rmatrix(xx, yx, zx,
                         xy, yy, zy,
                         xz, yz, zz);
   }
 
-  inline friend cvm::rvector operator * (cvm::rmatrix const &m,
+  inline COLVARS_HOST_DEVICE friend cvm::rvector operator * (cvm::rmatrix const &m,
                                          cvm::rvector const &r)
   {
     return cvm::rvector(m.xx*r.x + m.xy*r.y + m.xz*r.z,
                         m.yx*r.x + m.yy*r.y + m.yz*r.z,
                         m.zx*r.x + m.zy*r.y + m.zz*r.z);
+  }
+
+  inline COLVARS_HOST_DEVICE rmatrix& operator+=(const rmatrix& rhs) {
+    this->xx += rhs.xx;
+    this->xy += rhs.xy;
+    this->xz += rhs.xz;
+    this->yx += rhs.yx;
+    this->yy += rhs.yy;
+    this->yz += rhs.yz;
+    this->zx += rhs.zx;
+    this->zy += rhs.zy;
+    this->zz += rhs.zz;
+    return *this;
   }
 };
 
@@ -958,12 +984,12 @@ public:
   cvm::real q0, q1, q2, q3;
 
   /// Constructor component by component
-  inline quaternion(cvm::real const qv[4])
+  inline COLVARS_HOST_DEVICE quaternion(cvm::real const qv[4])
     : q0(qv[0]), q1(qv[1]), q2(qv[2]), q3(qv[3])
   {}
 
   /// Constructor component by component
-  inline quaternion(cvm::real q0i,
+  inline COLVARS_HOST_DEVICE quaternion(cvm::real q0i,
                     cvm::real q1i,
                     cvm::real q2i,
                     cvm::real q3i)
@@ -975,13 +1001,13 @@ public:
   {}
 
   /// \brief Default constructor
-  inline quaternion()
+  inline COLVARS_HOST_DEVICE quaternion()
   {
     reset();
   }
 
   /// \brief Set all components to zero (null quaternion)
-  inline void reset()
+  inline COLVARS_HOST_DEVICE void reset()
   {
     q0 = q1 = q2 = q3 = 0.0;
   }
@@ -1001,7 +1027,7 @@ public:
   friend std::istream & operator >> (std::istream &is, cvm::quaternion &q);
 
   /// Access the quaternion as a 4-d array (return a reference)
-  inline cvm::real & operator [] (int i) {
+  inline COLVARS_HOST_DEVICE cvm::real & operator [] (int i) {
     switch (i) {
     case 0:
       return this->q0;
@@ -1012,13 +1038,15 @@ public:
     case 3:
       return this->q3;
     default:
-      cvm::error("Error: incorrect quaternion component.\n");
+#if !(defined(__NVCC__) || defined(__HIPCC__))
+      cvm::error_static("Error: incorrect quaternion component.\n");
+#endif
       return q0;
     }
   }
 
   /// Access the quaternion as a 4-d array (return a value)
-  inline cvm::real operator [] (int i) const {
+  inline COLVARS_HOST_DEVICE cvm::real operator [] (int i) const {
     switch (i) {
     case 0:
       return this->q0;
@@ -1029,8 +1057,10 @@ public:
     case 3:
       return this->q3;
     default:
-      cvm::error("Error: trying to access a quaternion "
+#if !(defined(__NVCC__) || defined(__HIPCC__))
+      cvm::error_static("Error: trying to access a quaternion "
                  "component which is not between 0 and 3.\n");
+#endif
       return 0.0;
     }
   }
@@ -1046,34 +1076,40 @@ public:
   }
 
   /// Square norm of the quaternion
-  inline cvm::real norm2() const
+  inline COLVARS_HOST_DEVICE cvm::real norm2() const
   {
     return q0*q0 + q1*q1 + q2*q2 + q3*q3;
   }
 
   /// Norm of the quaternion
-  inline cvm::real norm() const
+  inline COLVARS_HOST_DEVICE cvm::real norm() const
   {
-    return cvm::sqrt(this->norm2());
+#if (defined(__HIP_DEVICE_COMPILE__)) || (defined (__CUDA_ARCH__))
+#define COLVARS_MATH_SQRT ::sqrt
+#else
+#define COLVARS_MATH_SQRT cvm::sqrt
+#endif
+    return COLVARS_MATH_SQRT(this->norm2());
+#undef COLVARS_MATH_SQRT
   }
 
   /// Return the conjugate quaternion
-  inline cvm::quaternion conjugate() const
+  inline COLVARS_HOST_DEVICE cvm::quaternion conjugate() const
   {
     return cvm::quaternion(q0, -q1, -q2, -q3);
   }
 
-  inline void operator *= (cvm::real a)
+  inline COLVARS_HOST_DEVICE void operator *= (cvm::real a)
   {
     q0 *= a; q1 *= a; q2 *= a; q3 *= a;
   }
 
-  inline void operator /= (cvm::real a)
+  inline COLVARS_HOST_DEVICE void operator /= (cvm::real a)
   {
     q0 /= a; q1 /= a; q2 /= a; q3 /= a;
   }
 
-  inline void set_positive()
+  inline COLVARS_HOST_DEVICE void set_positive()
   {
     if (q0 > 0.0) return;
     q0 = -q0;
@@ -1082,29 +1118,29 @@ public:
     q3 = -q3;
   }
 
-  inline void operator += (cvm::quaternion const &h)
+  inline COLVARS_HOST_DEVICE void operator += (cvm::quaternion const &h)
   {
     q0+=h.q0; q1+=h.q1; q2+=h.q2; q3+=h.q3;
   }
-  inline void operator -= (cvm::quaternion const &h)
+  inline COLVARS_HOST_DEVICE void operator -= (cvm::quaternion const &h)
   {
     q0-=h.q0; q1-=h.q1; q2-=h.q2; q3-=h.q3;
   }
 
   /// Return the vector component
-  inline cvm::rvector get_vector() const
+  inline COLVARS_HOST_DEVICE cvm::rvector get_vector() const
   {
     return cvm::rvector(q1, q2, q3);
   }
 
 
-  friend inline cvm::quaternion operator + (cvm::quaternion const &h,
+  friend inline COLVARS_HOST_DEVICE cvm::quaternion operator + (cvm::quaternion const &h,
                                             cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0+q.q0, h.q1+q.q1, h.q2+q.q2, h.q3+q.q3);
   }
 
-  friend inline cvm::quaternion operator - (cvm::quaternion const &h,
+  friend inline COLVARS_HOST_DEVICE cvm::quaternion operator - (cvm::quaternion const &h,
                                             cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0-q.q0, h.q1-q.q1, h.q2-q.q2, h.q3-q.q3);
@@ -1112,7 +1148,7 @@ public:
 
   /// \brief Provides the quaternion product.  \b NOTE: for the inner
   /// product use: `h.inner (q);`
-  friend inline cvm::quaternion operator * (cvm::quaternion const &h,
+  friend inline COLVARS_HOST_DEVICE cvm::quaternion operator * (cvm::quaternion const &h,
                                             cvm::quaternion const &q)
   {
     return cvm::quaternion(h.q0*q.q0 - h.q1*q.q1 - h.q2*q.q2 - h.q3*q.q3,
@@ -1121,17 +1157,17 @@ public:
                            h.q0*q.q3 + h.q3*q.q0 + h.q1*q.q2 - h.q2*q.q1);
   }
 
-  friend inline cvm::quaternion operator * (cvm::real c,
+  friend inline COLVARS_HOST_DEVICE cvm::quaternion operator * (cvm::real c,
                                             cvm::quaternion const &q)
   {
     return cvm::quaternion(c*q.q0, c*q.q1, c*q.q2, c*q.q3);
   }
-  friend inline cvm::quaternion operator * (cvm::quaternion const &q,
+  friend inline COLVARS_HOST_DEVICE cvm::quaternion operator * (cvm::quaternion const &q,
                                             cvm::real c)
   {
     return cvm::quaternion(q.q0*c, q.q1*c, q.q2*c, q.q3*c);
   }
-  friend inline cvm::quaternion operator / (cvm::quaternion const &q,
+  friend inline COLVARS_HOST_DEVICE cvm::quaternion operator / (cvm::quaternion const &q,
                                             cvm::real c)
   {
     return cvm::quaternion(q.q0/c, q.q1/c, q.q2/c, q.q3/c);
@@ -1140,7 +1176,7 @@ public:
 
   /// \brief Rotate v through this quaternion (put it in the rotated
   /// reference frame)
-  inline cvm::rvector rotate(cvm::rvector const &v) const
+  inline COLVARS_HOST_DEVICE cvm::rvector rotate(cvm::rvector const &v) const
   {
     return ( (*this) * cvm::quaternion(0.0, v.x, v.y, v.z) *
              this->conjugate() ).get_vector();
@@ -1148,14 +1184,14 @@ public:
 
   /// \brief Rotate Q2 through this quaternion (put it in the rotated
   /// reference frame)
-  inline cvm::quaternion rotate(cvm::quaternion const &Q2) const
+  inline COLVARS_HOST_DEVICE cvm::quaternion rotate(cvm::quaternion const &Q2) const
   {
     cvm::rvector const vq_rot = this->rotate(Q2.get_vector());
     return cvm::quaternion(Q2.q0, vq_rot.x, vq_rot.y, vq_rot.z);
   }
 
   /// Return the 3x3 matrix associated to this quaternion
-  inline cvm::rmatrix rotation_matrix() const
+  inline COLVARS_HOST_DEVICE cvm::rmatrix rotation_matrix() const
   {
     cvm::rmatrix R;
 
@@ -1175,65 +1211,61 @@ public:
     return R;
   }
 
-
-  /// \brief Multiply the given vector by the derivative of the given
-  /// (rotated) position with respect to the quaternion
-  /// \param pos The position \f$\mathbf{x}\f$.
-  /// \param vec The vector \f$\mathbf{v}\f$.
-  /// \return A quaternion (see the detailed documentation below).
-  ///
-  /// This function is mainly used for projecting the gradients or forces on
-  /// the rotated atoms to the forces on quaternion. Assume this rotation can
-  /// be represented as \f$R(\mathbf{q})\f$,
-  /// where \f$\mathbf{q} := (q_0, q_1, q_2, q_3)\f$
-  /// is the current quaternion, the function returns the following new
-  /// quaternion:
-  /// \f[
-  /// \left(\mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_0}\mathbf{x},
-  ///       \mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_1}\mathbf{x},
-  ///       \mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_2}\mathbf{x},
-  ///       \mathbf{v}^\mathrm{T}\frac{\partial R(\mathbf{q})}{\partial q_3}\mathbf{x}\right)
-  /// \f]
-  /// where \f$\mathbf{v}\f$ is usually the gradient of \f$\xi\f$ with respect to
-  /// the rotated frame \f$\tilde{\mathbf{X}}\f$,
-  /// \f$\partial \xi / \partial \tilde{\mathbf{X}}\f$, or the force acting on it
-  /// (\f$\mathbf{F}_{\tilde{\mathbf{X}}}\f$).
-  /// By using the following loop in pseudo C++ code,
-  /// either \f$\partial \xi / \partial \tilde{\mathbf{X}}\f$
-  /// or \f$\mathbf{F}_{\tilde{\mathbf{X}}}\f$, can be projected to
-  /// \f$\partial \xi / \partial \mathbf{q}\f$ or \f$\mathbf{F}_q\f$ into `sum_dxdq`:
-  /// @code
-  /// cvm::real sum_dxdq[4] = {0, 0, 0, 0};
-  /// for (size_t i = 0; i < main_group_size(); ++i) {
-  ///   const cvm::rvector v = grad_or_force_on_rotated_main_group(i);
-  ///   const cvm::rvector x = unrotated_main_group_positions(i);
-  ///   cvm::quaternion const dxdq = position_derivative_inner(x, v);
-  ///   sum_dxdq[0] += dxdq[0];
-  ///   sum_dxdq[1] += dxdq[1];
-  ///   sum_dxdq[2] += dxdq[2];
-  ///   sum_dxdq[3] += dxdq[3];
-  /// }
-  /// @endcode
-  inline cvm::quaternion position_derivative_inner(cvm::rvector const &pos,
-                                            cvm::rvector const &vec) const {
-    return cvm::quaternion(2.0 * (vec.x * ( q0 * pos.x - q3 * pos.y + q2 * pos.z) +
-                                  vec.y * ( q3 * pos.x + q0 * pos.y - q1 * pos.z) +
-                                  vec.z * (-q2 * pos.x + q1 * pos.y + q0 * pos.z)),
-                           2.0 * (vec.x * ( q1 * pos.x + q2 * pos.y + q3 * pos.z) +
-                                  vec.y * ( q2 * pos.x - q1 * pos.y - q0 * pos.z) +
-                                  vec.z * ( q3 * pos.x + q0 * pos.y - q1 * pos.z)),
-                           2.0 * (vec.x * (-q2 * pos.x + q1 * pos.y + q0 * pos.z) +
-                                  vec.y * ( q1 * pos.x + q2 * pos.y + q3 * pos.z) +
-                                  vec.z * (-q0 * pos.x + q3 * pos.y - q2 * pos.z)),
-                           2.0 * (vec.x * (-q3 * pos.x - q0 * pos.y + q1 * pos.z) +
-                                  vec.y * ( q0 * pos.x - q3 * pos.y + q2 * pos.z) +
-                                  vec.z * ( q1 * pos.x + q2 * pos.y + q3 * pos.z)));
+  /** \brief Calculate the sums of element-wise products of a given matrix with respect to dR/dq0, dR/dq1, dR/dq2 and dR/dq3
+   *
+   *  \tparam T The type of returning array (could be std::array or cuda::std::array)
+   *  \param C A 3x3 matrix
+   *
+   *  \return A 4-element tuple (see the detailed documentation below).
+   *
+   *  This function is mainly used for projecting the gradients or forces on
+   *  a rotation matrix to the gradients or forces on the quaternion of the
+   *  same rotation matrix. Mathematically, let \f$C\f$ be the matrix
+   *  \f[
+   *  \begin{bmatrix}
+   *  \frac{\partial f}{\partial R_{00}} & \frac{\partial f}{\partial R_{01}} & \frac{\partial f}{\partial R_{02}} \\
+   *  \frac{\partial f}{\partial R_{10}} & \frac{\partial f}{\partial R_{11}} & \frac{\partial f}{\partial R_{12}} \\
+   *  \frac{\partial f}{\partial R_{20}} & \frac{\partial f}{\partial R_{21}} & \frac{\partial f}{\partial R_{22}}
+   *  \end{bmatrix}
+   *  \f]
+   *  and \f$\frac{{\rm d}R}{{\rm d}q_{i}}\f$ be
+   *  \f[
+   *  \begin{bmatrix}
+   *  \frac{\partial R_{00}}{\partial q_i} & \frac{\partial R_{01}}{\partial q_i} & \frac{\partial R_{02}}{\partial q_i} \\
+   *  \frac{\partial R_{10}}{\partial q_i} & \frac{\partial R_{11}}{\partial q_i} & \frac{\partial R_{12}}{\partial q_i} \\
+   *  \frac{\partial R_{20}}{\partial q_i} & \frac{\partial R_{21}}{\partial q_i} & \frac{\partial R_{22}}{\partial q_i}
+   *  \end{bmatrix}
+   *  \f]
+   *  This function returns
+   *  \f[
+   *  \left[\mathbf{e}^T\left(C \odot \frac{{\rm d}R}{{\rm d}q_0}\right)\mathbf{e},
+   *        \mathbf{e}^T\left(C \odot \frac{{\rm d}R}{{\rm d}q_1}\right)\mathbf{e},
+   *        \mathbf{e}^T\left(C \odot \frac{{\rm d}R}{{\rm d}q_2}\right)\mathbf{e},
+   *        \mathbf{e}^T\left(C \odot \frac{{\rm d}R}{{\rm d}q_3}\right)\mathbf{e}\right]
+   *  \f]
+   *  where \f$\mathbf{e}\f$ is \f$[1, 1, 1]\f$ and \f$\odot\f$ is the element-wise product (Hadamard product).
+   */
+  template <typename T>
+  inline COLVARS_HOST_DEVICE T derivative_element_wise_product_sum(const cvm::real (&C)[3][3]) const {
+    return T{{
+      2.0 * ( q0 * C[0][0] - q3 * C[0][1] + q2 * C[0][2] +
+              q3 * C[1][0] + q0 * C[1][1] - q1 * C[1][2] +
+             -q2 * C[2][0] + q1 * C[2][1] + q0 * C[2][2]),
+      2.0 * ( q1 * C[0][0] + q2 * C[0][1] + q3 * C[0][2] +
+              q2 * C[1][0] - q1 * C[1][1] - q0 * C[1][2] +
+              q3 * C[2][0] + q0 * C[2][1] - q1 * C[2][2]),
+      2.0 * (-q2 * C[0][0] + q1 * C[0][1] + q0 * C[0][2] +
+              q1 * C[1][0] + q2 * C[1][1] + q3 * C[1][2] +
+             -q0 * C[2][0] + q3 * C[2][1] - q2 * C[2][2]),
+      2.0 * (-q3 * C[0][0] - q0 * C[0][1] + q1 * C[0][2] +
+              q0 * C[1][0] - q3 * C[1][1] + q2 * C[1][2] +
+              q1 * C[2][0] + q2 * C[2][1] + q3 * C[2][2])
+    }};
   }
-
 
   /// \brief Return the cosine between the orientation frame
   /// associated to this quaternion and another
-  inline cvm::real cosine(cvm::quaternion const &q) const
+  inline COLVARS_HOST_DEVICE cvm::real cosine(cvm::quaternion const &q) const
   {
     cvm::real const iprod = this->inner(q);
     return 2.0*iprod*iprod - 1.0;
@@ -1242,13 +1274,18 @@ public:
   /// \brief Square distance from another quaternion on the
   /// 4-dimensional unit sphere: returns the square of the angle along
   /// the shorter of the two geodesics
-  inline cvm::real dist2(cvm::quaternion const &Q2) const
+  inline COLVARS_HOST_DEVICE cvm::real dist2(cvm::quaternion const &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
-
-    cvm::real const omega = cvm::acos( (cos_omega > 1.0) ? 1.0 :
-                                       ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
+#if (defined(__HIP_DEVICE_COMPILE__)) || (defined (__CUDA_ARCH__))
+#define COLVARS_MATH_ACOS ::acos
+#else
+#define COLVARS_MATH_ACOS cvm::acos
+#endif
+    cvm::real const omega = COLVARS_MATH_ACOS( (cos_omega > 1.0) ? 1.0 :
+                                    ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
+#undef COLVARS_MATH_ACOS
 
     // get the minimum distance: x and -x are the same quaternion
     if (cos_omega > 0.0)
@@ -1259,18 +1296,29 @@ public:
 
   /// Gradient of the square distance: returns a 4-vector equivalent
   /// to that provided by slerp
-  inline cvm::quaternion dist2_grad(cvm::quaternion const &Q2) const
+  inline COLVARS_HOST_DEVICE cvm::quaternion dist2_grad(cvm::quaternion const &Q2) const
   {
+#if (defined(__HIP_DEVICE_COMPILE__)) || (defined (__CUDA_ARCH__))
+#define COLVARS_MATH_ACOS ::acos
+#define COLVARS_MATH_SIN ::sin
+#define COLVARS_MATH_FABS ::fabs
+#else
+#define COLVARS_MATH_ACOS cvm::acos
+#define COLVARS_MATH_SIN cvm::sin
+#define COLVARS_MATH_FABS cvm::fabs
+#endif
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 + this->q2*Q2.q2 + this->q3*Q2.q3;
-    cvm::real const omega = cvm::acos( (cos_omega > 1.0) ? 1.0 :
+    cvm::real const omega = COLVARS_MATH_ACOS( (cos_omega > 1.0) ? 1.0 :
                                        ( (cos_omega < -1.0) ? -1.0 : cos_omega) );
-    cvm::real const sin_omega = cvm::sin(omega);
+    cvm::real const sin_omega = COLVARS_MATH_SIN(omega);
 
-    if (cvm::fabs(sin_omega) < 1.0E-14) {
+    if (COLVARS_MATH_FABS(sin_omega) < 1.0E-14) {
       // return a null 4d vector
       return cvm::quaternion(0.0, 0.0, 0.0, 0.0);
     }
-
+#undef COLVARS_MATH_ACOS
+#undef COLVARS_MATH_SIN
+#undef COLVARS_MATH_FABS
     cvm::quaternion const
       grad1((-1.0)*sin_omega*Q2.q0 + cos_omega*(this->q0-cos_omega*Q2.q0)/sin_omega,
             (-1.0)*sin_omega*Q2.q1 + cos_omega*(this->q1-cos_omega*Q2.q1)/sin_omega,
@@ -1286,7 +1334,7 @@ public:
 
   /// \brief Choose the closest between Q2 and -Q2 and save it back.
   /// Not required for dist2() and dist2_grad()
-  inline void match(cvm::quaternion &Q2) const
+  inline COLVARS_HOST_DEVICE void match(cvm::quaternion &Q2) const
   {
     cvm::real const cos_omega = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
@@ -1295,7 +1343,7 @@ public:
 
   /// \brief Inner product (as a 4-d vector) with Q2; requires match()
   /// if the largest overlap is looked for
-  inline cvm::real inner(cvm::quaternion const &Q2) const
+  inline COLVARS_HOST_DEVICE cvm::real inner(cvm::quaternion const &Q2) const
   {
     cvm::real const prod = this->q0*Q2.q0 + this->q1*Q2.q1 +
       this->q2*Q2.q2 + this->q3*Q2.q3;
@@ -1342,6 +1390,14 @@ public:
   cvm::quaternion q{1.0, 0.0, 0.0, 0.0};
 
   friend struct rotation_derivative;
+  friend class cvm::atom_group;
+
+  cvm::real* get_S() {return (cvm::real*)S;}
+  cvm::real* get_eigenvectors() {return (cvm::real*)S_eigvec;}
+  cvm::real* get_eigenvalues() {return S_eigval;}
+  cvm::quaternion* get_q() {return &q;}
+  cvm::real* get_S_backup() {return (cvm::real*)S_backup;}
+  cvm::rmatrix* get_C() {return &C;}
 
   /*! @brief  Function for debugging gradients
    *  @param[in]  pos1  Atom positions of group 1 in SOA (in xxxyyyzzz order)
@@ -1351,8 +1407,8 @@ public:
    */
   void debug_gradients(
     cvm::rotation &rot,
-    const std::vector<cvm::real> &pos1,
-    const std::vector<cvm::real> &pos2,
+    const cvm::ag_vector_real_t &pos1,
+    const cvm::ag_vector_real_t &pos2,
     const size_t num_atoms_pos1,
     const size_t num_atoms_pos2);
 
@@ -1369,8 +1425,8 @@ public:
   void calc_optimal_rotation(std::vector<atom_pos> const &pos1,
                              std::vector<atom_pos> const &pos2);
   void calc_optimal_rotation_soa(
-    std::vector<cvm::real> const &pos1,
-    std::vector<cvm::real> const &pos2,
+    cvm::ag_vector_real_t const &pos1,
+    cvm::ag_vector_real_t const &pos2,
     const size_t num_atoms_pos1,
     const size_t num_atoms_pos2);
 
@@ -1518,5 +1574,84 @@ protected:
   void *jacobi;
 };
 
+#if defined (COLVARS_CUDA) || defined (COLVARS_HIP)
+namespace colvars_gpu {
+class jacobi_gpu;
+class rotation_gpu {
+private:
+  // cudaStream_t stream;
+  /// Correlation matrix C (3, 3)
+  // cvm::rmatrix* d_C;
+  /// Overlap matrix S (4, 4)
+  cvm::real* d_S;
+  /// Eigenvalues of S
+  cvm::real* d_S_eigval;
+  /**
+   * \brief Eigenvectors of S
+   * @note d_S_eigvec is in column-major order.
+   *   To get j-th element of the i-th eigenvector,
+   *   use d_S_eigvec[i*4+j]
+   */
+  cvm::real* d_S_eigvec;
+  /// Used for debugging gradients
+  // cvm::real* d_S_backup;
+  /// Eigensolver
+  // jacobi_gpu* jacobi;
+  /// Thread block atomic counter
+  unsigned int* tbcount;
+  /// \brief The rotation itself (implemented as a quaternion)
+  cvm::quaternion* d_q;
+  /// \brief Crossing monitor
+  cvm::quaternion* d_q_old;
+  int* discontinuous_rotation;
+  /// \brief Flag for checking if eigendecomposition is failed
+  int* max_iteration_reached;
+  /// \brief Flag for checking if initialized
+  bool b_initialized;
+  /// \brief Host data for compatibility with CPU buffers
+  cvm::rmatrix* h_C;
+  cvm::real* h_S;
+  cvm::real* h_S_eigval;
+  cvm::real* h_S_eigvec;
+public:
+  /// Constructor
+  rotation_gpu();
+  /// Destructor
+  ~rotation_gpu();
+  /// Check if the object is initialized
+  bool initialized() const {return b_initialized;}
+  /// Initialize member data
+  int init(/*const cudaStream_t& stream_in*/);
+  /// \brief Calculate the optimal rotation and store the
+  /// corresponding eigenvalue and eigenvector in the arguments l0 and
+  /// q0; if the gradients have been previously requested, calculate
+  /// them as well
+  ///
+  /// The method to derive the optimal rotation is defined in:
+  /// Coutsias EA, Seok C, Dill KA.
+  /// Using quaternions to calculate RMSD.
+  /// J Comput Chem. 25(15):1849-57 (2004)
+  /// DOI: 10.1002/jcc.20110  PubMed: 15376254
+  int add_optimal_rotation_nodes(
+    cvm::real* const d_pos1,
+    cvm::real* const d_pos2,
+    const size_t num_atoms_pos1,
+    const size_t num_atoms_pos2,
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map);
+  /// \brief Checking after synchronization (
+  /// eigendecomposition iterations and max crossing)
+  void after_sync_check() const;
+
+  friend struct rotation_derivative_gpu;
+  cvm::real* get_S() const {return d_S;}
+  cvm::real* get_eigenvectors() const {return d_S_eigvec;}
+  cvm::real* get_eigenvalues() const {return d_S_eigval;}
+  cvm::quaternion* get_q() const {return d_q;}
+
+  void to_cpu(cvm::rotation& rot) const;
+};
+}
+#endif // defined(COLVARS_CUDA) || defined(COLVARS_HIP)
 
 #endif

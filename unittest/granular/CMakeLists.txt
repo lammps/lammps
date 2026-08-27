@@ -76,57 +76,77 @@ function(register_dem_tests driver prefix label)
   endforeach()
 endfunction()
 
-# DEM-01: freely falling particle bouncing off a wall
+# DEM-01: two identical spheres, head-on normal collision (coefficient of restitution)
 add_executable(test_dem_01 test_dem_01.cpp)
 target_link_libraries(test_dem_01 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_01 dem01 DEM01)
 
-# DEM-02: repeated bouncing particle (convergence to the hard-sphere limit)
+# DEM-02: elastic Hertzian normal impact of two spheres (peak contact force)
 add_executable(test_dem_02 test_dem_02.cpp)
 target_link_libraries(test_dem_02 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_02 dem02 DEM02)
 
-# DEM-03: two stacked particles in continuous compression between two walls
+# DEM-03: elastic Hertzian normal impact of a sphere on a wall (peak contact force)
 add_executable(test_dem_03 test_dem_03.cpp)
 target_link_libraries(test_dem_03 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_03 dem03 DEM03)
 
-# DEM-04: sphere sliding then rolling without slipping on a rough surface
+# DEM-04: oblique impact of a sphere on a wall (gross-sliding friction)
 add_executable(test_dem_04 test_dem_04.cpp)
 target_link_libraries(test_dem_04 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_04 dem04 DEM04)
 
-# DEM-05: oblique collision of a sphere with a flat wall
+# DEM-05: sphere sliding then rolling without slipping on a rough wall (slip cessation)
 add_executable(test_dem_05 test_dem_05.cpp)
 target_link_libraries(test_dem_05 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_05 dem05 DEM05)
 
-# DEM-06: single particle settling to terminal velocity under fluid drag
+# DEM-06: spinning sphere impacting a heavy partner / wall (rebound + friction)
 add_executable(test_dem_06 test_dem_06.cpp)
 target_link_libraries(test_dem_06 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_06 dem06 DEM06)
 
-# DEM-07: spinning sphere damped by rolling resistance (rolling sds)
+# DEM-07: spinning sphere damped to rest by rolling resistance (rolling sds)
 add_executable(test_dem_07 test_dem_07.cpp)
 target_link_libraries(test_dem_07 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_07 dem07 DEM07)
 
-# DEM-08: cohesive/adhesive contact (DMT/JKR pull-off force)
+# DEM-08: cohesive/adhesive contact -- the DMT pull-off force
 add_executable(test_dem_08 test_dem_08.cpp)
 target_link_libraries(test_dem_08 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_08 dem08 DEM08)
 
-# DEM-09: particle-particle head-on and oblique (shear) collisions
+# DEM-09: single particle settling to terminal velocity under fluid drag
 add_executable(test_dem_09 test_dem_09.cpp)
 target_link_libraries(test_dem_09 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_09 dem09 DEM09)
 
-# DEM-10: bulk angle of repose and multi-sphere rigid clumps
+# DEM-10: exact integration and static contact (free fall, stacked compression)
 add_executable(test_dem_10 test_dem_10.cpp)
 target_link_libraries(test_dem_10 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_10 dem10 DEM10)
 
-# DEM-11: elastic Hertzian normal impact (peak contact mechanics)
+# DEM-11: contact with region walls (restitution)
 add_executable(test_dem_11 test_dem_11.cpp)
 target_link_libraries(test_dem_11 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_11 dem11 DEM11)
+
+# DEM-12: superellipsoid collision (momentum and angular momentum conservation)
+add_executable(test_dem_12 test_dem_12.cpp)
+target_link_libraries(test_dem_12 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_12 dem12 DEM12)
+
+# DEM-13: spinning sphere damped by twisting friction (sds and marshall)
+add_executable(test_dem_13 test_dem_13.cpp)
+target_link_libraries(test_dem_13 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_13 dem13 DEM13)
+
+# DEM-14: granular heat conduction between two spheres in static contact
+add_executable(test_dem_14 test_dem_14.cpp)
+target_link_libraries(test_dem_14 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_14 dem14 DEM14)
+
+# DEM-15: oblique impact of two spheres (gross-sliding friction between particles)
+add_executable(test_dem_15 test_dem_15.cpp)
+target_link_libraries(test_dem_15 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_15 dem15 DEM15)

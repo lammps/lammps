@@ -30,9 +30,12 @@
 #include "update.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cmath>
+#include <cstdarg>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <stdexcept>
@@ -289,6 +292,39 @@ void utils::print(const std::string &mesg)
 void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
 {
   print(fp, fmt::vformat(format, args));
+}
+
+/* internal function handling the variable argument list for utils::sprintf() */
+
+std::string utils::varargs_sprintf(const char *format, ...)
+{
+  constexpr int firstsize = 512;
+  char firstbuf[firstsize];
+  va_list ap, ap2;
+
+  va_start(ap, format);
+  va_copy(ap2, ap);
+  int len = vsnprintf(firstbuf, firstsize, format, ap);
+  va_end(ap);
+
+  // conversion or output error
+  if (len < 0) {
+    va_end(ap2);
+    return "";
+  }
+
+  // output fits into the fixed size buffer
+  if (len < firstsize) {
+    va_end(ap2);
+    return {firstbuf, (std::size_t) len};
+  }
+
+  // otherwise repeat the conversion with a suitably sized buffer
+  std::string result(len + 1, '\0');
+  vsnprintf(result.data(), len + 1, format, ap2);
+  va_end(ap2);
+  result.resize(len);
+  return result;
 }
 
 std::string utils::errorurl(int errorcode)
@@ -862,8 +898,10 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
   nlo = nhi = -1;
 
   // cannot check for typelabels without a LAMMPS instance or a box
-  if (!lmp || !lmp->domain->box_exist)
-    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+  if (!lmp || !lmp->domain->box_exist) {
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp ? lmp->error : nullptr);
+    return;
+  }
 
   char *typestr = nullptr;
   if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))
@@ -1382,6 +1420,65 @@ std::string utils::uppercase(const std::string &text)
 }
 
 /* ----------------------------------------------------------------------
+   Arrange a list of words into aligned, ls-style columns (column-major)
+------------------------------------------------------------------------- */
+
+std::string utils::columnize(const std::vector<std::string> &words, int width, int gap)
+{
+  if (words.empty()) return "(none)\n";
+  if (gap < 1) gap = 1;
+  if (width < 1) width = 1;
+  const int nwords = (int) words.size();
+
+  // pick the largest number of columns whose summed per-column widths fit the
+  // line.  with a column-major layout, column c spans words[c*nrows .. ].
+
+  int ncols = 1;
+  for (int cols = std::min(nwords, width); cols >= 1; --cols) {
+    const int nrows = (nwords + cols - 1) / cols;
+    int total = gap * (cols - 1);
+    for (int c = 0; c < cols; ++c) {
+      std::size_t cw = 0;
+      for (int r = 0; r < nrows; ++r) {
+        const int idx = c * nrows + r;
+        if (idx < nwords) cw = std::max(cw, words[idx].size());
+      }
+      total += (int) cw;
+    }
+    if (total <= width) { ncols = cols; break; }
+  }
+
+  const int nrows = (nwords + ncols - 1) / ncols;
+
+  // per-column field widths (widest entry in the column plus the gap)
+
+  std::vector<std::size_t> field(ncols, 0);
+  for (int c = 0; c < ncols; ++c) {
+    for (int r = 0; r < nrows; ++r) {
+      const int idx = c * nrows + r;
+      if (idx < nwords) field[c] = std::max(field[c], words[idx].size());
+    }
+    field[c] += gap;
+  }
+
+  std::string out;
+  for (int r = 0; r < nrows; ++r) {
+    std::string line;
+    for (int c = 0; c < ncols; ++c) {
+      const int idx = c * nrows + r;
+      if (idx >= nwords) break;
+      line += fmt::format("{:<{}}", words[idx], field[c]);
+    }
+    // strip the trailing gap (and any padding) from the last column in the row
+    const auto last = line.find_last_not_of(' ');
+    if (last != std::string::npos) line.erase(last + 1);
+    out += line;
+    out += '\n';
+  }
+  return out;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 
@@ -1596,7 +1693,7 @@ template <typename T> std::string join_impl(const std::vector<T> &values, const 
 {
   std::string result;
 
-  if (values.size() > 0) result = fmt::format("{}", values[0]);
+  if (!values.empty()) result = fmt::format("{}", values[0]);
   for (std::size_t i = 1; i < values.size(); ++i) result += sep + fmt::format("{}", values[i]);
 
   return result;
@@ -1664,7 +1761,7 @@ std::string utils::join_words(const std::vector<std::string> &words, const std::
 {
   std::string result;
 
-  if (words.size() > 0) result = words[0];
+  if (!words.empty()) result = words[0];
   for (std::size_t i = 1; i < words.size(); ++i) result += sep + words[i];
 
   return result;

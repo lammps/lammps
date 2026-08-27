@@ -146,8 +146,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
 
   fnoffset = d_offset[ii];
   i = d_ilist_half[ii];
-  third = 1.0 / 3.0;
-  sixth = 1.0 / 6.0;
+  third = static_cast<KK_FLOAT>(1.0 / 3.0);
+  sixth = static_cast<KK_FLOAT>(1.0 / 6.0);
 
   elti = d_map[type[i]];
   if (elti < 0) return;
@@ -168,17 +168,17 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
       delij[1] = x(j, 1) - yitmp;
       delij[2] = x(j, 2) - zitmp;
       rij2 = delij[0] * delij[0] + delij[1] * delij[1] + delij[2] * delij[2];
-      if (rij2 < cutforcesq) {
-        rij = sqrt(rij2);
-        recip = 1.0 / rij;
+      if (rij2 < static_cast<KK_FLOAT>(cutforcesq)) {
+        rij = Kokkos::sqrt(rij2);
+        recip = static_cast<KK_FLOAT>(1.0) / rij;
 
         // Compute phi and phip
         ind = eltind[elti][eltj];
-        pp = rij * rdrar;
+        pp = rij * static_cast<KK_FLOAT>(rdrar);
         kk = (int) pp;
         kk = (kk <= (nrar - 2)) ? kk : nrar - 2;
         pp = pp - kk;
-        pp = (pp <= 1.0) ? pp : 1.0;
+        pp = (pp <= static_cast<KK_FLOAT>(1.0)) ? pp : static_cast<KK_FLOAT>(1.0);
         phi = ((d_phirar3(ind, kk) * pp + d_phirar2(ind, kk)) * pp + d_phirar1(ind, kk)) * pp +
             d_phirar(ind, kk);
         phip = (d_phirar6(ind, kk) * pp + d_phirar5(ind, kk)) * pp + d_phirar4(ind, kk);
@@ -186,10 +186,10 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         if (eflag_either) {
           KK_FLOAT scaleij = d_scale(type[i], type[i]);
           KK_FLOAT phi_sc = phi * scaleij;
-          if (eflag_global) ev.evdwl += phi_sc * sij;
+          if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi_sc * sij);
           if (eflag_atom) {
-            a_eatom[i] += 0.5 * phi * sij;
-            a_eatom[j] += 0.5 * phi * sij;
+            a_eatom[i] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * phi * sij);
+            a_eatom[j] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * phi * sij);
           }
         }
 
@@ -197,45 +197,45 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         // write(1,*) "force_meamf: phip: ",phip
 
         // Compute pair densities and derivatives
-        invrei = 1.0 / re_meam[elti][elti];
-        ai = rij * invrei - 1.0;
-        ro0i = rho0_meam[elti];
-        rhoa0i = ro0i * MathSpecialKokkos::fm_exp(-beta0_meam[elti] * ai);
-        drhoa0i = -beta0_meam[elti] * invrei * rhoa0i;
-        rhoa1i = ro0i * MathSpecialKokkos::fm_exp(-beta1_meam[elti] * ai);
-        drhoa1i = -beta1_meam[elti] * invrei * rhoa1i;
-        rhoa2i = ro0i * MathSpecialKokkos::fm_exp(-beta2_meam[elti] * ai);
-        drhoa2i = -beta2_meam[elti] * invrei * rhoa2i;
-        rhoa3i = ro0i * MathSpecialKokkos::fm_exp(-beta3_meam[elti] * ai);
-        drhoa3i = -beta3_meam[elti] * invrei * rhoa3i;
+        invrei = static_cast<KK_FLOAT>(1.0 / re_meam[elti][elti]);
+        ai = rij * invrei - static_cast<KK_FLOAT>(1.0);
+        ro0i = static_cast<KK_FLOAT>(rho0_meam[elti]);
+        rhoa0i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta0_meam[elti]) * ai)));
+        drhoa0i = -static_cast<KK_FLOAT>(beta0_meam[elti]) * invrei * rhoa0i;
+        rhoa1i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1_meam[elti]) * ai)));
+        drhoa1i = -static_cast<KK_FLOAT>(beta1_meam[elti]) * invrei * rhoa1i;
+        rhoa2i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2_meam[elti]) * ai)));
+        drhoa2i = -static_cast<KK_FLOAT>(beta2_meam[elti]) * invrei * rhoa2i;
+        rhoa3i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3_meam[elti]) * ai)));
+        drhoa3i = -static_cast<KK_FLOAT>(beta3_meam[elti]) * invrei * rhoa3i;
         if (msmeamflag) {
-          rhoa1mi = ro0i * MathSpecialKokkos::fm_exp(-beta1m_meam[elti] * ai) * t1m_meam[elti];
-          drhoa1mi = -beta1m_meam[elti] * invrei * rhoa1mi;
-          rhoa2mi = ro0i * MathSpecialKokkos::fm_exp(-beta2m_meam[elti] * ai) * t2m_meam[elti];
-          drhoa2mi = -beta2m_meam[elti] * invrei * rhoa2mi;
-          rhoa3mi = ro0i * MathSpecialKokkos::fm_exp(-beta3m_meam[elti] * ai) * t3m_meam[elti];
-          drhoa3mi = -beta3m_meam[elti] * invrei * rhoa3mi;
+          rhoa1mi = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1m_meam[elti]) * ai))) * static_cast<KK_FLOAT>(t1m_meam[elti]);
+          drhoa1mi = -static_cast<KK_FLOAT>(beta1m_meam[elti]) * invrei * rhoa1mi;
+          rhoa2mi = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2m_meam[elti]) * ai))) * static_cast<KK_FLOAT>(t2m_meam[elti]);
+          drhoa2mi = -static_cast<KK_FLOAT>(beta2m_meam[elti]) * invrei * rhoa2mi;
+          rhoa3mi = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3m_meam[elti]) * ai))) * static_cast<KK_FLOAT>(t3m_meam[elti]);
+          drhoa3mi = -static_cast<KK_FLOAT>(beta3m_meam[elti]) * invrei * rhoa3mi;
         }
 
         if (elti != eltj) {
-          invrej = 1.0 / re_meam[eltj][eltj];
-          aj = rij * invrej - 1.0;
-          ro0j = rho0_meam[eltj];
-          rhoa0j = ro0j * MathSpecialKokkos::fm_exp(-beta0_meam[eltj] * aj);
-          drhoa0j = -beta0_meam[eltj] * invrej * rhoa0j;
-          rhoa1j = ro0j * MathSpecialKokkos::fm_exp(-beta1_meam[eltj] * aj);
-          drhoa1j = -beta1_meam[eltj] * invrej * rhoa1j;
-          rhoa2j = ro0j * MathSpecialKokkos::fm_exp(-beta2_meam[eltj] * aj);
-          drhoa2j = -beta2_meam[eltj] * invrej * rhoa2j;
-          rhoa3j = ro0j * MathSpecialKokkos::fm_exp(-beta3_meam[eltj] * aj);
-          drhoa3j = -beta3_meam[eltj] * invrej * rhoa3j;
+          invrej = static_cast<KK_FLOAT>(1.0 / re_meam[eltj][eltj]);
+          aj = rij * invrej - static_cast<KK_FLOAT>(1.0);
+          ro0j = static_cast<KK_FLOAT>(rho0_meam[eltj]);
+          rhoa0j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta0_meam[eltj]) * aj)));
+          drhoa0j = -static_cast<KK_FLOAT>(beta0_meam[eltj]) * invrej * rhoa0j;
+          rhoa1j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1_meam[eltj]) * aj)));
+          drhoa1j = -static_cast<KK_FLOAT>(beta1_meam[eltj]) * invrej * rhoa1j;
+          rhoa2j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2_meam[eltj]) * aj)));
+          drhoa2j = -static_cast<KK_FLOAT>(beta2_meam[eltj]) * invrej * rhoa2j;
+          rhoa3j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3_meam[eltj]) * aj)));
+          drhoa3j = -static_cast<KK_FLOAT>(beta3_meam[eltj]) * invrej * rhoa3j;
           if (msmeamflag) {
-            rhoa1mj = ro0j * MathSpecialKokkos::fm_exp(-beta1m_meam[eltj] * aj) * t1m_meam[eltj];
-            drhoa1mj = -beta1m_meam[eltj] * invrej * rhoa1mj;
-            rhoa2mj = ro0j * MathSpecialKokkos::fm_exp(-beta2m_meam[eltj] * aj) * t2m_meam[eltj];
-            drhoa2mj = -beta2m_meam[eltj] * invrej * rhoa2mj;
-            rhoa3mj = ro0j * MathSpecialKokkos::fm_exp(-beta3m_meam[eltj] * aj) * t3m_meam[eltj];
-            drhoa3mj = -beta3m_meam[eltj] * invrej * rhoa3mj;
+            rhoa1mj = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1m_meam[eltj]) * aj))) * static_cast<KK_FLOAT>(t1m_meam[eltj]);
+            drhoa1mj = -static_cast<KK_FLOAT>(beta1m_meam[eltj]) * invrej * rhoa1mj;
+            rhoa2mj = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2m_meam[eltj]) * aj))) * static_cast<KK_FLOAT>(t2m_meam[eltj]);
+            drhoa2mj = -static_cast<KK_FLOAT>(beta2m_meam[eltj]) * invrej * rhoa2mj;
+            rhoa3mj = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3m_meam[eltj]) * aj))) * static_cast<KK_FLOAT>(t3m_meam[eltj]);
+            drhoa3mj = -static_cast<KK_FLOAT>(beta3m_meam[eltj]) * invrej * rhoa3mj;
           }
         } else {
           rhoa0j = rhoa0i;
@@ -256,12 +256,12 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           }
         }
 
-        const KK_FLOAT t1mi = t1_meam[elti];
-        const KK_FLOAT t2mi = t2_meam[elti];
-        const KK_FLOAT t3mi = t3_meam[elti];
-        const KK_FLOAT t1mj = t1_meam[eltj];
-        const KK_FLOAT t2mj = t2_meam[eltj];
-        const KK_FLOAT t3mj = t3_meam[eltj];
+        const KK_FLOAT t1mi = static_cast<KK_FLOAT>(t1_meam[elti]);
+        const KK_FLOAT t2mi = static_cast<KK_FLOAT>(t2_meam[elti]);
+        const KK_FLOAT t3mi = static_cast<KK_FLOAT>(t3_meam[elti]);
+        const KK_FLOAT t1mj = static_cast<KK_FLOAT>(t1_meam[eltj]);
+        const KK_FLOAT t2mj = static_cast<KK_FLOAT>(t2_meam[eltj]);
+        const KK_FLOAT t3mj = static_cast<KK_FLOAT>(t3_meam[eltj]);
 
         // ialloy mod not needed in MS-MEAM, but similarity here is that we multply rhos by t.
         // We did this above with rhoa1mj, rhoa2mj, etc.
@@ -350,7 +350,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         a1 = 2 * sij / rij;
         drho1dr1 = a1 * (drhoa1j - rhoa1j / rij) * arg1i1;
         drho1dr2 = a1 * (drhoa1i - rhoa1i / rij) * arg1j1;
-        a1 = 2.0 * sij / rij;
+        a1 = static_cast<KK_FLOAT>(2.0) * sij / rij;
         for (m = 0; m < 3; m++) {
           drho1drm1[m] = a1 * rhoa1j * d_arho1(i, m);
           drho1drm2[m] = -a1 * rhoa1i * d_arho1(j, m);
@@ -359,9 +359,9 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         // rho2 terms
         a2 = 2 * sij / rij2;
         drho2dr1 =
-            a2 * (drhoa2j - 2 * rhoa2j / rij) * arg1i2 - 2.0 / 3.0 * d_arho2b[i] * drhoa2j * sij;
+            a2 * (drhoa2j - 2 * rhoa2j / rij) * arg1i2 - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2b[i] * drhoa2j * sij;
         drho2dr2 =
-            a2 * (drhoa2i - 2 * rhoa2i / rij) * arg1j2 - 2.0 / 3.0 * d_arho2b[j] * drhoa2i * sij;
+            a2 * (drhoa2i - 2 * rhoa2i / rij) * arg1j2 - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2b[j] * drhoa2i * sij;
         a2 = 4 * sij / rij2;
         for (m = 0; m < 3; m++) {
           drho2drm1[m] = 0.0;
@@ -377,7 +377,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         // rho3 terms
         rij3 = rij * rij2;
         a3 = 2 * sij / rij3;
-        a3a = 6.0 / 5.0 * sij / rij;
+        a3a = static_cast<KK_FLOAT>(6.0 / 5.0) * sij / rij;
         drho3dr1 =
             a3 * (drhoa3j - 3 * rhoa3j / rij) * arg1i3 - a3a * (drhoa3j - rhoa3j / rij) * arg3i3;
         drho3dr2 =
@@ -405,9 +405,9 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           a1 = 2 * sij / rij;
           drho1mdr1 = a1 * (drhoa1mj - rhoa1mj / rij) * arg1i1m;
           drho1mdr2 = a1 * (drhoa1mi - rhoa1mi / rij) * arg1j1m;
-          drho1mdr1 *= -1.0;
-          drho1mdr2 *= -1.0;
-          a1 = 2.0 * sij / rij;
+          drho1mdr1 *= static_cast<KK_FLOAT>(-1.0);
+          drho1mdr2 *= static_cast<KK_FLOAT>(-1.0);
+          a1 = static_cast<KK_FLOAT>(2.0) * sij / rij;
           for (m = 0; m < 3; m++) {
             drho1mdrm1[m] = a1 * rhoa1mj * d_arho1m(i, m);
             drho1mdrm2[m] = -a1 * rhoa1mi * d_arho1m(j, m);
@@ -415,8 +415,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
 
           //     rho2m terms
           a2 = 2 * sij / rij2;
-          drho2mdr1 = a2 * (drhoa2mj - 2 * rhoa2mj / rij) * arg1i2m - 2.0 / 3.0 * d_arho2mb[i] * drhoa2mj * sij;
-          drho2mdr2 = a2 * (drhoa2mi - 2 * rhoa2mi / rij) * arg1j2m - 2.0 / 3.0 * d_arho2mb[j] * drhoa2mi * sij;
+          drho2mdr1 = a2 * (drhoa2mj - 2 * rhoa2mj / rij) * arg1i2m - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2mb[i] * drhoa2mj * sij;
+          drho2mdr2 = a2 * (drhoa2mi - 2 * rhoa2mi / rij) * arg1j2m - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2mb[j] * drhoa2mi * sij;
           a2 = 4 * sij / rij2;
           for (m = 0; m < 3; m++) {
             drho2mdrm1[m] = 0.0;
@@ -432,11 +432,11 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           //     rho3m terms
           rij3 = rij * rij2;
           a3 = 2 * sij / rij3;
-          a3a = 6.0 / 5.0 * sij / rij;
+          a3a = static_cast<KK_FLOAT>(6.0 / 5.0) * sij / rij;
           drho3mdr1 = a3 * (drhoa3mj - 3 * rhoa3mj / rij) * arg1i3m - a3a * (drhoa3mj - rhoa3mj / rij) * arg3i3m;
           drho3mdr2 = a3 * (drhoa3mi - 3 * rhoa3mi / rij) * arg1j3m - a3a * (drhoa3mi - rhoa3mi / rij) * arg3j3m;
-          drho3mdr1 *= -1.0;
-          drho3mdr2 *= -1.0;
+          drho3mdr1 *= static_cast<KK_FLOAT>(-1.0);
+          drho3mdr2 *= static_cast<KK_FLOAT>(-1.0);
 
           a3 = 6 * sij / rij3;
           a3a = 6 * sij / (5 * rij);
@@ -533,8 +533,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         }
 
         // Compute derivatives of total density wrt rij, sij and rij(3)
-        get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpi);
-        get_shpfcn(lattce_meam[eltj][eltj], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpj);
+        get_shpfcn(lattce_meam[elti][elti], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shpi);
+        get_shpfcn(lattce_meam[eltj][eltj], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shpj);
 
 
         if (msmeamflag) {
@@ -583,22 +583,22 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         if (!iszero_kk(d_dscrfcn[fnoffset + jn])) {
           drho0ds1 = rhoa0j;
           drho0ds2 = rhoa0i;
-          a1 = 2.0 / rij;
+          a1 = static_cast<KK_FLOAT>(2.0) / rij;
           drho1ds1 = a1 * rhoa1j * arg1i1;
           drho1ds2 = a1 * rhoa1i * arg1j1;
-          a2 = 2.0 / rij2;
-          drho2ds1 = a2 * rhoa2j * arg1i2 - 2.0 / 3.0 * d_arho2b[i] * rhoa2j;
-          drho2ds2 = a2 * rhoa2i * arg1j2 - 2.0 / 3.0 * d_arho2b[j] * rhoa2i;
-          a3 = 2.0 / rij3;
-          a3a = 6.0 / (5.0 * rij);
+          a2 = static_cast<KK_FLOAT>(2.0) / rij2;
+          drho2ds1 = a2 * rhoa2j * arg1i2 - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2b[i] * rhoa2j;
+          drho2ds2 = a2 * rhoa2i * arg1j2 - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2b[j] * rhoa2i;
+          a3 = static_cast<KK_FLOAT>(2.0) / rij3;
+          a3a = static_cast<KK_FLOAT>(6.0) / (static_cast<KK_FLOAT>(5.0) * rij);
           drho3ds1 = a3 * rhoa3j * arg1i3 - a3a * rhoa3j * arg3i3;
           drho3ds2 = a3 * rhoa3i * arg1j3 - a3a * rhoa3i * arg3j3;
 
           if (msmeamflag) {
             drho1mds1 = a1 * rhoa1mj * arg1i1m;
             drho1mds2 = a1 * rhoa1mi * arg1j1m;
-            drho2mds1 = a2 * rhoa2mj * arg1i2m - 2.0 / 3.0 * d_arho2mb[i] * rhoa2mj;
-            drho2mds2 = a2 * rhoa2mi * arg1j2m - 2.0 / 3.0 * d_arho2mb[j] * rhoa2mi;
+            drho2mds1 = a2 * rhoa2mj * arg1i2m - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2mb[i] * rhoa2mj;
+            drho2mds2 = a2 * rhoa2mi * arg1j2m - static_cast<KK_FLOAT>(2.0 / 3.0) * d_arho2mb[j] * rhoa2mi;
             drho3mds1 = a3 * rhoa3mj * arg1i3m - a3a * rhoa3mj * arg3i3m;
             drho3mds2 = a3 * rhoa3mi * arg1j3m - a3a * rhoa3mi * arg3j3m;
             drho1mds1 *= -1;
@@ -702,8 +702,8 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         force = dUdrij * recip + dUdsij * d_dscrfcn[fnoffset + jn];
         for (m = 0; m < 3; m++) {
           forcem = delij[m] * force + dUdrijm[m];
-          a_f(i, m) += forcem;
-          a_f(j, m) -= forcem;
+          a_f(i, m) += static_cast<KK_ACC_FLOAT>(forcem);
+          a_f(j, m) -= static_cast<KK_ACC_FLOAT>(forcem);
         }
 
         // Tabulate per-atom virial as symmetrized stress tensor
@@ -712,20 +712,20 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
           fi[0] = delij[0] * force + dUdrijm[0];
           fi[1] = delij[1] * force + dUdrijm[1];
           fi[2] = delij[2] * force + dUdrijm[2];
-          v[0] = -0.5 * (delij[0] * fi[0]);
-          v[1] = -0.5 * (delij[1] * fi[1]);
-          v[2] = -0.5 * (delij[2] * fi[2]);
-          v[3] = -0.25 * (delij[0] * fi[1] + delij[1] * fi[0]);
-          v[4] = -0.25 * (delij[0] * fi[2] + delij[2] * fi[0]);
-          v[5] = -0.25 * (delij[1] * fi[2] + delij[2] * fi[1]);
+          v[0] = static_cast<KK_FLOAT>(-0.5) * (delij[0] * fi[0]);
+          v[1] = static_cast<KK_FLOAT>(-0.5) * (delij[1] * fi[1]);
+          v[2] = static_cast<KK_FLOAT>(-0.5) * (delij[2] * fi[2]);
+          v[3] = static_cast<KK_FLOAT>(-0.25) * (delij[0] * fi[1] + delij[1] * fi[0]);
+          v[4] = static_cast<KK_FLOAT>(-0.25) * (delij[0] * fi[2] + delij[2] * fi[0]);
+          v[5] = static_cast<KK_FLOAT>(-0.25) * (delij[1] * fi[2] + delij[2] * fi[1]);
 
           if (vflag_global)
-            for (m = 0; m < 6; m++) ev.v[m] += 2.0 * v[m];
+            for (m = 0; m < 6; m++) ev.v[m] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(2.0) * v[m]);
 
           if (vflag_atom) {
             for (m = 0; m < 6; m++) {
-              a_vatom(i, m) += v[m];
-              a_vatom(j, m) += v[m];
+              a_vatom(i, m) += static_cast<KK_ACC_FLOAT>(v[m]);
+              a_vatom(j, m) += static_cast<KK_ACC_FLOAT>(v[m]);
             }
           }
         }
@@ -746,13 +746,13 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             KK_FLOAT delc, rik2, rjk2;
 
             sij = d_scrfcn[jn + fnoffset] * d_fcpair[jn + fnoffset];
-            const KK_FLOAT Cmax = Cmax_meam[elti][eltj][eltk];
-            const KK_FLOAT Cmin = Cmin_meam[elti][eltj][eltk];
+            const KK_FLOAT Cmax = static_cast<KK_FLOAT>(Cmax_meam[elti][eltj][eltk]);
+            const KK_FLOAT Cmin = static_cast<KK_FLOAT>(Cmin_meam[elti][eltj][eltk]);
 
             dsij1 = 0.0;
             dsij2 = 0.0;
             if (!iszero_kk(sij) && !isone_kk(sij)) {
-              const KK_FLOAT rbound = rij2 * ebound_meam[elti][eltj];
+              const KK_FLOAT rbound = rij2 * static_cast<KK_FLOAT>(ebound_meam[elti][eltj]);
               delc = Cmax - Cmin;
               dxjk = x(k, 0) - x(j, 0);
               dyjk = x(k, 1) - x(j, 1);
@@ -768,7 +768,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                   xjk = rjk2 / rij2;
                   a = 1 - (xik - xjk) * (xik - xjk);
                   if (!iszero_kk(a)) {
-                    cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
+                    cikj = (static_cast<KK_FLOAT>(2.0) * (xik + xjk) + a - static_cast<KK_FLOAT>(2.0)) / a;
                     if (cikj >= Cmin && cikj <= Cmax) {
                       cikj = (cikj - Cmin) / delc;
                       sikj = dfcut(cikj, dfc);
@@ -786,15 +786,15 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
               force1 = dUdsij * dsij1;
               force2 = dUdsij * dsij2;
 
-              a_f(i, 0) += force1 * dxik;
-              a_f(i, 1) += force1 * dyik;
-              a_f(i, 2) += force1 * dzik;
-              a_f(j, 0) += force2 * dxjk;
-              a_f(j, 1) += force2 * dyjk;
-              a_f(j, 2) += force2 * dzjk;
-              a_f(k, 0) -= force1 * dxik + force2 * dxjk;
-              a_f(k, 1) -= force1 * dyik + force2 * dyjk;
-              a_f(k, 2) -= force1 * dzik + force2 * dzjk;
+              a_f(i, 0) += static_cast<KK_ACC_FLOAT>(force1 * dxik);
+              a_f(i, 1) += static_cast<KK_ACC_FLOAT>(force1 * dyik);
+              a_f(i, 2) += static_cast<KK_ACC_FLOAT>(force1 * dzik);
+              a_f(j, 0) += static_cast<KK_ACC_FLOAT>(force2 * dxjk);
+              a_f(j, 1) += static_cast<KK_ACC_FLOAT>(force2 * dyjk);
+              a_f(j, 2) += static_cast<KK_ACC_FLOAT>(force2 * dzjk);
+              a_f(k, 0) -= static_cast<KK_ACC_FLOAT>(force1 * dxik + force2 * dxjk);
+              a_f(k, 1) -= static_cast<KK_ACC_FLOAT>(force1 * dyik + force2 * dyjk);
+              a_f(k, 2) -= static_cast<KK_ACC_FLOAT>(force1 * dzik + force2 * dzjk);
 
               // Tabulate per-atom virial as symmetrized stress tensor
 
@@ -813,13 +813,13 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                 v[5] = -sixth * (dyik * fi[2] + dyjk * fj[2] + dzik * fi[1] + dzjk * fj[1]);
 
                 if (vflag_global)
-                  for (m = 0; m < 6; m++) ev.v[m] += 3.0 * v[m];
+                  for (m = 0; m < 6; m++) ev.v[m] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(3.0) * v[m]);
 
                 if (vflag_atom) {
                   for (m = 0; m < 6; m++) {
-                    a_vatom(i, m) += v[m];
-                    a_vatom(j, m) += v[m];
-                    a_vatom(k, m) += v[m];
+                    a_vatom(i, m) += static_cast<KK_ACC_FLOAT>(v[m]);
+                    a_vatom(j, m) += static_cast<KK_ACC_FLOAT>(v[m]);
+                    a_vatom(k, m) += static_cast<KK_ACC_FLOAT>(v[m]);
                   }
                 }
               }

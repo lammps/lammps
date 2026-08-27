@@ -5,7 +5,7 @@ atom_style      line
 atom_modify     map array
 boundary        f f p
 dimension       2
-comm_modify     vel yes
+comm_modify     vel yes cutoff 12.5
 
 region          box block -15 15 -15 15 -0.5 0.5 units box
 create_box      2 box

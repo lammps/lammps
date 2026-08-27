@@ -162,7 +162,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -237,7 +237,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -835,7 +835,7 @@ void lammps_commands_string(void *handle, const char *str)
           }
         }
         // stop processing when quit command is found
-        if (words.size() && (words[0] == "quit")) {
+        if (!words.empty() && (words[0] == "quit")) {
           if (lmp->comm->me == 0)
             utils::logmesg(lmp, "Encountered a 'quit' command. Stopping ...\n");
           break;
@@ -2596,7 +2596,7 @@ A table with supported keywords is included in the documentation of the
 
 .. versionchanged:: 4Jul2026
 
-When using the KOKKOS package with a device backend, per-atom data is now
+When using the KOKKOS package with a device back end, per-atom data is now
 synchronized from the device to the host before the pointer is returned.
 Previously the host copy could be out-of-date for calls not aligned with an
 output or end-of-run step.
@@ -3264,7 +3264,7 @@ static int set_variable_deprecated_flag = 1;
 /** Set the value of a string-style variable.
 \verbatim embed:rst
 
-.. deprecated:: 7Feb2024
+.. versionremoved:: 7Feb2024
 
 This function assigns a new value from the string str to the
 string-style variable *name*.  This is a way to directly change the
@@ -6482,10 +6482,13 @@ void NeighProxy::command(int narg, char **arg)
   neigh_idx = -1;
   if (narg != 3) return;
   auto *req = neighbor->add_request(this, arg[0]);
-  int flags = atoi(arg[1]);
-  double cutoff = atof(arg[2]);
+  int flags = utils::inumeric(FLERR, arg[1], false, lmp);
+  double cutoff = utils::numeric(FLERR, arg[2], false, lmp);
   req->apply_flags(flags);
-  if (cutoff > 0.0) req->set_cutoff(cutoff);
+  if (cutoff > 0.0) {
+    // library-requested cutoff applies to all types
+    req->set_cutoff_fixed(cutoff);
+  }
   lmp->init();
 
   // setup domain, communication and neighboring
@@ -6830,7 +6833,7 @@ int lammps_config_has_curl_support() {
  *
 \verbatim embed:rst
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
    LAMMPS has now exceptions always enabled, so this function
    will now always return 1 and can be removed from applications

@@ -496,7 +496,7 @@ int RegPrism::surface_exterior(double *x, double cutoff)
   //            could be edge or corner pt of prism
   // do not add contact point if r >= cutoff
 
-  find_nearest(x, xp, yp, zp);
+  if (!find_nearest(x, xp, yp, zp)) return 0;
   add_contact(0, x, xp, yp, zp);
   contact[0].radius = 0;
   contact[0].iwall = 0;
@@ -735,9 +735,10 @@ void RegPrism::variable_check()
 /* ----------------------------------------------------------------------
    x is exterior to prism or on its surface
    return (xp,yp,zp) = nearest pt to x that is on surface of prism
+   return 0 if no nearest point exists since all faces are open, else 1
 ------------------------------------------------------------------------- */
 
-void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
+int RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
 {
   int i, j, k, iface;
   double xproj[3], xline[3], nearest[3];
@@ -776,9 +777,14 @@ void RegPrism::find_nearest(double *x, double &xp, double &yp, double &zp)
     }
   }
 
+  // no nearest point if all faces are open
+
+  if (distsq == BIG) return 0;
+
   xp = nearest[0];
   yp = nearest[1];
   zp = nearest[2];
+  return 1;
 }
 
 /* ----------------------------------------------------------------------

@@ -483,7 +483,9 @@ double PairLocalDensity::single(int /* i */, int /* j */, int itype, int jtype,
     }
 
     for (k = 0; k < nLD; k++) {
-        if (a[k][itype]) index = 1;
+        // this LD potential contributes nothing for this pair of atom types
+        if (!a[k][itype] && !a[k][jtype]) continue;
+        index = 1;
         if (a[k][jtype]) index = 2;
 
         if (LD[k][index] <= rho_min[k]) {
@@ -688,6 +690,22 @@ void PairLocalDensity::parse_file(char *filename) {
   double *ftmp; // tmp var to extract the complete 2D frho array from file
 
   // setting up all arrays to be read from files and broadcasted
+  // free any storage from a previous pair_coeff command first
+
+  memory->destroy(uppercut);
+  memory->destroy(lowercut);
+  memory->destroy(uppercutsq);
+  memory->destroy(lowercutsq);
+  memory->destroy(c0);
+  memory->destroy(c2);
+  memory->destroy(c4);
+  memory->destroy(c6);
+  memory->destroy(rho_min);
+  memory->destroy(rho_max);
+  memory->destroy(delta_rho);
+  memory->destroy(a);
+  memory->destroy(b);
+
   memory->create(uppercut, nLD, "pairLD:uppercut");
   memory->create(lowercut, nLD, "pairLD:lowercut");
   memory->create(uppercutsq, nLD, "pairLD:uppercutsq");
@@ -802,6 +820,8 @@ void PairLocalDensity::parse_file(char *filename) {
   MPI_Bcast(&ftmp[0], nLD*nrho, MPI_DOUBLE, 0, world);
 
   // set up rho and frho arrays
+  memory->destroy(rho);
+  memory->destroy(frho);
   memory->create(rho, nLD, nrho, "pairLD:rho");
   memory->create(frho, nLD, nrho, "pairLD:frho");
 

@@ -196,7 +196,7 @@ This approach is based on the enhanced baseline decomposition of
 ----------
 
 The *respa* style implements the rRESPA multi-timescale integrator
-:ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level
+:ref:`(Tuckerman4) <Tuckerman3>` with N hierarchical levels, where level
 1 is the innermost loop (shortest timestep) and level N is the outermost
 loop (largest timestep).  The loop factor arguments specify what the
 looping factor is between levels.  N1 specifies the number of iterations
@@ -415,5 +415,5 @@ June 3-7, (2025).
 
 .. _Tuckerman3:
 
-**(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
+**(Tuckerman4)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).

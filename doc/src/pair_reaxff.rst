@@ -56,6 +56,15 @@ more technical details about the implementation of ReaxFF in pair style
 was initially implemented as a stand-alone C code and is now converted
 to C++ and integrated into LAMMPS as a package.
 
+.. note::
+
+   There are some differences between the equations in the paper cited
+   above and the ReaxFF reference implementation.  Also, some of the
+   printed equations imply sign conventions for force field parameters
+   that differ from those used in the published parameter files.  Where
+   the printed equations and the reference implementation disagree, pair
+   style *reaxff* follows the reference implementation.
+
 The *reaxff/kk* style is a Kokkos version of the ReaxFF potential that
 is derived from the *reaxff* style.  The Kokkos version can run on GPUs
 and can also use OpenMP multithreading.  For more information about the
@@ -139,7 +148,7 @@ the system.
 
 Using the optional keyword *lgvdw* with the value *yes* turns on the
 low-gradient correction of ReaxFF for long-range London Dispersion,
-as described in the :ref:`(Liu) <Liu_2011>` paper. The bundled force
+as described in the :ref:`(Liu4) <Liu_2011>` paper. The bundled force
 field file *ffield.reax.lg* is designed for this correction, and is
 trained for several energetic materials (see "Liu"). When using *lgvdw yes*,
 the recommended value for parameter *thb* is 0.01, which can be set in the
@@ -419,10 +428,10 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 .. _Aktulga:
 
-(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+**(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
 
 .. _Liu_2011:
 
-**(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
+**(Liu4)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).

@@ -41,7 +41,6 @@
 #include "output.h"
 #include "pair.h"
 #include "special.h"
-#include "style_command.h"      // IWYU pragma: keep
 #include "thermo.h"
 #include "timer.h"
 #include "universe.h"
@@ -52,6 +51,7 @@
 #include <cerrno>
 #include <cctype>
 #include <filesystem>
+#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -62,12 +62,16 @@ static constexpr int DELTA = 4;
 static constexpr int LMP_MAXFILE = 16;
 
 /* ----------------------------------------------------------------------
-   one instance per command in style_command.h
+   process-global registry of command style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_command_styles(); plugins
+   add/override entries at runtime.
 ------------------------------------------------------------------------- */
 
-template <typename T> static Command *command_creator(LAMMPS *lmp)
+CreatorRegistry<Input::CommandCreator> &Input::command_styles()
 {
-  return new T(lmp);
+  static CreatorRegistry<Input::CommandCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,7 +109,7 @@ function executed, and finally the class instance is deleted.
 
 Input::Input(LAMMPS *lmp, int argc, char **argv) :
     Pointers(lmp), command(nullptr), variable(nullptr), labelstr(nullptr), infiles(nullptr),
-    inlines(nullptr), command_map(nullptr)
+    inlines(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -128,18 +132,11 @@ Input::Input(LAMMPS *lmp, int argc, char **argv) :
     inlines = new int[LMP_MAXFILE];
   }
 
-  variable = new Variable(lmp);
+  if (lmp->kokkos && lmp->kokkos->kokkos_exists)
+    variable = new VariableKokkos(lmp);
+  else
+    variable = new Variable(lmp);
 
-  // fill map with commands listed in style_command.h
-
-  command_map = new CommandCreatorMap();
-
-#define COMMAND_CLASS
-#define CommandStyle(key,Class) \
-  (*command_map)[#key] = &command_creator<Class>;
-#include "style_command.h"      // IWYU pragma: keep
-#undef CommandStyle
-#undef COMMAND_CLASS
 
   // process command-line args
   // check for args "-var" and "-echo"
@@ -179,8 +176,6 @@ Input::~Input()
   delete[] infiles;
   delete[] inlines;
   delete variable;
-
-  delete command_map;
 }
 
 /** Process all input from the ``FILE *`` pointer *infile*
@@ -586,8 +581,9 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
   // beyond = points to text following variable
 
   int i,n,paren_count,nchars;
-  char immediate[256];
-  char *var,*value,*beyond;
+  std::string immediate;
+  char *var,*beyond;
+  const char *value;
   char *ptrmatch;
 
   char *ptr = str;
@@ -658,8 +654,8 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
         if (!utils::strmatch(fmtstr,R"(%[0-9 ]*\.[0-9]+[efgEFG])"))
           error->all(FLERR,"Incorrect conversion in format string {}", fmtstr);
 
-        snprintf(immediate,256,fmtstr,variable->compute_equal(var));
-        value = immediate;
+        immediate = utils::sprintf(fmtstr, variable->compute_equal(var));
+        value = immediate.c_str();
 
       // single character variable name, e.g. $a
 
@@ -863,19 +859,20 @@ int Input::execute_command()
 
   if (lmp->suffix_enable && lmp->non_pair_suffix()) {
     mycmd = command + std::string("/") + lmp->non_pair_suffix();
-    if (command_map->find(mycmd) == command_map->end()) {
+    if (!command_styles().contains(mycmd)) {
       if (lmp->suffix2) {
         mycmd = command + std::string("/") + lmp->suffix2;
-        if (command_map->find(mycmd) == command_map->end())
+        if (!command_styles().contains(mycmd))
           mycmd = command;
       } else mycmd = command;
     }
   }
-  if (command_map->find(mycmd) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[mycmd];
-    Command *cmd = command_creator(lmp);
+  if (CommandCreator command_creator = command_styles().find(mycmd)) {
+    // use a unique_ptr so the command object is destroyed even if its
+    // command() method throws (e.g. an input error caught by a unit test),
+    // which otherwise leaks the partially-run command
+    std::unique_ptr<Command> cmd(command_creator(lmp));
     cmd->command(narg,arg);
-    delete cmd;
     return 0;
   }
 
@@ -898,7 +895,10 @@ void Input::clear()
   lmp->destroy();
   lmp->create();
   lmp->post_create();
+
+  // reset to clean status for classes that are not re-created
   variable->clear_in_progress();
+  error->reset_warn();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2022,6 +2022,8 @@ void Input::uncompute()
 {
   if (narg != 1)
     error->all(FLERR, Error::COMMAND, "Uncompute command expects exactly one argument");
+  if (!modify->get_compute_by_id(arg[0]))
+    error->all(FLERR, Error::ARGZERO, "Could not find compute ID {} to delete", arg[0]);
   modify->delete_compute(arg[0]);
 }
 
@@ -2038,6 +2040,8 @@ void Input::undump()
 void Input::unfix()
 {
   if (narg != 1) error->all(FLERR, Error::COMMAND, "Unfix command expects exactly one argument");
+  if (!modify->get_fix_by_id(arg[0]))
+    error->all(FLERR, Error::ARGZERO, "Could not find fix ID {} to delete", arg[0]);
   modify->delete_fix(arg[0]);
 }
 
@@ -2061,8 +2065,7 @@ void Input::units()
 int Input::meta(const std::string &prefix)
 {
   auto mycmd = fmt::format("{}_{}", utils::uppercase(prefix), utils::uppercase(arg[0]));
-  if (command_map->find(mycmd) != command_map->end()) {
-    CommandCreator &command_creator = (*command_map)[mycmd];
+  if (CommandCreator command_creator = command_styles().find(mycmd)) {
     Command *cmd = command_creator(lmp);
     cmd->command(narg-1,arg+1);
     delete cmd;

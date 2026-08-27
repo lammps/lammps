@@ -62,7 +62,7 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
     field2index(nullptr), argindex(nullptr), id_compute(nullptr), compute(nullptr), id_fix(nullptr),
     fix(nullptr), id_variable(nullptr), variable(nullptr), vbuf(nullptr), id_custom(nullptr),
     custom(nullptr), custom_flag(nullptr), typenames(nullptr), header_choice(nullptr),
-    pack_choice(nullptr)
+    write_choice(nullptr), pack_choice(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump {} arguments specified", style);
 
@@ -160,10 +160,12 @@ DumpCustom::DumpCustom(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 0; iarg < nfield; iarg++) {
     key2col[earg[iarg]] = iarg;
     keyword_user[iarg].clear();
-    if (cols.size()) cols += " ";
+    if (!cols.empty()) cols += " ";
     cols += earg[iarg];
   }
   columns_default = utils::strdup(cols);
+
+  nchoose = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -189,10 +191,8 @@ DumpCustom::~DumpCustom()
   memory->destroy(thresh_value);
   memory->destroy(thresh_last);
 
-  // check nfix in case all fixes have already been deleted
-
   for (int i = 0; i < nthreshlast; i++) {
-    if (modify->nfix) modify->delete_fix(thresh_fixID[i]);
+    modify->delete_fix(thresh_fixID[i]);
     delete[] thresh_fixID[i];
   }
   memory->sfree(thresh_fix);
@@ -248,8 +248,8 @@ void DumpCustom::init_style()
   std::string combined;
   int icol = 0;
   for (const auto &item : utils::split_words(columns_default)) {
-    if (combined.size()) combined += " ";
-    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    if (!combined.empty()) combined += " ";
+    if (!keyword_user[icol].empty()) combined += keyword_user[icol];
     else combined += item;
     ++icol;
   }
@@ -1238,6 +1238,9 @@ int DumpCustom::count()
         double **darray = atom->darray[iwhich];
         ptr = &darray[0][argindex[i]-1];
         nstride = atom->dcols[iwhich];
+
+      } else {
+        error->all(FLERR, "Unknown dump_modify threshold attribute");
       }
 
       // unselect atoms that don't meet threshold criterion
@@ -1941,19 +1944,15 @@ int DumpCustom::modify_param(int narg, char **arg)
     if (strcmp(arg[1],"int") == 0) {
       delete[] format_int_user;
       format_int_user = utils::strdup(arg[2]);
-      delete[] format_bigint_user;
-      int n = strlen(format_int_user) + 8;
-      format_bigint_user = new char[n];
       // replace "d" in format_int_user with bigint format specifier
-      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
-      char *ptr = strchr(format_int_user,'d');
-      if (ptr == nullptr)
+      // which is BIGINT_FORMAT without the leading '%'
+      std::string ifmt = format_int_user;
+      auto found = ifmt.find('d');
+      if (found == std::string::npos)
         error->all(FLERR, argoff + 2, "Dump_modify int format does not contain d character");
-      char str[8];
-      snprintf(str,8,"%s",BIGINT_FORMAT);
-      *ptr = '\0';
-      snprintf(format_bigint_user,n,"%s%s%s",format_int_user,&str[1],ptr+1);
-      *ptr = 'd';
+      ifmt.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+      delete[] format_bigint_user;
+      format_bigint_user = utils::strdup(ifmt);
 
     } else if (strcmp(arg[1],"float") == 0) {
       delete[] format_float_user;

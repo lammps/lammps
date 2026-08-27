@@ -54,6 +54,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp), requestor(nullptr)
   // default is no Kokkos neighbor list build
   // default is no Shardlow Splitting Algorithm (SSA) neighbor list build
   // default is no list-specific cutoff
+  // default is no fixed cutoff for all atom types
   // default is no storage of auxiliary floating point values
 
   occasional = 0;
@@ -69,6 +70,7 @@ NeighRequest::NeighRequest(LAMMPS *_lmp) : Pointers(_lmp), requestor(nullptr)
   kokkos_host = kokkos_device = 0;
   ssa = 0;
   cut = 0;
+  cut_fixed = 0;
   cutoff = 0.0;
 
   // skip info, default is no skipping
@@ -170,6 +172,7 @@ int NeighRequest::identical(NeighRequest *other)
   if (ssa != other->ssa) same = 0;
   if (copy != other->copy) same = 0;
   if (cutoff != other->cutoff) same = 0;
+  if (cut_fixed != other->cut_fixed) same = 0;
 
   if (skip != other->skip) same = 0;
   if (same && skip && other->skip) same = same_skip(other);
@@ -235,6 +238,7 @@ void NeighRequest::copy_request(NeighRequest *other, int skipflag)
   kokkos_device = other->kokkos_device;
   ssa = other->ssa;
   cut = other->cut;
+  cut_fixed = other->cut_fixed;
   cutoff = other->cutoff;
 
   iskip = nullptr;
@@ -283,10 +287,28 @@ void NeighRequest::apply_flags(int flags)
 
 /* ---------------------------------------------------------------------- */
 
-void NeighRequest::set_cutoff(double _cutoff)
+// a requestor with a non-standard cutoff must state how to interpret it,
+//   by calling exactly one of the two methods below
+//   there is deliberately no plain set_cutoff(): the interpretation cannot be
+//   guessed, and getting it wrong silently truncates the list for some type pairs
+
+// _cutoff is the MAXIMUM cutoff across atom types, individual type pairs may
+//   use a shorter cutoff.  This is the usual case for pair styles
+
+void NeighRequest::set_cutoff_max(double _cutoff)
 {
   cut = 1;
   cutoff = _cutoff;
+}
+
+// _cutoff applies UNIFORMLY to every atom type pair.  This is the usual case
+//   for fixes/computes analyzing a fixed range (e.g. an RDF)
+
+void NeighRequest::set_cutoff_fixed(double _cutoff)
+{
+  cut = 1;
+  cutoff = _cutoff;
+  cut_fixed = 1;
 }
 
 void NeighRequest::set_id(int _id)

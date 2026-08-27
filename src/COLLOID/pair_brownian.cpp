@@ -480,7 +480,7 @@ void PairBrownian::init_style()
   flagdeform = flagwall = 0;
   wallfix = nullptr;
 
-  if (modify->get_fix_by_style("^deform").size() > 0) flagdeform = 1;
+  if (!modify->get_fix_by_style("^deform").empty()) flagdeform = 1;
   auto fixes = modify->get_fix_by_style("^wall");
   if (fixes.size() > 1)
     error->all(FLERR, "Cannot use multiple fix wall commands with pair brownian");

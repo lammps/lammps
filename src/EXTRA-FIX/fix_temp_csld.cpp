@@ -125,13 +125,9 @@ void FixTempCSLD::init()
 
   // we cannot handle constraints via rattle or shake correctly.
 
-  int has_shake = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0)) ++has_shake;
-
-  if (has_shake > 0)
-    error->all(FLERR,"Fix temp/csld is not compatible with fix rattle or fix shake");
+  if (!modify->get_fix_by_style("^shake").empty() || !modify->get_fix_by_style("^rattle").empty()
+      || !modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Fix temp/csld is not compatible with fix shake, rattle, or ilves");
 
   // check variable
 

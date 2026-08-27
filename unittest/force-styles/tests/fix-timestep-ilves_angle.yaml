@@ -14,6 +14,7 @@ post_commands: ! |
   fix move all nve
   fix test all ilves 1.0e-12 50 4 b 2 a 1
 input_file: in.ilves-water
+input_coeffs: coeffs.fourmol
 natoms: 12
 run_stress: ! |-
   -3.8986091239688073e-07 -2.6728383688755460e-09 -1.4142162088802786e-07  1.5320983527270916e-09 -2.0569837208968776e-07  3.1787753727378507e-09

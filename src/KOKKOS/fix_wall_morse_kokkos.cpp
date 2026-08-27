@@ -127,7 +127,7 @@ template <class DeviceType>
 void FixWallMorseKokkos<DeviceType>::wall_particle(int m_in, int which, double coord_in)
 {
   m = m_in;
-  coord = coord_in;
+  coord = static_cast<KK_FLOAT>(coord_in);
 
   atomKK->sync(execution_space, datamask_read);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -171,14 +171,14 @@ void FixWallMorseKokkos<DeviceType>::operator()(const int &i, value_type result)
     if (side < 0) delta = d_x(i,dim) - coord;
     else delta = coord - d_x(i,dim);
     if (delta >= d_cutoff(m)) return;
-    if (delta <= 0.0)
+    if (delta <= static_cast<KK_FLOAT>(0.0))
       Kokkos::abort("Particle on or inside fix wall surface");
     KK_FLOAT dr = delta - d_sigma(m);
     KK_FLOAT dexp = Kokkos::exp(-d_alpha(m) * dr);
     KK_FLOAT fwall = (KK_FLOAT) side * d_coeff1(m) * (dexp*dexp - dexp);
-    d_f(i,dim) -= fwall;
-    result[0] += d_epsilon(m) * (dexp*dexp - 2.0*dexp) - d_offset(m);
-    result[m+1] += fwall;
+    d_f(i,dim) -= static_cast<KK_ACC_FLOAT>(fwall);
+    result[0] += static_cast<double>(d_epsilon(m) * (dexp*dexp - static_cast<KK_FLOAT>(2.0)*dexp) - d_offset(m));
+    result[m+1] += static_cast<double>(fwall);
 
     if (evflag) {
       KK_FLOAT vn;
@@ -200,10 +200,10 @@ void FixWallMorseKokkos<DeviceType>::v_tally(value_type result, int n, int i,
                                              KK_FLOAT vn) const
 {
   if (vflag_global)
-    result[n+7] += vn;
+    result[n+7] += static_cast<double>(vn);
 
   if (vflag_atom)
-    Kokkos::atomic_add(&(d_vatom(i,n)), vn);
+    Kokkos::atomic_add(&(d_vatom(i,n)), static_cast<KK_ACC_FLOAT>(vn));
 }
 
 namespace LAMMPS_NS {

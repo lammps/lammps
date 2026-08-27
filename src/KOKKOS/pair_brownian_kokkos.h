@@ -105,7 +105,7 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
 
     // find the index of maximum magnitude and store it in iz
 
-    if (fabs(p1[0]) > fabs(p1[1])) {
+    if (Kokkos::fabs(p1[0]) > Kokkos::fabs(p1[1])) {
       iz = 0;
       ix = 1;
       iy = 2;
@@ -116,13 +116,13 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
     }
 
     if (iz == 0) {
-      if (fabs(p1[0]) < fabs(p1[2])) {
+      if (Kokkos::fabs(p1[0]) < Kokkos::fabs(p1[2])) {
         iz = 2;
         ix = 0;
         iy = 1;
       }
     } else {
-      if (fabs(p1[1]) < fabs(p1[2])) {
+      if (Kokkos::fabs(p1[1]) < Kokkos::fabs(p1[2])) {
         iz = 2;
         ix = 0;
         iy = 1;
@@ -137,7 +137,7 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
 
     // normalize p2
 
-    norm = sqrt(p2[0] * p2[0] + p2[1] * p2[1] + p2[2] * p2[2]);
+    norm = Kokkos::sqrt(p2[0] * p2[0] + p2[1] * p2[1] + p2[2] * p2[2]);
 
     p2[0] = p2[0] / norm;
     p2[1] = p2[1] / norm;

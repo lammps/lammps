@@ -26,13 +26,23 @@
 /// need to parse input inherit from this
 class colvarparse : public colvarparams {
 
+protected:
+
+  colvarmodule *cvmodule = nullptr;
+
 public:
 
-  /// Default constructor
-  colvarparse();
+  colvarmodule *get_cvmodule() { return cvmodule; }
 
-  /// Constructor that stores the object's config string
-  colvarparse(const std::string& conf);
+  /// Default constructor
+  // colvarparse();
+
+  /// Constructor that stores the colvarmodule pointer
+  colvarparse(colvarmodule *cvmodule_in);
+
+  // UNUSED
+  // /// Constructor that stores the object's config string
+  // colvarparse(colvarmodule *cvmodule_in, const std::string& conf);
 
   /// Set the object ready to parse a new configuration string
   void clear();
@@ -332,7 +342,7 @@ public:
 
   /// \brief Check that a config string contains non-ASCII characters
   /// \param conf The configuration string
-  static int check_ascii(std::string const &conf);
+  int check_ascii(std::string const &conf);
 
   /// \brief Split a string with a specified delimiter into a vector
   /// \param data The string to be splitted

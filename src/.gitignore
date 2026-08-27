@@ -6,9 +6,12 @@
 /lmp_*
 
 /style_*.h
+/style_*.cpp
 /packages_*.h
+/package_registry.cpp
 /lmpinstalledpkgs.h
 /lmpgitversion.h
+/stylegen.exe
 
 /*_gpu.h
 /*_gpu.cpp
@@ -217,6 +220,15 @@
 
 /fix_qeq*.cpp
 /fix_qeq*.h
+
+/fix_qmmm_xtb.cpp
+/fix_qmmm_xtb.h
+/pppm_tip4p_xtb.h
+/pppm_xtb.h
+/qmmm_xtb_adapter.h
+/qmmm_xtb_ewald.cpp
+/qmmm_xtb_ewald.h
+/qmmm_xtb_pppm.cpp
 
 /fix_*cauchy.cpp
 /fix_*cauchy.h
@@ -438,7 +450,6 @@
 /ldd_indicator_smooth.h
 /ldd_indicator_sphere.cpp
 /ldd_indicator_sphere.h
-/ldd_indicator_styles.h
 /ldd_potential_constant.cpp
 /ldd_potential_constant.h
 /ldd_potential.cpp
@@ -459,7 +470,6 @@
 /ldd_potential_tablelin.h
 /ldd_potential_tablespline.cpp
 /ldd_potential_tablespline.h
-/ldd_potential_styles.h
 /pair_ldd.cpp
 /pair_ldd.h
 
@@ -467,18 +477,24 @@
 /atom_vec_bpm_sphere.h
 /bond_bpm.cpp
 /bond_bpm.h
+/bond_bpm_peri.cpp
+/bond_bpm_peri.h
 /bond_bpm_rotational.cpp
 /bond_bpm_rotational.h
 /bond_bpm_spring.cpp
 /bond_bpm_spring.h
 /bond_bpm_spring_plastic.cpp
 /bond_bpm_spring_plastic.h
+/bond_bpm_zero.cpp
+/bond_bpm_zero.h
 /compute_nbond_atom.cpp
 /compute_nbond_atom.h
 /fix_nve_bpm_sphere.cpp
 /fix_nve_bpm_sphere.h
 /fix_update_special_bonds.cpp
 /fix_update_special_bonds.h
+/pair_bpm_peri.cpp
+/pair_bpm_peri.h
 /pair_bpm_spring.cpp
 /pair_bpm_spring.h
 
@@ -1388,6 +1404,14 @@
 /pair_eam_fs.h
 /pair_eam_he.cpp
 /pair_eam_he.h
+/pair_eam_he_gpu.cpp
+/pair_eam_he_gpu.h
+/pair_eam_he_kokkos.cpp
+/pair_eam_he_kokkos.h
+/pair_eam_he_omp.cpp
+/pair_eam_he_omp.h
+/pair_eam_he_opt.cpp
+/pair_eam_he_opt.h
 /pair_lebedeva_z.cpp
 /pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
@@ -1879,6 +1903,8 @@
 /fix_ttm_mod.h
 /fix_ttm_thermal.cpp
 /fix_ttm_thermal.h
+/fix_ttm_cascade.cpp
+/fix_ttm_cascade.h
 /granular_model.cpp
 /granular_model.h
 /gran_sub_mod_normal.cpp
@@ -1979,4 +2005,3 @@
 /pair_bondval.h
 /pair_bondval_vec.cpp
 /pair_bondval_vec.h
-

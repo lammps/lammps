@@ -25,6 +25,7 @@ FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<LMPHostType>);
 
 #include "fix_eos_table_rx.h"
 #include "kokkos_type.h"
+#include "fix_rx_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -125,6 +126,9 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   typename AT::t_int_1d mask;
   typename AT::t_kkfloat_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;
   typename AT::t_kkfloat_2d dvector;
+
+  FixRxKokkos<DeviceType> * rx_fixKK;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind;
 
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_warning_flag;

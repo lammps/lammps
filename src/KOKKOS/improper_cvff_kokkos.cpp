@@ -197,19 +197,19 @@ void ImproperCvffKokkos<DeviceType>::operator()(TagImproperCvffCompute<NEWTON_BO
   const KK_FLOAT sb2 = static_cast<KK_FLOAT>(1.0) / (vb2x * vb2x + vb2y * vb2y + vb2z * vb2z);
   const KK_FLOAT sb3 = static_cast<KK_FLOAT>(1.0) / (vb3x * vb3x + vb3y * vb3y + vb3z * vb3z);
 
-  const KK_FLOAT rb1 = sqrt(sb1);
-  const KK_FLOAT rb3 = sqrt(sb3);
+  const KK_FLOAT rb1 = Kokkos::sqrt(sb1);
+  const KK_FLOAT rb3 = Kokkos::sqrt(sb3);
 
   const KK_FLOAT c0 = (vb1x * vb3x + vb1y * vb3y + vb1z * vb3z) * rb1 * rb3;
 
   // 1st and 2nd angle
 
   const KK_FLOAT b1mag2 = vb1x * vb1x + vb1y * vb1y + vb1z * vb1z;
-  const KK_FLOAT b1mag = sqrt(b1mag2);
+  const KK_FLOAT b1mag = Kokkos::sqrt(b1mag2);
   const KK_FLOAT b2mag2 = vb2x * vb2x + vb2y * vb2y + vb2z * vb2z;
-  const KK_FLOAT b2mag = sqrt(b2mag2);
+  const KK_FLOAT b2mag = Kokkos::sqrt(b2mag2);
   const KK_FLOAT b3mag2 = vb3x * vb3x + vb3y * vb3y + vb3z * vb3z;
-  const KK_FLOAT b3mag = sqrt(b3mag2);
+  const KK_FLOAT b3mag = Kokkos::sqrt(b3mag2);
 
   KK_FLOAT ctmp = vb1x * vb2x + vb1y * vb2y + vb1z * vb2z;
   const KK_FLOAT r12c1 = static_cast<KK_FLOAT>(1.0) / (b1mag * b2mag);
@@ -221,11 +221,11 @@ void ImproperCvffKokkos<DeviceType>::operator()(TagImproperCvffCompute<NEWTON_BO
 
   // cos and sin of 2 angles and final c
 
-  KK_FLOAT sc1 = sqrt(static_cast<KK_FLOAT>(1.0) - c1mag * c1mag);
+  KK_FLOAT sc1 = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c1mag * c1mag);
   if (sc1 <  static_cast<KK_FLOAT>(SMALL)) sc1 = static_cast<KK_FLOAT>(SMALL);
   sc1 = static_cast<KK_FLOAT>(1.0) / sc1;
 
-  KK_FLOAT sc2 = sqrt(static_cast<KK_FLOAT>(1.0) - c2mag * c2mag);
+  KK_FLOAT sc2 = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c2mag * c2mag);
   if (sc2 <  static_cast<KK_FLOAT>(SMALL)) sc2 = static_cast<KK_FLOAT>(SMALL);
   sc2 = static_cast<KK_FLOAT>(1.0) / sc2;
 

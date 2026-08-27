@@ -69,8 +69,8 @@ Description
 
 The *gran* styles use the following formulas for the frictional force
 between two granular particles, as described in
-:ref:`(Brilliantov) <Brilliantov>`, :ref:`(Silbert) <Silbert>`, and
-:ref:`(Zhang) <Zhang3>`, when the distance r between two particles of radii
+:ref:`(Brilliantov et al, 1996) <Brilliantov>`, :ref:`(Silbert, 2001) <Silbert>`, and
+:ref:`(Zhang4) <Zhang3>`, when the distance r between two particles of radii
 Ri and Rj is less than their contact distance d = Ri + Rj.  There is
 no force between the particles when r > d.
 
@@ -152,7 +152,7 @@ units of (1/(time\*distance)), :math:`K_t` is in units of (pressure), and
 Note that in the Hookean case, :math:`K_n` can be thought of as a linear
 spring constant with units of force/distance.  In the Hertzian case,
 :math:`K_n` is like a non-linear spring constant with units of
-force/area or pressure, and as shown in the :ref:`(Zhang) <Zhang3>`
+force/area or pressure, and as shown in the :ref:`(Zhang4) <Zhang3>`
 paper, :math:`K_n = 4G / (3(1-\nu))` where :math:`\nu =` the Poisson ratio,
 G = shear modulus = :math:`E / (2(1+\nu))`, and E = Young's modulus.  Similarly,
 :math:`K_t = 4G / (2-\nu)`.  (NOTE: in an earlier version of the manual, we incorrectly
@@ -298,14 +298,14 @@ none
 
 .. _Brilliantov:
 
-**(Brilliantov)** Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
+**(Brilliantov et al, 1996)** Brilliantov, Spahn, Hertzsch, Poschel, Phys Rev E, 53,
 p 5382-5392 (1996).
 
 .. _Silbert:
 
-**(Silbert)** Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
+**(Silbert, 2001)** Silbert, Ertas, Grest, Halsey, Levine, Plimpton, Phys Rev
 E, 64, p 051302 (2001).
 
 .. _Zhang3:
 
-**(Zhang)** Zhang and Makse, Phys Rev E, 72, p 011301 (2005).
+**(Zhang4)** Zhang and Makse, Phys Rev E, 72, p 011301 (2005).

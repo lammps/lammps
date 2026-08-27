@@ -2,8 +2,8 @@ Adaptive-precision interatomic potentials (APIP)
 ================================================
 
 The :ref:`PKG-APIP <PKG-APIP>` enables use of adaptive-precision potentials
-as described in :ref:`(Immel2025) <Immel2025_1>` and
-:ref:`(Immel2026) <Immel2026_2>`.
+as described in :ref:`(Immel) <Immel2025_1>` and
+:ref:`(Immel2) <Immel2026_2>`.
 In the context of this package, precision refers to the accuracy of an interatomic
 potential.
 
@@ -30,7 +30,7 @@ kept constant as explained below.
 
 The potential energy :math:`E_i` of an atom :math:`i` described by an
 adaptive-precision
-interatomic potential is given by :ref:`(Immel2025) <Immel2025_1>`
+interatomic potential is given by :ref:`(Immel) <Immel2025_1>`
 
 .. math::
 
@@ -68,12 +68,12 @@ can be dynamically calculated during a
 simulation.
 There are two ways to calculate dynamic switching parameters.
 
-1. according to :ref:`(Immel2026) <Immel2026_2>` with a differentiable
+1. according to :ref:`(Immel2) <Immel2026_2>` with a differentiable
 switching parameter that results in a conservative potential.
 Energy and momentum are (in the absence of external forces) conserved
 by design.
 
-2. according to :ref:`(Immel2025) <Immel2025_1>` with a non-differentiable
+2. according to :ref:`(Immel) <Immel2025_1>` with a non-differentiable
 switching parameter. In this case, the implementation can be optimized for
 performance by using the switching parameters of the previous timestep.
 Thereby, one can perform most of the switching-parameter calculation within
@@ -130,8 +130,8 @@ Example
 .. note::
 
    How to select the values of the parameters of an adaptive-precision
-   interatomic potential is discussed in detail in :ref:`(Immel2025) <Immel2025_1>`
-   and :ref:`(Immel2026) <Immel2026_2>`.
+   interatomic potential is discussed in detail in :ref:`(Immel) <Immel2025_1>`
+   and :ref:`(Immel2) <Immel2026_2>`.
 
 
 .. tabs::
@@ -298,8 +298,8 @@ of new adaptive-precision potentials.
 
 .. _Immel2025_1:
 
-**(Immel2025)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
+**(Immel)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
 
 .. _Immel2026_2:
 
-**(Immel2026)** Immel, Drautz and Sutmann, arXiv:2512.07693
+**(Immel2)** Immel, Drautz and Sutmann, arXiv:2512.07693

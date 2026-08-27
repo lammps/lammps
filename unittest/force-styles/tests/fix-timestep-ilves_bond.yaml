@@ -12,6 +12,7 @@ post_commands: ! |
   fix move all nve
   fix test solute ilves 1.0e-12 50 4 m 4.00794
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    3.9943884365627809e+00  4.0053741537486021e+00  7.7065671915217820e+01  7.8280258618041054e-01  3.1028026868362659e+01  3.0508856588107115e+01

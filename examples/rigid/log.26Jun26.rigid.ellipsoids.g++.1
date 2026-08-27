@@ -1,0 +1,95 @@
+LAMMPS (30 Mar 2026 - Development - 0137d6ca5b-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Rigid bodies of ellipsoidal particles -- exercises the extended (ELLIPSOID)
+# path of fix rigid/small/kk: each particle's space-frame quaternion and angmom
+# are recomputed from the body orientation in set_xv on the device (the bonus
+# quat is reached through the ellipsoid atom-vec).  erotate/asphere reflects the
+# per-particle angmom that the kernel sets.
+#   lmp -in in.rigid.ellipsoids
+#   lmp -k on -sf kk -in in.rigid.ellipsoids
+
+units           lj
+atom_style      ellipsoid
+atom_modify     map array
+
+fix             prop all property/atom mol ghost yes
+read_data       data.rigid.ell fix prop NULL Molecules
+Reading data file ...
+  orthogonal box = (0 0 0) to (13 13 13)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  54 atoms
+  54 ellipsoids
+  read_data CPU = 0.001 seconds
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 0.8 12345 mom yes rot yes
+
+fix             1 all rigid/small molecule
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  27 rigid bodies with 54 atoms
+  1.6 = max distance from body owner to body atom
+
+compute         erot all erotate/asphere
+thermo_style    custom step pe f_1 c_erot
+thermo          200
+timestep        0.002
+run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.088 | 9.088 | 9.088 Mbytes
+   Step         PotEng          f_1           c_erot    
+         0  -0.0069405319   0.64470927     0.067622766  
+       200  -0.003480317    0.64522255     0.067199418  
+       400  -0.01837336     0.65374203     0.067870933  
+       600  -0.056843363    0.67817841     0.07641866   
+       800  -0.040684226    0.66699388     0.067209527  
+      1000  -0.037823617    0.66489209     0.077090048  
+      1200  -0.080413015    0.6918597      0.080779215  
+      1400  -0.14028873     0.73078546     0.086193868  
+      1600  -0.11597804     0.71377332     0.092829654  
+      1800  -0.15562148     0.73980101     0.093913889  
+      2000  -0.16822415     0.7479999      0.091610918  
+Loop time of 0.026622 on 1 procs for 2000 steps with 54 atoms
+
+Performance: 12981720.528 tau/day, 75125.697 timesteps/s, 4.057 Matom-step/s
+100.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00078091 | 0.00078091 | 0.00078091 |   0.0 |  2.93
+Neigh   | 0.0010827  | 0.0010827  | 0.0010827  |   0.0 |  4.07
+Comm    | 0.0030751  | 0.0030751  | 0.0030751  |   0.0 | 11.55
+Output  | 4.695e-05  | 4.695e-05  | 4.695e-05  |   0.0 |  0.18
+Modify  | 0.020944   | 0.020944   | 0.020944   |   0.0 | 78.67
+Other   |            | 0.0006923  |            |       |  2.60
+
+Nlocal:             54 ave          54 max          54 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             83 ave          83 max          83 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             59 ave          59 max          59 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 59
+Ave neighs/atom = 1.0925926
+Neighbor list builds = 94
+Dangerous builds = 0
+Total wall time: 0:00:00

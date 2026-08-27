@@ -5,7 +5,10 @@ and fixing real issues. When using CMake, these are automatically included
 when running "ctest -T memcheck". To manually add them to do a memory check
 on running LAMMPS, use a command line like following:
 
-valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
+valgrind --leak-check=full --track-origins=yes \
+   --show-leak-kinds=definite,indirect,possible \
+   --max-stackframe=16777216 \
+   --suppressions=/path/to/lammps/tools/valgrind/FFTW.supp \
    --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \
    --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp \
@@ -14,6 +17,8 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMP.supp \
    --suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Python3.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/QUIP.supp \
+   --suppressions=/path/to/lammps/tools/valgrind/ROCm.supp \
    --suppressions=/path/to/lammps/tools/valgrind/libc.supp \
    --suppressions=/path/to/lammps/tools/valgrind/readline.supp \
     lmp -in in.melt
@@ -21,8 +26,10 @@ valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes \
 Or you can create a file $HOME/.valgrindrc with one option per line:
 
 --leak-check=full
---show-leak-kinds=all
+--show-leak-kinds=definite,indirect,possible
 --track-origins=yes
+--max-stackframe=16777216
+--suppressions=/path/to/lammps/tools/valgrind/FFTW.supp
 --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp
 --suppressions=/path/to/lammps/tools/valgrind/GTest.supp
 --suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp
@@ -31,10 +38,17 @@ Or you can create a file $HOME/.valgrindrc with one option per line:
 --suppressions=/path/to/lammps/tools/valgrind/OpenMP.supp
 --suppressions=/path/to/lammps/tools/valgrind/OpenMPI.supp
 --suppressions=/path/to/lammps/tools/valgrind/Python3.supp
+--suppressions=/path/to/lammps/tools/valgrind/QUIP.supp
+--suppressions=/path/to/lammps/tools/valgrind/ROCm.supp
 --suppressions=/path/to/lammps/tools/valgrind/libc.supp
 --suppressions=/path/to/lammps/tools/valgrind/readline.supp
 
 These options will be automatically added to the valgrind
 command line, so it becomes: valgrind lmp -in in.melt
 
-Last update: 2026-06-27
+The --max-stackframe option is needed because some Fortran libraries
+(e.g. QUIP) place large automatic arrays on the stack; with the default
+limit valgrind misreads the resulting stack pointer jump as a stack
+switch and reports millions of bogus invalid access errors.
+
+Last update: 2026-08-22

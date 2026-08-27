@@ -29,8 +29,10 @@
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
 .. index:: pair_style tip4p/cut
+.. index:: pair_style tip4p/cut/kk
 .. index:: pair_style tip4p/cut/omp
 .. index:: pair_style tip4p/long
+.. index:: pair_style tip4p/long/kk
 .. index:: pair_style tip4p/long/omp
 
 pair_style coul/cut command
@@ -84,12 +86,12 @@ Accelerator Variants: *coul/wolf/kk*, *coul/wolf/omp*
 pair_style tip4p/cut command
 ============================
 
-Accelerator Variants: *tip4p/cut/omp*
+Accelerator Variants: *tip4p/cut/kk*, *tip4p/cut/omp*
 
 pair_style tip4p/long command
 =============================
 
-Accelerator Variants: *tip4p/long/omp*
+Accelerator Variants: *tip4p/long/kk*, *tip4p/long/omp*
 
 Syntax
 """"""

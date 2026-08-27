@@ -221,7 +221,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
 
   KK_FLOAT ebond = 0;
   if (eflag) {
-    ebond = -static_cast<KK_FLOAT>(0.5) * k*r0sq*log(rlogarg);
+    ebond = -static_cast<KK_FLOAT>(0.5) * k*r0sq*Kokkos::log(rlogarg);
     if (rsq < static_cast<KK_FLOAT>(MY_CUBEROOT2)*sigma2)
       ebond += static_cast<KK_FLOAT>(4.0)*epsilon*sr6*(sr6-static_cast<KK_FLOAT>(1.0)) + epsilon;
   }

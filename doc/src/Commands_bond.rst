@@ -22,9 +22,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    *
    *
    *
+   * :doc:`bpm/peri <bond_bpm_peri>`
    * :doc:`bpm/rotational <bond_bpm_rotational>`
    * :doc:`bpm/spring <bond_bpm_spring>`
    * :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>`
+   * :doc:`bpm/zero <bond_bpm_zero>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (ko) <bond_fene_expand>`

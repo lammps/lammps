@@ -13,13 +13,6 @@
 
 #include "force.h"
 
-#include "style_angle.h"       // IWYU pragma: keep
-#include "style_bond.h"        // IWYU pragma: keep
-#include "style_dihedral.h"    // IWYU pragma: keep
-#include "style_improper.h"    // IWYU pragma: keep
-#include "style_kspace.h"      // IWYU pragma: keep
-#include "style_pair.h"        // IWYU pragma: keep
-
 #include "accelerator_kokkos.h"
 #include "angle_hybrid.h"
 #include "bond_hybrid.h"
@@ -36,12 +29,47 @@
 
 using namespace LAMMPS_NS;
 
-// template for factory functions:
-// there will be one instance for each style keyword in the respective style_xxx.h files
+/* ----------------------------------------------------------------------
+   process-global registries of force style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_*_styles() functions; plugins
+   add/override entries at runtime.
+------------------------------------------------------------------------- */
 
-template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
+CreatorRegistry<Force::PairCreator> &Force::pair_styles()
 {
-  return new T(lmp);
+  static CreatorRegistry<Force::PairCreator> registry;
+  return registry;
+}
+
+CreatorRegistry<Force::BondCreator> &Force::bond_styles()
+{
+  static CreatorRegistry<Force::BondCreator> registry;
+  return registry;
+}
+
+CreatorRegistry<Force::AngleCreator> &Force::angle_styles()
+{
+  static CreatorRegistry<Force::AngleCreator> registry;
+  return registry;
+}
+
+CreatorRegistry<Force::DihedralCreator> &Force::dihedral_styles()
+{
+  static CreatorRegistry<Force::DihedralCreator> registry;
+  return registry;
+}
+
+CreatorRegistry<Force::ImproperCreator> &Force::improper_styles()
+{
+  static CreatorRegistry<Force::ImproperCreator> registry;
+  return registry;
+}
+
+CreatorRegistry<Force::KSpaceCreator> &Force::kspace_styles()
+{
+  static CreatorRegistry<Force::KSpaceCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,60 +108,6 @@ Force::Force(LAMMPS *lmp) :
   kspace_style = utils::strdup("none");
 
   pair_restart = nullptr;
-  create_factories();
-}
-
-void _noopt Force::create_factories()
-{
-  // fill pair map with pair styles listed in style_pair.h
-
-  pair_map = new PairCreatorMap();
-
-#define PAIR_CLASS
-#define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
-#include "style_pair.h"    // IWYU pragma: keep
-#undef PairStyle
-#undef PAIR_CLASS
-
-  bond_map = new BondCreatorMap();
-
-#define BOND_CLASS
-#define BondStyle(key, Class) (*bond_map)[#key] = &style_creator<Bond, Class>;
-#include "style_bond.h"    // IWYU pragma: keep
-#undef BondStyle
-#undef BOND_CLASS
-
-  angle_map = new AngleCreatorMap();
-
-#define ANGLE_CLASS
-#define AngleStyle(key, Class) (*angle_map)[#key] = &style_creator<Angle, Class>;
-#include "style_angle.h"    // IWYU pragma: keep
-#undef AngleStyle
-#undef ANGLE_CLASS
-
-  dihedral_map = new DihedralCreatorMap();
-
-#define DIHEDRAL_CLASS
-#define DihedralStyle(key, Class) (*dihedral_map)[#key] = &style_creator<Dihedral, Class>;
-#include "style_dihedral.h"    // IWYU pragma: keep
-#undef DihedralStyle
-#undef DIHEDRAL_CLASS
-
-  improper_map = new ImproperCreatorMap();
-
-#define IMPROPER_CLASS
-#define ImproperStyle(key, Class) (*improper_map)[#key] = &style_creator<Improper, Class>;
-#include "style_improper.h"    // IWYU pragma: keep
-#undef ImproperStyle
-#undef IMPROPER_CLASS
-
-  kspace_map = new KSpaceCreatorMap();
-
-#define KSPACE_CLASS
-#define KSpaceStyle(key, Class) (*kspace_map)[#key] = &style_creator<KSpace, Class>;
-#include "style_kspace.h"    // IWYU pragma: keep
-#undef KSpaceStyle
-#undef KSPACE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,12 +123,12 @@ Force::~Force()
 
   delete[] pair_restart;
 
-  if (pair) delete pair;
-  if (bond) delete bond;
-  if (angle) delete angle;
-  if (dihedral) delete dihedral;
-  if (improper) delete improper;
-  if (kspace) delete kspace;
+  delete pair;
+  delete bond;
+  delete angle;
+  delete dihedral;
+  delete improper;
+  delete kspace;
 
   pair = nullptr;
   bond = nullptr;
@@ -162,13 +136,6 @@ Force::~Force()
   dihedral = nullptr;
   improper = nullptr;
   kspace = nullptr;
-
-  delete pair_map;
-  delete bond_map;
-  delete angle_map;
-  delete dihedral_map;
-  delete improper_map;
-  delete kspace_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -228,7 +195,7 @@ void Force::setup()
 void Force::create_pair(const std::string &style, int trysuffix)
 {
   delete[] pair_style;
-  if (pair) delete pair;
+  delete pair;
   delete[] pair_restart;
   pair_style = nullptr;
   pair = nullptr;
@@ -254,27 +221,20 @@ Pair *Force::new_pair(const std::string &style, int trysuffix, int &sflag)
     if (lmp->suffix) {
       sflag = 1;
       std::string estyle = style + "/" + lmp->suffix;
-      if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator &pair_creator = (*pair_map)[estyle];
-        return pair_creator(lmp);
-      }
+      PairCreator pair_creator = pair_styles().find(estyle);
+      if (pair_creator) return pair_creator(lmp);
     }
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (pair_map->find(estyle) != pair_map->end()) {
-        PairCreator &pair_creator = (*pair_map)[estyle];
-        return pair_creator(lmp);
-      }
+      PairCreator pair_creator = pair_styles().find(estyle);
+      if (pair_creator) return pair_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (pair_map->find(style) != pair_map->end()) {
-    PairCreator &pair_creator = (*pair_map)[style];
-    return pair_creator(lmp);
-  }
+  if (PairCreator pair_creator = pair_styles().find(style)) return pair_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("pair", style, lmp));
 
@@ -339,7 +299,7 @@ char *Force::pair_match_ptr(Pair *ptr)
 void Force::create_bond(const std::string &style, int trysuffix)
 {
   delete[] bond_style;
-  if (bond) delete bond;
+  delete bond;
   bond_style = nullptr;
   bond = nullptr;
 
@@ -361,28 +321,21 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (bond_map->find(estyle) != bond_map->end()) {
-        BondCreator &bond_creator = (*bond_map)[estyle];
-        return bond_creator(lmp);
-      }
+      BondCreator bond_creator = bond_styles().find(estyle);
+      if (bond_creator) return bond_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (bond_map->find(estyle) != bond_map->end()) {
-        BondCreator &bond_creator = (*bond_map)[estyle];
-        return bond_creator(lmp);
-      }
+      BondCreator bond_creator = bond_styles().find(estyle);
+      if (bond_creator) return bond_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (bond_map->find(style) != bond_map->end()) {
-    BondCreator &bond_creator = (*bond_map)[style];
-    return bond_creator(lmp);
-  }
+  if (BondCreator bond_creator = bond_styles().find(style)) return bond_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("bond", style, lmp));
 
@@ -412,7 +365,7 @@ Bond *Force::bond_match(const std::string &style)
 void Force::create_angle(const std::string &style, int trysuffix)
 {
   delete[] angle_style;
-  if (angle) delete angle;
+  delete angle;
   angle_style = nullptr;
   angle = nullptr;
 
@@ -434,28 +387,21 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (angle_map->find(estyle) != angle_map->end()) {
-        AngleCreator &angle_creator = (*angle_map)[estyle];
-        return angle_creator(lmp);
-      }
+      AngleCreator angle_creator = angle_styles().find(estyle);
+      if (angle_creator) return angle_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (angle_map->find(estyle) != angle_map->end()) {
-        AngleCreator &angle_creator = (*angle_map)[estyle];
-        return angle_creator(lmp);
-      }
+      AngleCreator angle_creator = angle_styles().find(estyle);
+      if (angle_creator) return angle_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (angle_map->find(style) != angle_map->end()) {
-    AngleCreator &angle_creator = (*angle_map)[style];
-    return angle_creator(lmp);
-  }
+  if (AngleCreator angle_creator = angle_styles().find(style)) return angle_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("angle", style, lmp));
 
@@ -485,7 +431,7 @@ Angle *Force::angle_match(const std::string &style)
 void Force::create_dihedral(const std::string &style, int trysuffix)
 {
   delete[] dihedral_style;
-  if (dihedral) delete dihedral;
+  delete dihedral;
   dihedral_style = nullptr;
   dihedral = nullptr;
 
@@ -507,28 +453,21 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (dihedral_map->find(estyle) != dihedral_map->end()) {
-        DihedralCreator &dihedral_creator = (*dihedral_map)[estyle];
-        return dihedral_creator(lmp);
-      }
+      DihedralCreator dihedral_creator = dihedral_styles().find(estyle);
+      if (dihedral_creator) return dihedral_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (dihedral_map->find(estyle) != dihedral_map->end()) {
-        DihedralCreator &dihedral_creator = (*dihedral_map)[estyle];
-        return dihedral_creator(lmp);
-      }
+      DihedralCreator dihedral_creator = dihedral_styles().find(estyle);
+      if (dihedral_creator) return dihedral_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (dihedral_map->find(style) != dihedral_map->end()) {
-    DihedralCreator &dihedral_creator = (*dihedral_map)[style];
-    return dihedral_creator(lmp);
-  }
+  if (DihedralCreator dihedral_creator = dihedral_styles().find(style)) return dihedral_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("dihedral", style, lmp));
 
@@ -558,7 +497,7 @@ Dihedral *Force::dihedral_match(const std::string &style)
 void Force::create_improper(const std::string &style, int trysuffix)
 {
   delete[] improper_style;
-  if (improper) delete improper;
+  delete improper;
   improper_style = nullptr;
   improper = nullptr;
 
@@ -580,28 +519,21 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (improper_map->find(estyle) != improper_map->end()) {
-        ImproperCreator &improper_creator = (*improper_map)[estyle];
-        return improper_creator(lmp);
-      }
+      ImproperCreator improper_creator = improper_styles().find(estyle);
+      if (improper_creator) return improper_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (improper_map->find(estyle) != improper_map->end()) {
-        ImproperCreator &improper_creator = (*improper_map)[estyle];
-        return improper_creator(lmp);
-      }
+      ImproperCreator improper_creator = improper_styles().find(estyle);
+      if (improper_creator) return improper_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (improper_map->find(style) != improper_map->end()) {
-    ImproperCreator &improper_creator = (*improper_map)[style];
-    return improper_creator(lmp);
-  }
+  if (ImproperCreator improper_creator = improper_styles().find(style)) return improper_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("improper", style, lmp));
 
@@ -631,7 +563,7 @@ Improper *Force::improper_match(const std::string &style)
 void Force::create_kspace(const std::string &style, int trysuffix)
 {
   delete[] kspace_style;
-  if (kspace) delete kspace;
+  delete kspace;
   kspace_style = nullptr;
   kspace = nullptr;
 
@@ -650,28 +582,21 @@ KSpace *Force::new_kspace(const std::string &style, int trysuffix, int &sflag)
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (kspace_map->find(estyle) != kspace_map->end()) {
-        KSpaceCreator &kspace_creator = (*kspace_map)[estyle];
-        return kspace_creator(lmp);
-      }
+      KSpaceCreator kspace_creator = kspace_styles().find(estyle);
+      if (kspace_creator) return kspace_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (kspace_map->find(estyle) != kspace_map->end()) {
-        KSpaceCreator &kspace_creator = (*kspace_map)[estyle];
-        return kspace_creator(lmp);
-      }
+      KSpaceCreator kspace_creator = kspace_styles().find(estyle);
+      if (kspace_creator) return kspace_creator(lmp);
     }
   }
 
   sflag = 0;
   if (style == "none") return nullptr;
-  if (kspace_map->find(style) != kspace_map->end()) {
-    KSpaceCreator &kspace_creator = (*kspace_map)[style];
-    return kspace_creator(lmp);
-  }
+  if (KSpaceCreator kspace_creator = kspace_styles().find(style)) return kspace_creator(lmp);
 
   error->all(FLERR, utils::check_packages_for_style("kspace", style, lmp));
 

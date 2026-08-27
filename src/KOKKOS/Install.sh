@@ -226,6 +226,18 @@ action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
 action fix_recenter_kokkos.cpp
 action fix_recenter_kokkos.h
+action fix_rigid_small_kokkos.cpp fix_rigid_small.cpp
+action fix_rigid_small_kokkos.h fix_rigid_small.h
+action fix_rigid_nh_small_kokkos.cpp fix_rigid_nh_small.cpp
+action fix_rigid_nh_small_kokkos.h fix_rigid_nh_small.h
+action fix_rigid_nve_small_kokkos.cpp fix_rigid_nve_small.cpp
+action fix_rigid_nve_small_kokkos.h fix_rigid_nve_small.h
+action fix_rigid_nvt_small_kokkos.cpp fix_rigid_nvt_small.cpp
+action fix_rigid_nvt_small_kokkos.h fix_rigid_nvt_small.h
+action fix_rigid_npt_small_kokkos.cpp fix_rigid_npt_small.cpp
+action fix_rigid_npt_small_kokkos.h fix_rigid_npt_small.h
+action fix_rigid_nph_small_kokkos.cpp fix_rigid_nph_small.cpp
+action fix_rigid_nph_small_kokkos.h fix_rigid_nph_small.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
 action fix_setforce_kokkos.cpp
@@ -408,6 +420,8 @@ action pair_eam_alloy_kokkos.cpp pair_eam_alloy.cpp
 action pair_eam_alloy_kokkos.h pair_eam_alloy.h
 action pair_eam_fs_kokkos.cpp pair_eam_fs.cpp
 action pair_eam_fs_kokkos.h pair_eam_fs.h
+action pair_eam_he_kokkos.cpp pair_eam_he.cpp
+action pair_eam_he_kokkos.h pair_eam_he.h
 action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
@@ -451,6 +465,10 @@ action pair_lj_cut_coul_wolf_kokkos.cpp pair_lj_cut_coul_wolf.cpp
 action pair_lj_cut_coul_wolf_kokkos.h pair_lj_cut_coul_wolf.h
 action pair_lj_cut_coul_long_kokkos.cpp pair_lj_cut_coul_long.cpp
 action pair_lj_cut_coul_long_kokkos.h pair_lj_cut_coul_long.h
+action pair_lj_cut_tip4p_cut_kokkos.cpp pair_lj_cut_tip4p_cut.cpp
+action pair_lj_cut_tip4p_cut_kokkos.h pair_lj_cut_tip4p_cut.h
+action pair_lj_cut_tip4p_long_kokkos.cpp pair_lj_cut_tip4p_long.cpp
+action pair_lj_cut_tip4p_long_kokkos.h pair_lj_cut_tip4p_long.h
 action pair_lj_switch3_coulgauss_long_kokkos.cpp pair_lj_switch3_coulgauss_long.cpp
 action pair_lj_switch3_coulgauss_long_kokkos.h pair_lj_switch3_coulgauss_long.h
 action pair_lj_cut_dipole_cut_kokkos.cpp pair_lj_cut_dipole_cut.cpp
@@ -532,6 +550,11 @@ action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
+action pair_tip4p_cut_kokkos.cpp pair_tip4p_cut.cpp
+action pair_tip4p_cut_kokkos.h pair_tip4p_cut.h
+action pair_tip4p_kokkos.h
+action pair_tip4p_long_kokkos.cpp pair_tip4p_long.cpp
+action pair_tip4p_long_kokkos.h pair_tip4p_long.h
 action pair_uf3_kokkos.cpp pair_uf3.cpp
 action pair_uf3_kokkos.h pair_uf3.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp
@@ -548,6 +571,8 @@ action pair_zbl_kokkos.cpp
 action pair_zbl_kokkos.h
 action pppm_kokkos.cpp pppm.cpp
 action pppm_kokkos.h pppm.h
+action pppm_tip4p_kokkos.cpp pppm_tip4p.cpp
+action pppm_tip4p_kokkos.h pppm_tip4p.h
 action rand_pool_wrap_kokkos.cpp
 action rand_pool_wrap_kokkos.h
 action region_block_kokkos.cpp
@@ -561,6 +586,8 @@ action sna_kokkos.h sna.h
 action third_order_kokkos.cpp dynamical_matrix.cpp
 action third_order_kokkos.h dynamical_matrix.h
 action transpose_helper_kokkos.h
+action variable_kokkos.cpp
+action variable_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

@@ -76,7 +76,7 @@ template <class DeviceType> PairUF3Kokkos<DeviceType>::~PairUF3Kokkos()
 
 template <class DeviceType>
 template <typename TYPE>
-void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*** &array)
+void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE &data, typename TYPE::value_type*** &array)
 {
   if (array == nullptr) return;
   data = TYPE();
@@ -89,7 +89,7 @@ void PairUF3Kokkos<DeviceType>::destroy_3d(TYPE data, typename TYPE::value_type*
 
 template <class DeviceType>
 template <typename TYPE>
-void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE data, typename TYPE::value_type**** &array)
+void PairUF3Kokkos<DeviceType>::destroy_4d(TYPE &data, typename TYPE::value_type**** &array)
 {
   if (array == nullptr) return;
   data = TYPE();
@@ -254,7 +254,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_2b_coefficien
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = i; j < num_of_elements + 1; j++) {
       for (int k = 0; k < max_num_coeff_2b; k++) {
-        d_coefficients_2b_view(map2b_view(i, j), k) = n2b_coeff_array[i][j][k];
+        d_coefficients_2b_view(map2b_view(i, j), k) = static_cast<KK_FLOAT>(n2b_coeff_array[i][j][k]);
       }
     }
   }
@@ -270,9 +270,9 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_2b_coefficien
   for (int i = 1; i < num_of_elements + 1; i++) {
     for (int j = i; j < num_of_elements + 1; j++) {
       for (int k = 0; k < max_num_knots_2b; k++) {
-        d_n2b_knot_view(map2b_view(i, j), k) = n2b_knots_array[i][j][k];
+        d_n2b_knot_view(map2b_view(i, j), k) = static_cast<KK_FLOAT>(n2b_knots_array[i][j][k]);
       }
-      d_n2b_knot_spacings_view(map2b_view(i, j)) = n2b_knots_array[i][j][4] - n2b_knots_array[i][j][3];
+      d_n2b_knot_spacings_view(map2b_view(i, j)) = static_cast<KK_FLOAT>(n2b_knots_array[i][j][4] - n2b_knots_array[i][j][3]);
     }
   }
 
@@ -289,8 +289,8 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_2b_coefficien
         //n2b_knot[i][j].size() - 4; l++) {
         auto c = get_constants(&n2b_knots_array[i][j][l], n2b_coeff_array[i][j][l]);
         for (int k = 0; k < 16; k++)
-          constants_2b_view(map2b_view(i, j), l, k) = (std::isinf(c[k]) || std::isnan(c[k])) ? 0
-                                                                                             : c[k];
+          constants_2b_view(map2b_view(i, j), l, k) = static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0
+                                                                                             : c[k]);
       }
     }
   }
@@ -307,7 +307,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_2b_coefficien
         auto c = get_dnconstants(&n2b_knots_array[i][j][l + 1], coeff);
         for (int k = 0; k < 9; k++)
           dnconstants_2b_view(map2b_view(i, j), l, k) =
-              (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+              static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
       }
     }
   }
@@ -355,22 +355,22 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
       for (int k = 1; k < num_of_elements + 1; k++) {
         for (int m = 0; m < n3b_knots_array_size[map_3b[i][j][k]][0]; m++)
           d_n3b_knot_matrix_view(map3b_view(i, j, k), 0, m) =
-              n3b_knots_array[map_3b[i][j][k]][0][m];
+              static_cast<KK_FLOAT>(n3b_knots_array[map_3b[i][j][k]][0][m]);
         for (int m = 0; m < n3b_knots_array_size[map_3b[i][j][k]][1]; m++)
           d_n3b_knot_matrix_view(map3b_view(i, j, k), 1, m) =
-              n3b_knots_array[map_3b[i][j][k]][1][m];
+              static_cast<KK_FLOAT>(n3b_knots_array[map_3b[i][j][k]][1][m]);
         for (int m = 0; m < n3b_knots_array_size[map_3b[i][j][k]][2]; m++)
           d_n3b_knot_matrix_view(map3b_view(i, j, k), 2, m) =
-              n3b_knots_array[map_3b[i][j][k]][2][m];
+              static_cast<KK_FLOAT>(n3b_knots_array[map_3b[i][j][k]][2][m]);
 
         d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),2) =
-            n3b_knots_array[map_3b[i][j][k]][2][4] - n3b_knots_array[map_3b[i][j][k]][2][3];
+            static_cast<KK_FLOAT>(n3b_knots_array[map_3b[i][j][k]][2][4] - n3b_knots_array[map_3b[i][j][k]][2][3]);
 
         d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),1) =
-            n3b_knots_array[map_3b[i][j][k]][1][4] - n3b_knots_array[map_3b[i][j][k]][1][3];
+            static_cast<KK_FLOAT>(n3b_knots_array[map_3b[i][j][k]][1][4] - n3b_knots_array[map_3b[i][j][k]][1][3]);
 
         d_n3b_knot_matrix_spacings_view(map3b_view(i, j, k),0) =
-            n3b_knots_array[map_3b[i][j][k]][0][4] - n3b_knots_array[map_3b[i][j][k]][0][3];
+            static_cast<KK_FLOAT>(n3b_knots_array[map_3b[i][j][k]][0][4] - n3b_knots_array[map_3b[i][j][k]][0][3]);
       }
   Kokkos::deep_copy(d_n3b_knot_matrix, d_n3b_knot_matrix_view);
   Kokkos::deep_copy(d_n3b_knot_matrix_spacings, d_n3b_knot_matrix_spacings_view);
@@ -384,13 +384,13 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
     for (int j = 1; j < num_of_elements + 1; j++) {
       for (int k = 1; k < num_of_elements + 1; k++) {
         d_n3b_knot_spacings_view(map3b_view(i, j, k), 0) =
-            1 / (n3b_knots_array[map_3b[i][j][k]][0][5] - n3b_knots_array[map_3b[i][j][k]][0][4]);
+            static_cast<KK_FLOAT>(1 / (n3b_knots_array[map_3b[i][j][k]][0][5] - n3b_knots_array[map_3b[i][j][k]][0][4]));
 
         d_n3b_knot_spacings_view(map3b_view(i, j, k), 1) =
-            1 / (n3b_knots_array[map_3b[i][j][k]][1][5] - n3b_knots_array[map_3b[i][j][k]][1][4]);
+            static_cast<KK_FLOAT>(1 / (n3b_knots_array[map_3b[i][j][k]][1][5] - n3b_knots_array[map_3b[i][j][k]][1][4]));
 
         d_n3b_knot_spacings_view(map3b_view(i, j, k), 2) =
-            1 / (n3b_knots_array[map_3b[i][j][k]][2][5] - n3b_knots_array[map_3b[i][j][k]][2][4]);
+            static_cast<KK_FLOAT>(1 / (n3b_knots_array[map_3b[i][j][k]][2][5] - n3b_knots_array[map_3b[i][j][k]][2][4]));
       }
     }
   }
@@ -409,7 +409,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
           for (int j = 0; j < n3b_coeff_array_size[map_3b[n][m][o]][1]; j++) {
             for (int k = 0; k < n3b_coeff_array_size[map_3b[n][m][o]][2]; k++) {
               d_coefficients_3b_view(map3b_view(n, m, o), i, j, k) =
-                  n3b_coeff_array[map_3b[n][m][o]][i][j][k];
+                  static_cast<KK_FLOAT>(n3b_coeff_array[map_3b[n][m][o]][i][j][k]);
             }
           }
         }
@@ -450,7 +450,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
                   3 / (n3b_knots_array[map_3b[n][m][o]][0][k + 4] - n3b_knots_array[map_3b[n][m][o]][0][k + 1]);
 
               d_dncoefficients_3b_view(map3b_view(n, m, o), 2, i, j, k) =
-                  (n3b_coeff_array[map_3b[n][m][o]][i][j][k + 1] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4;
+                  static_cast<KK_FLOAT>((n3b_coeff_array[map_3b[n][m][o]][i][j][k + 1] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4);
             }
           }
         }
@@ -464,7 +464,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
             std::vector<double> dncoeff_vect;
             for (int k = 0; k < coeff_dim3; k++) {
               d_dncoefficients_3b_view(map3b_view(n, m, o), 1, i, j, k) =
-                  (n3b_coeff_array[map_3b[n][m][o]][i][j + 1][k] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4;
+                  static_cast<KK_FLOAT>((n3b_coeff_array[map_3b[n][m][o]][i][j + 1][k] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4);
             }
           }
         }
@@ -475,7 +475,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
           for (int j = 0; j < coeff_dim2; j++) {
             for (int k = 0; k < coeff_dim3; k++) {
               d_dncoefficients_3b_view(map3b_view(n, m, o), 0, i, j, k) =
-                  (n3b_coeff_array[map_3b[n][m][o]][i + 1][j][k] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4;
+                  static_cast<KK_FLOAT>((n3b_coeff_array[map_3b[n][m][o]][i + 1][j][k] - n3b_coeff_array[map_3b[n][m][o]][i][j][k]) * dntemp4);
             }
           }
         }
@@ -501,19 +501,19 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
           auto c = get_constants(&n3b_knots_array[map_3b[n][m][o]][2][l], 1);
           for (int k = 0; k < 16; k++)
             constants_3b_view(map3b_view(n, m, o), 0, l, k) =
-                (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+                static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
         }
         for (int l = 0; l < n3b_knots_array_size[map_3b[n][m][o]][1] - 4; l++) {
           auto c = get_constants(&n3b_knots_array[map_3b[n][m][o]][1][l], 1);
           for (int k = 0; k < 16; k++)
             constants_3b_view(map3b_view(n, m, o), 1, l, k) =
-                (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+                static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
         }
         for (int l = 0; l < n3b_knots_array_size[map_3b[n][m][o]][0] -4; l++) {
           auto c = get_constants(&n3b_knots_array[map_3b[n][m][o]][0][l], 1);
           for (int k = 0; k < 16; k++)
             constants_3b_view(map3b_view(n, m, o), 2, l, k) =
-                (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+                static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
         }
       }
     }
@@ -530,19 +530,19 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::create_3b_coefficien
           auto c = get_dnconstants(&n3b_knots_array[map_3b[n][m][o]][2][l], 1);
           for (int k = 0; k < 9; k++)
             dnconstants_3b_view(map3b_view(n, m, o), 0, l - 1, k) =
-                (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+                static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
         }
         for (int l = 1; l < n3b_knots_array_size[map_3b[n][m][o]][1] - 5; l++) {
           auto c = get_dnconstants(&n3b_knots_array[map_3b[n][m][o]][1][l], 1);
           for (int k = 0; k < 9; k++)
             dnconstants_3b_view(map3b_view(n, m, o), 1, l - 1, k) =
-                (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+                static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
         }
         for (int l = 1; l < n3b_knots_array_size[map_3b[n][m][o]][0] - 5; l++) {
           auto c = get_dnconstants(&n3b_knots_array[map_3b[n][m][o]][0][l], 1);
           for (int k = 0; k < 9; k++)
             dnconstants_3b_view(map3b_view(n, m, o), 2, l - 1, k) =
-                (std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k];
+                static_cast<KK_FLOAT>((std::isinf(c[k]) || std::isnan(c[k])) ? 0 : c[k]);
         }
       }
     }
@@ -808,14 +808,14 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
   Kokkos::Experimental::contribute(d_cvatom, cvscatter);
   Kokkos::Experimental::contribute(f, fscatter);
 
-  if (eflag_global) eng_vdwl += ev_all.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev_all.evdwl);
   if (vflag_global) {
-    virial[0] += ev_all.v[0];
-    virial[1] += ev_all.v[1];
-    virial[2] += ev_all.v[2];
-    virial[3] += ev_all.v[3];
-    virial[4] += ev_all.v[4];
-    virial[5] += ev_all.v[5];
+    virial[0] += static_cast<double>(ev_all.v[0]);
+    virial[1] += static_cast<double>(ev_all.v[1]);
+    virial[2] += static_cast<double>(ev_all.v[2]);
+    virial[3] += static_cast<double>(ev_all.v[3]);
+    virial[4] += static_cast<double>(ev_all.v[4]);
+    virial[5] += static_cast<double>(ev_all.v[5]);
   }
 
   if (eflag_atom) {
@@ -920,20 +920,20 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 
     if (rsq >= d_cutsq(itype, jtype)) continue;
 
-    const KK_FLOAT rij = sqrt(rsq);
+    const KK_FLOAT rij = Kokkos::sqrt(rsq);
     this->template twobody<EVFLAG>(itype, jtype, rij, evdwl, fpair);
 
     fpair = -fpair / rij;
 
-    fxtmpi += delx * fpair;
-    fytmpi += dely * fpair;
-    fztmpi += delz * fpair;
-    a_f(j, 0) -= delx * fpair;
-    a_f(j, 1) -= dely * fpair;
-    a_f(j, 2) -= delz * fpair;
+    fxtmpi += static_cast<KK_ACC_FLOAT>(delx * fpair);
+    fytmpi += static_cast<KK_ACC_FLOAT>(dely * fpair);
+    fztmpi += static_cast<KK_ACC_FLOAT>(delz * fpair);
+    a_f(j, 0) -= static_cast<KK_ACC_FLOAT>(delx * fpair);
+    a_f(j, 1) -= static_cast<KK_ACC_FLOAT>(dely * fpair);
+    a_f(j, 2) -= static_cast<KK_ACC_FLOAT>(delz * fpair);
 
     if (EVFLAG) {
-      if (eflag) ev.evdwl += evdwl;
+      if (eflag) ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl);
       if (vflag_either || eflag_atom)
         this->template ev_tally<NEIGHFLAG>(ev, i, j, evdwl, fpair, delx, dely, delz);
     }
@@ -949,7 +949,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
     del_rji[0] = x(j, 0) - xtmp;
     del_rji[1] = x(j, 1) - ytmp;
     del_rji[2] = x(j, 2) - ztmp;
-    KK_FLOAT rij = sqrt(del_rji[0] * del_rji[0] + del_rji[1] * del_rji[1] + del_rji[2] * del_rji[2]);
+    KK_FLOAT rij = Kokkos::sqrt(del_rji[0] * del_rji[0] + del_rji[1] * del_rji[1] + del_rji[2] * del_rji[2]);
 
     KK_ACC_FLOAT fxtmpj = 0.0;
     KK_ACC_FLOAT fytmpj = 0.0;
@@ -973,7 +973,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
       del_rki[1] = x(k, 1) - ytmp;
       del_rki[2] = x(k, 2) - ztmp;
       KK_FLOAT rik =
-          sqrt(del_rki[0] * del_rki[0] + del_rki[1] * del_rki[1] + del_rki[2] * del_rki[2]);
+          Kokkos::sqrt(del_rki[0] * del_rki[0] + del_rki[1] * del_rki[1] + del_rki[2] * del_rki[2]);
 
       if (rik < d_min_cut_3b(itype, jtype, ktype, 1)) continue;
       if (rik > d_cut_3b(itype, ktype, jtype)) continue;
@@ -982,7 +982,7 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
       del_rkj[1] = x(k, 1) - x(j, 1);
       del_rkj[2] = x(k, 2) - x(j, 2);
       KK_FLOAT rjk =
-          sqrt(del_rkj[0] * del_rkj[0] + del_rkj[1] * del_rkj[1] + del_rkj[2] * del_rkj[2]);
+          Kokkos::sqrt(del_rkj[0] * del_rkj[0] + del_rkj[1] * del_rkj[1] + del_rkj[2] * del_rkj[2]);
       if (rjk < d_min_cut_3b(itype, jtype, ktype, 0)) continue;
       this->template threebody<EVFLAG>(itype, jtype, ktype, rij, rik, rjk, evdwl3, triangle_eval);
 
@@ -1007,17 +1007,17 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
       fjk[2] = *(triangle_eval + 2) * (del_rkj[2] / rjk);
       fkj[2] = -fjk[2];
 
-      Fj[0] = fji[0] + fjk[0];
-      Fj[1] = fji[1] + fjk[1];
-      Fj[2] = fji[2] + fjk[2];
+      Fj[0] = static_cast<KK_ACC_FLOAT>(fji[0] + fjk[0]);
+      Fj[1] = static_cast<KK_ACC_FLOAT>(fji[1] + fjk[1]);
+      Fj[2] = static_cast<KK_ACC_FLOAT>(fji[2] + fjk[2]);
 
-      Fk[0] = fki[0] + fkj[0];
-      Fk[1] = fki[1] + fkj[1];
-      Fk[2] = fki[2] + fkj[2];
+      Fk[0] = static_cast<KK_ACC_FLOAT>(fki[0] + fkj[0]);
+      Fk[1] = static_cast<KK_ACC_FLOAT>(fki[1] + fkj[1]);
+      Fk[2] = static_cast<KK_ACC_FLOAT>(fki[2] + fkj[2]);
 
-      fxtmpi += (fij[0] + fik[0]);
-      fytmpi += (fij[1] + fik[1]);
-      fztmpi += (fij[2] + fik[2]);
+      fxtmpi += static_cast<KK_ACC_FLOAT>(fij[0] + fik[0]);
+      fytmpi += static_cast<KK_ACC_FLOAT>(fij[1] + fik[1]);
+      fztmpi += static_cast<KK_ACC_FLOAT>(fij[2] + fik[2]);
       fxtmpj += Fj[0];
       fytmpj += Fj[1];
       fztmpj += Fj[2];
@@ -1026,54 +1026,54 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
       a_f(k, 2) += Fk[2];
 
       if (EVFLAG) {
-        if (eflag) { ev.evdwl += evdwl3; }
+        if (eflag) { ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl3); }
         if (vflag_either || eflag_atom) {
           this->template ev_tally3<NEIGHFLAG>(ev, i, j, k, evdwl3, 0.0, Fj, Fk, del_rji, del_rki);
           if (cvflag_atom) {
 
             KK_FLOAT ric[3];
-            ric[0] = THIRD * (-del_rji[0] - del_rki[0]);
-            ric[1] = THIRD * (-del_rji[1] - del_rki[1]);
-            ric[2] = THIRD * (-del_rji[2] - del_rki[2]);
-            a_cvatom(i, 0) += ric[0] * (-Fj[0] - Fk[0]);
-            a_cvatom(i, 1) += ric[1] * (-Fj[1] - Fk[1]);
-            a_cvatom(i, 2) += ric[2] * (-Fj[2] - Fk[2]);
-            a_cvatom(i, 3) += ric[0] * (-Fj[1] - Fk[1]);
-            a_cvatom(i, 4) += ric[0] * (-Fj[2] - Fk[2]);
-            a_cvatom(i, 5) += ric[1] * (-Fj[2] - Fk[2]);
-            a_cvatom(i, 6) += ric[1] * (-Fj[0] - Fk[0]);
-            a_cvatom(i, 7) += ric[2] * (-Fj[0] - Fk[0]);
-            a_cvatom(i, 8) += ric[2] * (-Fj[1] - Fk[1]);
+            ric[0] = static_cast<KK_FLOAT>(THIRD) * (-del_rji[0] - del_rki[0]);
+            ric[1] = static_cast<KK_FLOAT>(THIRD) * (-del_rji[1] - del_rki[1]);
+            ric[2] = static_cast<KK_FLOAT>(THIRD) * (-del_rji[2] - del_rki[2]);
+            a_cvatom(i, 0) += static_cast<KK_ACC_FLOAT>(ric[0]) * (-Fj[0] - Fk[0]);
+            a_cvatom(i, 1) += static_cast<KK_ACC_FLOAT>(ric[1]) * (-Fj[1] - Fk[1]);
+            a_cvatom(i, 2) += static_cast<KK_ACC_FLOAT>(ric[2]) * (-Fj[2] - Fk[2]);
+            a_cvatom(i, 3) += static_cast<KK_ACC_FLOAT>(ric[0]) * (-Fj[1] - Fk[1]);
+            a_cvatom(i, 4) += static_cast<KK_ACC_FLOAT>(ric[0]) * (-Fj[2] - Fk[2]);
+            a_cvatom(i, 5) += static_cast<KK_ACC_FLOAT>(ric[1]) * (-Fj[2] - Fk[2]);
+            a_cvatom(i, 6) += static_cast<KK_ACC_FLOAT>(ric[1]) * (-Fj[0] - Fk[0]);
+            a_cvatom(i, 7) += static_cast<KK_ACC_FLOAT>(ric[2]) * (-Fj[0] - Fk[0]);
+            a_cvatom(i, 8) += static_cast<KK_ACC_FLOAT>(ric[2]) * (-Fj[1] - Fk[1]);
 
             KK_FLOAT rjc[3];
-            rjc[0] = THIRD * (del_rji[0] - del_rkj[0]);
-            rjc[1] = THIRD * (del_rji[1] - del_rkj[1]);
-            rjc[2] = THIRD * (del_rji[2] - del_rkj[2]);
+            rjc[0] = static_cast<KK_FLOAT>(THIRD) * (del_rji[0] - del_rkj[0]);
+            rjc[1] = static_cast<KK_FLOAT>(THIRD) * (del_rji[1] - del_rkj[1]);
+            rjc[2] = static_cast<KK_FLOAT>(THIRD) * (del_rji[2] - del_rkj[2]);
 
-            a_cvatom(j, 0) += rjc[0] * Fj[0];
-            a_cvatom(j, 1) += rjc[1] * Fj[1];
-            a_cvatom(j, 2) += rjc[2] * Fj[2];
-            a_cvatom(j, 3) += rjc[0] * Fj[1];
-            a_cvatom(j, 4) += rjc[0] * Fj[2];
-            a_cvatom(j, 5) += rjc[1] * Fj[2];
-            a_cvatom(j, 6) += rjc[1] * Fj[0];
-            a_cvatom(j, 7) += rjc[2] * Fj[0];
-            a_cvatom(j, 8) += rjc[2] * Fj[1];
+            a_cvatom(j, 0) += static_cast<KK_ACC_FLOAT>(rjc[0]) * Fj[0];
+            a_cvatom(j, 1) += static_cast<KK_ACC_FLOAT>(rjc[1]) * Fj[1];
+            a_cvatom(j, 2) += static_cast<KK_ACC_FLOAT>(rjc[2]) * Fj[2];
+            a_cvatom(j, 3) += static_cast<KK_ACC_FLOAT>(rjc[0]) * Fj[1];
+            a_cvatom(j, 4) += static_cast<KK_ACC_FLOAT>(rjc[0]) * Fj[2];
+            a_cvatom(j, 5) += static_cast<KK_ACC_FLOAT>(rjc[1]) * Fj[2];
+            a_cvatom(j, 6) += static_cast<KK_ACC_FLOAT>(rjc[1]) * Fj[0];
+            a_cvatom(j, 7) += static_cast<KK_ACC_FLOAT>(rjc[2]) * Fj[0];
+            a_cvatom(j, 8) += static_cast<KK_ACC_FLOAT>(rjc[2]) * Fj[1];
 
             KK_FLOAT rkc[3];
-            rkc[0] = THIRD * (del_rki[0] + del_rkj[0]);
-            rkc[1] = THIRD * (del_rki[1] + del_rkj[1]);
-            rkc[2] = THIRD * (del_rki[2] + del_rkj[2]);
+            rkc[0] = static_cast<KK_FLOAT>(THIRD) * (del_rki[0] + del_rkj[0]);
+            rkc[1] = static_cast<KK_FLOAT>(THIRD) * (del_rki[1] + del_rkj[1]);
+            rkc[2] = static_cast<KK_FLOAT>(THIRD) * (del_rki[2] + del_rkj[2]);
 
-            a_cvatom(k, 0) += rkc[0] * Fk[0];
-            a_cvatom(k, 1) += rkc[1] * Fk[1];
-            a_cvatom(k, 2) += rkc[2] * Fk[2];
-            a_cvatom(k, 3) += rkc[0] * Fk[1];
-            a_cvatom(k, 4) += rkc[0] * Fk[2];
-            a_cvatom(k, 5) += rkc[1] * Fk[2];
-            a_cvatom(k, 6) += rkc[1] * Fk[0];
-            a_cvatom(k, 7) += rkc[2] * Fk[0];
-            a_cvatom(k, 8) += rkc[2] * Fk[1];
+            a_cvatom(k, 0) += static_cast<KK_ACC_FLOAT>(rkc[0]) * Fk[0];
+            a_cvatom(k, 1) += static_cast<KK_ACC_FLOAT>(rkc[1]) * Fk[1];
+            a_cvatom(k, 2) += static_cast<KK_ACC_FLOAT>(rkc[2]) * Fk[2];
+            a_cvatom(k, 3) += static_cast<KK_ACC_FLOAT>(rkc[0]) * Fk[1];
+            a_cvatom(k, 4) += static_cast<KK_ACC_FLOAT>(rkc[0]) * Fk[2];
+            a_cvatom(k, 5) += static_cast<KK_ACC_FLOAT>(rkc[1]) * Fk[2];
+            a_cvatom(k, 6) += static_cast<KK_ACC_FLOAT>(rkc[1]) * Fk[0];
+            a_cvatom(k, 7) += static_cast<KK_ACC_FLOAT>(rkc[2]) * Fk[0];
+            a_cvatom(k, 8) += static_cast<KK_ACC_FLOAT>(rkc[2]) * Fk[1];
           }
         }
       }
@@ -1118,9 +1118,9 @@ PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, co
   auto a_cvatom = cvscatter.access();
 
   if (eflag_atom) {
-    const KK_FLOAT epairhalf = 0.5 * epair;
-    a_eatom[i] += epairhalf;
-    a_eatom[j] += epairhalf;
+    const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * epair;
+    a_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+    a_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
   }
 
   if (vflag_either) {
@@ -1132,49 +1132,49 @@ PairUF3Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j, co
     const KK_FLOAT v5 = dely * delz * fpair;
 
     if (vflag_global) {
-      ev.v[0] += v0;
-      ev.v[1] += v1;
-      ev.v[2] += v2;
-      ev.v[3] += v3;
-      ev.v[4] += v4;
-      ev.v[5] += v5;
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(v0);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(v1);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(v3);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(v4);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
     }
 
     if (vflag_atom) {
-      a_vatom(i, 0) += 0.5 * v0;
-      a_vatom(i, 1) += 0.5 * v1;
-      a_vatom(i, 2) += 0.5 * v2;
-      a_vatom(i, 3) += 0.5 * v3;
-      a_vatom(i, 4) += 0.5 * v4;
-      a_vatom(i, 5) += 0.5 * v5;
+      a_vatom(i, 0) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v0);
+      a_vatom(i, 1) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v1);
+      a_vatom(i, 2) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v2);
+      a_vatom(i, 3) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v3);
+      a_vatom(i, 4) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v4);
+      a_vatom(i, 5) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v5);
 
-      a_vatom(j, 0) += 0.5 * v0;
-      a_vatom(j, 1) += 0.5 * v1;
-      a_vatom(j, 2) += 0.5 * v2;
-      a_vatom(j, 3) += 0.5 * v3;
-      a_vatom(j, 4) += 0.5 * v4;
-      a_vatom(j, 5) += 0.5 * v5;
+      a_vatom(j, 0) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v0);
+      a_vatom(j, 1) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v1);
+      a_vatom(j, 2) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v2);
+      a_vatom(j, 3) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v3);
+      a_vatom(j, 4) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v4);
+      a_vatom(j, 5) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v5);
     }
 
     if (cvflag_atom) {
-      a_cvatom(i, 0) += 0.5 * v0;
-      a_cvatom(i, 1) += 0.5 * v1;
-      a_cvatom(i, 2) += 0.5 * v2;
-      a_cvatom(i, 3) += 0.5 * v3;
-      a_cvatom(i, 4) += 0.5 * v4;
-      a_cvatom(i, 5) += 0.5 * v5;
-      a_cvatom(i, 6) += 0.5 * v3;
-      a_cvatom(i, 7) += 0.5 * v4;
-      a_cvatom(i, 8) += 0.5 * v5;
-      a_cvatom(j, 0) += 0.5 * v0;
-      a_cvatom(j, 1) += 0.5 * v1;
-      a_cvatom(j, 2) += 0.5 * v2;
-      a_cvatom(j, 3) += 0.5 * v3;
-      a_cvatom(j, 4) += 0.5 * v4;
-      a_cvatom(j, 5) += 0.5 * v5;
-      a_cvatom(j, 6) += 0.5 * v3;
-      a_cvatom(j, 7) += 0.5 * v4;
-      a_cvatom(j, 8) += 0.5 * v5;
+      a_cvatom(i, 0) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v0);
+      a_cvatom(i, 1) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v1);
+      a_cvatom(i, 2) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v2);
+      a_cvatom(i, 3) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v3);
+      a_cvatom(i, 4) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v4);
+      a_cvatom(i, 5) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v5);
+      a_cvatom(i, 6) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v3);
+      a_cvatom(i, 7) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v4);
+      a_cvatom(i, 8) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v5);
+      a_cvatom(j, 0) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v0);
+      a_cvatom(j, 1) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v1);
+      a_cvatom(j, 2) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v2);
+      a_cvatom(j, 3) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v3);
+      a_cvatom(j, 4) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v4);
+      a_cvatom(j, 5) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v5);
+      a_cvatom(j, 6) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v3);
+      a_cvatom(j, 7) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v4);
+      a_cvatom(j, 8) += static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(v5);
     }
   }
 }
@@ -1202,50 +1202,50 @@ PairUF3Kokkos<DeviceType>::ev_tally3(EV_FLOAT &ev, const int &i, const int &j, i
   auto a_vatom = vscatter.access();
 
   if (eflag_atom) {
-    epairthird = THIRD * (evdwl + ecoul);
-    a_eatom[i] += epairthird;
-    a_eatom[j] += epairthird;
-    a_eatom[k] += epairthird;
+    epairthird = static_cast<KK_FLOAT>(THIRD) * (evdwl + ecoul);
+    a_eatom[i] += static_cast<KK_ACC_FLOAT>(epairthird);
+    a_eatom[j] += static_cast<KK_ACC_FLOAT>(epairthird);
+    a_eatom[k] += static_cast<KK_ACC_FLOAT>(epairthird);
   }
 
   if (vflag_either) {
-    v[0] = drji[0] * fj[0] + drki[0] * fk[0];
-    v[1] = drji[1] * fj[1] + drki[1] * fk[1];
-    v[2] = drji[2] * fj[2] + drki[2] * fk[2];
-    v[3] = drji[0] * fj[1] + drki[0] * fk[1];
-    v[4] = drji[0] * fj[2] + drki[0] * fk[2];
-    v[5] = drji[1] * fj[2] + drki[1] * fk[2];
+    v[0] = drji[0] * static_cast<KK_FLOAT>(fj[0]) + drki[0] * static_cast<KK_FLOAT>(fk[0]);
+    v[1] = drji[1] * static_cast<KK_FLOAT>(fj[1]) + drki[1] * static_cast<KK_FLOAT>(fk[1]);
+    v[2] = drji[2] * static_cast<KK_FLOAT>(fj[2]) + drki[2] * static_cast<KK_FLOAT>(fk[2]);
+    v[3] = drji[0] * static_cast<KK_FLOAT>(fj[1]) + drki[0] * static_cast<KK_FLOAT>(fk[1]);
+    v[4] = drji[0] * static_cast<KK_FLOAT>(fj[2]) + drki[0] * static_cast<KK_FLOAT>(fk[2]);
+    v[5] = drji[1] * static_cast<KK_FLOAT>(fj[2]) + drki[1] * static_cast<KK_FLOAT>(fk[2]);
 
     if (vflag_global) {
-      ev.v[0] += v[0];
-      ev.v[1] += v[1];
-      ev.v[2] += v[2];
-      ev.v[3] += v[3];
-      ev.v[4] += v[4];
-      ev.v[5] += v[5];
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(v[0]);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(v[1]);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(v[2]);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(v[3]);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(v[4]);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(v[5]);
     }
 
     if (vflag_atom) {
-      a_vatom(i, 0) += THIRD * v[0];
-      a_vatom(i, 1) += THIRD * v[1];
-      a_vatom(i, 2) += THIRD * v[2];
-      a_vatom(i, 3) += THIRD * v[3];
-      a_vatom(i, 4) += THIRD * v[4];
-      a_vatom(i, 5) += THIRD * v[5];
+      a_vatom(i, 0) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[0]);
+      a_vatom(i, 1) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[1]);
+      a_vatom(i, 2) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[2]);
+      a_vatom(i, 3) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[3]);
+      a_vatom(i, 4) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[4]);
+      a_vatom(i, 5) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[5]);
 
-      a_vatom(j, 0) += THIRD * v[0];
-      a_vatom(j, 1) += THIRD * v[1];
-      a_vatom(j, 2) += THIRD * v[2];
-      a_vatom(j, 3) += THIRD * v[3];
-      a_vatom(j, 4) += THIRD * v[4];
-      a_vatom(j, 5) += THIRD * v[5];
+      a_vatom(j, 0) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[0]);
+      a_vatom(j, 1) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[1]);
+      a_vatom(j, 2) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[2]);
+      a_vatom(j, 3) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[3]);
+      a_vatom(j, 4) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[4]);
+      a_vatom(j, 5) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[5]);
 
-      a_vatom(k, 0) += THIRD * v[0];
-      a_vatom(k, 1) += THIRD * v[1];
-      a_vatom(k, 2) += THIRD * v[2];
-      a_vatom(k, 3) += THIRD * v[3];
-      a_vatom(k, 4) += THIRD * v[4];
-      a_vatom(k, 5) += THIRD * v[5];
+      a_vatom(k, 0) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[0]);
+      a_vatom(k, 1) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[1]);
+      a_vatom(k, 2) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[2]);
+      a_vatom(k, 3) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[3]);
+      a_vatom(k, 4) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[4]);
+      a_vatom(k, 5) += static_cast<KK_ACC_FLOAT>(THIRD) * static_cast<KK_ACC_FLOAT>(v[5]);
     }
   }
 }
@@ -1619,9 +1619,9 @@ double PairUF3Kokkos<DeviceType>::single(int /*i*/, int /*j*/, int itype, int jt
   double r = sqrt(rsq);
   int interaction_id = map2b(itype, jtype);
   int start_index = 3;
-  while (r > d_n2b_knot(interaction_id, start_index + 1)) start_index++;
+  while (r > static_cast<double>(d_n2b_knot(interaction_id, start_index + 1))) start_index++;
 
-  if (r < d_cutsq(itype, jtype)) {
+  if (r < static_cast<double>(d_cutsq(itype, jtype))) {
     double r_values[4];
     r_values[0] = 1;
     r_values[1] = r;
@@ -1629,33 +1629,33 @@ double PairUF3Kokkos<DeviceType>::single(int /*i*/, int /*j*/, int itype, int jt
     r_values[3] = r_values[2] * r_values[1];
 
     // Calculate energy
-    value = constants_2b(interaction_id, start_index, 0);
-    value += r_values[1] * constants_2b(interaction_id, start_index, 1);
-    value += r_values[2] * constants_2b(interaction_id, start_index, 2);
-    value += r_values[3] * constants_2b(interaction_id, start_index, 3);
-    value += constants_2b(interaction_id, start_index - 1, 4);
-    value += r_values[1] * constants_2b(interaction_id, start_index - 1, 5);
-    value += r_values[2] * constants_2b(interaction_id, start_index - 1, 6);
-    value += r_values[3] * constants_2b(interaction_id, start_index - 1, 7);
-    value += constants_2b(interaction_id, start_index - 2, 8);
-    value += r_values[1] * constants_2b(interaction_id, start_index - 2, 9);
-    value += r_values[2] * constants_2b(interaction_id, start_index - 2, 10);
-    value += r_values[3] * constants_2b(interaction_id, start_index - 2, 11);
-    value += constants_2b(interaction_id, start_index - 3, 12);
-    value += r_values[1] * constants_2b(interaction_id, start_index - 3, 13);
-    value += r_values[2] * constants_2b(interaction_id, start_index - 3, 14);
-    value += r_values[3] * constants_2b(interaction_id, start_index - 3, 15);
+    value = static_cast<double>(constants_2b(interaction_id, start_index, 0));
+    value += r_values[1] * static_cast<double>(constants_2b(interaction_id, start_index, 1));
+    value += r_values[2] * static_cast<double>(constants_2b(interaction_id, start_index, 2));
+    value += r_values[3] * static_cast<double>(constants_2b(interaction_id, start_index, 3));
+    value += static_cast<double>(constants_2b(interaction_id, start_index - 1, 4));
+    value += r_values[1] * static_cast<double>(constants_2b(interaction_id, start_index - 1, 5));
+    value += r_values[2] * static_cast<double>(constants_2b(interaction_id, start_index - 1, 6));
+    value += r_values[3] * static_cast<double>(constants_2b(interaction_id, start_index - 1, 7));
+    value += static_cast<double>(constants_2b(interaction_id, start_index - 2, 8));
+    value += r_values[1] * static_cast<double>(constants_2b(interaction_id, start_index - 2, 9));
+    value += r_values[2] * static_cast<double>(constants_2b(interaction_id, start_index - 2, 10));
+    value += r_values[3] * static_cast<double>(constants_2b(interaction_id, start_index - 2, 11));
+    value += static_cast<double>(constants_2b(interaction_id, start_index - 3, 12));
+    value += r_values[1] * static_cast<double>(constants_2b(interaction_id, start_index - 3, 13));
+    value += r_values[2] * static_cast<double>(constants_2b(interaction_id, start_index - 3, 14));
+    value += r_values[3] * static_cast<double>(constants_2b(interaction_id, start_index - 3, 15));
 
     // Calculate force
-    fforce = dnconstants_2b(interaction_id, start_index - 1, 0);
-    fforce += r_values[1] * dnconstants_2b(interaction_id, start_index - 1, 1);
-    fforce += r_values[2] * dnconstants_2b(interaction_id, start_index - 1, 2);
-    fforce += dnconstants_2b(interaction_id, start_index - 2, 3);
-    fforce += r_values[1] * dnconstants_2b(interaction_id, start_index - 2, 4);
-    fforce += r_values[2] * dnconstants_2b(interaction_id, start_index - 2, 5);
-    fforce += dnconstants_2b(interaction_id, start_index - 3, 6);
-    fforce += r_values[1] * dnconstants_2b(interaction_id, start_index - 3, 7);
-    fforce += r_values[2] * dnconstants_2b(interaction_id, start_index - 3, 8);
+    fforce = static_cast<double>(dnconstants_2b(interaction_id, start_index - 1, 0));
+    fforce += r_values[1] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 1, 1));
+    fforce += r_values[2] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 1, 2));
+    fforce += static_cast<double>(dnconstants_2b(interaction_id, start_index - 2, 3));
+    fforce += r_values[1] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 2, 4));
+    fforce += r_values[2] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 2, 5));
+    fforce += static_cast<double>(dnconstants_2b(interaction_id, start_index - 3, 6));
+    fforce += r_values[1] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 3, 7));
+    fforce += r_values[2] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 3, 8));
   }
 
   return factor_lj * value;

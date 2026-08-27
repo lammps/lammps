@@ -682,6 +682,10 @@ void AtomVecEllipsoid::data_atom_post(int ilocal)
 
   if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
 
+  // data_atom_bonus() overrides this for atoms listed in the Ellipsoids section
+
+  if (atom->superellipsoid_flag) radius[ilocal] = 0.0;
+
   angmom[ilocal][0] = 0.0;
   angmom[ilocal][1] = 0.0;
   angmom[ilocal][2] = 0.0;

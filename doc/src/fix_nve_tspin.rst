@@ -212,15 +212,14 @@ This fix cannot be used with a :doc:`dynamic group <group>`.
 There is no KOKKOS version.  Running the CPU *tspin* styles inside a KOKKOS
 build has not been validated and is not supported.
 
-The existing magnetic pair styles of the SPIN package cannot be used with this
-fix.  They provide a Landau-Lifshitz torque but do not guarantee that the
-parallel component of *fm* follows the full-gradient encoding above.  Interpreting
-that component as a radial force would therefore be ambiguous, so
-:doc:`pair_style spin/* <pair_spin_exchange>` stops with an error when a
+:doc:`pair_style spin/dipole/cut <pair_spin_dipole>` can be used with this fix:
+its energy depends on the complete spin vectors and its *fm* output follows the
+full-gradient encoding above.  The other magnetic pair styles of the SPIN
+package provide a Landau-Lifshitz torque but do not guarantee that the parallel
+component of *fm* represents a radial force, so they stop with an error when a
 *tspin* integrator is defined.  A direction-only interaction can be made
 compatible by projecting its contribution onto the spin tangent plane before
-it is added to *fm*, but the current SPIN pair styles do not provide that TSPIN
-interface.  The same caveat applies to :doc:`fix precession/spin
+it is added to *fm*.  The same caveat applies to :doc:`fix precession/spin
 <fix_precession_spin>`, which is not checked automatically.
 
 The *nve/tspin* fix is part of the SPIN package.  This style is only

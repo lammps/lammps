@@ -119,11 +119,13 @@ in that array as
 The inertial integrator multiplies *fm* by
 :math:`\hbar/|\vec{S}_i|` to recover the force.  This is a stronger contract
 than the one needed by fixed-modulus Landau-Lifshitz dynamics, where any
-component of *fm* parallel to the spin disappears from the cross product.  The
-existing SPIN pair styles only guarantee the resulting torque and are therefore
-rejected by the TSPIN integrators.  A variable-moment potential that explicitly
-uses the full-gradient encoding, such as *pair_style deepspin* of the DeePMD-kit
-package, can be used without changing its force output.
+component of *fm* parallel to the spin disappears from the cross product.
+:doc:`pair_style spin/dipole/cut <pair_spin_dipole>` uses the spin moduli in
+its energy and explicitly provides this full-gradient encoding, so it can be
+used with the TSPIN integrators.  The other SPIN pair styles only guarantee the
+resulting torque and are rejected.  A variable-moment potential that explicitly
+uses the same encoding, such as *pair_style deepspin* of the DeePMD-kit package,
+can also be used without changing its force output.
 
 The inertial and the fixed-modulus styles describe different physics
 and must not be combined on the same group of atoms.  Because the

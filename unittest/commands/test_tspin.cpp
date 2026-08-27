@@ -20,14 +20,19 @@
 
 #include "atom.h"
 #include "fix.h"
+#include "force.h"
 #include "info.h"
+#include "math_const.h"
 #include "modify.h"
+#include "pair.h"
 #include "platform.h"
 #include "utils.h"
 
+#include "fmt/format.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <array>
 #include <cmath>
 #include <cstdio>
 #include <mpi.h>
@@ -378,6 +383,114 @@ TEST_F(TSpinTest, SpinPairStylesAreRejected)
     TEST_FAILURE(".*does not provide the derivative of the energy with respect to the full spin "
                  "vector.*",
                  command("run 0 post no"););
+}
+
+// spin/dipole/cut defines an energy on the complete spin vectors.  Its fm
+// output must equal |S|/hbar times the negative Cartesian spin gradient, and
+// its mechanical force must remain active when tspin moves the lattice.
+
+TEST_F(TSpinTest, DipoleCutProvidesFullGradient)
+{
+    if (!info->has_style("pair", "spin/dipole/cut"))
+        GTEST_SKIP() << "pair spin/dipole/cut missing";
+
+    constexpr double m1 = 2.0;
+    constexpr double m2 = 3.0;
+    constexpr double r  = 1.5;
+    const double isqrt2 = 1.0 / std::sqrt(2.0);
+    const std::array<double, 3> s1 = {m1 * isqrt2, m1 * isqrt2, 0.0};
+
+    BEGIN_HIDE_OUTPUT();
+    command("units metal");
+    command("atom_style spin");
+    command("boundary f f f");
+    command("region box block -5 5 -5 5 -5 5 units box");
+    command("create_box 1 box");
+    command("create_atoms 1 single -0.75 0 0 units box");
+    command("create_atoms 1 single 0.75 0 0 units box");
+    command("mass 1 1.0");
+    command(fmt::format("set atom 1 spin/atom {} {} {} 0.0", m1, isqrt2, isqrt2));
+    command("set atom 2 spin/atom 3.0 0.6 0.0 0.8");
+    command("pair_style spin/dipole/cut 4.0");
+    command("pair_coeff * * 4.0");
+    command("fix 1 all nve/tspin lattice moving spinmass 1.0");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    int i1 = -1;
+    for (int i = 0; i < lmp->atom->nlocal; ++i)
+        if (lmp->atom->tag[i] == 1) i1 = i;
+    ASSERT_GE(i1, 0);
+
+    const double hbar = lmp->force->hplanck / MathConst::MY_2PI;
+    std::array<double, 3> force_from_fm;
+    std::array<double, 3> lattice_force;
+    for (int d = 0; d < 3; ++d) {
+        force_from_fm[d] = hbar * lmp->atom->fm[i1][d] / m1;
+        lattice_force[d] = lmp->atom->f[i1][d];
+    }
+
+    const double prefactor = 9.274e-4 * 9.274e-4 * 784.15 / (4.0 * MathConst::MY_PI);
+    const double expected_energy =
+        prefactor * m1 * m2 / (r * r * r) * (0.6 * isqrt2 - 3.0 * 0.6 * isqrt2);
+    ASSERT_NEAR(lmp->force->pair->eng_vdwl, expected_energy, 1.0e-15);
+
+    const std::array<double, 3> expected_spin_force = {
+        prefactor * m2 / (r * r * r) * 1.2, 0.0,
+        -prefactor * m2 / (r * r * r) * 0.8};
+    const std::array<double, 3> expected_lattice_force = {
+        3.0 * prefactor * m1 * m2 / (r * r * r * r) * 0.6 * std::sqrt(2.0),
+        -3.0 * prefactor * m1 * m2 / (r * r * r * r) * 0.3 * std::sqrt(2.0),
+        -3.0 * prefactor * m1 * m2 / (r * r * r * r) * 0.4 * std::sqrt(2.0)};
+    for (int d = 0; d < 3; ++d) {
+        ASSERT_NEAR(force_from_fm[d], expected_spin_force[d], 1.0e-15);
+        ASSERT_NEAR(lattice_force[d], expected_lattice_force[d], 1.0e-15);
+    }
+
+    auto spin_energy = [&](const std::array<double, 3> &spin) {
+        const double smag =
+            std::sqrt(spin[0] * spin[0] + spin[1] * spin[1] + spin[2] * spin[2]);
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("set atom 1 spin/atom {:.17g} {:.17g} {:.17g} {:.17g}", smag,
+                            spin[0] / smag, spin[1] / smag, spin[2] / smag));
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        return lmp->force->pair->eng_vdwl;
+    };
+
+    constexpr double delta = 1.0e-6;
+    for (int d = 0; d < 3; ++d) {
+        auto plus = s1;
+        auto minus = s1;
+        plus[d] += delta;
+        minus[d] -= delta;
+        const double numerical_force = -(spin_energy(plus) - spin_energy(minus)) / (2.0 * delta);
+        ASSERT_NEAR(force_from_fm[d], numerical_force, 1.0e-12);
+    }
+
+    const double radial_force =
+        isqrt2 * (force_from_fm[0] + force_from_fm[1]);
+    ASSERT_GT(std::abs(radial_force), 1.0e-6);
+
+    spin_energy(s1);
+
+    auto position_energy = [&](int dim, double value) {
+        const char axis = "xyz"[dim];
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("set atom 1 {} {:.17g}", axis, value));
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        return lmp->force->pair->eng_vdwl;
+    };
+
+    const std::array<double, 3> x1 = {-0.75, 0.0, 0.0};
+    for (int d = 0; d < 3; ++d) {
+        const double numerical_force =
+            -(position_energy(d, x1[d] + delta) - position_energy(d, x1[d] - delta)) /
+            (2.0 * delta);
+        ASSERT_NEAR(lattice_force[d], numerical_force, 1.0e-12);
+        position_energy(d, x1[d]);
+    }
 }
 
 // lattice and spin select the sectors independently; both frozen is an error

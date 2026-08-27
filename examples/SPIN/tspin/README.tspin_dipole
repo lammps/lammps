@@ -1,0 +1,91 @@
+TSPIN two-spin dipole validation
+================================
+
+The in.spin.tspin_dipole input is a deterministic two-atom test of coupled
+lattice and variable-magnitude spin dynamics.  It uses only styles from the
+LAMMPS SPIN package:
+
+  pair_style spin/dipole/cut
+  fix spring/tspin
+  fix nve/tspin
+
+Analytic reference
+------------------
+
+For two complete spin vectors S1 and S2 separated by r with unit separation
+vector e, the pair energy is
+
+  U = C/r^3 [ S1.S2 - 3(S1.e)(S2.e) ],
+
+where
+
+  C = mu_0 mu_B^2/(4 pi) = 5.3668995380683553e-5 eV Angstrom^3.
+
+The example uses
+
+  r  = 1.5 Angstrom,
+  S1 = 2 (1/sqrt(2), 1/sqrt(2), 0),
+  S2 = 3 (0.6, 0, 0.8).
+
+The exact pair energy is
+
+  U = -8.0959382556055094e-5 eV.
+
+The complete Cartesian magnetic force on spin 1 is
+
+  -dU/dS1 = ( 5.7246928406062451e-5,
+               0,
+              -3.8164618937374974e-5 ) eV/mu_B.
+
+Its projection along the direction of S1 is nonzero,
+
+  s1.(-dU/dS1) = 4.0479691278027547e-5 eV/mu_B,
+
+which explicitly tests the longitudinal force that changes the spin modulus.
+With hbar = 6.5821191017147152e-4 eV ps/rad, the corresponding LAMMPS
+magnetic-force array is
+
+  fm1 = |S1|/hbar (-dU/dS1)
+      = ( 0.17394680199921933,
+          0,
+         -0.11596453466614624 ) rad.THz.
+
+The exact mechanical force on atom 1 is
+
+  F1 = ( 1.6191876511211020e-4,
+        -8.0959382556055110e-5,
+        -1.0794584340807350e-4 ) eV/Angstrom.
+
+Permanent unit test
+-------------------
+
+TSpinTest.DipoleCutProvidesFullGradient checks all of the following:
+
+1. The LAMMPS pair energy equals the closed-form value above.
+2. hbar/|S1| times fm1 equals the analytic -dU/dS1.
+3. Every component agrees with an independent central finite difference of
+   the LAMMPS energy with respect to the Cartesian components of S1.
+4. The atom force agrees with both its closed form and a central finite
+   difference with respect to the atom position.
+5. The longitudinal projection of the spin force is nonzero.
+
+Dynamic convergence
+-------------------
+
+The input accepts command-line overrides for dt and nsteps.  These runs cover
+the same physical duration of 2 ps:
+
+  lmp -var dt 0.001   -var nsteps 2000 -in in.spin.tspin_dipole
+  lmp -var dt 0.0005  -var nsteps 4000 -in in.spin.tspin_dipole
+  lmp -var dt 0.00025 -var nsteps 8000 -in in.spin.tspin_dipole
+
+For the current implementation, the absolute final drift in etotal+c_ske is
+
+  dt (ps)       absolute drift (eV)
+  0.001         8.1813582059e-12
+  0.0005        2.0452963054e-12
+  0.00025       5.1131980052e-13
+
+The error decreases by a factor of about four whenever the timestep is
+halved, as expected for velocity-Verlet integration.  The complete thermo
+tables are also identical between one and four MPI ranks for this case.

@@ -14,7 +14,9 @@ This directory contains examples and applications of the SPIN package
 
 - the tspin directory provides examples of inertial spin dynamics, in
   which the spin modulus is a dynamical degree of freedom, run both at
-  constant energy and with a Nose-Hoover spin thermostat.
+  constant energy and with a Nose-Hoover spin thermostat.  It also contains
+  a two-spin example using the native spin/dipole/cut interaction to couple
+  spin directions, spin moduli, and atomic motion.
 
 - the read_restart directory provides examples allowing to write or 
   read data files, and restart magneto-mechanical simulations.  
